@@ -10,3 +10,6 @@ export const ENGINE_NAME = "alt-hist-race-sim engine";
 
 /** The season the simulation starts from before any divergence. */
 export const SEED_SEASON = 1980;
+
+export { createRng, createRngFromSource, createRngFromState } from "./rng/index.js";
+export type { Rng, RngSource, RngState } from "./rng/types.js";
