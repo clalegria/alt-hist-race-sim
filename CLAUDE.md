@@ -22,13 +22,19 @@ First milestone:
 3. ✅ Single-race score-and-sort simulator.
 4. ✅ Monte Carlo harness (`tools/calibrate`) + one calibration pass against 1980.
 5. ✅ Full season loop + championship standings. Tests.
-6. ⬜ **NEXT:** `apps/web` (React + Vite) rendering one season's results.
+6. ✅ `apps/web` (React + Vite) rendering one season's results.
+
+**The first milestone is complete.** What comes next is gated on the open decisions
+at the bottom of this file — the ageing curve in particular, since driver ratings
+cannot be tuned until it exists.
 
 
 
 ## Commands
 ```
-pnpm test          # 149 tests (137 engine, 12 data)
+pnpm dev           # the web app on http://localhost:5173
+pnpm build         # production build of the web app
+pnpm test          # 171 tests (137 engine, 12 data, 22 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -88,7 +94,10 @@ packages/engine/           # pure sim, zero deps, heavily tested
   src/race/                # score-and-sort race model + its constants
   src/race/gaps.ts         # cosmetic score → seconds/laps, no effect on results
   src/season/              # season loop + derived championship standings
-packages/data/src/         # the three seed JSON files + typed loader
+packages/data/src/         # the three seed JSON files, typed loader, buildField
+apps/web/src/              # React + Vite season viewer
+  store/season.ts          # the one Zustand world-state store
+  components/ui/           # shadcn-style primitives, copied in
 tools/calibrate/src/       # race + season viewers, Monte Carlo harness, rating tuner
 ```
 Planned, not yet written:
@@ -288,9 +297,42 @@ freak; forcing it would distort the car). Williams still over-takes poles (27.6%
 ~21%). Reutemann over-wins at 16.6% against 1 real win (a one-event sample — not worth
 fitting).
 
+## Web app — implemented
+`apps/web` renders one season: the calendar with pole and winner per round, then both
+championship tables. `pnpm dev` to run it, `pnpm build` to produce a static bundle.
+A seed box re-runs the year; the same seed always gives the same season.
+
+**One store, one plain object.** `store/season.ts` holds a single `World`
+(`{ seed, year, rngState, season }`) and nothing else. No `Rng` — it holds a closure
+and cannot be serialized, so what is stored is its numeric `getState()` snapshot,
+which `createRngFromState` turns back into a generator positioned exactly where the
+season ended. `JSON.stringify(world)` is therefore already a complete save file, and
+tests assert both the round trip and that no function or class instance has crept in.
+
+**Standings are derived in the component, not stored.** `championshipStandings` and
+`constructorStandings` run in a `useMemo` off `world.season`, the same
+results-are-the-source-of-truth rule the engine follows.
+
+`buildField` moved from `tools/calibrate` into `packages/data`, since the app needs
+the same authored-seed-to-race-field mapping and duplicating a placeholder for the
+ageing curve would mean two things to fix later. Its dependency on the engine is
+type-only and erases at build time, so no runtime edge exists in either direction.
+
+Tests are Vitest with no jsdom: the store is exercised directly, and the page through
+`renderToStaticMarkup`, which catches a component that throws or an id rendered where
+a name should be. Note that zustand serves `getInitialState()` as the
+useSyncExternalStore *server* snapshot, so a static render always shows the world the
+store was built with — that is SSR-only and irrelevant to a client-rendered SPA, but
+it is why store updates are asserted in the store's own tests rather than through the
+rendered page.
+
+Biome needs `css.parser.tailwindDirectives` to parse Tailwind 4's `@theme`; it is on
+in `biome.json`.
+
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
-- Every engine module ships with Vitest tests. Favour property-style checks (finish
+- Every engine module ships with Vitest tests. `apps/web` is tested at the store and
+  smoke-render level rather than component by component. Favour property-style checks (finish
   order is a valid permutation; nobody finishes twice; DNFs remove cars) alongside
   seeded-outcome assertions.
 - **Statistical tests must be mutation-checked.** A distribution test that passes

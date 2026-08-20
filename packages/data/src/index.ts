@@ -12,6 +12,7 @@ import seasonJson from "./season-1980.json";
 import teamsJson from "./teams.json";
 import type { Driver, SeasonSeed, Team } from "./types.js";
 
+export { buildField } from "./buildField.js";
 export type {
   CalendarRace,
   CarSpec,

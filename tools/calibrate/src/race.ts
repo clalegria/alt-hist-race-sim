@@ -9,9 +9,8 @@
  *   pnpm race 7        # seed 7 — same seed always gives the same race
  */
 
-import { driversById, teamsById } from "@alt-hist/data";
+import { buildField, driversById, teamsById } from "@alt-hist/data";
 import { createRng, type RaceGap, simulateRace } from "@alt-hist/engine";
-import { buildField } from "./buildField.js";
 
 function parseSeed(argv: readonly string[]): number {
   const raw = argv[2];

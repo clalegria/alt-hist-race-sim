@@ -9,14 +9,13 @@
  *   pnpm season 12       # seed 12 — same seed always gives the same season
  */
 
-import { driversById, season1980, teamsById } from "@alt-hist/data";
+import { buildField, driversById, season1980, teamsById } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
   createRng,
   simulateSeason,
 } from "@alt-hist/engine";
-import { buildField } from "./buildField.js";
 
 function parseSeed(argv: readonly string[]): number {
   const raw = argv[2];

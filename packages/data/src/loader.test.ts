@@ -44,12 +44,12 @@ describe("validateSeedData", () => {
     expect(season1980.calendar.map((race) => race.round)).toEqual(
       Array.from({ length: 14 }, (_, i) => i + 1),
     );
-    expect(season1980.calendar[0]?.name).toBe("Argentine Grand Prix");
+    expect(season1980.calendar[0]?.name).toBe("Argentine GP");
     expect(season1980.calendar[13]?.circuit).toBe("Watkins Glen");
-    // 1980 ran the Italian Grand Prix at Imola, not Monza — the one year it did.
+    // 1980 ran the Italian GP at Imola, not Monza — the one year it did.
     expect(season1980.calendar[11]).toEqual({
       round: 12,
-      name: "Italian Grand Prix",
+      name: "Italian GP",
       circuit: "Imola",
     });
   });
@@ -88,8 +88,8 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [
-        { round: 1, name: "Argentine Grand Prix", circuit: "Buenos Aires" },
-        { round: 3, name: "Brazilian Grand Prix", circuit: "Interlagos" },
+        { round: 1, name: "Argentine GP", circuit: "Buenos Aires" },
+        { round: 3, name: "Brazilian GP", circuit: "Interlagos" },
       ],
       entries: [],
     };
@@ -108,7 +108,7 @@ describe("validateSeedData", () => {
       validateSeedData(drivers, teams, withName("  ", "Buenos Aires"));
     }).toThrow(/missing a name or circuit/);
     expect(() => {
-      validateSeedData(drivers, teams, withName("Argentine Grand Prix", ""));
+      validateSeedData(drivers, teams, withName("Argentine GP", ""));
     }).toThrow(/missing a name or circuit/);
   });
 

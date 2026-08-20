@@ -7,6 +7,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "dependencies": {
+    "@alt-hist/engine": "workspace:*"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

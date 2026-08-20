@@ -10,9 +10,8 @@
  *   pnpm calibrate 20000      # more races, tighter numbers
  */
 
-import { driversById, teamsById } from "@alt-hist/data";
+import { buildField, driversById, teamsById } from "@alt-hist/data";
 import { createRng, simulateRace } from "@alt-hist/engine";
-import { buildField } from "./buildField.js";
 
 const DEFAULT_RACES = 5000;
 
