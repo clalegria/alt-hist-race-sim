@@ -56,7 +56,25 @@ export interface SeasonEntry {
   readonly drivers: readonly string[];
 }
 
+/**
+ * One round of a season's calendar.
+ *
+ * Cosmetic. The race model has no notion of a circuit — every round is the same
+ * race — so this exists purely so results can be labelled "Round 3, South
+ * African Grand Prix at Kyalami" instead of "Round 3". If circuits ever gain
+ * real character (a power track favouring the turbos, a street circuit
+ * favouring grid position), it will hang off this record; nothing does yet.
+ */
+export interface CalendarRace {
+  /** 1-based, and equal to the position in the array. */
+  readonly round: number;
+  readonly name: string;
+  readonly circuit: string;
+}
+
 export interface SeasonSeed {
   readonly year: number;
+  /** The season's rounds, in order. Its length is how many races the year has. */
+  readonly calendar: readonly CalendarRace[];
   readonly entries: readonly SeasonEntry[];
 }

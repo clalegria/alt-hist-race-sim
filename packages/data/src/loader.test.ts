@@ -39,6 +39,21 @@ describe("validateSeedData", () => {
     }).not.toThrow();
   });
 
+  it("carries the fourteen rounds of the real 1980 season", () => {
+    expect(season1980.calendar).toHaveLength(14);
+    expect(season1980.calendar.map((race) => race.round)).toEqual(
+      Array.from({ length: 14 }, (_, i) => i + 1),
+    );
+    expect(season1980.calendar[0]?.name).toBe("Argentine Grand Prix");
+    expect(season1980.calendar[13]?.circuit).toBe("Watkins Glen");
+    // 1980 ran the Italian Grand Prix at Imola, not Monza — the one year it did.
+    expect(season1980.calendar[11]).toEqual({
+      round: 12,
+      name: "Italian Grand Prix",
+      circuit: "Imola",
+    });
+  });
+
   it("allows seatless drivers and single-car entries", () => {
     const seated = new Set(season1980.entries.flatMap((entry) => entry.drivers));
     expect(seated.size).toBeLessThan(drivers.length);
@@ -48,6 +63,7 @@ describe("validateSeedData", () => {
   it("rejects an entry referencing an unknown driver", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      calendar: [],
       entries: [{ teamId: "ferrari", car: carSpec(), drivers: ["ghost"] }],
     };
     expect(() => {
@@ -58,6 +74,7 @@ describe("validateSeedData", () => {
   it("rejects an entry referencing an unknown team", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      calendar: [],
       entries: [{ teamId: "phantom", car: carSpec(), drivers: ["prost"] }],
     };
     expect(() => {
@@ -65,9 +82,40 @@ describe("validateSeedData", () => {
     }).toThrow(/unknown team "phantom"/);
   });
 
+  it("rejects a calendar whose round numbers do not match their order", () => {
+    // Cosmetic data still has to be right: a round number out of step with its
+    // position mislabels every result printed against it.
+    const broken: SeasonSeed = {
+      year: 1980,
+      calendar: [
+        { round: 1, name: "Argentine Grand Prix", circuit: "Buenos Aires" },
+        { round: 3, name: "Brazilian Grand Prix", circuit: "Interlagos" },
+      ],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, broken);
+    }).toThrow(/round 3 sits at position 2/);
+  });
+
+  it("rejects a calendar race with no name or no circuit", () => {
+    const withName = (name: string, circuit: string): SeasonSeed => ({
+      year: 1980,
+      calendar: [{ round: 1, name, circuit }],
+      entries: [],
+    });
+    expect(() => {
+      validateSeedData(drivers, teams, withName("  ", "Buenos Aires"));
+    }).toThrow(/missing a name or circuit/);
+    expect(() => {
+      validateSeedData(drivers, teams, withName("Argentine Grand Prix", ""));
+    }).toThrow(/missing a name or circuit/);
+  });
+
   it("rejects a driver seated at two teams", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      calendar: [],
       entries: [
         { teamId: "ferrari", car: carSpec(), drivers: ["prost"] },
         { teamId: "mclaren", car: carSpec(), drivers: ["prost"] },

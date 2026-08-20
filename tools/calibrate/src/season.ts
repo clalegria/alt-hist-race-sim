@@ -9,7 +9,7 @@
  *   pnpm season 12       # seed 12 — same seed always gives the same season
  */
 
-import { driversById, teamsById } from "@alt-hist/data";
+import { driversById, season1980, teamsById } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
@@ -17,7 +17,6 @@ import {
   simulateSeason,
 } from "@alt-hist/engine";
 import { buildField } from "./buildField.js";
-import { RACES_IN_1980 } from "./targets.js";
 
 function parseSeed(argv: readonly string[]): number {
   const raw = argv[2];
@@ -42,7 +41,10 @@ function padLeft(text: string, width: number): string {
 function main(): void {
   const seed = parseSeed(process.argv);
   const field = buildField();
-  const season = simulateSeason(field, RACES_IN_1980, createRng(seed));
+  // The calendar decides how many rounds the year has; it is also the only
+  // thing that distinguishes them, since no circuit has any properties.
+  const calendar = season1980.calendar;
+  const season = simulateSeason(field, calendar.length, createRng(seed));
   const table = championshipStandings(season);
   const constructors = constructorStandings(season);
 
@@ -63,17 +65,22 @@ function main(): void {
   };
 
   console.log("");
-  console.log(`1980 season — ${season.races.length} races, seed ${seed}`);
+  console.log(`${season1980.year} season — ${season.races.length} races, seed ${seed}`);
   console.log("");
 
-  console.log([padLeft("RND", 4), "  ", padRight("POLE", 34), "WINNER"].join(""));
-  console.log("-".repeat(74));
+  console.log(
+    [padLeft("RND", 4), "  ", padRight("GRAND PRIX", 32), padRight("POLE", 34), "WINNER"].join(""),
+  );
+  console.log("-".repeat(106));
   season.races.forEach((race, index) => {
+    const round = calendar[index];
+    const title = round === undefined ? `Round ${index + 1}` : `${round.name} (${round.circuit})`;
     console.log(
       [
         padLeft(String(index + 1), 4),
         "  ",
-        padRight(nameAndTeamOf(race.poleDriverId), 34),
+        padRight(title, 44),
+        padRight(nameAndTeamOf(race.poleDriverId), 33),
         nameAndTeamOf(race.winnerDriverId),
       ].join(""),
     );

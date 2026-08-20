@@ -28,7 +28,7 @@ First milestone:
 
 ## Commands
 ```
-pnpm test          # 146 tests (137 engine, 9 data)
+pnpm test          # 149 tests (137 engine, 12 data)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -236,8 +236,9 @@ Seed files (in `packages/data/src/`):
   peak: { season, racing, qualifying, consistency, adaptability, composure },
   developmentSpeed, declineSpeed }`.
 - `teams.json` — 15 teams. `{ id, name, base, foundedYear }`.
-- `season-1980.json` — 15 entries, 28 seats. `{ year, entries: [{ teamId,
-  car: { racing, qualifying, consistency, reliability }, drivers: [driverId, ...] }] }`.
+- `season-1980.json` — 14 rounds, 15 entries, 28 seats. `{ year, calendar: [{ round,
+  name, circuit }], entries: [{ teamId, car: { racing, qualifying, consistency,
+  reliability }, drivers: [driverId, ...] }] }`.
 
 Notes:
 - All five driver attributes share polarity: higher = better. `composure` replaced
@@ -245,6 +246,11 @@ Notes:
 - 13 drivers hold no 1980 seat. They exist in the pool, available to the market.
   Intended, not a bug.
 - `adaptability` is authored but unused so far — it is for the market and progression.
+- **The calendar is cosmetic and nothing else.** It exists so results can be labelled
+  "Round 12, Italian Grand Prix at Imola" — circuits have no properties and the engine
+  never sees it, so every round is the same race. `calendar.length` is the season's
+  round count, and `validateSeedData` checks each `round` matches its position, since
+  a number out of step would mislabel every result printed against it.
 - Seed ratings are tuned via the Monte Carlo harness, never guessed in code.
   **Car ratings have had two calibration passes** against the 1980 season (see below).
   **Driver ratings have not**, deliberately — see Open decisions.
@@ -328,8 +334,9 @@ fitting).
   than one season exists. Related and unmodelled: real 1980 DNQs were decided by
   pre-qualifying and by teams entering different cars at different rounds, whereas
   here the same 28 entries contest every race.
-- **Season calendar.** `simulateSeason` takes a round *count*, not a calendar. There
-  are no circuits anywhere in the data, so every round is the same race. Tracks with
-  their own character (power circuits favouring the Renault turbo, street circuits
-  favouring qualifying position) are the obvious next step and would also give the
-  cosmetic gaps a real lap time to work from.
+- **Circuits have no character.** The calendar in `season-1980.json` is names only,
+  and `simulateSeason` still takes a round *count* rather than the calendar, so every
+  round is the same race. Giving tracks real properties (a power circuit favouring the
+  Renault turbo, a street circuit favouring grid position, a per-circuit lap time to
+  anchor the cosmetic gaps) means passing the calendar into the engine and deciding
+  what a circuit does to the score. Not started.

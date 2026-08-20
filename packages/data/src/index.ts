@@ -12,7 +12,15 @@ import seasonJson from "./season-1980.json";
 import teamsJson from "./teams.json";
 import type { Driver, SeasonSeed, Team } from "./types.js";
 
-export type { CarSpec, Driver, DriverPeak, SeasonEntry, SeasonSeed, Team } from "./types.js";
+export type {
+  CalendarRace,
+  CarSpec,
+  Driver,
+  DriverPeak,
+  SeasonEntry,
+  SeasonSeed,
+  Team,
+} from "./types.js";
 
 /** Every driver in the pool, including those without a 1980 seat. */
 export const drivers: readonly Driver[] = driversJson;
@@ -97,6 +105,19 @@ export function validateSeedData(
       seatedDrivers.set(driverId, entry.teamId);
     }
   }
+
+  // The calendar is cosmetic, but a round number that disagrees with its
+  // position would quietly mislabel every result printed from it.
+  season.calendar.forEach((race, index) => {
+    if (race.round !== index + 1) {
+      throw new Error(
+        `Season ${season.year} calendar round ${race.round} sits at position ${index + 1}`,
+      );
+    }
+    if (race.name.trim() === "" || race.circuit.trim() === "") {
+      throw new Error(`Season ${season.year} round ${race.round} is missing a name or circuit`);
+    }
+  });
 
   const duplicateEntries = findDuplicates(season.entries.map((entry) => entry.teamId));
   if (duplicateEntries.length > 0) {

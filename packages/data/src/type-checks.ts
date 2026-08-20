@@ -20,7 +20,15 @@
 import type driversJson from "./drivers.json";
 import type seasonJson from "./season-1980.json";
 import type teamsJson from "./teams.json";
-import type { CarSpec, Driver, DriverPeak, SeasonEntry, SeasonSeed, Team } from "./types.js";
+import type {
+  CalendarRace,
+  CarSpec,
+  Driver,
+  DriverPeak,
+  SeasonEntry,
+  SeasonSeed,
+  Team,
+} from "./types.js";
 
 /**
  * Resolves to `true` when `A` is assignable to `B`. When it is not, the
@@ -32,6 +40,7 @@ type DriverJson = (typeof driversJson)[number];
 type TeamJson = (typeof teamsJson)[number];
 type SeasonJson = typeof seasonJson;
 type SeasonEntryJson = SeasonJson["entries"][number];
+type CalendarRaceJson = SeasonJson["calendar"][number];
 
 // drivers.json
 export type DriversAreDrivers = Extends<DriverJson, Driver>;
@@ -47,3 +56,5 @@ export type SeasonIsSeasonSeed = Extends<SeasonJson, SeasonSeed>;
 export type SeasonHasNoExtraKeys = Extends<keyof SeasonJson, keyof SeasonSeed>;
 export type EntriesHaveNoExtraKeys = Extends<keyof SeasonEntryJson, keyof SeasonEntry>;
 export type CarsHaveNoExtraKeys = Extends<keyof SeasonEntryJson["car"], keyof CarSpec>;
+export type CalendarIsCalendarRaces = Extends<CalendarRaceJson, CalendarRace>;
+export type CalendarHasNoExtraKeys = Extends<keyof CalendarRaceJson, keyof CalendarRace>;
