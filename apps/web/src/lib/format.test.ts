@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatGap, formatSeconds, parseSeed } from "./format.js";
+import { formatGap, formatSeconds } from "./format.js";
 
 describe("formatSeconds", () => {
   it("shows sub-minute gaps in seconds", () => {
@@ -27,18 +27,5 @@ describe("formatGap", () => {
   it("pluralises laps", () => {
     expect(formatGap({ kind: "laps", laps: 1 })).toBe("+1 lap");
     expect(formatGap({ kind: "laps", laps: 3 })).toBe("+3 laps");
-  });
-});
-
-describe("parseSeed", () => {
-  it("reads an integer", () => {
-    expect(parseSeed("12", 1)).toBe(12);
-  });
-
-  it("falls back on anything that is not one", () => {
-    // The input is a text field, so it is empty or half-typed a lot of the time.
-    expect(parseSeed("", 4)).toBe(4);
-    expect(parseSeed("-", 4)).toBe(4);
-    expect(parseSeed("abc", 4)).toBe(4);
   });
 });

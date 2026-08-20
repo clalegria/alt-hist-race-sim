@@ -15,6 +15,17 @@ describe("the world", () => {
     expect(createWorld(7)).not.toEqual(createWorld(8));
   });
 
+  it("records the grid it actually raced", () => {
+    const world = createWorld(1);
+    expect(world.field).toHaveLength(28);
+    // Not just ids: the ratings that fed the simulation, which is what makes
+    // this the record of the season rather than a pointer back to the seed.
+    const jones = world.field.find((entrant) => entrant.driverId === "jones");
+    expect(jones?.teamId).toBe("williams");
+    expect(jones?.driver.racing).toBeGreaterThan(0);
+    expect(jones?.car.reliability).toBeGreaterThan(0);
+  });
+
   it("survives a JSON round trip unchanged", () => {
     // The save-game invariant: the world is plain data. A function, a Map, or a
     // live `Rng` anywhere in it would silently vanish here.

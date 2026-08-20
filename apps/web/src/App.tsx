@@ -1,12 +1,13 @@
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
 import { SeasonCalendar } from "./components/SeasonCalendar.js";
+import { SeasonGrid } from "./components/SeasonGrid.js";
 import { StandingsTable } from "./components/StandingsTable.js";
 import { Button } from "./components/ui/button.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./components/ui/card.js";
 import { Input } from "./components/ui/input.js";
-import { parseSeed } from "./lib/format.js";
 import { driverName, teamName } from "./lib/names.js";
+import { parseSeed, randomSeed } from "./lib/seed.js";
 import { useSeasonStore } from "./store/season.js";
 
 function plural(count: number, noun: string): string {
@@ -50,6 +51,12 @@ export function App() {
   const champion = drivers[0];
   const topTeam = constructors[0];
 
+  /** Runs a seed and keeps the box showing what was actually run. */
+  const run = (seed: number): void => {
+    setSeedInput(String(seed));
+    simulate(seed);
+  };
+
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-12">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -69,7 +76,7 @@ export function App() {
           className="flex items-end gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            simulate(parseSeed(seedInput, world.seed));
+            run(parseSeed(seedInput, world.seed));
           }}
         >
           <div className="flex flex-col gap-1.5">
@@ -93,12 +100,18 @@ export function App() {
           <Button
             variant="outline"
             onClick={() => {
-              const next = world.seed + 1;
-              setSeedInput(String(next));
-              simulate(next);
+              run(world.seed + 1);
             }}
           >
             Next
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              run(randomSeed());
+            }}
+          >
+            Random
           </Button>
         </form>
       </header>
@@ -124,6 +137,8 @@ export function App() {
         />
       </div>
 
+      <SeasonGrid field={world.field} />
+
       <SeasonCalendar season={world.season} teamFor={teamFor} />
 
       <StandingsTable
@@ -139,11 +154,6 @@ export function App() {
         nameColumn="Team"
         standings={constructors}
       />
-
-      <p className="text-muted-foreground text-xs">
-        Ratings are authored placeholders: no ageing curve exists yet, so every driver races at
-        their career peak all season.
-      </p>
     </div>
   );
 }

@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 171 tests (137 engine, 12 data, 22 web)
+pnpm test          # 181 tests (137 engine, 12 data, 32 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -298,16 +298,31 @@ freak; forcing it would distort the car). Williams still over-takes poles (27.6%
 fitting).
 
 ## Web app — implemented
-`apps/web` renders one season: the calendar with pole and winner per round, then both
-championship tables. `pnpm dev` to run it, `pnpm build` to produce a static bundle.
-A seed box re-runs the year; the same seed always gives the same season.
+`apps/web` renders one season: the grid with every rating it was simulated from, the
+calendar with pole and winner per round (select a race for its full classification),
+then both championship tables. `pnpm dev` to run it, `pnpm build` to produce a static
+bundle.
+
+A fresh random seed is drawn on every page load, and **Random** draws another. That
+is not a violation of the no-`Math.random()` rule: the ban is on the *engine*, where
+every outcome must come from the injected PRNG or nothing is reproducible. Choosing
+*which* seed to run is a user action that happens before any generator exists, so it
+lives in `lib/seed.ts` in the app and never in `packages/engine`.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, rngState, season }`) and nothing else. No `Rng` — it holds a closure
+(`{ seed, year, rngState, field, season }`) and nothing else. `field` is the grid
+exactly as raced — every driver and car rating that fed the simulation. It is stored
+rather than re-read from the seed files because it will stop being derivable from
+them: once the ageing curve lands, ratings are rolled per run and this becomes the
+only record of what they were. No `Rng` — it holds a closure
 and cannot be serialized, so what is stored is its numeric `getState()` snapshot,
 which `createRngFromState` turns back into a generator positioned exactly where the
 season ended. `JSON.stringify(world)` is therefore already a complete save file, and
 tests assert both the round trip and that no function or class instance has crept in.
+
+View state that says nothing about the simulation — which race row is expanded —
+stays in component `useState`. The rule is that *simulation* state lives in the one
+store, not that React may never hold anything.
 
 **Standings are derived in the component, not stored.** `championshipStandings` and
 `constructorStandings` run in a `useMemo` off `world.season`, the same

@@ -14,8 +14,15 @@
  */
 
 import { buildField, season1980 } from "@alt-hist/data";
-import { createRng, type RngState, type SeasonResult, simulateSeason } from "@alt-hist/engine";
+import {
+  createRng,
+  type RaceEntrant,
+  type RngState,
+  type SeasonResult,
+  simulateSeason,
+} from "@alt-hist/engine";
 import { create } from "zustand";
+import { randomSeed } from "../lib/seed.js";
 
 /** The serializable world. Add to this and it must stay plain data. */
 export interface World {
@@ -26,6 +33,14 @@ export interface World {
    * `createRngFromState` to continue the same stream into the next season.
    */
   readonly rngState: RngState;
+  /**
+   * The grid exactly as it was raced — every driver and car rating that fed the
+   * simulation. Kept in the world rather than re-read from the seed files
+   * because it will stop being derivable from them: once the ageing curve lands,
+   * a driver's ratings are rolled per run, and this is the only record of what
+   * they actually were.
+   */
+  readonly field: readonly RaceEntrant[];
   readonly season: SeasonResult;
 }
 
@@ -44,6 +59,7 @@ export function createWorld(seed: number): World {
     seed,
     year: season1980.year,
     rngState: rng.getState(),
+    field,
     season,
   };
 }
@@ -54,10 +70,10 @@ interface SeasonStore {
   readonly simulate: (seed: number) => void;
 }
 
-const DEFAULT_SEED = 1;
-
 export const useSeasonStore = create<SeasonStore>((set) => ({
-  world: createWorld(DEFAULT_SEED),
+  // A fresh seed per page load, so opening the app is opening a season nobody
+  // has seen rather than the same one every time.
+  world: createWorld(randomSeed()),
   simulate: (seed) => {
     set({ world: createWorld(seed) });
   },

@@ -25,9 +25,3 @@ export function formatGap(gap: RaceGap): string {
   }
   return formatSeconds(gap.seconds);
 }
-
-/** "3" for a seed input that may be mid-edit, falling back when it is not a number. */
-export function parseSeed(raw: string, fallback: number): number {
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
