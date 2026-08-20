@@ -21,18 +21,19 @@ First milestone:
 2. ✅ Seeded PRNG (sfc32, injectable). Same seed → same sequence.
 3. ✅ Single-race score-and-sort simulator.
 4. ✅ Monte Carlo harness (`tools/calibrate`) + one calibration pass against 1980.
-5. ⬜ **NEXT:** full season loop + championship standings. Tests.
-6. ⬜ Only then: `apps/web` (React + Vite) rendering one season's results.
+5. ✅ Full season loop + championship standings. Tests.
+6. ⬜ **NEXT:** `apps/web` (React + Vite) rendering one season's results.
 
-Nothing is committed yet — the whole project is still an uncommitted working tree.
+
 
 ## Commands
 ```
-pnpm test          # 107 tests (98 engine, 9 data)
+pnpm test          # 146 tests (137 engine, 9 data)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
 pnpm race [seed]   # simulate ONE race on the 1980 grid, print the classification
+pnpm season [seed] # simulate the full 14-race 1980 season, print both championships
 pnpm calibrate [n] # run the 1980 grid n times (default 5000), print distributions
 pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
 ```
@@ -86,12 +87,12 @@ packages/engine/           # pure sim, zero deps, heavily tested
   src/rng/                 # sfc32 PRNG behind an Rng interface
   src/race/                # score-and-sort race model + its constants
   src/race/gaps.ts         # cosmetic score → seconds/laps, no effect on results
+  src/season/              # season loop + derived championship standings
 packages/data/src/         # the three seed JSON files + typed loader
-tools/calibrate/src/       # race viewer, Monte Carlo harness, rating tuner
+tools/calibrate/src/       # race + season viewers, Monte Carlo harness, rating tuner
 ```
 Planned, not yet written:
 ```
-packages/engine/src/season/       # calendar, championship points  ← next
 packages/engine/src/market/       # driver transfers
 packages/engine/src/progression/  # ageing, car development
 apps/web/                         # React + Vite
@@ -186,6 +187,48 @@ defined yet and belongs to the progression model.
 
 `simulateRace(field, rng, constants?)` takes constants as an optional override, which
 is how the calibration tools sweep values without editing source.
+
+## Season model — implemented
+`simulateSeason(field, rounds, rng, raceConstants?, model?)` runs the same field
+`rounds` times and returns `{ races }` — nothing else. A race's index in that array
+is its round number.
+
+**One RNG threaded through the whole year**, not re-seeded per race, so a season is
+a single continuous stream and round 7 depends on everything drawn before it.
+Changing an early round changes the rest of the year. That is the honest behaviour,
+and it means a bug report needs one seed rather than fourteen.
+
+The race model goes in as a parameter (`RaceModel`, defaulting to score-and-sort),
+so the season loop never reaches for `simulateRace` directly and a richer race model
+drops in without touching it.
+
+The field is fixed for the whole season. Mid-season seat changes belong to the
+market; when it exists, this loop takes a field per round instead of one for the year.
+
+**Standings are derived, never accumulated.** `championshipStandings(season,
+constants?)` and `constructorStandings(season, constants?)` build their tables from
+the stored results on read. Nothing anywhere keeps
+a running points total — that would be a second source of truth waiting to disagree
+with the first. Order is points, then countback (most wins, then most seconds, and so
+on down, as 1980 did), then driver id so the order is total and never depends on the
+sort implementation.
+
+Both tables are the same tally keyed differently, so they cannot drift apart. A
+constructor scores with **both** cars — the rule from 1979 onward, and the only one
+this sim needs, since it starts in 1980 and runs forward. That makes a team's
+`starts`, `wins` and `podiums` per car rather than per race (a two-car team that
+finished all fourteen rounds with both cars has 28 starts), while `poles` stays per
+race because only one car starts from pole.
+
+Points come from `season/constants.ts` as a plain array, `pointsByPosition`, best
+first. Its *length* is how many places score, so the late-2010s
+25-18-15-12-10-8-6-4-2-1 drops in as a different array and nothing else changes.
+Default is the 1980 scale, 9-6-4-3-2-1.
+
+**The dropped-scores rule is deliberately not modelled** (author's call). 1980 counted
+each driver's best five results from the first seven races and best five from the last
+seven, so real totals are lower than every-race totals — Jones scored 71 gross against
+67 counted. Here every race counts, and a simulated Jones season lands around 72.
 
 ## Data model
 Seed files (in `packages/data/src/`):
@@ -285,5 +328,8 @@ fitting).
   than one season exists. Related and unmodelled: real 1980 DNQs were decided by
   pre-qualifying and by teams entering different cars at different rounds, whereas
   here the same 28 entries contest every race.
-- **Points system.** Not yet implemented. 1980 used 9-6-4-3-2-1 for the top six with
-  best-N-scores dropped — confirm whether to model the dropped-scores rule.
+- **Season calendar.** `simulateSeason` takes a round *count*, not a calendar. There
+  are no circuits anywhere in the data, so every round is the same race. Tracks with
+  their own character (power circuits favouring the Renault turbo, street circuits
+  favouring qualifying position) are the obvious next step and would also give the
+  cosmetic gaps a real lap time to work from.

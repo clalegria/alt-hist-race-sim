@@ -25,3 +25,11 @@ export type {
 } from "./race/types.js";
 export { createRng, createRngFromSource, createRngFromState } from "./rng/index.js";
 export type { Rng, RngSource, RngState } from "./rng/types.js";
+export { SEASON_CONSTANTS, type SeasonConstants } from "./season/constants.js";
+export { simulateSeason } from "./season/simulateSeason.js";
+export {
+  championshipStandings,
+  constructorStandings,
+  pointsForPosition,
+} from "./season/standings.js";
+export type { ConstructorStanding, DriverStanding, SeasonResult } from "./season/types.js";

@@ -8,7 +8,8 @@
     "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
     "tune": "tsx src/tune.ts",
-    "race": "tsx src/race.ts"
+    "race": "tsx src/race.ts",
+    "season": "tsx src/season.ts"
   },
   "dependencies": {
     "@alt-hist/data": "workspace:*",
