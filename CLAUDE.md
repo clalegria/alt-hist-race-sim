@@ -67,8 +67,9 @@ packages/data/       # authored seed data (JSON) + typed loaders
 apps/web/            # React + Vite (phase 1: read-only view of a running sim)
 tools/calibrate/     # headless Monte Carlo harness
 ```
-(The three seed JSON files currently sit in a top-level `data/` folder; move them
-into `packages/data/` during scaffolding.)
+The three seed JSON files live in `packages/data/src/`, imported statically and
+re-exported under types derived from the JSON itself (`packages/data/src/type-checks.ts`
+fails the typecheck if the two drift apart).
 
 ## Domain glossary
 - **Entry**: one team's participation in one season — a team + a car spec + its drivers.
@@ -85,7 +86,7 @@ into `packages/data/` during scaffolding.)
   by the market) later.
 
 ## Data model
-Seed files (currently in `data/`, destined for `packages/data/`):
+Seed files (in `packages/data/src/`):
 - `drivers.json` — `{ id, name, nationality, birthYear, debutSeason,
   peak: { season, racing, qualifying, consistency, adaptability, composure },
   developmentSpeed, declineSpeed }`.
