@@ -16,18 +16,32 @@ the guardrails that keep the project coherent — follow them.
 runs client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a
 server, an HTTP API, or a database in this phase.
 
-First milestone, in order:
-1. pnpm workspace + `packages/engine` (pure TS, strict, Vitest, Biome). Prove one trivial test runs.
-2. Seeded PRNG (injectable). Tests prove same seed → same sequence.
-3. Single-race score-and-sort simulator. Tests.
-4. Monte Carlo harness (`tools/calibrate`): run one fixed grid N times, print win/pole/DNF distributions.
-5. Full season loop + championship standings. Tests.
-6. Only then: `apps/web` (React + Vite) rendering one season's results.
+First milestone:
+1. ✅ pnpm workspace + `packages/engine` (pure TS, strict, Vitest, Biome).
+2. ✅ Seeded PRNG (sfc32, injectable). Same seed → same sequence.
+3. ✅ Single-race score-and-sort simulator.
+4. ✅ Monte Carlo harness (`tools/calibrate`) + one calibration pass against 1980.
+5. ⬜ **NEXT:** full season loop + championship standings. Tests.
+6. ⬜ Only then: `apps/web` (React + Vite) rendering one season's results.
+
+Nothing is committed yet — the whole project is still an uncommitted working tree.
+
+## Commands
+```
+pnpm test          # 63 tests (54 engine, 9 data)
+pnpm typecheck     # tsc --noEmit across all packages
+pnpm lint          # biome check .
+pnpm format        # biome check --write .
+pnpm race [seed]   # simulate ONE race on the 1980 grid, print the classification
+pnpm calibrate [n] # run the 1980 grid n times (default 5000), print distributions
+pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
+```
 
 ## Architecture rules (invariants — do not violate)
 - **The engine is pure.** `packages/engine` imports nothing outside itself and does
   no I/O — no `fetch`, no file reads, no `Date.now()`. Inputs in, results out.
   This is what makes it testable and portable (browser now, server later).
+  It currently has **zero dependencies**, runtime or dev. Keep it that way.
 - **No `Math.random()` anywhere in the engine.** All randomness comes from an
   injected seeded PRNG. Reproducibility is a hard requirement (bug reports, tests,
   Monte Carlo calibration).
@@ -41,35 +55,49 @@ First milestone, in order:
   plain-data object (no class instances, no embedded functions) held in a single
   store (Zustand on the UI side). This makes "save game" trivial later. Do not
   scatter simulation state across React component state.
+  The `Rng` object holds a closure, so it must NOT go in the world state — store
+  its numeric `getState()` snapshot and rebuild with `createRngFromState()`.
 - **Realize-once-and-store for career rolls.** Authored `debutSeason` and
   `peak.season` are *nominal targets*. When a driver enters the sim, roll their
   realized debut and realized peak ONCE via the seeded PRNG, store them in that
   driver's per-sim state, and read the stored values thereafter. Never re-roll on read.
+- **Tunable numbers live in one constants module per subsystem**, never inline in
+  logic. `packages/engine/src/race/constants.ts` is the pattern to follow.
 
 ## Tech stack (decided)
-- Language: TypeScript, `strict: true`, top to bottom.
-- Monorepo: pnpm workspaces. Build/dev: Vite.
+- Language: TypeScript 7, `strict: true` plus `noUncheckedIndexedAccess`,
+  `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `noUnusedLocals`.
+- Monorepo: pnpm workspaces (pnpm 11, Node 24). Build/dev: Vite.
+- **No build step.** Packages export TypeScript source directly
+  (`"exports": "./src/index.ts"`); Vite/Vitest/tsx transpile on the fly.
+  `tsc --noEmit` is the correctness check. Add a real build only if something
+  needs to consume these packages from plain Node.
 - UI: React. Styling: Tailwind CSS + shadcn/ui (copied in, not a dependency). State: Zustand.
-- Charts: Recharts (when needed). Tests: Vitest. Lint/format: Biome.
+- Charts: Recharts (when needed). Tests: Vitest 4. Lint/format: Biome 2.
+- `tools/*` may use dev dependencies (tsx runs the TS directly). The engine may not.
 - Local persistence (later): Dexie over IndexedDB + JSON export/import.
 - Backend (only if/when needed, NOT now): Hono + SQLite/Postgres + Drizzle.
 
 ## Repo structure
+Built so far:
 ```
-packages/engine/     # pure sim, zero runtime deps, heavily tested
-  src/model/         # types only
-  src/rng/           # seeded PRNG
-  src/race/          # qualifying, race, DNF
-  src/season/        # calendar, championship
-  src/market/        # driver transfers
-  src/progression/   # ageing, car development
-packages/data/       # authored seed data (JSON) + typed loaders
-apps/web/            # React + Vite (phase 1: read-only view of a running sim)
-tools/calibrate/     # headless Monte Carlo harness
+packages/engine/           # pure sim, zero deps, heavily tested
+  src/model/ratings.ts     # DriverRatings, CarSpec — types only
+  src/rng/                 # sfc32 PRNG behind an Rng interface
+  src/race/                # score-and-sort race model + its constants
+packages/data/src/         # the three seed JSON files + typed loader
+tools/calibrate/src/       # race viewer, Monte Carlo harness, rating tuner
 ```
-The three seed JSON files live in `packages/data/src/`, imported statically and
-re-exported under types derived from the JSON itself (`packages/data/src/type-checks.ts`
-fails the typecheck if the two drift apart).
+Planned, not yet written:
+```
+packages/engine/src/season/       # calendar, championship points  ← next
+packages/engine/src/market/       # driver transfers
+packages/engine/src/progression/  # ageing, car development
+apps/web/                         # React + Vite
+```
+The seed JSON lives in `packages/data/src/`, imported statically and re-exported
+under types derived from the JSON itself. `packages/data/src/type-checks.ts` fails
+the typecheck if the types and the JSON drift apart.
 
 ## Domain glossary
 - **Entry**: one team's participation in one season — a team + a car spec + its drivers.
@@ -77,36 +105,78 @@ fails the typecheck if the two drift apart).
 - **Nominal vs realized**: authored `debutSeason` / `peak.season` are nominal; the
   sim rolls realized values per driver per run.
 - **Score-and-sort**: v1 race model — sample one performance number per driver from
-  attributes + car + noise, sort, apply DNFs. No lap-by-lap. Keep it behind a
-  swappable interface so a richer model can replace it later.
+  attributes + car + noise, sort, apply DNFs. No lap-by-lap. Lives behind the
+  `RaceModel` interface so a richer model can replace it.
 - **Progression model**: the swappable seam between the two planned modes.
   Interface `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`.
   Implement `EvolutionaryProgression` (random walk + mean reversion) first;
   `HistoricalProgression` (real cars/teams per year, drivers still freely allocated
   by the market) later.
 
+## Race model (v1) — implemented
+Three stages, all constants in `race/constants.ts`:
+1. **Qualifying** — `0.72·car + 0.28·driver + gaussian(0, 3.0)`, sorted → grid.
+2. **Race** — `0.70·car + 0.30·driver + gridBonus + gaussian(0, 5.0 × consistencyScale)`,
+   sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
+   Combined consistency scales noise from 1.6× (at 0) down to 0.5× (at 100).
+3. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
+   driver error (from composure). Both always rolled; mechanical takes precedence
+   when recording the cause.
+
+The car is weighted far above the driver on purpose: a great driver in a poor car
+should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
+is the hook for reliability improving across decades — the per-year curve is not
+defined yet and belongs to the progression model.
+
+`simulateRace(field, rng, constants?)` takes constants as an optional override, which
+is how the calibration tools sweep values without editing source.
+
 ## Data model
 Seed files (in `packages/data/src/`):
-- `drivers.json` — `{ id, name, nationality, birthYear, debutSeason,
+- `drivers.json` — 41 drivers. `{ id, name, nationality, birthYear, debutSeason,
   peak: { season, racing, qualifying, consistency, adaptability, composure },
   developmentSpeed, declineSpeed }`.
-- `teams.json` — `{ id, name, base, foundedYear }`.
-- `season-1980.json` — `{ year, entries: [{ teamId, car: { racing, qualifying,
-  consistency, reliability }, drivers: [driverId, ...] }] }`.
+- `teams.json` — 15 teams. `{ id, name, base, foundedYear }`.
+- `season-1980.json` — 15 entries, 28 seats. `{ year, entries: [{ teamId,
+  car: { racing, qualifying, consistency, reliability }, drivers: [driverId, ...] }] }`.
 
 Notes:
 - All five driver attributes share polarity: higher = better. `composure` replaced
   "mistakes" for this reason (low composure = crash-prone).
-- Drivers not in any 1980 entry exist in the pool but are seatless, available to the
-  market. Intended, not a bug.
-- Seed ratings are rough hand-authored placeholders; they get tuned via the Monte
-  Carlo harness, never guessed in code.
+- 13 drivers hold no 1980 seat. They exist in the pool, available to the market.
+  Intended, not a bug.
+- `adaptability` is authored but unused so far — it is for the market and progression.
+- Seed ratings are tuned via the Monte Carlo harness, never guessed in code.
+  **Car ratings have had one calibration pass** against the 1980 season (see below).
+  **Driver ratings have not**, deliberately — see Open decisions.
+- The seed JSON is exempt from Biome formatting (`overrides` in `biome.json`) to keep
+  its one-record-per-line layout. Do not reformat it.
+
+## Calibration status
+Against the real 1980 season (14 races), at 20,000 simulated races:
+
+| Team | Model win% | Actual | Model pole% | Actual (approx) |
+|---|---|---|---|---|
+| Williams | 48.0% | 42.9% | 26.9% | ~21% |
+| Brabham | 20.1% | 21.4% | 8.0% | ~7% |
+| Renault | 18.8% | 21.4% | 42.7% | ~43% |
+| Ligier | 13.2% | 14.3% | 22.5% | ~21% |
+
+Retirements 42.0% of the field, matching the era. Reference targets live in
+`tools/calibrate/src/targets.ts`.
+
+Known accepted gaps: Alfa Romeo takes 0% of poles (Giacomelli's real 1980 pole was a
+freak; forcing it would distort the car). Reutemann over-wins at 18% against 1 real win
+(a one-event sample — not worth fitting).
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
 - Every engine module ships with Vitest tests. Favour property-style checks (finish
   order is a valid permutation; nobody finishes twice; DNFs remove cars) alongside
   seeded-outcome assertions.
+- **Statistical tests must be mutation-checked.** A distribution test that passes
+  against a deliberately broken implementation is worthless. Break it on purpose,
+  confirm it fails, revert.
 - Secrets (none in phase 1) live only in gitignored `.env`.
 - Do not add runtime dependencies to `packages/engine` without a strong reason.
 
@@ -119,3 +189,14 @@ Notes:
   than overachievers). Symmetric is acceptable for v1; flagged as a lever.
 - **Debut/peak gap.** Roll realized peak as an offset from realized debut (min gap
   ~3–5 seasons) rather than independently, to avoid a driver peaking right after debut.
+- **Driver ratings are un-tuned and cannot be tuned yet.** 15 of the 28 seated drivers
+  peak *after* 1980 (Prost +7 years, Piquet +5, Arnoux +3), and the tools currently
+  feed `peak` ratings in as current ratings because no ageing curve exists. Tuning
+  them against 1980 results would bake in an error that inverts once ageing lands.
+  Only Jones (peak 1980) and Reutemann (peak 1979) have been touched.
+  **Re-tune the driver pool after the ageing curve exists, not before.**
+- **Reliability era curve.** `mechanicalDnfEraScale` exists but no per-season curve is
+  defined. 1980 needs ~42% retirements; a 2026 season needs closer to 10%. Decide
+  whether that comes from rising reliability ratings, a falling era scale, or both.
+- **Points system.** Not yet implemented. 1980 used 9-6-4-3-2-1 for the top six with
+  best-N-scores dropped — confirm whether to model the dropped-scores rule.
