@@ -14,7 +14,8 @@
     "typecheck": "pnpm -r typecheck",
     "calibrate": "pnpm --filter @alt-hist/calibrate start",
     "lint": "biome check .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "race": "pnpm --filter @alt-hist/calibrate race"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",

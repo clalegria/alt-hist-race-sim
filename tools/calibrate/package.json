@@ -7,7 +7,8 @@
   "scripts": {
     "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
-    "tune": "tsx src/tune.ts"
+    "tune": "tsx src/tune.ts",
+    "race": "tsx src/race.ts"
   },
   "dependencies": {
     "@alt-hist/data": "workspace:*",
