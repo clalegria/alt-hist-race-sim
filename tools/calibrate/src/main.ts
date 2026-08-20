@@ -1,0 +1,205 @@
+/**
+ * Headless Monte Carlo harness.
+ *
+ * Runs the same 1980 grid N times with seeds 1..N and prints the resulting
+ * distributions. This is how the race constants get tuned — the seed ratings
+ * and `RACE_CONSTANTS` are hand-authored guesses until this table says
+ * otherwise.
+ *
+ *   pnpm calibrate            # 5000 races
+ *   pnpm calibrate 20000      # more races, tighter numbers
+ */
+
+import { driversById, teamsById } from "@alt-hist/data";
+import { createRng, simulateRace } from "@alt-hist/engine";
+import { buildField } from "./buildField.js";
+
+const DEFAULT_RACES = 5000;
+
+interface TeamTally {
+  teamId: string;
+  name: string;
+  wins: number;
+  poles: number;
+  retirements: number;
+  mechanical: number;
+  driverError: number;
+  starts: number;
+}
+
+interface DriverTally {
+  driverId: string;
+  name: string;
+  teamId: string;
+  wins: number;
+  poles: number;
+  retirements: number;
+}
+
+function parseRaceCount(argv: readonly string[]): number {
+  const raw = argv[2];
+  if (raw === undefined) {
+    return DEFAULT_RACES;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    throw new Error(`Race count must be a positive integer, received "${raw}"`);
+  }
+  return parsed;
+}
+
+function pct(value: number, total: number): string {
+  return total === 0 ? "0.0%" : `${((value / total) * 100).toFixed(1)}%`;
+}
+
+function padRight(text: string, width: number): string {
+  return text.length >= width ? text : text + " ".repeat(width - text.length);
+}
+
+function padLeft(text: string, width: number): string {
+  return text.length >= width ? text : " ".repeat(width - text.length) + text;
+}
+
+function main(): void {
+  const races = parseRaceCount(process.argv);
+  const field = buildField();
+  const teams = teamsById();
+  const drivers = driversById();
+
+  const teamTallies = new Map<string, TeamTally>();
+  const driverTallies = new Map<string, DriverTally>();
+
+  for (const entrant of field) {
+    if (!teamTallies.has(entrant.teamId)) {
+      teamTallies.set(entrant.teamId, {
+        teamId: entrant.teamId,
+        name: teams.get(entrant.teamId)?.name ?? entrant.teamId,
+        wins: 0,
+        poles: 0,
+        retirements: 0,
+        mechanical: 0,
+        driverError: 0,
+        starts: 0,
+      });
+    }
+    driverTallies.set(entrant.driverId, {
+      driverId: entrant.driverId,
+      name: drivers.get(entrant.driverId)?.name ?? entrant.driverId,
+      teamId: entrant.teamId,
+      wins: 0,
+      poles: 0,
+      retirements: 0,
+    });
+  }
+
+  let totalRetirements = 0;
+  const startedAt = performance.now();
+
+  for (let seed = 1; seed <= races; seed += 1) {
+    const result = simulateRace(field, createRng(seed));
+    totalRetirements += result.retirements;
+
+    for (const entry of result.entries) {
+      const team = teamTallies.get(entry.teamId);
+      const driver = driverTallies.get(entry.driverId);
+      if (team === undefined || driver === undefined) {
+        throw new Error(`Unexpected entrant ${entry.driverId} / ${entry.teamId}`);
+      }
+
+      team.starts += 1;
+      if (entry.retired) {
+        team.retirements += 1;
+        driver.retirements += 1;
+      }
+      if (entry.mechanicalFailure) {
+        team.mechanical += 1;
+      }
+      if (entry.driverError) {
+        team.driverError += 1;
+      }
+      if (entry.driverId === result.winnerDriverId) {
+        team.wins += 1;
+        driver.wins += 1;
+      }
+      if (entry.driverId === result.poleDriverId) {
+        team.poles += 1;
+        driver.poles += 1;
+      }
+    }
+  }
+
+  const elapsed = performance.now() - startedAt;
+
+  console.log("");
+  console.log(`1980 grid — ${races} races, seeds 1..${races}`);
+  console.log(`${field.length} cars, ${teamTallies.size} teams, ${elapsed.toFixed(0)}ms`);
+  console.log("");
+
+  console.log(
+    [
+      padRight("TEAM", 12),
+      padLeft("WIN%", 7),
+      padLeft("POLE%", 7),
+      padLeft("DNF/RACE", 10),
+      padLeft("DNF%", 7),
+      padLeft("MECH%", 7),
+      padLeft("ERR%", 7),
+    ].join(""),
+  );
+  console.log("-".repeat(57));
+
+  const rankedTeams = [...teamTallies.values()].sort(
+    (a, b) => b.wins - a.wins || b.poles - a.poles,
+  );
+  for (const team of rankedTeams) {
+    console.log(
+      [
+        padRight(team.name, 12),
+        padLeft(pct(team.wins, races), 7),
+        padLeft(pct(team.poles, races), 7),
+        padLeft((team.retirements / races).toFixed(2), 10),
+        padLeft(pct(team.retirements, team.starts), 7),
+        padLeft(pct(team.mechanical, team.starts), 7),
+        padLeft(pct(team.driverError, team.starts), 7),
+      ].join(""),
+    );
+  }
+
+  console.log("");
+  console.log(
+    [
+      padRight("DRIVER", 22),
+      padRight("TEAM", 12),
+      padLeft("WINS", 7),
+      padLeft("WIN%", 7),
+      padLeft("POLE%", 7),
+      padLeft("DNF%", 7),
+    ].join(""),
+  );
+  console.log("-".repeat(62));
+
+  const rankedDrivers = [...driverTallies.values()].sort(
+    (a, b) => b.wins - a.wins || b.poles - a.poles,
+  );
+  for (const driver of rankedDrivers) {
+    console.log(
+      [
+        padRight(driver.name, 22),
+        padRight(teams.get(driver.teamId)?.name ?? driver.teamId, 12),
+        padLeft(String(driver.wins), 7),
+        padLeft(pct(driver.wins, races), 7),
+        padLeft(pct(driver.poles, races), 7),
+        padLeft(pct(driver.retirements, races), 7),
+      ].join(""),
+    );
+  }
+
+  console.log("");
+  console.log(
+    `Average retirements per race: ${(totalRetirements / races).toFixed(2)} of ${field.length} ` +
+      `(${pct(totalRetirements / races, field.length)} of the field)`,
+  );
+  console.log("");
+}
+
+main();

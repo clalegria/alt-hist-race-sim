@@ -12,6 +12,7 @@
     "test": "pnpm -r test",
     "test:watch": "pnpm -r --parallel test:watch",
     "typecheck": "pnpm -r typecheck",
+    "calibrate": "pnpm --filter @alt-hist/calibrate start",
     "lint": "biome check .",
     "format": "biome check --write ."
   },

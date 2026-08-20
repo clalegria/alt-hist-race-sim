@@ -2,3 +2,8 @@ packages:
   - "packages/*"
   - "apps/*"
   - "tools/*"
+# esbuild ships a platform-specific binary and needs its install script to run.
+# It arrives via tsx, the TypeScript runner for tools/calibrate — a dev-only
+# dependency of the harness, never of the engine.
+allowBuilds:
+  esbuild: true
