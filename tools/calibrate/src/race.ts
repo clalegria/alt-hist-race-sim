@@ -64,7 +64,7 @@ function main(): void {
   console.log("-".repeat(60));
 
   const classified = result.entries
-    .filter((entry) => !entry.retired)
+    .filter((entry) => entry.started && !entry.retired)
     .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
 
   for (const entry of classified) {
@@ -81,7 +81,7 @@ function main(): void {
   }
 
   const retired = result.entries
-    .filter((entry) => entry.retired)
+    .filter((entry) => entry.started && entry.retired)
     .sort((a, b) => a.gridPosition - b.gridPosition);
 
   for (const entry of retired) {
@@ -98,9 +98,30 @@ function main(): void {
     );
   }
 
+  const nonQualifiers = result.entries
+    .filter((entry) => !entry.started)
+    .sort((a, b) => a.gridPosition - b.gridPosition);
+
+  for (const entry of nonQualifiers) {
+    console.log(
+      [
+        padLeft("-", 4),
+        "  ",
+        padRight(nameOf(entry.driverId), 22),
+        padRight(teamOf(entry.teamId), 12),
+        padLeft(String(entry.gridPosition), 5),
+        "  DNQ",
+      ].join(""),
+    );
+  }
+
+  const starters = field.length - result.nonQualifiers;
   console.log("");
   console.log(
-    `${result.classifiedCount} classified, ${result.retirements} retired of ${field.length} starters`,
+    `${result.classifiedCount} classified, ${result.retirements} retired of ${starters} starters` +
+      (result.nonQualifiers === 0
+        ? ""
+        : `, ${result.nonQualifiers} DNQ of ${field.length} entries`),
   );
   console.log("");
 }

@@ -25,6 +25,7 @@ interface TeamTally {
   mechanical: number;
   driverError: number;
   starts: number;
+  nonQualifications: number;
 }
 
 interface DriverTally {
@@ -34,6 +35,8 @@ interface DriverTally {
   wins: number;
   poles: number;
   retirements: number;
+  starts: number;
+  nonQualifications: number;
 }
 
 function parseRaceCount(argv: readonly string[]): number {
@@ -80,6 +83,7 @@ function main(): void {
         mechanical: 0,
         driverError: 0,
         starts: 0,
+        nonQualifications: 0,
       });
     }
     driverTallies.set(entrant.driverId, {
@@ -89,15 +93,19 @@ function main(): void {
       wins: 0,
       poles: 0,
       retirements: 0,
+      starts: 0,
+      nonQualifications: 0,
     });
   }
 
   let totalRetirements = 0;
+  let totalStarters = 0;
   const startedAt = performance.now();
 
   for (let seed = 1; seed <= races; seed += 1) {
     const result = simulateRace(field, createRng(seed));
     totalRetirements += result.retirements;
+    totalStarters += field.length - result.nonQualifiers;
 
     for (const entry of result.entries) {
       const team = teamTallies.get(entry.teamId);
@@ -106,7 +114,23 @@ function main(): void {
         throw new Error(`Unexpected entrant ${entry.driverId} / ${entry.teamId}`);
       }
 
+      // Pole is a Saturday result, so it counts whether or not the car started.
+      if (entry.driverId === result.poleDriverId) {
+        team.poles += 1;
+        driver.poles += 1;
+      }
+
+      // Everything below is a race rate, and a weekend that ended on Saturday
+      // is not a start. Leaving DNQs in the denominators would read as a car
+      // that keeps finishing.
+      if (!entry.started) {
+        team.nonQualifications += 1;
+        driver.nonQualifications += 1;
+        continue;
+      }
+
       team.starts += 1;
+      driver.starts += 1;
       if (entry.retired) {
         team.retirements += 1;
         driver.retirements += 1;
@@ -120,10 +144,6 @@ function main(): void {
       if (entry.driverId === result.winnerDriverId) {
         team.wins += 1;
         driver.wins += 1;
-      }
-      if (entry.driverId === result.poleDriverId) {
-        team.poles += 1;
-        driver.poles += 1;
       }
     }
   }
@@ -144,9 +164,10 @@ function main(): void {
       padLeft("DNF%", 7),
       padLeft("MECH%", 7),
       padLeft("ERR%", 7),
+      padLeft("DNQ%", 7),
     ].join(""),
   );
-  console.log("-".repeat(57));
+  console.log("-".repeat(64));
 
   const rankedTeams = [...teamTallies.values()].sort(
     (a, b) => b.wins - a.wins || b.poles - a.poles,
@@ -161,6 +182,7 @@ function main(): void {
         padLeft(pct(team.retirements, team.starts), 7),
         padLeft(pct(team.mechanical, team.starts), 7),
         padLeft(pct(team.driverError, team.starts), 7),
+        padLeft(pct(team.nonQualifications, team.starts + team.nonQualifications), 7),
       ].join(""),
     );
   }
@@ -174,9 +196,10 @@ function main(): void {
       padLeft("WIN%", 7),
       padLeft("POLE%", 7),
       padLeft("DNF%", 7),
+      padLeft("DNQ%", 7),
     ].join(""),
   );
-  console.log("-".repeat(62));
+  console.log("-".repeat(69));
 
   const rankedDrivers = [...driverTallies.values()].sort(
     (a, b) => b.wins - a.wins || b.poles - a.poles,
@@ -189,15 +212,18 @@ function main(): void {
         padLeft(String(driver.wins), 7),
         padLeft(pct(driver.wins, races), 7),
         padLeft(pct(driver.poles, races), 7),
-        padLeft(pct(driver.retirements, races), 7),
+        padLeft(pct(driver.retirements, driver.starts), 7),
+        padLeft(pct(driver.nonQualifications, races), 7),
       ].join(""),
     );
   }
 
   console.log("");
+  const startersPerRace = totalStarters / races;
   console.log(
-    `Average retirements per race: ${(totalRetirements / races).toFixed(2)} of ${field.length} ` +
-      `(${pct(totalRetirements / races, field.length)} of the field)`,
+    `Average retirements per race: ${(totalRetirements / races).toFixed(2)} of ` +
+      `${startersPerRace.toFixed(1)} starters (${pct(totalRetirements, totalStarters)}), ` +
+      `from ${field.length} entries`,
   );
   console.log("");
 }

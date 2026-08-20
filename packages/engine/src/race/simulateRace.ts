@@ -25,7 +25,8 @@ interface Runner {
   readonly pacePenalty: number;
   readonly qualifyingScore: number;
   gridPosition: number;
-  raceScore: number;
+  started: boolean;
+  raceScore: number | null;
   mechanicalFailure: boolean;
   driverError: boolean;
   finishPosition: number | null;
@@ -34,12 +35,17 @@ interface Runner {
 /**
  * Simulates one race with the v1 score-and-sort model.
  *
+ * The whole field qualifies; only the fastest `maxStarters` of them take the
+ * start. Anyone slower is a non-qualifier — ranked on the grid, absent from the
+ * race.
+ *
  * Pure and deterministic: the same field, seed, and constants always produce
  * the same result. Randomness is drawn in a fixed order — weekend form and
  * qualifying noise for the whole field, then race noise, then the two DNF rolls
  * per car, each pass walking the field in the order supplied. Every pass draws a
- * fixed number of values per car, so appending a car to the end of the field
- * does not disturb anyone else's draws.
+ * fixed number of values per car *whether or not that car started*, so appending
+ * a car to the end of the field, or missing the cut, never disturbs anyone
+ * else's draws.
  *
  * @throws RangeError if the field is empty or contains a duplicate driver.
  */
@@ -100,7 +106,8 @@ export function simulateRace(
         qualifyingNoise -
         pacePenalty,
       gridPosition: 0,
-      raceScore: 0,
+      started: true,
+      raceScore: null,
       mechanicalFailure: false,
       driverError: false,
       finishPosition: null,
@@ -111,8 +118,11 @@ export function simulateRace(
     (a, b) =>
       b.qualifyingScore - a.qualifyingScore || compareIds(a.entrant.driverId, b.entrant.driverId),
   );
+  const maxStarters = Math.max(1, Math.floor(constants.maxStarters));
   grid.forEach((runner, index) => {
     runner.gridPosition = index + 1;
+    // Qualifying is the only thing standing between an entry and the race.
+    runner.started = index < maxStarters;
   });
 
   // --- Race pace ------------------------------------------------------------
@@ -129,6 +139,12 @@ export function simulateRace(
       constants.racingNoise *
       runner.noiseScale *
       (sharedWeight * runner.weekendForm + independentWeight * rng.gaussian());
+
+    // A non-qualifier draws its noise and throws it away. Skipping the draw
+    // would make every later car's stream position depend on who made the cut.
+    if (!runner.started) {
+      continue;
+    }
 
     runner.raceScore =
       constants.weightCarRacing * car.racing +
@@ -154,17 +170,26 @@ export function simulateRace(
       constants.driverErrorDnfAtFullComposure,
     );
 
-    // Both rolls always happen, so the draw count per car is fixed regardless
-    // of outcome — that keeps the stream position independent of results.
-    runner.mechanicalFailure = rng.next() < Math.min(Math.max(mechanicalRisk, 0), 1);
-    runner.driverError = rng.next() < Math.min(Math.max(errorRisk, 0), 1);
+    // Both rolls always happen, for every car including the ones that did not
+    // qualify, so the draw count per car is fixed regardless of outcome — that
+    // keeps the stream position independent of results.
+    const mechanicalFailure = rng.next() < Math.min(Math.max(mechanicalRisk, 0), 1);
+    const driverError = rng.next() < Math.min(Math.max(errorRisk, 0), 1);
+    if (!runner.started) {
+      continue;
+    }
+
+    runner.mechanicalFailure = mechanicalFailure;
+    runner.driverError = driverError;
   }
 
   // --- Classification -------------------------------------------------------
   const classified = runners
-    .filter((runner) => !runner.mechanicalFailure && !runner.driverError)
+    .filter((runner) => runner.started && !runner.mechanicalFailure && !runner.driverError)
     .sort(
-      (a, b) => b.raceScore - a.raceScore || compareIds(a.entrant.driverId, b.entrant.driverId),
+      (a, b) =>
+        (b.raceScore ?? 0) - (a.raceScore ?? 0) ||
+        compareIds(a.entrant.driverId, b.entrant.driverId),
     );
   classified.forEach((runner, index) => {
     runner.finishPosition = index + 1;
@@ -183,6 +208,7 @@ export function simulateRace(
       driverId: runner.entrant.driverId,
       teamId: runner.entrant.teamId,
       gridPosition: runner.gridPosition,
+      started: runner.started,
       finishPosition: runner.finishPosition,
       retired,
       dnfCause,
@@ -198,13 +224,15 @@ export function simulateRace(
     throw new RangeError("Cannot simulate a race with an empty field");
   }
   const winner = classified[0];
+  const starters = Math.min(runners.length, maxStarters);
 
   return {
     entries,
     poleDriverId: poleSitter.entrant.driverId,
     winnerDriverId: winner?.entrant.driverId ?? null,
-    retirements: runners.length - classified.length,
+    retirements: starters - classified.length,
     classifiedCount: classified.length,
+    nonQualifiers: runners.length - starters,
   };
 }
 

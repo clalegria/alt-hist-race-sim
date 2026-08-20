@@ -28,7 +28,7 @@ Nothing is committed yet — the whole project is still an uncommitted working t
 
 ## Commands
 ```
-pnpm test          # 63 tests (54 engine, 9 data)
+pnpm test          # 84 tests (75 engine, 9 data)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -114,13 +114,24 @@ the typecheck if the types and the JSON drift apart.
   by the market) later.
 
 ## Race model (v1) — implemented
-Three stages, all constants in `race/constants.ts`:
+Four stages, all constants in `race/constants.ts`:
 1. **Qualifying** — `0.72·car + 0.28·driver − consistencyPenalty + noise`, sorted → grid.
-2. **Race** — `0.70·car + 0.30·driver + gridBonus − consistencyPenalty + noise`,
+   The whole entry list runs, however big it is.
+2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.
+   Anyone slower keeps their grid position but is a **DNQ**: `started: false`,
+   `raceScore: null`, and *not* a retirement. `retirements` and `classifiedCount`
+   count starters only; `nonQualifiers` counts the rest. A field at or under the
+   limit is unaffected, so this is inert rather than something to switch off.
+3. **Race** — `0.70·car + 0.30·driver + gridBonus − consistencyPenalty + noise`,
    sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
-3. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
+4. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
    driver error (from composure). Both always rolled; mechanical takes precedence
    when recording the cause.
+
+Non-qualifiers still draw their race noise and both DNF rolls, and the results are
+thrown away. Skipping the draws would make every later car's position in the RNG
+stream depend on who made the cut, which breaks append-independence — the invariant
+that adding a car to the end of the field cannot change anyone else's weekend.
 
 **Consistency is a pace stat, not a variance stat.** Combined consistency (50/50
 car and driver) subtracts `consistencyPacePenalty`, interpolated 4.0 points at 0
@@ -187,8 +198,15 @@ Against the real 1980 season (14 races), at 20,000 simulated races:
 | Brabham | 19.9% | 21.4% | 8.6% | ~7% |
 | Ligier | 15.1% | 14.3% | 19.8% | ~21% |
 
-Retirements 42.0% of the field, matching the era. Reference targets live in
-`tools/calibrate/src/targets.ts`.
+Retirements 41.1% of the 26 starters, matching the era. (This was 42.0% before the
+starting limit landed; the two cars that now miss the cut are unreliable ones, so
+dropping them out of the denominator moves the rate slightly. Win and pole
+percentages did not shift at all — the cut only ever touches the back of the grid.)
+Reference targets live in `tools/calibrate/src/targets.ts`.
+
+The 28-entry 1980 grid means two DNQs a weekend. They fall where they should: Shadow
+takes 58.2% and 99.6% (Kennedy failed to qualify for all seven races he entered in
+reality), Osella 34.2%, ATS and Ensign under 3%, and nobody above them ever misses.
 
 The consistency pace penalty is a systematic term that did not exist when the cars
 were first tuned, and it cost Renault disproportionately (Arnoux and Jabouille are
@@ -241,5 +259,11 @@ fitting).
 - **Weekend-form share is a first guess.** 0.4 was picked for plausibility, not
   fitted — 1980 grid-to-finish correlation was never measured against the real
   season. Worth a pass once season results exist to compare against.
+- **Starting limit per era.** `maxStarters` is a single constant pinned at 26 for
+  1980. Real limits moved (and modern grids sit under any of them), so it probably
+  belongs to the season/progression data rather than the race constants once more
+  than one season exists. Related and unmodelled: real 1980 DNQs were decided by
+  pre-qualifying and by teams entering different cars at different rounds, whereas
+  here the same 28 entries contest every race.
 - **Points system.** Not yet implemented. 1980 used 9-6-4-3-2-1 for the top six with
   best-N-scores dropped — confirm whether to model the dropped-scores rule.

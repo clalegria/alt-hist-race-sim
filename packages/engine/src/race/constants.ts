@@ -91,6 +91,17 @@ export interface RaceConstants {
   readonly weekendFormShare: number;
 
   /**
+   * How many cars the race itself takes. Everyone entered runs qualifying; only
+   * the fastest `maxStarters` take the start, and anyone slower is classified
+   * DNQ and does not appear in the results.
+   *
+   * 26 is the 1980 limit, which is why fields were routinely over-subscribed and
+   * pre-qualifying existed. A field at or under the limit is unaffected, so this
+   * is inert for small or modern grids rather than something to switch off.
+   */
+  readonly maxStarters: number;
+
+  /**
    * Track position, in rating points added to the race score. The advantage
    * decays exponentially down the grid: the gap from P1 to P2 is worth far more
    * than P15 to P16, especially in an era where overtaking was hard.
@@ -163,6 +174,8 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   consistencyPacePenaltyAtHundred: 0.0,
 
   weekendFormShare: 0.4,
+
+  maxStarters: 26,
 
   gridAdvantagePole: 3.0,
   gridAdvantageDecayPlaces: 6.0,

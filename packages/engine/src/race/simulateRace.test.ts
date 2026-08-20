@@ -37,6 +37,13 @@ function spreadField(): RaceEntrant[] {
   );
 }
 
+/** More cars than the race can take, so the starting limit has to bite. */
+function oversubscribedField(size: number): RaceEntrant[] {
+  return Array.from({ length: size }, (_, i) =>
+    entrant(`driver-${i}`, `team-${i}`, 90 - i, 90 - i),
+  );
+}
+
 /** Constants with retirements switched off, to isolate the pace model. */
 const NO_DNFS: RaceConstants = {
   ...RACE_CONSTANTS,
@@ -116,6 +123,82 @@ describe("grid and finishing order", () => {
       const behind = byFinish[i];
       expect(ahead?.raceScore).toBeGreaterThanOrEqual(behind?.raceScore ?? 0);
     }
+  });
+});
+
+describe("the starting limit", () => {
+  it("starts only the fastest cars and marks the rest DNQ", () => {
+    const field = oversubscribedField(30);
+    const result = simulateRace(field, createRng(1));
+    expect(result.entries.filter((e) => e.started)).toHaveLength(RACE_CONSTANTS.maxStarters);
+    expect(result.nonQualifiers).toBe(30 - RACE_CONSTANTS.maxStarters);
+  });
+
+  it("qualifies the whole entry list, limit or no limit", () => {
+    // Everyone gets their Saturday: the cut decides who races, not who runs.
+    const result = simulateRace(oversubscribedField(30), createRng(3));
+    const grid = result.entries.map((e) => e.gridPosition).sort((a, b) => a - b);
+    expect(grid).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(result.entries.every((e) => Number.isFinite(e.qualifyingScore))).toBe(true);
+  });
+
+  it("cuts on qualifying position, not on race pace", () => {
+    for (let seed = 1; seed <= 100; seed += 1) {
+      const result = simulateRace(oversubscribedField(30), createRng(seed));
+      for (const entry of result.entries) {
+        expect(entry.started).toBe(entry.gridPosition <= RACE_CONSTANTS.maxStarters);
+      }
+    }
+  });
+
+  it("does not count a non-qualifier as a retirement", () => {
+    // A DNQ is a weekend that ended on Saturday, not a car that broke. Folding
+    // the two together would inflate every reliability number in the harness.
+    for (let seed = 1; seed <= 100; seed += 1) {
+      const result = simulateRace(oversubscribedField(30), createRng(seed));
+      for (const entry of result.entries.filter((e) => !e.started)) {
+        expect(entry.retired).toBe(false);
+        expect(entry.dnfCause).toBeNull();
+        expect(entry.mechanicalFailure).toBe(false);
+        expect(entry.driverError).toBe(false);
+        expect(entry.finishPosition).toBeNull();
+        expect(entry.raceScore).toBeNull();
+      }
+    }
+  });
+
+  it("counts retirements and classifications against the starters", () => {
+    for (let seed = 1; seed <= 100; seed += 1) {
+      const result = simulateRace(oversubscribedField(30), createRng(seed));
+      expect(result.classifiedCount + result.retirements).toBe(RACE_CONSTANTS.maxStarters);
+      expect(result.classifiedCount + result.retirements + result.nonQualifiers).toBe(30);
+    }
+  });
+
+  it("keeps a non-qualifier out of the finishing order", () => {
+    for (let seed = 1; seed <= 100; seed += 1) {
+      const result = simulateRace(oversubscribedField(30), createRng(seed), NO_DNFS);
+      const finishers = result.entries
+        .filter((e) => e.finishPosition !== null)
+        .map((e) => e.finishPosition)
+        .sort((a, b) => (a ?? 0) - (b ?? 0));
+      expect(finishers).toEqual(
+        Array.from({ length: RACE_CONSTANTS.maxStarters }, (_, i) => i + 1),
+      );
+      expect(result.entries.find((e) => e.driverId === result.winnerDriverId)?.started).toBe(true);
+    }
+  });
+
+  it("leaves a field inside the limit alone", () => {
+    const result = simulateRace(spreadField(), createRng(1));
+    expect(result.nonQualifiers).toBe(0);
+    expect(result.entries.every((e) => e.started)).toBe(true);
+  });
+
+  it("honours a limit passed through the constants", () => {
+    const result = simulateRace(spreadField(), createRng(1), { ...RACE_CONSTANTS, maxStarters: 5 });
+    expect(result.entries.filter((e) => e.started)).toHaveLength(5);
+    expect(result.nonQualifiers).toBe(15);
   });
 });
 
@@ -466,7 +549,7 @@ describe("weekend form", () => {
     const rs: number[] = [];
     for (let seed = 1; seed <= 4000; seed += 1) {
       const entry = simulateRace(field, createRng(seed), constants).entries[5];
-      if (entry === undefined) {
+      if (entry === undefined || entry.raceScore === null) {
         continue;
       }
       qs.push(entry.qualifyingScore);
@@ -530,30 +613,77 @@ describe("weekend form", () => {
 });
 
 describe("draw discipline", () => {
+  /**
+   * Counts every draw the simulation makes, `gaussian` included.
+   *
+   * Wrapping `next` alone is not enough: `gaussian` is its own method on the
+   * interface and reaches the underlying stream without going through `next`
+   * here, so a counter that only watches `next` sees the two DNF rolls and is
+   * blind to the three noise draws.
+   */
+  function countingRng(seed: number): { rng: Rng; draws: () => number } {
+    const inner = createRng(seed);
+    let draws = 0;
+    const rng: Rng = {
+      next: () => {
+        draws += 1;
+        return inner.next();
+      },
+      getState: () => inner.getState(),
+      nextInt: (min, max) => inner.nextInt(min, max),
+      pick: (items) => inner.pick(items),
+      shuffle: (items) => inner.shuffle(items),
+      gaussian: (mean, sd) => {
+        draws += 1;
+        return inner.gaussian(mean, sd);
+      },
+    };
+    return { rng, draws: () => draws };
+  }
+
   it("keeps the draw count fixed across seeds", () => {
     // Weekend form adds a draw per car. If any path consumed a different
     // number of values, a car's stream position would depend on its
     // predecessors' luck and append-independence would break.
     const counted = (seed: number): number => {
-      const inner = createRng(seed);
-      let calls = 0;
-      const rng: Rng = {
-        next: () => {
-          calls += 1;
-          return inner.next();
-        },
-        getState: () => inner.getState(),
-        nextInt: (min, max) => inner.nextInt(min, max),
-        pick: (items) => inner.pick(items),
-        shuffle: (items) => inner.shuffle(items),
-        gaussian: (mean, sd) => inner.gaussian(mean, sd),
-      };
+      const { rng, draws } = countingRng(seed);
       simulateRace(spreadField(), rng);
-      return calls;
+      return draws();
     };
     const first = counted(1);
     for (let seed = 2; seed <= 200; seed += 1) {
       expect(counted(seed)).toBe(first);
+    }
+  });
+
+  it("draws for non-qualifiers too, so the cut cannot shift the stream", () => {
+    // A car that misses the cut still consumes its race noise and both DNF
+    // rolls. If it did not, every car behind it in the field would slide up the
+    // stream whenever the cut moved, and results would stop being additive.
+    const field = oversubscribedField(30);
+    const drawsFor = (size: number): number => {
+      const { rng, draws } = countingRng(1);
+      simulateRace(field.slice(0, size), rng);
+      return draws();
+    };
+    // Measure the per-car cost on a field that fits inside the limit, where
+    // every car indisputably runs, then hold the over-subscribed field to it.
+    // Comparing two over-subscribed fields to each other would not do: skipped
+    // draws would cancel out of the difference and the test would pass anyway.
+    const perCar = drawsFor(10) / 10;
+    expect(drawsFor(26)).toBe(perCar * 26);
+    expect(drawsFor(30)).toBe(perCar * 30);
+  });
+
+  it("gives every car the same qualifying score whoever else entered", () => {
+    // The append-independence guarantee, now that a late entry can push someone
+    // out of the race entirely: it must not change what they did on Saturday.
+    const field = oversubscribedField(30);
+    const scoreOf = (size: number, driverId: string): number | undefined =>
+      simulateRace(field.slice(0, size), createRng(9)).entries.find((e) => e.driverId === driverId)
+        ?.qualifyingScore;
+    for (const driverId of ["driver-0", "driver-14", "driver-25"]) {
+      expect(scoreOf(30, driverId)).toBeCloseTo(scoreOf(26, driverId) ?? Number.NaN, 10);
     }
   });
 });
@@ -571,10 +701,10 @@ describe("the model interface", () => {
     const quiet: RaceConstants = { ...RACE_CONSTANTS, racingNoise: 0, qualifyingNoise: 0 };
     const result = simulateRace(field, createRng(12), quiet);
     const classified = result.entries
-      .filter((e) => !e.retired)
+      .filter((e) => e.started && !e.retired)
       .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
     // With no noise the fastest surviving car must lead.
-    const best = [...classified].sort((a, b) => b.raceScore - a.raceScore)[0];
+    const best = [...classified].sort((a, b) => (b.raceScore ?? 0) - (a.raceScore ?? 0))[0];
     expect(classified[0]?.driverId).toBe(best?.driverId);
   });
 });

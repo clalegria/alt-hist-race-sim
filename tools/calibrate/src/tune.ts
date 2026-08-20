@@ -153,12 +153,14 @@ function run(
   const teamPoles = new Map<string, number>();
   const driverWins = new Map<string, number>();
   let retirements = 0;
+  let starters = 0;
 
   const teamOf = new Map(field.map((e) => [e.driverId, e.teamId]));
 
   for (let seed = 1; seed <= races; seed += 1) {
     const result = simulateRace(field, createRng(seed), constants);
     retirements += result.retirements;
+    starters += field.length - result.nonQualifiers;
 
     const winner = result.winnerDriverId;
     if (winner !== null) {
@@ -178,7 +180,7 @@ function run(
     teamWins,
     teamPoles,
     driverWins,
-    retirementRate: retirements / (races * field.length),
+    retirementRate: retirements / starters,
   };
 }
 
