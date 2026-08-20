@@ -7,11 +7,13 @@
  * because it is the only place raw ratings are shown.
  */
 
+import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName } from "../lib/names.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { createWorld } from "../store/season.js";
+import { CompactStandings } from "./CompactStandings.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 
@@ -119,5 +121,50 @@ describe("the season grid", () => {
     const positionOf = (name: string): number => html.indexOf(`>${name}<`);
     expect(positionOf("Alfa Romeo")).toBeLessThan(positionOf("Williams"));
     expect(positionOf("ATS")).toBeLessThan(positionOf("Brabham"));
+  });
+});
+
+describe("the compact standings", () => {
+  const drivers = championshipStandings(world.season);
+  const teams = constructorStandings(world.season);
+  const driverHtml = renderToStaticMarkup(<CompactStandings title="Drivers" standings={drivers} />);
+  const teamHtml = renderToStaticMarkup(
+    <CompactStandings title="Constructors" standings={teams} />,
+  );
+
+  it("shows only the top eight until it is expanded", () => {
+    expect(drivers.length).toBe(28);
+    expect(teams.length).toBe(15);
+    // One row each, and one flag per row, so counting flags counts rows.
+    expect((driverHtml.match(/<svg/g) ?? []).length).toBe(8);
+    expect((teamHtml.match(/<svg/g) ?? []).length).toBe(8);
+    // The ninth-placed driver is out of sight.
+    const ninth = drivers[8];
+    if (ninth === undefined) {
+      throw new Error("expected more than eight drivers");
+    }
+    expect(driverHtml).not.toContain(driverName(ninth.driverId));
+  });
+
+  it("offers a way to see the rest, naming how many there are", () => {
+    expect(driverHtml).toContain("Show all 28");
+    expect(teamHtml).toContain("Show all 15");
+    expect(driverHtml).toContain('aria-expanded="false"');
+  });
+
+  it("does not offer to expand a table that already fits", () => {
+    const short = renderToStaticMarkup(
+      <CompactStandings title="Drivers" standings={drivers.slice(0, 5)} />,
+    );
+    expect(short).not.toContain("Show all");
+    expect((short.match(/<svg/g) ?? []).length).toBe(5);
+  });
+
+  it("names each driver's team, and carries points but no other column", () => {
+    expect(driverHtml).toContain("Williams");
+    expect(driverHtml).toContain("Brabham");
+    for (const column of ["Wins", "Pods", "Poles", "DNF", "DNQ"]) {
+      expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
+    }
   });
 });

@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 227 tests (137 engine, 13 data, 77 web)
+pnpm test          # 231 tests (137 engine, 13 data, 81 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -336,18 +336,19 @@ nothing reads it, and paying for it would claim a driver is better at something 
 sim never asks of them. Revisit both when the transfer market lands.
 
 **A race shows its result and the championship side by side**, the standings cut to
-position, name and points. After a single round the full table's wins, podiums, poles
-and retirement counts are almost all zeroes; what a reader wants is who leads and by
-how much. The full breakdown belongs to the summary, and lives there.
+position, name and points and to the top eight, with a button for the rest. After a
+single round the full table's wins, podiums, poles and retirement counts are almost
+all zeroes; what a reader wants is who leads and by how much. The full breakdown
+belongs to the summary, and lives there.
 
 **Actions live in a sticky header, repeated at the foot of the page**, and every
 stage change scrolls back to the top. Stepping on from a race otherwise meant
 scrolling past two 28-row championship tables to find the button, then landing
 mid-page in the next session.
 
-Flags appear beside every driver everywhere they are named — via one shared
-`DriverName` component, so they cannot end up in some tables and not others — plus on
-the two champion cards and beside each round in the calendar. They are SVGs from
+Flags appear beside every driver and every team everywhere they are named — via one
+shared `DriverName` / `TeamName` pair, so they cannot end up in some tables and not
+others — plus on the two champion cards and beside each round in the calendar. They are SVGs from
 `country-flag-icons`, imported **one country at a time** in `components/Flag.tsx`. Emoji flags were tried first and do not render on Windows at
 all. `import * as Flags` reads better and costs 240 kB, since the namespace defeats
 tree-shaking and pulls in all ~250 flags for the twenty this sim uses — so the map is

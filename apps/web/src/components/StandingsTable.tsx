@@ -1,7 +1,7 @@
-import { teamName } from "../lib/names.js";
 import { isDriverStanding, type Standing } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
+import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
@@ -71,9 +71,7 @@ export function StandingsTable({
                       emphasis={index === 0}
                     />
                   ) : (
-                    <span className={cn(index === 0 && "font-semibold")}>
-                      {teamName(standing.teamId)}
-                    </span>
+                    <TeamName teamId={standing.teamId} emphasis={index === 0} />
                   )}
                 </TableCell>
                 {COLUMNS.map((column) => (

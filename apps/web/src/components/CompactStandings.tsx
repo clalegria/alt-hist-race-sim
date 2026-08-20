@@ -1,9 +1,19 @@
-import { teamName } from "../lib/names.js";
+import { useState } from "react";
 import { isDriverStanding, type Standing } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
+import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table.js";
+
+/**
+ * How many rows show before the table is expanded.
+ *
+ * Eight covers the drivers who can realistically still win a 1980 championship
+ * and every team that scores regularly, without the sidebar running longer than
+ * the race result it sits beside.
+ */
+const COLLAPSED_ROWS = 8;
 
 /**
  * A championship table cut down to position, name and points.
@@ -19,6 +29,11 @@ export function CompactStandings({
   title: string;
   standings: readonly Standing[];
 }) {
+  // View state, and only this table's — nothing else cares whether it is open.
+  const [expanded, setExpanded] = useState(false);
+  const canExpand = standings.length > COLLAPSED_ROWS;
+  const rows = expanded || !canExpand ? standings : standings.slice(0, COLLAPSED_ROWS);
+
   return (
     <Card>
       <CardHeader className="py-3">
@@ -26,7 +41,7 @@ export function CompactStandings({
       </CardHeader>
       <Table>
         <TableBody>
-          {standings.map((standing, index) => (
+          {rows.map((standing, index) => (
             <TableRow key={isDriverStanding(standing) ? standing.driverId : standing.teamId}>
               <TableCell
                 className={cn(
@@ -38,11 +53,13 @@ export function CompactStandings({
               </TableCell>
               <TableCell className="py-1.5">
                 {isDriverStanding(standing) ? (
-                  <DriverName driverId={standing.driverId} emphasis={index === 0} />
+                  <DriverName
+                    driverId={standing.driverId}
+                    teamId={standing.teamId}
+                    emphasis={index === 0}
+                  />
                 ) : (
-                  <span className={cn(index === 0 && "font-semibold")}>
-                    {teamName(standing.teamId)}
-                  </span>
+                  <TeamName teamId={standing.teamId} emphasis={index === 0} />
                 )}
               </TableCell>
               <TableCell
@@ -57,6 +74,19 @@ export function CompactStandings({
           ))}
         </TableBody>
       </Table>
+
+      {canExpand ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => {
+            setExpanded(!expanded);
+          }}
+          className="border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 focus-visible:ring-ring w-full cursor-pointer border-t px-3 py-2 text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        >
+          {expanded ? `Show top ${COLLAPSED_ROWS}` : `Show all ${standings.length}`}
+        </button>
+      ) : null}
     </Card>
   );
 }

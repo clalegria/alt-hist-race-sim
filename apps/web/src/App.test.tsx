@@ -138,10 +138,11 @@ describe("flags", () => {
     return html.slice(start, end);
   };
 
-  it("flies a flag beside every driver in a race classification", () => {
+  it("flies a flag on every name on the race page", () => {
     const html = render({ kind: "race", round: 0 });
-    // 28 in the classification, plus 28 more in the drivers sidebar.
-    expect((html.match(/<svg/g) ?? []).length).toBeGreaterThanOrEqual(56);
+    // One for the round, 28 down the classification, then the collapsed
+    // sidebar: eight drivers and eight teams.
+    expect((html.match(/<svg/g) ?? []).length).toBe(1 + 28 + 8 + 8);
   });
 
   it("flies a flag beside every driver in qualifying", () => {
@@ -161,11 +162,12 @@ describe("flags", () => {
     expect(between(html, "Constructors’ champion", teamName(topTeam.teamId))).toContain("<svg");
   });
 
-  it("flies a flag on every row of the drivers championship", () => {
+  it("flies a flag on every row of both championship tables", () => {
     const html = render({ kind: "summary" });
-    const table = between(html, "Drivers’ Championship", "Constructors’ Championship");
-    // 28 drivers, one flag each.
-    expect((table.match(/<svg/g) ?? []).length).toBe(28);
+    const drivers = between(html, "Drivers’ Championship", "Constructors’ Championship");
+    expect((drivers.match(/<svg/g) ?? []).length).toBe(28);
+    const teams = between(html, "Constructors’ Championship", "Grid");
+    expect((teams.match(/<svg/g) ?? []).length).toBe(15);
   });
 });
 
