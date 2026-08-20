@@ -13,6 +13,16 @@ export interface RaceEntrant {
 /** Why a car failed to finish. */
 export type DnfCause = "mechanical" | "driver-error";
 
+/**
+ * A cosmetic race gap: seconds behind the winner, or whole laps once the gap
+ * grows past one. Two shapes rather than one number because they are different
+ * units — a real classification switches from "+12.320s" to "+1 lap" and never
+ * mixes them.
+ */
+export type RaceGap =
+  | { readonly kind: "time"; readonly seconds: number }
+  | { readonly kind: "laps"; readonly laps: number };
+
 /** One driver's weekend. */
 export interface RaceEntryResult {
   readonly driverId: string;
@@ -46,6 +56,17 @@ export interface RaceEntryResult {
   readonly qualifyingScore: number;
   /** Null for a non-qualifier: there is no race pace without a race. */
   readonly raceScore: number | null;
+  /**
+   * Seconds behind pole, and behind the winner. Both are decoration derived from
+   * the scores above — they make a classification readable and carry no
+   * information the finishing order does not already have. Nothing in the sim
+   * reads them; do not build championship logic on them.
+   *
+   * Pole sits at 0, and so does the winner. `raceGapToWinner` is null for anyone
+   * without a finishing position: a retirement and a DNQ have no gap.
+   */
+  readonly qualifyingGapToPole: number;
+  readonly raceGapToWinner: RaceGap | null;
 }
 
 /** The outcome of one race weekend. */

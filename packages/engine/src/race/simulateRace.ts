@@ -1,5 +1,6 @@
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
+import { qualifyingGapSeconds, raceGap } from "./gaps.js";
 import type { DnfCause, RaceEntrant, RaceEntryResult, RaceModel, RaceResult } from "./types.js";
 
 /** Linear interpolation from `atZero` to `atHundred` across a 0-100 rating. */
@@ -195,6 +196,12 @@ export function simulateRace(
     runner.finishPosition = index + 1;
   });
 
+  const poleSitter = grid[0];
+  if (poleSitter === undefined) {
+    throw new RangeError("Cannot simulate a race with an empty field");
+  }
+  const winner = classified[0];
+
   const entries: RaceEntryResult[] = runners.map((runner) => {
     const retired = runner.mechanicalFailure || runner.driverError;
     let dnfCause: DnfCause | null = null;
@@ -216,14 +223,20 @@ export function simulateRace(
       driverError: runner.driverError,
       qualifyingScore: runner.qualifyingScore,
       raceScore: runner.raceScore,
+      qualifyingGapToPole: qualifyingGapSeconds(
+        poleSitter.qualifyingScore,
+        runner.qualifyingScore,
+        constants,
+      ),
+      // Only a classified finisher has a gap. A retirement stopped and a
+      // non-qualifier never started, and neither is "n seconds behind".
+      raceGapToWinner:
+        winner === undefined || runner.finishPosition === null || runner.raceScore === null
+          ? null
+          : raceGap(winner.raceScore ?? 0, runner.raceScore, constants),
     };
   });
 
-  const poleSitter = grid[0];
-  if (poleSitter === undefined) {
-    throw new RangeError("Cannot simulate a race with an empty field");
-  }
-  const winner = classified[0];
   const starters = Math.min(runners.length, maxStarters);
 
   return {

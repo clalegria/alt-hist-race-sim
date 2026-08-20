@@ -28,7 +28,7 @@ Nothing is committed yet — the whole project is still an uncommitted working t
 
 ## Commands
 ```
-pnpm test          # 84 tests (75 engine, 9 data)
+pnpm test          # 107 tests (98 engine, 9 data)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -85,6 +85,7 @@ packages/engine/           # pure sim, zero deps, heavily tested
   src/model/ratings.ts     # DriverRatings, CarSpec — types only
   src/rng/                 # sfc32 PRNG behind an Rng interface
   src/race/                # score-and-sort race model + its constants
+  src/race/gaps.ts         # cosmetic score → seconds/laps, no effect on results
 packages/data/src/         # the three seed JSON files + typed loader
 tools/calibrate/src/       # race viewer, Monte Carlo harness, rating tuner
 ```
@@ -127,6 +128,25 @@ Four stages, all constants in `race/constants.ts`:
 4. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
    driver error (from composure). Both always rolled; mechanical takes precedence
    when recording the cause.
+
+**Gaps are decoration.** `qualifyingGapToPole` and `raceGapToWinner` are pure
+functions of the scores, computed in `race/gaps.ts` from four constants. The model
+has no time dimension at all — no laps, no distance, no circuits — so a gap is a
+monotone relabelling of the sort key and cannot disagree with the finishing order
+or add information to it. Nothing in the sim reads them back; do not build
+championship logic on them.
+
+Qualifying is linear (`0.15 s` per rating point). The race is a power curve,
+`0.9 · deficit^1.5` seconds, because one seconds-per-point factor cannot serve both
+ends: winner-to-second runs ~3 rating points while winner-to-last runs ~45, so
+linear either bunches the field into a few seconds or puts the runner-up a minute
+back. The exponent keeps the lead battle tight while the tail stretches into whole
+laps, converted at a nominal 90-second lap (`nominalLapSeconds`, one value for every
+circuit, since there is no track data). Set `raceGapExponent` to 1 for a linear map.
+
+These are eyeballed for plausibility against 1980, not fitted, and gaps shrank a lot
+by the 2000s — expect to revisit the constants alongside the era work rather than
+treating the current values as calibrated.
 
 Non-qualifiers still draw their race noise and both DNF rolls, and the results are
 thrown away. Skipping the draws would make every later car's position in the RNG

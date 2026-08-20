@@ -3,7 +3,7 @@ import { createRng } from "../rng/index.js";
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { scoreAndSortRaceModel, simulateRace } from "./simulateRace.js";
-import type { RaceEntrant, RaceResult } from "./types.js";
+import type { RaceEntrant, RaceEntryResult, RaceResult } from "./types.js";
 
 function entrant(
   driverId: string,
@@ -290,6 +290,96 @@ describe("retirements", () => {
       return total;
     };
     expect(count(modern)).toBeLessThan(count(RACE_CONSTANTS) / 2);
+  });
+});
+
+describe("gaps", () => {
+  it("puts the pole sitter and the winner on zero", () => {
+    const result = simulateRace(spreadField(), createRng(4));
+    const pole = result.entries.find((e) => e.driverId === result.poleDriverId);
+    expect(pole?.qualifyingGapToPole).toBe(0);
+    const winner = result.entries.find((e) => e.driverId === result.winnerDriverId);
+    expect(winner?.raceGapToWinner).toEqual({ kind: "time", seconds: 0 });
+  });
+
+  it("orders qualifying gaps by grid position", () => {
+    // A gap that disagreed with the order it was derived from would be worse
+    // than no gap at all.
+    const byGrid = [...simulateRace(spreadField(), createRng(6)).entries].sort(
+      (a, b) => a.gridPosition - b.gridPosition,
+    );
+    for (let i = 1; i < byGrid.length; i += 1) {
+      expect(byGrid[i]?.qualifyingGapToPole ?? 0).toBeGreaterThan(
+        byGrid[i - 1]?.qualifyingGapToPole ?? 0,
+      );
+    }
+  });
+
+  it("orders race gaps by finishing position", () => {
+    const seconds = (entry: RaceEntryResult | undefined): number => {
+      const gap = entry?.raceGapToWinner;
+      if (gap === null || gap === undefined) {
+        return -1;
+      }
+      return gap.kind === "time" ? gap.seconds : gap.laps * RACE_CONSTANTS.nominalLapSeconds;
+    };
+    const byFinish = simulateRace(spreadField(), createRng(6), NO_DNFS)
+      .entries.filter((e) => e.finishPosition !== null)
+      .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
+    for (let i = 1; i < byFinish.length; i += 1) {
+      expect(seconds(byFinish[i])).toBeGreaterThanOrEqual(seconds(byFinish[i - 1]));
+    }
+  });
+
+  it("gives a retirement and a non-qualifier no race gap", () => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const result = simulateRace(oversubscribedField(30), createRng(seed));
+      for (const entry of result.entries) {
+        if (entry.finishPosition === null) {
+          expect(entry.raceGapToWinner).toBeNull();
+        } else {
+          expect(entry.raceGapToWinner).not.toBeNull();
+        }
+      }
+    }
+  });
+
+  it("still gives a non-qualifier a qualifying gap", () => {
+    // They ran on Saturday; being slowest is exactly what the gap should show.
+    const result = simulateRace(oversubscribedField(30), createRng(2));
+    for (const entry of result.entries.filter((e) => !e.started)) {
+      expect(entry.qualifyingGapToPole).toBeGreaterThan(0);
+    }
+  });
+
+  it("leaves nobody with a gap when every car retires", () => {
+    const allRetire: RaceConstants = {
+      ...RACE_CONSTANTS,
+      mechanicalDnfAtZeroReliability: 1,
+      mechanicalDnfAtFullReliability: 1,
+    };
+    const result = simulateRace(spreadField(), createRng(1), allRetire);
+    expect(result.winnerDriverId).toBeNull();
+    expect(result.entries.every((e) => e.raceGapToWinner === null)).toBe(true);
+  });
+
+  it("is decoration: changing the gap constants cannot change the result", () => {
+    const stretched: RaceConstants = {
+      ...RACE_CONSTANTS,
+      qualifyingGapSecondsPerPoint: 9,
+      raceGapSecondsAtOnePoint: 40,
+      raceGapExponent: 2.5,
+      nominalLapSeconds: 3,
+    };
+    const plain = simulateRace(spreadField(), createRng(11));
+    const odd = simulateRace(spreadField(), createRng(11), stretched);
+    expect(odd.entries.map((e) => e.finishPosition)).toEqual(
+      plain.entries.map((e) => e.finishPosition),
+    );
+    expect(odd.entries.map((e) => e.gridPosition)).toEqual(
+      plain.entries.map((e) => e.gridPosition),
+    );
+    expect(odd.winnerDriverId).toBe(plain.winnerDriverId);
   });
 });
 

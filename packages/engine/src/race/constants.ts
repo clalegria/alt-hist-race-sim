@@ -126,6 +126,43 @@ export interface RaceConstants {
   readonly driverErrorDnfAtFullComposure: number;
 
   /**
+   * Seconds per rating point of qualifying deficit. Purely cosmetic: it turns
+   * an abstract score gap into a readable "+0.213s" and changes nothing about
+   * the order, which is already fixed by the scores themselves.
+   *
+   * Linear, because a real qualifying sheet is roughly linear and nobody gets
+   * lapped on a flying lap. Across the 1980 grid the pole-to-last score gap
+   * averages ~50 points, so this puts the back of the field ~7.5s off pole.
+   */
+  readonly qualifyingGapSecondsPerPoint: number;
+
+  /**
+   * Race gaps, as `raceGapSecondsAtOnePoint * deficit ** raceGapExponent`
+   * seconds behind the winner. Also purely cosmetic.
+   *
+   * The exponent is the point of this: a single seconds-per-point factor cannot
+   * be right at both ends, because the winner-to-second score gap runs ~3 points
+   * while winner-to-last runs ~45. Linear either bunches the whole field within
+   * a few seconds or puts the runner-up a minute back. An exponent above 1 keeps
+   * the lead battle tight in seconds while the tail stretches out into whole
+   * laps, which is what a race classification actually looks like. At 1.0 the
+   * map is linear again.
+   *
+   * `raceGapSecondsAtOnePoint` is the gap at a one-point deficit, which is where
+   * the curve is anchored — not a per-point rate, since the exponent means there
+   * isn't one.
+   */
+  readonly raceGapSecondsAtOnePoint: number;
+  readonly raceGapExponent: number;
+
+  /**
+   * Lap length in seconds, used only to convert a large cosmetic race gap into
+   * "+1 lap", "+2 laps". One nominal value stands in for every circuit: the sim
+   * has no calendar and no track data, and gaps are decoration, not physics.
+   */
+  readonly nominalLapSeconds: number;
+
+  /**
    * Era multiplier on mechanical failure, applied after the reliability
    * interpolation and clamped into [0, 1].
    *
@@ -185,6 +222,12 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
 
   driverErrorDnfAtZeroComposure: 0.3,
   driverErrorDnfAtFullComposure: 0.03,
+
+  qualifyingGapSecondsPerPoint: 0.15,
+
+  raceGapSecondsAtOnePoint: 0.9,
+  raceGapExponent: 1.5,
+  nominalLapSeconds: 90,
 
   mechanicalDnfEraScale: 1.0,
 });

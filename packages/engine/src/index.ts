@@ -13,11 +13,13 @@ export const SEED_SEASON = 1980;
 
 export type { CarSpec, DriverRatings } from "./model/index.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
+export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
 export { scoreAndSortRaceModel, simulateRace } from "./race/simulateRace.js";
 export type {
   DnfCause,
   RaceEntrant,
   RaceEntryResult,
+  RaceGap,
   RaceModel,
   RaceResult,
 } from "./race/types.js";

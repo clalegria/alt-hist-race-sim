@@ -10,7 +10,7 @@
  */
 
 import { driversById, teamsById } from "@alt-hist/data";
-import { createRng, simulateRace } from "@alt-hist/engine";
+import { createRng, type RaceGap, simulateRace } from "@alt-hist/engine";
 import { buildField } from "./buildField.js";
 
 function parseSeed(argv: readonly string[]): number {
@@ -33,6 +33,27 @@ function padLeft(text: string, width: number): string {
   return text.length >= width ? text : " ".repeat(width - text.length) + text;
 }
 
+/** "+5.234s", or "+1:17.230s" once a gap runs past the minute. */
+function formatSeconds(seconds: number): string {
+  // Round to milliseconds before splitting, so 59.9999s reads as +1:00.000s
+  // rather than +60.000s.
+  const totalMs = Math.round(seconds * 1000);
+  const minutes = Math.floor(totalMs / 60000);
+  const rest = (totalMs % 60000) / 1000;
+  if (minutes === 0) {
+    return `+${rest.toFixed(3)}s`;
+  }
+  return `+${minutes}:${rest.toFixed(3).padStart(6, "0")}s`;
+}
+
+/** A race gap: seconds as above, or "+2 laps" once a car is lapped. */
+function formatGap(gap: RaceGap): string {
+  if (gap.kind === "laps") {
+    return `+${gap.laps} lap${gap.laps === 1 ? "" : "s"}`;
+  }
+  return formatSeconds(gap.seconds);
+}
+
 function main(): void {
   const seed = parseSeed(process.argv);
   const field = buildField();
@@ -51,6 +72,29 @@ function main(): void {
   );
   console.log("");
 
+  console.log("QUALIFYING");
+  console.log(
+    [padLeft("POS", 4), "  ", padRight("DRIVER", 22), padRight("TEAM", 12), "GAP"].join(""),
+  );
+  console.log("-".repeat(52));
+
+  const qualifying = [...result.entries].sort((a, b) => a.gridPosition - b.gridPosition);
+  for (const entry of qualifying) {
+    const gap =
+      entry.gridPosition === 1 ? "pole position" : formatSeconds(entry.qualifyingGapToPole);
+    console.log(
+      [
+        padLeft(String(entry.gridPosition), 4),
+        "  ",
+        padRight(nameOf(entry.driverId), 22),
+        padRight(teamOf(entry.teamId), 12),
+        entry.started ? gap : `${gap}  DNQ`,
+      ].join(""),
+    );
+  }
+
+  console.log("");
+  console.log("RACE");
   console.log(
     [
       padLeft("POS", 4),
@@ -58,10 +102,12 @@ function main(): void {
       padRight("DRIVER", 22),
       padRight("TEAM", 12),
       padLeft("GRID", 5),
-      "  STATUS",
+      "  ",
+      padRight("GAP", 12),
+      "STATUS",
     ].join(""),
   );
-  console.log("-".repeat(60));
+  console.log("-".repeat(72));
 
   const classified = result.entries
     .filter((entry) => entry.started && !entry.retired)
@@ -75,7 +121,16 @@ function main(): void {
         padRight(nameOf(entry.driverId), 22),
         padRight(teamOf(entry.teamId), 12),
         padLeft(String(entry.gridPosition), 5),
-        "  Finished",
+        "  ",
+        padRight(
+          entry.finishPosition === 1
+            ? "winner"
+            : entry.raceGapToWinner === null
+              ? ""
+              : formatGap(entry.raceGapToWinner),
+          12,
+        ),
+        "Finished",
       ].join(""),
     );
   }
@@ -93,7 +148,9 @@ function main(): void {
         padRight(nameOf(entry.driverId), 22),
         padRight(teamOf(entry.teamId), 12),
         padLeft(String(entry.gridPosition), 5),
-        `  ${cause}`,
+        "  ",
+        padRight("", 12),
+        cause,
       ].join(""),
     );
   }
@@ -110,7 +167,9 @@ function main(): void {
         padRight(nameOf(entry.driverId), 22),
         padRight(teamOf(entry.teamId), 12),
         padLeft(String(entry.gridPosition), 5),
-        "  DNQ",
+        "  ",
+        padRight("", 12),
+        "DNQ",
       ].join(""),
     );
   }
