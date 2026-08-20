@@ -1,56 +1,111 @@
-import type { RaceResult } from "@alt-hist/engine";
+import { driversById } from "@alt-hist/data";
+import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
+import { driverName, teamName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
-import { DriverName } from "./DriverName.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import { Flag } from "./Flag.js";
+
+const drivers = driversById();
 
 /**
- * A qualifying sheet.
+ * One car's slot on the grid.
  *
- * Everyone entered runs, so this lists the whole field — including the cars that
- * qualified outside the starting limit, which is the only place a DNQ is
- * explained rather than just absent from Sunday.
+ * Fixed height, because the stagger below depends on every row being the same
+ * size — a name that wrapped to two lines would throw the whole column out.
+ * Names truncate instead.
  */
-export function QualifyingResults({ race }: { race: RaceResult }) {
-  const order = [...race.entries].sort((a, b) => a.gridPosition - b.gridPosition);
+function GridSlot({ entry }: { entry: RaceEntryResult }) {
+  const nationality = drivers.get(entry.driverId)?.nationality;
+  const pole = entry.gridPosition === 1;
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-12 text-right">Pos</TableHead>
-          <TableHead>Driver</TableHead>
-          <TableHead className="text-right">Gap</TableHead>
-          <TableHead />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {order.map((entry) => (
-          <TableRow key={entry.driverId} className={cn(entry.started || "opacity-60")}>
-            <TableCell
-              className={cn(
-                "text-right tabular-nums",
-                entry.gridPosition === 1 ? "font-semibold" : "text-muted-foreground",
-              )}
-            >
-              {entry.gridPosition}
-            </TableCell>
-            <TableCell>
-              <DriverName
-                driverId={entry.driverId}
-                teamId={entry.teamId}
-                emphasis={entry.gridPosition === 1}
-              />
-            </TableCell>
-            <TableCell className="text-muted-foreground text-right tabular-nums">
-              {entry.gridPosition === 1 ? "pole" : formatSeconds(entry.qualifyingGapToPole)}
-            </TableCell>
-            <TableCell className="text-primary/80 text-xs">
-              {entry.started ? "" : "Did not qualify"}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div
+      className={cn(
+        "border-border bg-card flex h-[3.25rem] items-center gap-2 rounded-lg border px-2.5",
+        pole && "border-primary/40 bg-primary/5",
+      )}
+    >
+      <span
+        className={cn(
+          "w-5 shrink-0 text-right text-sm tabular-nums",
+          pole ? "text-primary font-semibold" : "text-muted-foreground",
+        )}
+      >
+        {entry.gridPosition}
+      </span>
+      {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
+      <span className="flex min-w-0 flex-1 flex-col leading-tight">
+        <span className={cn("truncate text-sm", pole && "font-semibold")}>
+          {driverName(entry.driverId)}
+        </span>
+        <span className="text-muted-foreground truncate text-xs">{teamName(entry.teamId)}</span>
+      </span>
+      <span
+        className={cn(
+          "shrink-0 text-xs tabular-nums",
+          pole ? "text-primary" : "text-muted-foreground",
+        )}
+      >
+        {pole ? "pole" : formatSeconds(entry.qualifyingGapToPole)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The starting grid, laid out like one.
+ *
+ * Two columns, odd positions on the left and even on the right, with the right
+ * column set back half a row — the staggered formation a real grid forms up in.
+ *
+ * The geometry is worth stating because it is easy to get subtly wrong. Rows are
+ * a fixed height (the "step"), and even slots are shifted by exactly half a step
+ * with `translate-y`, which moves them visually without changing layout height.
+ * That puts car N at `(N - 1) × step / 2` down the page for every N, so the
+ * spacing between P1 and P2 is the same as between P2 and P3. Using a margin
+ * instead would grow the row it sits in and break that evenly-spaced illusion —
+ * P2 would sit far closer to P1 than P3 does.
+ *
+ * Two numbers control the look: the row height and the offset, which must stay
+ * exactly half of it. Below `sm` the stagger is dropped entirely and the grid
+ * becomes a single column, since two columns of names do not fit on a phone.
+ */
+function StartingGrid({ starters }: { starters: readonly RaceEntryResult[] }) {
+  return (
+    <ol className="grid grid-cols-1 gap-2 sm:auto-rows-[3.75rem] sm:grid-cols-2 sm:gap-x-6 sm:gap-y-0 sm:pb-8">
+      {starters.map((entry) => (
+        <li key={entry.driverId} className="sm:even:translate-y-[1.875rem]">
+          <GridSlot entry={entry} />
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function QualifyingResults({ race }: { race: RaceResult }) {
+  const order = [...race.entries].sort((a, b) => a.gridPosition - b.gridPosition);
+  // Cars outside the cut never form up, so they do not belong on the grid.
+  const starters = order.filter((entry) => entry.started);
+  const nonQualifiers = order.filter((entry) => !entry.started);
+
+  return (
+    <div className="px-5 py-4">
+      <StartingGrid starters={starters} />
+
+      {nonQualifiers.length === 0 ? null : (
+        <div className="border-border mt-2 border-t pt-4">
+          <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+            Did not qualify
+          </p>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-6">
+            {nonQualifiers.map((entry) => (
+              <li key={entry.driverId} className="opacity-60">
+                <GridSlot entry={entry} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

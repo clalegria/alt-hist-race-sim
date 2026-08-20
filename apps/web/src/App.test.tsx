@@ -50,9 +50,9 @@ describe("a qualifying session", () => {
     expect(html).toContain("Qualifying");
   });
 
-  it("lists the whole entry list, pole first", () => {
+  it("forms up the whole entry list, pole first", () => {
     expect(html).toContain("pole");
-    expect(html.split("<tr").length - 1).toBe(29); // 28 cars plus the header
+    expect(html.split("<li").length - 1).toBe(28); // 26 on the grid, 2 alongside
     expect(html).toContain("Did not qualify");
   });
 
@@ -148,6 +148,14 @@ describe("flags", () => {
   it("flies a flag beside every driver in qualifying", () => {
     const html = render({ kind: "qualifying", round: 0 });
     expect((html.match(/<svg/g) ?? []).length).toBe(29); // 28 drivers plus the round
+  });
+
+  it("keeps the non-qualifiers off the starting grid", () => {
+    // Cars outside the cut never form up, so they are listed apart rather than
+    // taking a slot that would shift everyone behind them onto the wrong side.
+    const html = render({ kind: "qualifying", round: 0 });
+    const grid = html.slice(0, html.indexOf("Did not qualify"));
+    expect(grid.split("<li").length - 1).toBe(26);
   });
 
   it("flies a flag on both champion cards", () => {

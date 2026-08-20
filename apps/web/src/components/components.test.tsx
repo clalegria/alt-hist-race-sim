@@ -14,6 +14,7 @@ import { driverName } from "../lib/names.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { createWorld } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
+import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 
@@ -166,5 +167,58 @@ describe("the compact standings", () => {
     for (const column of ["Wins", "Pods", "Poles", "DNF", "DNQ"]) {
       expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
     }
+  });
+});
+
+describe("the starting grid layout", () => {
+  const race = world.season.races[0];
+  if (race === undefined) {
+    throw new Error("seeded world has no races");
+  }
+  const html = renderToStaticMarkup(<QualifyingResults race={race} />);
+
+  it("sets back the even slots, and only those", () => {
+    // The offset rides an `even:` variant, so the class string is identical on
+    // every slot and CSS decides which ones move. Two things are checkable from
+    // the markup: that the variant is `even` and not `odd` — swapping them puts
+    // pole on the back row — and that every slot on the grid carries it, so no
+    // car was left out of the formation.
+    expect(html).toContain("sm:even:translate-y-");
+    expect(html).not.toContain("odd:translate-y-");
+
+    const grid = html.slice(0, html.indexOf("Did not qualify"));
+    const slots = grid.split("<li").slice(1);
+    expect(slots).toHaveLength(26);
+    for (const [index, slot] of slots.entries()) {
+      expect(slot.includes("even:translate-y"), `slot ${index + 1} is not in formation`).toBe(true);
+    }
+  });
+
+  it("does not stagger the cars that failed to qualify", () => {
+    // They never form up, so a staggered pair there would be pure decoration.
+    const dnq = html.slice(html.indexOf("Did not qualify"));
+    expect(dnq).not.toContain("even:translate-y");
+  });
+
+  it("offsets by exactly half a row, so the cars are evenly spaced", () => {
+    // The geometry invariant. Car N sits at (N-1) x step/2 down the page only
+    // while the offset is half the row height; drift them apart and P2 ends up
+    // nearer P1 than P3 is, which stops looking like a grid.
+    const rowHeight = html.match(/auto-rows-\[([\d.]+)rem\]/)?.[1];
+    const offset = html.match(/even:translate-y-\[([\d.]+)rem\]/)?.[1];
+    expect(rowHeight, "row height class missing").toBeDefined();
+    expect(offset, "offset class missing").toBeDefined();
+    expect(Number(offset)).toBeCloseTo(Number(rowHeight) / 2, 5);
+  });
+
+  it("marks pole and shows everyone else's gap to it", () => {
+    expect(html).toContain("pole");
+    expect(html).toMatch(/\+\d+\.\d{3}s/);
+  });
+
+  it("names every car's team on the grid", () => {
+    expect(html).toContain("Renault");
+    expect(html).toContain("Williams");
+    expect(html).toContain("Shadow");
   });
 });

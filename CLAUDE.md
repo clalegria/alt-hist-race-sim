@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 231 tests (137 engine, 13 data, 81 web)
+pnpm test          # 237 tests (137 engine, 13 data, 87 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -334,6 +334,17 @@ score in the race model, because ~42% of the 1980 field failed to finish and a
 fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
 nothing reads it, and paying for it would claim a driver is better at something the
 sim never asks of them. Revisit both when the transfer market lands.
+
+**Qualifying is drawn as a starting grid**, not a table: two columns, odd positions
+left and even right, with the right column set back half a row. The geometry is
+fiddly enough to be worth stating — rows are a fixed height and even slots shift by
+exactly half of it via `translate-y`, which moves them visually without changing
+layout height. That puts car N at `(N − 1) × step / 2` down the page for every N, so
+P1→P2 spacing equals P2→P3. A margin would grow the row it sits in and bunch each
+pair together instead. Two numbers control it and must stay in that 2:1 ratio; a test
+parses both out of the markup and fails if they drift. Below `sm` the stagger drops
+and it becomes one column. Cars outside the cut are listed apart — they never form
+up, and slotting them in would put the wrong drivers on the wrong side.
 
 **A race shows its result and the championship side by side**, the standings cut to
 position, name and points and to the top eight, with a button for the rest. After a
