@@ -8,6 +8,7 @@ import {
 } from "@alt-hist/engine";
 import { useMemo } from "react";
 import { driverName, teamName } from "../lib/names.js";
+import { positionsOf } from "../lib/standings.js";
 import type { View, World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { Flag } from "./Flag.js";
@@ -192,7 +193,25 @@ function RaceStage({
   const soFar = useMemo(() => seasonSoFar(world.season, view.round), [world.season, view.round]);
   const drivers = useMemo(() => championshipStandings(soFar), [soFar]);
   const constructors = useMemo(() => constructorStandings(soFar), [soFar]);
+
+  // The table as it stood a round ago, so each row can show what it gained or
+  // lost. Round one has no "before" and gets undefined, so nobody reads as
+  // having climbed from nowhere. (An empty previous table would degrade to the
+  // same thing — every lookup missing — but saying so outright is clearer than
+  // relying on it.)
+  const previous = useMemo(() => {
+    if (view.round === 0) {
+      return { drivers: undefined, constructors: undefined };
+    }
+    const before = seasonSoFar(world.season, view.round - 1);
+    return {
+      drivers: positionsOf(championshipStandings(before)),
+      constructors: positionsOf(constructorStandings(before)),
+    };
+  }, [world.season, view.round]);
+
   const label = roundLabel(view.round);
+  const remaining = world.season.races.length - soFar.races.length;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
@@ -203,9 +222,18 @@ function RaceStage({
       <aside className="flex flex-col gap-4">
         <p className="text-muted-foreground text-xs">
           Championship after {plural(soFar.races.length, "round")}
+          {remaining === 0 ? "" : ` (${remaining} remaining)`}
         </p>
-        <CompactStandings title="Drivers" standings={drivers} />
-        <CompactStandings title="Constructors" standings={constructors} />
+        <CompactStandings
+          title="Drivers"
+          standings={drivers}
+          previousPositions={previous.drivers}
+        />
+        <CompactStandings
+          title="Constructors"
+          standings={constructors}
+          previousPositions={previous.constructors}
+        />
       </aside>
     </div>
   );

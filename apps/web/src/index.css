@@ -19,6 +19,10 @@
   --color-accent: oklch(96% 0.02 260);
   --color-ring: oklch(48% 0.19 27);
 
+  /* Places gained and lost. Paired with different glyphs, never colour alone. */
+  --color-gain: oklch(56% 0.15 150);
+  --color-loss: oklch(55% 0.19 25);
+
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 }
 
@@ -36,6 +40,8 @@
     --color-primary-foreground: oklch(17% 0.015 260);
     --color-accent: oklch(27% 0.02 260);
     --color-ring: oklch(62% 0.2 27);
+    --color-gain: oklch(72% 0.16 150);
+    --color-loss: oklch(68% 0.2 25);
   }
 }
 

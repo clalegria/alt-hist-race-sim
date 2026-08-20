@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName } from "../lib/names.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
+import { positionsOf } from "../lib/standings.js";
 import { createWorld } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
@@ -94,9 +95,10 @@ describe("the season grid", () => {
     expect(html.split("<svg").length - 1).toBe(43);
   });
 
-  it("shows each driver's age", () => {
-    expect(html).toContain(">34<"); // Jones, born 1946
-    expect(html).toContain(">22<"); // de Angelis, born 1958
+  it("shows each driver's age beside their name, not next to their rating", () => {
+    // "Alan Jones (34y)  89" reads; "Alan Jones  34 89" reads as two ratings.
+    expect(html).toContain("(34y)"); // Jones, born 1946
+    expect(html).toContain("(22y)"); // de Angelis, born 1958
   });
 
   it("shows an overall for every driver and every car", () => {
@@ -159,6 +161,60 @@ describe("the compact standings", () => {
     );
     expect(short).not.toContain("Show all");
     expect((short.match(/<svg/g) ?? []).length).toBe(5);
+  });
+
+  it("marks who gained and who lost places since the previous round", () => {
+    // Positions after round 1 against positions after round 2: anyone whose
+    // number went down climbed, and must carry an up arrow.
+    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) });
+    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) });
+    const previous = positionsOf(afterOne);
+    const moved = afterTwo
+      .map((standing, index) => ({
+        name: driverName(standing.driverId),
+        places: (previous.get(standing.driverId) ?? 0) - (index + 1),
+      }))
+      .slice(0, 8);
+    expect(
+      moved.some((row) => row.places > 0),
+      "nobody climbed between rounds",
+    ).toBe(true);
+    expect(
+      moved.some((row) => row.places < 0),
+      "nobody dropped between rounds",
+    ).toBe(true);
+
+    const withArrows = renderToStaticMarkup(
+      <CompactStandings title="Drivers" standings={afterTwo} previousPositions={previous} />,
+    );
+    expect((withArrows.match(/▲/g) ?? []).length).toBe(
+      moved.filter((row) => row.places > 0).length,
+    );
+    expect((withArrows.match(/▼/g) ?? []).length).toBe(
+      moved.filter((row) => row.places < 0).length,
+    );
+    expect(withArrows).toContain("text-gain");
+    expect(withArrows).toContain("text-loss");
+  });
+
+  it("shows no arrows at all when there is no previous round", () => {
+    // Round one: everyone would otherwise read as having climbed from nowhere.
+    expect(driverHtml).not.toContain("▲");
+    expect(driverHtml).not.toContain("▼");
+  });
+
+  it("says which way and how far, not just colour", () => {
+    // An arrow distinguished only by hue tells a colourblind reader nothing.
+    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) });
+    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) });
+    const html = renderToStaticMarkup(
+      <CompactStandings
+        title="Drivers"
+        standings={afterTwo}
+        previousPositions={positionsOf(afterOne)}
+      />,
+    );
+    expect(html).toMatch(/title="(Up|Down) \d+ places?"/);
   });
 
   it("names each driver's team, and carries points but no other column", () => {

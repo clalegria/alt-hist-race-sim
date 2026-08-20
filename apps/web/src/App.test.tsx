@@ -77,6 +77,25 @@ describe("a race", () => {
     expect(html).toContain("Championship after 1 round");
   });
 
+  it("says how much of the season is left to run", () => {
+    expect(html).toContain("Championship after 1 round (13 remaining)");
+    expect(render({ kind: "race", round: 3 })).toContain(
+      "Championship after 4 rounds (10 remaining)",
+    );
+    // Nothing remains after the last one, and "(0 remaining)" reads badly.
+    expect(render({ kind: "race", round: ROUNDS - 1 })).not.toContain("remaining");
+  });
+
+  it("shows movement arrows from round two onward, never on round one", () => {
+    // The contract as a reader meets it, rather than as a prop: on the opening
+    // round there is nothing to have moved from.
+    expect(html).not.toContain("▲");
+    expect(html).not.toContain("▼");
+    const later = render({ kind: "race", round: 3 });
+    expect(later).toContain("▲");
+    expect(later).toContain("▼");
+  });
+
   it("counts only the rounds run so far", () => {
     // Standings mid-season are just the championship over fewer results — if
     // this said 14 rounds, the reveal would be showing the finished table.

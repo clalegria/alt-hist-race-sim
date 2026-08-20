@@ -88,11 +88,14 @@ function DriverEntry({ entrant, seasonYear }: { entrant: RaceEntrant; seasonYear
   return (
     <li className="flex items-center gap-2 text-sm">
       <Popover>
-        <NameTrigger className="flex flex-1 items-center gap-1.5">
+        <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5">
           {driver === undefined ? null : (
             <Flag country={driver.nationality} title={driver.nationality} />
           )}
-          <span>{driverName(entrant.driverId)}</span>
+          <span className="truncate">{driverName(entrant.driverId)}</span>
+          {age === null ? null : (
+            <span className="text-muted-foreground shrink-0 text-xs">({age}y)</span>
+          )}
         </NameTrigger>
         <PopoverContent>
           <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -113,7 +116,6 @@ function DriverEntry({ entrant, seasonYear }: { entrant: RaceEntrant; seasonYear
           </div>
         </PopoverContent>
       </Popover>
-      <span className="text-muted-foreground shrink-0 text-xs tabular-nums">{age}</span>
       <Overall value={driverOverall(entrant.driver)} />
     </li>
   );

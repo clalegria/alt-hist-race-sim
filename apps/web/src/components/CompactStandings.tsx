@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isDriverStanding, type Standing } from "../lib/standings.js";
+import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { TeamName } from "./TeamName.js";
@@ -16,6 +16,32 @@ import { Table, TableBody, TableCell, TableRow } from "./ui/table.js";
 const COLLAPSED_ROWS = 8;
 
 /**
+ * Places gained or lost since the previous round.
+ *
+ * Renders an empty box of the same width when nothing moved, so the names stay
+ * aligned down the column rather than jogging left and right. The direction is
+ * carried by the glyph as well as the colour — an arrow that only differed by
+ * hue would say nothing to a red-green colourblind reader.
+ */
+function Movement({ places }: { places: number | null }) {
+  if (places === null || places === 0) {
+    return <span aria-hidden="true" className="inline-block w-2.5" />;
+  }
+  const gained = places > 0;
+  return (
+    <span
+      title={`${gained ? "Up" : "Down"} ${Math.abs(places)} ${Math.abs(places) === 1 ? "place" : "places"}`}
+      className={cn(
+        "inline-block w-2.5 text-[0.5rem] leading-none",
+        gained ? "text-gain" : "text-loss",
+      )}
+    >
+      {gained ? "▲" : "▼"}
+    </span>
+  );
+}
+
+/**
  * A championship table cut down to position, name and points.
  *
  * Sits beside a race result rather than under it, where the full table's wins,
@@ -25,9 +51,15 @@ const COLLAPSED_ROWS = 8;
 export function CompactStandings({
   title,
   standings,
+  previousPositions,
 }: {
   title: string;
   standings: readonly Standing[];
+  /**
+   * Where everyone sat after the previous round, 1-based. Omitted for round one,
+   * where there is nothing to have moved from.
+   */
+  previousPositions?: ReadonlyMap<string, number> | undefined;
 }) {
   // View state, and only this table's — nothing else cares whether it is open.
   const [expanded, setExpanded] = useState(false);
@@ -41,37 +73,46 @@ export function CompactStandings({
       </CardHeader>
       <Table>
         <TableBody>
-          {rows.map((standing, index) => (
-            <TableRow key={isDriverStanding(standing) ? standing.driverId : standing.teamId}>
-              <TableCell
-                className={cn(
-                  "w-8 py-1.5 text-right tabular-nums",
-                  index === 0 ? "text-foreground font-semibold" : "text-muted-foreground",
-                )}
-              >
-                {index + 1}
-              </TableCell>
-              <TableCell className="py-1.5">
-                {isDriverStanding(standing) ? (
-                  <DriverName
-                    driverId={standing.driverId}
-                    teamId={standing.teamId}
-                    emphasis={index === 0}
-                  />
-                ) : (
-                  <TeamName teamId={standing.teamId} emphasis={index === 0} />
-                )}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  "w-10 py-1.5 text-right font-semibold tabular-nums",
-                  standing.points === 0 && "text-muted-foreground/50 font-normal",
-                )}
-              >
-                {standing.points}
-              </TableCell>
-            </TableRow>
-          ))}
+          {rows.map((standing, index) => {
+            const was = previousPositions?.get(standingKey(standing));
+            const moved = was === undefined ? null : was - (index + 1);
+            return (
+              <TableRow key={standingKey(standing)}>
+                <TableCell className="w-12 py-1.5 pr-0 text-right">
+                  <span className="inline-flex items-center gap-1">
+                    <Movement places={moved} />
+                    <span
+                      className={cn(
+                        "tabular-nums",
+                        index === 0 ? "text-foreground font-semibold" : "text-muted-foreground",
+                      )}
+                    >
+                      {index + 1}
+                    </span>
+                  </span>
+                </TableCell>
+                <TableCell className="py-1.5">
+                  {isDriverStanding(standing) ? (
+                    <DriverName
+                      driverId={standing.driverId}
+                      teamId={standing.teamId}
+                      emphasis={index === 0}
+                    />
+                  ) : (
+                    <TeamName teamId={standing.teamId} emphasis={index === 0} />
+                  )}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "w-10 py-1.5 text-right font-semibold tabular-nums",
+                    standing.points === 0 && "text-muted-foreground/50 font-normal",
+                  )}
+                >
+                  {standing.points}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 

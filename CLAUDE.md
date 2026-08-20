@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 237 tests (137 engine, 13 data, 87 web)
+pnpm test          # 242 tests (137 engine, 13 data, 92 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -347,7 +347,12 @@ and it becomes one column. Cars outside the cut are listed apart — they never 
 up, and slotting them in would put the wrong drivers on the wrong side.
 
 **A race shows its result and the championship side by side**, the standings cut to
-position, name and points and to the top eight, with a button for the rest. After a
+position, name and points and to the top eight, with a button for the rest. Each row
+carries a green up or red down arrow for places moved since the previous round —
+derived by running `championshipStandings` over one fewer race and comparing, which
+costs nothing because standings are derived rather than stored. Round one shows no
+arrows, having nothing to move from. Direction rides the glyph as well as the colour,
+with the count in a `title`, so it is not colour-only. After a
 single round the full table's wins, podiums, poles and retirement counts are almost
 all zeroes; what a reader wants is who leads and by how much. The full breakdown
 belongs to the summary, and lives there.
