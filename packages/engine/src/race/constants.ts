@@ -37,12 +37,58 @@ export interface RaceConstants {
   readonly racingNoise: number;
 
   /**
-   * Consistency scales the noise. A combined consistency of 0 multiplies the
-   * spread by `consistencyNoiseMultiplierAtZero`; 100 multiplies it by
-   * `consistencyNoiseMultiplierAtHundred`. Interpolated linearly between.
+   * Consistency's spread lever, applied to both sessions: a combined
+   * consistency of 0 multiplies the noise by `consistencyNoiseMultiplierAtZero`,
+   * 100 by `consistencyNoiseMultiplierAtHundred`, interpolated linearly.
+   *
+   * Deliberately flat (both 1.0) as of the pace-penalty model. Any gap between
+   * these two numbers hands a low-consistency car a taller upper tail, and a
+   * taller upper tail means *more* wins for a car that has no business winning
+   * - a win is an upper-tail event, so nothing applied to the mean can fully
+   * offset it. Consistency therefore expresses itself purely through
+   * `consistencyPacePenalty*` below, which shifts the whole distribution and so
+   * makes an erratic pairing worse on every measure at once.
+   *
+   * Kept as a lever rather than deleted: reopening the gap is how you would
+   * trade strict dominance back for streakier, more upset-prone racing.
    */
   readonly consistencyNoiseMultiplierAtZero: number;
   readonly consistencyNoiseMultiplierAtHundred: number;
+
+  /**
+   * Pace lost to inconsistency, in rating points, subtracted from both the
+   * qualifying and the race score. Interpolated from combined consistency: 0
+   * costs `consistencyPacePenaltyAtZero`, 100 costs
+   * `consistencyPacePenaltyAtHundred`.
+   *
+   * This is what makes consistency a genuine handicap rather than a lottery
+   * ticket. Because it moves the mean and leaves the spread alone, a less
+   * consistent pairing is strictly worse off: fewer wins, fewer poles, worse
+   * average finish, and no compensating upside anywhere. A uniform shift across
+   * the whole field would be invisible - only the differences between cars
+   * matter - so what these endpoints really set is the spread of penalties
+   * across the grid.
+   */
+  readonly consistencyPacePenaltyAtZero: number;
+  readonly consistencyPacePenaltyAtHundred: number;
+
+  /**
+   * How much of each session's noise is shared "weekend form" rather than
+   * session-specific luck, as a share of variance in [0, 1].
+   *
+   * A driver who has found something in the car on Saturday tends to still have
+   * it on Sunday, so the two sessions should not be independent coin flips. One
+   * standard-normal form draw per car per weekend is reused by both sessions,
+   * weighted `sqrt(share)`, with an independent draw per session weighted
+   * `sqrt(1 - share)`. That leaves each session's total sigma exactly as
+   * `qualifyingNoise` / `racingNoise` specify, and makes the correlation between
+   * the two noise terms equal to this value.
+   *
+   * 0 restores fully independent sessions. 1 makes the race a deterministic
+   * function of qualifying - every race processional - so it is a bound to stay
+   * well clear of, not a target.
+   */
+  readonly weekendFormShare: number;
 
   /**
    * Track position, in rating points added to the race score. The advantage
@@ -88,8 +134,15 @@ export interface RaceConstants {
  * Default constants, calibrated for the 1980 season.
  *
  * Race pace weighting puts the 1980 top five inside a ~3.2 point band against a
- * race noise sigma of ~3.2-4.7 after consistency modulation, so they trade wins
- * rather than one car running away with every race.
+ * race noise sigma of 5.0, so they trade wins rather than one car running away
+ * with every race.
+ *
+ * Combined consistency across the 1980 grid runs roughly 46-90, so the penalty
+ * endpoints at 0 and 100 are extrapolation anchors rather than values anyone
+ * actually sits on. Over that real range they cost between ~2.2 and ~0.4 points,
+ * a ~1.8 point spread - worth about six driver rating points at the 0.3 race
+ * weighting, and enough to separate a metronome from a wildcard without
+ * swamping the car.
  */
 export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   weightCarQualifying: 0.72,
@@ -103,8 +156,13 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   qualifyingNoise: 3.0,
   racingNoise: 5.0,
 
-  consistencyNoiseMultiplierAtZero: 1.6,
-  consistencyNoiseMultiplierAtHundred: 0.5,
+  consistencyNoiseMultiplierAtZero: 1.0,
+  consistencyNoiseMultiplierAtHundred: 1.0,
+
+  consistencyPacePenaltyAtZero: 4.0,
+  consistencyPacePenaltyAtHundred: 0.0,
+
+  weekendFormShare: 0.4,
 
   gridAdvantagePole: 3.0,
   gridAdvantageDecayPlaces: 6.0,

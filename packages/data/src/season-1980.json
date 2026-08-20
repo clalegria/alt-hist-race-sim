@@ -4,7 +4,7 @@
     { "teamId": "williams",   "car": { "racing": 92, "qualifying": 88, "consistency": 88, "reliability": 85 }, "drivers": ["jones", "reutemann"] },
     { "teamId": "ligier",     "car": { "racing": 89, "qualifying": 89, "consistency": 78, "reliability": 72 }, "drivers": ["pironi", "laffite"] },
     { "teamId": "brabham",    "car": { "racing": 90, "qualifying": 86, "consistency": 82, "reliability": 80 }, "drivers": ["piquet", "zunino"] },
-    { "teamId": "renault",    "car": { "racing": 93, "qualifying": 90, "consistency": 68, "reliability": 55 }, "drivers": ["jabouille", "arnoux"] },
+    { "teamId": "renault",    "car": { "racing": 95, "qualifying": 91, "consistency": 68, "reliability": 55 }, "drivers": ["jabouille", "arnoux"] },
     { "teamId": "lotus",      "car": { "racing": 72, "qualifying": 72, "consistency": 70, "reliability": 68 }, "drivers": ["andretti", "deangelis"] },
     { "teamId": "tyrrell",    "car": { "racing": 70, "qualifying": 70, "consistency": 72, "reliability": 72 }, "drivers": ["jarier", "daly"] },
     { "teamId": "arrows",     "car": { "racing": 66, "qualifying": 68, "consistency": 64, "reliability": 62 }, "drivers": ["patrese", "mass"] },

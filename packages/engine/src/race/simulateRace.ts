@@ -16,9 +16,13 @@ function compareIds(a: string, b: string): number {
   return a > b ? 1 : 0;
 }
 
-/** Working record for one car as it moves through the race. */
+/** Working record for one car as it moves through the race weekend. */
 interface Runner {
   readonly entrant: RaceEntrant;
+  /** Standard-normal form for this weekend, shared by both sessions. */
+  readonly weekendForm: number;
+  readonly noiseScale: number;
+  readonly pacePenalty: number;
   readonly qualifyingScore: number;
   gridPosition: number;
   raceScore: number;
@@ -31,10 +35,11 @@ interface Runner {
  * Simulates one race with the v1 score-and-sort model.
  *
  * Pure and deterministic: the same field, seed, and constants always produce
- * the same result. Randomness is drawn in a fixed order — qualifying noise for
- * the whole field, then race noise, then the two DNF rolls per car, each pass
- * walking the field in the order supplied. Appending a car to the end of the
- * field therefore does not disturb anyone else's draws.
+ * the same result. Randomness is drawn in a fixed order — weekend form and
+ * qualifying noise for the whole field, then race noise, then the two DNF rolls
+ * per car, each pass walking the field in the order supplied. Every pass draws a
+ * fixed number of values per car, so appending a car to the end of the field
+ * does not disturb anyone else's draws.
  *
  * @throws RangeError if the field is empty or contains a duplicate driver.
  */
@@ -51,19 +56,56 @@ export function simulateRace(
     throw new RangeError("A driver cannot appear twice in the same field");
   }
 
+  // Splitting each session's noise into a shared and an independent part keeps
+  // the per-session sigma unchanged while making the two correlate: the weights
+  // are square roots because variances, not standard deviations, add.
+  const share = Math.min(Math.max(constants.weekendFormShare, 0), 1);
+  const sharedWeight = Math.sqrt(share);
+  const independentWeight = Math.sqrt(1 - share);
+
   // --- Qualifying -----------------------------------------------------------
-  const runners: Runner[] = field.map((entrant) => ({
-    entrant,
-    qualifyingScore:
-      constants.weightCarQualifying * entrant.car.qualifying +
-      constants.weightDriverQualifying * entrant.driver.qualifying +
-      rng.gaussian(0, constants.qualifyingNoise),
-    gridPosition: 0,
-    raceScore: 0,
-    mechanicalFailure: false,
-    driverError: false,
-    finishPosition: null,
-  }));
+  const runners: Runner[] = field.map((entrant) => {
+    const { driver, car } = entrant;
+
+    const consistency =
+      constants.weightCarConsistency * car.consistency +
+      constants.weightDriverConsistency * driver.consistency;
+    const noiseScale = lerpFromRating(
+      consistency,
+      constants.consistencyNoiseMultiplierAtZero,
+      constants.consistencyNoiseMultiplierAtHundred,
+    );
+    const pacePenalty = lerpFromRating(
+      consistency,
+      constants.consistencyPacePenaltyAtZero,
+      constants.consistencyPacePenaltyAtHundred,
+    );
+
+    // Drawn once and carried into the race, so a driver who is on it all
+    // weekend qualifies and races well, and one who never gels does neither.
+    const weekendForm = rng.gaussian();
+    const qualifyingNoise =
+      constants.qualifyingNoise *
+      noiseScale *
+      (sharedWeight * weekendForm + independentWeight * rng.gaussian());
+
+    return {
+      entrant,
+      weekendForm,
+      noiseScale,
+      pacePenalty,
+      qualifyingScore:
+        constants.weightCarQualifying * car.qualifying +
+        constants.weightDriverQualifying * driver.qualifying +
+        qualifyingNoise -
+        pacePenalty,
+      gridPosition: 0,
+      raceScore: 0,
+      mechanicalFailure: false,
+      driverError: false,
+      finishPosition: null,
+    };
+  });
 
   const grid = [...runners].sort(
     (a, b) =>
@@ -77,26 +119,23 @@ export function simulateRace(
   for (const runner of runners) {
     const { driver, car } = runner.entrant;
 
-    const consistency =
-      constants.weightCarConsistency * car.consistency +
-      constants.weightDriverConsistency * driver.consistency;
-    const noiseScale = lerpFromRating(
-      consistency,
-      constants.consistencyNoiseMultiplierAtZero,
-      constants.consistencyNoiseMultiplierAtHundred,
-    );
-
     // Grid advantage decays with distance from pole rather than falling off
     // linearly, so the front row is worth materially more than mid-grid.
     const gridBonus =
       constants.gridAdvantagePole *
       Math.exp(-(runner.gridPosition - 1) / constants.gridAdvantageDecayPlaces);
 
+    const racingNoise =
+      constants.racingNoise *
+      runner.noiseScale *
+      (sharedWeight * runner.weekendForm + independentWeight * rng.gaussian());
+
     runner.raceScore =
       constants.weightCarRacing * car.racing +
       constants.weightDriverRacing * driver.racing +
       gridBonus +
-      rng.gaussian(0, constants.racingNoise * noiseScale);
+      racingNoise -
+      runner.pacePenalty;
   }
 
   // --- Retirements ----------------------------------------------------------

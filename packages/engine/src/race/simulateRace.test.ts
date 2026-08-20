@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../rng/index.js";
+import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { scoreAndSortRaceModel, simulateRace } from "./simulateRace.js";
 import type { RaceEntrant, RaceResult } from "./types.js";
@@ -316,6 +317,244 @@ describe("ratings drive results", () => {
     const conversion = poleWins / finishes;
     expect(conversion).toBeGreaterThan(1 / 20);
     expect(conversion).toBeLessThan(0.5);
+  });
+});
+
+describe("consistency", () => {
+  /** Two identical cars, differing only in driver consistency. */
+  function consistencyPair(steady: number, erratic: number): RaceEntrant[] {
+    const base = entrant("steady", "a", 70, 70);
+    return [
+      { ...base, driver: { ...base.driver, consistency: steady } },
+      {
+        ...base,
+        driverId: "erratic",
+        teamId: "b",
+        driver: { ...base.driver, consistency: erratic },
+      },
+    ];
+  }
+
+  function meanScores(
+    field: readonly RaceEntrant[],
+    driverId: string,
+    races: number,
+    constants: RaceConstants = NO_DNFS,
+  ): { qualifying: number; race: number } {
+    let qualifying = 0;
+    let race = 0;
+    for (let seed = 1; seed <= races; seed += 1) {
+      const entry = simulateRace(field, createRng(seed), constants).entries.find(
+        (e) => e.driverId === driverId,
+      );
+      qualifying += entry?.qualifyingScore ?? 0;
+      race += entry?.raceScore ?? 0;
+    }
+    return { qualifying: qualifying / races, race: race / races };
+  }
+
+  it("costs an erratic driver pace in the race", () => {
+    const field = consistencyPair(90, 20);
+    expect(meanScores(field, "erratic", 4000).race).toBeLessThan(
+      meanScores(field, "steady", 4000).race - 1,
+    );
+  });
+
+  it("costs an erratic driver pace in qualifying too", () => {
+    // Consistency used to be invisible on Saturday. It is not any more.
+    const field = consistencyPair(90, 20);
+    expect(meanScores(field, "erratic", 4000).qualifying).toBeLessThan(
+      meanScores(field, "steady", 4000).qualifying - 1,
+    );
+  });
+
+  it("makes the erratic driver worse on every measure, wins included", () => {
+    // There must be no compensating upside anywhere. A spread-based lever
+    // would show the erratic driver winning MORE while finishing worse.
+    const field = consistencyPair(90, 20);
+    let steadyWins = 0;
+    let erraticWins = 0;
+    let steadyPoles = 0;
+    let erraticPoles = 0;
+    for (let seed = 1; seed <= 6000; seed += 1) {
+      const result = simulateRace(field, createRng(seed), NO_DNFS);
+      if (result.winnerDriverId === "steady") {
+        steadyWins += 1;
+      }
+      if (result.winnerDriverId === "erratic") {
+        erraticWins += 1;
+      }
+      if (result.poleDriverId === "steady") {
+        steadyPoles += 1;
+      }
+      if (result.poleDriverId === "erratic") {
+        erraticPoles += 1;
+      }
+    }
+    expect(erraticWins).toBeLessThan(steadyWins);
+    expect(erraticPoles).toBeLessThan(steadyPoles);
+  });
+
+  it("does not let a slow erratic car steal wins from a field", () => {
+    // The pathology this model exists to kill, and the case a two-car test
+    // cannot see: winning from behind is an upper-tail event, so a lever that
+    // widens the spread lets the SLOWEST car win more the more erratic it is.
+    // Here the subject is the slowest of five and must win strictly less as
+    // its consistency drops.
+    const fieldWith = (consistency: number): RaceEntrant[] => [
+      entrant("ace1", "t1", 84, 86),
+      entrant("ace2", "t2", 82, 85),
+      entrant("ace3", "t3", 81, 84),
+      entrant("ace4", "t4", 80, 83),
+      {
+        ...entrant("subject", "t5", 76, 78),
+        driver: { ...entrant("subject", "t5", 76, 78).driver, consistency },
+      },
+    ];
+    const winRate = (consistency: number): number => {
+      let wins = 0;
+      for (let seed = 1; seed <= 12000; seed += 1) {
+        if (
+          simulateRace(fieldWith(consistency), createRng(seed), NO_DNFS).winnerDriverId ===
+          "subject"
+        ) {
+          wins += 1;
+        }
+      }
+      return wins / 12000;
+    };
+    expect(winRate(20)).toBeLessThan(winRate(90));
+  });
+
+  it("does not widen the erratic driver's spread", () => {
+    // Consistency is a pace stat now, not a variance stat. Equal spreads are
+    // what stops a wider upper tail handing back the wins the penalty took.
+    const field = consistencyPair(90, 20);
+    const spread = (driverId: string): number => {
+      const scores: number[] = [];
+      for (let seed = 1; seed <= 4000; seed += 1) {
+        const entry = simulateRace(field, createRng(seed), NO_DNFS).entries.find(
+          (e) => e.driverId === driverId,
+        );
+        scores.push(entry?.raceScore ?? 0);
+      }
+      const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+      return Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
+    };
+    expect(spread("erratic")).toBeCloseTo(spread("steady"), 0);
+  });
+
+  it("levels the field when the penalty endpoints are equal", () => {
+    const noPenalty: RaceConstants = {
+      ...NO_DNFS,
+      consistencyPacePenaltyAtZero: 0,
+      consistencyPacePenaltyAtHundred: 0,
+    };
+    const field = consistencyPair(90, 20);
+    const steady = meanScores(field, "steady", 4000, noPenalty).race;
+    const erratic = meanScores(field, "erratic", 4000, noPenalty).race;
+    // Same ratings, no penalty: only the grid bonus can separate them.
+    expect(Math.abs(erratic - steady)).toBeLessThan(0.3);
+  });
+});
+
+describe("weekend form", () => {
+  /** Correlation between one driver's qualifying and race noise across seeds. */
+  function noiseCorrelation(constants: RaceConstants): number {
+    const field = spreadField();
+    const qs: number[] = [];
+    const rs: number[] = [];
+    for (let seed = 1; seed <= 4000; seed += 1) {
+      const entry = simulateRace(field, createRng(seed), constants).entries[5];
+      if (entry === undefined) {
+        continue;
+      }
+      qs.push(entry.qualifyingScore);
+      // The grid bonus is the one non-noise term that varies race to race, so
+      // subtract it to leave the race noise on its own.
+      const bonus =
+        constants.gridAdvantagePole *
+        Math.exp(-(entry.gridPosition - 1) / constants.gridAdvantageDecayPlaces);
+      rs.push(entry.raceScore - bonus);
+    }
+    const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const mq = mean(qs);
+    const mr = mean(rs);
+    let cov = 0;
+    let vq = 0;
+    let vr = 0;
+    for (let i = 0; i < qs.length; i += 1) {
+      const dq = (qs[i] ?? 0) - mq;
+      const dr = (rs[i] ?? 0) - mr;
+      cov += dq * dr;
+      vq += dq * dq;
+      vr += dr * dr;
+    }
+    return cov / Math.sqrt(vq * vr);
+  }
+
+  it("correlates qualifying and race noise by the configured share", () => {
+    const correlation = noiseCorrelation({ ...RACE_CONSTANTS, weekendFormShare: 0.4 });
+    expect(correlation).toBeGreaterThan(0.3);
+    expect(correlation).toBeLessThan(0.5);
+  });
+
+  it("leaves the sessions independent at a share of zero", () => {
+    const correlation = noiseCorrelation({ ...RACE_CONSTANTS, weekendFormShare: 0 });
+    expect(Math.abs(correlation)).toBeLessThan(0.08);
+  });
+
+  it("ties the race to qualifying at a share of one", () => {
+    const correlation = noiseCorrelation({ ...RACE_CONSTANTS, weekendFormShare: 1 });
+    expect(correlation).toBeGreaterThan(0.95);
+  });
+
+  it("keeps each session's total spread unchanged as the share moves", () => {
+    // The sqrt weighting exists so that correlating the sessions does not
+    // quietly make either of them noisier.
+    const spreadOf = (share: number): number => {
+      const field = spreadField();
+      const scores: number[] = [];
+      for (let seed = 1; seed <= 4000; seed += 1) {
+        const entry = simulateRace(field, createRng(seed), {
+          ...RACE_CONSTANTS,
+          weekendFormShare: share,
+        }).entries[5];
+        scores.push(entry?.qualifyingScore ?? 0);
+      }
+      const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+      return Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
+    };
+    expect(spreadOf(0.9)).toBeCloseTo(spreadOf(0.0), 0);
+  });
+});
+
+describe("draw discipline", () => {
+  it("keeps the draw count fixed across seeds", () => {
+    // Weekend form adds a draw per car. If any path consumed a different
+    // number of values, a car's stream position would depend on its
+    // predecessors' luck and append-independence would break.
+    const counted = (seed: number): number => {
+      const inner = createRng(seed);
+      let calls = 0;
+      const rng: Rng = {
+        next: () => {
+          calls += 1;
+          return inner.next();
+        },
+        getState: () => inner.getState(),
+        nextInt: (min, max) => inner.nextInt(min, max),
+        pick: (items) => inner.pick(items),
+        shuffle: (items) => inner.shuffle(items),
+        gaussian: (mean, sd) => inner.gaussian(mean, sd),
+      };
+      simulateRace(spreadField(), rng);
+      return calls;
+    };
+    const first = counted(1);
+    for (let seed = 2; seed <= 200; seed += 1) {
+      expect(counted(seed)).toBe(first);
+    }
   });
 });
 

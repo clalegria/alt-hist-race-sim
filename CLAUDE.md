@@ -115,13 +115,38 @@ the typecheck if the types and the JSON drift apart.
 
 ## Race model (v1) — implemented
 Three stages, all constants in `race/constants.ts`:
-1. **Qualifying** — `0.72·car + 0.28·driver + gaussian(0, 3.0)`, sorted → grid.
-2. **Race** — `0.70·car + 0.30·driver + gridBonus + gaussian(0, 5.0 × consistencyScale)`,
+1. **Qualifying** — `0.72·car + 0.28·driver − consistencyPenalty + noise`, sorted → grid.
+2. **Race** — `0.70·car + 0.30·driver + gridBonus − consistencyPenalty + noise`,
    sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
-   Combined consistency scales noise from 1.6× (at 0) down to 0.5× (at 100).
 3. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
    driver error (from composure). Both always rolled; mechanical takes precedence
    when recording the cause.
+
+**Consistency is a pace stat, not a variance stat.** Combined consistency (50/50
+car and driver) subtracts `consistencyPacePenalty`, interpolated 4.0 points at 0
+down to 0 at 100, from *both* session scores. Across the 1980 grid (combined
+consistency runs 46–90) that is a ~1.8 point spread, worth ~6 driver rating points.
+
+This is deliberate and was arrived at by measurement. Consistency originally scaled
+the *spread* of the noise (1.6× at 0 down to 0.5× at 100), which is mean-neutral and
+therefore not a handicap at all — worse, it inverted win rates, because winning from
+behind is an upper-tail event and a wider tail hands a slow car more victories. A
+skewed-noise variant (stretching only the bad half) was built and measured too: it
+fixes average finishing position but *cannot* fix wins, since it leaves the upper
+tail untouched by construction. Only flattening the spread and moving the mean makes
+a less consistent pairing worse on every measure at once — fewer wins, fewer poles,
+worse average finish, no compensating upside.
+
+`consistencyNoiseMultiplierAtZero/AtHundred` survive as a lever, both pinned at 1.0.
+Reopening a gap between them trades strict dominance back for streakier racing.
+
+**Weekend form ties the two sessions together.** `weekendFormShare` (0.4) splits each
+session's noise into a shared per-car, per-weekend draw and an independent per-session
+draw, weighted `sqrt(share)` and `sqrt(1 − share)` so each session's total sigma is
+unchanged and the correlation between the two noise terms equals the share exactly. A
+driver who has the car under him on Saturday tends to still have it on Sunday. 0
+restores independent sessions; 1 makes the race a deterministic function of qualifying
+(every race processional), so it is a bound, not a target.
 
 The car is weighted far above the driver on purpose: a great driver in a poor car
 should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
@@ -147,7 +172,7 @@ Notes:
   Intended, not a bug.
 - `adaptability` is authored but unused so far — it is for the market and progression.
 - Seed ratings are tuned via the Monte Carlo harness, never guessed in code.
-  **Car ratings have had one calibration pass** against the 1980 season (see below).
+  **Car ratings have had two calibration passes** against the 1980 season (see below).
   **Driver ratings have not**, deliberately — see Open decisions.
 - The seed JSON is exempt from Biome formatting (`overrides` in `biome.json`) to keep
   its one-record-per-line layout. Do not reformat it.
@@ -157,17 +182,24 @@ Against the real 1980 season (14 races), at 20,000 simulated races:
 
 | Team | Model win% | Actual | Model pole% | Actual (approx) |
 |---|---|---|---|---|
-| Williams | 48.0% | 42.9% | 26.9% | ~21% |
-| Brabham | 20.1% | 21.4% | 8.0% | ~7% |
-| Renault | 18.8% | 21.4% | 42.7% | ~43% |
-| Ligier | 13.2% | 14.3% | 22.5% | ~21% |
+| Williams | 43.4% | 42.9% | 27.6% | ~21% |
+| Renault | 21.3% | 21.4% | 44.1% | ~43% |
+| Brabham | 19.9% | 21.4% | 8.6% | ~7% |
+| Ligier | 15.1% | 14.3% | 19.8% | ~21% |
 
 Retirements 42.0% of the field, matching the era. Reference targets live in
 `tools/calibrate/src/targets.ts`.
 
+The consistency pace penalty is a systematic term that did not exist when the cars
+were first tuned, and it cost Renault disproportionately (Arnoux and Jabouille are
+both below-average consistency, and Renault's whole 1980 identity was qualifying
+pace). Absorbed with a second car pass: **Renault qualifying 90 → 91, racing 93 → 95**.
+That lands every headline number closer to target than the pre-penalty calibration did.
+
 Known accepted gaps: Alfa Romeo takes 0% of poles (Giacomelli's real 1980 pole was a
-freak; forcing it would distort the car). Reutemann over-wins at 18% against 1 real win
-(a one-event sample — not worth fitting).
+freak; forcing it would distort the car). Williams still over-takes poles (27.6% vs
+~21%). Reutemann over-wins at 16.6% against 1 real win (a one-event sample — not worth
+fitting).
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
@@ -198,5 +230,16 @@ freak; forcing it would distort the car). Reutemann over-wins at 18% against 1 r
 - **Reliability era curve.** `mechanicalDnfEraScale` exists but no per-season curve is
   defined. 1980 needs ~42% retirements; a 2026 season needs closer to 10%. Decide
   whether that comes from rising reliability ratings, a falling era scale, or both.
+- **Consistency's spread lever is parked, not gone.** Settled for now: consistency
+  is a pure pace stat, so an erratic driver is strictly worse and never luckier.
+  The cost is that consistency no longer changes the *shape* of a driver's results,
+  only their level — it behaves like a second speed rating. If the sim later wants
+  genuine wildcards (a backmarker who occasionally steals a podium), reopen the gap
+  in `consistencyNoiseMultiplier*` and accept that it also hands them extra wins.
+  A middle option exists and is untried: stretch the bad tail *and* compress the
+  good one, which keeps some asymmetry while capping the ceiling.
+- **Weekend-form share is a first guess.** 0.4 was picked for plausibility, not
+  fitted — 1980 grid-to-finish correlation was never measured against the real
+  season. Worth a pass once season results exist to compare against.
 - **Points system.** Not yet implemented. 1980 used 9-6-4-3-2-1 for the top six with
   best-N-scores dropped — confirm whether to model the dropped-scores rule.
