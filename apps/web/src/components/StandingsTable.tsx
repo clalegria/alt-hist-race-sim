@@ -1,6 +1,7 @@
-import type { ConstructorStanding, DriverStanding } from "@alt-hist/engine";
-import { driverName, teamName } from "../lib/names.js";
+import { teamName } from "../lib/names.js";
+import { isDriverStanding, type Standing } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
+import { DriverName } from "./DriverName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
@@ -13,12 +14,6 @@ const COLUMNS = [
   { key: "retirements", label: "DNF", emphasis: false },
   { key: "nonQualifications", label: "DNQ", emphasis: false },
 ] as const;
-
-type Standing = DriverStanding | ConstructorStanding;
-
-function isDriver(standing: Standing): standing is DriverStanding {
-  return "driverId" in standing;
-}
 
 /**
  * One championship table.
@@ -59,7 +54,7 @@ export function StandingsTable({
         <TableBody>
           {standings.map((standing, index) => {
             return (
-              <TableRow key={isDriver(standing) ? standing.driverId : standing.teamId}>
+              <TableRow key={isDriverStanding(standing) ? standing.driverId : standing.teamId}>
                 <TableCell
                   className={cn(
                     "text-right tabular-nums",
@@ -69,18 +64,17 @@ export function StandingsTable({
                   {index + 1}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col leading-tight">
+                  {isDriverStanding(standing) ? (
+                    <DriverName
+                      driverId={standing.driverId}
+                      teamId={standing.teamId}
+                      emphasis={index === 0}
+                    />
+                  ) : (
                     <span className={cn(index === 0 && "font-semibold")}>
-                      {isDriver(standing)
-                        ? driverName(standing.driverId)
-                        : teamName(standing.teamId)}
+                      {teamName(standing.teamId)}
                     </span>
-                    {isDriver(standing) ? (
-                      <span className="text-muted-foreground text-xs">
-                        {teamName(standing.teamId)}
-                      </span>
-                    ) : null}
-                  </div>
+                  )}
                 </TableCell>
                 {COLUMNS.map((column) => (
                   <TableCell

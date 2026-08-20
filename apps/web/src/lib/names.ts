@@ -18,8 +18,3 @@ export function driverName(driverId: string): string {
 export function teamName(teamId: string): string {
   return teams.get(teamId)?.name ?? teamId;
 }
-
-/** For a winner or pole sitter, which is null when every car retired. */
-export function driverNameOrDash(driverId: string | null): string {
-  return driverId === null ? "—" : driverName(driverId);
-}

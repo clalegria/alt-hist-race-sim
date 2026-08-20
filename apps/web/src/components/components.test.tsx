@@ -10,6 +10,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName } from "../lib/names.js";
+import { carOverall, driverOverall } from "../lib/rating.js";
 import { createWorld } from "../store/season.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
@@ -75,7 +76,7 @@ describe("the race classification", () => {
 });
 
 describe("the season grid", () => {
-  const html = renderToStaticMarkup(<SeasonGrid field={world.field} />);
+  const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={1980} />);
 
   it("groups every driver under their team", () => {
     expect(html).toContain("Williams");
@@ -85,19 +86,38 @@ describe("the season grid", () => {
     expect(html).toContain("David Kennedy");
   });
 
-  it("shows the ratings the season actually ran on", () => {
+  it("draws a flag for every driver and every team", () => {
+    // 28 drivers plus 15 teams, each with an inline SVG flag.
+    expect(html.split("<svg").length - 1).toBe(43);
+  });
+
+  it("shows each driver's age", () => {
+    expect(html).toContain(">34<"); // Jones, born 1946
+    expect(html).toContain(">22<"); // de Angelis, born 1958
+  });
+
+  it("shows an overall for every driver and every car", () => {
+    // One per driver, one per team: the number you can scan the grid by.
     const jones = world.field.find((entrant) => entrant.driverId === "jones");
     if (jones === undefined) {
       throw new Error("Jones is not on the grid");
     }
-    // Every one of his five ratings must appear as a cell value.
-    for (const rating of Object.values(jones.driver)) {
-      expect(html).toContain(`>${rating}<`);
-    }
-    expect(html).toContain(`>${jones.car.reliability}<`);
+    expect(html).toContain(`>${driverOverall(jones.driver)}<`);
+    expect(html).toContain(`>${carOverall(jones.car)}<`);
   });
 
-  it("says what adaptability is for, since nothing reads it yet", () => {
-    expect(html).toContain("Adaptability is authored but not yet read");
+  it("keeps the individual ratings out of sight until a name is selected", () => {
+    // The point of the reveal: the opening page shows one number per driver, not
+    // the breakdown. Popover contents are not rendered while closed.
+    expect(html).not.toContain("Reliability");
+    expect(html).not.toContain("Adaptability");
+    expect(html).not.toContain("Composure");
+  });
+
+  it("orders teams alphabetically, not by pace", () => {
+    // Sorting by car rating would give the season away before it started.
+    const positionOf = (name: string): number => html.indexOf(`>${name}<`);
+    expect(positionOf("Alfa Romeo")).toBeLessThan(positionOf("Williams"));
+    expect(positionOf("ATS")).toBeLessThan(positionOf("Brabham"));
   });
 });

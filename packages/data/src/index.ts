@@ -118,6 +118,11 @@ export function validateSeedData(
     if (race.name.trim() === "" || race.circuit.trim() === "") {
       throw new Error(`Season ${season.year} round ${race.round} is missing a name or circuit`);
     }
+    if (!/^[A-Z]{2}$/.test(race.country)) {
+      throw new Error(
+        `Season ${season.year} round ${race.round} has country "${race.country}", not an ISO alpha-2 code`,
+      );
+    }
   });
 
   const duplicateEntries = findDuplicates(season.entries.map((entry) => entry.teamId));

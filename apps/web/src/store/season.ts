@@ -64,17 +64,73 @@ export function createWorld(seed: number): World {
   };
 }
 
+/**
+ * How much of the season the reader has been shown.
+ *
+ * The whole year is simulated the moment a seed is drawn — one continuous RNG
+ * stream through every round, which is what makes a season reproducible. This
+ * cursor therefore *reveals* a season that already exists rather than driving
+ * the simulation. "Simulate next session" is a promise about what the reader
+ * sees next, not about when the dice are rolled, and the results are identical
+ * either way.
+ *
+ * Deliberately not part of `World`: where the reader has got to is not
+ * simulation state, and a save file should not care.
+ */
+export type View =
+  | { readonly kind: "grid" }
+  /** `round` is a zero-based index into `world.season.races`. */
+  | { readonly kind: "qualifying"; readonly round: number }
+  | { readonly kind: "race"; readonly round: number }
+  | { readonly kind: "summary" };
+
+/**
+ * The next thing to show: qualifying, then that race, then the next qualifying,
+ * and the summary once the last race has been seen.
+ */
+export function advance(view: View, rounds: number): View {
+  switch (view.kind) {
+    case "grid":
+      return rounds > 0 ? { kind: "qualifying", round: 0 } : { kind: "summary" };
+    case "qualifying":
+      return { kind: "race", round: view.round };
+    case "race":
+      return view.round + 1 < rounds
+        ? { kind: "qualifying", round: view.round + 1 }
+        : { kind: "summary" };
+    case "summary":
+      return view;
+  }
+}
+
 interface SeasonStore {
   readonly world: World;
-  /** Re-runs the season from a seed, replacing the world. */
+  readonly view: View;
+  /** Re-runs the season from a seed, replacing the world and starting over. */
   readonly simulate: (seed: number) => void;
+  /** Reveals the next session. */
+  readonly nextSession: () => void;
+  /** Jumps straight to the finished season. */
+  readonly skipToEnd: () => void;
+  /** A brand new season, back at the grid. */
+  readonly startAgain: () => void;
 }
 
 export const useSeasonStore = create<SeasonStore>((set) => ({
   // A fresh seed per page load, so opening the app is opening a season nobody
   // has seen rather than the same one every time.
   world: createWorld(randomSeed()),
+  view: { kind: "grid" },
   simulate: (seed) => {
-    set({ world: createWorld(seed) });
+    set({ world: createWorld(seed), view: { kind: "grid" } });
+  },
+  nextSession: () => {
+    set((state) => ({ view: advance(state.view, state.world.season.races.length) }));
+  },
+  skipToEnd: () => {
+    set({ view: { kind: "summary" } });
+  },
+  startAgain: () => {
+    set({ world: createWorld(randomSeed()), view: { kind: "grid" } });
   },
 }));

@@ -1,24 +1,123 @@
+import { driversById, teamsById } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
-import { Fragment } from "react";
 import { driverName, teamName } from "../lib/names.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import { ageInSeason } from "../lib/people.js";
+import { carOverall, driverOverall } from "../lib/rating.js";
+import { cn } from "../lib/utils.js";
+import { Flag } from "./Flag.js";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
-/** Driver rating columns, in the order the race model weighs them. */
+const drivers = driversById();
+const teams = teamsById();
+
 const DRIVER_RATINGS = [
   { key: "racing", label: "Racing" },
-  { key: "qualifying", label: "Quali" },
-  { key: "consistency", label: "Consist" },
+  { key: "qualifying", label: "Qualifying" },
+  { key: "consistency", label: "Consistency" },
   { key: "composure", label: "Composure" },
-  { key: "adaptability", label: "Adapt" },
+  { key: "adaptability", label: "Adaptability" },
 ] as const;
 
 const CAR_RATINGS = [
   { key: "racing", label: "Racing" },
-  { key: "qualifying", label: "Quali" },
-  { key: "consistency", label: "Consist" },
+  { key: "qualifying", label: "Qualifying" },
+  { key: "consistency", label: "Consistency" },
   { key: "reliability", label: "Reliability" },
 ] as const;
+
+/** One rating as a labelled bar, so a 92 and a 44 differ at a glance. */
+function Rating({ label, value, muted }: { label: string; value: number; muted?: boolean }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={cn(
+          "w-24 shrink-0 text-xs",
+          muted ? "text-muted-foreground/60" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </span>
+      <span className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
+        <span
+          className={cn(
+            "block h-full rounded-full",
+            muted ? "bg-muted-foreground/40" : "bg-primary",
+          )}
+          style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+        />
+      </span>
+      <span className="w-7 shrink-0 text-right text-xs font-medium tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+/** The headline number, tinted by how good it is. */
+function Overall({ value }: { value: number }) {
+  return (
+    <span
+      className={cn(
+        "w-8 shrink-0 rounded px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums",
+        value >= 85 && "bg-primary/15 text-primary",
+        value >= 70 && value < 85 && "bg-muted text-foreground",
+        value < 70 && "bg-muted/60 text-muted-foreground",
+      )}
+    >
+      {value}
+    </span>
+  );
+}
+
+/** The name button that opens an attribute panel. Same affordance for both. */
+function NameTrigger({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <PopoverTrigger
+      className={cn(
+        "focus-visible:ring-ring -mx-1 cursor-pointer rounded px-1 text-left underline decoration-dotted decoration-from-font underline-offset-4 focus-visible:ring-2 focus-visible:outline-none",
+        className,
+      )}
+    >
+      {children}
+    </PopoverTrigger>
+  );
+}
+
+function DriverEntry({ entrant, seasonYear }: { entrant: RaceEntrant; seasonYear: number }) {
+  const driver = drivers.get(entrant.driverId);
+  const age = driver === undefined ? null : ageInSeason(seasonYear, driver.birthYear);
+
+  return (
+    <li className="flex items-center gap-2 text-sm">
+      <Popover>
+        <NameTrigger className="flex flex-1 items-center gap-1.5">
+          {driver === undefined ? null : (
+            <Flag country={driver.nationality} title={driver.nationality} />
+          )}
+          <span>{driverName(entrant.driverId)}</span>
+        </NameTrigger>
+        <PopoverContent>
+          <div className="mb-3 flex items-baseline justify-between gap-2">
+            <span className="font-semibold">{driverName(entrant.driverId)}</span>
+            <span className="text-muted-foreground text-xs">
+              {age === null ? "" : `${age} years old`}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {DRIVER_RATINGS.map((rating) => (
+              <Rating
+                key={rating.key}
+                label={rating.label}
+                value={entrant.driver[rating.key]}
+                muted={rating.key === "adaptability"}
+              />
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+      <span className="text-muted-foreground shrink-0 text-xs tabular-nums">{age}</span>
+      <Overall value={driverOverall(entrant.driver)} />
+    </li>
+  );
+}
 
 interface TeamEntry {
   readonly teamId: string;
@@ -27,87 +126,83 @@ interface TeamEntry {
 }
 
 /**
- * Regroups the flat field into teams, strongest car first.
+ * Regroups the flat field into teams, alphabetically.
  *
- * The field is one row per car, which is what the race model wants; a grid page
- * wants the team as the unit, with its drivers underneath.
+ * Alphabetical on purpose: ordering by car pace would give away the pecking
+ * order before a wheel has turned, which is the one thing this page must not do.
  */
 function byTeam(field: readonly RaceEntrant[]): readonly TeamEntry[] {
-  const teams = new Map<string, TeamEntry & { drivers: RaceEntrant[] }>();
+  const grouped = new Map<string, TeamEntry & { drivers: RaceEntrant[] }>();
   for (const entrant of field) {
-    const existing = teams.get(entrant.teamId);
+    const existing = grouped.get(entrant.teamId);
     if (existing === undefined) {
-      teams.set(entrant.teamId, { teamId: entrant.teamId, car: entrant.car, drivers: [entrant] });
+      grouped.set(entrant.teamId, { teamId: entrant.teamId, car: entrant.car, drivers: [entrant] });
     } else {
       existing.drivers.push(entrant);
     }
   }
-  return [...teams.values()].sort((a, b) => b.car.racing - a.car.racing);
+  return [...grouped.values()].sort((a, b) => teamName(a.teamId).localeCompare(teamName(b.teamId)));
 }
 
-export function SeasonGrid({ field }: { field: readonly RaceEntrant[] }) {
-  const teams = byTeam(field);
+export function SeasonGrid({
+  field,
+  seasonYear,
+}: {
+  field: readonly RaceEntrant[];
+  seasonYear: number;
+}) {
+  const entries = byTeam(field);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Grid</CardTitle>
-        <CardDescription>
-          {field.length} cars across {teams.length} teams, ordered by car pace. These are the exact
-          ratings the season was simulated from — all on a 0–100 scale where higher is better.
-          Consistency is a pace stat, not a variance one: a low rating simply makes a car slower in
-          both sessions.
-        </CardDescription>
-      </CardHeader>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Team / Driver</TableHead>
-            {DRIVER_RATINGS.map((rating) => (
-              <TableHead key={rating.key} className="text-right">
-                {rating.label}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {teams.map((team) => (
-            <Fragment key={team.teamId}>
-              <TableRow className="bg-muted/60 hover:bg-muted/60">
-                <TableCell className="font-semibold">{teamName(team.teamId)}</TableCell>
-                <TableCell colSpan={DRIVER_RATINGS.length} className="text-right">
-                  <span className="text-muted-foreground text-xs">
-                    Car —{" "}
-                    {CAR_RATINGS.map((rating) => (
-                      <span key={rating.key} className="ml-2 inline-block">
-                        {rating.label}{" "}
-                        <span className="text-foreground font-medium tabular-nums">
-                          {team.car[rating.key]}
-                        </span>
+    <section className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold tracking-tight">Grid</h2>
+        <p className="text-muted-foreground text-sm">
+          {field.length} cars, {entries.length} teams. Select any name for its full ratings.
+        </p>
+      </div>
+
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {entries.map((entry) => {
+          const team = teams.get(entry.teamId);
+          return (
+            <li key={entry.teamId} className="border-border bg-card rounded-xl border p-4">
+              <div className="border-border/60 flex items-center gap-2 border-b pb-2">
+                <Popover>
+                  <NameTrigger className="flex flex-1 items-center gap-1.5 text-sm font-semibold">
+                    {team === undefined ? null : <Flag country={team.base} title={team.base} />}
+                    <span>{teamName(entry.teamId)}</span>
+                  </NameTrigger>
+                  <PopoverContent>
+                    <div className="mb-3 flex items-baseline justify-between gap-2">
+                      <span className="font-semibold">{teamName(entry.teamId)}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {team === undefined ? "" : `est. ${team.foundedYear}`}
                       </span>
-                    ))}
-                  </span>
-                </TableCell>
-              </TableRow>
-              {team.drivers.map((entrant) => (
-                <TableRow key={entrant.driverId}>
-                  <TableCell className="pl-6">{driverName(entrant.driverId)}</TableCell>
-                  {DRIVER_RATINGS.map((rating) => (
-                    <TableCell key={rating.key} className="text-right tabular-nums">
-                      {entrant.driver[rating.key]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </Fragment>
-          ))}
-        </TableBody>
-      </Table>
-      <p className="text-muted-foreground border-border border-t px-5 py-3 text-xs">
-        Adaptability is authored but not yet read by anything — it is reserved for the transfer
-        market and progression. Every driver is shown at their career peak: no ageing curve exists
-        yet, so a 24-year-old Prost races at the level he reached in 1987.
-      </p>
-    </Card>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {CAR_RATINGS.map((rating) => (
+                        <Rating
+                          key={rating.key}
+                          label={rating.label}
+                          value={entry.car[rating.key]}
+                        />
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Overall value={carOverall(entry.car)} />
+              </div>
+
+              <ul className="mt-2.5 flex flex-col gap-1.5">
+                {entry.drivers.map((entrant) => (
+                  <DriverEntry key={entrant.driverId} entrant={entrant} seasonYear={seasonYear} />
+                ))}
+              </ul>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

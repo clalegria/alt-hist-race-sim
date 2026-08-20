@@ -1,159 +1,131 @@
-import { championshipStandings, constructorStandings } from "@alt-hist/engine";
-import { useMemo, useState } from "react";
-import { SeasonCalendar } from "./components/SeasonCalendar.js";
-import { SeasonGrid } from "./components/SeasonGrid.js";
-import { StandingsTable } from "./components/StandingsTable.js";
+import { useEffect } from "react";
+import { SeasonView } from "./components/SeasonView.js";
 import { Button } from "./components/ui/button.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./components/ui/card.js";
-import { Input } from "./components/ui/input.js";
-import { driverName, teamName } from "./lib/names.js";
-import { parseSeed, randomSeed } from "./lib/seed.js";
-import { useSeasonStore } from "./store/season.js";
+import { useSeasonStore, type View } from "./store/season.js";
 
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+/**
+ * What the two forward buttons say, per stage. Null means the button is absent.
+ *
+ * Pure, and exported, because the button set *is* the navigation: getting it
+ * wrong strands the reader mid-season with no way on.
+ */
+export function actionsFor(
+  view: View,
+  rounds: number,
+): { next: string | null; skip: string | null } {
+  switch (view.kind) {
+    case "grid":
+      return { next: "Simulate next session", skip: "Simulate full season" };
+    case "qualifying":
+      return { next: "Simulate next session", skip: "Simulate rest of the season" };
+    case "race":
+      // Nothing left to skip past once the last race has been run.
+      return view.round + 1 < rounds
+        ? { next: "Simulate next session", skip: "Simulate rest of the season" }
+        : { next: "Show season summary", skip: null };
+    case "summary":
+      return { next: null, skip: null };
+  }
 }
 
-function Champion({ label, name, detail }: { label: string; name: string; detail: string }) {
+/** Where in the season we are, short enough for the sticky bar. */
+export function stageLabel(view: View, rounds: number): string {
+  switch (view.kind) {
+    case "grid":
+      return "Grid";
+    case "qualifying":
+      return `Round ${view.round + 1}/${rounds} — Qualifying`;
+    case "race":
+      return `Round ${view.round + 1}/${rounds} — Race`;
+    case "summary":
+      return "Season summary";
+  }
+}
+
+function Actions({
+  view,
+  rounds,
+  onNext,
+  onSkip,
+  onRestart,
+}: {
+  view: View;
+  rounds: number;
+  onNext: () => void;
+  onSkip: () => void;
+  onRestart: () => void;
+}) {
+  const actions = actionsFor(view, rounds);
   return (
-    <Card className="flex-1">
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-xl">{name}</CardTitle>
-        <CardDescription>{detail}</CardDescription>
-      </CardHeader>
-    </Card>
+    <div className="flex flex-wrap items-center gap-2">
+      {actions.next === null ? null : <Button onClick={onNext}>{actions.next}</Button>}
+      {actions.skip === null ? null : (
+        <Button variant="outline" onClick={onSkip}>
+          {actions.skip}
+        </Button>
+      )}
+      {view.kind === "grid" ? null : (
+        <Button variant="outline" onClick={onRestart}>
+          Start again
+        </Button>
+      )}
+    </div>
   );
 }
 
 export function App() {
   const world = useSeasonStore((state) => state.world);
-  const simulate = useSeasonStore((state) => state.simulate);
-  const [seedInput, setSeedInput] = useState(String(world.seed));
+  const view = useSeasonStore((state) => state.view);
+  const nextSession = useSeasonStore((state) => state.nextSession);
+  const skipToEnd = useSeasonStore((state) => state.skipToEnd);
+  const startAgain = useSeasonStore((state) => state.startAgain);
 
-  // Standings are derived from results on read — the same rule the engine
-  // follows — so they are recomputed when the world changes and never stored.
-  const drivers = useMemo(() => championshipStandings(world.season), [world.season]);
-  const constructors = useMemo(() => constructorStandings(world.season), [world.season]);
+  const rounds = world.season.races.length;
 
-  // Every entry row carries its team, so the season is its own driver-to-team
-  // index and nothing has to rebuild the field to label a name.
-  const teamFor = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const race of world.season.races) {
-      for (const entry of race.entries) {
-        map.set(entry.driverId, entry.teamId);
-      }
-    }
-    return map;
-  }, [world.season]);
+  // Each stage is a new page of results, so it starts at the top. Without this,
+  // stepping on from a race — where the buttons sit below two championship
+  // tables — drops the reader into the middle of the next one.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: firing on every stage change is the point, including a restart that lands back on the same stage.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [view, world.seed]);
 
-  const champion = drivers[0];
-  const topTeam = constructors[0];
-
-  /** Runs a seed and keeps the box showing what was actually run. */
-  const run = (seed: number): void => {
-    setSeedInput(String(seed));
-    simulate(seed);
+  const actionProps = {
+    view,
+    rounds,
+    onNext: nextSession,
+    onSkip: skipToEnd,
+    onRestart: startAgain,
   };
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-12">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {world.year} Season
-            <span className="text-muted-foreground ml-2 font-normal">alt-hist-race-sim</span>
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Simulated from seed{" "}
-            <span className="text-foreground font-mono tabular-nums">{world.seed}</span>. The same
-            seed always produces the same season.
-          </p>
-        </div>
-
-        <form
-          className="flex items-end gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            run(parseSeed(seedInput, world.seed));
-          }}
-        >
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="seed"
-              className="text-muted-foreground text-xs font-medium tracking-wide uppercase"
-            >
-              Seed
-            </label>
-            <Input
-              id="seed"
-              className="w-28 font-mono tabular-nums"
-              value={seedInput}
-              inputMode="numeric"
-              onChange={(event) => {
-                setSeedInput(event.target.value);
-              }}
-            />
+    <div className="min-h-dvh">
+      {/*
+        Sticky, so the way forward is always one click away rather than a scroll
+        past a 28-row table. The same buttons repeat at the foot of the page,
+        which is where a reader who has just finished reading actually is.
+      */}
+      <header className="bg-background/85 border-border sticky top-0 z-40 border-b backdrop-blur">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold tracking-tight">{world.year} Season</span>
+            <span className="text-muted-foreground text-xs">{stageLabel(view, rounds)}</span>
           </div>
-          <Button type="submit">Simulate</Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              run(world.seed + 1);
-            }}
-          >
-            Next
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              run(randomSeed());
-            }}
-          >
-            Random
-          </Button>
-        </form>
+          <Actions {...actionProps} />
+        </div>
       </header>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <Champion
-          label="Drivers' champion"
-          name={champion === undefined ? "—" : driverName(champion.driverId)}
-          detail={
-            champion === undefined
-              ? "Nobody scored."
-              : `${teamName(champion.teamId)} — ${champion.points} points from ${plural(champion.wins, "win")}.`
-          }
-        />
-        <Champion
-          label="Constructors' champion"
-          name={topTeam === undefined ? "—" : teamName(topTeam.teamId)}
-          detail={
-            topTeam === undefined
-              ? "Nobody scored."
-              : `${topTeam.points} points from ${plural(topTeam.wins, "win")}.`
-          }
-        />
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-10">
+        <SeasonView world={world} view={view} />
+
+        <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">
+          <Actions {...actionProps} />
+        </div>
+
+        <footer className="text-muted-foreground/70 text-xs">
+          Seed <span className="font-mono tabular-nums">{world.seed}</span>
+        </footer>
       </div>
-
-      <SeasonGrid field={world.field} />
-
-      <SeasonCalendar season={world.season} teamFor={teamFor} />
-
-      <StandingsTable
-        title="Drivers' Championship"
-        description="9-6-4-3-2-1 to the top six. Every race counts — the 1980 dropped-scores rule is not modelled."
-        nameColumn="Driver"
-        standings={drivers}
-      />
-
-      <StandingsTable
-        title="Constructors' Championship"
-        description="Both cars score, as they have since 1979. Starts and wins are per car; poles are per race."
-        nameColumn="Team"
-        standings={constructors}
-      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
-import { driverName, teamName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { DriverName } from "./DriverName.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -42,60 +42,57 @@ function gapOf(entry: RaceEntryResult): string {
 
 export function RaceClassification({ race }: { race: RaceResult }) {
   return (
-    <div className="bg-muted/40 border-border border-y px-3 py-3">
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-12 text-right">Pos</TableHead>
-            <TableHead>Driver</TableHead>
-            <TableHead className="text-right">Grid</TableHead>
-            <TableHead className="text-right">Gap</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {classify(race).map((entry) => {
-            const finished = entry.finishPosition !== null;
-            return (
-              <TableRow key={entry.driverId} className="border-border/60">
-                <TableCell
-                  className={cn(
-                    "text-right tabular-nums",
-                    entry.finishPosition === 1 && "font-semibold",
-                    finished || "text-muted-foreground",
-                  )}
-                >
-                  {entry.finishPosition ?? "—"}
-                </TableCell>
-                <TableCell className={cn(finished || "text-muted-foreground")}>
-                  <div className="flex flex-col leading-tight">
-                    <span className={cn(entry.finishPosition === 1 && "font-semibold")}>
-                      {driverName(entry.driverId)}
-                    </span>
-                    <span className="text-muted-foreground text-xs">{teamName(entry.teamId)}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-right tabular-nums">
-                  {entry.gridPosition}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    "text-right tabular-nums",
-                    finished ? "text-muted-foreground" : "text-muted-foreground/50",
-                  )}
-                >
-                  {gapOf(entry)}
-                </TableCell>
-                <TableCell
-                  className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary/80")}
-                >
-                  {statusOf(entry)}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="w-12 text-right">Pos</TableHead>
+          <TableHead>Driver</TableHead>
+          <TableHead className="text-right">Grid</TableHead>
+          <TableHead className="text-right">Gap</TableHead>
+          <TableHead>Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {classify(race).map((entry) => {
+          const finished = entry.finishPosition !== null;
+          return (
+            <TableRow key={entry.driverId} className="border-border/60">
+              <TableCell
+                className={cn(
+                  "text-right tabular-nums",
+                  entry.finishPosition === 1 && "font-semibold",
+                  finished || "text-muted-foreground",
+                )}
+              >
+                {entry.finishPosition ?? "—"}
+              </TableCell>
+              <TableCell className={cn(finished || "text-muted-foreground")}>
+                <DriverName
+                  driverId={entry.driverId}
+                  teamId={entry.teamId}
+                  emphasis={entry.finishPosition === 1}
+                />
+              </TableCell>
+              <TableCell className="text-muted-foreground text-right tabular-nums">
+                {entry.gridPosition}
+              </TableCell>
+              <TableCell
+                className={cn(
+                  "text-right tabular-nums",
+                  finished ? "text-muted-foreground" : "text-muted-foreground/50",
+                )}
+              >
+                {gapOf(entry)}
+              </TableCell>
+              <TableCell
+                className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary/80")}
+              >
+                {statusOf(entry)}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }

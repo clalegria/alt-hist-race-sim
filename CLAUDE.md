@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 181 tests (137 engine, 12 data, 32 web)
+pnpm test          # 227 tests (137 engine, 13 data, 77 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -79,7 +79,9 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   (`"exports": "./src/index.ts"`); Vite/Vitest/tsx transpile on the fly.
   `tsc --noEmit` is the correctness check. Add a real build only if something
   needs to consume these packages from plain Node.
-- UI: React. Styling: Tailwind CSS + shadcn/ui (copied in, not a dependency). State: Zustand.
+- UI: React. Styling: Tailwind CSS + shadcn/ui (copied in, not a dependency; the
+  Radix primitives those components wrap *are* dependencies — currently
+  `@radix-ui/react-popover`). Flags: `country-flag-icons`. State: Zustand.
 - Charts: Recharts (when needed). Tests: Vitest 4. Lint/format: Biome 2.
 - `tools/*` may use dev dependencies (tsx runs the TS directly). The engine may not.
 - Local persistence (later): Dexie over IndexedDB + JSON export/import.
@@ -96,7 +98,8 @@ packages/engine/           # pure sim, zero deps, heavily tested
   src/season/              # season loop + derived championship standings
 packages/data/src/         # the three seed JSON files, typed loader, buildField
 apps/web/src/              # React + Vite season viewer
-  store/season.ts          # the one Zustand world-state store
+  store/season.ts          # the one Zustand world-state store + the reveal cursor
+  components/SeasonView.tsx # props-driven; renders one stage of the reveal
   components/ui/           # shadcn-style primitives, copied in
 tools/calibrate/src/       # race + season viewers, Monte Carlo harness, rating tuner
 ```
@@ -246,8 +249,9 @@ Seed files (in `packages/data/src/`):
   developmentSpeed, declineSpeed }`.
 - `teams.json` — 15 teams. `{ id, name, base, foundedYear }`.
 - `season-1980.json` — 14 rounds, 15 entries, 28 seats. `{ year, calendar: [{ round,
-  name, circuit }], entries: [{ teamId, car: { racing, qualifying, consistency,
-  reliability }, drivers: [driverId, ...] }] }`.
+  name, circuit, country }], entries: [{ teamId, car: { racing, qualifying,
+  consistency, reliability }, drivers: [driverId, ...] }] }`. `country` is an ISO
+  3166-1 alpha-2 code, matching `nationality` on drivers and `base` on teams.
 
 Notes:
 - All five driver attributes share polarity: higher = better. `composure` replaced
@@ -298,16 +302,68 @@ freak; forcing it would distort the car). Williams still over-takes poles (27.6%
 fitting).
 
 ## Web app — implemented
-`apps/web` renders one season: the grid with every rating it was simulated from, the
-calendar with pole and winner per round (select a race for its full classification),
-then both championship tables. `pnpm dev` to run it, `pnpm build` to produce a static
-bundle.
+`apps/web` reveals a season a session at a time. `pnpm dev` to run it, `pnpm build`
+to produce a static bundle.
 
-A fresh random seed is drawn on every page load, and **Random** draws another. That
-is not a violation of the no-`Math.random()` rule: the ban is on the *engine*, where
-every outcome must come from the injected PRNG or nothing is reproducible. Choosing
-*which* seed to run is a user action that happens before any generator exists, so it
-lives in `lib/seed.ts` in the app and never in `packages/engine`.
+**The reveal is a view, not a schedule.** The whole year is simulated the instant a
+seed is drawn — one continuous RNG stream through every round, which is what makes a
+season reproducible. `View` in `store/season.ts` is a cursor over results that
+already exist:
+
+```
+grid → qualifying 1 → race 1 → qualifying 2 → race 2 → … → summary
+```
+
+"Simulate next session" is a promise about what the reader sees next, not about when
+the dice are rolled; the results are identical either way. `advance()` is a pure
+function over that cursor, and `actionsFor()` in `App.tsx` is the whole of the
+navigation — both are tested directly, because getting either wrong strands the
+reader mid-season.
+
+**The grid opens closed.** The first page is teams and drivers with a flag, an age
+and one overall rating each. The five individual ratings live behind a popover on
+each name; teams are listed alphabetically, not by pace, so the pecking order is not
+given away before a wheel turns. A test asserts no individual rating label appears in
+the closed markup.
+
+`lib/rating.ts` computes the overall. It is a **display heuristic, not model truth** —
+nothing in the engine reads it — but its weights approximate how much each rating
+actually moves results, so the number describes the sim it sits on top of. Racing
+leads for both. Reliability takes a quarter of the car number despite touching no
+score in the race model, because ~42% of the 1980 field failed to finish and a
+fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
+nothing reads it, and paying for it would claim a driver is better at something the
+sim never asks of them. Revisit both when the transfer market lands.
+
+**A race shows its result and the championship side by side**, the standings cut to
+position, name and points. After a single round the full table's wins, podiums, poles
+and retirement counts are almost all zeroes; what a reader wants is who leads and by
+how much. The full breakdown belongs to the summary, and lives there.
+
+**Actions live in a sticky header, repeated at the foot of the page**, and every
+stage change scrolls back to the top. Stepping on from a race otherwise meant
+scrolling past two 28-row championship tables to find the button, then landing
+mid-page in the next session.
+
+Flags appear beside every driver everywhere they are named — via one shared
+`DriverName` component, so they cannot end up in some tables and not others — plus on
+the two champion cards and beside each round in the calendar. They are SVGs from
+`country-flag-icons`, imported **one country at a time** in `components/Flag.tsx`. Emoji flags were tried first and do not render on Windows at
+all. `import * as Flags` reads better and costs 240 kB, since the namespace defeats
+tree-shaking and pulls in all ~250 flags for the twenty this sim uses — so the map is
+explicit, and `Flag.test.tsx` fails if the seed data grows a country it does not
+cover.
+
+Mid-season standings need no special support: the championship is derived from
+results on read, so `{ races: races.slice(0, n) }` *is* the table after round n. That
+is the results-are-the-source-of-truth rule paying rent.
+
+A fresh random seed is drawn on every page load and by **Start again**. That is not a
+violation of the no-`Math.random()` rule: the ban is on the *engine*, where every
+outcome must come from the injected PRNG or nothing is reproducible. Choosing *which*
+seed to run is a user action that happens before any generator exists, so it lives in
+`lib/seed.ts` in the app and never in `packages/engine`. The seed is shown in the
+footer, deliberately without prominence.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
 (`{ seed, year, rngState, field, season }`) and nothing else. `field` is the grid
@@ -333,13 +389,18 @@ the same authored-seed-to-race-field mapping and duplicating a placeholder for t
 ageing curve would mean two things to fix later. Its dependency on the engine is
 type-only and erases at build time, so no runtime edge exists in either direction.
 
-Tests are Vitest with no jsdom: the store is exercised directly, and the page through
-`renderToStaticMarkup`, which catches a component that throws or an id rendered where
-a name should be. Note that zustand serves `getInitialState()` as the
-useSyncExternalStore *server* snapshot, so a static render always shows the world the
-store was built with — that is SSR-only and irrelevant to a client-rendered SPA, but
-it is why store updates are asserted in the store's own tests rather than through the
-rendered page.
+Tests are Vitest with no jsdom. `SeasonView` takes the world and the cursor as
+**props** rather than reading the store, so every stage of the reveal renders through
+`renderToStaticMarkup` without a DOM and without clicking through fourteen rounds;
+`App` is the thin shell that connects it. That split exists partly for structure and
+partly because zustand serves `getInitialState()` as the useSyncExternalStore *server*
+snapshot — a static render always shows the world the store was built with, whatever
+has been simulated since. That is SSR-only and irrelevant to a client-rendered SPA,
+but it is why store updates are asserted in the store's own tests.
+
+What this level cannot reach: the click handlers themselves, the scroll-to-top
+effect, and popover contents, which Radix does not render while closed. All three
+would need jsdom.
 
 Biome needs `css.parser.tailwindDirectives` to parse Tailwind 4's `@theme`; it is on
 in `biome.json`.

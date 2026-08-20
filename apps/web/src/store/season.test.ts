@@ -1,6 +1,6 @@
 import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
-import { createWorld, useSeasonStore } from "./season.js";
+import { advance, createWorld, useSeasonStore, type View } from "./season.js";
 
 describe("the world", () => {
   it("runs one race per round on the calendar", () => {
@@ -96,5 +96,69 @@ describe("the store", () => {
   it("gives the same world for the same seed however it is reached", () => {
     useSeasonStore.getState().simulate(9);
     expect(useSeasonStore.getState().world).toEqual(createWorld(9));
+  });
+});
+
+describe("revealing the season", () => {
+  const ROUNDS = 14;
+
+  it("opens on the grid", () => {
+    useSeasonStore.getState().startAgain();
+    expect(useSeasonStore.getState().view).toEqual({ kind: "grid" });
+  });
+
+  it("walks qualifying, race, qualifying, race", () => {
+    let view = advance({ kind: "grid" }, ROUNDS);
+    expect(view).toEqual({ kind: "qualifying", round: 0 });
+    view = advance(view, ROUNDS);
+    expect(view).toEqual({ kind: "race", round: 0 });
+    view = advance(view, ROUNDS);
+    expect(view).toEqual({ kind: "qualifying", round: 1 });
+    view = advance(view, ROUNDS);
+    expect(view).toEqual({ kind: "race", round: 1 });
+  });
+
+  it("reaches the summary after the last race, not before", () => {
+    expect(advance({ kind: "race", round: ROUNDS - 2 }, ROUNDS)).toEqual({
+      kind: "qualifying",
+      round: ROUNDS - 1,
+    });
+    expect(advance({ kind: "race", round: ROUNDS - 1 }, ROUNDS)).toEqual({ kind: "summary" });
+  });
+
+  it("shows every session exactly once on the way through", () => {
+    // Two per round plus the summary; anything else means a skipped or
+    // repeated session.
+    const seen: View[] = [];
+    let view: View = { kind: "grid" };
+    for (let step = 0; step < ROUNDS * 2 + 5; step += 1) {
+      view = advance(view, ROUNDS);
+      seen.push(view);
+      if (view.kind === "summary") {
+        break;
+      }
+    }
+    expect(seen).toHaveLength(ROUNDS * 2 + 1);
+    expect(seen.filter((v) => v.kind === "qualifying")).toHaveLength(ROUNDS);
+    expect(seen.filter((v) => v.kind === "race")).toHaveLength(ROUNDS);
+  });
+
+  it("stays put once the season is over", () => {
+    expect(advance({ kind: "summary" }, ROUNDS)).toEqual({ kind: "summary" });
+  });
+
+  it("skips to the summary from anywhere", () => {
+    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().skipToEnd();
+    expect(useSeasonStore.getState().view).toEqual({ kind: "summary" });
+  });
+
+  it("starts again on a new season, back at the grid", () => {
+    useSeasonStore.getState().skipToEnd();
+    const before = useSeasonStore.getState().world.seed;
+    useSeasonStore.getState().startAgain();
+    const after = useSeasonStore.getState();
+    expect(after.view).toEqual({ kind: "grid" });
+    expect(after.world.seed).not.toBe(before);
   });
 });

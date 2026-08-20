@@ -1,30 +1,12 @@
 import { season1980 } from "@alt-hist/data";
 import type { SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
-import { driverNameOrDash, teamName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { DriverName } from "./DriverName.js";
+import { Flag } from "./Flag.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
-
-/** A driver's name with their team beneath it, as every table shows them. */
-function DriverCell({
-  driverId,
-  teamFor,
-}: {
-  driverId: string | null;
-  teamFor: ReadonlyMap<string, string>;
-}) {
-  const teamId = driverId === null ? undefined : teamFor.get(driverId);
-  return (
-    <div className="flex flex-col leading-tight">
-      <span>{driverNameOrDash(driverId)}</span>
-      {teamId === undefined ? null : (
-        <span className="text-muted-foreground text-xs">{teamName(teamId)}</span>
-      )}
-    </div>
-  );
-}
 
 export function SeasonCalendar({
   season,
@@ -42,8 +24,7 @@ export function SeasonCalendar({
       <CardHeader>
         <CardTitle>Season</CardTitle>
         <CardDescription>
-          {season.races.length} rounds. Select a race for its full classification. Every circuit
-          runs the same race — the calendar is cosmetic.
+          {season.races.length} rounds. Select a race for its full classification.
         </CardDescription>
       </CardHeader>
       <Table>
@@ -84,7 +65,12 @@ export function SeasonCalendar({
                         ▶
                       </span>
                       <span className="flex flex-col leading-tight">
-                        <span className="font-medium">{round?.name ?? `Round ${index + 1}`}</span>
+                        <span className="flex items-center gap-1.5 font-medium">
+                          {round === undefined ? null : (
+                            <Flag country={round.country} title={round.country} />
+                          )}
+                          {round?.name ?? `Round ${index + 1}`}
+                        </span>
                         {round === undefined ? null : (
                           <span className="text-muted-foreground text-xs">{round.circuit}</span>
                         )}
@@ -92,16 +78,26 @@ export function SeasonCalendar({
                     </button>
                   </TableCell>
                   <TableCell>
-                    <DriverCell driverId={race.poleDriverId} teamFor={teamFor} />
+                    <DriverName
+                      driverId={race.poleDriverId}
+                      teamId={teamFor.get(race.poleDriverId)}
+                    />
                   </TableCell>
                   <TableCell>
-                    <DriverCell driverId={race.winnerDriverId} teamFor={teamFor} />
+                    <DriverName
+                      driverId={race.winnerDriverId}
+                      teamId={
+                        race.winnerDriverId === null ? undefined : teamFor.get(race.winnerDriverId)
+                      }
+                    />
                   </TableCell>
                 </TableRow>
                 {isOpen ? (
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={4} className="p-0">
-                      <RaceClassification race={race} />
+                      <div className="bg-muted/40 border-border border-y px-3 py-3">
+                        <RaceClassification race={race} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : null}

@@ -70,6 +70,8 @@ export interface CalendarRace {
   readonly round: number;
   readonly name: string;
   readonly circuit: string;
+  /** ISO 3166-1 alpha-2 code for the host country, for the flag beside the name. */
+  readonly country: string;
 }
 
 export interface SeasonSeed {

@@ -51,6 +51,7 @@ describe("validateSeedData", () => {
       round: 12,
       name: "Italian GP",
       circuit: "Imola",
+      country: "IT",
     });
   });
 
@@ -88,8 +89,8 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [
-        { round: 1, name: "Argentine GP", circuit: "Buenos Aires" },
-        { round: 3, name: "Brazilian GP", circuit: "Interlagos" },
+        { round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" },
+        { round: 3, name: "Brazilian GP", circuit: "Interlagos", country: "BR" },
       ],
       entries: [],
     };
@@ -98,10 +99,21 @@ describe("validateSeedData", () => {
     }).toThrow(/round 3 sits at position 2/);
   });
 
+  it("rejects a calendar race whose country is not an ISO alpha-2 code", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "ARG" }],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, broken);
+    }).toThrow(/not an ISO alpha-2 code/);
+  });
+
   it("rejects a calendar race with no name or no circuit", () => {
     const withName = (name: string, circuit: string): SeasonSeed => ({
       year: 1980,
-      calendar: [{ round: 1, name, circuit }],
+      calendar: [{ round: 1, name, circuit, country: "AR" }],
       entries: [],
     });
     expect(() => {
