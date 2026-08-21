@@ -102,8 +102,19 @@ export function seasonDeficits(
     decline = constants.plateauEdgeDeficit + rate * years ** constants.declineExponent;
   }
 
-  if (season === career.debutSeason) {
+  // The rookie penalty covers the debut season and everything before it, so the
+  // curve never rewards a driver for not having started yet.
+  if (season <= career.debutSeason) {
     development += constants.rookieSeasonPenalty;
+  }
+
+  // Before the debut the development curve above has bottomed out, so the climb
+  // towards the first Grand Prix is added here instead.
+  if (season < career.debutSeason) {
+    development += Math.min(
+      constants.maxPreDebutDeficit,
+      constants.preDebutDeficitPerSeason * (career.debutSeason - season),
+    );
   }
 
   if (career.steepDecline !== undefined && season >= career.steepDecline.season) {
@@ -130,9 +141,10 @@ const ATTRIBUTES = [
 /**
  * A driver's ratings in a given season.
  *
- * Seasons before the debut return the driver's debut level rather than throwing:
- * the terminal tool sweeps whole lifetimes, and a career is a window on a curve
- * that exists either side of it.
+ * Seasons outside the career are answered rather than refused: the terminal tool
+ * sweeps whole lifetimes, and a career is a window on a curve that exists either
+ * side of it. Before the debut the curve keeps falling away as it goes back, so
+ * a driver is never better in the years before his first race than in it.
  */
 export function ratingsForSeason(
   career: DriverCareer,

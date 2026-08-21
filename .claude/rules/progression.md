@@ -54,10 +54,16 @@ attribute equally, because a bad year is a bad year).
 
 ## Gotchas
 
-- **Seasons outside a career still return ratings.** Before the debut you get the
-  driver's debut level, flat; long after, a heavily declined one. That is deliberate —
-  the progression tool sweeps ages 18–50 and a career is a window on a curve that
-  exists either side of it. Nothing filters by `finalSeason`; it is informational.
+- **Seasons outside a career still return ratings.** The progression tool sweeps ages
+  18–50 and a career is a window on a curve that exists either side of it. Nothing
+  filters by `finalSeason`; it is informational.
+- **The rookie penalty covers the debut season *and everything before it*, and the
+  curve keeps climbing towards the debut** (`preDebutDeficitPerSeason`, capped by
+  `maxPreDebutDeficit`). Both halves exist because of the same bug: with the penalty
+  landing only on the debut season and the development curve flat-clamped before it, a
+  driver's last year *out* of the sport outrated his first year in it. Two tests pin
+  it — no pre-debut season may beat the debut, and the run-up must be strictly
+  rising — and each fails if either half is reverted.
 - **`developmentSpeed` and `declineSpeed` are on a 1–10 scale**, not the 1–100 the
   five ratings use. The authored data sits in 3–7.
 - Ratings are rounded to whole numbers and clamped to 1–100 at the end. Comparing two

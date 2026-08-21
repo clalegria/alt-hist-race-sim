@@ -154,6 +154,48 @@ describe("authored career events", () => {
     expect(withRookie).toBeGreaterThan(withoutRookie);
   });
 
+  it("never makes a driver better before their debut than in it", () => {
+    // The bug this pins: the rookie penalty landed only on the debut season and
+    // the development curve was flat-clamped before it, so a driver's last year
+    // out of the sport outrated his first year in it.
+    const driver = career({ debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 });
+    const debut = total(ratingsForSeason(driver, 1980));
+    for (let season = 1979; season >= 1966; season -= 1) {
+      expect(total(ratingsForSeason(driver, season)), `${season}`).toBeLessThan(debut);
+    }
+  });
+
+  it("climbs towards the debut instead of sitting flat", () => {
+    const driver = career({ debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 });
+    for (let season = 1974; season < 1980; season += 1) {
+      expect(
+        total(ratingsForSeason(driver, season + 1)),
+        `${season} → ${season + 1}`,
+      ).toBeGreaterThan(total(ratingsForSeason(driver, season)));
+    }
+  });
+
+  it("carries the rookie penalty into every season before the debut", () => {
+    const driver = career({ debutSeason: 1980, peakSeason: 1990 });
+    const penalty = AGEING_CONSTANTS.rookieSeasonPenalty;
+    // Both the debut season and the one before it carry it; the season after
+    // does not.
+    expect(seasonDeficits(driver, 1980).development).toBeGreaterThanOrEqual(penalty);
+    expect(seasonDeficits(driver, 1979).development).toBeGreaterThan(penalty);
+    expect(seasonDeficits(driver, 1981).development).toBeLessThan(
+      seasonDeficits(driver, 1980).development,
+    );
+  });
+
+  it("stops falling away once the pre-debut cap is reached", () => {
+    // Otherwise a late debutant swept from age 18 hits the rating floor and the
+    // table becomes a column of 1s.
+    const driver = career({ debutSeason: 1980, peakSeason: 1990 });
+    const far = seasonDeficits(driver, 1960).development;
+    const further = seasonDeficits(driver, 1950).development;
+    expect(further).toBe(far);
+  });
+
   it("applies a steep decline from its season onward, and never before", () => {
     const driver = career({ steepDecline: { season: 1993, severity: 0.8 } });
     const plain = career();

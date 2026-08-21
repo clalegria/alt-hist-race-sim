@@ -54,8 +54,27 @@ export interface AgeingConstants {
   readonly declineExponent: number;
   readonly nominalDeclineSpeed: number;
 
-  /** An extra one-off deficit in the debut season itself. */
+  /**
+   * An extra deficit for being a rookie, applied to the debut season **and to
+   * every season before it**. Not applying it before the debut made the seasons
+   * leading up to a career better than the career's first season, which is
+   * backwards.
+   */
   readonly rookieSeasonPenalty: number;
+
+  /**
+   * How much further below the rookie season each season before the debut sits,
+   * capped by `maxPreDebutDeficit`.
+   *
+   * The development curve proper only spans debut → plateau, so without this the
+   * pre-debut years were flat at rookie level. A driver was not born at the
+   * standard of his first Grand Prix: the rise starts before the debut, and
+   * these two numbers are all it takes to say so. Nothing in the sim reads these
+   * seasons — no driver holds a seat before their debut — so this is for the
+   * progression tool, and for the day junior careers mean something.
+   */
+  readonly preDebutDeficitPerSeason: number;
+  readonly maxPreDebutDeficit: number;
 
   /** Full-severity magnitudes for the two authored career events. */
   readonly steepDeclineMaxDrop: number;
@@ -97,6 +116,9 @@ export const AGEING_CONSTANTS: AgeingConstants = {
   nominalDeclineSpeed: 5,
 
   rookieSeasonPenalty: 0.06,
+
+  preDebutDeficitPerSeason: 0.045,
+  maxPreDebutDeficit: 0.25,
 
   steepDeclineMaxDrop: 0.3,
   offSeasonMaxDrop: 0.12,
