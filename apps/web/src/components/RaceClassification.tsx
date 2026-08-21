@@ -1,5 +1,6 @@
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
+import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
@@ -55,23 +56,20 @@ export function RaceClassification({ race }: { race: RaceResult }) {
       <TableBody>
         {classify(race).map((entry) => {
           const finished = entry.finishPosition !== null;
+          const won = entry.finishPosition === 1;
           return (
-            <TableRow key={entry.driverId} className="border-border/60">
+            <TableRow key={entry.driverId} className={cn("border-border/60", won && STANDOUT_ROW)}>
               <TableCell
                 className={cn(
                   "text-right tabular-nums",
-                  entry.finishPosition === 1 && "font-semibold",
+                  won && cn(STANDOUT_TEXT, "font-semibold"),
                   finished || "text-muted-foreground",
                 )}
               >
                 {entry.finishPosition ?? "—"}
               </TableCell>
               <TableCell className={cn(finished || "text-muted-foreground")}>
-                <DriverName
-                  driverId={entry.driverId}
-                  teamId={entry.teamId}
-                  emphasis={entry.finishPosition === 1}
-                />
+                <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} />
               </TableCell>
               <TableCell className="text-muted-foreground text-right tabular-nums">
                 {entry.gridPosition}
@@ -79,7 +77,8 @@ export function RaceClassification({ race }: { race: RaceResult }) {
               <TableCell
                 className={cn(
                   "text-right tabular-nums",
-                  finished ? "text-muted-foreground" : "text-muted-foreground/50",
+                  won && cn(STANDOUT_TEXT, "font-semibold"),
+                  won || (finished ? "text-muted-foreground" : "text-muted-foreground/50"),
                 )}
               >
                 {gapOf(entry)}

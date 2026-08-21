@@ -34,7 +34,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 242 tests (137 engine, 13 data, 92 web)
+pnpm test          # 246 tests (137 engine, 13 data, 96 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -334,6 +334,12 @@ score in the race model, because ~42% of the 1980 field failed to finish and a
 fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
 nothing reads it, and paying for it would claim a driver is better at something the
 sim never asks of them. Revisit both when the transfer market lands.
+
+**Whoever won the thing on screen carries one accent**, defined once in
+`lib/highlight.ts`: pole on the grid, the winner of a race, and each champion on the
+summary. Four places, one definition, so they cannot drift apart — and a test asserts
+exactly one row or card carries it per view, since "make it look coherent" is the
+sort of thing that quietly stops being true.
 
 **Qualifying is drawn as a starting grid**, not a table: two columns, odd positions
 left and even right, with the right column set back half a row. The geometry is

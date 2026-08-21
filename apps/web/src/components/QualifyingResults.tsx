@@ -1,6 +1,7 @@
 import { driversById } from "@alt-hist/data";
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
+import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverName, teamName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
@@ -22,13 +23,13 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
     <div
       className={cn(
         "border-border bg-card flex h-[3.25rem] items-center gap-2 rounded-lg border px-2.5",
-        pole && "border-primary/40 bg-primary/5",
+        pole && STANDOUT_SURFACE,
       )}
     >
       <span
         className={cn(
           "w-5 shrink-0 text-right text-sm tabular-nums",
-          pole ? "text-primary font-semibold" : "text-muted-foreground",
+          pole ? cn(STANDOUT_TEXT, "font-semibold") : "text-muted-foreground",
         )}
       >
         {entry.gridPosition}
@@ -43,7 +44,7 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
       <span
         className={cn(
           "shrink-0 text-xs tabular-nums",
-          pole ? "text-primary" : "text-muted-foreground",
+          pole ? STANDOUT_TEXT : "text-muted-foreground",
         )}
       >
         {pole ? "pole" : formatSeconds(entry.qualifyingGapToPole)}

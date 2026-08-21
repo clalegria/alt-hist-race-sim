@@ -7,8 +7,10 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo } from "react";
+import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverName, teamName } from "../lib/names.js";
 import { positionsOf } from "../lib/standings.js";
+import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { Flag } from "./Flag.js";
@@ -85,10 +87,12 @@ function Champion({
   country?: string | undefined;
 }) {
   return (
-    <Card className="flex-1">
+    // The same accent pole and the race winner carry: whoever won the thing on
+    // screen looks the same wherever you meet them.
+    <Card className={cn("flex-1", STANDOUT_SURFACE)}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="flex items-center gap-2 text-xl">
+        <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
           {country === undefined || country === "" ? null : (
             <Flag country={country} title={country} className="h-4 w-6" />
           )}
