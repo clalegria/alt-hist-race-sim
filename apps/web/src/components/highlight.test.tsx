@@ -7,6 +7,7 @@
  * loses it, and nothing else notices.
  */
 
+import { championshipStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
@@ -48,6 +49,27 @@ describe("the standout accent", () => {
     const cards = occurrences(html, TINT);
     // Two champion cards, and nothing else on a page of three tables.
     expect(cards).toBe(2);
+  });
+
+  it("crowns a champion who ties on points at the last round", () => {
+    // Seed 302280 ends with Piquet and Jones level on 62, settled on countback.
+    // The clinch test used to treat a challenger who could *equal* the leader as
+    // a live threat at every point in the season, which after the final round
+    // meant no champion at all: no banner, and no accent in the sidebar.
+    const tied = createWorld(302280);
+    const last = tied.season.races.length - 1;
+    const standings = championshipStandings(tied.season);
+    const [first, second] = standings;
+    if (first === undefined || second === undefined) {
+      throw new Error("seeded world has no standings");
+    }
+    expect(first.points, "seed 302280 should still end level on points").toBe(second.points);
+
+    const html = renderToStaticMarkup(
+      <SeasonView world={tied} view={{ kind: "race", round: last }} />,
+    );
+    expect(html).toContain("wins the Drivers’ Championship");
+    expect(html).toContain(STANDOUT_ROW);
   });
 
   it("uses one definition, so the four cannot drift apart", () => {

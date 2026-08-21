@@ -80,7 +80,7 @@ development directions. Nothing should be designed around this yet.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 286 tests (157 engine, 13 data, 116 web)
+pnpm test          # 289 tests (158 engine, 13 data, 118 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -293,10 +293,18 @@ finished all fourteen rounds with both cars has 28 starts), while `poles` stays 
 race because only one car starts from pole.
 
 **A title is settled the moment nobody can reach the leader** — `season/titles.ts`,
-which is why a champion can be crowned with rounds still to run. The comparison is
-strict: a challenger able to *equal* the leader has not been beaten, because a tie
-falls to countback and countback is a result rather than a certainty. Every challenger
-is checked, not just the runner-up.
+which is why a champion can be crowned with rounds still to run. *While rounds remain*
+the comparison is strict: a challenger able to *equal* the leader has not been beaten,
+because a tie falls to countback and countback is a result rather than a certainty.
+Every challenger is checked, not just the runner-up.
+
+Once no rounds remain that reasoning inverts, and the function returns the leader
+outright: countback has *happened*, the standings are sorted on it, and first place is
+the champion however close the points are. The strict comparison alone never resolves
+a season that ends level — seed 302280 finished with Piquet and Jones on 62 apiece and
+crowned nobody, so the last round showed neither the title banner nor the accent on
+the champion's row. Both tables get the same carve-out, and a web test renders that
+seed's final round to keep it fixed.
 
 The constructors' case is the one to get right. A driver's best round is the win; a
 two-car team's is a one-two, so 15 points on the 1980 scale rather than 9. Each team

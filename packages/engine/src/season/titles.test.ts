@@ -89,8 +89,19 @@ describe("clinching the drivers' title", () => {
     expect(driversTitleClinchedBy([driver("a", 41), driver("b", 40)], 0)?.driverId).toBe("a");
   });
 
-  it("is not settled on a dead heat, even at the end", () => {
-    expect(driversTitleClinchedBy([driver("a", 40), driver("b", 40)], 0)).toBeNull();
+  it("crowns the leader on a dead heat once the season is over", () => {
+    // A tie mid-season is unsettled because countback has not happened yet. A
+    // tie after the last round is settled *by* countback — the standings are
+    // already sorted on it, so first place is the champion. Left unhandled,
+    // seed 302280 (Piquet and Jones level on 62) ended with no champion at all.
+    expect(driversTitleClinchedBy([driver("a", 40), driver("b", 40)], 0)?.driverId).toBe("a");
+    expect(driversTitleClinchedBy([driver("a", 40), driver("b", 40)], 1)).toBeNull();
+  });
+
+  it("crowns the leader on a dead heat in the constructors' table too", () => {
+    const standings = [team("a", 40, 2), team("b", 40, 2)];
+    expect(constructorsTitleClinchedBy(standings, 0)?.teamId).toBe("a");
+    expect(constructorsTitleClinchedBy(standings, 1)).toBeNull();
   });
 
   it("checks every challenger, not just the runner-up", () => {

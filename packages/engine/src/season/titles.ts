@@ -28,11 +28,17 @@ export function bestPossibleRound(cars: number, constants: SeasonConstants): num
 /**
  * The competitor who can no longer be caught, or null while the title is live.
  *
- * The comparison is strict: a challenger who can *equal* the leader has not been
- * beaten, because a tie on points falls to countback, and countback is a result
- * rather than a certainty. Every challenger is checked, not just the runner-up —
- * with unequal car counts the biggest remaining threat is not always the team
- * currently second.
+ * While rounds remain the comparison is strict: a challenger who can *equal* the
+ * leader has not been beaten, because a tie on points falls to countback, and
+ * countback is a result rather than a certainty. Every challenger is checked,
+ * not just the runner-up — with unequal car counts the biggest remaining threat
+ * is not always the team currently second.
+ *
+ * Once no rounds remain that reasoning inverts: countback has *happened*, the
+ * standings are final, and whoever the sort put first is the champion however
+ * close the points are. Without this the strict comparison never resolves a
+ * season that ends level on points — the title would read as still live after
+ * the last race, which is how it was found.
  *
  * A field with nobody to catch the leader is settled by definition.
  */
@@ -44,6 +50,9 @@ export function titleClinchedBy<T extends { readonly points: number }>(
   const leader = standings[0];
   if (leader === undefined) {
     return null;
+  }
+  if (roundsRemaining <= 0) {
+    return leader;
   }
   const challengers = standings.slice(1);
   if (challengers.length === 0) {
