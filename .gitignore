@@ -9,3 +9,4 @@ coverage/
 .DS_Store
 .vite/
 .turbo/
+.claude/settings.local.json
