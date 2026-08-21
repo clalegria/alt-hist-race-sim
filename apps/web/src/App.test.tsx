@@ -8,11 +8,17 @@
  * navigation logic.
  */
 
-import { championshipStandings, constructorStandings } from "@alt-hist/engine";
+import {
+  championshipStandings,
+  constructorStandings,
+  constructorsTitleClinchedBy,
+  driversTitleClinchedBy,
+} from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { actionsFor } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
+import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { createWorld, type View } from "./store/season.js";
 
@@ -195,6 +201,86 @@ describe("flags", () => {
     expect((drivers.match(/<svg/g) ?? []).length).toBe(28);
     const teams = between(html, "Constructors’ Championship", "Grid");
     expect((teams.match(/<svg/g) ?? []).length).toBe(15);
+  });
+});
+
+describe("a settled championship", () => {
+  /** The first round after which nobody can catch the leader. */
+  const clinchRound = (which: "drivers" | "teams"): number => {
+    for (let round = 0; round < ROUNDS; round += 1) {
+      const soFar = { races: world.season.races.slice(0, round + 1) };
+      const left = ROUNDS - soFar.races.length;
+      const settled =
+        which === "drivers"
+          ? driversTitleClinchedBy(championshipStandings(soFar), left)
+          : constructorsTitleClinchedBy(constructorStandings(soFar), left);
+      if (settled !== null) {
+        return round;
+      }
+    }
+    throw new Error(`the ${which} title is never settled in the seeded season`);
+  };
+
+  const teamsClinch = clinchRound("teams");
+
+  it("says nothing while the title is still live", () => {
+    expect(teamsClinch).toBeGreaterThan(0);
+    const html = render({ kind: "race", round: teamsClinch - 1 });
+    expect(html).not.toContain("wins the");
+  });
+
+  it("announces the clinch on the round it happens", () => {
+    const html = render({ kind: "race", round: teamsClinch });
+    expect(html).toContain("wins the Constructors’ Championship");
+  });
+
+  it("says it once and then stops", () => {
+    // The banner is an event, not a standing notice. Repeating it every
+    // remaining round turns the moment the season built to into wallpaper.
+    expect(teamsClinch).toBeLessThan(ROUNDS - 1);
+    for (let round = teamsClinch + 1; round < ROUNDS; round += 1) {
+      expect(render({ kind: "race", round }), `round ${round + 1}`).not.toContain(
+        "wins the Constructors’",
+      );
+    }
+  });
+
+  it("gives the champion's row the winner's accent, and keeps it", () => {
+    // Scoped to the constructors card, because the champion's name also appears
+    // as a team line under every one of their drivers in the table above it.
+    const championRow = (html: string): string => {
+      const card = html.slice(html.lastIndexOf(">Constructors<"));
+      const settled = constructorsTitleClinchedBy(constructorStandings(world.season), 0);
+      if (settled === null) {
+        throw new Error("the seeded season crowned no constructor");
+      }
+      const row = card
+        .split("<tr")
+        .find((candidate) => candidate.includes(teamName(settled.teamId)));
+      if (row === undefined) {
+        throw new Error("the champion has no row in the constructors table");
+      }
+      return row;
+    };
+
+    expect(championRow(render({ kind: "race", round: teamsClinch - 1 }))).not.toContain(
+      STANDOUT_ROW,
+    );
+    expect(championRow(render({ kind: "race", round: teamsClinch }))).toContain(STANDOUT_ROW);
+    // And it stays, rather than marking only the round it happened on.
+    expect(championRow(render({ kind: "race", round: teamsClinch + 1 }))).toContain(STANDOUT_ROW);
+    expect(championRow(render({ kind: "race", round: ROUNDS - 1 }))).toContain(STANDOUT_ROW);
+  });
+
+  it("settles the drivers' title too, by the end", () => {
+    const html = render({ kind: "race", round: ROUNDS - 1 });
+    expect(html).toContain("wins the Drivers’ Championship");
+  });
+
+  it("says nothing on a qualifying page", () => {
+    // A title is settled by a race result; Saturday cannot decide one.
+    const html = render({ kind: "qualifying", round: ROUNDS - 1 });
+    expect(html).not.toContain("wins the");
   });
 });
 

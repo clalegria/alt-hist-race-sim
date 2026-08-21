@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>alt-hist-race-sim</title>
+    <script>
+      // Runs before first paint so a reader who chose light never sees a flash
+      // of dark first. Dark is the default and needs no attribute, so this only
+      // ever has to act on the stored choice.
+      try {
+        if (localStorage.getItem("alt-hist-theme") === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      } catch {
+        // Storage can throw outright; the default theme is a fine answer.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

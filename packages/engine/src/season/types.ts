@@ -57,4 +57,12 @@ export interface DriverStanding extends SeasonTotals {
  */
 export interface ConstructorStanding extends SeasonTotals {
   readonly teamId: string;
+  /**
+   * The most cars the team entered in any single round.
+   *
+   * The bound on what a round can still be worth to them, which is what decides
+   * whether a championship is mathematically settled: a two-car team can take a
+   * one-two, a single-car entry cannot.
+   */
+  readonly cars: number;
 }

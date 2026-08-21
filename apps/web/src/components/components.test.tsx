@@ -37,6 +37,50 @@ describe("the race classification", () => {
     expect(html.split("<tr").length - 1).toBe(29); // 28 cars plus the header
   });
 
+  it("shows what each finish was worth, and leaves the rest blank", () => {
+    const rows = html.split("<tr").slice(1);
+    const rowFor = (driverId: string): string => {
+      const row = rows.find((candidate) => candidate.includes(driverName(driverId)));
+      if (row === undefined) {
+        throw new Error(`no row rendered for ${driverId}`);
+      }
+      return row;
+    };
+    const classified = [...race.entries]
+      .filter((entry) => entry.finishPosition !== null)
+      .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
+
+    // The top six score 9-6-4-3-2-1 and each shows its own total.
+    for (const [index, points] of [9, 6, 4, 3, 2, 1].entries()) {
+      const entry = classified[index];
+      if (entry === undefined) {
+        throw new Error("fewer than six finishers in the seeded race");
+      }
+      expect(rowFor(entry.driverId), `P${index + 1}`).toContain(`>${points}<`);
+    }
+    // Seventh scored nothing, and a column of zeroes helps nobody.
+    const seventh = classified[6];
+    if (seventh === undefined) {
+      throw new Error("fewer than seven finishers in the seeded race");
+    }
+    expect(rowFor(seventh.driverId)).not.toMatch(/>\d+<\/td><\/tr>/);
+    expect(html).toContain(">Pts<");
+  });
+
+  it("gives no points to a car that did not finish", () => {
+    const rows = html.split("<tr").slice(1);
+    for (const entry of race.entries) {
+      if (entry.finishPosition !== null) {
+        continue;
+      }
+      const row = rows.find((candidate) => candidate.includes(driverName(entry.driverId)));
+      expect(row, `no row for ${entry.driverId}`).toBeDefined();
+      expect(row ?? "", `${entry.driverId} was awarded points`).not.toMatch(
+        />[1-9]\d*<\/td>\s*<\/tr>/,
+      );
+    }
+  });
+
   it("marks the winner and shows gaps for the rest", () => {
     expect(html).toContain("winner");
     expect(html).toMatch(/\+\d+\.\d{3}s/);

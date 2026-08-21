@@ -165,6 +165,26 @@ export function championshipStandings(
 }
 
 /**
+ * The most cars each team entered in any one round.
+ *
+ * Taken as a maximum rather than an average because it bounds what a future
+ * round can be worth to them, and a team that ran two cars once can do so again.
+ */
+function carsPerTeam(season: SeasonResult): ReadonlyMap<string, number> {
+  const most = new Map<string, number>();
+  for (const race of season.races) {
+    const thisRound = new Map<string, number>();
+    for (const entry of race.entries) {
+      thisRound.set(entry.teamId, (thisRound.get(entry.teamId) ?? 0) + 1);
+    }
+    for (const [teamId, count] of thisRound) {
+      most.set(teamId, Math.max(most.get(teamId) ?? 0, count));
+    }
+  }
+  return most;
+}
+
+/**
  * Builds the constructors' championship table from the same results.
  *
  * Both of a team's cars score, which is the rule from 1979 onward. `starts`,
@@ -177,8 +197,10 @@ export function constructorStandings(
   season: SeasonResult,
   constants: SeasonConstants = SEASON_CONSTANTS,
 ): readonly ConstructorStanding[] {
+  const cars = carsPerTeam(season);
   return tallySeason(season, (entry) => entry.teamId, constants).map((tally) => ({
     teamId: tally.key,
+    cars: cars.get(tally.key) ?? 0,
     ...summarise(tally),
   }));
 }

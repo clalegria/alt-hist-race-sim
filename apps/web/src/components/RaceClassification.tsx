@@ -1,4 +1,4 @@
-import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
+import { pointsForPosition, type RaceEntryResult, type RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
 import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { cn } from "../lib/utils.js";
@@ -51,12 +51,16 @@ export function RaceClassification({ race }: { race: RaceResult }) {
           <TableHead className="text-right">Grid</TableHead>
           <TableHead className="text-right">Gap</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead className="text-right">Pts</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {classify(race).map((entry) => {
           const finished = entry.finishPosition !== null;
           const won = entry.finishPosition === 1;
+          // The default scale, since nothing yet runs a season on another one.
+          const points =
+            entry.finishPosition === null ? 0 : pointsForPosition(entry.finishPosition);
           return (
             <TableRow key={entry.driverId} className={cn("border-border/60", won && STANDOUT_ROW)}>
               <TableCell
@@ -87,6 +91,12 @@ export function RaceClassification({ race }: { race: RaceResult }) {
                 className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary/80")}
               >
                 {statusOf(entry)}
+              </TableCell>
+              <TableCell
+                className={cn("text-right font-semibold tabular-nums", won && STANDOUT_TEXT)}
+              >
+                {/* Blank rather than a column of zeroes: only six cars score. */}
+                {points === 0 ? "" : points}
               </TableCell>
             </TableRow>
           );

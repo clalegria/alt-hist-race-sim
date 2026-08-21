@@ -4,48 +4,110 @@
  * Design tokens, in the shadcn/ui shape: every colour is a CSS variable so a
  * component references `bg-card` rather than a literal, and a theme swap is a
  * change to these blocks alone.
+ *
+ * The palette is warm greys against a deep racing red, rather than the cool
+ * blue-grey and crimson that every scaffolded app ships with. Neutrals sit
+ * around hue 60-70 with almost no chroma — enough to read as charcoal and paper
+ * instead of as blue — and the accent is a saturated pillarbox red at hue 25.
+ *
+ * Dark is the default, so it lives here in plain `@theme` and needs no attribute
+ * on the document. Light is the override below.
  */
 @theme {
-  --color-background: oklch(99% 0.003 260);
-  --color-foreground: oklch(21% 0.02 260);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(21% 0.02 260);
-  --color-muted: oklch(96% 0.005 260);
-  --color-muted-foreground: oklch(52% 0.02 260);
-  --color-border: oklch(92% 0.006 260);
-  --color-input: oklch(92% 0.006 260);
-  --color-primary: oklch(48% 0.19 27);
-  --color-primary-foreground: oklch(99% 0.005 27);
-  --color-accent: oklch(96% 0.02 260);
-  --color-ring: oklch(48% 0.19 27);
+  --color-background: oklch(16% 0.008 60);
+  --color-foreground: oklch(95% 0.006 75);
+  --color-card: oklch(20.5% 0.01 60);
+  --color-card-foreground: oklch(95% 0.006 75);
+  --color-muted: oklch(25% 0.012 60);
+  --color-muted-foreground: oklch(68% 0.014 70);
+  --color-border: oklch(29% 0.012 60);
+  --color-input: oklch(29% 0.012 60);
+  --color-primary: oklch(64% 0.21 25);
+  --color-primary-foreground: oklch(16% 0.008 60);
+  --color-accent: oklch(26% 0.014 60);
+  --color-ring: oklch(64% 0.21 25);
 
   /* Places gained and lost. Paired with different glyphs, never colour alone. */
-  --color-gain: oklch(56% 0.15 150);
-  --color-loss: oklch(55% 0.19 25);
+  --color-gain: oklch(72% 0.16 148);
+  --color-loss: oklch(68% 0.2 25);
 
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  /*
+   * Archivo is a grotesque with a signage/industrial cast — close enough to a
+   * neutral UI face to stay legible in dense tables, far enough from the
+   * default system stack to not read as unstyled. IBM Plex Mono carries every
+   * figure; see the `.tabular-nums` rule below.
+   */
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+
+  /*
+   * Tighter than Tailwind's defaults. Overriding the scale rather than editing
+   * every component keeps one knob for how soft the whole thing looks — and
+   * squarer corners read as instrument panel rather than as consumer app.
+   */
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: oklch(17% 0.015 260);
-    --color-foreground: oklch(96% 0.005 260);
-    --color-card: oklch(21% 0.018 260);
-    --color-card-foreground: oklch(96% 0.005 260);
-    --color-muted: oklch(26% 0.018 260);
-    --color-muted-foreground: oklch(70% 0.02 260);
-    --color-border: oklch(30% 0.018 260);
-    --color-input: oklch(30% 0.018 260);
-    --color-primary: oklch(62% 0.2 27);
-    --color-primary-foreground: oklch(17% 0.015 260);
-    --color-accent: oklch(27% 0.02 260);
-    --color-ring: oklch(62% 0.2 27);
-    --color-gain: oklch(72% 0.16 150);
-    --color-loss: oklch(68% 0.2 25);
-  }
+/*
+ * The light theme, redefining the *variables* on `:root`.
+ *
+ * It must not use a nested `@theme`. Tailwind flattens `@theme` blocks wherever
+ * they appear and merges them, so one inside a selector or a media query is
+ * hoisted out, the condition is dropped, and the last definition simply wins —
+ * which silently pins the whole app to one palette. Utilities compile to
+ * `var(--color-card)`, so overriding the variable here reaches all of them.
+ */
+:root[data-theme="light"] {
+  --color-background: oklch(98.5% 0.004 75);
+  --color-foreground: oklch(20% 0.012 60);
+  --color-card: oklch(100% 0.002 75);
+  --color-card-foreground: oklch(20% 0.012 60);
+  --color-muted: oklch(95.5% 0.006 75);
+  --color-muted-foreground: oklch(50% 0.014 60);
+  --color-border: oklch(90.5% 0.008 70);
+  --color-input: oklch(90.5% 0.008 70);
+  --color-primary: oklch(47% 0.2 25);
+  --color-primary-foreground: oklch(98% 0.01 25);
+  --color-accent: oklch(95% 0.012 70);
+  --color-ring: oklch(47% 0.2 25);
+  --color-gain: oklch(54% 0.15 148);
+  --color-loss: oklch(54% 0.19 25);
+}
+
+/* Keeps scrollbars and form controls in step with the chosen theme. */
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+}
+
+/*
+ * Every figure in this app already carries `tabular-nums` — positions, points,
+ * gaps, ages, ratings — so hanging the mono face off that one utility puts
+ * timing-screen numerals everywhere at once, without threading a font class
+ * through a dozen components. Unlayered, so it wins over the Tailwind utility
+ * it extends.
+ *
+ * The coupling is deliberate but worth knowing about: mark something
+ * `tabular-nums` and it becomes monospaced. Everything currently marked is a
+ * number, which is the whole point.
+ */
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+}
+
+/* Small uppercase labels need air to stay readable at this size. */
+th {
+  letter-spacing: 0.06em;
 }

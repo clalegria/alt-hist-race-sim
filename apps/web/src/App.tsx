@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SeasonView } from "./components/SeasonView.js";
+import { ThemeToggle } from "./components/ThemeToggle.js";
 import { Button } from "./components/ui/button.js";
 import { useSeasonStore, type View } from "./store/season.js";
 
@@ -111,7 +112,10 @@ export function App() {
             <span className="text-sm font-semibold tracking-tight">{world.year} Season</span>
             <span className="text-muted-foreground text-xs">{stageLabel(view, rounds)}</span>
           </div>
-          <Actions {...actionProps} />
+          <div className="flex items-center gap-2">
+            <Actions {...actionProps} />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

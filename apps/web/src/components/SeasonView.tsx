@@ -2,6 +2,8 @@ import { driversById, season1980, teamsById } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
+  constructorsTitleClinchedBy,
+  driversTitleClinchedBy,
   type RaceEntrant,
   type RaceResult,
   type SeasonResult,
@@ -19,9 +21,10 @@ import { RaceClassification } from "./RaceClassification.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { StandingsTable } from "./StandingsTable.js";
+import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 
-const drivers = driversById();
+const driverRecords = driversById();
 const teams = teamsById();
 
 /** The name of a round, falling back to a bare number if the calendar is short. */
@@ -152,7 +155,9 @@ function Summary({
         <Champion
           label="Drivers&rsquo; champion"
           name={champion === undefined ? "—" : driverName(champion.driverId)}
-          country={champion === undefined ? undefined : drivers.get(champion.driverId)?.nationality}
+          country={
+            champion === undefined ? undefined : driverRecords.get(champion.driverId)?.nationality
+          }
           detail={
             champion === undefined
               ? "Nobody scored."
@@ -215,30 +220,72 @@ function RaceStage({
   }, [world.season, view.round]);
 
   const label = roundLabel(view.round);
-  const remaining = world.season.races.length - soFar.races.length;
+  const total = world.season.races.length;
+  const remaining = total - soFar.races.length;
+
+  // Who, if anyone, can no longer be caught, and whether that became true on
+  // this round. The banner is shown only on the round it happens; the standings
+  // accent below stays from then on, which is what the two halves are for.
+  const titles = useMemo(() => {
+    const after = (round: number) => {
+      const table = seasonSoFar(world.season, round);
+      const left = total - table.races.length;
+      return {
+        driver: driversTitleClinchedBy(championshipStandings(table), left),
+        team: constructorsTitleClinchedBy(constructorStandings(table), left),
+      };
+    };
+    const now = after(view.round);
+    const before = view.round === 0 ? { driver: null, team: null } : after(view.round - 1);
+    return {
+      driver: now.driver,
+      driverIsNew: now.driver !== null && before.driver === null,
+      team: now.team,
+      teamIsNew: now.team !== null && before.team === null,
+    };
+  }, [world.season, view.round, total]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-      <Section title={`${label.name} — Race`} subtitle={label.circuit} country={label.country}>
-        <RaceClassification race={race} />
-      </Section>
-
-      <aside className="flex flex-col gap-4">
-        <p className="text-muted-foreground text-xs">
-          Championship after {plural(soFar.races.length, "round")}
-          {remaining === 0 ? "" : ` (${remaining} remaining)`}
-        </p>
-        <CompactStandings
+    <div className="flex flex-col gap-4">
+      {titles.driver !== null && titles.driverIsNew ? (
+        <TitleBanner
           title="Drivers"
-          standings={drivers}
-          previousPositions={previous.drivers}
+          name={driverName(titles.driver.driverId)}
+          country={driverRecords.get(titles.driver.driverId)?.nationality}
         />
-        <CompactStandings
+      ) : null}
+      {titles.team !== null && titles.teamIsNew ? (
+        <TitleBanner
           title="Constructors"
-          standings={constructors}
-          previousPositions={previous.constructors}
+          name={teamName(titles.team.teamId)}
+          country={teams.get(titles.team.teamId)?.base}
         />
-      </aside>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <Section title={`${label.name} — Race`} subtitle={label.circuit} country={label.country}>
+          <RaceClassification race={race} />
+        </Section>
+
+        <aside className="flex flex-col gap-4">
+          <p className="text-muted-foreground text-xs">
+            Championship after {plural(soFar.races.length, "round")}
+            {remaining === 0 ? "" : ` (${remaining} remaining)`}
+          </p>
+          <CompactStandings
+            title="Drivers"
+            standings={drivers}
+            previousPositions={previous.drivers}
+            clinchedBy={titles.driver?.driverId}
+          />
+          <CompactStandings
+            title="Constructors"
+            standings={constructors}
+            previousPositions={previous.constructors}
+            clinchedBy={titles.team?.teamId}
+          />
+        </aside>
+      </div>
     </div>
   );
 }

@@ -32,4 +32,10 @@ export {
   constructorStandings,
   pointsForPosition,
 } from "./season/standings.js";
+export {
+  bestPossibleRound,
+  constructorsTitleClinchedBy,
+  driversTitleClinchedBy,
+  titleClinchedBy,
+} from "./season/titles.js";
 export type { ConstructorStanding, DriverStanding, SeasonResult } from "./season/types.js";

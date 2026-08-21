@@ -1,8 +1,9 @@
 # CLAUDE.md
 
 ## Project
-**alt-hist-race-sim** (working name) — an alternate-history motor racing simulator. Starts from a fixed season (1980) and
-simulates race results forward, year by year, diverging from real history.
+**alt-hist-race-sim** (working name) — an alternate-history motor racing simulator.
+Starts from a real season — 1980 today, others later — and simulates results forward,
+year by year, diverging from history as it goes.
 Drivers and teams have 1–100 attributes; races are resolved probabilistically;
 drivers age, move between teams via a transfer market, and retire; statistics
 accumulate over the run.
@@ -16,17 +17,62 @@ the guardrails that keep the project coherent — follow them.
 runs client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a
 server, an HTTP API, or a database in this phase.
 
-First milestone:
-1. ✅ pnpm workspace + `packages/engine` (pure TS, strict, Vitest, Biome).
-2. ✅ Seeded PRNG (sfc32, injectable). Same seed → same sequence.
-3. ✅ Single-race score-and-sort simulator.
-4. ✅ Monte Carlo harness (`tools/calibrate`) + one calibration pass against 1980.
-5. ✅ Full season loop + championship standings. Tests.
-6. ✅ `apps/web` (React + Vite) rendering one season's results.
+**The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
+derived championships, Monte Carlo calibration harness, and a React web app that
+reveals a season session by session. What remains is in the roadmap below.
 
-**The first milestone is complete.** What comes next is gated on the open decisions
-at the bottom of this file — the ageing curve in particular, since driver ratings
-cannot be tuned until it exists.
+## Roadmap
+Ordered, with the reasoning — the order matters more than the items, because two of
+these create work for each other if taken out of sequence. Deviate deliberately, not
+by accident.
+
+**1. Driver progression — ageing curves.** Drivers currently all race at their
+authored peak, so a 24-year-old Prost drives like his 1987 self. This is first
+because it is the only item that blocks another: the driver pool cannot be calibrated
+until it exists (see Open decisions), which means every judgement about driver quality
+in the sim is provisional. Starts by settling three open decisions — season vs age,
+peak-scatter shape, debut/peak gap — then a re-tune of the driver pool against 1980.
+
+**2. Complete the 1980 grid — privateer entries.** Small and self-contained: a couple
+of privateer entries are missing. Also useful as a test of the starting limit, since
+more entries means more DNQs, which is period-accurate. Independent of everything
+else; slot it into any session.
+
+**3. Home advantage.** A small boost for a driver racing in their own country and a
+team in its. The data is already there — `country` on each calendar round,
+`nationality` on drivers, `base` on teams. The reason it earns a place this early is
+architectural: it is the smallest change that forces `simulateSeason` to take the
+*calendar* rather than a round count, and per-round context is the prerequisite for
+every circuit feature that follows.
+
+**4. Engine manufacturers.** Performance becomes a function of driver, car and engine
+rather than driver and car. Deliberately before multi-season data: authoring several
+seasons and *then* adding an entity to the model means re-authoring all of them. 1980
+is a good test case, with the Cosworth DFV, the Renault turbo and the Ferrari flat-12
+being genuinely different propositions.
+
+**5. Multiple starting seasons.** Choose 1980 or another year, which means authoring
+drivers, teams, cars and calendars for more seasons *and* decoupling the code from
+this one. The couplings are known and few: `season1980` is imported directly by
+`apps/web/src/store/season.ts`, `SeasonView.tsx`, `SeasonCalendar.tsx` and the
+calibration tools. Also settles the era questions already in Open decisions — the
+starting limit and the reliability curve both stop being constants once more than one
+year exists.
+
+**6. Driver market.** Transfers between seasons. Needs ageing (who is declining, who
+retires) and more than one season to move between, hence its place here. What forces
+move the market is not yet decided — that is a design conversation, not a coding task,
+and `adaptability` is authored and unused precisely for this.
+
+**7. Career mode, with the two car-progression submodes.** Simulate one season, or
+simulate a career with the market running between years. The submodes — cars stay true
+to real history, or drift from wherever they were — are already sketched as the
+`SeasonProgressionModel` seam in the glossary: `HistoricalProgression` and
+`EvolutionaryProgression`. Building against that interface is the plan.
+
+**8. Team management game mode.** Far future, and explicitly after a working
+multi-season simulation: take charge of a team, hire and fire drivers, choose
+development directions. Nothing should be designed around this yet.
 
 
 
@@ -34,7 +80,7 @@ cannot be tuned until it exists.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 246 tests (137 engine, 13 data, 96 web)
+pnpm test          # 286 tests (157 engine, 13 data, 116 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -101,6 +147,10 @@ apps/web/src/              # React + Vite season viewer
   store/season.ts          # the one Zustand world-state store + the reveal cursor
   components/SeasonView.tsx # props-driven; renders one stage of the reveal
   components/ui/           # shadcn-style primitives, copied in
+  lib/rating.ts            # display-only overall rating; not model truth
+  lib/highlight.ts         # the one accent shared by pole, winner and champions
+  lib/theme.ts             # dark by default, light by choice, remembered
+  index.css                # every design token; see the @theme warning below
 tools/calibrate/src/       # race + season viewers, Monte Carlo harness, rating tuner
 ```
 Planned, not yet written:
@@ -232,6 +282,19 @@ this sim needs, since it starts in 1980 and runs forward. That makes a team's
 finished all fourteen rounds with both cars has 28 starts), while `poles` stays per
 race because only one car starts from pole.
 
+**A title is settled the moment nobody can reach the leader** — `season/titles.ts`,
+which is why a champion can be crowned with rounds still to run. The comparison is
+strict: a challenger able to *equal* the leader has not been beaten, because a tie
+falls to countback and countback is a result rather than a certainty. Every challenger
+is checked, not just the runner-up.
+
+The constructors' case is the one to get right. A driver's best round is the win; a
+two-car team's is a one-two, so 15 points on the 1980 scale rather than 9. Each team
+is measured by its own car count — `cars` on `ConstructorStanding`, the most it
+entered in any round — because with unequal entries the biggest remaining threat is
+not always whoever is currently second. Treating every team as a single car declares
+titles settled a round or two early, which looks like a rounding slip and is not.
+
 Points come from `season/constants.ts` as a plain array, `pointsByPosition`, best
 first. Its *length* is how many places score, so the late-2010s
 25-18-15-12-10-8-6-4-2-1 drops in as a different array and nothing else changes.
@@ -259,11 +322,12 @@ Notes:
 - 13 drivers hold no 1980 seat. They exist in the pool, available to the market.
   Intended, not a bug.
 - `adaptability` is authored but unused so far — it is for the market and progression.
-- **The calendar is cosmetic and nothing else.** It exists so results can be labelled
+- **The calendar is cosmetic *for now*.** It exists so results can be labelled
   "Round 12, Italian Grand Prix at Imola" — circuits have no properties and the engine
   never sees it, so every round is the same race. `calendar.length` is the season's
-  round count, and `validateSeedData` checks each `round` matches its position, since
-  a number out of step would mislabel every result printed against it.
+  round count, and `validateSeedData` checks each `round` matches its position and
+  that `country` is a real alpha-2 code, since a number out of step would mislabel
+  every result printed against it. Roadmap 3 is where the engine starts reading this.
 - Seed ratings are tuned via the Monte Carlo harness, never guessed in code.
   **Car ratings have had two calibration passes** against the 1980 season (see below).
   **Driver ratings have not**, deliberately — see Open decisions.
@@ -336,8 +400,12 @@ nothing reads it, and paying for it would claim a driver is better at something 
 sim never asks of them. Revisit both when the transfer market lands.
 
 **Whoever won the thing on screen carries one accent**, defined once in
-`lib/highlight.ts`: pole on the grid, the winner of a race, and each champion on the
-summary. Four places, one definition, so they cannot drift apart — and a test asserts
+`lib/highlight.ts`: pole on the grid, the winner of a race, each champion on the
+summary, and — once the arithmetic settles it — the champion's row in the race
+sidebar, which keeps it for every remaining round. The banner announcing the title
+does not: it appears on the round the championship is settled and only that round. Repeating it turns
+the beat the season has been building to into a standing notice, and the row accent
+already carries the fact from then on. Four places, one definition, so they cannot drift apart — and a test asserts
 exactly one row or card carries it per view, since "make it look coherent" is the
 sort of thing that quietly stops being true.
 
@@ -428,6 +496,32 @@ would need jsdom.
 Biome needs `css.parser.tailwindDirectives` to parse Tailwind 4's `@theme`; it is on
 in `biome.json`.
 
+**Type and palette.** Archivo (UI) and IBM Plex Mono (every figure), self-hosted via
+`@fontsource` so a shared static build makes no external request — Latin subsets only,
+since importing a package root ships Cyrillic, Greek and Vietnamese cuts of every
+weight. Numerals get the mono face through a single unlayered `.tabular-nums` rule
+rather than a font class threaded through a dozen components; the coupling is
+deliberate and everything currently marked `tabular-nums` is a number. The palette is
+warm greys (hue ~70, almost no chroma) against a deep red at hue 25, and the Tailwind
+radius scale is overridden tighter, so corners read as instrument panel rather than
+consumer app.
+
+**Theme is chosen, not inherited.** Dark is the default and lives in plain `@theme`,
+so it needs no attribute and survives a page with JavaScript disabled. Light is an
+override on `:root[data-theme="light"]`, flipped by a toggle in the top-right of the
+sticky bar and remembered in `localStorage`. A blocking script in `index.html` applies
+the stored choice before first paint; doing it in React instead would show dark and
+correct it after hydration, which is the flash the script exists to prevent.
+
+**The override must never be a nested `@theme`.** Tailwind flattens every `@theme`
+block wherever it sits and merges them, dropping whatever selector or media query
+wrapped it — so a nested one silently pins the app to whichever palette is declared
+last. It shipped that way once, dark-only under a `prefers-color-scheme` block that
+was being hoisted away, until a build-output check caught it. `src/theme.test.ts`
+reads the stylesheet and `index.html` as text to guard the structure, including that
+both spell the storage key the same way, because nothing in a component test can see
+any of this.
+
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
 - Every engine module ships with Vitest tests. `apps/web` is tested at the store and
@@ -436,26 +530,38 @@ in `biome.json`.
   seeded-outcome assertions.
 - **Statistical tests must be mutation-checked.** A distribution test that passes
   against a deliberately broken implementation is worthless. Break it on purpose,
-  confirm it fails, revert.
+  confirm it fails, revert. This has repeatedly caught tests that asserted nothing —
+  a counter blind to `gaussian()`, a tie-break case that was not tied, an assertion
+  read off the engine's data instead of the component's output.
+- **Check `Test Files`, not just `Tests`, when reading a Vitest run.** A file that
+  fails to *compile* is not counted in the `Tests` line, so a broken test file can
+  leave a run looking green. `Test Files 11 passed (11)` is the line that proves
+  everything was collected.
+- **New dependencies are checked against a release-age policy.** pnpm rejects packages
+  published within the last few days and will offer to write a `minimumReleaseAgeExclude`
+  entry into `pnpm-workspace.yaml`. Do not take it — pick the previous stable version
+  instead. Freshly published versions are exactly the window a compromised package
+  lands in. This has already happened once, with a Vite release hours old.
 - Secrets (none in phase 1) live only in gitignored `.env`.
 - Do not add runtime dependencies to `packages/engine` without a strong reason.
 
 ## Open decisions (confirm with the author before implementing — do not assume)
-- **Season vs age for curves.** Recommended: convert `debutSeason` / `peak.season`
+- **Season vs age for curves.** *(Gates roadmap 1.)* Recommended: convert `debutSeason` / `peak.season`
   to ages on load via `birthYear`, so career arcs travel with the driver under
   divergence. Alternative: keep calendar-pinned. NOT finalised — ask before writing
   the ageing function.
-- **Peak-scatter shape.** Symmetric vs slightly downward-skewed (busts more common
+- **Peak-scatter shape.** *(Gates roadmap 1.)* Symmetric vs slightly downward-skewed (busts more common
   than overachievers). Symmetric is acceptable for v1; flagged as a lever.
-- **Debut/peak gap.** Roll realized peak as an offset from realized debut (min gap
+- **Debut/peak gap.** *(Gates roadmap 1.)* Roll realized peak as an offset from realized debut (min gap
   ~3–5 seasons) rather than independently, to avoid a driver peaking right after debut.
-- **Driver ratings are un-tuned and cannot be tuned yet.** 15 of the 28 seated drivers
+- **Driver ratings are un-tuned and cannot be tuned yet.** *(This is why roadmap 1 is
+  first.)* 15 of the 28 seated drivers
   peak *after* 1980 (Prost +7 years, Piquet +5, Arnoux +3), and the tools currently
   feed `peak` ratings in as current ratings because no ageing curve exists. Tuning
   them against 1980 results would bake in an error that inverts once ageing lands.
   Only Jones (peak 1980) and Reutemann (peak 1979) have been touched.
   **Re-tune the driver pool after the ageing curve exists, not before.**
-- **Reliability era curve.** `mechanicalDnfEraScale` exists but no per-season curve is
+- **Reliability era curve.** *(Roadmap 5.)* `mechanicalDnfEraScale` exists but no per-season curve is
   defined. 1980 needs ~42% retirements; a 2026 season needs closer to 10%. Decide
   whether that comes from rising reliability ratings, a falling era scale, or both.
 - **Consistency's spread lever is parked, not gone.** Settled for now: consistency
@@ -467,17 +573,25 @@ in `biome.json`.
   A middle option exists and is untried: stretch the bad tail *and* compress the
   good one, which keeps some asymmetry while capping the ceiling.
 - **Weekend-form share is a first guess.** 0.4 was picked for plausibility, not
-  fitted — 1980 grid-to-finish correlation was never measured against the real
-  season. Worth a pass once season results exist to compare against.
-- **Starting limit per era.** `maxStarters` is a single constant pinned at 26 for
+  fitted — 1980 grid-to-finish correlation was never measured against the real season.
+  Season results now exist, so this is measurable whenever someone wants to: run the
+  season harness, correlate grid against finish, compare to the real 14 races.
+- **Starting limit per era.** *(Roadmap 5.)* `maxStarters` is a single constant pinned at 26 for
   1980. Real limits moved (and modern grids sit under any of them), so it probably
   belongs to the season/progression data rather than the race constants once more
   than one season exists. Related and unmodelled: real 1980 DNQs were decided by
   pre-qualifying and by teams entering different cars at different rounds, whereas
   here the same 28 entries contest every race.
-- **Circuits have no character.** The calendar in `season-1980.json` is names only,
-  and `simulateSeason` still takes a round *count* rather than the calendar, so every
-  round is the same race. Giving tracks real properties (a power circuit favouring the
-  Renault turbo, a street circuit favouring grid position, a per-circuit lap time to
-  anchor the cosmetic gaps) means passing the calendar into the engine and deciding
-  what a circuit does to the score. Not started.
+- **Circuits have no character.** *(Roadmap 3 opens this door; the rest is undecided.)*
+  The calendar is names and a country, and `simulateSeason` takes a round *count*
+  rather than the calendar, so every round is the same race. Home advantage is the
+  first thing that will need per-round context. Beyond it, what a circuit *is* remains
+  undecided: a power track favouring the Renault turbo, a street circuit favouring
+  grid position, a per-circuit lap time to anchor the cosmetic gaps — each is a
+  separate call about what a circuit does to the score.
+- **What moves the driver market.** *(Gates roadmap 6.)* Undecided by the author, and
+  a design conversation rather than a coding task. `adaptability` is authored and read
+  by nothing precisely because it is reserved for this.
+- **The overall rating weights adaptability at zero.** A display heuristic in
+  `apps/web/src/lib/rating.ts`, deliberately paying nothing for a rating the sim never
+  reads. Revisit when roadmap 6 gives it meaning.

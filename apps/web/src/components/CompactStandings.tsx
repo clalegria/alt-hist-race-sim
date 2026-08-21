@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
@@ -52,6 +53,7 @@ export function CompactStandings({
   title,
   standings,
   previousPositions,
+  clinchedBy,
 }: {
   title: string;
   standings: readonly Standing[];
@@ -60,6 +62,11 @@ export function CompactStandings({
    * where there is nothing to have moved from.
    */
   previousPositions?: ReadonlyMap<string, number> | undefined;
+  /**
+   * Whoever has mathematically won, if anyone has yet. Their row keeps the
+   * champion's accent for every remaining round, not only the one it happened on.
+   */
+  clinchedBy?: string | undefined;
 }) {
   // View state, and only this table's — nothing else cares whether it is open.
   const [expanded, setExpanded] = useState(false);
@@ -74,17 +81,21 @@ export function CompactStandings({
       <Table>
         <TableBody>
           {rows.map((standing, index) => {
-            const was = previousPositions?.get(standingKey(standing));
+            const key = standingKey(standing);
+            const was = previousPositions?.get(key);
             const moved = was === undefined ? null : was - (index + 1);
+            const won = key === clinchedBy;
             return (
-              <TableRow key={standingKey(standing)}>
+              <TableRow key={key} className={cn(won && STANDOUT_ROW)}>
                 <TableCell className="w-12 py-1.5 pr-0 text-right">
                   <span className="inline-flex items-center gap-1">
                     <Movement places={moved} />
                     <span
                       className={cn(
                         "tabular-nums",
-                        index === 0 ? "text-foreground font-semibold" : "text-muted-foreground",
+                        won && cn(STANDOUT_TEXT, "font-semibold"),
+                        won ||
+                          (index === 0 ? "text-foreground font-semibold" : "text-muted-foreground"),
                       )}
                     >
                       {index + 1}
@@ -105,7 +116,8 @@ export function CompactStandings({
                 <TableCell
                   className={cn(
                     "w-10 py-1.5 text-right font-semibold tabular-nums",
-                    standing.points === 0 && "text-muted-foreground/50 font-normal",
+                    won && STANDOUT_TEXT,
+                    !won && standing.points === 0 && "text-muted-foreground/50 font-normal",
                   )}
                 >
                   {standing.points}
