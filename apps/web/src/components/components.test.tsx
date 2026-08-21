@@ -264,7 +264,7 @@ describe("the compact standings", () => {
   it("names each driver's team, and carries points but no other column", () => {
     expect(driverHtml).toContain("Williams");
     expect(driverHtml).toContain("Brabham");
-    for (const column of ["Wins", "Pods", "Poles", "DNF", "DNQ"]) {
+    for (const column of ["Wins", "Pods", "Poles"]) {
       expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
     }
   });

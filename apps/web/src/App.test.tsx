@@ -113,8 +113,8 @@ describe("a race", () => {
 
   it("carries points alongside the result, and nothing else", () => {
     // The sidebar exists to be scannable: after one round the full table's
-    // wins, podiums, poles and DNF counts are almost all zeroes.
-    for (const column of ["Wins", "Pods", "Poles", "DNF", "DNQ"]) {
+    // wins, podiums and poles are almost all zeroes.
+    for (const column of ["Wins", "Pods", "Poles"]) {
       expect(html, `${column} should not be in the race sidebar`).not.toContain(`>${column}<`);
     }
     // The winner leads on the 9 points they just scored.
@@ -146,6 +146,13 @@ describe("the season summary", () => {
     // The summary is where the full breakdown belongs.
     expect(html).toContain(">Wins<");
     expect(html).toContain(">Poles<");
+  });
+
+  it("classifies on results, not on failures", () => {
+    // Retirements and non-qualifications are still derived by the engine; the
+    // final table just does not report them.
+    expect(html).not.toContain(">DNF<");
+    expect(html).not.toContain(">DNQ<");
   });
 
   it("still ends with the grid, in the same simplified form", () => {

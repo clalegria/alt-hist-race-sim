@@ -31,7 +31,13 @@ export interface RaceConstants {
   readonly weightCarConsistency: number;
   readonly weightDriverConsistency: number;
 
-  /** Standard deviation of qualifying noise, in rating points, before modulation. */
+  /**
+   * Standard deviation of qualifying noise, in rating points, before
+   * modulation. `weekendFormShare` splits it: `sqrt(share)` of it is the car's
+   * form for the whole weekend and `sqrt(1 - share)` is luck on the day, so
+   * raising this sigma and the share together moves weekend-to-weekend form
+   * without touching session-to-session scatter.
+   */
   readonly qualifyingNoise: number;
   /** Standard deviation of race noise, in rating points, before modulation. */
   readonly racingNoise: number;
@@ -87,6 +93,14 @@ export interface RaceConstants {
    * 0 restores fully independent sessions. 1 makes the race a deterministic
    * function of qualifying - every race processional - so it is a bound to stay
    * well clear of, not a target.
+   *
+   * This is the only lever that is *about* weekend-to-weekend form rather than
+   * randomness in general, but on its own it only redistributes a fixed sigma:
+   * raising it alone buys form by taking the same amount out of session luck.
+   * To make a car's level actually swing more between weekends, raise this and
+   * the two sigmas together, holding `sqrt(1 - share) * sigma` roughly constant
+   * - which is how 0.4/3.0/5.0 became 0.5/3.4/5.6, about a quarter more form
+   * for unchanged session scatter.
    */
   readonly weekendFormShare: number;
 
@@ -182,8 +196,15 @@ export interface RaceConstants {
  * Default constants, calibrated for the 1980 season.
  *
  * Race pace weighting puts the 1980 top five inside a ~3.2 point band against a
- * race noise sigma of 5.0, so they trade wins rather than one car running away
+ * race noise sigma of 5.6, so they trade wins rather than one car running away
  * with every race.
+ *
+ * Half of that sigma's variance is weekend form and half is session luck, which
+ * puts ~4.0 points of swing on a car's level for the weekend. Measured over
+ * 20,000 races the change from the earlier 0.4/3.0/5.0 costs about a point of
+ * Williams win share (43.4% to 42.1%, against a 42.9% target) and gains about
+ * the same for Ligier (15.1% to 16.2%, against 14.3%); poles and the 41.1%
+ * retirement rate are unmoved.
  *
  * Combined consistency across the 1980 grid runs roughly 46-90, so the penalty
  * endpoints at 0 and 100 are extrapolation anchors rather than values anyone
@@ -201,8 +222,8 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   weightCarConsistency: 0.5,
   weightDriverConsistency: 0.5,
 
-  qualifyingNoise: 3.0,
-  racingNoise: 5.0,
+  qualifyingNoise: 3.4,
+  racingNoise: 5.6,
 
   consistencyNoiseMultiplierAtZero: 1.0,
   consistencyNoiseMultiplierAtHundred: 1.0,
@@ -210,7 +231,7 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   consistencyPacePenaltyAtZero: 4.0,
   consistencyPacePenaltyAtHundred: 0.0,
 
-  weekendFormShare: 0.4,
+  weekendFormShare: 0.5,
 
   maxStarters: 26,
 

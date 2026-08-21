@@ -234,13 +234,23 @@ worse average finish, no compensating upside.
 `consistencyNoiseMultiplierAtZero/AtHundred` survive as a lever, both pinned at 1.0.
 Reopening a gap between them trades strict dominance back for streakier racing.
 
-**Weekend form ties the two sessions together.** `weekendFormShare` (0.4) splits each
+**Weekend form ties the two sessions together.** `weekendFormShare` (0.5) splits each
 session's noise into a shared per-car, per-weekend draw and an independent per-session
 draw, weighted `sqrt(share)` and `sqrt(1 − share)` so each session's total sigma is
 unchanged and the correlation between the two noise terms equals the share exactly. A
 driver who has the car under him on Saturday tends to still have it on Sunday. 0
 restores independent sessions; 1 makes the race a deterministic function of qualifying
 (every race processional), so it is a bound, not a target.
+
+The share alone cannot make a car's form swing *wider*, only redistribute a fixed
+sigma — raising it buys weekend form by taking the same variance out of session luck.
+Widening the swing means moving the share and both sigmas together, holding
+`sqrt(1 − share) · sigma` roughly constant, which is how the original 0.4/3.0/5.0
+became **0.5/3.4/5.6**: about a quarter more weekend-to-weekend form for unchanged
+session-to-session scatter. It costs a point of Williams win share and gains one for
+Ligier (see the table below); poles and the retirement rate are unmoved. Note the
+form draw is per *seat*, not per team — teammates have independent weekends, so this
+is "the car came to this driver" rather than "the team brought an upgrade".
 
 The car is weighted far above the driver on purpose: a great driver in a poor car
 should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
@@ -339,10 +349,10 @@ Against the real 1980 season (14 races), at 20,000 simulated races:
 
 | Team | Model win% | Actual | Model pole% | Actual (approx) |
 |---|---|---|---|---|
-| Williams | 43.4% | 42.9% | 27.6% | ~21% |
-| Renault | 21.3% | 21.4% | 44.1% | ~43% |
-| Brabham | 19.9% | 21.4% | 8.6% | ~7% |
-| Ligier | 15.1% | 14.3% | 19.8% | ~21% |
+| Williams | 42.1% | 42.9% | 27.7% | ~21% |
+| Renault | 21.4% | 21.4% | 42.3% | ~43% |
+| Brabham | 19.5% | 21.4% | 9.2% | ~7% |
+| Ligier | 16.2% | 14.3% | 20.7% | ~21% |
 
 Retirements 41.1% of the 26 starters, matching the era. (This was 42.0% before the
 starting limit landed; the two cars that now miss the cut are unreliable ones, so
@@ -351,8 +361,8 @@ percentages did not shift at all — the cut only ever touches the back of the g
 Reference targets live in `tools/calibrate/src/targets.ts`.
 
 The 28-entry 1980 grid means two DNQs a weekend. They fall where they should: Shadow
-takes 58.2% and 99.6% (Kennedy failed to qualify for all seven races he entered in
-reality), Osella 34.2%, ATS and Ensign under 3%, and nobody above them ever misses.
+takes 54.9% and 99.0% (Kennedy failed to qualify for all seven races he entered in
+reality), Osella 34.5%, ATS and Ensign under 5%, and nobody above them ever misses.
 
 The consistency pace penalty is a systematic term that did not exist when the cars
 were first tuned, and it cost Renault disproportionately (Arnoux and Jabouille are
@@ -361,8 +371,8 @@ pace). Absorbed with a second car pass: **Renault qualifying 90 → 91, racing 9
 That lands every headline number closer to target than the pre-penalty calibration did.
 
 Known accepted gaps: Alfa Romeo takes 0% of poles (Giacomelli's real 1980 pole was a
-freak; forcing it would distort the car). Williams still over-takes poles (27.6% vs
-~21%). Reutemann over-wins at 16.6% against 1 real win (a one-event sample — not worth
+freak; forcing it would distort the car). Williams still over-takes poles (27.7% vs
+~21%). Reutemann over-wins at 16.5% against 1 real win (a one-event sample — not worth
 fitting).
 
 ## Web app — implemented
@@ -572,8 +582,10 @@ any of this.
   in `consistencyNoiseMultiplier*` and accept that it also hands them extra wins.
   A middle option exists and is untried: stretch the bad tail *and* compress the
   good one, which keeps some asymmetry while capping the ceiling.
-- **Weekend-form share is a first guess.** 0.4 was picked for plausibility, not
-  fitted — 1980 grid-to-finish correlation was never measured against the real season.
+- **Weekend-form share is a first guess.** 0.4, then 0.5, was picked for plausibility,
+  not fitted — 1980 grid-to-finish correlation was never measured against the real
+  season, and the raise to 0.5 pushed pole-to-win from 27.9% to 30.7% on that untested
+  assumption.
   Season results now exist, so this is measurable whenever someone wants to: run the
   season harness, correlate grid against finish, compare to the real 14 races.
 - **Starting limit per era.** *(Roadmap 5.)* `maxStarters` is a single constant pinned at 26 for

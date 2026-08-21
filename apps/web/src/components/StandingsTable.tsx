@@ -5,14 +5,18 @@ import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
-/** The numeric columns both tables share, in order. */
+/**
+ * The numeric columns both tables share, in order.
+ *
+ * Only what a driver or team *achieved*: retirements and non-qualifications are
+ * still on the standings the engine derives, but a final classification reads
+ * better as a record of results than of failures, so they are not shown.
+ */
 const COLUMNS = [
   { key: "points", label: "Pts", emphasis: true },
   { key: "wins", label: "Wins", emphasis: false },
   { key: "podiums", label: "Pods", emphasis: false },
   { key: "poles", label: "Poles", emphasis: false },
-  { key: "retirements", label: "DNF", emphasis: false },
-  { key: "nonQualifications", label: "DNQ", emphasis: false },
 ] as const;
 
 /**
