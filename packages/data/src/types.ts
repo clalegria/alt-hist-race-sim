@@ -7,9 +7,9 @@
  * authoring shapes, deliberately independent of the engine's runtime model.
  */
 
-/** A driver's ratings at their nominal peak. Higher is better on all five. */
+/** A driver's ratings at their peak. Higher is better on all five. */
 export interface DriverPeak {
-  /** Nominal peak season. The sim rolls a realized peak from this. */
+  /** The single season the driver is at 100% of the ratings below. */
   readonly season: number;
   readonly racing: number;
   readonly qualifying: number;
@@ -19,17 +19,54 @@ export interface DriverPeak {
   readonly composure: number;
 }
 
+/**
+ * A career-ending step down the normal decline curve would not produce — Keke
+ * Rosberg in 1986, Nigel Mansell in 1995, Jody Scheckter in 1980. Persistent:
+ * it applies from `season` onward, on top of the ordinary decline.
+ */
+export interface DriverSteepDecline {
+  /** The first season the drop applies to. */
+  readonly season: number;
+  /** 0-1. Scaled by the engine's `steepDeclineMaxDrop`. */
+  readonly severity: number;
+}
+
+/**
+ * One season below the driver's own standard, and only that season — Prost in
+ * 1989, in the author's opinion. Does not persist.
+ */
+export interface DriverOffSeason {
+  readonly season: number;
+  /** 0-1. Scaled by the engine's `offSeasonMaxDrop`. */
+  readonly severity: number;
+}
+
 export interface Driver {
   readonly id: string;
   readonly name: string;
   /** ISO 3166-1 alpha-2 country code. */
   readonly nationality: string;
   readonly birthYear: number;
-  /** Nominal debut season. The sim rolls a realized debut from this. */
+  /** Their rookie season: the first season they raced in real life. */
   readonly debutSeason: number;
+  /**
+   * The last season they raced in real life. Informational for now — nothing
+   * reads it, and no driver is withdrawn from a grid because of it.
+   */
+  readonly finalSeason: number;
   readonly peak: DriverPeak;
+  /**
+   * How many seasons the driver spends at or very near their peak, centred on
+   * `peak.season`. A driver is only truly at 100% for one season, but plenty
+   * stay close for years: Prost's 7 runs 1984-1990 around a 1987 peak.
+   */
+  readonly peakSeasons: number;
+  /** 1-10. Shapes the climb from debut to plateau, not where it ends. */
   readonly developmentSpeed: number;
+  /** 1-10. How fast ability falls away once the plateau ends. */
   readonly declineSpeed: number;
+  readonly steepDecline?: DriverSteepDecline;
+  readonly offSeasons?: readonly DriverOffSeason[];
 }
 
 export interface Team {

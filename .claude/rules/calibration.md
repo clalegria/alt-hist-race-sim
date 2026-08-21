@@ -13,6 +13,12 @@ when the author asks or when a deep change to how performance is computed makes 
 old values a different claim. The figures here are the record of what was measured,
 not an invitation to re-measure.
 
+**Every figure below describes `buildField`'s default `peak` mode**, where drivers
+race at their authored peaks. The `aged` mode added in roadmap 1 produces a different
+1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated
+against anything. Do not "fix" the aged grid to match this table; they are answers to
+two different questions.
+
 ## Status against the real 1980 season (14 races), at 20,000 simulated races
 
 | Team | Model win% | Actual | Model pole% | Actual (approx) |

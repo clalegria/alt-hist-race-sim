@@ -4,13 +4,14 @@ Read this before starting new feature work. Ordered, with the reasoning — the 
 matters more than the items, because two of these create work for each other if taken
 out of sequence. Deviate deliberately, not by accident.
 
-**1. Driver progression — ageing curves.** Drivers currently all race at their
-authored peak, so a 24-year-old Prost drives like his 1987 self. This is first
-because it is the only item that blocks another: the driver pool cannot be calibrated
-until it exists (see `docs/DECISIONS.md`), which means every judgement about driver
-quality in the sim is provisional. Starts by settling three open decisions — season vs
-age, peak-scatter shape, debut/peak gap — then a re-tune of the driver pool against
-1980.
+**1. Driver progression — ageing curves. — DONE.** A deterministic curve in
+`packages/engine/src/progression/`, with the authored career fields it reads in
+`drivers.json` and a `peak` / `aged` toggle on the web grid. `pnpm progression
+<driver>` prints any driver's curve from age 18 to 50.
+
+What it did *not* do, deliberately: no per-run scatter (the curve is identical in
+every seed), and **no re-tune of the driver pool**. The re-tune this item was always
+going to unblock is now possible and remains un-run — it needs the author to ask.
 
 **2. Complete the 1980 grid — privateer entries.** Small and self-contained: a couple
 of privateer entries are missing. Also useful as a test of the starting limit, since

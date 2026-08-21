@@ -1,5 +1,5 @@
 import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   advance,
   createWorld,
@@ -237,5 +237,140 @@ describe("revealing the season", () => {
     expect(running().world.year).toBe(before.year);
     expect(running().world.seed).not.toBe(before.seed);
     expect(running().world.season).not.toEqual(before.season);
+  });
+});
+
+describe("driver ability mode", () => {
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, 1980);
+  });
+
+  it("starts on peak, which is the mode the calibration describes", () => {
+    expect(running().world.ratingMode).toBe("peak");
+  });
+
+  it("re-runs the same seed against age-adjusted drivers", () => {
+    const before = running().world;
+    useSeasonStore.getState().setRatingMode("aged");
+    const after = running().world;
+
+    expect(after.ratingMode).toBe("aged");
+    // Same dice, different drivers: that is what makes the two comparable.
+    expect(after.seed).toBe(before.seed);
+    expect(after.year).toBe(before.year);
+    expect(after.field).not.toEqual(before.field);
+    expect(after.season).not.toEqual(before.season);
+    expect(running().view).toEqual({ kind: "grid" });
+  });
+
+  it("leaves a driver who peaked in 1980 alone, and cuts one who had not", () => {
+    useSeasonStore.getState().setRatingMode("aged");
+    const field = running().world.field;
+    const rating = (id: string) => field.find((entrant) => entrant.driverId === id)?.driver;
+    const peakField = createWorld(3, 1980, "peak").field;
+    const peakRating = (id: string) => peakField.find((entrant) => entrant.driverId === id)?.driver;
+
+    expect(rating("jones")).toEqual(peakRating("jones"));
+    expect(rating("prost")?.racing).toBeLessThan(peakRating("prost")?.racing ?? 0);
+  });
+
+  it("goes back to peak again", () => {
+    useSeasonStore.getState().setRatingMode("aged");
+    useSeasonStore.getState().setRatingMode("peak");
+    expect(running().world).toEqual(createWorld(3, 1980, "peak"));
+  });
+
+  it("refuses to switch once the season has started revealing", () => {
+    // Past the grid the reader has seen results the new field would never have
+    // produced, so the switch is not offered and the action does nothing.
+    useSeasonStore.getState().nextSession();
+    const before = running().world;
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world).toBe(before);
+    expect(running().world.ratingMode).toBe("peak");
+  });
+
+  it("carries the chosen mode through Start again", () => {
+    // Picking aged drivers is a choice about how to play, not a property of one
+    // season — starting another must not quietly hand back peak ratings.
+    useSeasonStore.getState().setRatingMode("aged");
+    const before = running().world;
+    useSeasonStore.getState().restartSeason();
+    const after = running().world;
+
+    expect(after.ratingMode).toBe("aged");
+    expect(after.seed).not.toBe(before.seed);
+    expect(after.field).toEqual(before.field);
+    expect(running().view).toEqual({ kind: "grid" });
+  });
+
+  it("carries peak through it too, rather than pinning either mode", () => {
+    // The mirror case, so the fix cannot be "always aged".
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.ratingMode).toBe("peak");
+  });
+
+  it("is part of the save file like everything else", () => {
+    useSeasonStore.getState().setRatingMode("aged");
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
+describe("the remembered ability mode", () => {
+  /** A fake storage holding a previous visit's choice. */
+  function storedAs(mode: string): void {
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (): string => mode,
+        setItem: (): void => {},
+      },
+    });
+  }
+
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, "localStorage");
+  });
+
+  it("starts a season from the menu in the remembered mode", () => {
+    // The path the reader takes on Start again → Main menu → 1980. Without the
+    // preference this came back peak every time.
+    storedAs("aged");
+    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().startSeason(1980);
+    expect(running().world.ratingMode).toBe("aged");
+  });
+
+  it("still opens on peak when nothing has been chosen", () => {
+    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().startSeason(1980);
+    expect(running().world.ratingMode).toBe("peak");
+  });
+
+  it("writes the choice down when the toggle is used", () => {
+    // The other half of the loop: nothing above works if the toggle never
+    // records what was picked.
+    const written: string[] = [];
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (): null => null,
+        setItem: (_key: string, value: string): void => {
+          written.push(value);
+        },
+      },
+    });
+    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(written).toContain("aged");
+  });
+
+  it("keeps the seeded entry point free of it", () => {
+    // `simulate` must depend only on its arguments, or every test that uses it
+    // becomes order-dependent on whatever was last remembered.
+    storedAs("aged");
+    useSeasonStore.getState().simulate(3, 1980);
+    expect(running().world.ratingMode).toBe("peak");
   });
 });

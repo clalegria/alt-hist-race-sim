@@ -12,6 +12,18 @@ export const ENGINE_NAME = "alt-hist-race-sim engine";
 export const SEED_SEASON = 1980;
 
 export type { CarSpec, DriverRatings } from "./model/index.js";
+export {
+  AGEING_CONSTANTS,
+  type AgeingConstants,
+  type AttributeSensitivity,
+  type DriverCareer,
+  type OffSeason,
+  type PeakWindow,
+  peakWindow,
+  ratingsForSeason,
+  type SteepDecline,
+  seasonDeficits,
+} from "./progression/index.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
 export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
 export { scoreAndSortRaceModel, simulateRace } from "./race/simulateRace.js";

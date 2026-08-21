@@ -4,23 +4,32 @@ Confirm with the author before implementing — do not assume. `CLAUDE.md` carri
 one-line index of these so a session knows a decision is open; the reasoning lives
 here. Read this before starting new feature work.
 
-## Gating roadmap 1 (ageing curves)
+## Settled by the ageing curve (roadmap 1)
 
-- **Season vs age for curves.** Recommended: convert `debutSeason` / `peak.season`
-  to ages on load via `birthYear`, so career arcs travel with the driver under
-  divergence. Alternative: keep calendar-pinned. NOT finalised — ask before writing
-  the ageing function.
-- **Peak-scatter shape.** Symmetric vs slightly downward-skewed (busts more common
-  than overachievers). Symmetric is acceptable for v1; flagged as a lever.
-- **Debut/peak gap.** Roll realized peak as an offset from realized debut (min gap
-  ~3–5 seasons) rather than independently, to avoid a driver peaking right after debut.
-- **Driver ratings are un-tuned and cannot be tuned yet.** *(This is why roadmap 1 is
-  first.)* 15 of the 28 seated drivers peak *after* 1980 (Prost +7 years, Piquet +5,
-  Arnoux +3), and the tools currently feed `peak` ratings in as current ratings
-  because no ageing curve exists. Tuning them against 1980 results would bake in an
-  error that inverts once ageing lands. Only Jones (peak 1980) and Reutemann (peak
-  1979) have been touched.
-  **Re-tune the driver pool after the ageing curve exists, not before.**
+- **Season vs age for curves — settled as season.** Every authored career field is a
+  season (`debutSeason`, `peak.season`, `finalSeason`, and both career events), and
+  the curve computes in season space. Age is derived where it is wanted — the
+  progression tool sweeps ages 18–50 and maps each to `birthYear + age`. The
+  conversion is lossless, so this is a coordinate choice rather than a model one.
+  **Revisit under multi-season divergence:** a steep decline authored for 1986 is a
+  *historical* event, and once a run diverges far from history it may want to travel
+  with the driver's age instead.
+- **Per-run scatter — settled as none, for now.** The curve is deterministic: same
+  career in, same ratings out, in every seed (author's call). That moots the two
+  decisions below unless it reopens.
+  - *Peak-scatter shape.* Symmetric vs slightly downward-skewed. Unresolved, unneeded.
+  - *Debut/peak gap.* Roll realized peak as an offset from realized debut (min gap
+    ~3–5 seasons) rather than independently, to avoid peaking right after debut.
+    Unresolved, unneeded.
+- **Driver ratings are still un-tuned — but no longer un-tunable.** 15 of the 28
+  seated drivers peak *after* 1980 (Prost +7 years, Piquet +5, Arnoux +3), which is
+  why tuning them against 1980 was refused while `peak` ratings were being fed in as
+  current ratings. The `aged` mode removes that objection. The re-tune has **not**
+  been run and must not be run unprompted — see the no-re-calibration invariant.
+  Only Jones (peak 1980) and Reutemann (peak 1979) have ever been touched.
+- **The authored careers are one pass of research**, accurate to the author's
+  knowledge of the era but not verified record by record. Wrong by a season here and
+  there is expected and fine to correct by hand.
 
 ## Era questions (roadmap 5, multiple seasons)
 
@@ -67,7 +76,7 @@ here. Read this before starting new feature work.
   rather than a coding task. `adaptability` is authored and read by nothing precisely
   because it is reserved for this.
 - **The overall rating weights adaptability at zero.** A display heuristic in
-  `apps/web/src/lib/rating.ts`, deliberately paying nothing for a rating the sim never
+  `packages/data/src/rating.ts`, deliberately paying nothing for a rating the sim never
   reads. Revisit when roadmap 6 gives it meaning.
 
 ## Decided, not yet built

@@ -24,20 +24,21 @@ reveals a season session by session.
 **Read `docs/ROADMAP.md` (what to build next, and why in that order) and
 `docs/DECISIONS.md` (open decisions in full) before starting new feature work.**
 Subsystem detail lives in `.claude/rules/*.md` and loads automatically when you open
-files in the matching package — engine race and season models, seed data, calibration,
-the web app and its styling.
+files in the matching package — engine race, season and progression models, seed data,
+calibration, and the web app split across architecture, display rules and styling.
 
 ## Commands
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 309 tests (158 engine, 13 data, 138 web)
+pnpm test          # 353 tests (176 engine, 28 data, 149 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
 pnpm race [seed]   # simulate ONE race on the 1980 grid, print the classification
 pnpm season [seed] # simulate the full 14-race 1980 season, print both championships
 pnpm calibrate [n] # run the 1980 grid n times (default 5000), print distributions
+pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
 ```
 
@@ -61,10 +62,10 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   scatter simulation state across React component state.
   The `Rng` object holds a closure, so it must NOT go in the world state — store
   its numeric `getState()` snapshot and rebuild with `createRngFromState()`.
-- **Realize-once-and-store for career rolls.** Authored `debutSeason` and
-  `peak.season` are *nominal targets*. When a driver enters the sim, roll their
-  realized debut and realized peak ONCE via the seeded PRNG, store them in that
-  driver's per-sim state, and read the stored values thereafter. Never re-roll on read.
+- **Realize-once-and-store for career rolls.** Nothing is rolled today — the ageing
+  curve is deterministic — but if per-run scatter on a driver's debut or peak ever
+  lands, roll it ONCE via the seeded PRNG, store it in that driver's per-sim state,
+  and read the stored value thereafter. Never re-roll on read.
 - **Tunable numbers live in one constants module per subsystem**, never inline in
   logic. `packages/engine/src/race/constants.ts` is the pattern to follow.
 - **Never re-calibrate or re-tune unless explicitly asked.** Engine constants
@@ -85,8 +86,9 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
 ## Domain glossary
 - **Entry**: one team's participation in one season — a team + a car spec + its drivers.
 - **Car spec**: a team's per-season car attributes (racing, qualifying, consistency, reliability).
-- **Nominal vs realized**: authored `debutSeason` / `peak.season` are nominal; the
-  sim rolls realized values per driver per run.
+- **Peak vs aged**: the two rating modes a season can be built from — every driver at
+  their authored peak (the default, and what the calibration describes), or at their
+  ability in that season via the ageing curve.
 - **Score-and-sort**: v1 race model — sample one performance number per driver from
   attributes + car + noise, sort, apply DNFs. No lap-by-lap. Lives behind the
   `RaceModel` interface so a richer model can replace it.
@@ -132,11 +134,12 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
 ## Open decisions (confirm with the author before implementing — do not assume)
 Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows a
 question is open without carrying the argument.
-- **Season vs age for curves** — gates roadmap 1. Ask before writing the ageing function.
-- **Peak-scatter shape** — gates roadmap 1. Symmetric is acceptable for v1.
-- **Debut/peak gap** — gates roadmap 1. Offset from realized debut, not independent.
-- **Driver ratings are un-tuned and cannot be tuned yet** — gates roadmap 1, and the
-  reason it is first. Re-tune the pool *after* the ageing curve exists, never before.
+- **Per-run scatter on the ageing curve** — settled as *no scatter for now*: the curve
+  is deterministic and identical in every seed. Peak-scatter shape and the debut/peak
+  gap only matter again if that reopens.
+- **Driver ratings are still un-tuned**, but no longer un-tunable: the ageing curve
+  landed, so the blocker is gone. This does **not** authorise a re-tune — see the
+  no-re-calibration invariant. It is a job waiting for the author to ask for it.
 - **Reliability era curve** — roadmap 5. `mechanicalDnfEraScale` has no per-year curve.
 - **Starting limit per era** — roadmap 5. `maxStarters` is pinned at 26 for 1980.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and

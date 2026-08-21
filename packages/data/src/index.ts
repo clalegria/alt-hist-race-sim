@@ -12,12 +12,22 @@ import seasonJson from "./season-1980.json";
 import teamsJson from "./teams.json";
 import type { Driver, SeasonSeed, Team } from "./types.js";
 
-export { buildField } from "./buildField.js";
+export {
+  buildField,
+  DEFAULT_RATING_MODE,
+  driverCareer,
+  driverRatingsFor,
+  RATING_MODES,
+  type RatingMode,
+} from "./buildField.js";
+export { carOverall, driverOverall } from "./rating.js";
 export type {
   CalendarRace,
   CarSpec,
   Driver,
+  DriverOffSeason,
   DriverPeak,
+  DriverSteepDecline,
   SeasonEntry,
   SeasonSeed,
   Team,
@@ -79,6 +89,37 @@ export function validateSeedData(
   const duplicateTeams = findDuplicates(teamPool.map((team) => team.id));
   if (duplicateTeams.length > 0) {
     throw new Error(`Duplicate team ids: ${duplicateTeams.join(", ")}`);
+  }
+
+  // Career shape: the ageing curve reads all of these, and a nonsense value
+  // produces a plausible-looking curve rather than an error, which is worse.
+  for (const driver of driverPool) {
+    if (!Number.isInteger(driver.peakSeasons) || driver.peakSeasons < 1) {
+      throw new Error(
+        `Driver "${driver.id}" has peakSeasons ${driver.peakSeasons}; it must be a whole season count of at least 1`,
+      );
+    }
+    if (driver.finalSeason < driver.debutSeason) {
+      throw new Error(
+        `Driver "${driver.id}" retires in ${driver.finalSeason}, before debuting in ${driver.debutSeason}`,
+      );
+    }
+    if (driver.peak.season < driver.debutSeason) {
+      throw new Error(
+        `Driver "${driver.id}" peaks in ${driver.peak.season}, before debuting in ${driver.debutSeason}`,
+      );
+    }
+    const severities = [
+      ...(driver.steepDecline === undefined ? [] : [driver.steepDecline]),
+      ...(driver.offSeasons ?? []),
+    ];
+    for (const event of severities) {
+      if (event.severity < 0 || event.severity > 1) {
+        throw new Error(
+          `Driver "${driver.id}" has a career event in ${event.season} with severity ${event.severity}; it must be between 0 and 1`,
+        );
+      }
+    }
   }
 
   const knownDrivers = new Set(driverPool.map((driver) => driver.id));

@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "tune": "tsx src/tune.ts",
     "race": "tsx src/race.ts",
-    "season": "tsx src/season.ts"
+    "season": "tsx src/season.ts",
+    "progression": "tsx src/progression.ts"
   },
   "dependencies": {
     "@alt-hist/data": "workspace:*",

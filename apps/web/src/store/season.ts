@@ -18,7 +18,7 @@
  * nobody has started, and no code has to guard against it.
  */
 
-import { buildField } from "@alt-hist/data";
+import { buildField, DEFAULT_RATING_MODE, type RatingMode } from "@alt-hist/data";
 import {
   createRng,
   type RaceEntrant,
@@ -27,6 +27,7 @@ import {
   simulateSeason,
 } from "@alt-hist/engine";
 import { create } from "zustand";
+import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { randomSeed } from "../lib/seed.js";
 
@@ -34,6 +35,12 @@ import { randomSeed } from "../lib/seed.js";
 export interface World {
   readonly seed: number;
   readonly year: number;
+  /**
+   * Which ratings the field was built from — authored peaks, or each driver's
+   * ability in this season. Part of the world because it is a simulation input:
+   * the same seed under the other mode is a different championship.
+   */
+  readonly ratingMode: RatingMode;
   /**
    * The generator's position after the last race simulated. Rebuild with
    * `createRngFromState` to continue the same stream into the next season.
@@ -56,15 +63,20 @@ export interface World {
  * Pure: same seed and year in, same world out, no store involved. The store is
  * a place to keep this, not the thing that computes it.
  */
-export function createWorld(seed: number, year: number): World {
+export function createWorld(
+  seed: number,
+  year: number,
+  ratingMode: RatingMode = DEFAULT_RATING_MODE,
+): World {
   const authored = seasonSeed(year);
   const rng = createRng(seed);
-  const field = buildField(authored);
+  const field = buildField(authored, undefined, ratingMode);
   const season = simulateSeason(field, authored.calendar.length, rng);
 
   return {
     seed,
     year: authored.year,
+    ratingMode,
     rngState: rng.getState(),
     field,
     season,
@@ -130,20 +142,39 @@ interface SeasonStore {
   readonly openMenu: () => void;
   /** The year picker. */
   readonly openSeasonSetup: () => void;
-  /** Simulates a fresh season of the given year and opens it at the grid. */
+  /**
+   * Simulates a fresh season of the given year and opens it at the grid, using
+   * the remembered ability mode.
+   */
   readonly startSeason: (year: number) => void;
-  /** The same, from a chosen seed — the reproducible entry point tests use. */
-  readonly simulate: (seed: number, year: number) => void;
+  /**
+   * The same, from a chosen seed — the reproducible entry point tests use.
+   *
+   * Deliberately does *not* consult the remembered mode: this is the entry
+   * point whose output must depend only on its arguments.
+   */
+  readonly simulate: (seed: number, year: number, ratingMode?: RatingMode) => void;
+  /**
+   * Re-runs the season from the same seed with the other ability model.
+   *
+   * Only on the grid: past it, the reader has seen results that the new field
+   * would not have produced. Keeping the seed makes the two modes comparable —
+   * same dice, different drivers.
+   */
+  readonly setRatingMode: (mode: RatingMode) => void;
   /** Reveals the next session. */
   readonly nextSession: () => void;
   /** Jumps straight to the finished season. */
   readonly skipToEnd: () => void;
   /**
-   * Back to the grid of the same *year*, on a fresh seed.
+   * Back to the grid of the same *year* and the same ability mode, on a fresh
+   * seed.
    *
    * A new draw rather than a rewind: replaying results the reader has already
    * seen is a re-read, and what "start again" has always meant here is another
-   * go at the season. The menu is for changing mode or year, not for this.
+   * go at the season. Everything *chosen* carries over — a reader who picked
+   * aged drivers asked for aged drivers, not for one season of them. Only the
+   * dice change. The menu is where a different year or mode comes from.
    */
   readonly restartSeason: () => void;
 }
@@ -164,10 +195,22 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
     set({ screen: { kind: "season-setup" } });
   },
   startSeason: (year) => {
-    set({ screen: openSeason(createWorld(randomSeed(), year)) });
+    set({ screen: openSeason(createWorld(randomSeed(), year, readRatingMode())) });
   },
-  simulate: (seed, year) => {
-    set({ screen: openSeason(createWorld(seed, year)) });
+  simulate: (seed, year, ratingMode) => {
+    set({ screen: openSeason(createWorld(seed, year, ratingMode)) });
+  },
+  setRatingMode: (mode) => {
+    // Remembered even if the switch itself is a no-op, so the choice survives
+    // whatever the reader does next.
+    rememberRatingMode(mode);
+    set((state) =>
+      state.screen.kind === "season" && state.screen.view.kind === "grid"
+        ? {
+            screen: openSeason(createWorld(state.screen.world.seed, state.screen.world.year, mode)),
+          }
+        : state,
+    );
   },
   nextSession: () => {
     set((state) =>
@@ -191,7 +234,11 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
   restartSeason: () => {
     set((state) =>
       state.screen.kind === "season"
-        ? { screen: openSeason(createWorld(randomSeed(), state.screen.world.year)) }
+        ? {
+            screen: openSeason(
+              createWorld(randomSeed(), state.screen.world.year, state.screen.world.ratingMode),
+            ),
+          }
         : state,
     );
   },

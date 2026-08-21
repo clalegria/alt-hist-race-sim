@@ -132,6 +132,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
   const skipToEnd = useSeasonStore((state) => state.skipToEnd);
   const restartSeason = useSeasonStore((state) => state.restartSeason);
   const openMenu = useSeasonStore((state) => state.openMenu);
+  const setRatingMode = useSeasonStore((state) => state.setRatingMode);
 
   // Purely about what the reader is being asked, so it stays out of the store:
   // the rule is that *simulation* state lives there, not that React may hold
@@ -174,7 +175,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
       }
     >
       <div className="pt-8 lg:pt-10">
-        <SeasonView world={world} view={view} />
+        <SeasonView world={world} view={view} onRatingModeChange={setRatingMode} />
       </div>
 
       <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">

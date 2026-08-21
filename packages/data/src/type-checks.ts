@@ -24,7 +24,9 @@ import type {
   CalendarRace,
   CarSpec,
   Driver,
+  DriverOffSeason,
   DriverPeak,
+  DriverSteepDecline,
   SeasonEntry,
   SeasonSeed,
   Team,
@@ -46,6 +48,17 @@ type CalendarRaceJson = SeasonJson["calendar"][number];
 export type DriversAreDrivers = Extends<DriverJson, Driver>;
 export type DriversHaveNoExtraKeys = Extends<keyof DriverJson, keyof Driver>;
 export type PeakHasNoExtraKeys = Extends<keyof DriverJson["peak"], keyof DriverPeak>;
+// The two optional career events, checked on the drivers that actually carry
+// them — `keyof` a union would collapse to the keys they share with everyone.
+type SteepDeclineJson = Extract<DriverJson, { steepDecline: unknown }>["steepDecline"];
+type OffSeasonJson = Extract<DriverJson, { offSeasons: unknown }>["offSeasons"][number];
+export type SteepDeclinesMatch = Extends<SteepDeclineJson, DriverSteepDecline>;
+export type SteepDeclinesHaveNoExtraKeys = Extends<
+  keyof SteepDeclineJson,
+  keyof DriverSteepDecline
+>;
+export type OffSeasonsMatch = Extends<OffSeasonJson, DriverOffSeason>;
+export type OffSeasonsHaveNoExtraKeys = Extends<keyof OffSeasonJson, keyof DriverOffSeason>;
 
 // teams.json
 export type TeamsAreTeams = Extends<TeamJson, Team>;

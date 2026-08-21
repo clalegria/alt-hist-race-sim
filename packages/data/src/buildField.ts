@@ -4,23 +4,67 @@
  * This is the seam between authored data and the engine's runtime model, and it
  * belongs here rather than in either: the engine may not read data, and every
  * consumer that wants to run a race needs exactly this mapping. The dependency
- * on `@alt-hist/engine` is type-only and erases at build time, so no runtime
- * edge exists in either direction.
+ * on `@alt-hist/engine` is type-only for the types and a plain function call for
+ * the ageing curve — no runtime edge exists in the other direction.
  *
- * Driver ratings are taken straight from the authored `peak` block. That is a
- * placeholder: once the ageing curve exists, a driver's current ratings will be
- * derived from their peak, their age, and their development/decline speeds.
- * Whether those curves key off season or age is still an open decision, so
- * nothing here tries to pre-empt it.
+ * Two rating modes, and the choice belongs to whoever is running the season:
+ *
+ * - **`peak`** feeds every driver's authored peak ratings in, whatever season it
+ *   is. A 1980 grid of drivers at the best they ever were. This is the original
+ *   behaviour and stays the default, because the 1980 calibration was measured
+ *   against it.
+ * - **`aged`** runs each driver's career through the engine's ageing curve and
+ *   uses the ratings they held *in that season*. 1980 Prost is a rookie again.
  */
 
-import type { RaceEntrant } from "@alt-hist/engine";
+import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
 import { drivers as driverPool, season1980 } from "./index.js";
 import type { Driver, SeasonSeed } from "./types.js";
+
+/** Whether a field is built from authored peaks or from age-adjusted ratings. */
+export type RatingMode = "peak" | "aged";
+
+export const RATING_MODES: readonly RatingMode[] = ["peak", "aged"];
+
+/** The default, and the mode the calibration figures describe. */
+export const DEFAULT_RATING_MODE: RatingMode = "peak";
+
+/**
+ * The authored career in the shape the engine's curve wants.
+ *
+ * Exported because the progression tool reports on drivers who hold no seat in
+ * any season, so it cannot go through `buildField` to reach one.
+ */
+export function driverCareer(driver: Driver): DriverCareer {
+  return {
+    debutSeason: driver.debutSeason,
+    peakSeason: driver.peak.season,
+    peakSeasons: driver.peakSeasons,
+    developmentSpeed: driver.developmentSpeed,
+    declineSpeed: driver.declineSpeed,
+    peak: {
+      racing: driver.peak.racing,
+      qualifying: driver.peak.qualifying,
+      consistency: driver.peak.consistency,
+      adaptability: driver.peak.adaptability,
+      composure: driver.peak.composure,
+    },
+    ...(driver.steepDecline === undefined ? {} : { steepDecline: driver.steepDecline }),
+    ...(driver.offSeasons === undefined ? {} : { offSeasons: driver.offSeasons }),
+  };
+}
+
+/** A driver's ratings for a season under the given mode. */
+export function driverRatingsFor(driver: Driver, season: number, mode: RatingMode) {
+  return mode === "peak"
+    ? driverCareer(driver).peak
+    : ratingsForSeason(driverCareer(driver), season);
+}
 
 export function buildField(
   season: SeasonSeed = season1980,
   pool: readonly Driver[] = driverPool,
+  mode: RatingMode = DEFAULT_RATING_MODE,
 ): RaceEntrant[] {
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
   const field: RaceEntrant[] = [];
@@ -35,13 +79,7 @@ export function buildField(
       field.push({
         driverId,
         teamId: entry.teamId,
-        driver: {
-          racing: driver.peak.racing,
-          qualifying: driver.peak.qualifying,
-          consistency: driver.peak.consistency,
-          adaptability: driver.peak.adaptability,
-          composure: driver.peak.composure,
-        },
+        driver: driverRatingsFor(driver, season.year, mode),
         car: entry.car,
       });
     }

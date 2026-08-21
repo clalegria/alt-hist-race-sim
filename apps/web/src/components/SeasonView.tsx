@@ -1,4 +1,4 @@
-import { driversById, season1980, teamsById } from "@alt-hist/data";
+import { driversById, type RatingMode, season1980, teamsById } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
@@ -18,6 +18,7 @@ import { CompactStandings } from "./CompactStandings.js";
 import { Flag } from "./Flag.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
+import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { StandingsTable } from "./StandingsTable.js";
@@ -297,12 +298,30 @@ function RaceStage({
  * every stage can be rendered and tested on its own. `App` is the thin shell
  * that connects it.
  */
-export function SeasonView({ world, view }: { world: World; view: View }) {
+export function SeasonView({
+  world,
+  view,
+  onRatingModeChange,
+}: {
+  world: World;
+  view: View;
+  /** Absent in tests, where nothing is clicked. The toggle still renders. */
+  onRatingModeChange?: (mode: RatingMode) => void;
+}) {
   const round =
     view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
 
   if (view.kind === "grid") {
-    return <SeasonGrid field={world.field} seasonYear={world.year} />;
+    return (
+      <div className="flex flex-col gap-6">
+        <RatingModeToggle
+          mode={world.ratingMode}
+          year={world.year}
+          {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
+        />
+        <SeasonGrid field={world.field} seasonYear={world.year} />
+      </div>
+    );
   }
 
   if (view.kind === "qualifying" && round !== undefined) {

@@ -47,6 +47,54 @@ describe("the opening grid", () => {
   });
 });
 
+describe("the driver ability toggle", () => {
+  const html = render({ kind: "grid" });
+
+  it("offers both modes on the grid, with the world's own marked", () => {
+    expect(html).toContain("At their peak");
+    expect(html).toContain("At their age");
+    // The seeded world is in peak mode, so exactly one button is pressed and it
+    // is that one.
+    expect((html.match(/aria-pressed="true"/g) ?? []).length).toBe(1);
+    const fromPressed = html.slice(html.indexOf('aria-pressed="true"'));
+    expect(fromPressed.slice(0, fromPressed.indexOf("</button>"))).toContain("At their peak");
+  });
+
+  it("says what the chosen mode means, in the season's own year", () => {
+    expect(html).toContain("Every driver at the best they ever were");
+    expect(html).not.toContain("rookies are raw");
+  });
+
+  it("describes the other mode once it is chosen", () => {
+    const aged = renderToStaticMarkup(
+      <SeasonView world={createWorld(3, 1980, "aged")} view={{ kind: "grid" }} />,
+    );
+    expect(aged).toContain("rookies are raw");
+    expect(aged).toContain("1980");
+  });
+
+  it("stays off every page after the grid", () => {
+    // Switching mid-season would invalidate results already revealed, and the
+    // summary ends with a grid that must not offer it either.
+    for (const view of [
+      { kind: "qualifying", round: 0 },
+      { kind: "race", round: 0 },
+      { kind: "summary" },
+    ] as const) {
+      expect(render(view), view.kind).not.toContain("At their peak");
+    }
+  });
+
+  it("ages the grid it is showing", () => {
+    const aged = renderToStaticMarkup(
+      <SeasonView world={createWorld(3, 1980, "aged")} view={{ kind: "grid" }} />,
+    );
+    // Prost is a 25-year-old rookie in 1980; at his peak he is a 94 overall.
+    expect(html).toContain(">94<");
+    expect(aged).not.toContain(">94<");
+  });
+});
+
 describe("a qualifying session", () => {
   const html = render({ kind: "qualifying", round: 0 });
 

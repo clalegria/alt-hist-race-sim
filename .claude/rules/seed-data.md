@@ -11,8 +11,18 @@ JSON itself. `packages/data/src/type-checks.ts` fails the typecheck if the types
 the JSON drift apart.
 
 - `drivers.json` — 41 drivers. `{ id, name, nationality, birthYear, debutSeason,
-  peak: { season, racing, qualifying, consistency, adaptability, composure },
-  developmentSpeed, declineSpeed }`.
+  finalSeason, peak: { season, racing, qualifying, consistency, adaptability,
+  composure }, peakSeasons, developmentSpeed, declineSpeed, steepDecline?,
+  offSeasons? }`. The career fields feed the ageing curve — see
+  `.claude/rules/progression.md` for what each one does to it:
+  - `debutSeason` is the rookie season; `finalSeason` is the last season raced in
+    real life and is **informational only** — nothing withdraws a driver because
+    of it.
+  - `peakSeasons` is how many seasons the plateau spans, centred on `peak.season`.
+    Prost's 7 runs 1984-1990.
+  - `steepDecline: { season, severity }` is an optional persistent step down
+    (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
+    severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.
 - `teams.json` — 15 teams. `{ id, name, base, foundedYear }`.
 - `season-1980.json` — 14 rounds, 15 entries, 28 seats. `{ year, calendar: [{ round,
   name, circuit, country }], entries: [{ teamId, car: { racing, qualifying,
@@ -41,11 +51,19 @@ the JSON drift apart.
 - `validateSeedData()` is called on demand, not as a module-load side effect, so
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
-- `buildField(season, pool)` is the seam between authored data and the engine's
+- `buildField(season, pool, mode)` is the seam between authored data and the engine's
   runtime model. It lives here rather than in either: the engine may not read data,
-  and every consumer that wants to run a race needs exactly this mapping. Its
-  dependency on `@alt-hist/engine` is **type-only** and erases at build time, so no
-  runtime edge exists in either direction. It currently feeds `peak` ratings straight
-  in as current ratings — a placeholder the ageing curve replaces.
+  and every consumer that wants to run a race needs exactly this mapping.
+  - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
+    that way** — it feeds authored peaks straight in, which is what the 1980
+    calibration was measured against. `"aged"` calls the engine's ageing curve for
+    the season's year.
+  - This package now calls **into** the engine at runtime (`ratingsForSeason`), so
+    the dependency is no longer type-only. Still one-directional: the engine imports
+    nothing from here, and that is the invariant that matters.
+- `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
+  It sits here, not in the web app, because the progression tool needs the same
+  number and two copies of those weights would be two answers to "how good is this
+  driver". `apps/web/src/lib/rating.ts` re-exports it.
 - Adding a season means a new JSON file **and** a line in `apps/web/src/lib/seasons.ts`
   (`AUTHORED`); the picker lights up on its own from there.
