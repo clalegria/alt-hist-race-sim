@@ -1,4 +1,11 @@
-import { driversById, type RatingMode, season1980, teamsById } from "@alt-hist/data";
+import {
+  driversById,
+  lineupChanges,
+  type RatingMode,
+  type SeasonLineup,
+  season1980,
+  teamsById,
+} from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
@@ -11,11 +18,14 @@ import {
 import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverName, teamName } from "../lib/names.js";
+import { seasonSeed } from "../lib/seasons.js";
 import { positionsOf } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { Flag } from "./Flag.js";
+import { GridStage } from "./GridStage.js";
+import { EditedGridBanner } from "./LineupChanges.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
@@ -138,10 +148,12 @@ function Summary({
   season,
   field,
   year,
+  lineup,
 }: {
   season: SeasonResult;
   field: readonly RaceEntrant[];
   year: number;
+  lineup: SeasonLineup | null;
 }) {
   const champion = useMemo(() => championshipStandings(season)[0], [season]);
   const topTeam = useMemo(() => constructorStandings(season)[0], [season]);
@@ -149,9 +161,21 @@ function Summary({
     () => new Map(field.map((entrant) => [entrant.driverId, entrant.teamId])),
     [field],
   );
+  // Through `seasonSeed` rather than `season1980` directly: this one is a live
+  // comparison against the year being played, not a round name.
+  const changes = useMemo(
+    () => (lineup === null ? [] : lineupChanges(seasonSeed(year), lineup)),
+    [lineup, year],
+  );
 
   return (
     <>
+      {/*
+        Above the champions, because a championship won on a grid the reader
+        assembled is a different claim from one won on the grid of 1980, and
+        finding that out at the foot of the page is finding it out too late.
+      */}
+      {changes.length === 0 ? null : <EditedGridBanner changes={changes} />}
       <div className="flex flex-col gap-4 sm:flex-row">
         <Champion
           label="Drivers&rsquo; champion"
@@ -178,7 +202,7 @@ function Summary({
       </div>
       <SeasonCalendar season={season} teamFor={teamFor} />
       <Standings season={season} midSeason={false} />
-      <SeasonGrid field={field} seasonYear={year} />
+      <SeasonGrid field={field} seasonYear={year} changes={changes} />
     </>
   );
 }
@@ -302,11 +326,17 @@ export function SeasonView({
   world,
   view,
   onRatingModeChange,
+  onLineupChange,
+  onGridEditingChange,
 }: {
   world: World;
   view: View;
   /** Absent in tests, where nothing is clicked. The toggle still renders. */
   onRatingModeChange?: (mode: RatingMode) => void;
+  /** The same, for the grid editor: it draws without one, it just cannot apply. */
+  onLineupChange?: (lineup: SeasonLineup | null) => void;
+  /** Raised while the grid editor is open, so the page can hide the way forward. */
+  onGridEditingChange?: (editing: boolean) => void;
 }) {
   const round =
     view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
@@ -319,7 +349,14 @@ export function SeasonView({
           year={world.year}
           {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
         />
-        <SeasonGrid field={world.field} seasonYear={world.year} />
+        <GridStage
+          field={world.field}
+          year={world.year}
+          ratingMode={world.ratingMode}
+          lineup={world.lineup}
+          {...(onLineupChange === undefined ? {} : { onApply: onLineupChange })}
+          {...(onGridEditingChange === undefined ? {} : { onEditingChange: onGridEditingChange })}
+        />
       </div>
     );
   }
@@ -340,5 +377,7 @@ export function SeasonView({
     return <RaceStage world={world} view={view} race={round} />;
   }
 
-  return <Summary season={world.season} field={world.field} year={world.year} />;
+  return (
+    <Summary season={world.season} field={world.field} year={world.year} lineup={world.lineup} />
+  );
 }

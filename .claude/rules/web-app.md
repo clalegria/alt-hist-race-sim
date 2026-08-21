@@ -49,10 +49,23 @@ it, `restartSeason` carries the world's own. `simulate` deliberately ignores it 
 is the entry point whose output must depend only on its arguments, and tests would
 otherwise be order-dependent on whatever was last remembered.
 
+**The grid is a simulation input too.** `world.lineup` is the reader's own driver
+allocation, or **null for the season as it was entered** — null rather than a copy of
+the authored lineup, so "was this edited?" is a property of the world instead of a
+comparison somebody has to remember to make. `createWorld` normalises an edit that
+lands back on the authored grid to null, so undoing your last swap stops the notices.
+
+`setLineup` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year
+*from the same seed*, and `restartSeason` carries it — an edited grid is something the
+reader chose, like the ability mode. Unlike the ability mode it is **not** remembered
+in localStorage: a lineup belongs to the year it was drawn for, so starting a season
+from the menu gets the real grid back.
+
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, ratingMode, rngState, field, season }`) — one per season screen, none
-before one is started. `field` is the grid exactly as raced, and is no longer
-derivable from the seed files: the ratings in it depend on `ratingMode`.
+(`{ seed, year, ratingMode, rngState, field, lineup, season }`) — one per season
+screen, none before one is started. `field` is the grid exactly as raced, and is no
+longer derivable from the seed files: who is in it depends on `lineup`, and their
+ratings on `ratingMode`.
 
 **No `Rng` in the world** — it holds a closure and cannot be serialized. What is
 stored is its numeric `getState()` snapshot, which `createRngFromState` turns back
@@ -61,8 +74,16 @@ therefore already a complete save file, and tests assert both the round trip and
 no function or class instance has crept in.
 
 View state that says nothing about the simulation — which race row is expanded, the
-start-again confirming flag — stays in component `useState`. The rule is that
-*simulation* state lives in the one store, not that React may never hold anything.
+start-again confirming flag, the grid editor's **draft** lineup — stays in component
+`useState`. The rule is that *simulation* state lives in the one store, not that React
+may never hold anything. A draft becomes simulation state at the moment Apply hands it
+to `setLineup`, and not before: applying re-runs fourteen races, and a reader halfway
+through moving four drivers has not yet asked a question worth answering.
+
+While the editor is open, `App` takes the **forward buttons away** — `GridStage`
+raises `onEditingChange` and `Actions` shows a note instead. Stepping on mid-edit
+would discard the draft silently *and* reveal a season run on the grid the reader was
+in the middle of replacing.
 
 **Standings are derived in the component, not stored:** `championshipStandings` and
 `constructorStandings` run in a `useMemo` off `world.season`. Mid-season standings
@@ -116,6 +137,14 @@ asserted in the store's own tests.
 `menu.test.tsx` counts rendered `disabled=""` attributes, **not** the word "disabled"
 — several perfectly clickable buttons carry `disabled:opacity-50` in their class list.
 
+The grid editor is split the same way, and for the same reason. `SeasonGrid` and
+`ReserveList` are **controlled** — the draft lives in `GridStage` above them — so every
+state they can be in renders on its own, and the interaction itself is the pure
+`pickUp(lineup, selected, driverId)` in `GridStage.tsx`, which is where the
+select-then-swap rule is tested. The swap rules underneath it are unit-tested in
+`@alt-hist/data`; where an applied lineup ends up is tested in the store.
+
 What this level cannot reach: the click handlers, the scroll-to-top effect, the
-start-again confirming flag, and popover contents, which Radix does not render while
-closed. All would need jsdom. Where a click *ends up* is covered: it ends up in the store.
+start-again confirming flag, the editor's open/closed toggle, and popover contents,
+which Radix does not render while closed. All would need jsdom. Where a click *ends
+up* is covered: it ends up in the store, or in `pickUp`.

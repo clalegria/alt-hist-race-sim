@@ -75,6 +75,8 @@ interface SeasonActions {
   readonly onSkip: () => void;
   /** True while the reader is being asked where "start again" should land. */
   readonly confirming: boolean;
+  /** True while the grid is being rearranged, which is not a moment to step on. */
+  readonly editingGrid: boolean;
   readonly onStartAgain: () => void;
   readonly onMainMenu: () => void;
   readonly onRestart: () => void;
@@ -92,6 +94,16 @@ interface SeasonActions {
  * always show the same thing.
  */
 function Actions(props: SeasonActions) {
+  if (props.editingGrid) {
+    // No way forward while a grid is half-rearranged: the draft would go with
+    // it, and the season simulated would be the one the reader was replacing.
+    return (
+      <span className="text-muted-foreground text-xs">
+        Editing the grid. Apply or cancel it to carry on.
+      </span>
+    );
+  }
+
   if (props.confirming) {
     return (
       <div className="flex flex-wrap items-center gap-2">
@@ -133,11 +145,13 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
   const restartSeason = useSeasonStore((state) => state.restartSeason);
   const openMenu = useSeasonStore((state) => state.openMenu);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
+  const setLineup = useSeasonStore((state) => state.setLineup);
 
   // Purely about what the reader is being asked, so it stays out of the store:
   // the rule is that *simulation* state lives there, not that React may hold
   // nothing at all.
   const [confirming, setConfirming] = useState(false);
+  const [editingGrid, setEditingGrid] = useState(false);
 
   const rounds = world.season.races.length;
   const actionProps: SeasonActions = {
@@ -146,6 +160,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
     onNext: nextSession,
     onSkip: skipToEnd,
     confirming,
+    editingGrid: editingGrid && view.kind === "grid",
     onStartAgain: () => {
       setConfirming(true);
     },
@@ -175,7 +190,13 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
       }
     >
       <div className="pt-8 lg:pt-10">
-        <SeasonView world={world} view={view} onRatingModeChange={setRatingMode} />
+        <SeasonView
+          world={world}
+          view={view}
+          onRatingModeChange={setRatingMode}
+          onLineupChange={setLineup}
+          onGridEditingChange={setEditingGrid}
+        />
       </div>
 
       <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">

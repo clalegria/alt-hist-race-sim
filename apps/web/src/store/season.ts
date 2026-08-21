@@ -18,7 +18,14 @@
  * nobody has started, and no code has to guard against it.
  */
 
-import { buildField, DEFAULT_RATING_MODE, type RatingMode } from "@alt-hist/data";
+import {
+  applyLineup,
+  buildField,
+  DEFAULT_RATING_MODE,
+  isAuthoredLineup,
+  type RatingMode,
+  type SeasonLineup,
+} from "@alt-hist/data";
 import {
   createRng,
   type RaceEntrant,
@@ -54,6 +61,17 @@ export interface World {
    * they actually were.
    */
   readonly field: readonly RaceEntrant[];
+  /**
+   * The reader's own driver allocation, or null for the grid as history had it.
+   *
+   * Null rather than a copy of the authored lineup, so "was this grid edited?"
+   * is a property of the world rather than a comparison somebody has to
+   * remember to make — and so an untouched season serialises to exactly what it
+   * always did. `createWorld` normalises an edit that lands back on the
+   * authored grid to null, which is why a reader who undoes their last swap
+   * stops being told the grid was edited.
+   */
+  readonly lineup: SeasonLineup | null;
   readonly season: SeasonResult;
 }
 
@@ -67,18 +85,24 @@ export function createWorld(
   seed: number,
   year: number,
   ratingMode: RatingMode = DEFAULT_RATING_MODE,
+  lineup: SeasonLineup | null = null,
 ): World {
   const authored = seasonSeed(year);
+  // An edit that puts everyone back where they started is not an edit, and a
+  // season that claimed otherwise would carry a notice nobody could explain.
+  const edited = lineup !== null && !isAuthoredLineup(authored, lineup) ? lineup : null;
+  const entered = edited === null ? authored : applyLineup(authored, edited);
   const rng = createRng(seed);
-  const field = buildField(authored, undefined, ratingMode);
-  const season = simulateSeason(field, authored.calendar.length, rng);
+  const field = buildField(entered, undefined, ratingMode);
+  const season = simulateSeason(field, entered.calendar.length, rng);
 
   return {
     seed,
-    year: authored.year,
+    year: entered.year,
     ratingMode,
     rngState: rng.getState(),
     field,
+    lineup: edited,
     season,
   };
 }
@@ -162,6 +186,16 @@ interface SeasonStore {
    * same dice, different drivers.
    */
   readonly setRatingMode: (mode: RatingMode) => void;
+  /**
+   * Re-runs the season from the same seed with the reader's own driver
+   * allocation, or with `null` for the grid as it was entered.
+   *
+   * Grid-only for the same reason as `setRatingMode`: past it, the results on
+   * screen were driven by a field that no longer exists. The seed is kept, so
+   * an alternate grid is the same dice thrown at different people — which is
+   * the comparison the feature is for.
+   */
+  readonly setLineup: (lineup: SeasonLineup | null) => void;
   /** Reveals the next session. */
   readonly nextSession: () => void;
   /** Jumps straight to the finished season. */
@@ -172,9 +206,10 @@ interface SeasonStore {
    *
    * A new draw rather than a rewind: replaying results the reader has already
    * seen is a re-read, and what "start again" has always meant here is another
-   * go at the season. Everything *chosen* carries over — a reader who picked
-   * aged drivers asked for aged drivers, not for one season of them. Only the
-   * dice change. The menu is where a different year or mode comes from.
+   * go at the season. Everything *chosen* carries over — the ability mode and
+   * an edited grid alike, because a reader who put Mansell in the Williams
+   * asked for that grid, not for one season of it. Only the dice change. The
+   * menu is where a different year comes from.
    */
   readonly restartSeason: () => void;
 }
@@ -207,7 +242,30 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
     set((state) =>
       state.screen.kind === "season" && state.screen.view.kind === "grid"
         ? {
-            screen: openSeason(createWorld(state.screen.world.seed, state.screen.world.year, mode)),
+            screen: openSeason(
+              createWorld(
+                state.screen.world.seed,
+                state.screen.world.year,
+                mode,
+                state.screen.world.lineup,
+              ),
+            ),
+          }
+        : state,
+    );
+  },
+  setLineup: (lineup) => {
+    set((state) =>
+      state.screen.kind === "season" && state.screen.view.kind === "grid"
+        ? {
+            screen: openSeason(
+              createWorld(
+                state.screen.world.seed,
+                state.screen.world.year,
+                state.screen.world.ratingMode,
+                lineup,
+              ),
+            ),
           }
         : state,
     );
@@ -236,7 +294,12 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
       state.screen.kind === "season"
         ? {
             screen: openSeason(
-              createWorld(randomSeed(), state.screen.world.year, state.screen.world.ratingMode),
+              createWorld(
+                randomSeed(),
+                state.screen.world.year,
+                state.screen.world.ratingMode,
+                state.screen.world.lineup,
+              ),
             ),
           }
         : state,

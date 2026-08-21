@@ -20,6 +20,18 @@ export {
   RATING_MODES,
   type RatingMode,
 } from "./buildField.js";
+export {
+  applyLineup,
+  authoredLineup,
+  isAuthoredLineup,
+  lineupChanges,
+  reserveDrivers,
+  type SeasonLineup,
+  type SeatChange,
+  seatedDriverIds,
+  seatOf,
+  swapDrivers,
+} from "./lineup.js";
 export { carOverall, driverOverall } from "./rating.js";
 export type {
   CalendarRace,

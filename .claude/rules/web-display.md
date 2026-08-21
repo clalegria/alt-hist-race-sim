@@ -13,6 +13,21 @@ loads alongside this file.
   rating; the five individual ratings live behind a popover, and teams are listed
   alphabetically rather than by pace so the pecking order is not given away before a
   wheel turns. A test asserts no rating label appears in the closed markup.
+- **The grid can be rearranged, and only by swapping.** `Edit grid` turns every driver
+  row into a select button and opens `ReserveList` — everyone in the pool without a
+  seat — as a sticky sidebar; the team cards drop from three columns to two to make
+  room. Select a driver, then whoever takes the seat: seated ↔ reserve, or seated ↔
+  seated between two teams. Two reserves in a row cannot swap, so the second just
+  becomes the selection rather than doing nothing visible. Nothing here can *add* a
+  car, by construction rather than by validation.
+- **An edited grid says so, in the same muted dashed frame everywhere.** Deliberately
+  *not* the `lib/highlight.ts` accent: "the grid was changed" is a caveat on a result,
+  not something that was won, and borrowing the accent would also break the test that
+  counts exactly two accented cards per summary. A driver who is not where history put
+  them carries the same soft fill (`SWAPPED_IN`) in the grid, so the note and the cards
+  agree without the reader matching names. The summary declares it **twice** — a banner
+  above the champions, because finding out at the foot of the page is finding out too
+  late, and the full list on the grid at the end.
 - `lib/rating.ts` computes the overall: a **display heuristic, not model truth** —
   nothing in the engine reads it — whose weights approximate how much each rating
   actually moves results. Reliability takes a quarter of the car number despite

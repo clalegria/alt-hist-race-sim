@@ -65,5 +65,20 @@ the JSON drift apart.
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.
+- `lineup.ts` is the seat-allocation layer over a season seed: a `SeasonLineup` is
+  `Record<teamId, driverIds>` with the same keys and the same seat counts as the
+  season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`
+  that `buildField` consumes unchanged. It lives here because it is a transformation
+  of seed data, and because the driver market (roadmap 6) will want the same shape.
+  - **Only swaps are representable.** `swapDrivers(lineup, a, b)` preserves every
+    team's seat count and therefore the size of the field — which is what the
+    starting limit and the DNQ arithmetic are calibrated against. It requires at
+    least one of the two to hold a seat and throws otherwise; a driver swapped with
+    themselves is a no-op. `applyLineup` re-validates rather than trusting, because a
+    lineup can arrive from a save file.
+  - `authoredLineup`, `isAuthoredLineup`, `reserveDrivers` (alphabetical, everyone in
+    the pool without a seat) and `lineupChanges` round it out. A `SeatChange` always
+    has `in.length === out.length` — seats are preserved, so every arrival displaced
+    someone — and the UI relies on it to print "X for Y".
 - Adding a season means a new JSON file **and** a line in `apps/web/src/lib/seasons.ts`
   (`AUTHORED`); the picker lights up on its own from there.
