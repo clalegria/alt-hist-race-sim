@@ -19,7 +19,7 @@ import { SeasonView } from "./SeasonView.js";
 /** The background half of the surface accent — "bg-primary/5". */
 const TINT = STANDOUT_SURFACE.split(" ")[1] ?? "";
 
-const world = createWorld(3);
+const world = createWorld(3, 1980);
 const race = world.season.races[0];
 if (race === undefined) {
   throw new Error("seeded world has no races");
@@ -56,7 +56,7 @@ describe("the standout accent", () => {
     // The clinch test used to treat a challenger who could *equal* the leader as
     // a live threat at every point in the season, which after the final round
     // meant no champion at all: no banner, and no accent in the sidebar.
-    const tied = createWorld(302280);
+    const tied = createWorld(302280, 1980);
     const last = tied.season.races.length - 1;
     const standings = championshipStandings(tied.season);
     const [first, second] = standings;

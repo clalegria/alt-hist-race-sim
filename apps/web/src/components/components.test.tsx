@@ -19,7 +19,7 @@ import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 
-const world = createWorld(3);
+const world = createWorld(3, 1980);
 
 describe("the race classification", () => {
   const race = world.season.races[0];

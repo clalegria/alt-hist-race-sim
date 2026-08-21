@@ -1,22 +1,35 @@
 import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
-import { describe, expect, it } from "vitest";
-import { advance, createWorld, useSeasonStore, type View } from "./season.js";
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  advance,
+  createWorld,
+  type Screen,
+  useSeasonStore,
+  type View,
+  type World,
+} from "./season.js";
 
 describe("the world", () => {
   it("runs one race per round on the calendar", () => {
-    expect(createWorld(1).season.races).toHaveLength(14);
+    expect(createWorld(1, 1980).season.races).toHaveLength(14);
   });
 
   it("is the same world for the same seed", () => {
-    expect(createWorld(7)).toEqual(createWorld(7));
+    expect(createWorld(7, 1980)).toEqual(createWorld(7, 1980));
   });
 
   it("is a different world for a different seed", () => {
-    expect(createWorld(7)).not.toEqual(createWorld(8));
+    expect(createWorld(7, 1980)).not.toEqual(createWorld(8, 1980));
+  });
+
+  it("refuses a season nobody has authored", () => {
+    // Better a throw than a quiet fall back to 1980: a picker that offered 1981
+    // by mistake would otherwise look like it worked.
+    expect(() => createWorld(1, 1981)).toThrow("1981");
   });
 
   it("records the grid it actually raced", () => {
-    const world = createWorld(1);
+    const world = createWorld(1, 1980);
     expect(world.field).toHaveLength(28);
     // Not just ids: the ratings that fed the simulation, which is what makes
     // this the record of the season rather than a pointer back to the seed.
@@ -29,7 +42,7 @@ describe("the world", () => {
   it("survives a JSON round trip unchanged", () => {
     // The save-game invariant: the world is plain data. A function, a Map, or a
     // live `Rng` anywhere in it would silently vanish here.
-    const world = createWorld(3);
+    const world = createWorld(3, 1980);
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
 
@@ -51,21 +64,21 @@ describe("the world", () => {
         walk(child, `${path}.${key}`);
       }
     };
-    walk(createWorld(2), "world");
+    walk(createWorld(2, 1980), "world");
   });
 
   it("stores an RNG snapshot that resumes the stream", () => {
     // Not a decoration: this is what a saved game continues from. Rebuilding
     // from the snapshot must give the same next value as carrying on would.
-    const world = createWorld(5);
+    const world = createWorld(5, 1980);
     const resumed = createRngFromState(world.rngState);
     const again = createRngFromState(world.rngState);
     expect(resumed.next()).toBe(again.next());
-    expect(world.rngState).not.toEqual(createWorld(6).rngState);
+    expect(world.rngState).not.toEqual(createWorld(6, 1980).rngState);
   });
 
   it("produces a season the championship can be derived from", () => {
-    const world = createWorld(4);
+    const world = createWorld(4, 1980);
     const drivers = championshipStandings(world.season);
     const teams = constructorStandings(world.season);
     expect(drivers).toHaveLength(28);
@@ -76,35 +89,87 @@ describe("the world", () => {
   });
 });
 
-describe("the store", () => {
-  it("starts with a season already run", () => {
-    // The page has something to show on first paint; there is no empty state.
-    expect(useSeasonStore.getState().world.season.races).toHaveLength(14);
+function screen(): Screen {
+  return useSeasonStore.getState().screen;
+}
+
+/** The season on screen, or a throw naming what was there instead. */
+function running(): { world: World; view: View } {
+  const current = screen();
+  if (current.kind !== "season") {
+    throw new Error(`expected a season on screen, found "${current.kind}"`);
+  }
+  return { world: current.world, view: current.view };
+}
+
+describe("the screens", () => {
+  beforeEach(() => {
+    useSeasonStore.getState().openMenu();
+  });
+
+  it("opens on the menu, with nothing simulated", () => {
+    // The app used to run a season on page load that nobody had asked for.
+    expect(screen()).toEqual({ kind: "menu" });
+  });
+
+  it("goes menu, then setup, then a season", () => {
+    useSeasonStore.getState().openSeasonSetup();
+    expect(screen().kind).toBe("season-setup");
+    useSeasonStore.getState().startSeason(1980);
+    expect(running().world.year).toBe(1980);
+    expect(running().view).toEqual({ kind: "grid" });
+  });
+
+  it("comes back to the menu from a season in progress", () => {
+    useSeasonStore.getState().simulate(11, 1980);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().openMenu();
+    expect(screen()).toEqual({ kind: "menu" });
+  });
+
+  it("ignores the season controls when no season is on screen", () => {
+    // They are wired to buttons only the season screen renders, but a no-op is
+    // a better answer than a crash on a world that does not exist.
+    for (const act of ["nextSession", "skipToEnd", "restartSeason"] as const) {
+      useSeasonStore.getState()[act]();
+      expect(screen(), act).toEqual({ kind: "menu" });
+    }
+  });
+
+  it("draws a different season each time one is started", () => {
+    useSeasonStore.getState().startSeason(1980);
+    const first = running().world.seed;
+    useSeasonStore.getState().startSeason(1980);
+    expect(running().world.seed).not.toBe(first);
+  });
+
+  it("gives the same world for the same seed however it is reached", () => {
+    useSeasonStore.getState().simulate(9, 1980);
+    expect(running().world).toEqual(createWorld(9, 1980));
   });
 
   it("replaces the world when a new seed is simulated", () => {
-    const before = useSeasonStore.getState().world;
-    useSeasonStore.getState().simulate(before.seed + 1);
-    const after = useSeasonStore.getState().world;
-    expect(after.seed).toBe(before.seed + 1);
+    useSeasonStore.getState().simulate(21, 1980);
+    const before = running().world;
+    useSeasonStore.getState().simulate(22, 1980);
+    const after = running().world;
+    expect(after.seed).toBe(22);
     expect(after.season).not.toEqual(before.season);
     // A fresh object, not a mutation of the old one — that is what makes the
     // subscription fire and the tables re-render.
     expect(after).not.toBe(before);
-  });
-
-  it("gives the same world for the same seed however it is reached", () => {
-    useSeasonStore.getState().simulate(9);
-    expect(useSeasonStore.getState().world).toEqual(createWorld(9));
   });
 });
 
 describe("revealing the season", () => {
   const ROUNDS = 14;
 
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, 1980);
+  });
+
   it("opens on the grid", () => {
-    useSeasonStore.getState().startAgain();
-    expect(useSeasonStore.getState().view).toEqual({ kind: "grid" });
+    expect(running().view).toEqual({ kind: "grid" });
   });
 
   it("walks qualifying, race, qualifying, race", () => {
@@ -147,18 +212,30 @@ describe("revealing the season", () => {
     expect(advance({ kind: "summary" }, ROUNDS)).toEqual({ kind: "summary" });
   });
 
+  it("steps the cursor without re-running anything", () => {
+    const before = running().world;
+    useSeasonStore.getState().nextSession();
+    expect(running().view).toEqual({ kind: "qualifying", round: 0 });
+    // The year was simulated the moment the seed was drawn, so revealing it
+    // hands back the very same object.
+    expect(running().world).toBe(before);
+  });
+
   it("skips to the summary from anywhere", () => {
     useSeasonStore.getState().nextSession();
     useSeasonStore.getState().skipToEnd();
-    expect(useSeasonStore.getState().view).toEqual({ kind: "summary" });
+    expect(running().view).toEqual({ kind: "summary" });
   });
 
-  it("starts again on a new season, back at the grid", () => {
+  it("starts a fresh season of the same year, back at the grid", () => {
+    // "Beginning of the season" is another go, not a replay: same year, new
+    // seed, so the results are the reader's to discover again.
     useSeasonStore.getState().skipToEnd();
-    const before = useSeasonStore.getState().world.seed;
-    useSeasonStore.getState().startAgain();
-    const after = useSeasonStore.getState();
-    expect(after.view).toEqual({ kind: "grid" });
-    expect(after.world.seed).not.toBe(before);
+    const before = running().world;
+    useSeasonStore.getState().restartSeason();
+    expect(running().view).toEqual({ kind: "grid" });
+    expect(running().world.year).toBe(before.year);
+    expect(running().world.seed).not.toBe(before.seed);
+    expect(running().world.season).not.toEqual(before.season);
   });
 });

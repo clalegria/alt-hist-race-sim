@@ -22,7 +22,7 @@ import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { createWorld, type View } from "./store/season.js";
 
-const world = createWorld(3);
+const world = createWorld(3, 1980);
 const ROUNDS = world.season.races.length;
 
 function render(view: View): string {

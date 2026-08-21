@@ -1,0 +1,63 @@
+import { isPlayable, SEASON_YEARS } from "../lib/seasons.js";
+import { cn } from "../lib/utils.js";
+import { Button } from "./ui/button.js";
+
+/**
+ * Which year to start from.
+ *
+ * Every season from 1980 to 2026 is listed, and all but the authored ones are
+ * disabled. Showing the whole range rather than the single year that works is
+ * deliberate: it says what the app is for, and it means adding a season is a
+ * line of data rather than a redesign. `isPlayable` is the only thing that
+ * decides which are live, so the two can never disagree.
+ */
+export function SeasonPicker({
+  onStart,
+  onBack,
+}: {
+  onStart: (year: number) => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-6 py-6 sm:py-10">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Simulate a season</h1>
+        <p className="text-muted-foreground max-w-prose text-sm">
+          Pick the year to run. Only 1980 has been authored so far — the rest of the grid is what
+          this becomes.
+        </p>
+      </header>
+
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+        {SEASON_YEARS.map((year) => {
+          const playable = isPlayable(year);
+          return (
+            <button
+              key={year}
+              type="button"
+              disabled={!playable}
+              aria-label={playable ? `Simulate the ${year} season` : `${year} is not available yet`}
+              onClick={() => {
+                onStart(year);
+              }}
+              className={cn(
+                "focus-visible:ring-ring h-11 rounded-md border text-sm font-medium tabular-nums transition focus-visible:ring-2 focus-visible:outline-none",
+                playable
+                  ? "border-primary/50 bg-primary/10 text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
+                  : "border-border text-muted-foreground/50 cursor-not-allowed",
+              )}
+            >
+              {year}
+            </button>
+          );
+        })}
+      </div>
+
+      <div>
+        <Button variant="outline" onClick={onBack}>
+          Back
+        </Button>
+      </div>
+    </div>
+  );
+}

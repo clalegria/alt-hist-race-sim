@@ -53,9 +53,11 @@ being genuinely different propositions.
 
 **5. Multiple starting seasons.** Choose 1980 or another year, which means authoring
 drivers, teams, cars and calendars for more seasons *and* decoupling the code from
-this one. The couplings are known and few: `season1980` is imported directly by
-`apps/web/src/store/season.ts`, `SeasonView.tsx`, `SeasonCalendar.tsx` and the
-calibration tools. Also settles the era questions already in Open decisions — the
+this one. The couplings are known and few, and one is already gone: the store now asks
+`apps/web/src/lib/seasons.ts` for a year's seed, so authoring a season is a line in
+its `AUTHORED` map and the picker lights up on its own. What still imports
+`season1980` directly is `SeasonView.tsx`, `SeasonCalendar.tsx` (both for round
+names) and the calibration tools. Also settles the era questions already in Open decisions — the
 starting limit and the reliability curve both stop being constants once more than one
 year exists.
 
@@ -80,7 +82,7 @@ development directions. Nothing should be designed around this yet.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 289 tests (158 engine, 13 data, 118 web)
+pnpm test          # 309 tests (158 engine, 13 data, 138 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -116,6 +118,9 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   driver's per-sim state, and read the stored values thereafter. Never re-roll on read.
 - **Tunable numbers live in one constants module per subsystem**, never inline in
   logic. `packages/engine/src/race/constants.ts` is the pattern to follow.
+- **Do not re-calibrate or re-tune anything unless asked.** Engine constants and
+  authored driver/team/car ratings are the author's to change. See the rule under
+  Calibration status; it is an invariant, not a suggestion.
 
 ## Tech stack (decided)
 - Language: TypeScript 7, `strict: true` plus `noUncheckedIndexedAccess`,
@@ -144,9 +149,13 @@ packages/engine/           # pure sim, zero deps, heavily tested
   src/season/              # season loop + derived championship standings
 packages/data/src/         # the three seed JSON files, typed loader, buildField
 apps/web/src/              # React + Vite season viewer
-  store/season.ts          # the one Zustand world-state store + the reveal cursor
+  store/season.ts          # the one Zustand store: which screen, and the world on it
+  components/MainMenu.tsx  # the opening screen; picks a mode
+  components/SeasonPicker.tsx # 1980–2026, all but the authored years disabled
   components/SeasonView.tsx # props-driven; renders one stage of the reveal
   components/ui/           # shadcn-style primitives, copied in
+  lib/modes.ts             # the simulation modes the menu lists, and which exist
+  lib/seasons.ts           # the season range, which years are playable, their seeds
   lib/rating.ts            # display-only overall rating; not model truth
   lib/highlight.ts         # the one accent shared by pole, winner and champions
   lib/theme.ts             # dark by default, light by choice, remembered
@@ -353,6 +362,30 @@ Notes:
   its one-record-per-line layout. Do not reformat it.
 
 ## Calibration status
+
+**Do not re-calibrate or re-tune. Ever, unless explicitly asked.** The numbers below
+are settled. Neither the engine constants (`race/constants.ts`, `season/constants.ts`)
+nor the authored ratings in `packages/data/src/*.json` are to be adjusted as a side
+effect of building something else — not to "absorb" a new feature, not because a
+figure drifted a point, not because a Monte Carlo run looks off. Nor should the
+harness be run to check. This is a hard rule because the failure mode is expensive
+and invisible: every added feature invites a re-tune, each re-tune costs a long
+measurement loop, and the ratings end up chasing whatever was built last rather than
+1980.
+
+Two things override it, and only two:
+1. **The author asks.** "Re-tune the drivers", "the Renault feels too quick" — then
+   calibrate, and say what moved.
+2. **A deep change to how performance is computed** — a new term in the race score,
+   a new entity between driver and result (roadmap 1 ageing, roadmap 4 engines), a
+   different race model. These change what a rating *means*, so the old values stop
+   being the same claim. Even then: say the re-tune is needed and why, and get
+   agreement before running the harness.
+
+Everything else — UI work, new screens, calendars, data plumbing, refactors, new
+seasons authored alongside 1980 — leaves the numbers alone. If a change makes a
+calibration figure visibly wrong, report it and stop; do not fix it unprompted.
+
 Against the real 1980 season (14 races), at 20,000 simulated races:
 
 | Team | Model win% | Actual | Model pole% | Actual (approx) |
@@ -386,6 +419,33 @@ fitting).
 ## Web app — implemented
 `apps/web` reveals a season a session at a time. `pnpm dev` to run it, `pnpm build`
 to produce a static bundle.
+
+**Three screens, one union.** `Screen` in `store/season.ts` is
+`menu → season-setup → season`, and a `World` is a *member of the season variant*
+rather than a nullable field beside it — so the menu cannot read a season nobody
+started and no component has to guard against one. Nothing is simulated until a mode
+is chosen: the app opens on the menu having run no races at all.
+
+The menu says in two lines what the app is, then lists the modes from `lib/modes.ts`.
+"Simulate a season" is live; "Simulate 1980–2026" (the career run, roadmap 7) renders
+greyed out and tagged, because a mode that is coming should be visible rather than
+absent. Adding a mode is a record in that array.
+
+`lib/seasons.ts` is the same idea for years. The picker lists **every** season from
+1980 to 2026 and disables the ones with no seed data; `AUTHORED` is the single map
+that decides which those are, and `PLAYABLE_SEASONS`, `isPlayable` and `seasonSeed`
+all derive from it. Authoring 1981 (roadmap 5) is therefore one line here plus the
+JSON — not a UI change. `createWorld(seed, year)` goes through `seasonSeed`, which
+throws on an unauthored year rather than quietly falling back to 1980.
+
+**"Start again" asks where to.** Mid-season it offers *Main menu* or *Beginning of
+the season*, inline on the same button row rather than in a modal — there is no
+dialog primitive here and one is not worth a dependency and a focus trap for three
+buttons. *Beginning of the season* draws a **fresh seed for the same year**: another
+go, not a replay of results the reader has already seen. (An earlier pass made it a
+rewind on the same seed; the author's call is a new draw.) *Main menu* is for
+changing mode or year. Both copies of the action row — sticky bar and page foot —
+share one confirming flag, so they never disagree.
 
 **The reveal is a view, not a schedule.** The whole year is simulated the instant a
 seed is drawn — one continuous RNG stream through every round, which is what makes a
@@ -467,15 +527,16 @@ Mid-season standings need no special support: the championship is derived from
 results on read, so `{ races: races.slice(0, n) }` *is* the table after round n. That
 is the results-are-the-source-of-truth rule paying rent.
 
-A fresh random seed is drawn on every page load and by **Start again**. That is not a
-violation of the no-`Math.random()` rule: the ban is on the *engine*, where every
+A fresh random seed is drawn each time a season is started — from the picker, and by
+**Start again**. That is not a violation of the no-`Math.random()` rule: the ban is on the *engine*, where every
 outcome must come from the injected PRNG or nothing is reproducible. Choosing *which*
 seed to run is a user action that happens before any generator exists, so it lives in
 `lib/seed.ts` in the app and never in `packages/engine`. The seed is shown in the
 footer, deliberately without prominence.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, rngState, field, season }`) and nothing else. `field` is the grid
+(`{ seed, year, rngState, field, season }`) — one per season screen, and none at all
+before one is started. `field` is the grid
 exactly as raced — every driver and car rating that fed the simulation. It is stored
 rather than re-read from the seed files because it will stop being derivable from
 them: once the ageing curve lands, ratings are rolled per run and this becomes the
@@ -501,15 +562,22 @@ type-only and erases at build time, so no runtime edge exists in either directio
 Tests are Vitest with no jsdom. `SeasonView` takes the world and the cursor as
 **props** rather than reading the store, so every stage of the reveal renders through
 `renderToStaticMarkup` without a DOM and without clicking through fourteen rounds;
-`App` is the thin shell that connects it. That split exists partly for structure and
+`MainMenu` and `SeasonPicker` take their callbacks the same way, which is the only
+level at which the greyed-out mode and the 46 unauthored years can be checked at all
+(`menu.test.tsx` counts rendered `disabled=""` attributes, not the word "disabled" —
+several perfectly clickable buttons carry `disabled:opacity-50` in their class list).
+`App` is the thin shell that connects all three. That split exists partly for structure and
 partly because zustand serves `getInitialState()` as the useSyncExternalStore *server*
 snapshot — a static render always shows the world the store was built with, whatever
 has been simulated since. That is SSR-only and irrelevant to a client-rendered SPA,
 but it is why store updates are asserted in the store's own tests.
 
 What this level cannot reach: the click handlers themselves, the scroll-to-top
-effect, and popover contents, which Radix does not render while closed. All three
-would need jsdom.
+effect, the start-again row's confirming flag, and popover contents, which Radix does
+not render while closed. All of them would need jsdom. Where a click ends up *is*
+covered, because it ends up in the store: `season.test.ts` walks menu → setup →
+season, the no-ops when a season control fires off the season screen, and that a
+restart lands on a new seed of the same year.
 
 Biome needs `css.parser.tailwindDirectives` to parse Tailwind 4's `@theme`; it is on
 in `biome.json`.
