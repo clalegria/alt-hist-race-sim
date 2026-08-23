@@ -5,9 +5,15 @@ paths:
 
 # Season model
 
-`simulateSeason(field, rounds, rng, raceConstants?, model?)` runs the same field
-`rounds` times and returns `{ races }` — nothing else. A race's index in that array
-is its round number.
+`simulateSeason(field, calendar, rng, raceConstants?, model?)` runs the same field once
+per entry in `calendar` and returns `{ races }` — nothing else. A race's index in that
+array is its round number.
+
+**The calendar, not a round count.** Each entry is a `RoundContext` — today just the
+host country, which is what turns home advantage on — and its length is how many races
+the year has, so a season of `n` featureless rounds is `n` empty objects. This is the
+seam every later circuit feature hangs off, rather than each one growing a parameter of
+its own; an empty calendar is a `RangeError`.
 
 **One RNG threaded through the whole year**, not re-seeded per race, so a season is
 a single continuous stream and round 7 depends on everything drawn before it.

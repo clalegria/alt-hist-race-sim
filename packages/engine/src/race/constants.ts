@@ -125,6 +125,24 @@ export interface RaceConstants {
   readonly gridAdvantageDecayPlaces: number;
 
   /**
+   * Home advantage, in rating points added to *both* session scores when a
+   * round is held in the driver's own country and when it is held in the
+   * team's. They stack: an Italian in a Ferrari at Monza collects both.
+   *
+   * Small on purpose. A home race is worth a tenth or two on a good day —
+   * crowd, familiarity, a team that slept in its own beds — not a car upgrade,
+   * and the driver's share is the larger of the two because it is the driver
+   * the crowd is shouting for. Set either to 0 to switch that half off.
+   *
+   * Nearly a whole grid can share a country (most of the 1980 field was
+   * British), and a bonus everyone gets is invisible — only differences between
+   * cars move a result — so what these really price is the *visitor's*
+   * disadvantage at a round where the paddock is at home.
+   */
+  readonly homeAdvantageDriver: number;
+  readonly homeAdvantageTeam: number;
+
+  /**
    * Mechanical failure probability, interpolated from a car's reliability
    * rating: a 0-rated car fails with probability `mechanicalDnfAtZeroReliability`,
    * a 100-rated one with `mechanicalDnfAtFullReliability`.
@@ -237,6 +255,9 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
 
   gridAdvantagePole: 3.0,
   gridAdvantageDecayPlaces: 6.0,
+
+  homeAdvantageDriver: 1.0,
+  homeAdvantageTeam: 0.5,
 
   mechanicalDnfAtZeroReliability: 0.75,
   mechanicalDnfAtFullReliability: 0.12,

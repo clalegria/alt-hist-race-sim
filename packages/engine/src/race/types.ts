@@ -8,6 +8,31 @@ export interface RaceEntrant {
   readonly teamId: string;
   readonly driver: DriverRatings;
   readonly car: CarSpec;
+  /**
+   * Where the driver and the team are from, as ISO 3166-1 alpha-2 codes, for
+   * the home-advantage term. Both optional and compared case-insensitively: a
+   * field built without them simply races everywhere as a visitor, which is
+   * exactly what every field did before home advantage existed.
+   *
+   * Identity, not rating — it travels with the entrant because that is where
+   * the rest of a car's identity already lives, and the engine may not read the
+   * seed data to look it up.
+   */
+  readonly driverCountry?: string;
+  readonly teamCountry?: string;
+}
+
+/**
+ * What the engine knows about one round of a season.
+ *
+ * Deliberately thin. Home advantage needs the host country and nothing else,
+ * and this is the seam every later circuit feature hangs off — a power track,
+ * a street circuit, weather — rather than each one growing its own parameter.
+ * Everything on it is optional, so a round nobody described is a neutral race.
+ */
+export interface RoundContext {
+  /** ISO 3166-1 alpha-2 code for the host country. */
+  readonly country?: string;
 }
 
 /** Why a car failed to finish. */
@@ -93,5 +118,10 @@ export interface RaceResult {
  */
 export interface RaceModel {
   readonly name: string;
-  simulate(field: readonly RaceEntrant[], rng: Rng, constants?: RaceConstants): RaceResult;
+  simulate(
+    field: readonly RaceEntrant[],
+    rng: Rng,
+    constants?: RaceConstants,
+    round?: RoundContext,
+  ): RaceResult;
 }

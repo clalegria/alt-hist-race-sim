@@ -94,7 +94,9 @@ export function createWorld(
   const entered = edited === null ? authored : applyLineup(authored, edited);
   const rng = createRng(seed);
   const field = buildField(entered, undefined, ratingMode);
-  const season = simulateSeason(field, entered.calendar.length, rng);
+  // The calendar itself, not its length: the round's country is what gives the
+  // drivers and teams from it their home advantage.
+  const season = simulateSeason(field, entered.calendar, rng);
 
   return {
     seed,

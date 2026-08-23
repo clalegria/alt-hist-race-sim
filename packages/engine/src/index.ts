@@ -34,6 +34,7 @@ export type {
   RaceGap,
   RaceModel,
   RaceResult,
+  RoundContext,
 } from "./race/types.js";
 export { createRng, createRngFromSource, createRngFromState } from "./rng/index.js";
 export type { Rng, RngSource, RngState } from "./rng/types.js";

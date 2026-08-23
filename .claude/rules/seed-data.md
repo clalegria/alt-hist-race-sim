@@ -77,19 +77,25 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
   1981 is the normal case, and `validateSeedData` only rejects two seats in the *same*
   year.
 - `adaptability` is authored but unused so far — it is for the market and progression.
-- **The calendar is cosmetic *for now*.** It exists so results can be labelled
-  "Round 12, Italian Grand Prix at Imola" — circuits have no properties and the engine
-  never sees it, so every round is the same race. `calendar.length` is the season's
-  round count, and `validateSeedData` checks each `round` matches its position and
-  that `country` is a real alpha-2 code, since a number out of step would mislabel
-  every result printed against it. Roadmap 3 is where the engine starts reading this.
+- **The engine reads the calendar's `country`, and nothing else about it.**
+  `simulateSeason` takes the calendar itself rather than a round count, and each
+  round's country is what gives that country's drivers and teams their home advantage.
+  Everything else — name, circuit — is still labelling, and circuits still have no
+  properties, so two rounds in the same country are the same race. `validateSeedData`
+  checks each `round` matches its position and that `country` is a real alpha-2 code;
+  the second of those now changes results as well as labels.
 - `validateSeedData()` is called on demand, not as a module-load side effect, so
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
-- `buildField(season, pool, mode)` is the seam between authored data and the engine's
-  runtime model. **`season` is required** — a field built from whichever year happened
-  to be the default is the bug this seam exists to prevent. It lives here rather than in either: the engine may not read data,
-  and every consumer that wants to run a race needs exactly this mapping.
+- `buildField(season, pool, mode, teams)` is the seam between authored data and the
+  engine's runtime model. **`season` is required** — a field built from whichever year
+  happened to be the default is the bug this seam exists to prevent. It lives here
+  rather than in either package: the engine may not read data, and every consumer that
+  wants to run a race needs exactly this mapping.
+  - It stamps each entrant with `driverCountry` (the driver's `nationality`) and
+    `teamCountry` (the team's `base`), which is how home advantage reaches the engine
+    without the engine ever reading this package. A team missing from the pool gets no
+    `teamCountry` and races everywhere as a visitor.
   - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
     that way** — it feeds authored peaks straight in, which is what the 1980
     calibration was measured against. `"aged"` calls the engine's ageing curve for
@@ -105,7 +111,7 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
   `Record<teamId, driverIds>` with the same keys and the same seat counts as the
   season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`
   that `buildField` consumes unchanged. It lives here because it is a transformation
-  of seed data, and because the driver market (roadmap 6) will want the same shape.
+  of seed data, and because the driver market will want the same shape.
   - **Only swaps are representable.** `swapDrivers(lineup, a, b)` preserves every
     team's seat count and therefore the size of the field — which is what the
     starting limit and the DNQ arithmetic are calibrated against. It requires at

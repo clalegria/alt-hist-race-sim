@@ -44,10 +44,10 @@ function main(): void {
   const authored = seasonSeed(year);
   const seed = parseSeed(argv);
   const field = buildField(authored);
-  // The calendar decides how many rounds the year has; it is also the only
-  // thing that distinguishes them, since no circuit has any properties.
+  // The calendar decides how many rounds the year has, and where each is held —
+  // which is what the home-advantage term reads.
   const calendar = authored.calendar;
-  const season = simulateSeason(field, calendar.length, createRng(seed));
+  const season = simulateSeason(field, calendar, createRng(seed));
   const table = championshipStandings(season);
   const constructors = constructorStandings(season);
 

@@ -10,6 +10,7 @@ import {
   FIRST_AUTHORED_SEASON,
   seasonSeed,
   seasons,
+  teamsById,
   validateSeedData,
 } from "./index.js";
 
@@ -162,6 +163,33 @@ describe("building a field", () => {
         expect(entrant.driver.racing, `${season.year} ${entrant.driverId}`).toBeGreaterThan(0);
         expect(entrant.car.racing, `${season.year} ${entrant.teamId}`).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it("carries the driver's nationality and the team's base onto every entrant", () => {
+    // How the engine's home advantage knows who is racing at home, without the
+    // engine ever reading this package: identity travels with the entrant.
+    const teams = teamsById();
+    for (const season of seasons.values()) {
+      for (const entrant of buildField(season)) {
+        expect(entrant.driverCountry, `${season.year} ${entrant.driverId}`).toBe(
+          driver(entrant.driverId).nationality,
+        );
+        expect(entrant.teamCountry, `${season.year} ${entrant.teamId}`).toBe(
+          teams.get(entrant.teamId)?.base,
+        );
+      }
+    }
+  });
+
+  it("enters a team it has never heard of as a permanent visitor", () => {
+    // A team missing from the pool is a data problem `validateSeedData` catches;
+    // the field builder still has to produce something, and "never at home" is
+    // the honest answer rather than a guess or a crash.
+    const field = buildField(SEED, drivers, "peak", []);
+    for (const entrant of field) {
+      expect(entrant.teamCountry, entrant.teamId).toBeUndefined();
+      expect(entrant.driverCountry, entrant.driverId).toBe(driver(entrant.driverId).nationality);
     }
   });
 

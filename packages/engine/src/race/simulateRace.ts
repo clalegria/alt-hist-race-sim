@@ -1,12 +1,51 @@
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
-import type { DnfCause, RaceEntrant, RaceEntryResult, RaceModel, RaceResult } from "./types.js";
+import type {
+  DnfCause,
+  RaceEntrant,
+  RaceEntryResult,
+  RaceModel,
+  RaceResult,
+  RoundContext,
+} from "./types.js";
 
 /** Linear interpolation from `atZero` to `atHundred` across a 0-100 rating. */
 function lerpFromRating(rating: number, atZero: number, atHundred: number): number {
   const t = Math.min(Math.max(rating, 0), 100) / 100;
   return atZero + (atHundred - atZero) * t;
+}
+
+/**
+ * Whether two country codes are the same place. Case- and padding-insensitive,
+ * and an absent code is nowhere: a field with no countries is never at home.
+ */
+function sameCountry(a: string | undefined, b: string | undefined): boolean {
+  if (a === undefined || b === undefined) {
+    return false;
+  }
+  const left = a.trim().toUpperCase();
+  return left !== "" && left === b.trim().toUpperCase();
+}
+
+/**
+ * Rating points a car collects for racing at home, added to both sessions.
+ *
+ * The driver's country and the team's are counted separately and stack, so an
+ * Italian in a Ferrari at Monza gets both halves and a Brazilian in the same
+ * car gets one. A round with no host country hands out nothing.
+ */
+function homeAdvantage(
+  entrant: RaceEntrant,
+  round: RoundContext,
+  constants: RaceConstants,
+): number {
+  const driverAtHome = sameCountry(entrant.driverCountry, round.country);
+  const teamAtHome = sameCountry(entrant.teamCountry, round.country);
+  return (
+    (driverAtHome ? constants.homeAdvantageDriver : 0) +
+    (teamAtHome ? constants.homeAdvantageTeam : 0)
+  );
 }
 
 /** Deterministic tie-break, so equal scores never depend on sort implementation. */
@@ -24,6 +63,8 @@ interface Runner {
   readonly weekendForm: number;
   readonly noiseScale: number;
   readonly pacePenalty: number;
+  /** Rating points for racing at home, in both sessions. Usually 0. */
+  readonly homeBonus: number;
   readonly qualifyingScore: number;
   gridPosition: number;
   started: boolean;
@@ -40,6 +81,12 @@ interface Runner {
  * start. Anyone slower is a non-qualifier — ranked on the grid, absent from the
  * race.
  *
+ * `round` says where the race is being held, which is what turns home advantage
+ * on for the drivers and teams from that country. It defaults to a round with no
+ * host country — a neutral race, scored exactly as it was before the term
+ * existed — so nothing that does not know its calendar is affected. It draws no
+ * randomness either way, so the RNG stream is identical with and without it.
+ *
  * Pure and deterministic: the same field, seed, and constants always produce
  * the same result. Randomness is drawn in a fixed order — weekend form and
  * qualifying noise for the whole field, then race noise, then the two DNF rolls
@@ -54,6 +101,7 @@ export function simulateRace(
   field: readonly RaceEntrant[],
   rng: Rng,
   constants: RaceConstants = RACE_CONSTANTS,
+  round: RoundContext = {},
 ): RaceResult {
   if (field.length === 0) {
     throw new RangeError("Cannot simulate a race with an empty field");
@@ -96,14 +144,20 @@ export function simulateRace(
       noiseScale *
       (sharedWeight * weekendForm + independentWeight * rng.gaussian());
 
+    // Where the race is, not who is in it: the same number is added to both
+    // sessions, so a home crowd is worth as much on Saturday as on Sunday.
+    const homeBonus = homeAdvantage(entrant, round, constants);
+
     return {
       entrant,
       weekendForm,
       noiseScale,
       pacePenalty,
+      homeBonus,
       qualifyingScore:
         constants.weightCarQualifying * car.qualifying +
         constants.weightDriverQualifying * driver.qualifying +
+        homeBonus +
         qualifyingNoise -
         pacePenalty,
       gridPosition: 0,
@@ -151,6 +205,7 @@ export function simulateRace(
       constants.weightCarRacing * car.racing +
       constants.weightDriverRacing * driver.racing +
       gridBonus +
+      runner.homeBonus +
       racingNoise -
       runner.pacePenalty;
   }

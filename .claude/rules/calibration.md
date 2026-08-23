@@ -20,10 +20,17 @@ test suite runs it, and nothing should: no test may depend on an authored rating
 what a particular seed produced.
 
 **Every figure below describes `buildField`'s default `peak` mode**, where drivers
-race at their authored peaks. The `aged` mode added in roadmap 1 produces a different
-1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated
+race at their authored peaks. The `aged` mode added with the ageing curve produces a
+different 1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated
 against anything. Do not "fix" the aged grid to match this table; they are answers to
 two different questions.
+
+**They also describe a race with no host country.** `pnpm calibrate` runs the same grid
+N times through `simulateRace` with no `RoundContext`, so home advantage pays nothing in
+any of them — the figures below are the neutral-race baseline they always were, unmoved
+by that feature landing. Rotating the harness through a season's calendar would fold
+home advantage into every number here; that is a change to what the harness measures,
+and it needs the author's word before anyone runs it.
 
 ## Status against the real 1980 season (14 races), at 20,000 simulated races
 

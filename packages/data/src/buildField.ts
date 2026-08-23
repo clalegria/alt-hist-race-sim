@@ -15,11 +15,14 @@
  *   against it.
  * - **`aged`** runs each driver's career through the engine's ageing curve and
  *   uses the ratings they held *in that season*. 1980 Prost is a rookie again.
+ *
+ * Each entrant also carries the driver's nationality and the team's base, which
+ * is how the engine knows who is racing at home without ever reading this data.
  */
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
-import { drivers as driverPool } from "./index.js";
-import type { Driver, SeasonSeed } from "./types.js";
+import { drivers as driverPool, teams as teamPool } from "./index.js";
+import type { Driver, SeasonSeed, Team } from "./types.js";
 
 /** Whether a field is built from authored peaks or from age-adjusted ratings. */
 export type RatingMode = "peak" | "aged";
@@ -70,8 +73,13 @@ export function buildField(
   season: SeasonSeed,
   pool: readonly Driver[] = driverPool,
   mode: RatingMode = DEFAULT_RATING_MODE,
+  teams: readonly Team[] = teamPool,
 ): RaceEntrant[] {
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
+  // Where each team is based, for the engine's home-advantage term. A team the
+  // pool does not know still races — it simply never races at home, which is
+  // the same thing the engine does with a missing code.
+  const baseOf = new Map(teams.map((team) => [team.id, team.base]));
   const field: RaceEntrant[] = [];
 
   for (const entry of season.entries) {
@@ -81,11 +89,14 @@ export function buildField(
         throw new Error(`Season entry "${entry.teamId}" references unknown driver "${driverId}"`);
       }
 
+      const base = baseOf.get(entry.teamId);
       field.push({
         driverId,
         teamId: entry.teamId,
         driver: driverRatingsFor(driver, season.year, mode),
         car: entry.car,
+        driverCountry: driver.nationality,
+        ...(base === undefined ? {} : { teamCountry: base }),
       });
     }
   }

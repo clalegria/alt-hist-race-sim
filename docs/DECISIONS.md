@@ -4,7 +4,7 @@ Confirm with the author before implementing — do not assume. `CLAUDE.md` carri
 one-line index of these so a session knows a decision is open; the reasoning lives
 here. Read this before starting new feature work.
 
-## Settled by the ageing curve (roadmap 1)
+## Settled by the ageing curve
 
 - **Season vs age for curves — settled as season.** Every authored career field is a
   season (`debutSeason`, `peak.season`, `finalSeason`, and both career events), and
@@ -31,7 +31,7 @@ here. Read this before starting new feature work.
   knowledge of the era but not verified record by record. Wrong by a season here and
   there is expected and fine to correct by hand.
 
-## Era questions (roadmap 5, multiple seasons)
+## Era questions (multiple seasons)
 
 **Both of these are now live rather than hypothetical: 1981 is authored and playable,
 and both constants are still 1980's.**
@@ -70,22 +70,31 @@ and both constants are still 1980's.**
 
 ## Circuits and the calendar
 
-- **Circuits have no character.** *(Roadmap 3 opens this door; the rest is undecided.)*
-  The calendar is names and a country, and `simulateSeason` takes a round *count*
-  rather than the calendar, so every round is the same race. Home advantage is the
-  first thing that will need per-round context. Beyond it, what a circuit *is* remains
-  undecided: a power track favouring the Renault turbo, a street circuit favouring
-  grid position, a per-circuit lap time to anchor the cosmetic gaps — each is a
-  separate call about what a circuit does to the score.
+- **Circuits have no character.** *(Home advantage opened the door; the rest is
+  undecided.)* `simulateSeason` now takes the calendar rather than a round count, and
+  each round arrives at the race model as a `RoundContext`. So far that context is one
+  field, `country`, and the only thing reading it is home advantage — two rounds in the
+  same country are still the same race. What a circuit *is* remains undecided: a power
+  track favouring the Renault turbo, a street circuit favouring grid position, a
+  per-circuit lap time to anchor the cosmetic gaps — each is a separate call about what
+  a circuit does to the score, and each is now a field on `RoundContext` rather than a
+  new parameter.
+- **The home-advantage numbers are a first guess.** `homeAdvantageDriver` 1.0 and
+  `homeAdvantageTeam` 0.5, in rating points on both session scores, chosen for
+  plausibility — a home race is worth a tenth or two, not a car upgrade — and never
+  fitted against anything. The calibration figures predate the term and are measured
+  with no host country at all, so nothing in the harness currently disagrees with them.
+  Fitting these would mean deciding first whether `pnpm calibrate` should rotate
+  through a real calendar, which is a change to what the harness measures.
 
-## The market (roadmap 6)
+## The driver market
 
 - **What moves the driver market.** Undecided by the author, and a design conversation
   rather than a coding task. `adaptability` is authored and read by nothing precisely
   because it is reserved for this.
 - **The overall rating weights adaptability at zero.** A display heuristic in
   `packages/data/src/rating.ts`, deliberately paying nothing for a rating the sim never
-  reads. Revisit when roadmap 6 gives it meaning.
+  reads. Revisit when the market gives it meaning.
 
 ## Decided, not yet built
 

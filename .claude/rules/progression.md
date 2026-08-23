@@ -6,8 +6,8 @@ paths:
 # Driver progression — the ageing curve
 
 `ratingsForSeason(career, season, constants?)` turns an authored career into the
-ratings a driver held in a given season. Roadmap 1, and the thing that made driver
-ratings tunable at all.
+ratings a driver held in a given season. The thing that made driver ratings tunable at
+all.
 
 **It is deterministic. There is no `Rng` parameter and none is coming without a
 decision from the author.** Same career in, same ratings out, in every seed. Two

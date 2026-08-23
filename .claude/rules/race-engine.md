@@ -7,14 +7,14 @@ paths:
 
 Four stages, all constants in `race/constants.ts`:
 
-1. **Qualifying** — `0.72·car + 0.28·driver − consistencyPenalty + noise`, sorted → grid.
-   The whole entry list runs, however big it is.
+1. **Qualifying** — `0.72·car + 0.28·driver + home − consistencyPenalty + noise`, sorted
+   → grid. The whole entry list runs, however big it is.
 2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.
    Anyone slower keeps their grid position but is a **DNQ**: `started: false`,
    `raceScore: null`, and *not* a retirement. `retirements` and `classifiedCount`
    count starters only; `nonQualifiers` counts the rest. A field at or under the
    limit is unaffected, so this is inert rather than something to switch off.
-3. **Race** — `0.70·car + 0.30·driver + gridBonus − consistencyPenalty + noise`,
+3. **Race** — `0.70·car + 0.30·driver + gridBonus + home − consistencyPenalty + noise`,
    sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
 4. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
    driver error (from composure). Both always rolled; mechanical takes precedence
@@ -25,8 +25,36 @@ should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 
 is the hook for reliability improving across decades — the per-year curve is not
 defined yet and belongs to the progression model.
 
-`simulateRace(field, rng, constants?)` takes constants as an optional override, which
-is how the calibration tools sweep values without editing source.
+`simulateRace(field, rng, constants?, round?)` takes constants as an optional override,
+which is how the calibration tools sweep values without editing source. `round` is a
+`RoundContext` — *where* the race is being held — and defaults to `{}`, a neutral race
+scored exactly as it was before home advantage existed.
+
+## Home advantage
+
+`homeAdvantageDriver` (1.0) is added to **both** session scores when the round's
+country matches the entrant's `driverCountry`, and `homeAdvantageTeam` (0.5) when it
+matches `teamCountry`. They stack, so an Italian in a Ferrari at Monza collects 1.5
+points and a Brazilian in the same car collects 0.5. Codes are ISO alpha-2, compared
+case- and whitespace-insensitively; anything absent — no round country, no entrant
+country — is simply no match. Set both constants to 0 to switch the term off.
+
+Three properties hold it in place, each with a test:
+
+- **It draws no randomness.** The RNG stream after a race is identical with and
+  without a host country, so where a round is held cannot change what happens at every
+  later round of the season.
+- **A shared bonus is invisible.** Only differences between cars move a result, so a
+  grid where everyone is at home finishes in exactly the order it otherwise would.
+  Most of the 1980 field was British, which means what this really prices is the
+  *visitor's* deficit at a round the paddock treats as home.
+- **The countries are identity, not rating.** They ride on `RaceEntrant`, filled in by
+  `buildField` from `nationality` and `base`; the engine still reads no seed data, and
+  a field built without them races everywhere as a visitor.
+
+The two numbers are a first guess, chosen for plausibility — a home race is worth a
+tenth or two, not a car upgrade — and have never been fitted. The calibration figures
+predate them and describe a neutral race; see `.claude/rules/calibration.md`.
 
 ## Non-qualifiers still draw their dice
 

@@ -1,11 +1,18 @@
 import { RACE_CONSTANTS, type RaceConstants } from "../race/constants.js";
 import { scoreAndSortRaceModel } from "../race/simulateRace.js";
-import type { RaceEntrant, RaceModel } from "../race/types.js";
+import type { RaceEntrant, RaceModel, RoundContext } from "../race/types.js";
 import type { Rng } from "../rng/types.js";
 import type { SeasonResult } from "./types.js";
 
 /**
- * Runs a season: the same field, `rounds` times, through the race model.
+ * Runs a season: the same field, once per round of the calendar, through the
+ * race model.
+ *
+ * The calendar rather than a round count, because a round is now a *place* and
+ * not just a slot — its host country is what turns home advantage on, and every
+ * circuit feature after it hangs off the same `RoundContext`. Its length is the
+ * number of races, so a season of `n` unremarkable rounds is `n` empty objects
+ * and reads as one.
  *
  * Pure and deterministic. One RNG is threaded through every round rather than
  * re-seeding per race, so a season is a single continuous stream — round 7
@@ -20,20 +27,20 @@ import type { SeasonResult } from "./types.js";
  * Results only — no standings. Points are derived from these by
  * `championshipStandings`, never accumulated here.
  *
- * @throws RangeError if `rounds` is not a positive integer, or the field is
- * invalid (which the race model decides).
+ * @throws RangeError if the calendar is empty, or the field is invalid (which
+ * the race model decides).
  */
 export function simulateSeason(
   field: readonly RaceEntrant[],
-  rounds: number,
+  calendar: readonly RoundContext[],
   rng: Rng,
   constants: RaceConstants = RACE_CONSTANTS,
   model: RaceModel = scoreAndSortRaceModel,
 ): SeasonResult {
-  if (!Number.isInteger(rounds) || rounds < 1) {
-    throw new RangeError(`A season needs at least one round, received ${rounds}`);
+  if (calendar.length < 1) {
+    throw new RangeError("A season needs at least one round, received an empty calendar");
   }
 
-  const races = Array.from({ length: rounds }, () => model.simulate(field, rng, constants));
+  const races = calendar.map((round) => model.simulate(field, rng, constants, round));
   return { races };
 }

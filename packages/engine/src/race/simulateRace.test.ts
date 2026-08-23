@@ -44,6 +44,47 @@ function oversubscribedField(size: number): RaceEntrant[] {
   );
 }
 
+/**
+ * The same four cars, differing only in where their driver and team are from.
+ *
+ * `driver-a` sorts first on the id tie-break, so with the noise turned off it
+ * starts from pole whether or not it is at home — which is what makes the race
+ * score comparable across rounds, the grid bonus being equal on both sides.
+ */
+function nationalField(): RaceEntrant[] {
+  const plain = (id: string, driverCountry?: string, teamCountry?: string): RaceEntrant => ({
+    ...entrant(id, `team-${id}`, 70, 70),
+    ...(driverCountry === undefined ? {} : { driverCountry }),
+    ...(teamCountry === undefined ? {} : { teamCountry }),
+  });
+  return [
+    plain("driver-a", "IT", "IT"),
+    plain("driver-b", "IT", "GB"),
+    plain("driver-c", "BR", "IT"),
+    plain("driver-d", "BR", "GB"),
+  ];
+}
+
+/** Scores with no noise at all, so a bonus can be read off exactly. */
+const NO_NOISE: RaceConstants = {
+  ...RACE_CONSTANTS,
+  qualifyingNoise: 0,
+  racingNoise: 0,
+  mechanicalDnfAtZeroReliability: 0,
+  mechanicalDnfAtFullReliability: 0,
+  driverErrorDnfAtZeroComposure: 0,
+  driverErrorDnfAtFullComposure: 0,
+};
+
+/** One car's row, by driver id. */
+function entryOf(result: RaceResult, driverId: string): RaceEntryResult {
+  const entry = result.entries.find((candidate) => candidate.driverId === driverId);
+  if (entry === undefined) {
+    throw new Error(`no entry for ${driverId}`);
+  }
+  return entry;
+}
+
 /** Constants with retirements switched off, to isolate the pace model. */
 const NO_DNFS: RaceConstants = {
   ...RACE_CONSTANTS,
@@ -380,6 +421,97 @@ describe("gaps", () => {
       plain.entries.map((e) => e.gridPosition),
     );
     expect(odd.winnerDriverId).toBe(plain.winnerDriverId);
+  });
+});
+
+describe("home advantage", () => {
+  const italy = { country: "IT" } as const;
+
+  it("is worth nothing at a round that names no country", () => {
+    // The default, and what every caller that does not know its calendar gets:
+    // a race scored exactly as it was before home advantage existed.
+    const withRound = simulateRace(nationalField(), createRng(1), NO_NOISE, {});
+    const without = simulateRace(nationalField(), createRng(1), NO_NOISE);
+    expect(withRound).toEqual(without);
+  });
+
+  it("is worth nothing to a car from somewhere else", () => {
+    const home = simulateRace(nationalField(), createRng(1), NO_NOISE, italy);
+    const neutral = simulateRace(nationalField(), createRng(1), NO_NOISE);
+    // Brazilian driver, British team: at Monza they are visitors twice over.
+    expect(entryOf(home, "driver-d").qualifyingScore).toBeCloseTo(
+      entryOf(neutral, "driver-d").qualifyingScore,
+      10,
+    );
+  });
+
+  it("pays the driver's share, the team's share, or both", () => {
+    const home = simulateRace(nationalField(), createRng(1), NO_NOISE, italy);
+    const neutral = simulateRace(nationalField(), createRng(1), NO_NOISE);
+    const gained = (driverId: string): number =>
+      entryOf(home, driverId).qualifyingScore - entryOf(neutral, driverId).qualifyingScore;
+
+    // An Italian in an Italian car collects both halves; the other two collect
+    // one each, and the constants say which is the larger.
+    expect(gained("driver-a")).toBeCloseTo(
+      NO_NOISE.homeAdvantageDriver + NO_NOISE.homeAdvantageTeam,
+      10,
+    );
+    expect(gained("driver-b")).toBeCloseTo(NO_NOISE.homeAdvantageDriver, 10);
+    expect(gained("driver-c")).toBeCloseTo(NO_NOISE.homeAdvantageTeam, 10);
+    expect(gained("driver-d")).toBeCloseTo(0, 10);
+  });
+
+  it("pays the same into the race as into qualifying", () => {
+    const home = simulateRace(nationalField(), createRng(1), NO_NOISE, italy);
+    const neutral = simulateRace(nationalField(), createRng(1), NO_NOISE);
+    // `driver-a` starts from pole in both, so the grid bonus cancels and what
+    // is left of the difference is the home bonus itself.
+    expect(entryOf(home, "driver-a").gridPosition).toBe(1);
+    expect(entryOf(neutral, "driver-a").gridPosition).toBe(1);
+    expect(
+      (entryOf(home, "driver-a").raceScore ?? 0) - (entryOf(neutral, "driver-a").raceScore ?? 0),
+    ).toBeCloseTo(NO_NOISE.homeAdvantageDriver + NO_NOISE.homeAdvantageTeam, 10);
+  });
+
+  it("changes nobody's order when the whole field is at home", () => {
+    // Only differences between cars move a result, so a bonus everyone collects
+    // is invisible — which is why a British-dominated grid at Brands Hatch is
+    // really about the visitors losing ground.
+    const allBritish = nationalField().map((car) => ({
+      ...car,
+      driverCountry: "GB",
+      teamCountry: "GB",
+    }));
+    const home = simulateRace(allBritish, createRng(4), RACE_CONSTANTS, { country: "GB" });
+    const neutral = simulateRace(allBritish, createRng(4), RACE_CONSTANTS);
+    expect(home.entries.map((e) => e.finishPosition)).toEqual(
+      neutral.entries.map((e) => e.finishPosition),
+    );
+    expect(home.poleDriverId).toBe(neutral.poleDriverId);
+  });
+
+  it("reads a country code however it is written", () => {
+    const shouty = simulateRace(nationalField(), createRng(1), NO_NOISE, { country: " it " });
+    const plain = simulateRace(nationalField(), createRng(1), NO_NOISE, italy);
+    expect(shouty).toEqual(plain);
+  });
+
+  it("switches off entirely when both constants are zero", () => {
+    const off: RaceConstants = { ...NO_NOISE, homeAdvantageDriver: 0, homeAdvantageTeam: 0 };
+    expect(simulateRace(nationalField(), createRng(1), off, italy)).toEqual(
+      simulateRace(nationalField(), createRng(1), off),
+    );
+  });
+
+  it("draws no dice of its own", () => {
+    // A term that consumed randomness would make where a race is held change
+    // every later round of the season, which is not what a home crowd does.
+    const home = createRng(5);
+    simulateRace(nationalField(), home, NO_NOISE, italy);
+    const away = createRng(5);
+    simulateRace(nationalField(), away, NO_NOISE);
+    expect(home.getState()).toEqual(away.getState());
   });
 });
 

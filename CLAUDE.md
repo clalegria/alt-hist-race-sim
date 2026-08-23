@@ -36,7 +36,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 450 tests (180 engine, 53 data, 217 web)
+pnpm test          # 461 tests (189 engine, 55 data, 217 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -83,8 +83,8 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   invites a re-tune, each costs a long measurement loop, and the ratings end up
   chasing whatever was built last rather than 1980. Two overrides, and only two:
   **(a)** the author asks; **(b)** a deep change to how performance is computed — a
-  new term in the race score, a new entity between driver and result (roadmap 1
-  ageing, roadmap 4 engines), a different race model — which changes what a rating
+  new term in the race score, a new entity between driver and result (the ageing
+  curve, engine manufacturers), a different race model — which changes what a rating
   *means*. Even then, say the re-tune is needed and why, and get agreement before
   running the harness. If a change makes a calibration figure visibly wrong, report
   it and stop; do not fix it unprompted.
@@ -96,8 +96,10 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   their authored peak (the default, and what the calibration describes), or at their
   ability in that season via the ageing curve.
 - **Score-and-sort**: v1 race model — sample one performance number per driver from
-  attributes + car + noise, sort, apply DNFs. No lap-by-lap. Lives behind the
-  `RaceModel` interface so a richer model can replace it.
+  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap. Lives
+  behind the `RaceModel` interface so a richer model can replace it.
+- **Round context**: what the engine knows about *where* a round is held. Today one
+  field, `country`; the seam every circuit feature hangs off.
 - **Progression model**: the swappable seam between the two planned modes.
   Interface `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`.
   Implement `EvolutionaryProgression` (random walk + mean reversion) first;
@@ -174,9 +176,9 @@ question is open without carrying the argument.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
   costs strict dominance.
 - **Weekend-form share is a first guess** — 0.5, plausible but never fitted.
-- **Circuits have no character** — roadmap 3 opens the door; what a circuit *does* is
-  undecided.
-- **What moves the driver market** — gates roadmap 6, and a design conversation rather
-  than a coding task. `adaptability` is authored and unread precisely for this.
+- **Circuits have no character** — home advantage opened the door (`RoundContext`);
+  what else a circuit *does* is undecided, as are the two home-advantage numbers.
+- **What moves the driver market** — gates the market, and a design conversation
+  rather than a coding task. `adaptability` is authored and unread precisely for this.
 - **The overall rating weights adaptability at zero** — display heuristic in
-  `apps/web/src/lib/rating.ts`; revisit when roadmap 6 gives the rating meaning.
+  `apps/web/src/lib/rating.ts`; revisit when the market gives the rating meaning.
