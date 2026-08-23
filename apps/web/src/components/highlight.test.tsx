@@ -1,15 +1,16 @@
 /**
  * The standout accent, wherever it appears.
  *
- * Pole, the race winner and both champions are the same idea shown four ways.
- * These tests exist because "make it look coherent" is the sort of thing that
- * quietly stops being true: a fifth place gets the treatment, or one of the four
- * loses it, and nothing else notices.
+ * Pole, the race winner and both champions are the same idea shown four ways,
+ * and the rest of the podium is the same idea again at half strength. These
+ * tests exist because "make it look coherent" is the sort of thing that quietly
+ * stops being true: a fifth place gets the treatment, or one of the four loses
+ * it, and nothing else notices.
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
+import { PODIUM_ROW, STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { seededWorld } from "../test-support.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -43,6 +44,44 @@ describe("the standout accent", () => {
     expect(winnerRow).toContain("winner");
   });
 
+  it("marks the rest of the podium a step below the winner, and stops at third", () => {
+    // Rows in classification order, past the prefix and the header row: the
+    // winner, then second, third, fourth.
+    const rows = renderToStaticMarkup(<RaceClassification race={race} />)
+      .split("<tr")
+      .slice(2);
+    const [first, second, third, fourth] = rows;
+    if (fourth === undefined) {
+      throw new Error("the race classified fewer than four cars");
+    }
+
+    // The two accents are separate strings, so neither can be mistaken for the
+    // other by a substring match.
+    expect(PODIUM_ROW).not.toContain(STANDOUT_ROW);
+    expect(STANDOUT_ROW).not.toContain(PODIUM_ROW);
+
+    expect(first).toContain(STANDOUT_ROW);
+    expect(first).not.toContain(PODIUM_ROW);
+    for (const row of [second, third]) {
+      expect(row).toContain(PODIUM_ROW);
+      expect(row).not.toContain(STANDOUT_ROW);
+    }
+    expect(fourth).not.toContain(PODIUM_ROW);
+    expect(fourth).not.toContain(STANDOUT_ROW);
+    // And nowhere else down the sheet, retirements included.
+    expect(occurrences(rows.join("<tr"), PODIUM_ROW)).toBe(2);
+  });
+
+  it("keeps the podium off every other view", () => {
+    // A front row is not a podium, and a championship table has no podium at
+    // all — borrowing the mark there would say something the sim never claimed.
+    const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
+    const summary = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    for (const html of [quali, summary]) {
+      expect(html).not.toContain(PODIUM_ROW);
+    }
+  });
+
   it("marks both champions on the summary", () => {
     const html = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
     const cards = occurrences(html, TINT);
@@ -63,6 +102,7 @@ describe("the standout accent", () => {
     expect(STANDOUT_SURFACE).toContain("primary");
     expect(STANDOUT_ROW).toContain("primary");
     expect(STANDOUT_TEXT).toContain("primary");
+    expect(PODIUM_ROW).toContain("primary");
 
     const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
     const summary = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);

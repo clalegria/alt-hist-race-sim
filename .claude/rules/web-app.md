@@ -44,6 +44,16 @@ replay, and everything the reader *chose* carries over — only the dice change.
 copies of the action row — sticky bar and page foot — share one confirming flag so
 they cannot disagree.
 
+**The grid leaves through a plain Back**, to the year picker it came from — no
+confirming step, because nothing has been revealed yet and leaving costs the reader
+nothing. It is `actionsFor(...).back`, so the whole button set of every stage still
+comes out of that one pure function; past the grid it is null and "Start again" does
+the job. The year picker's Back is `BackBar` in `App.tsx`, rendered into the **sticky
+bar** — it draws none of its own navigation — so every screen keeps its way out in the
+same place, rather than one of them hiding it under six rows of year buttons.
+**Navigation is always the right-hand end of that bar**, up against the theme toggle,
+on every screen that has any.
+
 **Driver ability is a simulation input, not a display filter.** `world.ratingMode` is
 `"peak"` (authored peaks, the default and the calibrated one) or `"aged"` (each
 driver's ability in that season, via the engine's curve). `RatingModeToggle` renders

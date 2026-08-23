@@ -1,6 +1,5 @@
 import { isPlayable, playableSummary, SEASON_YEARS } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
-import { Button } from "./ui/button.js";
 
 /**
  * Which year to start from.
@@ -11,14 +10,11 @@ import { Button } from "./ui/button.js";
  * file of data rather than a redesign. `isPlayable` is the only thing that
  * decides which are live and `playableSummary` writes the subtitle, so neither
  * the buttons nor the copy can fall out of step with what has been authored.
+ *
+ * Nothing but the choice: the way back lives in the sticky bar, with every other
+ * screen's navigation, and is `BackBar` in `App.tsx`.
  */
-export function SeasonPicker({
-  onStart,
-  onBack,
-}: {
-  onStart: (year: number) => void;
-  onBack: () => void;
-}) {
+export function SeasonPicker({ onStart }: { onStart: (year: number) => void }) {
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
       <header className="flex flex-col gap-2">
@@ -52,12 +48,6 @@ export function SeasonPicker({
             </button>
           );
         })}
-      </div>
-
-      <div>
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { BackBar } from "../App.js";
 import { MODES } from "../lib/modes.js";
 import { LAST_SEASON, PLAYABLE_SEASONS, playableSummary, SEASON_YEARS } from "../lib/seasons.js";
 import { MainMenu } from "./MainMenu.js";
@@ -62,7 +63,7 @@ describe("the main menu", () => {
 });
 
 describe("the season picker", () => {
-  const html = renderToStaticMarkup(<SeasonPicker onStart={noop} onBack={noop} />);
+  const html = renderToStaticMarkup(<SeasonPicker onStart={noop} />);
 
   it("lists the whole range, so the shape of the thing is visible", () => {
     for (const year of [1980, 1990, 2005, LAST_SEASON]) {
@@ -71,11 +72,12 @@ describe("the season picker", () => {
   });
 
   it("offers exactly the seasons that have been authored", () => {
-    // The authored years plus the Back button are live; every other year is
-    // disabled. Counted off `PLAYABLE_SEASONS`, so authoring a season does not
-    // mean editing this.
+    // The authored years are live and every other year is disabled — and the
+    // picker draws nothing else, the way back being in the bar above it.
+    // Counted off `PLAYABLE_SEASONS`, so authoring a season does not mean
+    // editing this.
     const enabled = buttons(html).filter((button) => !isDisabled(button));
-    expect(enabled).toHaveLength(PLAYABLE_SEASONS.length + 1);
+    expect(enabled).toHaveLength(PLAYABLE_SEASONS.length);
     for (const year of PLAYABLE_SEASONS) {
       expect(
         enabled.some((button) => button.includes(`>${year}<`)),
@@ -91,7 +93,10 @@ describe("the season picker", () => {
     expect(html).toContain(playableSummary());
   });
 
-  it("leaves a way back to the menu", () => {
-    expect(html).toContain(">Back<");
+  it("leaves a way back to the menu, in the bar rather than in the page", () => {
+    // Same place the season screen keeps its buttons, so the reader is not
+    // hunting for this one below six rows of years.
+    expect(html).not.toContain(">Back<");
+    expect(renderToStaticMarkup(<BackBar onBack={noop} />)).toContain(">Back<");
   });
 });

@@ -41,6 +41,15 @@ loads alongside this file.
   notice, and the row accent already carries the fact. A test asserts exactly one row
   or card carries the accent per view, since "make it look coherent" is the sort of
   thing that quietly stops being true.
+- **Second and third get the same accent at half strength** (`PODIUM_ROW` /
+  `PODIUM_TEXT`), and only in the race classification — a front row is not a podium
+  and a championship table has no podium at all. The gradient is the design: the
+  winner's fill (`bg-primary/10`, stronger than the bordered `STANDOUT_SURFACE`
+  because a row has no border to carry the accent), a little under half of it, then
+  nothing from fourth down. The two are **separate strings, neither a substring of
+  the other**, because the accent tests tell rows apart by substring match —
+  `PODIUM_TEXT` does contain `STANDOUT_TEXT`, so anything counting *that* has to
+  account for it.
 - **Qualifying is drawn as a starting grid**, not a table: two columns, odd left, even
   right, the right column set back half a row. Rows are a fixed height and even slots
   shift by exactly half of it via `translate-y`, which moves them visually without

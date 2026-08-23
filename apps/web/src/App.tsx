@@ -8,7 +8,8 @@ import type { ModeId } from "./lib/modes.js";
 import { useSeasonStore, type View, type World } from "./store/season.js";
 
 /**
- * What the two forward buttons say, per stage. Null means the button is absent.
+ * What each button says, per stage — the two forward ones, and the way back off
+ * the grid. Null means the button is absent.
  *
  * Pure, and exported, because the button set *is* the navigation: getting it
  * wrong strands the reader mid-season with no way on.
@@ -16,19 +17,23 @@ import { useSeasonStore, type View, type World } from "./store/season.js";
 export function actionsFor(
   view: View,
   rounds: number,
-): { next: string | null; skip: string | null } {
+): { next: string | null; skip: string | null; back: string | null } {
   switch (view.kind) {
     case "grid":
-      return { next: "Simulate next session", skip: "Simulate full season" };
+      // The grid has revealed nothing yet, so leaving it costs the reader
+      // nothing and needs no confirming: one button, straight back to the year
+      // picker it came from. Past here that job belongs to "Start again",
+      // which has a season on screen to ask about.
+      return { next: "Simulate next session", skip: "Simulate full season", back: "Back" };
     case "qualifying":
-      return { next: "Simulate next session", skip: "Simulate rest of the season" };
+      return { next: "Simulate next session", skip: "Simulate rest of the season", back: null };
     case "race":
       // Nothing left to skip past once the last race has been run.
       return view.round + 1 < rounds
-        ? { next: "Simulate next session", skip: "Simulate rest of the season" }
-        : { next: "Show season summary", skip: null };
+        ? { next: "Simulate next session", skip: "Simulate rest of the season", back: null }
+        : { next: "Show season summary", skip: null, back: null };
     case "summary":
-      return { next: null, skip: null };
+      return { next: null, skip: null, back: null };
   }
 }
 
@@ -68,6 +73,27 @@ function Shell({ bar, children }: { bar?: React.ReactNode; children: React.React
   );
 }
 
+/**
+ * The sticky-bar content for a screen that is only a choice: one way back.
+ *
+ * In the bar rather than under the choice itself, so every screen keeps its
+ * navigation in the same place — the season screen's buttons sit here too, and
+ * a Back button below six rows of year buttons is somewhere nobody looks.
+ *
+ * Pushed to the right end of the bar, up against the theme toggle, because that
+ * is where the season screen's buttons sit: navigation is always the right-hand
+ * side of the bar, whatever screen the reader is on.
+ */
+export function BackBar({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+      <Button variant="outline" onClick={onBack}>
+        Back
+      </Button>
+    </div>
+  );
+}
+
 interface SeasonActions {
   readonly view: View;
   readonly rounds: number;
@@ -78,6 +104,8 @@ interface SeasonActions {
   /** True while the grid is being rearranged, which is not a moment to step on. */
   readonly editingGrid: boolean;
   readonly onStartAgain: () => void;
+  /** Out of the grid, back to the year picker. */
+  readonly onBack: () => void;
   readonly onMainMenu: () => void;
   readonly onRestart: () => void;
   readonly onCancel: () => void;
@@ -130,6 +158,12 @@ function Actions(props: SeasonActions) {
           {actions.skip}
         </Button>
       )}
+      {/* The same trailing slot in both cases: the way off this screen. */}
+      {actions.back === null ? null : (
+        <Button variant="outline" onClick={props.onBack}>
+          {actions.back}
+        </Button>
+      )}
       {props.view.kind === "grid" ? null : (
         <Button variant="outline" onClick={props.onStartAgain}>
           Start again
@@ -144,6 +178,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
   const skipToEnd = useSeasonStore((state) => state.skipToEnd);
   const restartSeason = useSeasonStore((state) => state.restartSeason);
   const openMenu = useSeasonStore((state) => state.openMenu);
+  const openSeasonSetup = useSeasonStore((state) => state.openSeasonSetup);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
   const setLineup = useSeasonStore((state) => state.setLineup);
 
@@ -164,6 +199,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
     onStartAgain: () => {
       setConfirming(true);
     },
+    onBack: openSeasonSetup,
     onMainMenu: () => {
       setConfirming(false);
       openMenu();
@@ -239,8 +275,8 @@ export function App() {
       );
     case "season-setup":
       return (
-        <Shell>
-          <SeasonPicker onStart={startSeason} onBack={openMenu} />
+        <Shell bar={<BackBar onBack={openMenu} />}>
+          <SeasonPicker onStart={startSeason} />
         </Shell>
       );
     case "season":

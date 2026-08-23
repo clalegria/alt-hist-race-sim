@@ -1,6 +1,6 @@
 import { pointsForPosition, type RaceEntryResult, type RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
-import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
+import { PODIUM_ROW, PODIUM_TEXT, STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
@@ -58,15 +58,21 @@ export function RaceClassification({ race }: { race: RaceResult }) {
         {classify(race).map((entry) => {
           const finished = entry.finishPosition !== null;
           const won = entry.finishPosition === 1;
+          // The other two on the podium, marked a step below the winner.
+          const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
           // The default scale, since nothing yet runs a season on another one.
           const points =
             entry.finishPosition === null ? 0 : pointsForPosition(entry.finishPosition);
           return (
-            <TableRow key={entry.driverId} className={cn("border-border/60", won && STANDOUT_ROW)}>
+            <TableRow
+              key={entry.driverId}
+              className={cn("border-border/60", won && STANDOUT_ROW, podium && PODIUM_ROW)}
+            >
               <TableCell
                 className={cn(
                   "text-right tabular-nums",
                   won && cn(STANDOUT_TEXT, "font-semibold"),
+                  podium && PODIUM_TEXT,
                   finished || "text-muted-foreground",
                 )}
               >
@@ -93,7 +99,11 @@ export function RaceClassification({ race }: { race: RaceResult }) {
                 {statusOf(entry)}
               </TableCell>
               <TableCell
-                className={cn("text-right font-semibold tabular-nums", won && STANDOUT_TEXT)}
+                className={cn(
+                  "text-right font-semibold tabular-nums",
+                  won && STANDOUT_TEXT,
+                  podium && PODIUM_TEXT,
+                )}
               >
                 {/* Blank rather than a column of zeroes: only six cars score. */}
                 {points === 0 ? "" : points}

@@ -36,7 +36,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 448 tests (180 engine, 53 data, 215 web)
+pnpm test          # 450 tests (180 engine, 53 data, 217 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .

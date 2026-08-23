@@ -410,10 +410,13 @@ describe("a settled championship", () => {
 });
 
 describe("the buttons", () => {
-  it("offers a step and a skip on the grid, and no way back", () => {
+  it("offers a step, a skip and a way back on the grid", () => {
+    // Back only here: nothing has been revealed yet, so leaving costs nothing.
+    // Past the grid it is "Start again" that asks where to.
     expect(actionsFor({ kind: "grid" }, ROUNDS)).toEqual({
       next: "Simulate next session",
       skip: "Simulate full season",
+      back: "Back",
     });
   });
 
@@ -421,6 +424,8 @@ describe("the buttons", () => {
     for (const round of [0, 5, ROUNDS - 2]) {
       expect(actionsFor({ kind: "qualifying", round }, ROUNDS).next).toBe("Simulate next session");
       expect(actionsFor({ kind: "race", round }, ROUNDS).skip).toBe("Simulate rest of the season");
+      // A season being revealed is left through "Start again", not through Back.
+      expect(actionsFor({ kind: "race", round }, ROUNDS).back).toBeNull();
     }
     // Qualifying for the last round still has a race left to skip past.
     expect(actionsFor({ kind: "qualifying", round: ROUNDS - 1 }, ROUNDS).skip).toBe(
@@ -432,10 +437,15 @@ describe("the buttons", () => {
     expect(actionsFor({ kind: "race", round: ROUNDS - 1 }, ROUNDS)).toEqual({
       next: "Show season summary",
       skip: null,
+      back: null,
     });
   });
 
   it("offers nothing forward from the summary", () => {
-    expect(actionsFor({ kind: "summary" }, ROUNDS)).toEqual({ next: null, skip: null });
+    expect(actionsFor({ kind: "summary" }, ROUNDS)).toEqual({
+      next: null,
+      skip: null,
+      back: null,
+    });
   });
 });
