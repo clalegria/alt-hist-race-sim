@@ -16,5 +16,10 @@
   { "id": "shadow",     "name": "Shadow",     "base": "GB", "foundedYear": 1973 },
   { "id": "theodore",   "name": "Theodore",   "base": "HK", "foundedYear": 1977 },
   { "id": "march",      "name": "March",      "base": "GB", "foundedYear": 1969 },
-  { "id": "toleman",    "name": "Toleman",    "base": "GB", "foundedYear": 1981 }
+  { "id": "toleman",    "name": "Toleman",    "base": "GB", "foundedYear": 1981 },
+  { "id": "spirit",     "name": "Spirit",     "base": "GB", "foundedYear": 1981 },
+  { "id": "ram",        "name": "RAM",        "base": "GB", "foundedYear": 1976 },
+  { "id": "zakspeed",   "name": "Zakspeed",   "base": "DE", "foundedYear": 1968 },
+  { "id": "minardi",    "name": "Minardi",    "base": "IT", "foundedYear": 1979 },
+  { "id": "haas_lola",  "name": "Haas Lola",  "base": "GB", "foundedYear": 1984 }
 ]

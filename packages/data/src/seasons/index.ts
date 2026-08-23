@@ -18,9 +18,13 @@
 import type { SeasonSeed } from "../types.js";
 import season1980 from "./1980.json";
 import season1981 from "./1981.json";
+import season1982 from "./1982.json";
+import season1983 from "./1983.json";
+import season1984 from "./1984.json";
+import season1985 from "./1985.json";
 
 /** Add a season here, and nowhere else. Order does not matter. */
-const AUTHORED: readonly SeasonSeed[] = [season1980, season1981];
+const AUTHORED: readonly SeasonSeed[] = [season1980, season1981, season1982, season1983, season1984, season1985];
 
 /** Authored seasons by year. */
 export const seasons: ReadonlyMap<number, SeasonSeed> = new Map(

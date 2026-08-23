@@ -1,8 +1,13 @@
 [
-  { "id": "ford",       "name": "Ford",       "base": "GB" },
-  { "id": "renault",    "name": "Renault",    "base": "FR" },
-  { "id": "ferrari",    "name": "Ferrari",    "base": "IT" },
-  { "id": "alfa_romeo", "name": "Alfa Romeo", "base": "IT" },
-  { "id": "matra",      "name": "Matra",      "base": "FR" },
-  { "id": "hart",       "name": "Hart",       "base": "GB" }
+  { "id": "ford",           "name": "Ford",           "base": "GB" },
+  { "id": "renault",        "name": "Renault",        "base": "FR" },
+  { "id": "ferrari",        "name": "Ferrari",        "base": "IT" },
+  { "id": "alfa_romeo",     "name": "Alfa Romeo",     "base": "IT" },
+  { "id": "matra",          "name": "Matra",          "base": "FR" },
+  { "id": "hart",           "name": "Hart",           "base": "GB" },
+  { "id": "bmw",            "name": "BMW",            "base": "DE" },
+  { "id": "tag",            "name": "TAG Porsche",    "base": "DE" },
+  { "id": "honda",          "name": "Honda",          "base": "JP" },
+  { "id": "motori_moderni", "name": "Motori Moderni", "base": "IT" },
+  { "id": "zakspeed",       "name": "Zakspeed",       "base": "DE" }
 ]

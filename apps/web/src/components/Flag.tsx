@@ -7,6 +7,7 @@ import {
   CA,
   CH,
   CL,
+  CO,
   DE,
   ES,
   FI,
@@ -21,6 +22,7 @@ import {
   NZ,
   SE,
   US,
+  VE,
   ZA,
 } from "country-flag-icons/react/3x2";
 import { cn } from "../lib/utils.js";
@@ -43,7 +45,7 @@ import { cn } from "../lib/utils.js";
  * quieter than a wrong one.
  */
 const FLAGS: Readonly<Record<string, React.ComponentType<{ className?: string; title?: string }>>> =
-  { AR, AT, AU, BE, BR, CA, CH, CL, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, SE, US, ZA };
+  { AR, AT, AU, BE, BR, CA, CH, CL, CO, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, SE, US, VE, ZA };
 
 export function Flag({
   country,

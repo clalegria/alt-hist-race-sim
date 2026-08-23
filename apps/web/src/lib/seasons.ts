@@ -16,7 +16,7 @@
 import { authoredSeasons, hasSeason, type SeasonSeed, seasonSeed } from "@alt-hist/data";
 
 /** The earliest and latest years the picker draws. Not what has been authored. */
-export const FIRST_SEASON = 1980;
+export const FIRST_SEASON = 1950;
 export const LAST_SEASON = 2026;
 
 /** Every year in the range, authored or not: the shape of the picker. */
