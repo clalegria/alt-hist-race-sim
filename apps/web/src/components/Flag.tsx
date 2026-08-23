@@ -20,6 +20,7 @@ import {
   MX,
   NL,
   NZ,
+  PT,
   SE,
   US,
   VE,
@@ -45,7 +46,7 @@ import { cn } from "../lib/utils.js";
  * quieter than a wrong one.
  */
 const FLAGS: Readonly<Record<string, React.ComponentType<{ className?: string; title?: string }>>> =
-  { AR, AT, AU, BE, BR, CA, CH, CL, CO, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, SE, US, VE, ZA };
+  { AR, AT, AU, BE, BR, CA, CH, CL, CO, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, PT, SE, US, VE, ZA };
 
 export function Flag({
   country,
