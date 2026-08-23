@@ -1,37 +1,20 @@
-import { pointsForPosition, type RaceEntryResult, type RaceResult } from "@alt-hist/engine";
+import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
 import { PODIUM_ROW, PODIUM_TEXT, STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
+import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
- * Orders a race the way a classification sheet does: finishers by position,
- * then the retirements, then the cars that never started — the last two by
- * grid slot, since they have no finishing position to sort on.
+ * Orders a race the way a classification sheet does.
+ *
+ * The comparator lives in `lib/results.ts` because a team's expansion in the
+ * championship table orders its own two or three cars by exactly the same rule,
+ * and two copies of "how a race sheet is ordered" would drift.
  */
 function classify(race: RaceResult): readonly RaceEntryResult[] {
-  const byGrid = (a: RaceEntryResult, b: RaceEntryResult) => a.gridPosition - b.gridPosition;
-  return [
-    ...race.entries
-      .filter((entry) => entry.finishPosition !== null)
-      .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0)),
-    ...race.entries.filter((entry) => entry.started && entry.retired).sort(byGrid),
-    ...race.entries.filter((entry) => !entry.started).sort(byGrid),
-  ];
-}
-
-function statusOf(entry: RaceEntryResult): string {
-  if (!entry.started) {
-    return "Did not qualify";
-  }
-  if (entry.dnfCause === "mechanical") {
-    return "Retired — mechanical";
-  }
-  if (entry.dnfCause === "driver-error") {
-    return "Retired — driver error";
-  }
-  return "Finished";
+  return [...race.entries].sort(byClassification);
 }
 
 function gapOf(entry: RaceEntryResult): string {
@@ -60,9 +43,7 @@ export function RaceClassification({ race }: { race: RaceResult }) {
           const won = entry.finishPosition === 1;
           // The other two on the podium, marked a step below the winner.
           const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
-          // The default scale, since nothing yet runs a season on another one.
-          const points =
-            entry.finishPosition === null ? 0 : pointsForPosition(entry.finishPosition);
+          const points = pointsFor(entry);
           return (
             <TableRow
               key={entry.driverId}

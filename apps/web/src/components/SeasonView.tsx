@@ -125,7 +125,15 @@ function Champion({
 }
 
 /** Both championship tables over whatever slice of the season is given. */
-function Standings({ season, midSeason }: { season: SeasonResult; midSeason: boolean }) {
+function Standings({
+  season,
+  calendar,
+  midSeason,
+}: {
+  season: SeasonResult;
+  calendar: readonly CalendarRace[];
+  midSeason: boolean;
+}) {
   const drivers = useMemo(() => championshipStandings(season), [season]);
   const constructors = useMemo(() => constructorStandings(season), [season]);
   const when = midSeason
@@ -139,12 +147,16 @@ function Standings({ season, midSeason }: { season: SeasonResult; midSeason: boo
         description={when}
         nameColumn="Driver"
         standings={drivers}
+        season={season}
+        calendar={calendar}
       />
       <StandingsTable
         title="Constructors&rsquo; Championship"
         description={when}
         nameColumn="Team"
         standings={constructors}
+        season={season}
+        calendar={calendar}
       />
     </>
   );
@@ -217,7 +229,7 @@ function Summary({
         />
       </div>
       <SeasonCalendar season={season} calendar={seed.calendar} teamFor={teamFor} />
-      <Standings season={season} midSeason={false} />
+      <Standings season={season} calendar={seed.calendar} midSeason={false} />
       <SeasonGrid field={field} seasonYear={year} changes={changes} engineChanges={supplyChanges} />
     </>
   );

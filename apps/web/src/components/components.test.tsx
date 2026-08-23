@@ -8,25 +8,58 @@
  */
 
 import { driversById } from "@alt-hist/data";
-import { championshipStandings, constructorStandings, SEASON_CONSTANTS } from "@alt-hist/engine";
+import {
+  championshipStandings,
+  constructorStandings,
+  type RaceEntryResult,
+  SEASON_CONSTANTS,
+} from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName, entryName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
+import { driverRounds, teamRounds } from "../lib/results.js";
 import { positionsOf } from "../lib/standings.js";
-import { findWorld, seededWorld, starterCount, teamCount, YEAR } from "../test-support.js";
+import type { World } from "../store/season.js";
+import { findWorld, SEED, seededWorld, starterCount, teamCount, YEAR } from "../test-support.js";
 
 import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
+import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
+import { StandingsTable } from "./StandingsTable.js";
 
 const world = seededWorld();
 /** Counted off the grid rather than written down — it is going to grow. */
 const SEATS = world.field.length;
 const TEAMS = teamCount(world);
 const STARTERS = starterCount(world);
+
+/** How many times a string appears. No regex: some of these contain slashes. */
+function occurrencesOf(html: string, marker: string): number {
+  return html.split(marker).length - 1;
+}
+
+/** A finishing result row, for the car counts the seed data does not contain. */
+function syntheticEntry(driverId: string, gridPosition: number): RaceEntryResult {
+  return {
+    driverId,
+    teamId: "team",
+    gridPosition,
+    started: true,
+    finishPosition: gridPosition,
+    retired: false,
+    dnfCause: null,
+    mechanicalFailure: false,
+    driverError: false,
+    qualifyingScore: 0,
+    raceScore: 0,
+    qualifyingGapToPole: 0,
+    raceGapToWinner: null,
+  };
+}
 
 describe("the race classification", () => {
   const race = world.season.races[0];
@@ -356,5 +389,132 @@ describe("the starting grid layout", () => {
     for (const entry of race.entries) {
       expect(html, entry.teamId).toContain(teamName(entry.teamId));
     }
+  });
+});
+
+/**
+ * The championship expansions.
+ *
+ * Opening one is a click and there is no DOM here, so the two halves are
+ * checked separately: that every row of the table *offers* the expansion and
+ * gives nothing away while closed, and that the panel itself draws what it
+ * should when rendered directly.
+ */
+describe("expanding a row of the championship", () => {
+  const drivers = championshipStandings(world.season);
+  const teams = constructorStandings(world.season);
+  const firstRound = SEED.calendar[0];
+  if (firstRound === undefined) {
+    throw new Error("the season has no calendar");
+  }
+
+  const closed = renderToStaticMarkup(
+    <StandingsTable
+      title="Drivers’ Championship"
+      description="Final classification."
+      nameColumn="Driver"
+      standings={drivers}
+      season={world.season}
+      calendar={SEED.calendar}
+    />,
+  );
+
+  it("offers every row, and opens none of them", () => {
+    expect(occurrencesOf(closed, 'aria-expanded="false"')).toBe(drivers.length);
+    expect(closed).not.toContain('aria-expanded="true"');
+  });
+
+  it("keeps the race-by-race out of the closed table", () => {
+    // A summary that shipped every driver's fourteen rounds in the markup would
+    // be the whole season rendered 28 times over.
+    expect(closed).not.toContain(firstRound.name);
+    expect(closed).not.toContain("Did not qualify");
+  });
+
+  it("says what a row does", () => {
+    expect(closed).toContain("Select a driver");
+  });
+
+  it("gives a driver one row per round, naming each one", () => {
+    const someone = drivers[0]?.driverId ?? "";
+    const html = renderToStaticMarkup(
+      <RaceByRace rounds={driverRounds(world.season, someone)} calendar={SEED.calendar} />,
+    );
+    // Every round of the year, named, plus the header row.
+    expect(html.split("<tr").length - 1).toBe(SEED.calendar.length + 1);
+    for (const round of SEED.calendar) {
+      expect(html, `missing ${round.name}`).toContain(round.name);
+    }
+  });
+
+  it("gives a team a row per car, and names the round once", () => {
+    const teamId = teams[0]?.teamId ?? "";
+    const rounds = teamRounds(world.season, teamId);
+    const html = renderToStaticMarkup(
+      <RaceByRace rounds={rounds} calendar={SEED.calendar} showDriver={true} />,
+    );
+    expect(html.split("<tr").length - 1).toBe(rounds.length + 1);
+    // Two cars in a round must not read as two separate races.
+    expect(occurrencesOf(html, firstRound.name)).toBe(1);
+    // And every one of the team's drivers is named, however many there are.
+    for (const driverId of new Set(rounds.map((round) => round.entry.driverId))) {
+      expect(html, driverId).toContain(driverName(driverId));
+    }
+  });
+
+  it("draws a one-car and a three-car round the same way", () => {
+    // Synthetic, because no authored season enters anything but two cars — and
+    // the earlier eras this is being built for did both.
+    const rounds = [
+      { round: 0, entry: syntheticEntry("solo", 1), points: 0 },
+      { round: 1, entry: syntheticEntry("one", 1), points: 0 },
+      { round: 1, entry: syntheticEntry("two", 2), points: 0 },
+      { round: 1, entry: syntheticEntry("three", 3), points: 0 },
+    ];
+    const html = renderToStaticMarkup(
+      <RaceByRace rounds={rounds} calendar={SEED.calendar} showDriver={true} />,
+    );
+    expect(html.split("<tr").length - 1).toBe(rounds.length + 1);
+    // Round 2 is written once for its three cars, round 1 once for its one.
+    const second = SEED.calendar[1];
+    if (second === undefined) {
+      throw new Error("the season has only one round");
+    }
+    expect(occurrencesOf(html, firstRound.name)).toBe(1);
+    expect(occurrencesOf(html, second.name)).toBe(1);
+  });
+
+  it("names a status only when something went wrong", () => {
+    // A season is mostly finishes, and "Finished" fourteen times down the page
+    // says nothing the position column has not already said. The rounds that
+    // got away are the whole reason to open the panel.
+    const bothOutcomes = (of: World): string | undefined =>
+      of.field.find((entrant) => {
+        const rounds = driverRounds(of.season, entrant.driverId);
+        return (
+          rounds.some((round) => round.entry.finishPosition !== null) &&
+          rounds.some((round) => round.entry.retired)
+        );
+      })?.driverId;
+
+    // Searched for rather than assumed: a driver who finished everything would
+    // pass the first assertion for the wrong reason.
+    const mixed = findWorld((candidate) => bothOutcomes(candidate) !== undefined);
+    const rounds = driverRounds(mixed.season, bothOutcomes(mixed) ?? "");
+    const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
+
+    expect(html).not.toContain("Finished");
+    // One line per round that ended badly, and no more than that.
+    expect(occurrencesOf(html, "Retired")).toBe(
+      rounds.filter((round) => round.entry.retired).length,
+    );
+    expect(occurrencesOf(html, "Did not qualify")).toBe(
+      rounds.filter((round) => !round.entry.started).length,
+    );
+  });
+
+  it("has nothing to draw for a competitor who entered no rounds", () => {
+    const html = renderToStaticMarkup(<RaceByRace rounds={[]} calendar={SEED.calendar} />);
+    expect(html).toContain("Entered no rounds");
   });
 });

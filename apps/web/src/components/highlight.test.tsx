@@ -8,11 +8,15 @@
  * it, and nothing else notices.
  */
 
+import { championshipStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { PODIUM_ROW, STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { seededWorld } from "../test-support.js";
+import { driverRounds } from "../lib/results.js";
+import type { World } from "../store/season.js";
+import { findWorld, SEED, seededWorld } from "../test-support.js";
 import { QualifyingResults } from "./QualifyingResults.js";
+import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonView } from "./SeasonView.js";
 
@@ -79,6 +83,32 @@ describe("the standout accent", () => {
     const summary = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
     for (const html of [quali, summary]) {
       expect(html).not.toContain(PODIUM_ROW);
+    }
+  });
+
+  it("leaves a driver's own season unaccented, wins and all", () => {
+    // The expansion under a championship row is a season, not a race. Accenting
+    // its wins would put four or five of them on a page whose accent means "won
+    // the championship", and the podium tint belongs to the race that was run.
+    //
+    // The season is *searched* for a driver holding both a win and a podium,
+    // rather than assumed: on a season with neither, this would pass by having
+    // nothing to accent in the first place.
+    const leader = (candidate: World) => championshipStandings(candidate.season)[0];
+    const won = findWorld((candidate) => {
+      const standing = leader(candidate);
+      return standing !== undefined && standing.wins > 0 && standing.podiums > standing.wins;
+    });
+    const driverId = leader(won)?.driverId ?? "";
+    const rounds = driverRounds(won.season, driverId);
+
+    const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
+    // The row fills only. `STANDOUT_TEXT` is "text-primary", which is a
+    // substring of the `text-primary/80` a retirement's status line carries in
+    // the classification and here — the same trap the note on `PODIUM_TEXT`
+    // describes, so the fills are what this can honestly assert.
+    for (const accent of [STANDOUT_ROW, PODIUM_ROW]) {
+      expect(html, accent).not.toContain(accent);
     }
   });
 

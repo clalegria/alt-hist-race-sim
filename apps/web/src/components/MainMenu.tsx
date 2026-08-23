@@ -50,7 +50,7 @@ export function MainMenu({ onChoose }: { onChoose: (mode: ModeId) => void }) {
         <p className="text-muted-foreground max-w-prose text-sm">
           Start from a real season, then let it run somewhere else. Every result is simulated from
           the drivers and cars as they were, so the history you get is plausible — and never the one
-          that happened.
+          that happened in real life.
         </p>
       </header>
 

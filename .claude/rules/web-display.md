@@ -85,6 +85,34 @@ loads alongside this file.
   both out of the markup and fails if they drift. Below `sm` the stagger drops to one
   column. Cars outside the cut are listed apart — they never form up, and slotting
   them in would put the wrong drivers on the wrong side.
+- **Every row of the summary's championship tables opens into its own season.**
+  `StandingsTable` owns the toggle and `RaceByRace` draws the panel, so the drivers'
+  and constructors' tables get the expansion from one place — the same reason they
+  share the table itself. The control is the **name**, with the calendar's `▶` chevron
+  and `aria-expanded`, rather than a separate button: one action does not deserve two
+  tab stops. The chevron is a text glyph, not an SVG, because a test counts one flag
+  per row by counting `<svg>`.
+  A driver's panel is a row per round; **a team's is a row per _car_** — one, two or
+  three of them — with the round columns written once and blanked on the cars beneath,
+  so a three-car round does not read as three races. Those cars are ordered by **where
+  their drivers finished the championship, not that race**: race order sounds obvious
+  and reads badly, because the same two names swap places round after round and a
+  reader following one of them has to find the name again every line. Rounds a
+  competitor did not enter are **left out rather than shown as blanks**, which keeps the
+  gap visible in the round numbers once the market can sign a driver mid-season. Both
+  come from `lib/results.ts`, which walks the same result rows the standings do — a test
+  asserts the panel's points add up to the total on the row above it, since two walks
+  over one set of results have no excuse to disagree.
+  **The status column speaks only when something went wrong.** A season is mostly
+  finishes, and a column reading "Finished" fourteen times says nothing the position
+  beside it has not; retirements, their cause, and non-qualifications are what a reader
+  opens the panel for. The full classification still labels every car, because there a
+  finish is one row among twenty-eight rather than the whole page.
+  The panel is **deliberately unaccented**: `lib/highlight.ts` means "won the thing on
+  screen", and a season with five wins in it would put five of them on a page whose
+  accent is the champion. A win is marked by weight. Note when asserting this that
+  `STANDOUT_TEXT` ("text-primary") is a substring of the `text-primary/80` a retirement's
+  status carries, so only the row *fills* can be counted.
 - **A race shows its result and the championship side by side**, standings cut to
   position/name/points and the top eight. Movement arrows come from running
   `championshipStandings` over one fewer race and comparing, which costs nothing

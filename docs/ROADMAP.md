@@ -20,9 +20,6 @@ without a measuring instrument means authoring them blind.
 edit-grid half pays for itself immediately because it is the screen used while
 authoring a season. Ship in any order:
 
-- **Expand a driver in the season summary.** Clicking a driver opens their race-by-race
-  results for that season.
-- **Expand a team in the season summary.** The same, per team — every round, both cars.
 - **Filter out drivers who had already retired** in real life before the season being
   edited, on the edit-grid screen.
 - **Filter out drivers who were not yet rookies** in that season, likewise. Both

@@ -30,7 +30,7 @@ export function TitleBanner({
         <Flag country={country} title={country} className="h-3.5 w-5" />
       )}
       <span className={cn("font-semibold", STANDOUT_TEXT)}>{name}</span>
-      <span>{`wins the ${title}’ Championship`}</span>
+      <span>{`wins the ${title}’ Championship!`}</span>
     </p>
   );
 }
