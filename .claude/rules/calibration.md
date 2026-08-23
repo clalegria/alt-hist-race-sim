@@ -13,6 +13,12 @@ when the author asks or when a deep change to how performance is computed makes 
 old values a different claim. The figures here are the record of what was measured,
 not an invitation to re-measure.
 
+**Do not run the harness to check anything, either** — not to confirm a figure below,
+not to see whether a change moved something. It is a long measurement loop that answers
+a question nobody asked, and the numbers it prints are not a pass/fail. Nothing in the
+test suite runs it, and nothing should: no test may depend on an authored rating or on
+what a particular seed produced.
+
 **Every figure below describes `buildField`'s default `peak` mode**, where drivers
 race at their authored peaks. The `aged` mode added in roadmap 1 produces a different
 1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated

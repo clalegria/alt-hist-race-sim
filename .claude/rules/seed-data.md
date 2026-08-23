@@ -37,6 +37,11 @@ the JSON drift apart.
   are tuned via the Monte Carlo harness, never guessed in code. Car ratings have had
   two calibration passes against 1980; driver ratings deliberately have not, and
   cannot be until the ageing curve exists (`docs/DECISIONS.md`).
+- **No test reads a value out of this JSON and asserts on it** — not a rating, not a
+  peak season, not a count of drivers or entries. The tests here derive what they need
+  (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a steep decline")
+  so the author can retune freely and add entries without going red. Tuning these files
+  must never be a reason to edit a test.
 - All five driver attributes share polarity: higher = better. `composure` replaced
   "mistakes" for this reason (low composure = crash-prone).
 - 13 drivers hold no 1980 seat. They exist in the pool, available to the market.

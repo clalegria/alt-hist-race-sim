@@ -8,11 +8,13 @@
  * navigation logic.
  */
 
+import { season1980 } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
   constructorsTitleClinchedBy,
   driversTitleClinchedBy,
+  type SeasonResult,
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -20,29 +22,42 @@ import { actionsFor } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
-import { createWorld, type View } from "./store/season.js";
+import { driverOverall } from "./lib/rating.js";
+import type { View, World } from "./store/season.js";
+import { findWorld, seededWorld, starterCount, teamCount } from "./test-support.js";
 
-const world = createWorld(3, 1980);
+const world = seededWorld();
 const ROUNDS = world.season.races.length;
+/** Read off the grid, never written down: the field is going to grow. */
+const SEATS = world.field.length;
+const TEAMS = teamCount(world);
+const STARTERS = starterCount(world);
+/** Round names come from the authored calendar, which is being re-authored too. */
+const FIRST_ROUND = season1980.calendar[0];
+const LAST_ROUND = season1980.calendar.at(-1);
+if (FIRST_ROUND === undefined || LAST_ROUND === undefined) {
+  throw new Error("the authored season has no calendar");
+}
 
-function render(view: View): string {
-  return renderToStaticMarkup(<SeasonView world={world} view={view} />);
+function render(view: View, of: World = world): string {
+  return renderToStaticMarkup(<SeasonView world={of} view={view} />);
 }
 
 describe("the opening grid", () => {
   const html = render({ kind: "grid" });
 
   it("shows the teams and their drivers", () => {
-    expect(html).toContain("Williams");
-    expect(html).toContain("Alan Jones");
-    expect(html).toContain("Nelson Piquet");
+    for (const entrant of world.field) {
+      expect(html, entrant.driverId).toContain(driverName(entrant.driverId));
+      expect(html, entrant.teamId).toContain(teamName(entrant.teamId));
+    }
   });
 
   it("reveals nothing about the season yet", () => {
     // The point of starting here: no results, no standings, no championship.
     expect(html).not.toContain("Championship");
     expect(html).not.toContain("Qualifying");
-    expect(html).not.toContain("Argentine GP");
+    expect(html).not.toContain(FIRST_ROUND.name);
     expect(html).not.toContain("Pts");
   });
 });
@@ -66,11 +81,9 @@ describe("the driver ability toggle", () => {
   });
 
   it("describes the other mode once it is chosen", () => {
-    const aged = renderToStaticMarkup(
-      <SeasonView world={createWorld(3, 1980, "aged")} view={{ kind: "grid" }} />,
-    );
+    const aged = render({ kind: "grid" }, seededWorld(3, "aged"));
     expect(aged).toContain("rookies are raw");
-    expect(aged).toContain("1980");
+    expect(aged).toContain(String(world.year));
   });
 
   it("stays off every page after the grid", () => {
@@ -86,12 +99,22 @@ describe("the driver ability toggle", () => {
   });
 
   it("ages the grid it is showing", () => {
-    const aged = renderToStaticMarkup(
-      <SeasonView world={createWorld(3, 1980, "aged")} view={{ kind: "grid" }} />,
+    // Whoever the curve moves most, rather than a driver named here: the two
+    // grids must show different numbers for them.
+    const agedWorld = seededWorld(3, "aged");
+    const aged = render({ kind: "grid" }, agedWorld);
+    const agedOverall = new Map(
+      agedWorld.field.map((entrant) => [entrant.driverId, driverOverall(entrant.driver)]),
     );
-    // Prost is a 25-year-old rookie in 1980; at his peak he is a 94 overall.
-    expect(html).toContain(">94<");
-    expect(aged).not.toContain(">94<");
+    const moved = world.field.find(
+      (entrant) => agedOverall.get(entrant.driverId) !== driverOverall(entrant.driver),
+    );
+    if (moved === undefined) {
+      throw new Error("no driver on the grid is a different rating at their real age");
+    }
+
+    expect(html).toContain(`>${driverOverall(moved.driver)}<`);
+    expect(aged).toContain(`>${agedOverall.get(moved.driverId)}<`);
   });
 });
 
@@ -99,15 +122,16 @@ describe("a qualifying session", () => {
   const html = render({ kind: "qualifying", round: 0 });
 
   it("is titled with the round it belongs to", () => {
-    expect(html).toContain("Argentine GP");
-    expect(html).toContain("Buenos Aires");
+    expect(html).toContain(FIRST_ROUND.name);
+    expect(html).toContain(FIRST_ROUND.circuit);
     expect(html).toContain("Qualifying");
   });
 
   it("forms up the whole entry list, pole first", () => {
     expect(html).toContain("pole");
-    expect(html.split("<li").length - 1).toBe(28); // 26 on the grid, 2 alongside
-    expect(html).toContain("Did not qualify");
+    // Everyone who entered gets a slot: those who start, and the DNQs beside.
+    expect(html.split("<li").length - 1).toBe(SEATS);
+    expect(html.includes("Did not qualify")).toBe(SEATS > STARTERS);
   });
 
   it("does not leak the race that follows", () => {
@@ -120,9 +144,10 @@ describe("a race", () => {
   const html = render({ kind: "race", round: 0 });
 
   it("shows the classification", () => {
-    expect(html).toContain("Argentine GP");
+    expect(html).toContain(FIRST_ROUND.name);
     expect(html).toContain("winner");
-    expect(html).toContain("Retired");
+    const race = world.season.races[0];
+    expect(html.includes("Retired")).toBe(race?.entries.some((entry) => entry.retired) === true);
   });
 
   it("shows both championships as they stand after it", () => {
@@ -132,9 +157,9 @@ describe("a race", () => {
   });
 
   it("says how much of the season is left to run", () => {
-    expect(html).toContain("Championship after 1 round (13 remaining)");
+    expect(html).toContain(`Championship after 1 round (${ROUNDS - 1} remaining)`);
     expect(render({ kind: "race", round: 3 })).toContain(
-      "Championship after 4 rounds (10 remaining)",
+      `Championship after 4 rounds (${ROUNDS - 4} remaining)`,
     );
     // Nothing remains after the last one, and "(0 remaining)" reads badly.
     expect(render({ kind: "race", round: ROUNDS - 1 })).not.toContain("remaining");
@@ -145,9 +170,25 @@ describe("a race", () => {
     // round there is nothing to have moved from.
     expect(html).not.toContain("▲");
     expect(html).not.toContain("▼");
-    const later = render({ kind: "race", round: 3 });
-    expect(later).toContain("▲");
-    expect(later).toContain("▼");
+
+    // A round where the top eight actually reshuffled — searched for, not
+    // pinned, since which round that is depends on every rating in the pool.
+    const shuffled = (season: SeasonResult, round: number): boolean => {
+      const top = (through: number): string[] =>
+        championshipStandings({ races: season.races.slice(0, through + 1) })
+          .slice(0, 8)
+          .map((row) => row.driverId);
+      const before = top(round - 1);
+      return top(round).some((driverId, place) => before[place] !== driverId);
+    };
+    const round = [...world.season.races.keys()].find(
+      (candidate) => candidate > 0 && shuffled(world.season, candidate),
+    );
+    if (round === undefined) {
+      throw new Error("the championship order never changes all season");
+    }
+    const later = render({ kind: "race", round });
+    expect(later).toMatch(/▲|▼/);
   });
 
   it("counts only the rounds run so far", () => {
@@ -165,12 +206,14 @@ describe("a race", () => {
     for (const column of ["Wins", "Pods", "Poles"]) {
       expect(html, `${column} should not be in the race sidebar`).not.toContain(`>${column}<`);
     }
-    // The winner leads on the 9 points they just scored.
-    expect(html).toContain(">9<");
+    // The leader's points are on screen, whatever the scale pays for a win.
+    const leader = championshipStandings({ races: world.season.races.slice(0, 1) })[0];
+    expect(leader).toBeDefined();
+    expect(html).toContain(`>${leader?.points}<`);
   });
 
   it("does not show the calendar of races still to come", () => {
-    expect(html).not.toContain("Watkins Glen");
+    expect(html).not.toContain(LAST_ROUND.circuit);
   });
 });
 
@@ -184,8 +227,9 @@ describe("the season summary", () => {
   });
 
   it("lists every round with its pole and winner", () => {
-    expect(html).toContain("Argentine GP");
-    expect(html).toContain("Watkins Glen");
+    for (const race of season1980.calendar) {
+      expect(html, race.name).toContain(race.name);
+    }
   });
 
   it("shows the final standings in full, not the compact sidebar", () => {
@@ -220,22 +264,23 @@ describe("flags", () => {
 
   it("flies a flag on every name on the race page", () => {
     const html = render({ kind: "race", round: 0 });
-    // One for the round, 28 down the classification, then the collapsed
-    // sidebar: eight drivers and eight teams.
-    expect((html.match(/<svg/g) ?? []).length).toBe(1 + 28 + 8 + 8);
+    // One for the round, one per car down the classification, then the
+    // collapsed sidebar: eight drivers and eight teams.
+    expect((html.match(/<svg/g) ?? []).length).toBe(1 + SEATS + 8 + 8);
   });
 
   it("flies a flag beside every driver in qualifying", () => {
     const html = render({ kind: "qualifying", round: 0 });
-    expect((html.match(/<svg/g) ?? []).length).toBe(29); // 28 drivers plus the round
+    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1); // every car plus the round
   });
 
   it("keeps the non-qualifiers off the starting grid", () => {
     // Cars outside the cut never form up, so they are listed apart rather than
     // taking a slot that would shift everyone behind them onto the wrong side.
+    expect(STARTERS).toBeLessThan(SEATS);
     const html = render({ kind: "qualifying", round: 0 });
     const grid = html.slice(0, html.indexOf("Did not qualify"));
-    expect(grid.split("<li").length - 1).toBe(26);
+    expect(grid.split("<li").length - 1).toBe(STARTERS);
   });
 
   it("flies a flag on both champion cards", () => {
@@ -253,18 +298,22 @@ describe("flags", () => {
   it("flies a flag on every row of both championship tables", () => {
     const html = render({ kind: "summary" });
     const drivers = between(html, "Drivers’ Championship", "Constructors’ Championship");
-    expect((drivers.match(/<svg/g) ?? []).length).toBe(28);
+    expect((drivers.match(/<svg/g) ?? []).length).toBe(SEATS);
     const teams = between(html, "Constructors’ Championship", "Grid");
-    expect((teams.match(/<svg/g) ?? []).length).toBe(15);
+    expect((teams.match(/<svg/g) ?? []).length).toBe(TEAMS);
   });
 });
 
 describe("a settled championship", () => {
-  /** The first round after which nobody can catch the leader. */
-  const clinchRound = (which: "drivers" | "teams"): number => {
-    for (let round = 0; round < ROUNDS; round += 1) {
-      const soFar = { races: world.season.races.slice(0, round + 1) };
-      const left = ROUNDS - soFar.races.length;
+  /**
+   * The first round after which nobody can catch the leader, or null if the
+   * title goes to the final round.
+   */
+  const clinchRound = (of: World, which: "drivers" | "teams"): number | null => {
+    const rounds = of.season.races.length;
+    for (let round = 0; round < rounds; round += 1) {
+      const soFar = { races: of.season.races.slice(0, round + 1) };
+      const left = rounds - soFar.races.length;
       const settled =
         which === "drivers"
           ? driversTitleClinchedBy(championshipStandings(soFar), left)
@@ -273,28 +322,44 @@ describe("a settled championship", () => {
         return round;
       }
     }
-    throw new Error(`the ${which} title is never settled in the seeded season`);
+    return null;
   };
 
-  const teamsClinch = clinchRound("teams");
+  /**
+   * A season that settles its constructors' title with rounds to spare.
+   *
+   * Searched for rather than pinned to a seed: whether *this* seed clinches
+   * early depends on every rating in the pool, and those move. What the tests
+   * below need is the shape, not the number.
+   */
+  const settled = findWorld((candidate) => {
+    const teams = clinchRound(candidate, "teams");
+    return (
+      teams !== null &&
+      teams > 0 &&
+      teams < candidate.season.races.length - 1 &&
+      clinchRound(candidate, "drivers") !== null
+    );
+  });
+  const teamsClinch = clinchRound(settled, "teams") ?? 0;
+  const driversClinch = clinchRound(settled, "drivers") ?? 0;
+  const rounds = settled.season.races.length;
 
   it("says nothing while the title is still live", () => {
-    expect(teamsClinch).toBeGreaterThan(0);
-    const html = render({ kind: "race", round: teamsClinch - 1 });
+    const html = render({ kind: "race", round: teamsClinch - 1 }, settled);
     expect(html).not.toContain("wins the");
   });
 
   it("announces the clinch on the round it happens", () => {
-    const html = render({ kind: "race", round: teamsClinch });
+    const html = render({ kind: "race", round: teamsClinch }, settled);
     expect(html).toContain("wins the Constructors’ Championship");
   });
 
   it("says it once and then stops", () => {
     // The banner is an event, not a standing notice. Repeating it every
     // remaining round turns the moment the season built to into wallpaper.
-    expect(teamsClinch).toBeLessThan(ROUNDS - 1);
-    for (let round = teamsClinch + 1; round < ROUNDS; round += 1) {
-      expect(render({ kind: "race", round }), `round ${round + 1}`).not.toContain(
+    for (let round = teamsClinch + 1; round < rounds; round += 1) {
+      expect(render({ kind: "race", round }, settled), `round ${round + 1}`).not.toContain(
         "wins the Constructors’",
       );
     }
@@ -305,36 +370,42 @@ describe("a settled championship", () => {
     // as a team line under every one of their drivers in the table above it.
     const championRow = (html: string): string => {
       const card = html.slice(html.lastIndexOf(">Constructors<"));
-      const settled = constructorsTitleClinchedBy(constructorStandings(world.season), 0);
-      if (settled === null) {
-        throw new Error("the seeded season crowned no constructor");
+      const champion = constructorsTitleClinchedBy(constructorStandings(settled.season), 0);
+      if (champion === null) {
+        throw new Error("the season crowned no constructor");
       }
       const row = card
         .split("<tr")
-        .find((candidate) => candidate.includes(teamName(settled.teamId)));
+        .find((candidate) => candidate.includes(teamName(champion.teamId)));
       if (row === undefined) {
         throw new Error("the champion has no row in the constructors table");
       }
       return row;
     };
 
-    expect(championRow(render({ kind: "race", round: teamsClinch - 1 }))).not.toContain(
+    expect(championRow(render({ kind: "race", round: teamsClinch - 1 }, settled))).not.toContain(
       STANDOUT_ROW,
     );
-    expect(championRow(render({ kind: "race", round: teamsClinch }))).toContain(STANDOUT_ROW);
+    expect(championRow(render({ kind: "race", round: teamsClinch }, settled))).toContain(
+      STANDOUT_ROW,
+    );
     // And it stays, rather than marking only the round it happened on.
-    expect(championRow(render({ kind: "race", round: teamsClinch + 1 }))).toContain(STANDOUT_ROW);
-    expect(championRow(render({ kind: "race", round: ROUNDS - 1 }))).toContain(STANDOUT_ROW);
+    expect(championRow(render({ kind: "race", round: teamsClinch + 1 }, settled))).toContain(
+      STANDOUT_ROW,
+    );
+    expect(championRow(render({ kind: "race", round: rounds - 1 }, settled))).toContain(
+      STANDOUT_ROW,
+    );
   });
 
-  it("settles the drivers' title too, by the end", () => {
-    const html = render({ kind: "race", round: ROUNDS - 1 });
+  it("announces the drivers' title on the round that settles it", () => {
+    const html = render({ kind: "race", round: driversClinch }, settled);
     expect(html).toContain("wins the Drivers’ Championship");
   });
 
   it("says nothing on a qualifying page", () => {
     // A title is settled by a race result; Saturday cannot decide one.
-    const html = render({ kind: "qualifying", round: ROUNDS - 1 });
+    const html = render({ kind: "qualifying", round: rounds - 1 }, settled);
     expect(html).not.toContain("wins the");
   });
 });

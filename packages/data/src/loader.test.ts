@@ -11,26 +11,30 @@ import {
 } from "./index.js";
 
 describe("seed data", () => {
-  it("loads every authored record", () => {
-    expect(drivers).toHaveLength(41);
-    expect(teams).toHaveLength(15);
+  it("loads a pool, a paddock and a season", () => {
+    // Counts are deliberately not asserted: the grid grows, and a test that
+    // says "41 drivers" fails for a reason that is not a bug.
+    expect(drivers.length).toBeGreaterThan(0);
+    expect(teams.length).toBeGreaterThan(0);
     expect(season1980.year).toBe(1980);
-    expect(season1980.entries).toHaveLength(15);
+    expect(season1980.entries.length).toBeGreaterThan(0);
   });
 
   it("indexes drivers and teams by id", () => {
-    expect(driversById().get("prost")?.name).toBe("Alain Prost");
-    expect(teamsById().get("ferrari")?.base).toBe("IT");
+    for (const record of drivers) {
+      expect(driversById().get(record.id), record.id).toBe(record);
+    }
+    for (const team of teams) {
+      expect(teamsById().get(team.id), team.id).toBe(team);
+    }
     expect(driversById().get("nobody")).toBeUndefined();
   });
-
-  it("keeps nominal career values as authored", () => {
-    const villeneuve = driversById().get("villeneuve_g");
-    expect(villeneuve?.debutSeason).toBe(1977);
-    expect(villeneuve?.peak.season).toBe(1981);
-    expect(villeneuve?.peak.composure).toBe(62);
-  });
 });
+
+/** Real ids, so a fixture's *other* field is the one under test. */
+const knownDriver = drivers[0]?.id ?? "";
+const knownTeam = teams[0]?.id ?? "";
+const otherTeam = teams[1]?.id ?? "";
 
 describe("validateSeedData", () => {
   it("accepts the bundled seed", () => {
@@ -39,20 +43,15 @@ describe("validateSeedData", () => {
     }).not.toThrow();
   });
 
-  it("carries the fourteen rounds of the real 1980 season", () => {
-    expect(season1980.calendar).toHaveLength(14);
+  it("numbers the authored calendar in order, with every round named", () => {
+    expect(season1980.calendar.length).toBeGreaterThan(0);
     expect(season1980.calendar.map((race) => race.round)).toEqual(
-      Array.from({ length: 14 }, (_, i) => i + 1),
+      season1980.calendar.map((_, index) => index + 1),
     );
-    expect(season1980.calendar[0]?.name).toBe("Argentine GP");
-    expect(season1980.calendar[13]?.circuit).toBe("Watkins Glen");
-    // 1980 ran the Italian GP at Imola, not Monza — the one year it did.
-    expect(season1980.calendar[11]).toEqual({
-      round: 12,
-      name: "Italian GP",
-      circuit: "Imola",
-      country: "IT",
-    });
+    for (const race of season1980.calendar) {
+      expect(race.name.trim(), `round ${race.round}`).not.toBe("");
+      expect(race.circuit.trim(), `round ${race.round}`).not.toBe("");
+    }
   });
 
   it("allows seatless drivers and single-car entries", () => {
@@ -65,7 +64,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [],
-      entries: [{ teamId: "ferrari", car: carSpec(), drivers: ["ghost"] }],
+      entries: [{ teamId: knownTeam, car: carSpec(), drivers: ["ghost"] }],
     };
     expect(() => {
       validateSeedData(drivers, teams, broken);
@@ -76,7 +75,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [],
-      entries: [{ teamId: "phantom", car: carSpec(), drivers: ["prost"] }],
+      entries: [{ teamId: "phantom", car: carSpec(), drivers: [knownDriver] }],
     };
     expect(() => {
       validateSeedData(drivers, teams, broken);
@@ -129,8 +128,8 @@ describe("validateSeedData", () => {
       year: 1980,
       calendar: [],
       entries: [
-        { teamId: "ferrari", car: carSpec(), drivers: ["prost"] },
-        { teamId: "mclaren", car: carSpec(), drivers: ["prost"] },
+        { teamId: knownTeam, car: carSpec(), drivers: [knownDriver] },
+        { teamId: otherTeam, car: carSpec(), drivers: [knownDriver] },
       ],
     };
     expect(() => {
@@ -146,7 +145,7 @@ describe("validateSeedData", () => {
     const pool: readonly Driver[] = [...drivers, first];
     expect(() => {
       validateSeedData(pool, teams, season1980);
-    }).toThrow(/Duplicate driver ids: jones/);
+    }).toThrow(`Duplicate driver ids: ${first.id}`);
   });
 });
 

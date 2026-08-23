@@ -21,6 +21,24 @@ function driver(id: string): Driver {
   return found;
 }
 
+/**
+ * The first driver in the pool matching a condition.
+ *
+ * Every test below that needs "a driver who has not peaked yet" or "one with a
+ * steep decline" goes through this rather than naming one: the authored careers
+ * are tuned continuously, and a test pinned to Prost's 1987 peak fails the day
+ * that number moves. See the testing rule in `CLAUDE.md`.
+ */
+function someDriver(matches: (record: Driver) => boolean, what: string): Driver {
+  const found = drivers.find(matches);
+  if (found === undefined) {
+    throw new Error(`the pool has no ${what}`);
+  }
+  return found;
+}
+
+const SEASON = season1980.year;
+
 describe("the authored careers", () => {
   it("gives every driver a plateau and an end", () => {
     for (const record of drivers) {
@@ -30,23 +48,47 @@ describe("the authored careers", () => {
     }
   });
 
-  it("puts Prost's plateau where the author said: 1984 to 1990", () => {
-    expect(peakWindow(driverCareer(driver("prost")))).toEqual({ start: 1984, end: 1990 });
+  it("centres every plateau on the authored peak, spanning the authored length", () => {
+    // The relationship, not the values: whatever a career is retuned to, its
+    // window must still be `peakSeasons` long and sit around `peak.season`.
+    for (const record of drivers) {
+      const window = peakWindow(driverCareer(record));
+      expect(window.end - window.start + 1, record.id).toBe(record.peakSeasons);
+      expect(window.start, record.id).toBeLessThanOrEqual(record.peak.season);
+      expect(window.end, record.id).toBeGreaterThanOrEqual(record.peak.season);
+    }
   });
 
-  it("records the steep declines and off seasons that were authored", () => {
-    expect(driver("rosberg").steepDecline?.season).toBe(1986);
-    expect(driver("mansell").steepDecline?.season).toBe(1995);
-    expect(driver("scheckter").steepDecline?.season).toBe(1980);
-    expect(driver("prost").offSeasons?.map((off) => off.season)).toEqual([1989]);
-    // Most drivers have neither, and the fields stay absent rather than null.
-    expect(driver("jarier").steepDecline).toBeUndefined();
-    expect(driver("jarier").offSeasons).toBeUndefined();
+  it("carries authored career events through to the engine's career shape", () => {
+    const declining = someDriver(
+      (record) => record.steepDecline !== undefined,
+      "driver with a steep decline",
+    );
+    expect(driverCareer(declining).steepDecline).toEqual(declining.steepDecline);
+
+    const dipped = someDriver(
+      (record) => record.offSeasons !== undefined,
+      "driver with an off season",
+    );
+    expect(driverCareer(dipped).offSeasons).toEqual(dipped.offSeasons);
+
+    // A driver with neither keeps the fields absent rather than null, which is
+    // what the engine's optional handling is written against.
+    const steady = someDriver(
+      (record) => record.steepDecline === undefined && record.offSeasons === undefined,
+      "driver with an uneventful career",
+    );
+    expect(driverCareer(steady).steepDecline).toBeUndefined();
+    expect(driverCareer(steady).offSeasons).toBeUndefined();
   });
 });
 
 describe("validating career shape", () => {
-  const broken = (overrides: Partial<Driver>): Driver[] => [{ ...driver("prost"), ...overrides }];
+  const base = drivers[0];
+  if (base === undefined) {
+    throw new Error("the pool is empty");
+  }
+  const broken = (overrides: Partial<Driver>): Driver[] => [{ ...base, ...overrides }];
 
   it("rejects a plateau that is not a whole season count of at least one", () => {
     for (const peakSeasons of [0, -2, 2.5]) {
@@ -57,18 +99,20 @@ describe("validating career shape", () => {
   });
 
   it("rejects a driver who retires before they debut", () => {
+    const before = base.debutSeason - 1;
     expect(() => {
-      validateSeedData(broken({ finalSeason: 1979 }), undefined, { ...season1980, entries: [] });
-    }).toThrow(/retires in 1979/);
+      validateSeedData(broken({ finalSeason: before }), undefined, { ...season1980, entries: [] });
+    }).toThrow(`retires in ${before}`);
   });
 
   it("rejects a driver who peaks before they debut", () => {
+    const before = base.debutSeason - 1;
     expect(() => {
-      validateSeedData(broken({ peak: { ...driver("prost").peak, season: 1975 } }), undefined, {
+      validateSeedData(broken({ peak: { ...base.peak, season: before } }), undefined, {
         ...season1980,
         entries: [],
       });
-    }).toThrow(/peaks in 1975/);
+    }).toThrow(`peaks in ${before}`);
   });
 
   it("rejects a career event severity outside 0-1", () => {
@@ -96,31 +140,53 @@ describe("building a field", () => {
   });
 
   it("feeds authored peaks in unchanged in peak mode", () => {
-    const prost = buildField(season1980, drivers, "peak").find((e) => e.driverId === "prost");
-    expect(prost?.driver.racing).toBe(driver("prost").peak.racing);
-    expect(prost?.driver.composure).toBe(driver("prost").peak.composure);
+    // Every seat, so it cannot pass by finding one driver who happens to agree.
+    for (const entrant of buildField(season1980, drivers, "peak")) {
+      expect(entrant.driver, entrant.driverId).toEqual(driverCareer(driver(entrant.driverId)).peak);
+    }
   });
 
-  it("ages a driver who has not peaked yet, and leaves one who has", () => {
-    const aged = buildField(season1980, drivers, "aged");
-    const find = (id: string) => aged.find((entrant) => entrant.driverId === id)?.driver;
-
-    // Prost is a rookie in 1980 and peaks in 1987 — he must be well short.
-    const prost = find("prost");
-    expect(prost?.racing).toBeLessThan(driver("prost").peak.racing);
-    expect(prost?.composure).toBeLessThan(driver("prost").peak.composure);
-
-    // Jones peaks in 1980, so aged and peak agree for him. This is the check
-    // that the curve is anchored to the authored peak rather than shifted.
-    expect(find("jones")).toEqual(driverCareer(driver("jones")).peak);
+  it("puts a driver at exactly their peak in their peak season", () => {
+    // The anchor: whatever the curve does either side, the season the author
+    // named is the one where the authored numbers come out unchanged.
+    //
+    // Two exclusions, both real curve behaviour rather than tolerances. An
+    // authored setback is allowed to bite in the peak season itself; and a
+    // driver whose peak season *is* their debut season still pays the rookie
+    // penalty, because the curve never rewards a driver for not having started
+    // yet.
+    let checked = 0;
+    for (const record of drivers) {
+      if (
+        record.steepDecline !== undefined ||
+        record.offSeasons !== undefined ||
+        record.peak.season <= record.debutSeason
+      ) {
+        continue;
+      }
+      const career = driverCareer(record);
+      expect(ratingsForSeason(career, record.peak.season), record.id).toEqual(career.peak);
+      checked += 1;
+    }
+    expect(checked, "no driver in the pool peaks clear of a setback").toBeGreaterThan(0);
   });
 
-  it("puts a driver past his peak below it", () => {
+  it("never rates an aged driver above their peak, and cuts those past the plateau", () => {
     const aged = buildField(season1980, drivers, "aged");
-    // Scheckter peaks in 1979 and was authored a steep decline in 1980, the
-    // season he failed to qualify at Montreal.
-    const scheckter = aged.find((entrant) => entrant.driverId === "scheckter")?.driver;
-    expect(scheckter?.racing).toBeLessThan(driver("scheckter").peak.racing * 0.9);
+    expect(aged.length).toBeGreaterThan(0);
+
+    for (const entrant of aged) {
+      const career = driverCareer(driver(entrant.driverId));
+      const window = peakWindow(career);
+      for (const [key, value] of Object.entries(entrant.driver)) {
+        const at = career.peak[key as keyof typeof career.peak];
+        expect(value, `${entrant.driverId} ${key}`).toBeLessThanOrEqual(at);
+      }
+      if (SEASON < window.start || SEASON > window.end) {
+        // Still climbing, or falling away: either way short of the peak.
+        expect(entrant.driver.racing, entrant.driverId).toBeLessThan(career.peak.racing);
+      }
+    }
   });
 
   it("agrees with the engine curve it delegates to", () => {
@@ -128,7 +194,7 @@ describe("building a field", () => {
     const aged = buildField(season1980, drivers, "aged");
     for (const entrant of aged) {
       expect(entrant.driver, entrant.driverId).toEqual(
-        ratingsForSeason(driverCareer(driver(entrant.driverId)), 1980),
+        ratingsForSeason(driverCareer(driver(entrant.driverId)), SEASON),
       );
     }
   });
@@ -142,11 +208,11 @@ describe("building a field", () => {
     }
   });
 
-  it("fields the same 28 seats either way", () => {
+  it("fields the same seats either way", () => {
     // The mode changes how good drivers are, never who is on the grid.
     const seats = (mode: "peak" | "aged"): string[] =>
       buildField(season1980, drivers, mode).map((entrant) => entrant.driverId);
     expect(seats("aged")).toEqual(seats("peak"));
-    expect(seats("aged")).toHaveLength(28);
+    expect(seats("aged")).toHaveLength(season1980.entries.flatMap((e) => e.drivers).length);
   });
 });

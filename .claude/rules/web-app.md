@@ -137,6 +137,15 @@ asserted in the store's own tests.
 `menu.test.tsx` counts rendered `disabled=""` attributes, **not** the word "disabled"
 — several perfectly clickable buttons carry `disabled:opacity-50` in their class list.
 
+**Nothing here asserts an authored number or what a seed produced** — the rule is in
+`CLAUDE.md`, and `src/test-support.ts` is how it is kept. `seededWorld()` is a fixture
+(a render has to be *of* something); `findWorld(predicate)` searches seeds for a season
+of the shape a test needs — a title settled with rounds to spare, a place that changed
+hands — instead of pinning the seed that happened to work. Counts come off the grid:
+`world.field.length`, `teamCount`, `starterCount`, `season1980.calendar.length`. The
+suite is checked against this by perturbing every rating in the seed data and by adding
+an entry to the season; it stays green through both.
+
 The grid editor is split the same way, and for the same reason. `SeasonGrid` and
 `ReserveList` are **controlled** — the draft lives in `GridStage` above them — so every
 state they can be in renders on its own, and the interaction itself is the pure

@@ -92,8 +92,9 @@ describe("clinching the drivers' title", () => {
   it("crowns the leader on a dead heat once the season is over", () => {
     // A tie mid-season is unsettled because countback has not happened yet. A
     // tie after the last round is settled *by* countback — the standings are
-    // already sorted on it, so first place is the champion. Left unhandled,
-    // seed 302280 (Piquet and Jones level on 62) ended with no champion at all.
+    // already sorted on it, so first place is the champion. Left unhandled, a
+    // season whose top two finished level crowned nobody at all: no banner, and
+    // no accent in the sidebar.
     expect(driversTitleClinchedBy([driver("a", 40), driver("b", 40)], 0)?.driverId).toBe("a");
     expect(driversTitleClinchedBy([driver("a", 40), driver("b", 40)], 1)).toBeNull();
   });

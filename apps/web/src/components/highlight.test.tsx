@@ -7,11 +7,10 @@
  * loses it, and nothing else notices.
  */
 
-import { championshipStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { createWorld } from "../store/season.js";
+import { seededWorld } from "../test-support.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonView } from "./SeasonView.js";
@@ -19,7 +18,7 @@ import { SeasonView } from "./SeasonView.js";
 /** The background half of the surface accent — "bg-primary/5". */
 const TINT = STANDOUT_SURFACE.split(" ")[1] ?? "";
 
-const world = createWorld(3, 1980);
+const world = seededWorld();
 const race = world.season.races[0];
 if (race === undefined) {
   throw new Error("seeded world has no races");
@@ -51,26 +50,12 @@ describe("the standout accent", () => {
     expect(cards).toBe(2);
   });
 
-  it("crowns a champion who ties on points at the last round", () => {
-    // Seed 302280 ends with Piquet and Jones level on 62, settled on countback.
-    // The clinch test used to treat a challenger who could *equal* the leader as
-    // a live threat at every point in the season, which after the final round
-    // meant no champion at all: no banner, and no accent in the sidebar.
-    const tied = createWorld(302280, 1980);
-    const last = tied.season.races.length - 1;
-    const standings = championshipStandings(tied.season);
-    const [first, second] = standings;
-    if (first === undefined || second === undefined) {
-      throw new Error("seeded world has no standings");
-    }
-    expect(first.points, "seed 302280 should still end level on points").toBe(second.points);
-
-    const html = renderToStaticMarkup(
-      <SeasonView world={tied} view={{ kind: "race", round: last }} />,
-    );
-    expect(html).toContain("wins the Drivers’ Championship");
-    expect(html).toContain(STANDOUT_ROW);
-  });
+  // Removed: a test that pinned seed 302280 for ending with Piquet and Jones
+  // level on points. It went red the first time the 1980 ratings were tweaked,
+  // which is exactly the failure the testing rule in `CLAUDE.md` exists to stop.
+  // What it was really covering — that a challenger who can only *equal* the
+  // leader is not a live threat once the last round is run — is a rule, and is
+  // unit-tested against synthetic standings in `engine/src/season/titles.test.ts`.
 
   it("uses one definition, so the four cannot drift apart", () => {
     // If someone hand-writes the colour in one place instead of importing it,

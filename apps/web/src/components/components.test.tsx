@@ -7,19 +7,26 @@
  * because it is the only place raw ratings are shown.
  */
 
-import { championshipStandings, constructorStandings } from "@alt-hist/engine";
+import { driversById } from "@alt-hist/data";
+import { championshipStandings, constructorStandings, SEASON_CONSTANTS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName } from "../lib/names.js";
+import { driverName, teamName } from "../lib/names.js";
+import { ageInSeason } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { positionsOf } from "../lib/standings.js";
-import { createWorld } from "../store/season.js";
+import { findWorld, seededWorld, starterCount, teamCount, YEAR } from "../test-support.js";
+
 import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 
-const world = createWorld(3, 1980);
+const world = seededWorld();
+/** Counted off the grid rather than written down — it is going to grow. */
+const SEATS = world.field.length;
+const TEAMS = teamCount(world);
+const STARTERS = starterCount(world);
 
 describe("the race classification", () => {
   const race = world.season.races[0];
@@ -29,12 +36,12 @@ describe("the race classification", () => {
   const html = renderToStaticMarkup(<RaceClassification race={race} />);
 
   it("lists every car that entered, not just the finishers", () => {
-    expect(race.entries).toHaveLength(28);
+    expect(race.entries).toHaveLength(SEATS);
     for (const entry of race.entries) {
       expect(html, `missing ${entry.driverId}`).toContain(driverName(entry.driverId));
     }
     // And one row each, so nobody is listed twice.
-    expect(html.split("<tr").length - 1).toBe(29); // 28 cars plus the header
+    expect(html.split("<tr").length - 1).toBe(SEATS + 1); // every car plus the header
   });
 
   it("shows what each finish was worth, and leaves the rest blank", () => {
@@ -50,20 +57,22 @@ describe("the race classification", () => {
       .filter((entry) => entry.finishPosition !== null)
       .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
 
-    // The top six score 9-6-4-3-2-1 and each shows its own total.
-    for (const [index, points] of [9, 6, 4, 3, 2, 1].entries()) {
+    // Each scoring place shows its own total, on whatever scale the era pays.
+    const scale = SEASON_CONSTANTS.pointsByPosition;
+    for (const [index, points] of scale.entries()) {
       const entry = classified[index];
       if (entry === undefined) {
-        throw new Error("fewer than six finishers in the seeded race");
+        throw new Error("fewer finishers than scoring places in the seeded race");
       }
       expect(rowFor(entry.driverId), `P${index + 1}`).toContain(`>${points}<`);
     }
-    // Seventh scored nothing, and a column of zeroes helps nobody.
-    const seventh = classified[6];
-    if (seventh === undefined) {
-      throw new Error("fewer than seven finishers in the seeded race");
+    // The first place outside the points scored nothing, and a column of zeroes
+    // helps nobody.
+    const unrewarded = classified[scale.length];
+    if (unrewarded === undefined) {
+      throw new Error("every finisher scored in the seeded race");
     }
-    expect(rowFor(seventh.driverId)).not.toMatch(/>\d+<\/td><\/tr>/);
+    expect(rowFor(unrewarded.driverId)).not.toMatch(/>\d+<\/td><\/tr>/);
     expect(html).toContain(">Pts<");
   });
 
@@ -87,12 +96,26 @@ describe("the race classification", () => {
   });
 
   it("distinguishes retirements from non-qualifiers", () => {
-    const retired = race.entries.some((entry) => entry.retired);
-    const dnq = race.entries.some((entry) => !entry.started);
-    expect(retired).toBe(true);
-    expect(dnq).toBe(true);
-    expect(html).toContain("Retired");
-    expect(html).toContain("Did not qualify");
+    // Both outcomes have to be on screen at once, so the race is chosen for
+    // having both rather than assumed to.
+    const both = findWorld((candidate) =>
+      candidate.season.races.some(
+        (round) =>
+          round.entries.some((entry) => entry.retired) &&
+          round.entries.some((entry) => !entry.started),
+      ),
+    );
+    const round = both.season.races.find(
+      (candidate) =>
+        candidate.entries.some((entry) => entry.retired) &&
+        candidate.entries.some((entry) => !entry.started),
+    );
+    if (round === undefined) {
+      throw new Error("no race had both a retirement and a non-qualifier");
+    }
+    const mixed = renderToStaticMarkup(<RaceClassification race={round} />);
+    expect(mixed).toContain("Retired");
+    expect(mixed).toContain("Did not qualify");
   });
 
   it("never prints a gap on a row that did not finish", () => {
@@ -127,32 +150,37 @@ describe("the season grid", () => {
   const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={1980} />);
 
   it("groups every driver under their team", () => {
-    expect(html).toContain("Williams");
-    expect(html).toContain("Alan Jones");
-    expect(html).toContain("Carlos Reutemann");
-    expect(html).toContain("Shadow");
-    expect(html).toContain("David Kennedy");
+    for (const entrant of world.field) {
+      const card = html.slice(html.indexOf(`>${teamName(entrant.teamId)}<`));
+      expect(card.slice(0, card.indexOf("</li></ul></li>")), entrant.driverId).toContain(
+        driverName(entrant.driverId),
+      );
+    }
   });
 
   it("draws a flag for every driver and every team", () => {
-    // 28 drivers plus 15 teams, each with an inline SVG flag.
-    expect(html.split("<svg").length - 1).toBe(43);
+    // One inline SVG per driver and one per team.
+    expect(html.split("<svg").length - 1).toBe(SEATS + TEAMS);
   });
 
   it("shows each driver's age beside their name, not next to their rating", () => {
     // "Alan Jones (34y)  89" reads; "Alan Jones  34 89" reads as two ratings.
-    expect(html).toContain("(34y)"); // Jones, born 1946
-    expect(html).toContain("(22y)"); // de Angelis, born 1958
+    const drivers = driversById();
+    for (const entrant of world.field) {
+      const record = drivers.get(entrant.driverId);
+      if (record === undefined) {
+        throw new Error(`no record for ${entrant.driverId}`);
+      }
+      expect(html, entrant.driverId).toContain(`(${ageInSeason(YEAR, record.birthYear)}y)`);
+    }
   });
 
   it("shows an overall for every driver and every car", () => {
     // One per driver, one per team: the number you can scan the grid by.
-    const jones = world.field.find((entrant) => entrant.driverId === "jones");
-    if (jones === undefined) {
-      throw new Error("Jones is not on the grid");
+    for (const entrant of world.field) {
+      expect(html, entrant.driverId).toContain(`>${driverOverall(entrant.driver)}<`);
+      expect(html, entrant.teamId).toContain(`>${carOverall(entrant.car)}<`);
     }
-    expect(html).toContain(`>${driverOverall(jones.driver)}<`);
-    expect(html).toContain(`>${carOverall(jones.car)}<`);
   });
 
   it("keeps the individual ratings out of sight until a name is selected", () => {
@@ -165,9 +193,9 @@ describe("the season grid", () => {
 
   it("orders teams alphabetically, not by pace", () => {
     // Sorting by car rating would give the season away before it started.
-    const positionOf = (name: string): number => html.indexOf(`>${name}<`);
-    expect(positionOf("Alfa Romeo")).toBeLessThan(positionOf("Williams"));
-    expect(positionOf("ATS")).toBeLessThan(positionOf("Brabham"));
+    const names = [...new Set(world.field.map((entrant) => teamName(entrant.teamId)))];
+    const drawn = [...names].sort((a, b) => html.indexOf(`>${a}<`) - html.indexOf(`>${b}<`));
+    expect(drawn).toEqual([...names].sort((a, b) => a.localeCompare(b)));
   });
 });
 
@@ -180,8 +208,8 @@ describe("the compact standings", () => {
   );
 
   it("shows only the top eight until it is expanded", () => {
-    expect(drivers.length).toBe(28);
-    expect(teams.length).toBe(15);
+    expect(drivers.length).toBe(SEATS);
+    expect(teams.length).toBe(TEAMS);
     // One row each, and one flag per row, so counting flags counts rows.
     expect((driverHtml.match(/<svg/g) ?? []).length).toBe(8);
     expect((teamHtml.match(/<svg/g) ?? []).length).toBe(8);
@@ -194,8 +222,8 @@ describe("the compact standings", () => {
   });
 
   it("offers a way to see the rest, naming how many there are", () => {
-    expect(driverHtml).toContain("Show all 28");
-    expect(teamHtml).toContain("Show all 15");
+    expect(driverHtml).toContain(`Show all ${SEATS}`);
+    expect(teamHtml).toContain(`Show all ${TEAMS}`);
     expect(driverHtml).toContain('aria-expanded="false"');
   });
 
@@ -262,8 +290,9 @@ describe("the compact standings", () => {
   });
 
   it("names each driver's team, and carries points but no other column", () => {
-    expect(driverHtml).toContain("Williams");
-    expect(driverHtml).toContain("Brabham");
+    for (const standing of drivers.slice(0, 8)) {
+      expect(driverHtml, standing.teamId).toContain(teamName(standing.teamId));
+    }
     for (const column of ["Wins", "Pods", "Poles"]) {
       expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
     }
@@ -288,7 +317,7 @@ describe("the starting grid layout", () => {
 
     const grid = html.slice(0, html.indexOf("Did not qualify"));
     const slots = grid.split("<li").slice(1);
-    expect(slots).toHaveLength(26);
+    expect(slots).toHaveLength(STARTERS);
     for (const [index, slot] of slots.entries()) {
       expect(slot.includes("even:translate-y"), `slot ${index + 1} is not in formation`).toBe(true);
     }
@@ -317,8 +346,8 @@ describe("the starting grid layout", () => {
   });
 
   it("names every car's team on the grid", () => {
-    expect(html).toContain("Renault");
-    expect(html).toContain("Williams");
-    expect(html).toContain("Shadow");
+    for (const entry of race.entries) {
+      expect(html, entry.teamId).toContain(teamName(entry.teamId));
+    }
   });
 });

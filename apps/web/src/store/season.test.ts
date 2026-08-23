@@ -1,4 +1,4 @@
-import { authoredLineup, season1980, swapDrivers } from "@alt-hist/data";
+import { authoredLineup, reserveDrivers, season1980, swapDrivers } from "@alt-hist/data";
 import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
@@ -10,9 +10,38 @@ import {
   type World,
 } from "./season.js";
 
+/** Read off the seed data rather than written down: the grid is going to grow. */
+const SEATS = season1980.entries.flatMap((entry) => entry.drivers).length;
+const TEAMS = season1980.entries.length;
+
+/**
+ * A driver in a seat, and one without — chosen out of the data rather than by
+ * name, because roadmap 2 turns some of today's reserves into entrants.
+ */
+const AUTHORED = authoredLineup(season1980);
+const SEATED = season1980.entries[0]?.drivers[0] ?? "";
+const SEATED_TEAM = season1980.entries[0]?.teamId ?? "";
+const RESERVE = reserveDrivers(AUTHORED)[0]?.id ?? "";
+if (SEATED === "" || RESERVE === "") {
+  throw new Error("the season needs a seated driver and a driver without a drive");
+}
+
+/** A seat whose driver is a different rating at their real age than at peak. */
+function agedDiffers(mode: World): string {
+  const peak = createWorld(mode.seed, mode.year, "peak", mode.lineup).field;
+  const found = mode.field.find((entrant) => {
+    const same = peak.find((other) => other.driverId === entrant.driverId);
+    return same !== undefined && same.driver.racing !== entrant.driver.racing;
+  });
+  if (found === undefined) {
+    throw new Error("no driver on this grid ages at all");
+  }
+  return found.driverId;
+}
+
 describe("the world", () => {
   it("runs one race per round on the calendar", () => {
-    expect(createWorld(1, 1980).season.races).toHaveLength(14);
+    expect(createWorld(1, 1980).season.races).toHaveLength(season1980.calendar.length);
   });
 
   it("is the same world for the same seed", () => {
@@ -31,7 +60,7 @@ describe("the world", () => {
 
   it("records the grid it actually raced", () => {
     const world = createWorld(1, 1980);
-    expect(world.field).toHaveLength(28);
+    expect(world.field).toHaveLength(SEATS);
     // Not just ids: the ratings that fed the simulation, which is what makes
     // this the record of the season rather than a pointer back to the seed.
     const jones = world.field.find((entrant) => entrant.driverId === "jones");
@@ -82,8 +111,8 @@ describe("the world", () => {
     const world = createWorld(4, 1980);
     const drivers = championshipStandings(world.season);
     const teams = constructorStandings(world.season);
-    expect(drivers).toHaveLength(28);
-    expect(teams).toHaveLength(15);
+    expect(drivers).toHaveLength(SEATS);
+    expect(teams).toHaveLength(TEAMS);
     expect(drivers.reduce((sum, s) => sum + s.points, 0)).toBe(
       teams.reduce((sum, t) => sum + t.points, 0),
     );
@@ -264,15 +293,21 @@ describe("driver ability mode", () => {
     expect(running().view).toEqual({ kind: "grid" });
   });
 
-  it("leaves a driver who peaked in 1980 alone, and cuts one who had not", () => {
+  it("rates at least one driver differently once ages are applied", () => {
+    // Which drivers move, and by how much, is a question for the ageing curve's
+    // own tests — here it only has to be true that the mode reaches the field.
     useSeasonStore.getState().setRatingMode("aged");
-    const field = running().world.field;
-    const rating = (id: string) => field.find((entrant) => entrant.driverId === id)?.driver;
-    const peakField = createWorld(3, 1980, "peak").field;
-    const peakRating = (id: string) => peakField.find((entrant) => entrant.driverId === id)?.driver;
+    const aged = running().world;
+    const peak = createWorld(aged.seed, aged.year, "peak").field;
+    const moved = agedDiffers(aged);
 
-    expect(rating("jones")).toEqual(peakRating("jones"));
-    expect(rating("prost")?.racing).toBeLessThan(peakRating("prost")?.racing ?? 0);
+    const before = peak.find((entrant) => entrant.driverId === moved)?.driver.racing ?? 0;
+    const after = aged.field.find((entrant) => entrant.driverId === moved)?.driver.racing ?? 0;
+    expect(after).not.toBe(before);
+    // Nobody is *invented* by the switch: the same seats, the same drivers.
+    expect(aged.field.map((entrant) => entrant.driverId)).toEqual(
+      peak.map((entrant) => entrant.driverId),
+    );
   });
 
   it("goes back to peak again", () => {
@@ -319,9 +354,9 @@ describe("driver ability mode", () => {
 });
 
 describe("the chosen grid", () => {
-  const authored = authoredLineup(season1980);
-  /** Mansell, who never drove in 1980, in the Williams that won it. */
-  const mansellAtWilliams = swapDrivers(authored, "jones", "mansell");
+  const authored = AUTHORED;
+  /** A driver with no drive, put into the first seat on the entry list. */
+  const swapped = swapDrivers(authored, SEATED, RESERVE);
 
   beforeEach(() => {
     useSeasonStore.getState().simulate(3, 1980);
@@ -333,10 +368,10 @@ describe("the chosen grid", () => {
 
   it("re-runs the same seed with the reader's own grid", () => {
     const before = running().world;
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     const after = running().world;
 
-    expect(after.lineup).toEqual(mansellAtWilliams);
+    expect(after.lineup).toEqual(swapped);
     expect(after.seed).toBe(before.seed);
     // Same dice, different people: the point of keeping the seed.
     expect(after.season).not.toEqual(before.season);
@@ -344,36 +379,36 @@ describe("the chosen grid", () => {
   });
 
   it("puts the swapped-in driver in the team's car, and the other out of the field", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     const field = running().world.field;
-    const williams = field.filter((entrant) => entrant.teamId === "williams");
+    const team = field.filter((entrant) => entrant.teamId === SEATED_TEAM);
 
-    expect(field).toHaveLength(28);
-    expect(williams.map((entrant) => entrant.driverId).sort()).toEqual(["mansell", "reutemann"]);
-    expect(field.map((entrant) => entrant.driverId)).not.toContain("jones");
-    // The car is the team's, not the driver's: Mansell inherits the FW07B.
-    const jonesCar = createWorld(3, 1980).field.find((e) => e.driverId === "jones")?.car;
-    expect(williams[0]?.car).toEqual(jonesCar);
+    expect(field).toHaveLength(SEATS);
+    expect(team.map((entrant) => entrant.driverId)).toContain(RESERVE);
+    expect(field.map((entrant) => entrant.driverId)).not.toContain(SEATED);
+    // The car is the team's, not the driver's: the newcomer inherits it.
+    const was = createWorld(3, 1980).field.find((entrant) => entrant.driverId === SEATED)?.car;
+    expect(team.find((entrant) => entrant.driverId === RESERVE)?.car).toEqual(was);
   });
 
   it("races whoever was put in, so the results are theirs", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     const scorers = championshipStandings(running().world.season).map((row) => row.driverId);
-    expect(scorers).toContain("mansell");
-    expect(scorers).not.toContain("jones");
+    expect(scorers).toContain(RESERVE);
+    expect(scorers).not.toContain(SEATED);
   });
 
   it("treats a grid edited back to how it started as unedited", () => {
     // Otherwise a reader who undoes their last swap is told for the rest of the
     // season that they changed something.
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
-    useSeasonStore.getState().setLineup(swapDrivers(mansellAtWilliams, "mansell", "jones"));
+    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setLineup(swapDrivers(swapped, RESERVE, SEATED));
     expect(running().world.lineup).toBeNull();
     expect(running().world.season).toEqual(createWorld(3, 1980).season);
   });
 
   it("goes back to the entered grid when handed null", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     useSeasonStore.getState().setLineup(null);
     expect(running().world).toEqual(createWorld(3, 1980));
   });
@@ -383,49 +418,45 @@ describe("the chosen grid", () => {
     // results that a different field would never have produced.
     useSeasonStore.getState().nextSession();
     const before = running().world;
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     expect(running().world).toBe(before);
     expect(running().world.lineup).toBeNull();
   });
 
   it("carries the grid through Start again, on fresh dice", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     const before = running().world;
     useSeasonStore.getState().restartSeason();
     const after = running().world;
 
-    expect(after.lineup).toEqual(mansellAtWilliams);
+    expect(after.lineup).toEqual(swapped);
     expect(after.field).toEqual(before.field);
     expect(after.seed).not.toBe(before.seed);
   });
 
   it("keeps it through a change of ability mode", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     useSeasonStore.getState().setRatingMode("aged");
     const world = running().world;
 
-    expect(world.lineup).toEqual(mansellAtWilliams);
+    expect(world.lineup).toEqual(swapped);
     expect(world.ratingMode).toBe("aged");
-    // 1980 Mansell is a 27-year-old with two starts to his name, not the 1992
-    // champion the peak ratings describe.
-    const aged = world.field.find((entrant) => entrant.driverId === "mansell")?.driver;
-    const peak = createWorld(3, 1980, "peak", mansellAtWilliams).field.find(
-      (entrant) => entrant.driverId === "mansell",
-    )?.driver;
-    expect(aged?.racing).toBeLessThan(peak?.racing ?? 0);
+    // And the two are applied together: the chosen grid, at its real ages.
+    expect(world.field).toEqual(createWorld(3, 1980, "aged", swapped).field);
+    expect(world.field.map((entrant) => entrant.driverId)).toContain(RESERVE);
   });
 
   it("does not follow the reader to a new season from the menu", () => {
     // The grid belongs to the year it was drawn for; a fresh start is a fresh
     // grid, unlike the ability mode, which is a way of playing.
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     useSeasonStore.getState().openMenu();
     useSeasonStore.getState().startSeason(1980);
     expect(running().world.lineup).toBeNull();
   });
 
   it("is part of the save file like everything else", () => {
-    useSeasonStore.getState().setLineup(mansellAtWilliams);
+    useSeasonStore.getState().setLineup(swapped);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
@@ -433,9 +464,10 @@ describe("the chosen grid", () => {
   it("refuses a lineup that would put three cars in a team", () => {
     // The store is not the only way in — a save file is another — and a field
     // of 29 would quietly break the arithmetic the starting limit was set to.
-    expect(() =>
-      createWorld(3, 1980, "peak", { ...authored, williams: ["jones", "reutemann", "mansell"] }),
-    ).toThrow("3 drivers");
+    const crowded = [...(authored[SEATED_TEAM] ?? []), RESERVE];
+    expect(() => createWorld(3, 1980, "peak", { ...authored, [SEATED_TEAM]: crowded })).toThrow(
+      `${crowded.length} drivers`,
+    );
   });
 });
 

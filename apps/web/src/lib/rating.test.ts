@@ -81,47 +81,36 @@ describe("carOverall", () => {
   });
 });
 
-describe("against the 1980 grid", () => {
+describe("against the authored grid", () => {
+  // What the overall is *worth* on the real grid — that Williams outranks
+  // Renault, that Piquet clears 80 — is not tested anywhere, on purpose: those
+  // are claims about ratings that are still being tuned, and a test that made
+  // them would fail every time a number moved. The rule is in `CLAUDE.md`.
+  // What is worth checking is that the heuristic survives contact with real
+  // data at all.
   const field = buildField();
-  const carOf = (teamId: string): number => {
-    const entrant = field.find((e) => e.teamId === teamId);
-    if (entrant === undefined) {
-      throw new Error(`no entrant for ${teamId}`);
-    }
-    return carOverall(entrant.car);
-  };
-  const driverOf = (driverId: string): number => {
-    const entrant = field.find((e) => e.driverId === driverId);
-    if (entrant === undefined) {
-      throw new Error(`no entrant for ${driverId}`);
-    }
-    return driverOverall(entrant.driver);
-  };
-
-  it("puts the championship-winning car above the fastest fragile one", () => {
-    // Renault had the quickest car and finished fourth; an overall that ranked
-    // it top would be describing a different sport.
-    expect(carOf("williams")).toBeGreaterThan(carOf("renault"));
-    expect(carOf("williams")).toBeGreaterThan(carOf("brabham"));
-  });
-
-  it("separates the front of the grid from the back", () => {
-    expect(carOf("williams") - carOf("shadow")).toBeGreaterThan(30);
-  });
-
-  it("rates the great drivers highest, wherever they are driving", () => {
-    // Andretti is in a Lotus going nowhere in 1980; the driver number should not
-    // care what car he is sitting in.
-    expect(driverOf("andretti")).toBeGreaterThan(driverOf("zunino") + 25);
-    expect(driverOf("piquet")).toBeGreaterThan(80);
-  });
 
   it("keeps every number on the grid inside the rating scale", () => {
+    expect(field.length).toBeGreaterThan(0);
     for (const entrant of field) {
-      expect(driverOverall(entrant.driver)).toBeGreaterThanOrEqual(0);
-      expect(driverOverall(entrant.driver)).toBeLessThanOrEqual(100);
-      expect(carOverall(entrant.car)).toBeGreaterThanOrEqual(0);
-      expect(carOverall(entrant.car)).toBeLessThanOrEqual(100);
+      expect(driverOverall(entrant.driver), entrant.driverId).toBeGreaterThanOrEqual(0);
+      expect(driverOverall(entrant.driver), entrant.driverId).toBeLessThanOrEqual(100);
+      expect(carOverall(entrant.car), entrant.teamId).toBeGreaterThanOrEqual(0);
+      expect(carOverall(entrant.car), entrant.teamId).toBeLessThanOrEqual(100);
     }
+  });
+
+  it("returns a whole number for every entrant, since the grid prints it raw", () => {
+    for (const entrant of field) {
+      expect(Number.isInteger(driverOverall(entrant.driver)), entrant.driverId).toBe(true);
+      expect(Number.isInteger(carOverall(entrant.car)), entrant.teamId).toBe(true);
+    }
+  });
+
+  it("tells the grid apart rather than flattening it to one number", () => {
+    // Not a claim about who is quick: only that the heuristic discriminates. A
+    // weighting bug that returned a constant would pass every scale check above.
+    expect(new Set(field.map((entrant) => driverOverall(entrant.driver))).size).toBeGreaterThan(1);
+    expect(new Set(field.map((entrant) => carOverall(entrant.car))).size).toBeGreaterThan(1);
   });
 });

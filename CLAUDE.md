@@ -31,7 +31,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 433 tests (180 engine, 52 data, 201 web)
+pnpm test          # 430 tests (180 engine, 51 data, 199 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -105,9 +105,30 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   `tsc --noEmit` is the correctness check. Add a real build only if something needs to
   consume these packages from plain Node.
 - Every engine module ships with Vitest tests. `apps/web` is tested at the store and
-  smoke-render level rather than component by component. Favour property-style checks
-  (finish order is a valid permutation; nobody finishes twice; DNFs remove cars)
-  alongside seeded-outcome assertions.
+  smoke-render level rather than component by component. Favour property-style checks:
+  finish order is a valid permutation, nobody finishes twice, DNFs remove cars.
+- **No test may depend on an authored number or on what a particular seed produced.**
+  The driver, team and car ratings and the season seeds are tuned continuously, so a
+  test that reads one fails for a reason that is not a bug. Concretely:
+  - Never assert a rating, or a comparison between two authored ratings — "Williams is
+    faster than Renault", "Piquet is above 80", "Prost peaks in 1987". Assert the
+    *rule* against synthetic ratings instead; the local `driver()` / `car()` fixtures
+    in `apps/web/src/lib/rating.test.ts` are the pattern.
+  - Never assert what a seed produced — a champion, a points total, a winner, a tie.
+    A fixed seed as a *fixture* is fine and necessary; what is banned is an assertion
+    that only holds for that seed. When a test needs a season of a particular shape
+    (a title settled early, a place that changed hands between rounds), **search seeds
+    for one** — `findWorld` in `apps/web/src/test-support.ts` — rather than pinning
+    the seed that happened to work.
+  - Never hard-code a count that comes from the seed files: 28 seats, 15 teams, 41
+    drivers, 14 rounds. Derive it — `field.length`, `season.calendar.length` — because
+    the grid is going to grow.
+  - Naming a driver or team as an **identity** is fine: who drove for whom is history,
+    not a tuning knob. What they are *worth* is not. Where a test needs "a driver with
+    a seat" or "one without", pick it out of the data rather than by name.
+  - Same rule, same reason, for the calibration harness: **do not run it to check
+    anything.** Its figures are the record of one measurement, not a test, and
+    re-measuring on spec is a long loop that answers a question nobody asked.
 - **Statistical tests must be mutation-checked.** A distribution test that passes
   against a deliberately broken implementation is worthless. Break it on purpose,
   confirm it fails, revert. This has repeatedly caught tests that asserted nothing —

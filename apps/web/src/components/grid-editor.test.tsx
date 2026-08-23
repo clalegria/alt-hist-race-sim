@@ -9,6 +9,7 @@
 
 import {
   authoredLineup,
+  driversById,
   lineupChanges,
   reserveDrivers,
   type SeasonLineup,
@@ -19,19 +20,42 @@ import {
 } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName } from "../lib/names.js";
+import { driverName, teamName } from "../lib/names.js";
+import { ageInSeason } from "../lib/people.js";
 import { createWorld } from "../store/season.js";
+import { seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
 import { changeCount, EditedGridBanner, LineupChanges } from "./LineupChanges.js";
 import { SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
 const authored = authoredLineup(season1980);
-/** Mansell, who had no 1980 drive, in the Williams that won it. */
-const edited = swapDrivers(authored, "jones", "mansell");
+
+/**
+ * A seated driver and one without a drive, picked out of the data rather than
+ * named: roadmap 2 adds privateer entries, which promotes some of today's
+ * reserves. See the testing rule in `CLAUDE.md`.
+ */
+const FIRST_ENTRY = season1980.entries[0];
+const SECOND_ENTRY = season1980.entries[1];
+const SEATED = FIRST_ENTRY?.drivers[0] ?? "";
+const TEAM_MATE = FIRST_ENTRY?.drivers[1] ?? "";
+const ELSEWHERE = SECOND_ENTRY?.drivers[0] ?? "";
+const [FREE, ALSO_FREE] = reserveDrivers(authored);
+if (FIRST_ENTRY === undefined || FREE === undefined || ALSO_FREE === undefined) {
+  throw new Error("the season needs an entry list and two drivers without a seat");
+}
+const RESERVE = FREE.id;
+const SEATED_TEAM = FIRST_ENTRY.teamId;
+
+/** One swap: the reserve takes the first seat on the entry list. */
+const edited = swapDrivers(authored, SEATED, RESERVE);
 const changes = lineupChanges(season1980, edited);
-const world = createWorld(3, 1980);
-const editedWorld = createWorld(3, 1980, "peak", edited);
+const world = seededWorld();
+const editedWorld = createWorld(3, YEAR, "peak", edited);
+const SEATS = world.field.length;
+const SPARE = reserveDrivers(authored).length;
+const swapLine = `${driverName(RESERVE)} for ${driverName(SEATED)}`;
 
 /** How many times a class string appears. No regex: these contain slashes. */
 function occurrences(html: string, marker: string): number {
@@ -40,7 +64,7 @@ function occurrences(html: string, marker: string): number {
 
 describe("the grid before it is edited", () => {
   const html = renderToStaticMarkup(
-    <GridStage field={world.field} year={1980} ratingMode="peak" lineup={null} />,
+    <GridStage field={world.field} year={YEAR} ratingMode="peak" lineup={null} />,
   );
 
   it("offers a way in", () => {
@@ -66,24 +90,24 @@ describe("the grid before it is edited", () => {
 
 describe("the grid once a lineup is applied", () => {
   const html = renderToStaticMarkup(
-    <GridStage field={editedWorld.field} year={1980} ratingMode="peak" lineup={edited} />,
+    <GridStage field={editedWorld.field} year={YEAR} ratingMode="peak" lineup={edited} />,
   );
 
   it("seats the swapped-in driver at their new team", () => {
-    const williams = html.slice(html.indexOf(">Williams<"));
-    expect(williams.slice(0, williams.indexOf("</li>"))).toContain("Nigel Mansell");
+    const card = html.slice(html.indexOf(`>${teamName(SEATED_TEAM)}<`));
+    expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(driverName(RESERVE));
   });
 
   it("leaves the driver who lost the seat off the grid entirely", () => {
     // Named in the note above the cards, but in nobody's car: matching the
     // wrapped name rather than the bare string keeps the two apart.
-    expect(html).not.toContain(">Alan Jones<");
-    expect(html).toContain("for Alan Jones");
+    expect(html).not.toContain(`>${driverName(SEATED)}<`);
+    expect(html).toContain(`for ${driverName(SEATED)}`);
   });
 
   it("says what was changed, and marks who is new", () => {
     expect(html).toContain("This grid was edited");
-    expect(html).toContain("Nigel Mansell for Alan Jones");
+    expect(html).toContain(swapLine);
     // One driver arrived, so exactly one row carries the mark.
     expect(occurrences(html, SWAPPED_IN)).toBe(1);
   });
@@ -94,9 +118,9 @@ describe("the grid once a lineup is applied", () => {
 });
 
 describe("the grid in edit mode", () => {
-  const editing = { selectedDriverId: "jones", onSelect: () => {} };
+  const editing = { selectedDriverId: SEATED, onSelect: () => {} };
   const html = renderToStaticMarkup(
-    <SeasonGrid field={world.field} seasonYear={1980} edit={editing} changes={[]} />,
+    <SeasonGrid field={world.field} seasonYear={YEAR} edit={editing} changes={[]} />,
   );
 
   it("explains that every change is a swap", () => {
@@ -104,16 +128,18 @@ describe("the grid in edit mode", () => {
   });
 
   it("turns every driver into something to select, and marks the one picked up", () => {
-    // 28 seats, each a pressable button; exactly one of them is held.
-    expect(occurrences(html, "aria-pressed")).toBe(28);
+    // Every seat is a pressable button; exactly one of them is held.
+    expect(occurrences(html, "aria-pressed")).toBe(SEATS);
     expect(occurrences(html, 'aria-pressed="true"')).toBe(1);
     const pressed = html.slice(html.indexOf('aria-pressed="true"'));
-    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain("Alan Jones");
+    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain(driverName(SEATED));
   });
 
   it("still shows the age and overall the reader is choosing on", () => {
-    expect(html).toContain("(34y)");
-    expect(html).toContain("Carlos Reutemann");
+    const record = driversById().get(TEAM_MATE === "" ? SEATED : TEAM_MATE);
+    expect(record).toBeDefined();
+    expect(html).toContain(record?.name ?? "");
+    expect(html).toContain(`(${ageInSeason(YEAR, record?.birthYear ?? YEAR)}y)`);
   });
 });
 
@@ -122,7 +148,7 @@ describe("the drivers without a drive", () => {
   const html = renderToStaticMarkup(
     <ReserveList
       drivers={reserve}
-      seasonYear={1980}
+      seasonYear={YEAR}
       ratingMode="peak"
       selectedDriverId={null}
       onSelect={() => {}}
@@ -130,23 +156,28 @@ describe("the drivers without a drive", () => {
   );
 
   it("lists everyone in the pool without a seat, and nobody with one", () => {
-    expect(reserve).toHaveLength(13);
-    expect(html).toContain("13 in the pool");
+    expect(reserve.length).toBeGreaterThan(0);
+    expect(html).toContain(`${SPARE} in the pool`);
     for (const driver of reserve) {
       expect(html, `missing ${driver.id}`).toContain(driver.name);
     }
-    expect(html).not.toContain("Alan Jones");
+    for (const driverId of seatedDriverIds(authored)) {
+      expect(html, `${driverId} has a seat`).not.toContain(`>${driverName(driverId)}<`);
+    }
   });
 
   it("shows the same age and overall the grid does, so the two compare", () => {
-    expect(html).toContain("Nigel Mansell");
-    expect(html).toContain("(27y)"); // Mansell, born 1953
+    const record = driversById().get(RESERVE);
+    expect(record).toBeDefined();
+    expect(html).toContain(record?.name ?? "");
+    expect(html).toContain(`(${ageInSeason(YEAR, record?.birthYear ?? YEAR)}y)`);
   });
 
-  it("shrinks as seats are taken", () => {
-    expect(reserveDrivers(edited)).toHaveLength(13);
-    expect(reserveDrivers(edited).map((driver) => driver.id)).toContain("jones");
-    expect(reserveDrivers(edited).map((driver) => driver.id)).not.toContain("mansell");
+  it("trades one for one as seats change hands", () => {
+    const after = reserveDrivers(edited).map((driver) => driver.id);
+    expect(after).toHaveLength(SPARE);
+    expect(after).toContain(SEATED);
+    expect(after).not.toContain(RESERVE);
   });
 });
 
@@ -165,7 +196,7 @@ describe("what the season summary says about an edited grid", () => {
   });
 
   it("names the swap in both places", () => {
-    expect(occurrences(html, "Nigel Mansell for Alan Jones")).toBe(2);
+    expect(occurrences(html, swapLine)).toBe(2);
   });
 
   it("counts the changes rather than just admitting to some", () => {
@@ -187,7 +218,7 @@ describe("what the season summary says about an edited grid", () => {
 describe("counting the changes", () => {
   it("counts seats taken, not teams affected", () => {
     // A swap between two teams shows up as two changed teams but is one change.
-    const betweenTeams = lineupChanges(season1980, swapDrivers(authored, "jones", "villeneuve_g"));
+    const betweenTeams = lineupChanges(season1980, swapDrivers(authored, SEATED, ELSEWHERE));
     expect(betweenTeams).toHaveLength(2);
     expect(changeCount(betweenTeams)).toBe("2 changes");
     expect(changeCount(changes)).toBe("1 change");
@@ -195,24 +226,26 @@ describe("counting the changes", () => {
   });
 
   it("pairs each arrival with the driver they replaced", () => {
-    let lineup = swapDrivers(authored, "jones", "mansell");
-    lineup = swapDrivers(lineup, "reutemann", "decesaris");
+    let lineup = swapDrivers(authored, SEATED, RESERVE);
+    lineup = swapDrivers(lineup, TEAM_MATE, ALSO_FREE.id);
     const html = renderToStaticMarkup(
       <LineupChanges changes={lineupChanges(season1980, lineup)} />,
     );
-    expect(html).toContain("Nigel Mansell for Alan Jones");
-    expect(html).toContain("Andrea de Cesaris for Carlos Reutemann");
+    expect(html).toContain(swapLine);
+    expect(html).toContain(`${ALSO_FREE.name} for ${driverName(TEAM_MATE)}`);
   });
 
   it("lists the teams alphabetically, as the grid does", () => {
-    let lineup = swapDrivers(authored, "villeneuve_g", "mansell");
-    lineup = swapDrivers(lineup, "jones", "decesaris");
-    const html = renderToStaticMarkup(
-      <EditedGridBanner changes={lineupChanges(season1980, lineup)} />,
-    );
-    expect(html.indexOf("Ferrari")).toBeLessThan(html.indexOf("Williams"));
+    let lineup = swapDrivers(authored, SEATED, RESERVE);
+    lineup = swapDrivers(lineup, ELSEWHERE, ALSO_FREE.id);
+    const changed = lineupChanges(season1980, lineup);
+    const html = renderToStaticMarkup(<EditedGridBanner changes={changed} />);
+
+    const names = changed.map((change) => teamName(change.teamId));
+    const drawn = [...names].sort((a, b) => html.indexOf(a) - html.indexOf(b));
+    expect(drawn).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     expect(html).toContain("2 changes");
-    for (const driverId of ["mansell", "decesaris", "jones", "villeneuve_g"]) {
+    for (const driverId of [SEATED, RESERVE, ELSEWHERE, ALSO_FREE.id]) {
       expect(html, driverId).toContain(driverName(driverId));
     }
   });
@@ -220,49 +253,49 @@ describe("counting the changes", () => {
 
 describe("selecting drivers to swap", () => {
   it("picks a driver up, and puts them down again on a second press", () => {
-    expect(pickUp(authored, null, "jones")).toEqual({ lineup: authored, selected: "jones" });
-    expect(pickUp(authored, "jones", "jones")).toEqual({ lineup: authored, selected: null });
+    expect(pickUp(authored, null, SEATED)).toEqual({ lineup: authored, selected: SEATED });
+    expect(pickUp(authored, SEATED, SEATED)).toEqual({ lineup: authored, selected: null });
   });
 
   it("swaps a held driver with the seat that is chosen next", () => {
-    const result = pickUp(authored, "jones", "villeneuve_g");
+    const result = pickUp(authored, SEATED, ELSEWHERE);
     expect(result.selected).toBeNull();
-    expect(seatOf(result.lineup, "jones")).toBe("ferrari");
-    expect(seatOf(result.lineup, "villeneuve_g")).toBe("williams");
+    expect(seatOf(result.lineup, SEATED)).toBe(seatOf(authored, ELSEWHERE));
+    expect(seatOf(result.lineup, ELSEWHERE)).toBe(SEATED_TEAM);
   });
 
   it("gives a seat to a driver who had none, whichever end was held first", () => {
-    const fromSeat = pickUp(authored, "jones", "mansell");
-    const fromPool = pickUp(authored, "mansell", "jones");
+    const fromSeat = pickUp(authored, SEATED, RESERVE);
+    const fromPool = pickUp(authored, RESERVE, SEATED);
     expect(fromSeat).toEqual(fromPool);
-    expect(seatOf(fromSeat.lineup, "mansell")).toBe("williams");
-    expect(seatOf(fromSeat.lineup, "jones")).toBeNull();
+    expect(seatOf(fromSeat.lineup, RESERVE)).toBe(SEATED_TEAM);
+    expect(seatOf(fromSeat.lineup, SEATED)).toBeNull();
   });
 
   it("moves the selection rather than failing when neither driver has a seat", () => {
     // Two reserves is not a swap, and a press that visibly did nothing would
     // read as a bug.
-    const result = pickUp(authored, "mansell", "decesaris");
-    expect(result).toEqual({ lineup: authored, selected: "decesaris" });
+    const result = pickUp(authored, RESERVE, ALSO_FREE.id);
+    expect(result).toEqual({ lineup: authored, selected: ALSO_FREE.id });
   });
 
   it("never changes the size of the field, whatever it is handed", () => {
     let lineup: SeasonLineup = authored;
     let selected: string | null = null;
     for (const driverId of [
-      "jones",
-      "mansell",
-      "decesaris",
-      "villeneuve_g",
-      "villeneuve_g",
-      "reutemann",
-      "jones",
+      SEATED,
+      RESERVE,
+      ALSO_FREE.id,
+      ELSEWHERE,
+      ELSEWHERE,
+      TEAM_MATE,
+      SEATED,
     ]) {
       const result = pickUp(lineup, selected, driverId);
       lineup = result.lineup;
       selected = result.selected;
-      expect(seatedDriverIds(lineup)).toHaveLength(28);
-      expect(new Set(seatedDriverIds(lineup)).size).toBe(28);
+      expect(seatedDriverIds(lineup)).toHaveLength(SEATS);
+      expect(new Set(seatedDriverIds(lineup)).size).toBe(SEATS);
     }
   });
 });
