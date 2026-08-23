@@ -1,8 +1,10 @@
 import {
   type CalendarRace,
   driversById,
+  engineChanges,
   lineupChanges,
   type RatingMode,
+  type SeasonEngines,
   type SeasonLineup,
   teamsById,
 } from "@alt-hist/data";
@@ -17,14 +19,15 @@ import {
 } from "@alt-hist/engine";
 import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverName, teamName } from "../lib/names.js";
+import { driverName } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { positionsOf } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
+import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
-import { GridStage } from "./GridStage.js";
+import { type GridEdit, GridStage } from "./GridStage.js";
 import { EditedGridBanner } from "./LineupChanges.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -152,12 +155,15 @@ function Summary({
   field,
   year,
   lineup,
+  engines,
 }: {
   season: SeasonResult;
   field: readonly RaceEntrant[];
   year: number;
   lineup: SeasonLineup | null;
+  engines: SeasonEngines | null;
 }) {
+  const nameOf = useEntryName();
   const champion = useMemo(() => championshipStandings(season)[0], [season]);
   const topTeam = useMemo(() => constructorStandings(season)[0], [season]);
   const teamFor = useMemo(
@@ -171,6 +177,10 @@ function Summary({
     () => (lineup === null ? [] : lineupChanges(seed, lineup)),
     [lineup, seed],
   );
+  const supplyChanges = useMemo(
+    () => (engines === null ? [] : engineChanges(seed, engines)),
+    [engines, seed],
+  );
 
   return (
     <>
@@ -179,7 +189,9 @@ function Summary({
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
-      {changes.length === 0 ? null : <EditedGridBanner changes={changes} />}
+      {changes.length === 0 && supplyChanges.length === 0 ? null : (
+        <EditedGridBanner changes={changes} engineChanges={supplyChanges} />
+      )}
       <div className="flex flex-col gap-4 sm:flex-row">
         <Champion
           label="Drivers&rsquo; champion"
@@ -190,12 +202,12 @@ function Summary({
           detail={
             champion === undefined
               ? "Nobody scored."
-              : `${teamName(champion.teamId)} — ${champion.points} points from ${plural(champion.wins, "win")}.`
+              : `${nameOf(champion.teamId)} — ${champion.points} points from ${plural(champion.wins, "win")}.`
           }
         />
         <Champion
           label="Constructors&rsquo; champion"
-          name={topTeam === undefined ? "—" : teamName(topTeam.teamId)}
+          name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
           country={topTeam === undefined ? undefined : teams.get(topTeam.teamId)?.base}
           detail={
             topTeam === undefined
@@ -206,7 +218,7 @@ function Summary({
       </div>
       <SeasonCalendar season={season} calendar={seed.calendar} teamFor={teamFor} />
       <Standings season={season} midSeason={false} />
-      <SeasonGrid field={field} seasonYear={year} changes={changes} />
+      <SeasonGrid field={field} seasonYear={year} changes={changes} engineChanges={supplyChanges} />
     </>
   );
 }
@@ -228,6 +240,7 @@ function RaceStage({
   view: Extract<View, { kind: "race" }>;
   race: RaceResult;
 }) {
+  const nameOf = useEntryName();
   const soFar = useMemo(() => seasonSoFar(world.season, view.round), [world.season, view.round]);
   const drivers = useMemo(() => championshipStandings(soFar), [soFar]);
   const constructors = useMemo(() => constructorStandings(soFar), [soFar]);
@@ -286,7 +299,7 @@ function RaceStage({
       {titles.team !== null && titles.teamIsNew ? (
         <TitleBanner
           title="Constructors"
-          name={teamName(titles.team.teamId)}
+          name={nameOf(titles.team.teamId)}
           country={teams.get(titles.team.teamId)?.base}
         />
       ) : null}
@@ -319,29 +332,30 @@ function RaceStage({
   );
 }
 
+interface SeasonViewProps {
+  readonly world: World;
+  readonly view: View;
+  /** Absent in tests, where nothing is clicked. The toggle still renders. */
+  readonly onRatingModeChange?: (mode: RatingMode) => void;
+  /** The same, for the grid editor: it draws without one, it just cannot apply. */
+  readonly onGridChange?: (edit: GridEdit) => void;
+  /** Raised while the grid editor is open, so the page can hide the way forward. */
+  readonly onGridEditingChange?: (editing: boolean) => void;
+}
+
 /**
- * Everything between the header and the buttons, for one point in the reveal.
+ * One point in the reveal, drawn.
  *
- * Takes the world and the cursor as props rather than reading the store, so
- * every stage can be rendered and tested on its own. `App` is the thin shell
- * that connects it.
+ * Separate from `SeasonView` only because the entry-name context has to be
+ * *above* whatever reads it, and this is what reads it.
  */
-export function SeasonView({
+function SeasonBody({
   world,
   view,
   onRatingModeChange,
-  onLineupChange,
+  onGridChange,
   onGridEditingChange,
-}: {
-  world: World;
-  view: View;
-  /** Absent in tests, where nothing is clicked. The toggle still renders. */
-  onRatingModeChange?: (mode: RatingMode) => void;
-  /** The same, for the grid editor: it draws without one, it just cannot apply. */
-  onLineupChange?: (lineup: SeasonLineup | null) => void;
-  /** Raised while the grid editor is open, so the page can hide the way forward. */
-  onGridEditingChange?: (editing: boolean) => void;
-}) {
+}: SeasonViewProps) {
   const round =
     view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
 
@@ -358,7 +372,8 @@ export function SeasonView({
           year={world.year}
           ratingMode={world.ratingMode}
           lineup={world.lineup}
-          {...(onLineupChange === undefined ? {} : { onApply: onLineupChange })}
+          engines={world.engines}
+          {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           {...(onGridEditingChange === undefined ? {} : { onEditingChange: onGridEditingChange })}
         />
       </div>
@@ -383,6 +398,33 @@ export function SeasonView({
   }
 
   return (
-    <Summary season={world.season} field={world.field} year={world.year} lineup={world.lineup} />
+    <Summary
+      season={world.season}
+      field={world.field}
+      year={world.year}
+      lineup={world.lineup}
+      engines={world.engines}
+    />
+  );
+}
+
+/**
+ * Everything between the header and the buttons, for one point in the reveal.
+ *
+ * Takes the world and the cursor as props rather than reading the store, so
+ * every stage can be rendered and tested on its own. `App` is the thin shell
+ * that connects it.
+ *
+ * Its one job of its own is to publish **who is running whose engine**, taken
+ * off the field as it was raced. Every table below names teams through that
+ * context, so "Williams-Ford" is the same name in the standings, the
+ * classification, the qualifying sheet and the summary — rather than six
+ * components each being handed a map they only pass along.
+ */
+export function SeasonView(props: SeasonViewProps) {
+  return (
+    <EntryNames field={props.world.field}>
+      <SeasonBody {...props} />
+    </EntryNames>
   );
 }

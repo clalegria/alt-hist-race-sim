@@ -17,9 +17,10 @@ client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a serv
 HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
-registered in that folder's `index.ts`. 1980 and 1981 exist; the end state is 1950–2026
-and beyond. Nothing outside that folder keeps a list of seasons — see
-`.claude/rules/seed-data.md` for the three edits an extra year takes.
+registered in that folder's `index.ts`. Each carries a calendar, an **engine table** and
+an entry list. 1980 and 1981 exist; the end state is 1950–2026 and beyond. Nothing
+outside that folder keeps a list of seasons — see `.claude/rules/seed-data.md` for the
+three edits an extra year takes.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo calibration harness, and a React web app that
@@ -36,7 +37,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 461 tests (189 engine, 55 data, 217 web)
+pnpm test          # 525 tests (201 engine, 77 data, 247 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -90,8 +91,17 @@ pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, write
   it and stop; do not fix it unprompted.
 
 ## Domain glossary
-- **Entry**: one team's participation in one season — a team + a car spec + its drivers.
-- **Car spec**: a team's per-season car attributes (racing, qualifying, consistency, reliability).
+- **Entry**: one team's participation in one season — a team + a car spec + an engine
+  + its drivers.
+- **Car spec**: a team's per-season *chassis* attributes (racing, qualifying, consistency,
+  reliability).
+- **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability.
+  Three, not four: consistency belongs to the chassis. Identity (`engines.json`) is
+  separate from the per-season ratings, as it is for drivers and teams.
+- **Powertrain**: chassis and engine blended into the one car the model scores,
+  `0.8 · chassis + 0.2 · engine`, consistency untouched. `powertrain()` lives in the
+  engine package and **the UI's overall calls it too**, so there is one answer to "what
+  is this car worth". No engine is the identity: `powertrain(car)` is `car`.
 - **Peak vs aged**: the two rating modes a season can be built from — every driver at
   their authored peak (the default, and what the calibration describes), or at their
   ability in that season via the ageing curve.
@@ -173,6 +183,11 @@ question is open without carrying the argument.
   retires cars at 1980's rate. Live now that a second season is playable.
 - **Starting limit per era** — `maxStarters` is one engine constant pinned at 26.
   Real 1981 took 24. Probably belongs in `SeasonSeed`; needs the author's word.
+- **Engines landed without a re-calibration.** A new entity between car and result, so
+  the 1980 figures describe a grid the sim no longer runs. Deliberate, and **not** a
+  licence to re-tune or to run the harness to see how far it drifted. The engine ratings
+  and the 0.2 share are authored judgements; nothing moves a deal between seasons, and
+  a works team is inferred from the names matching.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
   costs strict dominance.
 - **Weekend-form share is a first guess** — 0.5, plausible but never fitted.

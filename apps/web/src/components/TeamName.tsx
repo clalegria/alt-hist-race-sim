@@ -1,6 +1,6 @@
 import { teamsById } from "@alt-hist/data";
-import { teamName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 
 const teams = teamsById();
@@ -10,7 +10,7 @@ const teams = teamsById();
  *
  * One component for the same reason: a flag that appears in one table and not
  * another reads as a bug, and this is the only place to change how teams are
- * labelled.
+ * labelled — including whether the engine is named alongside the chassis.
  */
 export function TeamName({
   teamId,
@@ -22,10 +22,11 @@ export function TeamName({
   className?: string;
 }) {
   const base = teams.get(teamId)?.base;
+  const nameOf = useEntryName();
   return (
     <span className={cn("flex items-center gap-1.5", className)}>
       {base === undefined ? null : <Flag country={base} title={base} />}
-      <span className={cn(emphasis && "font-semibold")}>{teamName(teamId)}</span>
+      <span className={cn(emphasis && "font-semibold")}>{nameOf(teamId)}</span>
     </span>
   );
 }

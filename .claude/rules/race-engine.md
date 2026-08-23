@@ -5,8 +5,12 @@ paths:
 
 # Race model (v1) — score-and-sort
 
-Four stages, all constants in `race/constants.ts`:
+Five stages, all constants in `race/constants.ts` — the first is what a car *is*, the
+rest are what happens to it:
 
+0. **The car** — `0.8·chassis + 0.2·engine` on racing, qualifying and reliability,
+   blended once per entrant by `powertrain()` before anything is scored. Consistency
+   is the chassis alone. Everything below reads *that* car, never `entrant.car`.
 1. **Qualifying** — `0.72·car + 0.28·driver + home − consistencyPenalty + noise`, sorted
    → grid. The whole entry list runs, however big it is.
 2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.
@@ -29,6 +33,44 @@ defined yet and belongs to the progression model.
 which is how the calibration tools sweep values without editing source. `round` is a
 `RoundContext` — *where* the race is being held — and defaults to `{}`, a neutral race
 scored exactly as it was before home advantage existed.
+
+## Engines
+
+`powertrain(car, engine, constants?)` in `race/powertrain.ts` is the whole of it:
+`weightChassis` (0.8) of the chassis and `weightEngine` (0.2) of the engine, on
+`racing`, `qualifying` and `reliability`. **Consistency is not blended** — an
+`EngineSpec` has three ratings, not four, because how repeatable a car's pace is comes
+from the chassis and the setup; an engine either makes its power or breaks, and the
+second of those is `reliability`.
+
+Three things hold it in place:
+
+- **It is exported, and the UI uses the same function.** `carOverall(car, engine)` in
+  `@alt-hist/data` runs the blend through `powertrain` rather than weighting the engine
+  itself, so the headline number on the grid page is a summary of the car that will
+  actually be raced. A second copy of the blend would be a second answer.
+- **No engine is the identity.** `powertrain(car)` returns the car. Every field built
+  before engines existed, and every synthetic field in these tests, is scored exactly
+  as it was — which is what keeps those tests meaningful.
+- **It draws no randomness**, like home advantage: the RNG stream after a race is
+  identical with and without engines, so a supplier change cannot shift a later round
+  through the dice.
+
+`engine` and `engineId` ride on `RaceEntrant` alongside `car` and `teamCountry`, filled
+in by `buildField` from the season's own engine table. The engine package still reads no
+seed data, and `engineId` is identity the model never looks at.
+
+**The engine's share is small on purpose.** A season's authored car rating is a
+judgement about the whole package as it raced, so most of what the engine contributed is
+already inside it; 0.2 is the part that moves when a team changes supplier. A larger
+share would also flatten the grid, because one engine is shared across a very wide range
+of chassis — the 1980 Cosworth DFV ran in cars rated from 42 to 91.
+
+**The 1980 calibration predates this and was not re-run.** Blending a shared engine into
+every DFV car compresses the field slightly around that engine's rating and moves the
+turbo runners relative to it, so the win and pole shares in `.claude/rules/calibration.md`
+are now a description of a grid the sim no longer runs. That is a known, deliberate
+debt: see `docs/DECISIONS.md`. Do not re-tune to close it without the author asking.
 
 ## Home advantage
 

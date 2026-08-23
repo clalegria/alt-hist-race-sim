@@ -1,4 +1,4 @@
-import type { CarSpec, DriverRatings } from "../model/ratings.js";
+import type { CarSpec, DriverRatings, EngineSpec } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
 import type { RaceConstants } from "./constants.js";
 
@@ -8,6 +8,18 @@ export interface RaceEntrant {
   readonly teamId: string;
   readonly driver: DriverRatings;
   readonly car: CarSpec;
+  /**
+   * The engine in the back of it, blended with the car by `powertrain()` before
+   * anything is scored. Optional: an entrant without one races on its chassis
+   * alone, which is exactly what every field did before engines existed.
+   */
+  readonly engine?: EngineSpec;
+  /**
+   * Which manufacturer supplied it — identity, not rating, and here for the
+   * same reason `teamId` is: a result should be traceable back to who built the
+   * thing without anyone re-reading the seed files. The engine never reads it.
+   */
+  readonly engineId?: string;
   /**
    * Where the driver and the team are from, as ISO 3166-1 alpha-2 codes, for
    * the home-advantage term. Both optional and compared case-insensitively: a

@@ -51,6 +51,46 @@ and both constants are still 1980's.**
   decided by pre-qualifying and by teams entering different cars at different rounds,
   whereas here the same entry list contests every race.
 
+## Engine manufacturers
+
+Landed. What they left open:
+
+- **The 1980 calibration was not re-run, and that is the one deliberate debt here.**
+  Cars are now `0.8 · chassis + 0.2 · engine`, which is exactly the case the
+  no-re-calibration invariant lists as *needing the author's word first*: a new entity
+  between the car and the result changes what a car rating means. Blending a shared
+  engine into ten Cosworth cars compresses the field slightly around that engine's
+  rating and moves the turbo runners relative to it, so the win and pole shares in
+  `.claude/rules/calibration.md` describe a grid the sim no longer runs. **Nobody has
+  measured how far** — running the harness to find out is the same long loop the rule
+  forbids, and the number changes nothing until the author decides to re-tune. When
+  that happens, the honest order is: re-measure 1980, then adjust chassis ratings and
+  engine ratings together, because they are now two halves of one number.
+- **The engine ratings themselves are authored, not fitted.** Written to the 1980 scale
+  by hand: the Renault turbo quickest and most fragile, the Cosworth DFV near the mean
+  of the cars that use it, the Ferrari flat-12 strong on power in a chassis that was
+  not. Reasonable, and never checked against anything.
+- **The 0.2 engine share is a judgement, not a measurement.** The reasoning is that an
+  authored car rating already contains most of what its engine contributed, so this is
+  only the part that moves when a team changes supplier — and that a larger share would
+  flatten a grid where one engine spans chassis rated 42 to 91. Both are arguments, not
+  evidence. Raising it is how you would make an engine deal matter more; the price is
+  a more uniform field.
+- **An engine has no consistency, and no home advantage.** The first is a modelling
+  claim (repeatability is a chassis and setup property) and is settled. The second is
+  just unbuilt: `engines.json` carries a `base` country for the flag, and the race
+  model does not read it. Whether a French engine should collect something at Paul
+  Ricard alongside the French team and the French driver is undecided — and note that
+  a third stacking bonus would need the existing two re-thought, not just extended.
+- **Nothing changes a supplier between seasons.** `SeasonProgressionModel` has
+  `nextSeasonEntries()` and `nextSeasonCars()` and no `nextSeasonEngines()`. Whether an
+  engine deal is something the driver market moves, something progression rolls, or
+  something only a team-management mode chooses is a design question for career mode.
+- **Engines have no ownership relationship to teams.** A works team is inferred from
+  the names matching — that is how the UI decides Renault is not "Renault-Renault" —
+  and nothing models a factory deal, a customer deal, or the difference between them.
+  Fine for display; probably not fine once a market can move deals.
+
 ## Race model levers
 
 - **Consistency's spread lever is parked, not gone.** Settled for now: consistency

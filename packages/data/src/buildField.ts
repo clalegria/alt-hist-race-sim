@@ -18,6 +18,13 @@
  *
  * Each entrant also carries the driver's nationality and the team's base, which
  * is how the engine knows who is racing at home without ever reading this data.
+ *
+ * It carries the team's engine too, looked up in the season's own engine table.
+ * The blend with the chassis is not done here: `powertrain()` in the engine
+ * package owns it, so the number the race is run on and the number the grid page
+ * shows come from one place. An entry naming an engine the season does not rate
+ * gets none — `validateSeedData` rejects that, and a field is not the place to
+ * discover it.
  */
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
@@ -80,6 +87,7 @@ export function buildField(
   // pool does not know still races — it simply never races at home, which is
   // the same thing the engine does with a missing code.
   const baseOf = new Map(teams.map((team) => [team.id, team.base]));
+  const engineOf = new Map(season.engines.map((engine) => [engine.engineId, engine]));
   const field: RaceEntrant[] = [];
 
   for (const entry of season.entries) {
@@ -90,11 +98,22 @@ export function buildField(
       }
 
       const base = baseOf.get(entry.teamId);
+      const engine = engineOf.get(entry.engineId);
       field.push({
         driverId,
         teamId: entry.teamId,
         driver: driverRatingsFor(driver, season.year, mode),
         car: entry.car,
+        engineId: entry.engineId,
+        ...(engine === undefined
+          ? {}
+          : {
+              engine: {
+                racing: engine.racing,
+                qualifying: engine.qualifying,
+                reliability: engine.reliability,
+              },
+            }),
         driverCountry: driver.nationality,
         ...(base === undefined ? {} : { teamCountry: base }),
       });

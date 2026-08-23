@@ -25,6 +25,27 @@ export interface RaceConstants {
   readonly weightDriverRacing: number;
 
   /**
+   * How much of a car's performance is the chassis and how much is the engine
+   * bolted into the back of it. Sums to 1, so blending the two leaves the
+   * result on the same 0-100 scale as either input.
+   *
+   * The engine's share is deliberately small. A season's authored car rating is
+   * a judgement about the whole package as it raced, so most of what an engine
+   * contributed is already inside it; this weight is the part that moves when a
+   * team changes supplier. Small also keeps the blend honest across a grid where
+   * one engine is shared by ten teams — the 1980 Cosworth DFV ran in cars rated
+   * from 42 to 91, and a larger share would drag all of them toward one number.
+   *
+   * Applied to `racing`, `qualifying` and `reliability`. Consistency is left to
+   * the chassis alone: an engine has none of its own (see `EngineSpec`).
+   *
+   * An entrant with no engine is scored on its chassis alone, exactly as every
+   * field was before engines existed — these weights are not consulted at all.
+   */
+  readonly weightChassis: number;
+  readonly weightEngine: number;
+
+  /**
    * Consistency is blended 50/50: a fragile chassis and an erratic driver both
    * widen the spread, and neither obviously dominates the other.
    */
@@ -236,6 +257,9 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   weightDriverQualifying: 0.28,
   weightCarRacing: 0.7,
   weightDriverRacing: 0.3,
+
+  weightChassis: 0.8,
+  weightEngine: 0.2,
 
   weightCarConsistency: 0.5,
   weightDriverConsistency: 0.5,

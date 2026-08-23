@@ -180,7 +180,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
   const openMenu = useSeasonStore((state) => state.openMenu);
   const openSeasonSetup = useSeasonStore((state) => state.openSeasonSetup);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
-  const setLineup = useSeasonStore((state) => state.setLineup);
+  const setGrid = useSeasonStore((state) => state.setGrid);
 
   // Purely about what the reader is being asked, so it stays out of the store:
   // the rule is that *simulation* state lives there, not that React may hold
@@ -230,7 +230,9 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
           world={world}
           view={view}
           onRatingModeChange={setRatingMode}
-          onLineupChange={setLineup}
+          onGridChange={(edit) => {
+            setGrid(edit.lineup, edit.engines);
+          }}
           onGridEditingChange={setEditingGrid}
         />
       </div>

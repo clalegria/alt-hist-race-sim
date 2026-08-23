@@ -10,30 +10,56 @@ reveal cursor, and how any of this is tested — is in `.claude/rules/web-app.md
 loads alongside this file.
 
 - **The grid opens closed.** Teams and drivers with a flag, an age and one overall
-  rating; the five individual ratings live behind a popover, and teams are listed
+  rating; the individual ratings live behind a popover, and teams are listed
   alphabetically rather than by pace so the pecking order is not given away before a
   wheel turns. A test asserts no rating label appears in the closed markup.
-- **The grid can be rearranged, and only by swapping.** `Edit grid` turns every driver
-  row into a select button and opens `ReserveList` — everyone in the pool without a
-  seat — as a sticky sidebar; the team cards drop from three columns to two to make
-  room. Select a driver, then whoever takes the seat: seated ↔ reserve, or seated ↔
-  seated between two teams. Two reserves in a row cannot swap, so the second just
-  becomes the selection rather than doing nothing visible. Nothing here can *add* a
-  car, by construction rather than by validation.
+- **A team is named as an entry: "Williams-Ford".** The hyphen says who *supplied* the
+  engine, so a works team keeps its bare name — Renault building its own is not a
+  "Renault-Renault", and neither is Ferrari. Compared on the names, not the ids: the
+  same manufacturer can be a team in one season and only a supplier in another.
+  `entryName` in `lib/names.ts` owns the rule, and everything downstream of a season
+  reaches it through `useEntryName()` — see the context note in `web-app.md`. Teams are
+  still **sorted on the plain team name**, so a team does not move down the page for
+  changing supplier.
+- **The overall on a team card already has the engine in it**, via
+  `carOverall(car, engine)` → the model's own `powertrain()`. Showing the bare chassis
+  would be a number nothing races on. The popover behind it shows the parts instead:
+  the four chassis ratings, then the engine's three under its own heading — an engine
+  has no consistency, so that panel is one row shorter, which is the point rather than
+  an omission.
+- **The grid can be rearranged: drivers by swapping, engines by picking.** `Edit grid`
+  turns every driver row into a select button, puts a supplier `select` on every team
+  card, and opens `ReserveList` — everyone in the pool without a seat — as a sticky
+  sidebar; the team cards drop from three columns to two to make room. Select a driver,
+  then whoever takes the seat: seated ↔ reserve, or seated ↔ seated between two teams.
+  Two reserves in a row cannot swap, so the second just becomes the selection rather
+  than doing nothing visible. Nothing here can *add* a car, by construction rather than
+  by validation — and the engine picker offers only what the season rates, so nothing
+  can invent a supplier either. A native `select` rather than a styled listbox: it is a
+  plain one-of-N from a short list, and the platform control is keyboard- and
+  screen-reader-correct for free.
 - **An edited grid says so, in the same muted dashed frame everywhere.** Deliberately
   *not* the `lib/highlight.ts` accent: "the grid was changed" is a caveat on a result,
   not something that was won, and borrowing the accent would also break the test that
   counts exactly two accented cards per summary. A driver who is not where history put
-  them carries the same soft fill (`SWAPPED_IN`) in the grid, so the note and the cards
-  agree without the reader matching names. The summary declares it **twice** — a banner
-  above the champions, because finding out at the foot of the page is finding out too
-  late, and the full list on the grid at the end.
+  them carries the same soft fill (`SWAPPED_IN`) in the grid, and so does the header of
+  a team running an engine it was not given, so the note and the cards agree without the
+  reader matching names. The summary declares it **twice** — a banner above the
+  champions, because finding out at the foot of the page is finding out too late, and
+  the full list on the grid at the end.
+  **Both kinds of change share one notice**, in `GridChanges`: one row per team, "Alain
+  Prost for Jody Scheckter" and "Renault engine for Ferrari" on the same line if both
+  happened, and `changeCount` totals seats and engines together. Two separate notices
+  would make a season that changed one of each look like two unrelated caveats.
 - `lib/rating.ts` computes the overall: a **display heuristic, not model truth** —
   nothing in the engine reads it — whose weights approximate how much each rating
   actually moves results. Reliability takes a quarter of the car number despite
   touching no race score, because ~42% of the 1980 field failed to finish and a
   fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
   paying for it would claim a driver is better at something the sim never asks of.
+  The engine is the exception to "the weights live here": `carOverall` folds it in
+  through the engine package's `powertrain()` rather than giving it weights of its own,
+  because how much an engine is worth is a *model* claim and there must be one answer.
 - **One accent, defined once in `lib/highlight.ts`**: pole on the grid, the winner of
   a race, each champion on the summary, and the champion's row in the race sidebar
   from the round the arithmetic settles it. The banner announcing a title appears on

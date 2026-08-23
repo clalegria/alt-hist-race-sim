@@ -19,12 +19,12 @@ import {
 } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName, teamName } from "../lib/names.js";
+import { driverName, entryName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
-import { changeCount, EditedGridBanner, LineupChanges } from "./LineupChanges.js";
+import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
 import { SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
@@ -46,6 +46,8 @@ if (FIRST_ENTRY === undefined || FREE === undefined || ALSO_FREE === undefined) 
 }
 const RESERVE = FREE.id;
 const SEATED_TEAM = FIRST_ENTRY.teamId;
+/** How that team is named on the grid now that the engine is part of it. */
+const ENTRY_NAME = entryName(SEATED_TEAM, FIRST_ENTRY.engineId);
 
 /** One swap: the reserve takes the first seat on the entry list. */
 const edited = swapDrivers(authored, SEATED, RESERVE);
@@ -63,7 +65,7 @@ function occurrences(html: string, marker: string): number {
 
 describe("the grid before it is edited", () => {
   const html = renderToStaticMarkup(
-    <GridStage field={world.field} year={YEAR} ratingMode="peak" lineup={null} />,
+    <GridStage field={world.field} year={YEAR} ratingMode="peak" lineup={null} engines={null} />,
   );
 
   it("offers a way in", () => {
@@ -89,11 +91,17 @@ describe("the grid before it is edited", () => {
 
 describe("the grid once a lineup is applied", () => {
   const html = renderToStaticMarkup(
-    <GridStage field={editedWorld.field} year={YEAR} ratingMode="peak" lineup={edited} />,
+    <GridStage
+      field={editedWorld.field}
+      year={YEAR}
+      ratingMode="peak"
+      lineup={edited}
+      engines={null}
+    />,
   );
 
   it("seats the swapped-in driver at their new team", () => {
-    const card = html.slice(html.indexOf(`>${teamName(SEATED_TEAM)}<`));
+    const card = html.slice(html.indexOf(`>${ENTRY_NAME}<`));
     expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(driverName(RESERVE));
   });
 
@@ -117,13 +125,18 @@ describe("the grid once a lineup is applied", () => {
 });
 
 describe("the grid in edit mode", () => {
-  const editing = { selectedDriverId: SEATED, onSelect: () => {} };
+  const editing = {
+    selectedDriverId: SEATED,
+    onSelect: () => {},
+    engineIds: SEED.engines.map((engine) => engine.engineId),
+    onEngineChange: () => {},
+  };
   const html = renderToStaticMarkup(
     <SeasonGrid field={world.field} seasonYear={YEAR} edit={editing} changes={[]} />,
   );
 
   it("explains that every change is a swap", () => {
-    expect(html).toContain("Teams keep the number of cars they entered");
+    expect(html).toContain("teams keep the number of cars they entered");
   });
 
   it("turns every driver into something to select, and marks the one picked up", () => {
@@ -227,7 +240,7 @@ describe("counting the changes", () => {
   it("pairs each arrival with the driver they replaced", () => {
     let lineup = swapDrivers(authored, SEATED, RESERVE);
     lineup = swapDrivers(lineup, TEAM_MATE, ALSO_FREE.id);
-    const html = renderToStaticMarkup(<LineupChanges changes={lineupChanges(SEED, lineup)} />);
+    const html = renderToStaticMarkup(<GridChanges changes={lineupChanges(SEED, lineup)} />);
     expect(html).toContain(swapLine);
     expect(html).toContain(`${ALSO_FREE.name} for ${driverName(TEAM_MATE)}`);
   });

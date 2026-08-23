@@ -11,7 +11,7 @@ import { driversById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings, SEASON_CONSTANTS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName, teamName } from "../lib/names.js";
+import { driverName, entryName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { positionsOf } from "../lib/standings.js";
@@ -151,7 +151,7 @@ describe("the season grid", () => {
 
   it("groups every driver under their team", () => {
     for (const entrant of world.field) {
-      const card = html.slice(html.indexOf(`>${teamName(entrant.teamId)}<`));
+      const card = html.slice(html.indexOf(`>${entryName(entrant.teamId, entrant.engineId)}<`));
       expect(card.slice(0, card.indexOf("</li></ul></li>")), entrant.driverId).toContain(
         driverName(entrant.driverId),
       );
@@ -179,7 +179,8 @@ describe("the season grid", () => {
     // One per driver, one per team: the number you can scan the grid by.
     for (const entrant of world.field) {
       expect(html, entrant.driverId).toContain(`>${driverOverall(entrant.driver)}<`);
-      expect(html, entrant.teamId).toContain(`>${carOverall(entrant.car)}<`);
+      // Engine included: the headline number is the car that gets raced.
+      expect(html, entrant.teamId).toContain(`>${carOverall(entrant.car, entrant.engine)}<`);
     }
   });
 
@@ -193,9 +194,15 @@ describe("the season grid", () => {
 
   it("orders teams alphabetically, not by pace", () => {
     // Sorting by car rating would give the season away before it started.
-    const names = [...new Set(world.field.map((entrant) => teamName(entrant.teamId)))];
-    const drawn = [...names].sort((a, b) => html.indexOf(`>${a}<`) - html.indexOf(`>${b}<`));
-    expect(drawn).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    // Located by the entry name the card carries, ordered by the team name it
+    // is sorted on: a team does not move down the page for changing engine.
+    const teamIds = [...new Set(world.field.map((entrant) => entrant.teamId))];
+    const shown = new Map(
+      world.field.map((entrant) => [entrant.teamId, entryName(entrant.teamId, entrant.engineId)]),
+    );
+    const at = (teamId: string) => html.indexOf(`>${shown.get(teamId) ?? ""}<`);
+    const drawn = [...teamIds].sort((a, b) => at(a) - at(b));
+    expect(drawn).toEqual([...teamIds].sort((a, b) => teamName(a).localeCompare(teamName(b))));
   });
 });
 

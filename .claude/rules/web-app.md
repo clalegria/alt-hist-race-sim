@@ -70,23 +70,42 @@ it, `restartSeason` carries the world's own. `simulate` deliberately ignores it 
 is the entry point whose output must depend only on its arguments, and tests would
 otherwise be order-dependent on whatever was last remembered.
 
-**The grid is a simulation input too.** `world.lineup` is the reader's own driver
-allocation, or **null for the season as it was entered** — null rather than a copy of
-the authored lineup, so "was this edited?" is a property of the world instead of a
-comparison somebody has to remember to make. `createWorld` normalises an edit that
-lands back on the authored grid to null, so undoing your last swap stops the notices.
+**The grid is a simulation input too, in two halves.** `world.lineup` is the reader's
+own driver allocation and `world.engines` their own engine supply — each **null for the
+season as it was entered**, null rather than a copy of the authored one, so "was this
+edited?" is a property of the world instead of a comparison somebody has to remember to
+make. `createWorld` normalises an edit that lands back on the authored grid to null, so
+undoing your last swap stops the notices.
 
-`setLineup` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year
-*from the same seed*, and `restartSeason` carries it — an edited grid is something the
-reader chose, like the ability mode. Unlike the ability mode it is **not** remembered
-in localStorage: a lineup belongs to the year it was drawn for, so starting a season
-from the menu gets the real grid back.
+Two fields rather than one because they are two questions — who drives the car, and
+what is in the back of it — and either can be changed without the other. **One store
+action, though**: `setGrid(lineup, engines)` applies both, because the editor applies
+one draft and a reader who moved a driver *and* changed a supplier asked a single
+question. Simulating a season in between would answer one nobody asked.
+
+`setGrid` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year *from
+the same seed*, and `restartSeason` carries it — an edited grid is something the reader
+chose, like the ability mode. Unlike the ability mode it is **not** remembered in
+localStorage: a lineup and a set of engine deals belong to the year they were drawn
+for, so starting a season from the menu gets the real grid back.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, ratingMode, rngState, field, lineup, season }`) — one per season
-screen, none before one is started. `field` is the grid exactly as raced, and is no
-longer derivable from the seed files: who is in it depends on `lineup`, and their
-ratings on `ratingMode`.
+(`{ seed, year, ratingMode, rngState, field, lineup, engines, season }`) — one per
+season screen, none before one is started. `field` is the grid exactly as raced, and is
+no longer derivable from the seed files: who is in it depends on `lineup`, what they
+drive on `engines`, and their ratings on `ratingMode`.
+
+**Who is running whose engine travels by context, not by prop.** A result row records a
+`teamId` and nothing else, but "Williams-Ford" has to be the same name in the standings,
+the classification, the qualifying sheet and the summary or it reads as a bug. Threading
+a map through `StandingsTable`, `CompactStandings`, `DriverName`, `QualifyingResults` and
+the summary would be six pass-through props deep, so `SeasonView` wraps its body in
+`EntryNames` and those components call `useEntryName()`. The map is built from
+**`world.field`**, not the seed files — the field is the record of the grid as it was
+actually raced. The default is empty, so a component rendered on its own shows plain
+team names rather than throwing, which is what keeps every DOM-less test renderable.
+`SeasonGrid` deliberately does *not* use the context: it reads the engine off the field
+it is handed, which is what lets the editor preview a draft the world has never seen.
 
 **No `Rng` in the world** — it holds a closure and cannot be serialized. What is
 stored is its numeric `getState()` snapshot, which `createRngFromState` turns back
@@ -95,11 +114,12 @@ therefore already a complete save file, and tests assert both the round trip and
 no function or class instance has crept in.
 
 View state that says nothing about the simulation — which race row is expanded, the
-start-again confirming flag, the grid editor's **draft** lineup — stays in component
-`useState`. The rule is that *simulation* state lives in the one store, not that React
-may never hold anything. A draft becomes simulation state at the moment Apply hands it
-to `setLineup`, and not before: applying re-runs fourteen races, and a reader halfway
-through moving four drivers has not yet asked a question worth answering.
+start-again confirming flag, the grid editor's **draft** lineup and draft engines —
+stays in component `useState`. The rule is that *simulation* state lives in the one
+store, not that React may never hold anything. A draft becomes simulation state at the
+moment Apply hands it to `setGrid`, and not before: applying re-runs fourteen races, and
+a reader halfway through moving four drivers has not yet asked a question worth
+answering. The two drafts open and close together, so one `null` answers for both.
 
 While the editor is open, `App` takes the **forward buttons away** — `GridStage`
 raises `onEditingChange` and `Actions` shows a note instead. Stepping on mid-edit
@@ -174,7 +194,13 @@ The grid editor is split the same way, and for the same reason. `SeasonGrid` and
 state they can be in renders on its own, and the interaction itself is the pure
 `pickUp(lineup, selected, driverId)` in `GridStage.tsx`, which is where the
 select-then-swap rule is tested. The swap rules underneath it are unit-tested in
-`@alt-hist/data`; where an applied lineup ends up is tested in the store.
+`@alt-hist/data`; where an applied grid ends up is tested in the store.
+
+The **supplier picker is a native `select`** partly for that reason: it is the one
+control in the editor whose state a DOM-less test can read back, since React renders
+`selected=""` on the chosen option. `engines.test.tsx` reads the selected values in card
+order rather than searching for a name — a works team is called the same thing as one of
+the options in every other team's picker.
 
 What this level cannot reach: the click handlers, the scroll-to-top effect, the
 start-again confirming flag, the editor's open/closed toggle, and popover contents,

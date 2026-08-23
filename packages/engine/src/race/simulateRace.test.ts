@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { EngineSpec } from "../model/ratings.js";
 import { createRng } from "../rng/index.js";
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
@@ -928,5 +929,117 @@ describe("the model interface", () => {
     // With no noise the fastest surviving car must lead.
     const best = [...classified].sort((a, b) => (b.raceScore ?? 0) - (a.raceScore ?? 0))[0];
     expect(classified[0]?.driverId).toBe(best?.driverId);
+  });
+});
+
+/**
+ * Four identical cars, differing only in the engine bolted into them.
+ *
+ * `driver-a` sorts first on the id tie-break, so with the noise off the running
+ * order is decided purely by the engines — which is the point.
+ */
+function enginedField(): RaceEntrant[] {
+  const withEngine = (id: string, engine?: EngineSpec): RaceEntrant => ({
+    ...entrant(id, `team-${id}`, 70, 70),
+    ...(engine === undefined ? {} : { engine }),
+  });
+  return [
+    withEngine("driver-a"),
+    withEngine("driver-b", { racing: 70, qualifying: 70, reliability: 70 }),
+    withEngine("driver-c", { racing: 100, qualifying: 100, reliability: 100 }),
+    withEngine("driver-d", { racing: 0, qualifying: 0, reliability: 0 }),
+  ];
+}
+
+describe("engines", () => {
+  it("scores a car with no engine on its chassis alone", () => {
+    // An engine matching the chassis exactly is the same car by construction,
+    // which is what makes "no engine" a neutral state rather than a penalty.
+    // Grid bonus off as well: a and b tie on pace, so track position would be
+    // the only thing between them and would hide the equality being asserted.
+    const flat: RaceConstants = { ...NO_NOISE, gridAdvantagePole: 0 };
+    const result = simulateRace(enginedField(), createRng(1), flat);
+    expect(entryOf(result, "driver-a").qualifyingScore).toBeCloseTo(
+      entryOf(result, "driver-b").qualifyingScore,
+      10,
+    );
+    expect(entryOf(result, "driver-a").raceScore ?? 0).toBeCloseTo(
+      entryOf(result, "driver-b").raceScore ?? 0,
+      10,
+    );
+  });
+
+  it("puts a better engine ahead of an identical car with a worse one", () => {
+    const result = simulateRace(enginedField(), createRng(1), NO_NOISE);
+    expect(entryOf(result, "driver-c").gridPosition).toBeLessThan(
+      entryOf(result, "driver-a").gridPosition,
+    );
+    expect(entryOf(result, "driver-a").gridPosition).toBeLessThan(
+      entryOf(result, "driver-d").gridPosition,
+    );
+    expect(result.poleDriverId).toBe("driver-c");
+  });
+
+  it("moves the score by the engine's share of the deficit, and no more", () => {
+    const result = simulateRace(enginedField(), createRng(1), NO_NOISE);
+    const gained =
+      entryOf(result, "driver-c").qualifyingScore - entryOf(result, "driver-a").qualifyingScore;
+    // 30 rating points of engine advantage over the chassis it replaces, taken
+    // at the engine's share of the car, then at the car's share of qualifying.
+    expect(gained).toBeCloseTo(30 * NO_NOISE.weightEngine * NO_NOISE.weightCarQualifying, 10);
+  });
+
+  it("leaves consistency alone, so the pace penalty does not move", () => {
+    // Identical chassis consistency across the field: if the engine leaked into
+    // it, the penalties would differ and the score gaps above would not be a
+    // clean function of the engine ratings.
+    const noPace: RaceConstants = {
+      ...NO_NOISE,
+      weightCarQualifying: 0,
+      weightDriverQualifying: 0,
+    };
+    const result = simulateRace(enginedField(), createRng(1), noPace);
+    const scores = result.entries.map((entry) => entry.qualifyingScore);
+    for (const score of scores) {
+      expect(score).toBeCloseTo(scores[0] ?? 0, 10);
+    }
+  });
+
+  it("draws no randomness, so engines cannot shift the stream", () => {
+    const engined = createRng(1);
+    simulateRace(enginedField(), engined, NO_NOISE);
+    const bare = createRng(1);
+    simulateRace(
+      enginedField().map(({ engine: _engine, ...rest }) => rest),
+      bare,
+      NO_NOISE,
+    );
+    expect(engined.getState()).toEqual(bare.getState());
+  });
+
+  it("makes a fragile engine retire more often than a strong one", () => {
+    // Everything else equal, so any difference is the engine's reliability
+    // reaching the mechanical roll through the blend.
+    const field: RaceEntrant[] = [
+      {
+        ...entrant("strong", "t1", 70, 70),
+        engine: { racing: 70, qualifying: 70, reliability: 100 },
+      },
+      {
+        ...entrant("fragile", "t2", 70, 70),
+        engine: { racing: 70, qualifying: 70, reliability: 0 },
+      },
+    ];
+    const failures = { strong: 0, fragile: 0 };
+    for (let seed = 1; seed <= 2000; seed += 1) {
+      const result = simulateRace(field, createRng(seed));
+      if (entryOf(result, "strong").mechanicalFailure) {
+        failures.strong += 1;
+      }
+      if (entryOf(result, "fragile").mechanicalFailure) {
+        failures.fragile += 1;
+      }
+    }
+    expect(failures.fragile).toBeGreaterThan(failures.strong);
   });
 });

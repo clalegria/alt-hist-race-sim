@@ -1,6 +1,7 @@
 import { driversById } from "@alt-hist/data";
-import { driverName, teamName } from "../lib/names.js";
+import { driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 
 const drivers = driversById();
@@ -23,6 +24,7 @@ export function DriverName({
   className?: string;
   emphasis?: boolean;
 }) {
+  const nameOf = useEntryName();
   if (driverId === null) {
     return <span className="text-muted-foreground">—</span>;
   }
@@ -35,7 +37,7 @@ export function DriverName({
         <span className={cn(emphasis && "font-semibold")}>{driverName(driverId)}</span>
       </span>
       {teamId === undefined ? null : (
-        <span className="text-muted-foreground pl-[1.625rem] text-xs">{teamName(teamId)}</span>
+        <span className="text-muted-foreground pl-[1.625rem] text-xs">{nameOf(teamId)}</span>
       )}
     </div>
   );

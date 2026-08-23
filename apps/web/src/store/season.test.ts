@@ -1,4 +1,5 @@
 import {
+  authoredEngines,
   authoredLineup,
   FIRST_AUTHORED_SEASON,
   reserveDrivers,
@@ -420,7 +421,7 @@ describe("the chosen grid", () => {
 
   it("re-runs the same seed with the reader's own grid", () => {
     const before = running().world;
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     const after = running().world;
 
     expect(after.lineup).toEqual(swapped);
@@ -431,7 +432,7 @@ describe("the chosen grid", () => {
   });
 
   it("puts the swapped-in driver in the team's car, and the other out of the field", () => {
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     const field = running().world.field;
     const team = field.filter((entrant) => entrant.teamId === SEATED_TEAM);
 
@@ -444,7 +445,7 @@ describe("the chosen grid", () => {
   });
 
   it("races whoever was put in, so the results are theirs", () => {
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     const scorers = championshipStandings(running().world.season).map((row) => row.driverId);
     expect(scorers).toContain(RESERVE);
     expect(scorers).not.toContain(SEATED);
@@ -453,15 +454,15 @@ describe("the chosen grid", () => {
   it("treats a grid edited back to how it started as unedited", () => {
     // Otherwise a reader who undoes their last swap is told for the rest of the
     // season that they changed something.
-    useSeasonStore.getState().setLineup(swapped);
-    useSeasonStore.getState().setLineup(swapDrivers(swapped, RESERVE, SEATED));
+    useSeasonStore.getState().setGrid(swapped, null);
+    useSeasonStore.getState().setGrid(swapDrivers(swapped, RESERVE, SEATED), null);
     expect(running().world.lineup).toBeNull();
     expect(running().world.season).toEqual(createWorld(3, 1980).season);
   });
 
   it("goes back to the entered grid when handed null", () => {
-    useSeasonStore.getState().setLineup(swapped);
-    useSeasonStore.getState().setLineup(null);
+    useSeasonStore.getState().setGrid(swapped, null);
+    useSeasonStore.getState().setGrid(null, null);
     expect(running().world).toEqual(createWorld(3, 1980));
   });
 
@@ -470,13 +471,13 @@ describe("the chosen grid", () => {
     // results that a different field would never have produced.
     useSeasonStore.getState().nextSession();
     const before = running().world;
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     expect(running().world).toBe(before);
     expect(running().world.lineup).toBeNull();
   });
 
   it("carries the grid through Start again, on fresh dice", () => {
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     const before = running().world;
     useSeasonStore.getState().restartSeason();
     const after = running().world;
@@ -487,7 +488,7 @@ describe("the chosen grid", () => {
   });
 
   it("keeps it through a change of ability mode", () => {
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     useSeasonStore.getState().setRatingMode("aged");
     const world = running().world;
 
@@ -501,14 +502,14 @@ describe("the chosen grid", () => {
   it("does not follow the reader to a new season from the menu", () => {
     // The grid belongs to the year it was drawn for; a fresh start is a fresh
     // grid, unlike the ability mode, which is a way of playing.
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     useSeasonStore.getState().openMenu();
     useSeasonStore.getState().startSeason(1980);
     expect(running().world.lineup).toBeNull();
   });
 
   it("is part of the save file like everything else", () => {
-    useSeasonStore.getState().setLineup(swapped);
+    useSeasonStore.getState().setGrid(swapped, null);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
@@ -578,5 +579,110 @@ describe("the remembered ability mode", () => {
     storedAs("aged");
     useSeasonStore.getState().simulate(3, 1980);
     expect(running().world.ratingMode).toBe("peak");
+  });
+});
+
+describe("the chosen engines", () => {
+  /**
+   * A team, and an engine the season rates that it did not run. Found rather
+   * than named: who supplied whom is history, but which engines a year has is
+   * authored data that moves as seasons are added.
+   */
+  const swap = (() => {
+    for (const entry of SEED.entries) {
+      const other = SEED.engines.find((engine) => engine.engineId !== entry.engineId);
+      if (other !== undefined) {
+        return { teamId: entry.teamId, from: entry.engineId, to: other.engineId };
+      }
+    }
+    throw new Error("the season rates only one engine");
+  })();
+  const authored = authoredEngines(SEED);
+  const resupplied = { ...authored, [swap.teamId]: swap.to };
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, 1980);
+  });
+
+  it("starts on the supply deals the season was entered with", () => {
+    expect(running().world.engines).toBeNull();
+  });
+
+  it("re-runs the same seed with the reader's own supply", () => {
+    const before = running().world;
+    useSeasonStore.getState().setGrid(null, resupplied);
+    const after = running().world;
+
+    expect(after.engines).toEqual(resupplied);
+    expect(after.seed).toBe(before.seed);
+    // Same dice, a different car: the point of keeping the seed.
+    expect(after.season).not.toEqual(before.season);
+    expect(running().view).toEqual({ kind: "grid" });
+  });
+
+  it("puts the new engine in the field it races", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    const moved = running().world.field.filter((entrant) => entrant.teamId === swap.teamId);
+    expect(moved.length).toBeGreaterThan(0);
+    for (const entrant of moved) {
+      expect(entrant.engineId).toBe(swap.to);
+    }
+  });
+
+  it("leaves every other team on the engine it had", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    for (const entrant of running().world.field) {
+      if (entrant.teamId !== swap.teamId) {
+        expect(entrant.engineId, entrant.teamId).toBe(authored[entrant.teamId]);
+      }
+    }
+  });
+
+  it("forgets a supply that is the authored one, so nothing claims a change", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    useSeasonStore.getState().setGrid(null, authored);
+    expect(running().world.engines).toBeNull();
+    expect(running().world.season).toEqual(createWorld(3, 1980).season);
+  });
+
+  it("applies drivers and engines as one edit", () => {
+    const swapped = swapDrivers(AUTHORED, SEATED, RESERVE);
+    useSeasonStore.getState().setGrid(swapped, resupplied);
+    const world = running().world;
+
+    expect(world.lineup).toEqual(swapped);
+    expect(world.engines).toEqual(resupplied);
+    expect(world.season).toEqual(createWorld(3, 1980, "peak", swapped, resupplied).season);
+  });
+
+  it("carries the supply into a fresh seed of the same season", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.engines).toEqual(resupplied);
+  });
+
+  it("carries the supply across a change of ability model", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world.engines).toEqual(resupplied);
+    expect(running().world.ratingMode).toBe("aged");
+  });
+
+  it("cannot be changed once the season has started revealing", () => {
+    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().setGrid(null, resupplied);
+    expect(running().world.engines).toBeNull();
+  });
+
+  it("is part of the save file like everything else", () => {
+    useSeasonStore.getState().setGrid(null, resupplied);
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+
+  it("refuses an engine the season does not rate", () => {
+    expect(() => {
+      useSeasonStore.getState().setGrid(null, { ...authored, [swap.teamId]: "phlogiston" });
+    }).toThrow(/no engine "phlogiston"/);
   });
 });

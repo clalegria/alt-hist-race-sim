@@ -1,11 +1,12 @@
-import { driversById, type SeatChange, teamsById } from "@alt-hist/data";
-import type { RaceEntrant } from "@alt-hist/engine";
-import { driverName, teamName } from "../lib/names.js";
+import type { EngineChange, SeatChange } from "@alt-hist/data";
+import { driversById, teamsById } from "@alt-hist/data";
+import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
+import { driverName, engineName, entryName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { cn } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
-import { LineupChanges } from "./LineupChanges.js";
+import { GridChanges } from "./LineupChanges.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 const drivers = driversById();
@@ -27,19 +28,32 @@ const CAR_RATINGS = [
 ] as const;
 
 /**
- * Swapping mode: which driver has been picked up, and what happens when one is
- * chosen.
+ * An engine has three, not four: consistency belongs to the chassis, so the
+ * chassis panel lists one rating the engine panel underneath it does not.
+ */
+const ENGINE_RATINGS = [
+  { key: "racing", label: "Racing" },
+  { key: "qualifying", label: "Qualifying" },
+  { key: "reliability", label: "Reliability" },
+] as const;
+
+/**
+ * Editing mode: which driver has been picked up, what happens when one is
+ * chosen, and which engines a team may be given.
  *
- * Controlled, with the draft lineup living in `GridStage` above — so this
- * component stays a pure function of what it is handed, and every state the
- * editor can be in renders on its own without a DOM.
+ * Controlled, with the draft living in `GridStage` above — so this component
+ * stays a pure function of what it is handed, and every state the editor can be
+ * in renders on its own without a DOM.
  */
 export interface GridEditing {
   readonly selectedDriverId: string | null;
   readonly onSelect: (driverId: string) => void;
+  /** Every engine the season rates, in the order it offers them. */
+  readonly engineIds: readonly string[];
+  readonly onEngineChange: (teamId: string, engineId: string) => void;
 }
 
-/** The soft fill marking a driver who is not where history put them. */
+/** The soft fill marking a driver — or an engine — that is not where history put it. */
 export const SWAPPED_IN = "bg-muted/70";
 
 /** One rating as a labelled bar, so a 92 and a 44 differ at a glance. */
@@ -183,9 +197,49 @@ function DriverEntry({
   );
 }
 
+/**
+ * The supplier picker, on every team card while the editor is open.
+ *
+ * A native `select` rather than a styled listbox: the choice is a plain one-of-N
+ * from a short list, the platform control is keyboard- and screen-reader-correct
+ * for free, and it is the only control in the editor whose rendered state —
+ * which option carries `selected` — a DOM-less test can read back.
+ */
+function EnginePicker({
+  teamId,
+  engineId,
+  edit,
+}: {
+  teamId: string;
+  engineId: string | undefined;
+  edit: GridEditing;
+}) {
+  return (
+    <label className="mt-2 flex items-center gap-2 text-xs">
+      <span className="text-muted-foreground shrink-0">Engine</span>
+      <select
+        value={engineId ?? ""}
+        onChange={(event) => {
+          edit.onEngineChange(teamId, event.target.value);
+        }}
+        className="border-border bg-background focus-visible:ring-ring min-w-0 flex-1 cursor-pointer rounded border px-1.5 py-1 text-xs focus-visible:ring-2 focus-visible:outline-none"
+      >
+        {edit.engineIds.map((id) => (
+          <option key={id} value={id}>
+            {engineName(id)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 interface TeamEntry {
   readonly teamId: string;
   readonly car: RaceEntrant["car"];
+  /** The unit in the back of it, as the field was built. */
+  readonly engine: EngineSpec | undefined;
+  readonly engineId: string | undefined;
   readonly drivers: readonly RaceEntrant[];
 }
 
@@ -194,13 +248,25 @@ interface TeamEntry {
  *
  * Alphabetical on purpose: ordering by car pace would give away the pecking
  * order before a wheel has turned, which is the one thing this page must not do.
+ * Sorted on the *team* name rather than the entry name, so a team does not move
+ * down the page because it changed engine supplier.
+ *
+ * The car and the engine come off the first entrant of each team, which is where
+ * this whole page gets them: it reads the field it is handed and never the seed
+ * files, so it can be shown a draft grid the world has never run.
  */
 function byTeam(field: readonly RaceEntrant[]): readonly TeamEntry[] {
   const grouped = new Map<string, TeamEntry & { drivers: RaceEntrant[] }>();
   for (const entrant of field) {
     const existing = grouped.get(entrant.teamId);
     if (existing === undefined) {
-      grouped.set(entrant.teamId, { teamId: entrant.teamId, car: entrant.car, drivers: [entrant] });
+      grouped.set(entrant.teamId, {
+        teamId: entrant.teamId,
+        car: entrant.car,
+        engine: entrant.engine,
+        engineId: entrant.engineId,
+        drivers: [entrant],
+      });
     } else {
       existing.drivers.push(entrant);
     }
@@ -212,6 +278,7 @@ export function SeasonGrid({
   field,
   seasonYear,
   changes,
+  engineChanges,
   action,
   edit,
 }: {
@@ -219,16 +286,20 @@ export function SeasonGrid({
   seasonYear: number;
   /** Differences from the authored grid, if any. Drives the note and the marks. */
   changes?: readonly SeatChange[];
+  /** Teams running an engine the season did not give them. */
+  engineChanges?: readonly EngineChange[];
   /** Buttons for the section header — Edit grid, or Apply and Cancel. */
   action?: React.ReactNode;
-  /** Present while the reader is swapping drivers around. */
+  /** Present while the reader is rearranging the grid. */
   edit?: GridEditing;
 }) {
   const entries = byTeam(field);
   const edited = changes ?? [];
+  const resupplied = engineChanges ?? [];
   // Everyone who is not where the season put them, so the grid shows its own
   // changes rather than making the reader match names against a list.
   const swappedIn = new Set(edited.flatMap((change) => change.in));
+  const movedEngine = new Set(resupplied.map((change) => change.teamId));
 
   return (
     <section className="flex flex-col gap-4">
@@ -238,18 +309,18 @@ export function SeasonGrid({
           <p className="text-muted-foreground text-sm">
             {edit === undefined
               ? `${field.length} cars, ${entries.length} teams. Select any name for its full ratings.`
-              : "Select a driver, then whoever takes the seat. Teams keep the number of cars they entered, so every change is a swap."}
+              : "Select a driver, then whoever takes the seat — teams keep the number of cars they entered, so every change is a swap. Each team can be given any engine the season ran."}
           </p>
         </div>
         {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
       </div>
 
-      {edited.length === 0 ? null : (
+      {edited.length === 0 && resupplied.length === 0 ? null : (
         <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
           <span className="text-xs font-semibold tracking-tight">
             {edit === undefined ? "This grid was edited" : "Changes so far"}
           </span>
-          <LineupChanges changes={edited} />
+          <GridChanges changes={edited} engineChanges={resupplied} />
         </div>
       )}
 
@@ -263,17 +334,26 @@ export function SeasonGrid({
       >
         {entries.map((entry) => {
           const team = teams.get(entry.teamId);
+          const name = entryName(entry.teamId, entry.engineId);
           return (
             <li key={entry.teamId} className="border-border bg-card rounded-xl border p-4">
-              <div className="border-border/60 flex items-center gap-2 border-b pb-2">
+              <div
+                className={cn(
+                  "border-border/60 flex items-center gap-2 border-b pb-2",
+                  // The same soft fill a moved driver carries, for the same
+                  // reason: the note at the top and the cards should agree
+                  // without the reader matching names between them.
+                  movedEngine.has(entry.teamId) && cn(SWAPPED_IN, "-mx-1 rounded px-1"),
+                )}
+              >
                 <Popover>
-                  <NameTrigger className="flex flex-1 items-center gap-1.5 text-sm font-semibold">
+                  <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
                     {team === undefined ? null : <Flag country={team.base} title={team.base} />}
-                    <span>{teamName(entry.teamId)}</span>
+                    <span className="truncate">{name}</span>
                   </NameTrigger>
                   <PopoverContent>
                     <div className="mb-3 flex items-baseline justify-between gap-2">
-                      <span className="font-semibold">{teamName(entry.teamId)}</span>
+                      <span className="font-semibold">{name}</span>
                       <span className="text-muted-foreground text-xs">
                         {team === undefined ? "" : `est. ${team.foundedYear}`}
                       </span>
@@ -287,10 +367,36 @@ export function SeasonGrid({
                         />
                       ))}
                     </div>
+                    {entry.engine === undefined || entry.engineId === undefined ? null : (
+                      // The chassis above and the engine below it, separately,
+                      // because the headline number is already the two blended
+                      // and a reader who opens this wants the parts.
+                      <>
+                        <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                          <span className="text-xs font-semibold">
+                            {engineName(entry.engineId)} engine
+                          </span>
+                          <span className="text-muted-foreground text-xs">{seasonYear} spec</span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {ENGINE_RATINGS.map((rating) => (
+                            <Rating
+                              key={rating.key}
+                              label={rating.label}
+                              value={entry.engine?.[rating.key] ?? 0}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </PopoverContent>
                 </Popover>
-                <Overall value={carOverall(entry.car)} />
+                <Overall value={carOverall(entry.car, entry.engine)} />
               </div>
+
+              {edit === undefined ? null : (
+                <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
+              )}
 
               <ul className="mt-2.5 flex flex-col gap-1.5">
                 {entry.drivers.map((entrant) => (

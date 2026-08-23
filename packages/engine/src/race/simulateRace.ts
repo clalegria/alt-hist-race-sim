@@ -1,6 +1,8 @@
+import type { CarSpec } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
+import { powertrain } from "./powertrain.js";
 import type {
   DnfCause,
   RaceEntrant,
@@ -59,6 +61,8 @@ function compareIds(a: string, b: string): number {
 /** Working record for one car as it moves through the race weekend. */
 interface Runner {
   readonly entrant: RaceEntrant;
+  /** Chassis and engine blended into one car — what every score below reads. */
+  readonly car: CarSpec;
   /** Standard-normal form for this weekend, shared by both sessions. */
   readonly weekendForm: number;
   readonly noiseScale: number;
@@ -80,6 +84,10 @@ interface Runner {
  * The whole field qualifies; only the fastest `maxStarters` of them take the
  * start. Anyone slower is a non-qualifier — ranked on the grid, absent from the
  * race.
+ *
+ * Each car is scored on its chassis and engine blended together — see
+ * `powertrain()` — so a team that changed supplier is a different car. An
+ * entrant with no engine is scored on its chassis alone.
  *
  * `round` says where the race is being held, which is what turns home advantage
  * on for the drivers and teams from that country. It defaults to a round with no
@@ -120,7 +128,10 @@ export function simulateRace(
 
   // --- Qualifying -----------------------------------------------------------
   const runners: Runner[] = field.map((entrant) => {
-    const { driver, car } = entrant;
+    const { driver } = entrant;
+    // Blended once, here, rather than at each of the three places a car rating
+    // is read: the engine is part of what the car *is* for this weekend.
+    const car = powertrain(entrant.car, entrant.engine, constants);
 
     const consistency =
       constants.weightCarConsistency * car.consistency +
@@ -150,6 +161,7 @@ export function simulateRace(
 
     return {
       entrant,
+      car,
       weekendForm,
       noiseScale,
       pacePenalty,
@@ -182,7 +194,8 @@ export function simulateRace(
 
   // --- Race pace ------------------------------------------------------------
   for (const runner of runners) {
-    const { driver, car } = runner.entrant;
+    const { driver } = runner.entrant;
+    const { car } = runner;
 
     // Grid advantage decays with distance from pole rather than falling off
     // linearly, so the front row is worth materially more than mid-grid.
@@ -212,7 +225,8 @@ export function simulateRace(
 
   // --- Retirements ----------------------------------------------------------
   for (const runner of runners) {
-    const { driver, car } = runner.entrant;
+    const { driver } = runner.entrant;
+    const { car } = runner;
 
     const mechanicalRisk =
       lerpFromRating(

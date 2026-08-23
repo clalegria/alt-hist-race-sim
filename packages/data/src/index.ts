@@ -8,9 +8,10 @@
  */
 
 import driversJson from "./drivers.json";
+import enginesJson from "./engines.json";
 import { seasons } from "./seasons/index.js";
 import teamsJson from "./teams.json";
-import type { Driver, SeasonSeed, Team } from "./types.js";
+import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
 
 export {
   buildField,
@@ -20,6 +21,16 @@ export {
   RATING_MODES,
   type RatingMode,
 } from "./buildField.js";
+export {
+  applyEngines,
+  authoredEngines,
+  availableEngines,
+  type EngineChange,
+  engineChanges,
+  engineSpecOf,
+  isAuthoredEngines,
+  type SeasonEngines,
+} from "./engines.js";
 export {
   applyLineup,
   authoredLineup,
@@ -47,6 +58,8 @@ export type {
   DriverOffSeason,
   DriverPeak,
   DriverSteepDecline,
+  EngineManufacturer,
+  SeasonEngine,
   SeasonEntry,
   SeasonSeed,
   Team,
@@ -64,12 +77,22 @@ export const drivers: readonly Driver[] = driversJson;
 /** Every team, likewise across all seasons — Shadow raced in 1980 and not 1981. */
 export const teams: readonly Team[] = teamsJson;
 
+/**
+ * Every engine manufacturer, across every season.
+ *
+ * Identity only — what a unit was *worth* is a per-season fact and lives in the
+ * season file, because Ferrari's 1980 flat-12 and its 1981 turbo V6 are the same
+ * manufacturer and not remotely the same engine.
+ */
+export const engines: readonly EngineManufacturer[] = enginesJson;
+
 function indexById<T extends { readonly id: string }>(items: readonly T[]): ReadonlyMap<string, T> {
   return new Map(items.map((item) => [item.id, item]));
 }
 
 const driverIndex = indexById(drivers);
 const teamIndex = indexById(teams);
+const engineIndex = indexById(engines);
 
 export function driversById(): ReadonlyMap<string, Driver> {
   return driverIndex;
@@ -77,6 +100,10 @@ export function driversById(): ReadonlyMap<string, Driver> {
 
 export function teamsById(): ReadonlyMap<string, Team> {
   return teamIndex;
+}
+
+export function enginesById(): ReadonlyMap<string, EngineManufacturer> {
+  return engineIndex;
 }
 
 function findDuplicates(ids: readonly string[]): string[] {
@@ -108,6 +135,7 @@ export function validateSeedData(
   driverPool: readonly Driver[] = drivers,
   teamPool: readonly Team[] = teams,
   seasonPool: readonly SeasonSeed[] = [...seasons.values()],
+  enginePool: readonly EngineManufacturer[] = engines,
 ): void {
   const duplicateDrivers = findDuplicates(driverPool.map((driver) => driver.id));
   if (duplicateDrivers.length > 0) {
@@ -117,6 +145,11 @@ export function validateSeedData(
   const duplicateTeams = findDuplicates(teamPool.map((team) => team.id));
   if (duplicateTeams.length > 0) {
     throw new Error(`Duplicate team ids: ${duplicateTeams.join(", ")}`);
+  }
+
+  const duplicateEngines = findDuplicates(enginePool.map((maker) => maker.id));
+  if (duplicateEngines.length > 0) {
+    throw new Error(`Duplicate engine ids: ${duplicateEngines.join(", ")}`);
   }
 
   // Career shape: the ageing curve reads all of these, and a nonsense value
@@ -152,9 +185,10 @@ export function validateSeedData(
 
   const knownDrivers = new Set(driverPool.map((driver) => driver.id));
   const knownTeams = new Set(teamPool.map((team) => team.id));
+  const knownEngines = new Set(enginePool.map((maker) => maker.id));
 
   for (const season of seasonPool) {
-    validateSeason(season, knownDrivers, knownTeams);
+    validateSeason(season, knownDrivers, knownTeams, knownEngines);
   }
 }
 
@@ -163,12 +197,35 @@ function validateSeason(
   season: SeasonSeed,
   knownDrivers: ReadonlySet<string>,
   knownTeams: ReadonlySet<string>,
+  knownEngines: ReadonlySet<string>,
 ): void {
   const seatedDrivers = new Map<string, string>();
+
+  // The season's own engine menu, checked before the entries that draw on it —
+  // an entry naming a unit the year does not have is the failure this catches,
+  // and it would otherwise surface as a car quietly racing without an engine.
+  for (const engine of season.engines) {
+    if (!knownEngines.has(engine.engineId)) {
+      throw new Error(`Season ${season.year} rates unknown engine "${engine.engineId}"`);
+    }
+  }
+  const duplicateEngines = findDuplicates(season.engines.map((engine) => engine.engineId));
+  if (duplicateEngines.length > 0) {
+    throw new Error(
+      `Season ${season.year} rates these engines twice: ${duplicateEngines.join(", ")}`,
+    );
+  }
+  const available = new Set(season.engines.map((engine) => engine.engineId));
 
   for (const entry of season.entries) {
     if (!knownTeams.has(entry.teamId)) {
       throw new Error(`Season ${season.year} entry references unknown team "${entry.teamId}"`);
+    }
+
+    if (!available.has(entry.engineId)) {
+      throw new Error(
+        `Season ${season.year} entry "${entry.teamId}" runs engine "${entry.engineId}", which the season does not rate`,
+      );
     }
 
     for (const driverId of entry.drivers) {

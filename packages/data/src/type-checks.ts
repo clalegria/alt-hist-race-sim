@@ -18,6 +18,7 @@
  */
 
 import type driversJson from "./drivers.json";
+import type enginesJson from "./engines.json";
 import type season1980Json from "./seasons/1980.json";
 import type season1981Json from "./seasons/1981.json";
 import type teamsJson from "./teams.json";
@@ -28,6 +29,8 @@ import type {
   DriverOffSeason,
   DriverPeak,
   DriverSteepDecline,
+  EngineManufacturer,
+  SeasonEngine,
   SeasonEntry,
   SeasonSeed,
   Team,
@@ -41,6 +44,7 @@ type Extends<A extends B, B> = A extends B ? true : never;
 
 type DriverJson = (typeof driversJson)[number];
 type TeamJson = (typeof teamsJson)[number];
+type EngineJson = (typeof enginesJson)[number];
 
 /**
  * Every season file, as a union.
@@ -53,6 +57,7 @@ type TeamJson = (typeof teamsJson)[number];
 type SeasonJson = typeof season1980Json | typeof season1981Json;
 type SeasonEntryJson = SeasonJson["entries"][number];
 type CalendarRaceJson = SeasonJson["calendar"][number];
+type SeasonEngineJson = SeasonJson["engines"][number];
 
 // drivers.json
 export type DriversAreDrivers = Extends<DriverJson, Driver>;
@@ -74,6 +79,10 @@ export type OffSeasonsHaveNoExtraKeys = Extends<keyof OffSeasonJson, keyof Drive
 export type TeamsAreTeams = Extends<TeamJson, Team>;
 export type TeamsHaveNoExtraKeys = Extends<keyof TeamJson, keyof Team>;
 
+// engines.json
+export type EnginesAreManufacturers = Extends<EngineJson, EngineManufacturer>;
+export type EnginesHaveNoExtraKeys = Extends<keyof EngineJson, keyof EngineManufacturer>;
+
 // seasons/*.json
 export type SeasonIsSeasonSeed = Extends<SeasonJson, SeasonSeed>;
 export type SeasonHasNoExtraKeys = Extends<keyof SeasonJson, keyof SeasonSeed>;
@@ -81,3 +90,5 @@ export type EntriesHaveNoExtraKeys = Extends<keyof SeasonEntryJson, keyof Season
 export type CarsHaveNoExtraKeys = Extends<keyof SeasonEntryJson["car"], keyof CarSpec>;
 export type CalendarIsCalendarRaces = Extends<CalendarRaceJson, CalendarRace>;
 export type CalendarHasNoExtraKeys = Extends<keyof CalendarRaceJson, keyof CalendarRace>;
+export type SeasonEnginesAreSeasonEngines = Extends<SeasonEngineJson, SeasonEngine>;
+export type SeasonEnginesHaveNoExtraKeys = Extends<keyof SeasonEngineJson, keyof SeasonEngine>;

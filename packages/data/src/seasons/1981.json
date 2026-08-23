@@ -17,23 +17,31 @@
     { "round": 14, "name": "Canadian GP",           "circuit": "Montreal",        "country": "CA" },
     { "round": 15, "name": "Caesars Palace GP",     "circuit": "Las Vegas",       "country": "US" }
   ],
+  "engines": [
+    { "engineId": "renault",     "racing": 93, "qualifying": 96, "reliability": 46 },
+    { "engineId": "ferrari",     "racing": 86, "qualifying": 89, "reliability": 52 },
+    { "engineId": "alfa_romeo",  "racing": 78, "qualifying": 80, "reliability": 46 },
+    { "engineId": "matra",       "racing": 75, "qualifying": 72, "reliability": 72 },
+    { "engineId": "ford",        "racing": 70, "qualifying": 68, "reliability": 80 },
+    { "engineId": "hart",        "racing": 60, "qualifying": 62, "reliability": 26 }
+  ],
   "entries": [
-    { "teamId": "williams",   "car": { "racing": 86, "qualifying": 85, "consistency": 86, "reliability": 84 }, "drivers": ["jones", "reutemann"] },
-    { "teamId": "brabham",    "car": { "racing": 89, "qualifying": 87, "consistency": 85, "reliability": 76 }, "drivers": ["piquet", "rebaque"] },
-    { "teamId": "renault",    "car": { "racing": 90, "qualifying": 93, "consistency": 70, "reliability": 48 }, "drivers": ["prost", "arnoux"] },
-    { "teamId": "ligier",     "car": { "racing": 85, "qualifying": 84, "consistency": 80, "reliability": 72 }, "drivers": ["laffite", "tambay"] },
-    { "teamId": "ferrari",    "car": { "racing": 80, "qualifying": 80, "consistency": 66, "reliability": 54 }, "drivers": ["villeneuve_g", "pironi"] },
-    { "teamId": "mclaren",    "car": { "racing": 80, "qualifying": 76, "consistency": 78, "reliability": 70 }, "drivers": ["watson", "decesaris"] },
-    { "teamId": "alfa_romeo", "car": { "racing": 74, "qualifying": 78, "consistency": 60, "reliability": 50 }, "drivers": ["andretti", "giacomelli"] },
-    { "teamId": "lotus",      "car": { "racing": 72, "qualifying": 70, "consistency": 70, "reliability": 64 }, "drivers": ["deangelis", "mansell"] },
-    { "teamId": "arrows",     "car": { "racing": 70, "qualifying": 69, "consistency": 68, "reliability": 62 }, "drivers": ["patrese", "stohr"] },
-    { "teamId": "tyrrell",    "car": { "racing": 68, "qualifying": 66, "consistency": 70, "reliability": 66 }, "drivers": ["cheever", "alboreto"] },
-    { "teamId": "fittipaldi", "car": { "racing": 58, "qualifying": 56, "consistency": 60, "reliability": 56 }, "drivers": ["rosberg", "serra"] },
-    { "teamId": "ensign",     "car": { "racing": 56, "qualifying": 55, "consistency": 58, "reliability": 52 }, "drivers": ["salazar"] },
-    { "teamId": "ats",        "car": { "racing": 55, "qualifying": 54, "consistency": 58, "reliability": 54 }, "drivers": ["borgudd", "lammers"] },
-    { "teamId": "theodore",   "car": { "racing": 50, "qualifying": 48, "consistency": 54, "reliability": 48 }, "drivers": ["surer"] },
-    { "teamId": "march",      "car": { "racing": 48, "qualifying": 46, "consistency": 52, "reliability": 46 }, "drivers": ["daly"] },
-    { "teamId": "osella",     "car": { "racing": 46, "qualifying": 44, "consistency": 50, "reliability": 44 }, "drivers": ["gabbiani", "ghinzani"] },
-    { "teamId": "toleman",    "car": { "racing": 40, "qualifying": 38, "consistency": 46, "reliability": 34 }, "drivers": ["henton", "warwick"] }
+    { "teamId": "williams",   "engineId": "ford",        "car": { "racing": 86, "qualifying": 85, "consistency": 86, "reliability": 84 }, "drivers": ["jones", "reutemann"] },
+    { "teamId": "brabham",    "engineId": "ford",        "car": { "racing": 89, "qualifying": 87, "consistency": 85, "reliability": 76 }, "drivers": ["piquet", "rebaque"] },
+    { "teamId": "renault",    "engineId": "renault",     "car": { "racing": 90, "qualifying": 93, "consistency": 70, "reliability": 48 }, "drivers": ["prost", "arnoux"] },
+    { "teamId": "ligier",     "engineId": "matra",       "car": { "racing": 85, "qualifying": 84, "consistency": 80, "reliability": 72 }, "drivers": ["laffite", "tambay"] },
+    { "teamId": "ferrari",    "engineId": "ferrari",     "car": { "racing": 80, "qualifying": 80, "consistency": 66, "reliability": 54 }, "drivers": ["villeneuve_g", "pironi"] },
+    { "teamId": "mclaren",    "engineId": "ford",        "car": { "racing": 80, "qualifying": 76, "consistency": 78, "reliability": 70 }, "drivers": ["watson", "decesaris"] },
+    { "teamId": "alfa_romeo", "engineId": "alfa_romeo",  "car": { "racing": 74, "qualifying": 78, "consistency": 60, "reliability": 50 }, "drivers": ["andretti", "giacomelli"] },
+    { "teamId": "lotus",      "engineId": "ford",        "car": { "racing": 72, "qualifying": 70, "consistency": 70, "reliability": 64 }, "drivers": ["deangelis", "mansell"] },
+    { "teamId": "arrows",     "engineId": "ford",        "car": { "racing": 70, "qualifying": 69, "consistency": 68, "reliability": 62 }, "drivers": ["patrese", "stohr"] },
+    { "teamId": "tyrrell",    "engineId": "ford",        "car": { "racing": 68, "qualifying": 66, "consistency": 70, "reliability": 66 }, "drivers": ["cheever", "alboreto"] },
+    { "teamId": "fittipaldi", "engineId": "ford",        "car": { "racing": 58, "qualifying": 56, "consistency": 60, "reliability": 56 }, "drivers": ["rosberg", "serra"] },
+    { "teamId": "ensign",     "engineId": "ford",        "car": { "racing": 56, "qualifying": 55, "consistency": 58, "reliability": 52 }, "drivers": ["salazar"] },
+    { "teamId": "ats",        "engineId": "ford",        "car": { "racing": 55, "qualifying": 54, "consistency": 58, "reliability": 54 }, "drivers": ["borgudd", "lammers"] },
+    { "teamId": "theodore",   "engineId": "ford",        "car": { "racing": 50, "qualifying": 48, "consistency": 54, "reliability": 48 }, "drivers": ["surer"] },
+    { "teamId": "march",      "engineId": "ford",        "car": { "racing": 48, "qualifying": 46, "consistency": 52, "reliability": 46 }, "drivers": ["daly"] },
+    { "teamId": "osella",     "engineId": "ford",        "car": { "racing": 46, "qualifying": 44, "consistency": 50, "reliability": 44 }, "drivers": ["gabbiani", "ghinzani"] },
+    { "teamId": "toleman",    "engineId": "hart",        "car": { "racing": 40, "qualifying": 38, "consistency": 46, "reliability": 34 }, "drivers": ["henton", "warwick"] }
   ]
 }

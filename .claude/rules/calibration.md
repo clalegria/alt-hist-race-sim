@@ -19,6 +19,17 @@ a question nobody asked, and the numbers it prints are not a pass/fail. Nothing 
 test suite runs it, and nothing should: no test may depend on an authored rating or on
 what a particular seed produced.
 
+**Every figure below predates engine manufacturers, and was not re-measured.** Cars
+are now `0.8 · chassis + 0.2 · engine` (`powertrain()` in the race model), which
+compresses the field slightly around each shared engine's rating and moves the turbo
+runners relative to the Cosworth ones. The win and pole shares in the table are
+therefore a record of a grid the sim no longer runs. That is deliberate: adding an
+entity between the car and the result is exactly the case the no-re-calibration
+invariant lists as *needing the author's word first*, and the author has not given it.
+**Do not run the harness to find out how far it has drifted** — that is the same long
+loop the rule above forbids, and knowing the number changes nothing until someone
+decides to re-tune. See `docs/DECISIONS.md`.
+
 **Every figure below describes `buildField`'s default `peak` mode**, where drivers
 race at their authored peaks. The `aged` mode added with the ageing curve produces a
 different 1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated

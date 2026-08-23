@@ -1,0 +1,8 @@
+[
+  { "id": "ford",       "name": "Ford",       "base": "GB" },
+  { "id": "renault",    "name": "Renault",    "base": "FR" },
+  { "id": "ferrari",    "name": "Ferrari",    "base": "IT" },
+  { "id": "alfa_romeo", "name": "Alfa Romeo", "base": "IT" },
+  { "id": "matra",      "name": "Matra",      "base": "FR" },
+  { "id": "hart",       "name": "Hart",       "base": "GB" }
+]

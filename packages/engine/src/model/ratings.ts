@@ -23,3 +23,21 @@ export interface CarSpec {
   readonly consistency: number;
   readonly reliability: number;
 }
+
+/**
+ * An engine manufacturer's unit for one season.
+ *
+ * Three ratings, not four: an engine has no consistency of its own. What
+ * "consistency" means in this model is how repeatable a car's pace is from lap
+ * to lap and session to session, which is a chassis and setup property — an
+ * engine either makes its power or breaks, and the second of those is
+ * `reliability`.
+ *
+ * Same 1-100 scale and same polarity as `CarSpec`, because the two are blended
+ * into one another: see `powertrain()` in `race/powertrain.ts`.
+ */
+export interface EngineSpec {
+  readonly racing: number;
+  readonly qualifying: number;
+  readonly reliability: number;
+}

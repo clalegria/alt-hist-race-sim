@@ -69,6 +69,35 @@ export interface Driver {
   readonly offSeasons?: readonly DriverOffSeason[];
 }
 
+/**
+ * An engine manufacturer's identity — immutable, like `Team` and `Driver`.
+ *
+ * What the unit is *worth* changes every season and lives in the season file;
+ * this is only who made it. `base` is where it was built, which is why Ford is
+ * GB: the DFV was a Cosworth design assembled in Northampton and badged for its
+ * backer, and the flag beside it should be the one that built it.
+ */
+export interface EngineManufacturer {
+  readonly id: string;
+  readonly name: string;
+  /** ISO 3166-1 alpha-2 country code. */
+  readonly base: string;
+}
+
+/**
+ * One engine manufacturer's unit for one season.
+ *
+ * Three ratings, not four: an engine has no consistency of its own — that is a
+ * chassis property. The engine package blends these with the car in
+ * `powertrain()`, at `weightEngine` (0.2) against the chassis's 0.8.
+ */
+export interface SeasonEngine {
+  readonly engineId: string;
+  readonly racing: number;
+  readonly qualifying: number;
+  readonly reliability: number;
+}
+
 export interface Team {
   readonly id: string;
   readonly name: string;
@@ -85,9 +114,18 @@ export interface CarSpec {
   readonly reliability: number;
 }
 
-/** One team's participation in one season: a team, a car, and its drivers. */
+/**
+ * One team's participation in one season: a team, a chassis, an engine, and its
+ * drivers.
+ */
 export interface SeasonEntry {
   readonly teamId: string;
+  /**
+   * Which manufacturer supplies its engine that year. Must name one of the
+   * season's own `engines` — a team cannot run a unit the season does not have,
+   * and `validateSeedData` says so.
+   */
+  readonly engineId: string;
   readonly car: CarSpec;
   /** Driver ids. Length varies — some teams field a single car. */
   readonly drivers: readonly string[];
@@ -115,5 +153,17 @@ export interface SeasonSeed {
   readonly year: number;
   /** The season's rounds, in order. Its length is how many races the year has. */
   readonly calendar: readonly CalendarRace[];
+  /**
+   * Every engine available that year, and what it was worth.
+   *
+   * Per season rather than per manufacturer, because an engine is not one thing
+   * for a decade: Ferrari ran a flat-12 in 1980 and a turbo V6 in 1981, and the
+   * Cosworth DFV slid steadily backwards as the turbos arrived.
+   *
+   * It is the season's *menu*, not a list of what was used — an engine nobody
+   * entered is legal, and is exactly what the grid editor offers as an
+   * alternative.
+   */
+  readonly engines: readonly SeasonEngine[];
   readonly entries: readonly SeasonEntry[];
 }

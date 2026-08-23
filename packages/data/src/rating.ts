@@ -19,7 +19,7 @@
  * it owns its own display heuristic.
  */
 
-import type { CarSpec, DriverRatings } from "@alt-hist/engine";
+import { type CarSpec, type DriverRatings, type EngineSpec, powertrain } from "@alt-hist/engine";
 
 /**
  * Driver weights.
@@ -73,6 +73,14 @@ export function driverOverall(ratings: DriverRatings): number {
   return weighted(ratings, DRIVER_WEIGHTS);
 }
 
-export function carOverall(car: CarSpec): number {
-  return weighted(car, CAR_WEIGHTS);
+/**
+ * How good a car is, engine included.
+ *
+ * The engine is folded in through the model's own `powertrain()` rather than
+ * given weights of its own here, so the headline number on the grid page is a
+ * summary of the car that will actually be raced — not of the chassis drawing
+ * the wrong conclusions about the package. Omit it and this is the bare chassis.
+ */
+export function carOverall(car: CarSpec, engine?: EngineSpec): number {
+  return weighted(powertrain(car, engine), CAR_WEIGHTS);
 }

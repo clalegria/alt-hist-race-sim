@@ -2,8 +2,9 @@ import { driversById } from "@alt-hist/data";
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverName, teamName } from "../lib/names.js";
+import { driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 
 const drivers = driversById();
@@ -16,6 +17,7 @@ const drivers = driversById();
  * Names truncate instead.
  */
 function GridSlot({ entry }: { entry: RaceEntryResult }) {
+  const nameOf = useEntryName();
   const nationality = drivers.get(entry.driverId)?.nationality;
   const pole = entry.gridPosition === 1;
 
@@ -39,7 +41,7 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
         <span className={cn("truncate text-sm", pole && "font-semibold")}>
           {driverName(entry.driverId)}
         </span>
-        <span className="text-muted-foreground truncate text-xs">{teamName(entry.teamId)}</span>
+        <span className="text-muted-foreground truncate text-xs">{nameOf(entry.teamId)}</span>
       </span>
       <span
         className={cn(

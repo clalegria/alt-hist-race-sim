@@ -19,11 +19,14 @@
  */
 
 import {
+  applyEngines,
   applyLineup,
   buildField,
   DEFAULT_RATING_MODE,
+  isAuthoredEngines,
   isAuthoredLineup,
   type RatingMode,
+  type SeasonEngines,
   type SeasonLineup,
 } from "@alt-hist/data";
 import {
@@ -72,6 +75,17 @@ export interface World {
    * stops being told the grid was edited.
    */
   readonly lineup: SeasonLineup | null;
+  /**
+   * The reader's own engine allocation, or null for the supply deals the season
+   * was entered with. Null for exactly the same reason `lineup` is: "was this
+   * changed?" should be a property of the world rather than a comparison
+   * somebody has to remember to make.
+   *
+   * Separate from `lineup` because they are separate questions — who drives the
+   * car, and what is in the back of it — and a reader can change either without
+   * touching the other.
+   */
+  readonly engines: SeasonEngines | null;
   readonly season: SeasonResult;
 }
 
@@ -86,12 +100,15 @@ export function createWorld(
   year: number,
   ratingMode: RatingMode = DEFAULT_RATING_MODE,
   lineup: SeasonLineup | null = null,
+  engines: SeasonEngines | null = null,
 ): World {
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
   const edited = lineup !== null && !isAuthoredLineup(authored, lineup) ? lineup : null;
-  const entered = edited === null ? authored : applyLineup(authored, edited);
+  const resupplied = engines !== null && !isAuthoredEngines(authored, engines) ? engines : null;
+  const withDrivers = edited === null ? authored : applyLineup(authored, edited);
+  const entered = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
   const rng = createRng(seed);
   const field = buildField(entered, undefined, ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
@@ -105,6 +122,7 @@ export function createWorld(
     rngState: rng.getState(),
     field,
     lineup: edited,
+    engines: resupplied,
     season,
   };
 }
@@ -189,15 +207,21 @@ interface SeasonStore {
    */
   readonly setRatingMode: (mode: RatingMode) => void;
   /**
-   * Re-runs the season from the same seed with the reader's own driver
-   * allocation, or with `null` for the grid as it was entered.
+   * Re-runs the season from the same seed with the reader's own grid: who
+   * drives what, and what is in the back of it. `null` for either half means
+   * that half as the season entered it.
+   *
+   * One action rather than two because the editor applies one draft — a reader
+   * who moved a driver and changed a supplier asked a single question, and
+   * applying them separately would simulate a season nobody asked for in
+   * between.
    *
    * Grid-only for the same reason as `setRatingMode`: past it, the results on
    * screen were driven by a field that no longer exists. The seed is kept, so
    * an alternate grid is the same dice thrown at different people — which is
    * the comparison the feature is for.
    */
-  readonly setLineup: (lineup: SeasonLineup | null) => void;
+  readonly setGrid: (lineup: SeasonLineup | null, engines: SeasonEngines | null) => void;
   /** Reveals the next session. */
   readonly nextSession: () => void;
   /** Jumps straight to the finished season. */
@@ -209,9 +233,9 @@ interface SeasonStore {
    * A new draw rather than a rewind: replaying results the reader has already
    * seen is a re-read, and what "start again" has always meant here is another
    * go at the season. Everything *chosen* carries over — the ability mode and
-   * an edited grid alike, because a reader who put Mansell in the Williams
-   * asked for that grid, not for one season of it. Only the dice change. The
-   * menu is where a different year comes from.
+   * an edited grid alike — drivers and engines both — because a reader who put
+   * Mansell in the Williams asked for that grid, not for one season of it. Only
+   * the dice change. The menu is where a different year comes from.
    */
   readonly restartSeason: () => void;
 }
@@ -250,13 +274,14 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
                 state.screen.world.year,
                 mode,
                 state.screen.world.lineup,
+                state.screen.world.engines,
               ),
             ),
           }
         : state,
     );
   },
-  setLineup: (lineup) => {
+  setGrid: (lineup, engines) => {
     set((state) =>
       state.screen.kind === "season" && state.screen.view.kind === "grid"
         ? {
@@ -266,6 +291,7 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
                 state.screen.world.year,
                 state.screen.world.ratingMode,
                 lineup,
+                engines,
               ),
             ),
           }
@@ -301,6 +327,7 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
                 state.screen.world.year,
                 state.screen.world.ratingMode,
                 state.screen.world.lineup,
+                state.screen.world.engines,
               ),
             ),
           }

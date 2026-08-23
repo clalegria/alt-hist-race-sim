@@ -11,7 +11,7 @@ export const ENGINE_NAME = "alt-hist-race-sim engine";
 /** The season the simulation starts from before any divergence. */
 export const SEED_SEASON = 1980;
 
-export type { CarSpec, DriverRatings } from "./model/index.js";
+export type { CarSpec, DriverRatings, EngineSpec } from "./model/index.js";
 export {
   AGEING_CONSTANTS,
   type AgeingConstants,
@@ -26,6 +26,7 @@ export {
 } from "./progression/index.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
 export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
+export { powertrain } from "./race/powertrain.js";
 export { scoreAndSortRaceModel, simulateRace } from "./race/simulateRace.js";
 export type {
   DnfCause,

@@ -3,6 +3,8 @@ import {
   type Driver,
   drivers,
   driversById,
+  engines,
+  enginesById,
   FIRST_AUTHORED_SEASON,
   type SeasonSeed,
   seasonSeed,
@@ -40,6 +42,7 @@ describe("seed data", () => {
 const knownDriver = drivers[0]?.id ?? "";
 const knownTeam = teams[0]?.id ?? "";
 const otherTeam = teams[1]?.id ?? "";
+const knownEngine = engines[0]?.id ?? "";
 
 describe("validateSeedData", () => {
   it("accepts the bundled seed", () => {
@@ -87,7 +90,8 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [],
-      entries: [{ teamId: knownTeam, car: carSpec(), drivers: ["ghost"] }],
+      engines: [engineSpec()],
+      entries: [{ teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: ["ghost"] }],
     };
     expect(() => {
       validateSeedData(drivers, teams, [broken]);
@@ -98,7 +102,10 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [],
-      entries: [{ teamId: "phantom", car: carSpec(), drivers: [knownDriver] }],
+      engines: [engineSpec()],
+      entries: [
+        { teamId: "phantom", engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+      ],
     };
     expect(() => {
       validateSeedData(drivers, teams, [broken]);
@@ -114,6 +121,7 @@ describe("validateSeedData", () => {
         { round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" },
         { round: 3, name: "Brazilian GP", circuit: "Interlagos", country: "BR" },
       ],
+      engines: [engineSpec()],
       entries: [],
     };
     expect(() => {
@@ -125,6 +133,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "ARG" }],
+      engines: [engineSpec()],
       entries: [],
     };
     expect(() => {
@@ -136,6 +145,7 @@ describe("validateSeedData", () => {
     const withName = (name: string, circuit: string): SeasonSeed => ({
       year: 1980,
       calendar: [{ round: 1, name, circuit, country: "AR" }],
+      engines: [engineSpec()],
       entries: [],
     });
     expect(() => {
@@ -150,9 +160,10 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       calendar: [],
+      engines: [engineSpec()],
       entries: [
-        { teamId: knownTeam, car: carSpec(), drivers: [knownDriver] },
-        { teamId: otherTeam, car: carSpec(), drivers: [knownDriver] },
+        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+        { teamId: otherTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
       ],
     };
     expect(() => {
@@ -175,3 +186,76 @@ describe("validateSeedData", () => {
 function carSpec() {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50 };
 }
+
+/** The season menu every fixture entry draws its engine from. */
+function engineSpec() {
+  return { engineId: knownEngine, racing: 50, qualifying: 50, reliability: 50 };
+}
+
+describe("engines", () => {
+  it("loads a pool of manufacturers and indexes them by id", () => {
+    expect(engines.length).toBeGreaterThan(0);
+    for (const maker of engines) {
+      expect(enginesById().get(maker.id), maker.id).toBe(maker);
+    }
+    expect(enginesById().get("nobody")).toBeUndefined();
+  });
+
+  it("rates at least one engine in every authored season, and every entry runs one", () => {
+    for (const season of seasons.values()) {
+      expect(season.engines.length, `${season.year}`).toBeGreaterThan(0);
+      const rated = new Set(season.engines.map((engine) => engine.engineId));
+      for (const entry of season.entries) {
+        expect(rated.has(entry.engineId), `${season.year} ${entry.teamId}`).toBe(true);
+      }
+    }
+  });
+
+  it("rejects a season rating an engine nobody makes", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      calendar: [],
+      engines: [{ engineId: "phlogiston", racing: 50, qualifying: 50, reliability: 50 }],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/unknown engine "phlogiston"/);
+  });
+
+  it("rejects an entry running an engine the season does not rate", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      calendar: [],
+      engines: [],
+      entries: [
+        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+      ],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/which the season does not rate/);
+  });
+
+  it("rejects the same engine rated twice in one season", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      calendar: [],
+      engines: [engineSpec(), engineSpec()],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/rates these engines twice/);
+  });
+
+  it("rejects duplicate manufacturer ids in the pool", () => {
+    const first = engines[0];
+    if (first === undefined) {
+      throw new Error("expected a seeded engine manufacturer");
+    }
+    expect(() => {
+      validateSeedData(drivers, teams, [SEED], [...engines, first]);
+    }).toThrow(`Duplicate engine ids: ${first.id}`);
+  });
+});

@@ -1,13 +1,19 @@
 import {
+  applyEngines,
   applyLineup,
+  authoredEngines,
   authoredLineup,
+  availableEngines,
   buildField,
   type Driver,
   driverRatingsFor,
+  engineChanges,
+  isAuthoredEngines,
   isAuthoredLineup,
   lineupChanges,
   type RatingMode,
   reserveDrivers,
+  type SeasonEngines,
   type SeasonLineup,
   seatOf,
   swapDrivers,
@@ -23,17 +29,23 @@ import { Button } from "./ui/button.js";
 /**
  * The opening grid, and the editor that lets a reader rearrange it.
  *
- * Editing is a *draft*: swaps accumulate in component state and change nothing
- * until Apply, which hands the finished lineup to the store and re-runs the
- * year. That is deliberate — every applied lineup re-simulates fourteen races,
- * and a reader mid-way through moving four drivers around has not yet asked a
- * question worth answering.
+ * Editing is a *draft*: changes accumulate in component state and change nothing
+ * until Apply, which hands the finished grid to the store and re-runs the year.
+ * That is deliberate — every applied grid re-simulates a whole season, and a
+ * reader mid-way through moving four drivers around has not yet asked a question
+ * worth answering.
  *
- * The constraint the whole thing is built around is that **only swaps exist**.
+ * Two things can be changed, and they are kept as two drafts because they are
+ * two questions: **who drives the car** and **what is in the back of it**. They
+ * apply together, as one edit, so a reader who did both gets one season rather
+ * than two.
+ *
+ * The constraint the driver half is built around is that **only swaps exist**.
  * A team fields the number of cars it entered, so taking a seat always means
  * giving one up, and the field stays the size the starting limit was set
  * against. `swapDrivers` in `@alt-hist/data` enforces it; nothing here can
- * express an addition.
+ * express an addition. Engines have the mirror constraint for free: a car has
+ * exactly one, so fitting a new one always removes the old one.
  */
 
 /**
@@ -122,11 +134,18 @@ export function pickUp(
   return { lineup: swapDrivers(lineup, selected, driverId), selected: null };
 }
 
+/** Both halves of an edit, applied together because they are one question. */
+export interface GridEdit {
+  readonly lineup: SeasonLineup | null;
+  readonly engines: SeasonEngines | null;
+}
+
 export function GridStage({
   field,
   year,
   ratingMode,
   lineup,
+  engines,
   onApply,
   onEditingChange,
 }: {
@@ -136,8 +155,10 @@ export function GridStage({
   ratingMode: RatingMode;
   /** The applied lineup, or null for the season as it was entered. */
   lineup: SeasonLineup | null;
+  /** The applied engine supply, or null for the deals the season was entered with. */
+  engines: SeasonEngines | null;
   /** Absent in tests, where nothing is clicked. The controls still render. */
-  onApply?: (lineup: SeasonLineup | null) => void;
+  onApply?: (edit: GridEdit) => void;
   /**
    * Told when the editor opens and closes, so the page can take its "simulate
    * next session" buttons away — stepping on mid-edit would throw the draft
@@ -148,32 +169,53 @@ export function GridStage({
 }) {
   const season = seasonSeed(year);
   const applied = useMemo(() => lineup ?? authoredLineup(season), [lineup, season]);
+  const appliedEngines = useMemo(() => engines ?? authoredEngines(season), [engines, season]);
+  const engineIds = useMemo(
+    () => availableEngines(season).map((engine) => engine.engineId),
+    [season],
+  );
 
   // Null means "not editing": one flag fewer than a draft plus a boolean, and
   // it cannot get into the state where the editor is open with nothing to edit.
+  // The two drafts open and close together, so one null answers for both.
   const [draft, setDraft] = useState<SeasonLineup | null>(null);
+  const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
   const shown = draft ?? applied;
+  const shownEngines = engineDraft ?? appliedEngines;
   const changes = useMemo(() => lineupChanges(season, shown), [season, shown]);
+  const supplyChanges = useMemo(() => engineChanges(season, shownEngines), [season, shownEngines]);
+  const untouched = useMemo(
+    () =>
+      (draft === null || isAuthoredLineup(season, draft)) &&
+      (engineDraft === null || isAuthoredEngines(season, engineDraft)),
+    [draft, engineDraft, season],
+  );
 
   // Draft grids are rebuilt rather than raced: the ratings are the same
-  // function of driver, season and mode that `createWorld` will apply, so what
-  // is on screen is what the season will be run on.
-  const preview = useMemo(
-    () => (draft === null ? field : buildField(applyLineup(season, draft), undefined, ratingMode)),
-    [draft, field, season, ratingMode],
-  );
+  // function of driver, engine, season and mode that `createWorld` will apply,
+  // so what is on screen is what the season will be run on.
+  const preview = useMemo(() => {
+    if (draft === null && engineDraft === null) {
+      return field;
+    }
+    const withDrivers = draft === null ? season : applyLineup(season, draft);
+    const entered = engineDraft === null ? withDrivers : applyEngines(withDrivers, engineDraft);
+    return buildField(entered, undefined, ratingMode);
+  }, [draft, engineDraft, field, season, ratingMode]);
   const reserve = useMemo(() => reserveDrivers(shown), [shown]);
 
-  const startEditing = (from: SeasonLineup): void => {
-    setDraft(from);
+  const startEditing = (): void => {
+    setDraft(applied);
+    setEngineDraft(appliedEngines);
     setSelected(null);
     onEditingChange?.(true);
   };
 
   const stopEditing = (): void => {
     setDraft(null);
+    setEngineDraft(null);
     setSelected(null);
     onEditingChange?.(false);
   };
@@ -187,24 +229,34 @@ export function GridStage({
     setSelected(next.selected);
   };
 
+  const chooseEngine = (teamId: string, engineId: string): void => {
+    setEngineDraft((current) => (current === null ? current : { ...current, [teamId]: engineId }));
+  };
+
   const editing: GridEditing | undefined =
-    draft === null ? undefined : { selectedDriverId: selected, onSelect: select };
+    draft === null
+      ? undefined
+      : {
+          selectedDriverId: selected,
+          onSelect: select,
+          engineIds,
+          onEngineChange: chooseEngine,
+        };
 
   const action =
     draft === null ? (
-      <Button
-        variant="outline"
-        onClick={() => {
-          startEditing(applied);
-        }}
-      >
+      <Button variant="outline" onClick={startEditing}>
         Edit grid
       </Button>
     ) : (
       <>
         <Button
           onClick={() => {
-            onApply?.(isAuthoredLineup(season, draft) ? null : draft);
+            onApply?.({
+              lineup: isAuthoredLineup(season, draft) ? null : draft,
+              engines:
+                engineDraft === null || isAuthoredEngines(season, engineDraft) ? null : engineDraft,
+            });
             stopEditing();
           }}
         >
@@ -212,9 +264,10 @@ export function GridStage({
         </Button>
         <Button
           variant="outline"
-          disabled={isAuthoredLineup(season, draft)}
+          disabled={untouched}
           onClick={() => {
             setDraft(authoredLineup(season));
+            setEngineDraft(authoredEngines(season));
             setSelected(null);
           }}
         >
@@ -237,6 +290,7 @@ export function GridStage({
         field={preview}
         seasonYear={year}
         changes={changes}
+        engineChanges={supplyChanges}
         action={action}
         {...(editing === undefined ? {} : { edit: editing })}
       />
