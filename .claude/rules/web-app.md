@@ -18,12 +18,23 @@ started and no component has to guard against one. Nothing is simulated until a 
 is chosen: the app opens on the menu having run no races at all.
 
 Modes come from `lib/modes.ts` and years from `lib/seasons.ts`; both list what does
-not exist yet (the career mode, the 46 unauthored seasons) as disabled entries rather
-than omitting it. `AUTHORED` in `lib/seasons.ts` is the single map deciding which
-years are playable — `PLAYABLE_SEASONS`, `isPlayable` and `seasonSeed` all derive from
-it, so authoring a season is one line there plus the JSON, not a UI change.
+not exist yet (the career mode, the unauthored seasons) as disabled entries rather
+than omitting it. **`lib/seasons.ts` holds no list of its own** — `PLAYABLE_SEASONS`
+and `isPlayable` come straight from `authoredSeasons` in `@alt-hist/data`, so
+authoring a season is a file in `packages/data/src/seasons/` and the UI follows.
+The split: which years *exist* is a data decision, the 1980–2026 *range the picker
+draws* is a display decision and lives here. `playableSummary()` writes the picker's
+subtitle from the same source, collapsing runs into ranges — it said "Only 1980 has
+been authored" for a while after 1981 landed, and that is why the copy is derived.
 `createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
-year rather than quietly falling back to 1980.
+year rather than quietly falling back.
+
+**No component may read a season fixed at import time.** Round names come from the
+world's own year — `SeasonView` resolves `seasonSeed(world.year)` and hands
+`SeasonCalendar` a `calendar` prop. This was the 1980 coupling the roadmap called
+out, and getting it wrong is invisible: 1981 renders perfectly well with 1980's round
+names. `seasons.smoke.test.tsx` walks every authored season through every stage and
+checks each round against its own calendar entry.
 
 **"Start again" asks where to** — *Main menu* or *Beginning of the season*, inline on
 the same button row rather than in a modal (no dialog primitive here, and one is not
@@ -142,9 +153,11 @@ asserted in the store's own tests.
 (a render has to be *of* something); `findWorld(predicate)` searches seeds for a season
 of the shape a test needs — a title settled with rounds to spare, a place that changed
 hands — instead of pinning the seed that happened to work. Counts come off the grid:
-`world.field.length`, `teamCount`, `starterCount`, `season1980.calendar.length`. The
-suite is checked against this by perturbing every rating in the seed data and by adding
-an entry to the season; it stays green through both.
+`world.field.length`, `teamCount`, `starterCount`, `SEED.calendar.length`. `YEAR` and
+`SEED` are the earliest authored season rather than a year written down, and anything
+that must hold for *every* season loops `seasons` instead. The suite is checked against
+this by perturbing every rating in the seed data and by adding an entry to a season; it
+stays green through both.
 
 The grid editor is split the same way, and for the same reason. `SeasonGrid` and
 `ReserveList` are **controlled** — the draft lives in `GridStage` above them — so every

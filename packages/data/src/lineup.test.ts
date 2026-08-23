@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildField } from "./buildField.js";
-import { drivers, season1980 } from "./index.js";
+import { drivers, FIRST_AUTHORED_SEASON, seasonSeed } from "./index.js";
 import {
   applyLineup,
   authoredLineup,
@@ -13,7 +13,9 @@ import {
   swapDrivers,
 } from "./lineup.js";
 
-const authored = authoredLineup(season1980);
+/** One authored season as a fixture. Which one is not the point. */
+const SEED = seasonSeed(FIRST_AUTHORED_SEASON);
+const authored = authoredLineup(SEED);
 
 /**
  * Drivers picked out of the data by what they are, not by name.
@@ -29,8 +31,8 @@ function pick(): {
   otherReserve: string;
   teamMate: string;
 } {
-  const twoCar = season1980.entries.find((entry) => entry.drivers.length >= 2);
-  const elsewhere = season1980.entries.find(
+  const twoCar = SEED.entries.find((entry) => entry.drivers.length >= 2);
+  const elsewhere = SEED.entries.find(
     (entry) => entry.teamId !== twoCar?.teamId && entry.drivers.length > 0,
   );
   const [free, alsoFree] = reserveDrivers(authored);
@@ -52,16 +54,16 @@ function pick(): {
 const { seated, teamMate, otherTeam, reserve, otherReserve } = pick();
 const seatedTeam = seatOf(authored, seated) ?? "";
 const otherTeamId = seatOf(authored, otherTeam) ?? "";
-const SEATS = season1980.entries.flatMap((entry) => entry.drivers).length;
+const SEATS = SEED.entries.flatMap((entry) => entry.drivers).length;
 
 describe("the authored lineup", () => {
   it("has a seat for every driver the season enters", () => {
     expect(seatedDriverIds(authored)).toHaveLength(SEATS);
-    expect(Object.keys(authored)).toHaveLength(season1980.entries.length);
+    expect(Object.keys(authored)).toHaveLength(SEED.entries.length);
   });
 
   it("says who drives for whom, entry for entry", () => {
-    for (const entry of season1980.entries) {
+    for (const entry of SEED.entries) {
       for (const driverId of entry.drivers) {
         expect(seatOf(authored, driverId), driverId).toBe(entry.teamId);
       }
@@ -81,7 +83,7 @@ describe("the authored lineup", () => {
   });
 
   it("is recognised as unedited", () => {
-    expect(isAuthoredLineup(season1980, authored)).toBe(true);
+    expect(isAuthoredLineup(SEED, authored)).toBe(true);
   });
 });
 
@@ -113,7 +115,7 @@ describe("swapping drivers", () => {
       lineup = swapDrivers(lineup, a, b);
       expect(seatedDriverIds(lineup)).toHaveLength(SEATS);
       expect(new Set(seatedDriverIds(lineup)).size).toBe(SEATS);
-      for (const entry of season1980.entries) {
+      for (const entry of SEED.entries) {
         expect(lineup[entry.teamId], entry.teamId).toHaveLength(entry.drivers.length);
       }
     }
@@ -137,26 +139,26 @@ describe("swapping drivers", () => {
 
   it("undoes itself", () => {
     const there = swapDrivers(authored, seated, reserve);
-    expect(isAuthoredLineup(season1980, swapDrivers(there, seated, reserve))).toBe(true);
-    expect(isAuthoredLineup(season1980, there)).toBe(false);
+    expect(isAuthoredLineup(SEED, swapDrivers(there, seated, reserve))).toBe(true);
+    expect(isAuthoredLineup(SEED, there)).toBe(false);
   });
 });
 
 describe("applying a lineup to a season", () => {
   it("hands back the same entries when nothing was changed", () => {
-    expect(applyLineup(season1980, authored)).toEqual(season1980);
+    expect(applyLineup(SEED, authored)).toEqual(SEED);
   });
 
   it("re-seats the driver in the team's own car", () => {
-    const season = applyLineup(season1980, swapDrivers(authored, seated, reserve));
+    const season = applyLineup(SEED, swapDrivers(authored, seated, reserve));
     const team = season.entries.find((entry) => entry.teamId === seatedTeam);
-    const original = season1980.entries.find((entry) => entry.teamId === seatedTeam);
+    const original = SEED.entries.find((entry) => entry.teamId === seatedTeam);
     expect(team?.drivers).toContain(reserve);
     expect(team?.car).toEqual(original?.car);
   });
 
   it("builds a field the engine can race", () => {
-    const season = applyLineup(season1980, swapDrivers(authored, seated, reserve));
+    const season = applyLineup(SEED, swapDrivers(authored, seated, reserve));
     const field = buildField(season);
     expect(field).toHaveLength(SEATS);
     const promoted = field.find((entrant) => entrant.driverId === reserve);
@@ -166,12 +168,12 @@ describe("applying a lineup to a season", () => {
 
   it("rejects a team that gained a car", () => {
     const overloaded = { ...authored, [seatedTeam]: [seated, teamMate, reserve] };
-    expect(() => applyLineup(season1980, overloaded)).toThrow("3 drivers");
+    expect(() => applyLineup(SEED, overloaded)).toThrow("3 drivers");
   });
 
   it("rejects a team that lost one", () => {
     const short = { ...authored, [seatedTeam]: [seated] };
-    expect(() => applyLineup(season1980, short)).toThrow("2 cars");
+    expect(() => applyLineup(SEED, short)).toThrow("2 cars");
   });
 
   it("rejects a driver seated twice", () => {
@@ -179,30 +181,28 @@ describe("applying a lineup to a season", () => {
       ...authored,
       [otherTeamId]: [seated, ...(authored[otherTeamId] ?? []).slice(1)],
     };
-    expect(() => applyLineup(season1980, cloned)).toThrow("both");
+    expect(() => applyLineup(SEED, cloned)).toThrow("both");
   });
 
   it("rejects a team that is missing, or one that never entered", () => {
     const { [seatedTeam]: _removed, ...missing } = authored;
-    expect(() => applyLineup(season1980, missing)).toThrow("missing a seat allocation");
-    expect(() => applyLineup(season1980, { ...authored, nobodys_team: [] })).toThrow(
-      "does not enter",
-    );
+    expect(() => applyLineup(SEED, missing)).toThrow("missing a seat allocation");
+    expect(() => applyLineup(SEED, { ...authored, nobodys_team: [] })).toThrow("does not enter");
   });
 });
 
 describe("reporting what was changed", () => {
   it("reports nothing for the authored grid", () => {
-    expect(lineupChanges(season1980, authored)).toEqual([]);
+    expect(lineupChanges(SEED, authored)).toEqual([]);
   });
 
   it("names who arrived and who left, at the team it happened to", () => {
-    const changes = lineupChanges(season1980, swapDrivers(authored, seated, reserve));
+    const changes = lineupChanges(SEED, swapDrivers(authored, seated, reserve));
     expect(changes).toEqual([{ teamId: seatedTeam, in: [reserve], out: [seated] }]);
   });
 
   it("reports both ends of a swap between two teams", () => {
-    const changes = lineupChanges(season1980, swapDrivers(authored, seated, otherTeam));
+    const changes = lineupChanges(SEED, swapDrivers(authored, seated, otherTeam));
     expect(changes).toHaveLength(2);
     expect(changes.map((change) => change.teamId).sort()).toEqual([seatedTeam, otherTeamId].sort());
   });
@@ -213,17 +213,17 @@ describe("reporting what was changed", () => {
     let lineup = swapDrivers(authored, seated, reserve);
     lineup = swapDrivers(lineup, teamMate, otherReserve);
     lineup = swapDrivers(lineup, otherTeam, seated);
-    for (const change of lineupChanges(season1980, lineup)) {
+    for (const change of lineupChanges(SEED, lineup)) {
       expect(change.in.length, change.teamId).toBe(change.out.length);
     }
   });
 
   it("says nothing about a team whose drivers merely traded seats", () => {
-    const [first, second] = season1980.entries[0]?.drivers ?? [];
+    const [first, second] = SEED.entries[0]?.drivers ?? [];
     if (first === undefined || second === undefined) {
       throw new Error("expected a two-car team first on the entry list");
     }
     const reordered = swapDrivers(authored, first, second);
-    expect(lineupChanges(season1980, reordered)).toEqual([]);
+    expect(lineupChanges(SEED, reordered)).toEqual([]);
   });
 });

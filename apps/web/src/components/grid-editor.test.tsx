@@ -13,7 +13,6 @@ import {
   lineupChanges,
   reserveDrivers,
   type SeasonLineup,
-  season1980,
   seatedDriverIds,
   seatOf,
   swapDrivers,
@@ -23,21 +22,21 @@ import { describe, expect, it } from "vitest";
 import { driverName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { createWorld } from "../store/season.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
 import { changeCount, EditedGridBanner, LineupChanges } from "./LineupChanges.js";
 import { SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
-const authored = authoredLineup(season1980);
+const authored = authoredLineup(SEED);
 
 /**
  * A seated driver and one without a drive, picked out of the data rather than
  * named: roadmap 2 adds privateer entries, which promotes some of today's
  * reserves. See the testing rule in `CLAUDE.md`.
  */
-const FIRST_ENTRY = season1980.entries[0];
-const SECOND_ENTRY = season1980.entries[1];
+const FIRST_ENTRY = SEED.entries[0];
+const SECOND_ENTRY = SEED.entries[1];
 const SEATED = FIRST_ENTRY?.drivers[0] ?? "";
 const TEAM_MATE = FIRST_ENTRY?.drivers[1] ?? "";
 const ELSEWHERE = SECOND_ENTRY?.drivers[0] ?? "";
@@ -50,7 +49,7 @@ const SEATED_TEAM = FIRST_ENTRY.teamId;
 
 /** One swap: the reserve takes the first seat on the entry list. */
 const edited = swapDrivers(authored, SEATED, RESERVE);
-const changes = lineupChanges(season1980, edited);
+const changes = lineupChanges(SEED, edited);
 const world = seededWorld();
 const editedWorld = createWorld(3, YEAR, "peak", edited);
 const SEATS = world.field.length;
@@ -218,7 +217,7 @@ describe("what the season summary says about an edited grid", () => {
 describe("counting the changes", () => {
   it("counts seats taken, not teams affected", () => {
     // A swap between two teams shows up as two changed teams but is one change.
-    const betweenTeams = lineupChanges(season1980, swapDrivers(authored, SEATED, ELSEWHERE));
+    const betweenTeams = lineupChanges(SEED, swapDrivers(authored, SEATED, ELSEWHERE));
     expect(betweenTeams).toHaveLength(2);
     expect(changeCount(betweenTeams)).toBe("2 changes");
     expect(changeCount(changes)).toBe("1 change");
@@ -228,9 +227,7 @@ describe("counting the changes", () => {
   it("pairs each arrival with the driver they replaced", () => {
     let lineup = swapDrivers(authored, SEATED, RESERVE);
     lineup = swapDrivers(lineup, TEAM_MATE, ALSO_FREE.id);
-    const html = renderToStaticMarkup(
-      <LineupChanges changes={lineupChanges(season1980, lineup)} />,
-    );
+    const html = renderToStaticMarkup(<LineupChanges changes={lineupChanges(SEED, lineup)} />);
     expect(html).toContain(swapLine);
     expect(html).toContain(`${ALSO_FREE.name} for ${driverName(TEAM_MATE)}`);
   });
@@ -238,7 +235,7 @@ describe("counting the changes", () => {
   it("lists the teams alphabetically, as the grid does", () => {
     let lineup = swapDrivers(authored, SEATED, RESERVE);
     lineup = swapDrivers(lineup, ELSEWHERE, ALSO_FREE.id);
-    const changed = lineupChanges(season1980, lineup);
+    const changed = lineupChanges(SEED, lineup);
     const html = renderToStaticMarkup(<EditedGridBanner changes={changed} />);
 
     const names = changed.map((change) => teamName(change.teamId));

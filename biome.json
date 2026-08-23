@@ -40,7 +40,7 @@
   },
   "overrides": [
     {
-      "includes": ["packages/data/src/*.json"],
+      "includes": ["packages/data/src/*.json", "packages/data/src/seasons/*.json"],
       "formatter": {
         "enabled": false
       }

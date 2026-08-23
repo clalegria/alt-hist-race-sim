@@ -8,7 +8,7 @@
  */
 
 import driversJson from "./drivers.json";
-import seasonJson from "./season-1980.json";
+import { seasons } from "./seasons/index.js";
 import teamsJson from "./teams.json";
 import type { Driver, SeasonSeed, Team } from "./types.js";
 
@@ -33,6 +33,13 @@ export {
   swapDrivers,
 } from "./lineup.js";
 export { carOverall, driverOverall } from "./rating.js";
+export {
+  authoredSeasons,
+  FIRST_AUTHORED_SEASON,
+  hasSeason,
+  seasonSeed,
+  seasons,
+} from "./seasons/index.js";
 export type {
   CalendarRace,
   CarSpec,
@@ -45,13 +52,17 @@ export type {
   Team,
 } from "./types.js";
 
-/** Every driver in the pool, including those without a 1980 seat. */
+/**
+ * Every driver the sim knows about, across every authored season.
+ *
+ * Deliberately larger than any one grid: drivers without a seat in the season
+ * being run sit in the pool, available to the grid editor now and to the
+ * transfer market later.
+ */
 export const drivers: readonly Driver[] = driversJson;
 
+/** Every team, likewise across all seasons — Shadow raced in 1980 and not 1981. */
 export const teams: readonly Team[] = teamsJson;
-
-/** The starting season the simulation diverges from. */
-export const season1980: SeasonSeed = seasonJson;
 
 function indexById<T extends { readonly id: string }>(items: readonly T[]): ReadonlyMap<string, T> {
   return new Map(items.map((item) => [item.id, item]));
@@ -85,13 +96,18 @@ function findDuplicates(ids: readonly string[]): string[] {
  * found. Drivers without a seat are legal — they sit in the pool available to
  * the transfer market — as are teams entering a single car.
  *
+ * **Every authored season is checked**, not one: adding a year should not need
+ * anyone to remember to validate it, and a driver who is fine in 1980 can be
+ * seated at two teams in 1981. A driver may of course hold a seat in as many
+ * seasons as they like — the one-seat rule is per season.
+ *
  * Defaults to the bundled seed; the parameters exist so tests can check the
  * rules against deliberately broken data.
  */
 export function validateSeedData(
   driverPool: readonly Driver[] = drivers,
   teamPool: readonly Team[] = teams,
-  season: SeasonSeed = season1980,
+  seasonPool: readonly SeasonSeed[] = [...seasons.values()],
 ): void {
   const duplicateDrivers = findDuplicates(driverPool.map((driver) => driver.id));
   if (duplicateDrivers.length > 0) {
@@ -136,6 +152,18 @@ export function validateSeedData(
 
   const knownDrivers = new Set(driverPool.map((driver) => driver.id));
   const knownTeams = new Set(teamPool.map((team) => team.id));
+
+  for (const season of seasonPool) {
+    validateSeason(season, knownDrivers, knownTeams);
+  }
+}
+
+/** One season's entries and calendar, against the pools that must contain them. */
+function validateSeason(
+  season: SeasonSeed,
+  knownDrivers: ReadonlySet<string>,
+  knownTeams: ReadonlySet<string>,
+): void {
   const seatedDrivers = new Map<string, string>();
 
   for (const entry of season.entries) {

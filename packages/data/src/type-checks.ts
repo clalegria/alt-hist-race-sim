@@ -18,7 +18,8 @@
  */
 
 import type driversJson from "./drivers.json";
-import type seasonJson from "./season-1980.json";
+import type season1980Json from "./seasons/1980.json";
+import type season1981Json from "./seasons/1981.json";
 import type teamsJson from "./teams.json";
 import type {
   CalendarRace,
@@ -40,7 +41,16 @@ type Extends<A extends B, B> = A extends B ? true : never;
 
 type DriverJson = (typeof driversJson)[number];
 type TeamJson = (typeof teamsJson)[number];
-type SeasonJson = typeof seasonJson;
+
+/**
+ * Every season file, as a union.
+ *
+ * A new `seasons/<year>.json` is added here as well as to the registry — two
+ * lines rather than one, and the second is what stops a season file drifting
+ * from the shape the engine reads. `keyof` a union collapses to the shared
+ * keys, which is exactly the "no extra keys" question being asked.
+ */
+type SeasonJson = typeof season1980Json | typeof season1981Json;
 type SeasonEntryJson = SeasonJson["entries"][number];
 type CalendarRaceJson = SeasonJson["calendar"][number];
 
@@ -64,7 +74,7 @@ export type OffSeasonsHaveNoExtraKeys = Extends<keyof OffSeasonJson, keyof Drive
 export type TeamsAreTeams = Extends<TeamJson, Team>;
 export type TeamsHaveNoExtraKeys = Extends<keyof TeamJson, keyof Team>;
 
-// season-1980.json
+// seasons/*.json
 export type SeasonIsSeasonSeed = Extends<SeasonJson, SeasonSeed>;
 export type SeasonHasNoExtraKeys = Extends<keyof SeasonJson, keyof SeasonSeed>;
 export type EntriesHaveNoExtraKeys = Extends<keyof SeasonEntryJson, keyof SeasonEntry>;

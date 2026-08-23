@@ -1,9 +1,9 @@
 import {
+  type CalendarRace,
   driversById,
   lineupChanges,
   type RatingMode,
   type SeasonLineup,
-  season1980,
   teamsById,
 } from "@alt-hist/data";
 import {
@@ -39,8 +39,11 @@ const driverRecords = driversById();
 const teams = teamsById();
 
 /** The name of a round, falling back to a bare number if the calendar is short. */
-function roundLabel(round: number): { name: string; circuit: string; country: string } {
-  const race = season1980.calendar[round];
+function roundLabel(
+  calendar: readonly CalendarRace[],
+  round: number,
+): { name: string; circuit: string; country: string } {
+  const race = calendar[round];
   return {
     name: race?.name ?? `Round ${round + 1}`,
     circuit: race?.circuit ?? "",
@@ -161,11 +164,12 @@ function Summary({
     () => new Map(field.map((entrant) => [entrant.driverId, entrant.teamId])),
     [field],
   );
-  // Through `seasonSeed` rather than `season1980` directly: this one is a live
-  // comparison against the year being played, not a round name.
+  // Both read the year being played rather than a season pinned at import
+  // time — the app runs more than one now.
+  const seed = useMemo(() => seasonSeed(year), [year]);
   const changes = useMemo(
-    () => (lineup === null ? [] : lineupChanges(seasonSeed(year), lineup)),
-    [lineup, year],
+    () => (lineup === null ? [] : lineupChanges(seed, lineup)),
+    [lineup, seed],
   );
 
   return (
@@ -200,7 +204,7 @@ function Summary({
           }
         />
       </div>
-      <SeasonCalendar season={season} teamFor={teamFor} />
+      <SeasonCalendar season={season} calendar={seed.calendar} teamFor={teamFor} />
       <Standings season={season} midSeason={false} />
       <SeasonGrid field={field} seasonYear={year} changes={changes} />
     </>
@@ -244,7 +248,7 @@ function RaceStage({
     };
   }, [world.season, view.round]);
 
-  const label = roundLabel(view.round);
+  const label = roundLabel(seasonSeed(world.year).calendar, view.round);
   const total = world.season.races.length;
   const remaining = total - soFar.races.length;
 
@@ -362,11 +366,12 @@ export function SeasonView({
   }
 
   if (view.kind === "qualifying" && round !== undefined) {
+    const label = roundLabel(seasonSeed(world.year).calendar, view.round);
     return (
       <Section
-        title={`${roundLabel(view.round).name} — Qualifying`}
-        subtitle={roundLabel(view.round).circuit}
-        country={roundLabel(view.round).country}
+        title={`${label.name} — Qualifying`}
+        subtitle={label.circuit}
+        country={label.country}
       >
         <QualifyingResults race={round} />
       </Section>

@@ -10,7 +10,8 @@ available in the browser with no I/O) and re-exported under types derived from t
 JSON itself. `packages/data/src/type-checks.ts` fails the typecheck if the types and
 the JSON drift apart.
 
-- `drivers.json` — 41 drivers. `{ id, name, nationality, birthYear, debutSeason,
+- `drivers.json` — every driver across every authored season (51 today). `{ id, name,
+  nationality, birthYear, debutSeason,
   finalSeason, peak: { season, racing, qualifying, consistency, adaptability,
   composure }, peakSeasons, developmentSpeed, declineSpeed, steepDecline?,
   offSeasons? }`. The career fields feed the ageing curve — see
@@ -23,16 +24,42 @@ the JSON drift apart.
   - `steepDecline: { season, severity }` is an optional persistent step down
     (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
     severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.
-- `teams.json` — 15 teams. `{ id, name, base, foundedYear }`.
-- `season-1980.json` — 14 rounds, 15 entries, 28 seats. `{ year, calendar: [{ round,
-  name, circuit, country }], entries: [{ teamId, car: { racing, qualifying,
+- `teams.json` — every team across every season, so Shadow (1980, not 1981) and
+  Toleman (1981, not 1980) both live here. `{ id, name, base, foundedYear }`.
+- `seasons/<year>.json` — **one file per season**, currently 1980 (14 rounds, 15
+  entries, 28 seats) and 1981 (15 rounds, 17 entries, 32 seats). `{ year, calendar:
+  [{ round, name, circuit, country }], entries: [{ teamId, car: { racing, qualifying,
   consistency, reliability }, drivers: [driverId, ...] }] }`. `country` is an ISO
   3166-1 alpha-2 code, matching `nationality` on drivers and `base` on teams.
 
+## Adding a season
+
+Three edits, and the app and the tools light up on their own:
+
+1. `seasons/<year>.json` — calendar and entries, in the shape above.
+2. A line in `seasons/index.ts`: the static import, and the year in `AUTHORED`.
+3. A line in `type-checks.ts`, adding the file to the `SeasonJson` union.
+
+Then whatever the new season needs: drivers it introduces in `drivers.json`, teams in
+`teams.json`, and any new country in `apps/web/src/components/Flag.tsx` — `Flag.test.tsx`
+fails by name if you forget, as do `validateSeedData` and the typecheck.
+
+**Why a written-out registry and not a glob.** `import.meta.glob` would discover the
+folder automatically under Vite and break every CLI tool the moment `tsx` ran it; a
+filesystem read would break the browser. A static import per season is the one form
+that works in both, keeps the JSON bundled with no I/O, and lets `tsc` check each file
+against `SeasonSeed`. The end state is 1950–2026 and beyond, so one line per season is
+the cost of that.
+
+Nothing else has a list of seasons in it. `apps/web/src/lib/seasons.ts` derives
+`PLAYABLE_SEASONS` and the picker's subtitle from `authoredSeasons`; the calibrate
+tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
+
 ## Rules and gotchas
 
-- **The seed JSON is exempt from Biome formatting** (`overrides` in `biome.json`) to
-  keep its one-record-per-line layout. Do not reformat it.
+- **The seed JSON is exempt from Biome formatting** (`overrides` in `biome.json`, which
+  covers `src/*.json` **and** `src/seasons/*.json`) to keep its one-record-per-line
+  layout. Do not reformat it.
 - **Do not re-tune authored ratings.** See the invariant in `CLAUDE.md`. Seed ratings
   are tuned via the Monte Carlo harness, never guessed in code. Car ratings have had
   two calibration passes against 1980; driver ratings deliberately have not, and
@@ -44,8 +71,11 @@ the JSON drift apart.
   must never be a reason to edit a test.
 - All five driver attributes share polarity: higher = better. `composure` replaced
   "mistakes" for this reason (low composure = crash-prone).
-- 13 drivers hold no 1980 seat. They exist in the pool, available to the market.
-  Intended, not a bug.
+- The driver pool spans every season, so plenty of drivers hold no seat in the year
+  being run — they are available to the grid editor and, later, the market. Intended,
+  not a bug. The one-seat rule is **per season**: a driver holding a seat in 1980 and
+  1981 is the normal case, and `validateSeedData` only rejects two seats in the *same*
+  year.
 - `adaptability` is authored but unused so far — it is for the market and progression.
 - **The calendar is cosmetic *for now*.** It exists so results can be labelled
   "Round 12, Italian Grand Prix at Imola" — circuits have no properties and the engine
@@ -57,7 +87,8 @@ the JSON drift apart.
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
 - `buildField(season, pool, mode)` is the seam between authored data and the engine's
-  runtime model. It lives here rather than in either: the engine may not read data,
+  runtime model. **`season` is required** — a field built from whichever year happened
+  to be the default is the bug this seam exists to prevent. It lives here rather than in either: the engine may not read data,
   and every consumer that wants to run a race needs exactly this mapping.
   - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
     that way** — it feeds authored peaks straight in, which is what the 1980
@@ -85,5 +116,6 @@ the JSON drift apart.
     the pool without a seat) and `lineupChanges` round it out. A `SeatChange` always
     has `in.length === out.length` — seats are preserved, so every arrival displaced
     someone — and the UI relies on it to print "X for Y".
-- Adding a season means a new JSON file **and** a line in `apps/web/src/lib/seasons.ts`
-  (`AUTHORED`); the picker lights up on its own from there.
+- **1981 car and driver ratings are a first authored pass, not a calibration.** They
+  were written to the 1980 scale by hand and have never been through the harness. The
+  no-re-calibration invariant still holds: do not tune them unless the author asks.

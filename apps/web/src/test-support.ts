@@ -16,11 +16,18 @@
  * Not a `.test.ts` file, so Vitest does not collect it.
  */
 
-import type { RatingMode } from "@alt-hist/data";
+import { FIRST_AUTHORED_SEASON, type RatingMode, seasonSeed } from "@alt-hist/data";
 import { createWorld, type World } from "./store/season.js";
 
-/** The year everything here is built from, and the only one authored so far. */
-export const YEAR = 1980;
+/**
+ * The year most fixtures here are built from — the earliest authored one, not a
+ * year written down. More than one season is playable now, so anything that
+ * must hold *for every* season loops `seasons` instead of using this.
+ */
+export const YEAR = FIRST_AUTHORED_SEASON;
+
+/** The seed data behind `YEAR`: calendar, entries and cars. */
+export const SEED = seasonSeed(YEAR);
 
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
 export function seededWorld(seed = 3, mode?: RatingMode): World {

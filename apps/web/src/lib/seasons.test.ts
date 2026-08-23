@@ -1,3 +1,4 @@
+import { authoredSeasons } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SEASON,
@@ -5,6 +6,7 @@ import {
   isPlayable,
   LAST_SEASON,
   PLAYABLE_SEASONS,
+  playableSummary,
   SEASON_YEARS,
   seasonSeed,
 } from "./seasons.js";
@@ -19,11 +21,20 @@ describe("the season range", () => {
 });
 
 describe("which seasons can be run", () => {
-  it("is 1980, and nothing else yet", () => {
-    expect(PLAYABLE_SEASONS).toEqual([1980]);
-    expect(isPlayable(1980)).toBe(true);
-    expect(isPlayable(1981)).toBe(false);
-    expect(isPlayable(LAST_SEASON)).toBe(false);
+  it("is exactly what the data package has authored", () => {
+    // No second list to fall out of step: the picker asks the seed data.
+    expect(PLAYABLE_SEASONS).toEqual(authoredSeasons);
+    expect(PLAYABLE_SEASONS.length).toBeGreaterThan(0);
+    for (const year of PLAYABLE_SEASONS) {
+      expect(isPlayable(year), `${year}`).toBe(true);
+    }
+  });
+
+  it("is not the whole range — most years are still unauthored", () => {
+    expect(PLAYABLE_SEASONS.length).toBeLessThan(SEASON_YEARS.length);
+    const unauthored = SEASON_YEARS.find((year) => !PLAYABLE_SEASONS.includes(year));
+    expect(unauthored).toBeDefined();
+    expect(isPlayable(unauthored ?? 0)).toBe(false);
   });
 
   it("only ever offers a year the picker lists", () => {
@@ -40,14 +51,42 @@ describe("which seasons can be run", () => {
 });
 
 describe("the seed behind a season", () => {
-  it("hands back the authored data, calendar and all", () => {
-    const seed = seasonSeed(1980);
-    expect(seed.year).toBe(1980);
-    expect(seed.calendar.length).toBeGreaterThan(0);
-    expect(seed.entries.length).toBeGreaterThan(0);
+  it("hands back the authored data for every playable year, calendar and all", () => {
+    for (const year of PLAYABLE_SEASONS) {
+      const seed = seasonSeed(year);
+      expect(seed.year, `${year}`).toBe(year);
+      expect(seed.calendar.length, `${year}`).toBeGreaterThan(0);
+      expect(seed.entries.length, `${year}`).toBeGreaterThan(0);
+    }
   });
 
   it("throws for a year nobody has authored, naming it", () => {
-    expect(() => seasonSeed(1999)).toThrow("1999");
+    const unauthored = SEASON_YEARS.find((year) => !isPlayable(year)) ?? 0;
+    expect(() => seasonSeed(unauthored)).toThrow(String(unauthored));
+  });
+});
+
+describe("saying which seasons are playable", () => {
+  it("collapses a run of consecutive years into a range", () => {
+    // The end state is forty-odd consecutive years; a comma-separated list of
+    // them is not a sentence.
+    expect(playableSummary([1980, 1981, 1982])).toBe("1980–1982 are authored");
+    expect(playableSummary([1980, 1981])).toBe("1980–1981 are authored");
+  });
+
+  it("keeps gaps visible rather than papering over them", () => {
+    expect(playableSummary([1980, 1981, 1985])).toBe("1980–1981 and 1985 are authored");
+    expect(playableSummary([1980, 1990, 2000])).toBe("1980, 1990 and 2000 are authored");
+  });
+
+  it("reads as a sentence for one season, or none", () => {
+    expect(playableSummary([1980])).toBe("Only 1980 has been authored so far");
+    expect(playableSummary([])).toBe("No season has been authored yet");
+  });
+
+  it("describes what is actually authored", () => {
+    for (const year of PLAYABLE_SEASONS) {
+      expect(playableSummary(), `${year}`).toContain(String(year));
+    }
   });
 });

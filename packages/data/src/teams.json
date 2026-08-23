@@ -13,5 +13,8 @@
   { "id": "ats",        "name": "ATS",        "base": "DE", "foundedYear": 1977 },
   { "id": "ensign",     "name": "Ensign",     "base": "GB", "foundedYear": 1973 },
   { "id": "osella",     "name": "Osella",     "base": "IT", "foundedYear": 1980 },
-  { "id": "shadow",     "name": "Shadow",     "base": "GB", "foundedYear": 1973 }
+  { "id": "shadow",     "name": "Shadow",     "base": "GB", "foundedYear": 1973 },
+  { "id": "theodore",   "name": "Theodore",   "base": "HK", "foundedYear": 1977 },
+  { "id": "march",      "name": "March",      "base": "GB", "foundedYear": 1969 },
+  { "id": "toleman",    "name": "Toleman",    "base": "GB", "foundedYear": 1981 }
 ]

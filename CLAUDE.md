@@ -2,7 +2,7 @@
 
 ## Project
 **alt-hist-race-sim** (working name) — an alternate-history motor racing simulator.
-Starts from a real season — 1980 today, others later — and simulates results forward,
+Starts from a real season — 1980 and 1981 today, others later — and simulates forward,
 year by year, diverging from history as it goes. Drivers and teams have 1–100
 attributes; races are resolved probabilistically; drivers age, move between teams via
 a transfer market, and retire; statistics accumulate over the run.
@@ -15,6 +15,11 @@ that keep the project coherent — follow them.
 **Phase 1: browser-only. No backend, no database, no user accounts.** The engine runs
 client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a server, an
 HTTP API, or a database in this phase.
+
+**Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
+registered in that folder's `index.ts`. 1980 and 1981 exist; the end state is 1950–2026
+and beyond. Nothing outside that folder keeps a list of seasons — see
+`.claude/rules/seed-data.md` for the three edits an extra year takes.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo calibration harness, and a React web app that
@@ -31,13 +36,14 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 430 tests (180 engine, 51 data, 199 web)
+pnpm test          # 448 tests (180 engine, 53 data, 215 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm race [seed]   # simulate ONE race on the 1980 grid, print the classification
-pnpm season [seed] # simulate the full 14-race 1980 season, print both championships
-pnpm calibrate [n] # run the 1980 grid n times (default 5000), print distributions
+pnpm race [seed]   # simulate ONE race, print the classification
+pnpm season [seed] # simulate a full season, print both championships
+pnpm calibrate [n] # run a grid n times (default 5000), print distributions
+                   # all three take --year <n>; default is the earliest authored season
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
 ```
@@ -161,8 +167,10 @@ question is open without carrying the argument.
 - **Driver ratings are still un-tuned**, but no longer un-tunable: the ageing curve
   landed, so the blocker is gone. This does **not** authorise a re-tune — see the
   no-re-calibration invariant. It is a job waiting for the author to ask for it.
-- **Reliability era curve** — roadmap 5. `mechanicalDnfEraScale` has no per-year curve.
-- **Starting limit per era** — roadmap 5. `maxStarters` is pinned at 26 for 1980.
+- **Reliability era curve** — `mechanicalDnfEraScale` has no per-year curve, so 1981
+  retires cars at 1980's rate. Live now that a second season is playable.
+- **Starting limit per era** — `maxStarters` is one engine constant pinned at 26.
+  Real 1981 took 24. Probably belongs in `SeasonSeed`; needs the author's word.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
   costs strict dominance.
 - **Weekend-form share is a first guess** — 0.5, plausible but never fitted.

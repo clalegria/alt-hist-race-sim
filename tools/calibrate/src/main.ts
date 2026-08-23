@@ -10,8 +10,9 @@
  *   pnpm calibrate 20000      # more races, tighter numbers
  */
 
-import { buildField, driversById, teamsById } from "@alt-hist/data";
+import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
 import { createRng, simulateRace } from "@alt-hist/engine";
+import { parseYear, withoutYear } from "./year.js";
 
 const DEFAULT_RACES = 5000;
 
@@ -63,8 +64,10 @@ function padLeft(text: string, width: number): string {
 }
 
 function main(): void {
-  const races = parseRaceCount(process.argv);
-  const field = buildField();
+  const argv = withoutYear(process.argv);
+  const year = parseYear(process.argv);
+  const races = parseRaceCount(argv);
+  const field = buildField(seasonSeed(year));
   const teams = teamsById();
   const drivers = driversById();
 

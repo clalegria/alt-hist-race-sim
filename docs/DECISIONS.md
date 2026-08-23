@@ -33,15 +33,23 @@ here. Read this before starting new feature work.
 
 ## Era questions (roadmap 5, multiple seasons)
 
+**Both of these are now live rather than hypothetical: 1981 is authored and playable,
+and both constants are still 1980's.**
+
 - **Reliability era curve.** `mechanicalDnfEraScale` exists but no per-season curve is
   defined. 1980 needs ~42% retirements; a 2026 season needs closer to 10%. Decide
   whether that comes from rising reliability ratings, a falling era scale, or both.
+  1981 currently retires cars at the 1980 rate, which is roughly right for 1981 and
+  will be badly wrong long before 2026.
 - **Starting limit per era.** `maxStarters` is a single constant pinned at 26 for
   1980. Real limits moved (and modern grids sit under any of them), so it probably
-  belongs to the season/progression data rather than the race constants once more
-  than one season exists. Related and unmodelled: real 1980 DNQs were decided by
-  pre-qualifying and by teams entering different cars at different rounds, whereas
-  here the same 28 entries contest every race.
+  belongs to the season data rather than the race constants. 1981's real limit was
+  24; the authored 32-car grid against a limit of 26 gives 6 DNQs a weekend, which
+  matches the real 1981 count by coincidence — 30 entries for 24 places — rather than
+  by modelling. Moving the limit into `SeasonSeed` is a change to the race model's
+  inputs, so it needs the author's word. Related and unmodelled: real DNQs were
+  decided by pre-qualifying and by teams entering different cars at different rounds,
+  whereas here the same entry list contests every race.
 
 ## Race model levers
 

@@ -18,7 +18,7 @@
  */
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
-import { drivers as driverPool, season1980 } from "./index.js";
+import { drivers as driverPool } from "./index.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 /** Whether a field is built from authored peaks or from age-adjusted ratings. */
@@ -61,8 +61,13 @@ export function driverRatingsFor(driver: Driver, season: number, mode: RatingMod
     : ratingsForSeason(driverCareer(driver), season);
 }
 
+/**
+ * The season is required rather than defaulted: a field built from whichever
+ * year happened to be the default is the bug this seam exists to prevent, and
+ * every caller knows which season it is running.
+ */
 export function buildField(
-  season: SeasonSeed = season1980,
+  season: SeasonSeed,
   pool: readonly Driver[] = driverPool,
   mode: RatingMode = DEFAULT_RATING_MODE,
 ): RaceEntrant[] {

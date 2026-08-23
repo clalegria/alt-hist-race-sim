@@ -1,4 +1,4 @@
-import { drivers, season1980, teams } from "@alt-hist/data";
+import { drivers, seasons, teams } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Flag, hasFlag } from "./Flag.js";
@@ -37,8 +37,12 @@ describe("flags", () => {
     for (const team of teams) {
       expect(hasFlag(team.base), `team ${team.id}: ${team.base}`).toBe(true);
     }
-    for (const race of season1980.calendar) {
-      expect(hasFlag(race.country), `round ${race.round}: ${race.country}`).toBe(true);
+    for (const season of seasons.values()) {
+      for (const race of season.calendar) {
+        expect(hasFlag(race.country), `${season.year} round ${race.round}: ${race.country}`).toBe(
+          true,
+        );
+      }
     }
   });
 });

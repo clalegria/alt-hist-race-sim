@@ -1,4 +1,4 @@
-import { season1980 } from "@alt-hist/data";
+import type { CalendarRace } from "@alt-hist/data";
 import type { SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
 import { cn } from "../lib/utils.js";
@@ -10,9 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 export function SeasonCalendar({
   season,
+  calendar,
   teamFor,
 }: {
   season: SeasonResult;
+  /** The rounds of the year being shown, in order. Names the races. */
+  calendar: readonly CalendarRace[];
   teamFor: ReadonlyMap<string, string>;
 }) {
   // Which round is expanded, or null for none. Purely view state — it says
@@ -38,7 +41,7 @@ export function SeasonCalendar({
         </TableHeader>
         <TableBody>
           {season.races.map((race, index) => {
-            const round = season1980.calendar[index];
+            const round = calendar[index];
             const isOpen = openRound === index;
             return (
               <Fragment key={round?.round ?? index}>

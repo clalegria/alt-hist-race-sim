@@ -3,12 +3,17 @@ import {
   type Driver,
   drivers,
   driversById,
+  FIRST_AUTHORED_SEASON,
   type SeasonSeed,
-  season1980,
+  seasonSeed,
+  seasons,
   teams,
   teamsById,
   validateSeedData,
 } from "./index.js";
+
+/** One authored season, as a fixture. Which one is not the point. */
+const SEED = seasonSeed(FIRST_AUTHORED_SEASON);
 
 describe("seed data", () => {
   it("loads a pool, a paddock and a season", () => {
@@ -16,8 +21,8 @@ describe("seed data", () => {
     // says "41 drivers" fails for a reason that is not a bug.
     expect(drivers.length).toBeGreaterThan(0);
     expect(teams.length).toBeGreaterThan(0);
-    expect(season1980.year).toBe(1980);
-    expect(season1980.entries.length).toBeGreaterThan(0);
+    expect(SEED.year).toBe(FIRST_AUTHORED_SEASON);
+    expect(SEED.entries.length).toBeGreaterThan(0);
   });
 
   it("indexes drivers and teams by id", () => {
@@ -43,21 +48,39 @@ describe("validateSeedData", () => {
     }).not.toThrow();
   });
 
-  it("numbers the authored calendar in order, with every round named", () => {
-    expect(season1980.calendar.length).toBeGreaterThan(0);
-    expect(season1980.calendar.map((race) => race.round)).toEqual(
-      season1980.calendar.map((_, index) => index + 1),
-    );
-    for (const race of season1980.calendar) {
-      expect(race.name.trim(), `round ${race.round}`).not.toBe("");
-      expect(race.circuit.trim(), `round ${race.round}`).not.toBe("");
+  it("numbers every authored calendar in order, with every round named", () => {
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const season of seasons.values()) {
+      expect(season.calendar.length, `${season.year}`).toBeGreaterThan(0);
+      expect(
+        season.calendar.map((race) => race.round),
+        `${season.year}`,
+      ).toEqual(season.calendar.map((_, index) => index + 1));
+      for (const race of season.calendar) {
+        expect(race.name.trim(), `${season.year} round ${race.round}`).not.toBe("");
+        expect(race.circuit.trim(), `${season.year} round ${race.round}`).not.toBe("");
+      }
     }
   });
 
   it("allows seatless drivers and single-car entries", () => {
-    const seated = new Set(season1980.entries.flatMap((entry) => entry.drivers));
+    const seated = new Set(SEED.entries.flatMap((entry) => entry.drivers));
     expect(seated.size).toBeLessThan(drivers.length);
-    expect(season1980.entries.some((entry) => entry.drivers.length === 1)).toBe(true);
+    expect(SEED.entries.some((entry) => entry.drivers.length === 1)).toBe(true);
+  });
+
+  it("lets a driver hold a seat in more than one season", () => {
+    // The one-seat rule is per season. A career spanning years is the point of
+    // the whole thing, and validation that forbade it would be nonsense.
+    const seatsPerSeason = [...seasons.values()].map(
+      (season) => new Set(season.entries.flatMap((entry) => entry.drivers)),
+    );
+    if (seatsPerSeason.length < 2) {
+      return;
+    }
+    const [first, ...rest] = seatsPerSeason;
+    const returning = [...(first ?? [])].filter((id) => rest.some((other) => other.has(id)));
+    expect(returning.length, "no driver appears in two seasons").toBeGreaterThan(0);
   });
 
   it("rejects an entry referencing an unknown driver", () => {
@@ -67,7 +90,7 @@ describe("validateSeedData", () => {
       entries: [{ teamId: knownTeam, car: carSpec(), drivers: ["ghost"] }],
     };
     expect(() => {
-      validateSeedData(drivers, teams, broken);
+      validateSeedData(drivers, teams, [broken]);
     }).toThrow(/unknown driver "ghost"/);
   });
 
@@ -78,7 +101,7 @@ describe("validateSeedData", () => {
       entries: [{ teamId: "phantom", car: carSpec(), drivers: [knownDriver] }],
     };
     expect(() => {
-      validateSeedData(drivers, teams, broken);
+      validateSeedData(drivers, teams, [broken]);
     }).toThrow(/unknown team "phantom"/);
   });
 
@@ -94,7 +117,7 @@ describe("validateSeedData", () => {
       entries: [],
     };
     expect(() => {
-      validateSeedData(drivers, teams, broken);
+      validateSeedData(drivers, teams, [broken]);
     }).toThrow(/round 3 sits at position 2/);
   });
 
@@ -105,7 +128,7 @@ describe("validateSeedData", () => {
       entries: [],
     };
     expect(() => {
-      validateSeedData(drivers, teams, broken);
+      validateSeedData(drivers, teams, [broken]);
     }).toThrow(/not an ISO alpha-2 code/);
   });
 
@@ -116,10 +139,10 @@ describe("validateSeedData", () => {
       entries: [],
     });
     expect(() => {
-      validateSeedData(drivers, teams, withName("  ", "Buenos Aires"));
+      validateSeedData(drivers, teams, [withName("  ", "Buenos Aires")]);
     }).toThrow(/missing a name or circuit/);
     expect(() => {
-      validateSeedData(drivers, teams, withName("Argentine GP", ""));
+      validateSeedData(drivers, teams, [withName("Argentine GP", "")]);
     }).toThrow(/missing a name or circuit/);
   });
 
@@ -133,7 +156,7 @@ describe("validateSeedData", () => {
       ],
     };
     expect(() => {
-      validateSeedData(drivers, teams, broken);
+      validateSeedData(drivers, teams, [broken]);
     }).toThrow(/seated at both/);
   });
 
@@ -144,7 +167,7 @@ describe("validateSeedData", () => {
     }
     const pool: readonly Driver[] = [...drivers, first];
     expect(() => {
-      validateSeedData(pool, teams, season1980);
+      validateSeedData(pool, teams, [SEED]);
     }).toThrow(`Duplicate driver ids: ${first.id}`);
   });
 });

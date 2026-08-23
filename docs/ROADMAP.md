@@ -31,15 +31,24 @@ seasons and *then* adding an entity to the model means re-authoring all of them.
 is a good test case, with the Cosworth DFV, the Renault turbo and the Ferrari flat-12
 being genuinely different propositions.
 
-**5. Multiple starting seasons.** Choose 1980 or another year, which means authoring
-drivers, teams, cars and calendars for more seasons *and* decoupling the code from
-this one. The couplings are known and few, and one is already gone: the store now asks
-`apps/web/src/lib/seasons.ts` for a year's seed, so authoring a season is a line in
-its `AUTHORED` map and the picker lights up on its own. What still imports
-`season1980` directly is `SeasonView.tsx`, `SeasonCalendar.tsx` (both for round names)
-and the calibration tools. Also settles the era questions already in
-`docs/DECISIONS.md` — the starting limit and the reliability curve both stop being
-constants once more than one year exists.
+**5. Multiple starting seasons. — DONE for the machinery; the authoring continues.**
+Seasons are one JSON file each in `packages/data/src/seasons/`, registered in that
+folder's `index.ts`, and **1980 and 1981 both run**. Every coupling to a single season
+is gone: `season1980` no longer exists as an export, `buildField` requires the season,
+`validateSeedData` checks all of them, `SeasonView` and `SeasonCalendar` take round
+names from the world's own year, `lib/seasons.ts` derives the picker from
+`authoredSeasons`, and the calibrate tools take `--year`.
+
+What is left is authoring — 1982 onward, and eventually back to 1950 — plus the era
+questions this was meant to settle, which are **still open**:
+
+- **The starting limit is still a single engine constant.** `maxStarters` is 26,
+  which was right for 1980. Real 1981 took 24. The 1981 grid of 32 entries therefore
+  produces 6 DNQs a weekend, which happens to match reality by luck rather than by
+  modelling. Making it per-season is a change to `SeasonSeed` and the race model, and
+  it needs the author's word (see `docs/DECISIONS.md`).
+- **`mechanicalDnfEraScale` still has no per-year curve**, so 1981 retires cars at the
+  1980 rate.
 
 **6. Driver market.** Transfers between seasons. Needs ageing (who is declining, who
 retires) and more than one season to move between, hence its place here. What forces

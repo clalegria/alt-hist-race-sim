@@ -10,7 +10,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { MODES } from "../lib/modes.js";
-import { LAST_SEASON, SEASON_YEARS } from "../lib/seasons.js";
+import { LAST_SEASON, PLAYABLE_SEASONS, playableSummary, SEASON_YEARS } from "../lib/seasons.js";
 import { MainMenu } from "./MainMenu.js";
 import { SeasonPicker } from "./SeasonPicker.js";
 
@@ -71,15 +71,24 @@ describe("the season picker", () => {
   });
 
   it("offers exactly the seasons that have been authored", () => {
-    // One year plus the Back button are live; every other year is disabled.
+    // The authored years plus the Back button are live; every other year is
+    // disabled. Counted off `PLAYABLE_SEASONS`, so authoring a season does not
+    // mean editing this.
     const enabled = buttons(html).filter((button) => !isDisabled(button));
-    expect(enabled).toHaveLength(2);
-    expect(enabled.some((button) => button.includes(">1980<"))).toBe(true);
-    expect(buttons(html).filter(isDisabled)).toHaveLength(SEASON_YEARS.length - 1);
+    expect(enabled).toHaveLength(PLAYABLE_SEASONS.length + 1);
+    for (const year of PLAYABLE_SEASONS) {
+      expect(
+        enabled.some((button) => button.includes(`>${year}<`)),
+        `${year} should be selectable`,
+      ).toBe(true);
+    }
+    expect(buttons(html).filter(isDisabled)).toHaveLength(
+      SEASON_YEARS.length - PLAYABLE_SEASONS.length,
+    );
   });
 
   it("says why the rest are dark", () => {
-    expect(html).toContain("Only 1980 has been authored");
+    expect(html).toContain(playableSummary());
   });
 
   it("leaves a way back to the menu", () => {

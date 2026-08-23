@@ -13,7 +13,7 @@
  *   pnpm --filter @alt-hist/calibrate tune
  */
 
-import { driversById, season1980 } from "@alt-hist/data";
+import { driversById, seasonSeed } from "@alt-hist/data";
 import {
   createRng,
   RACE_CONSTANTS,
@@ -22,8 +22,15 @@ import {
   simulateRace,
 } from "@alt-hist/engine";
 import { RETIREMENT_RATE_1980, share, TEAM_POLES_1980, TEAM_WINS_1980 } from "./targets.js";
+import { parseYear } from "./year.js";
 
 const RACES_PER_EVAL = 6000;
+/**
+ * The season being tuned. Defaults to the earliest authored one, so an
+ * invocation with no flag means exactly what it always meant.
+ */
+const TUNED_SEASON = seasonSeed(parseYear(process.argv));
+
 /** How far a rating may drift from its authored value, to preserve intent. */
 const MAX_DRIFT = 8;
 const SWEEPS = 10;
@@ -73,7 +80,7 @@ function initialState(): State {
     string,
     { racing: number; qualifying: number; consistency: number; reliability: number }
   >();
-  for (const entry of season1980.entries) {
+  for (const entry of TUNED_SEASON.entries) {
     cars.set(entry.teamId, {
       racing: entry.car.racing,
       qualifying: entry.car.qualifying,
@@ -109,7 +116,7 @@ function buildFieldFrom(state: State): RaceEntrant[] {
   const pool = driversById();
   const field: RaceEntrant[] = [];
 
-  for (const entry of season1980.entries) {
+  for (const entry of TUNED_SEASON.entries) {
     const car = state.cars.get(entry.teamId);
     if (car === undefined) {
       throw new Error(`No car state for ${entry.teamId}`);
@@ -347,7 +354,7 @@ function main(): void {
 
   const outcome = run(buildFieldFrom(state), 10_000, constantsFor(state));
   console.log("\nresulting shares (10000 races):");
-  const teams = [...new Set(season1980.entries.map((e) => e.teamId))];
+  const teams = [...new Set(TUNED_SEASON.entries.map((e) => e.teamId))];
   for (const teamId of teams) {
     const wins = ((outcome.teamWins.get(teamId) ?? 0) / 10_000) * 100;
     const poles = ((outcome.teamPoles.get(teamId) ?? 0) / 10_000) * 100;

@@ -7,7 +7,9 @@ import {
   driverCareer,
   drivers,
   driversById,
-  season1980,
+  FIRST_AUTHORED_SEASON,
+  seasonSeed,
+  seasons,
   validateSeedData,
 } from "./index.js";
 
@@ -37,7 +39,9 @@ function someDriver(matches: (record: Driver) => boolean, what: string): Driver 
   return found;
 }
 
-const SEASON = season1980.year;
+/** One authored season as a fixture, and the year it runs in. */
+const SEED = seasonSeed(FIRST_AUTHORED_SEASON);
+const SEASON = SEED.year;
 
 describe("the authored careers", () => {
   it("gives every driver a plateau and an end", () => {
@@ -93,7 +97,7 @@ describe("validating career shape", () => {
   it("rejects a plateau that is not a whole season count of at least one", () => {
     for (const peakSeasons of [0, -2, 2.5]) {
       expect(() => {
-        validateSeedData(broken({ peakSeasons }), undefined, { ...season1980, entries: [] });
+        validateSeedData(broken({ peakSeasons }), undefined, [{ ...SEED, entries: [] }]);
       }, `${peakSeasons}`).toThrow("peakSeasons");
     }
   });
@@ -101,27 +105,31 @@ describe("validating career shape", () => {
   it("rejects a driver who retires before they debut", () => {
     const before = base.debutSeason - 1;
     expect(() => {
-      validateSeedData(broken({ finalSeason: before }), undefined, { ...season1980, entries: [] });
+      validateSeedData(broken({ finalSeason: before }), undefined, [{ ...SEED, entries: [] }]);
     }).toThrow(`retires in ${before}`);
   });
 
   it("rejects a driver who peaks before they debut", () => {
     const before = base.debutSeason - 1;
     expect(() => {
-      validateSeedData(broken({ peak: { ...base.peak, season: before } }), undefined, {
-        ...season1980,
-        entries: [],
-      });
+      validateSeedData(broken({ peak: { ...base.peak, season: before } }), undefined, [
+        {
+          ...SEED,
+          entries: [],
+        },
+      ]);
     }).toThrow(`peaks in ${before}`);
   });
 
   it("rejects a career event severity outside 0-1", () => {
     for (const severity of [-0.1, 1.4]) {
       expect(() => {
-        validateSeedData(broken({ steepDecline: { season: 1990, severity } }), undefined, {
-          ...season1980,
-          entries: [],
-        });
+        validateSeedData(broken({ steepDecline: { season: 1990, severity } }), undefined, [
+          {
+            ...SEED,
+            entries: [],
+          },
+        ]);
       }, `${severity}`).toThrow("severity");
     }
   });
@@ -136,12 +144,30 @@ describe("validating career shape", () => {
 describe("building a field", () => {
   it("defaults to peak, which is what the calibration was measured against", () => {
     expect(DEFAULT_RATING_MODE).toBe("peak");
-    expect(buildField()).toEqual(buildField(season1980, drivers, "peak"));
+    expect(buildField(SEED)).toEqual(buildField(SEED, drivers, "peak"));
+  });
+
+  it("builds a field for every authored season", () => {
+    // The check that a new season is playable at all: every seat resolves to a
+    // driver in the pool, and to that team's car.
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const season of seasons.values()) {
+      const field = buildField(season);
+      const seats = season.entries.flatMap((entry) => entry.drivers);
+      expect(
+        field.map((entrant) => entrant.driverId),
+        `${season.year}`,
+      ).toEqual(seats);
+      for (const entrant of field) {
+        expect(entrant.driver.racing, `${season.year} ${entrant.driverId}`).toBeGreaterThan(0);
+        expect(entrant.car.racing, `${season.year} ${entrant.teamId}`).toBeGreaterThan(0);
+      }
+    }
   });
 
   it("feeds authored peaks in unchanged in peak mode", () => {
     // Every seat, so it cannot pass by finding one driver who happens to agree.
-    for (const entrant of buildField(season1980, drivers, "peak")) {
+    for (const entrant of buildField(SEED, drivers, "peak")) {
       expect(entrant.driver, entrant.driverId).toEqual(driverCareer(driver(entrant.driverId)).peak);
     }
   });
@@ -172,7 +198,7 @@ describe("building a field", () => {
   });
 
   it("never rates an aged driver above their peak, and cuts those past the plateau", () => {
-    const aged = buildField(season1980, drivers, "aged");
+    const aged = buildField(SEED, drivers, "aged");
     expect(aged.length).toBeGreaterThan(0);
 
     for (const entrant of aged) {
@@ -191,7 +217,7 @@ describe("building a field", () => {
 
   it("agrees with the engine curve it delegates to", () => {
     // Not a re-implementation: the same call, so a change in either lands here.
-    const aged = buildField(season1980, drivers, "aged");
+    const aged = buildField(SEED, drivers, "aged");
     for (const entrant of aged) {
       expect(entrant.driver, entrant.driverId).toEqual(
         ratingsForSeason(driverCareer(driver(entrant.driverId)), SEASON),
@@ -200,7 +226,7 @@ describe("building a field", () => {
   });
 
   it("keeps every aged rating on the 1-100 scale", () => {
-    for (const entrant of buildField(season1980, drivers, "aged")) {
+    for (const entrant of buildField(SEED, drivers, "aged")) {
       for (const [key, value] of Object.entries(entrant.driver)) {
         expect(value, `${entrant.driverId} ${key}`).toBeGreaterThanOrEqual(1);
         expect(value, `${entrant.driverId} ${key}`).toBeLessThanOrEqual(100);
@@ -211,8 +237,10 @@ describe("building a field", () => {
   it("fields the same seats either way", () => {
     // The mode changes how good drivers are, never who is on the grid.
     const seats = (mode: "peak" | "aged"): string[] =>
-      buildField(season1980, drivers, mode).map((entrant) => entrant.driverId);
+      buildField(SEED, drivers, mode).map((entrant) => entrant.driverId);
     expect(seats("aged")).toEqual(seats("peak"));
-    expect(seats("aged")).toHaveLength(season1980.entries.flatMap((e) => e.drivers).length);
+    expect(seats("aged")).toHaveLength(
+      SEED.entries.flatMap((entry: { drivers: readonly string[] }) => entry.drivers).length,
+    );
   });
 });

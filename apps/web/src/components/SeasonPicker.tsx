@@ -1,4 +1,4 @@
-import { isPlayable, SEASON_YEARS } from "../lib/seasons.js";
+import { isPlayable, playableSummary, SEASON_YEARS } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { Button } from "./ui/button.js";
 
@@ -6,10 +6,11 @@ import { Button } from "./ui/button.js";
  * Which year to start from.
  *
  * Every season from 1980 to 2026 is listed, and all but the authored ones are
- * disabled. Showing the whole range rather than the single year that works is
+ * disabled. Showing the whole range rather than the years that work is
  * deliberate: it says what the app is for, and it means adding a season is a
- * line of data rather than a redesign. `isPlayable` is the only thing that
- * decides which are live, so the two can never disagree.
+ * file of data rather than a redesign. `isPlayable` is the only thing that
+ * decides which are live and `playableSummary` writes the subtitle, so neither
+ * the buttons nor the copy can fall out of step with what has been authored.
  */
 export function SeasonPicker({
   onStart,
@@ -23,8 +24,8 @@ export function SeasonPicker({
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Simulate a season</h1>
         <p className="text-muted-foreground max-w-prose text-sm">
-          Pick the year to run. Only 1980 has been authored so far — the rest of the grid is what
-          this becomes.
+          Pick the year to run. {playableSummary()} so far — the rest of the grid is what this
+          becomes.
         </p>
       </header>
 

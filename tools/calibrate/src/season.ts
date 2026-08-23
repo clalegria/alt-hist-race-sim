@@ -9,13 +9,14 @@
  *   pnpm season 12       # seed 12 — same seed always gives the same season
  */
 
-import { buildField, driversById, season1980, teamsById } from "@alt-hist/data";
+import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
   createRng,
   simulateSeason,
 } from "@alt-hist/engine";
+import { parseYear, withoutYear } from "./year.js";
 
 function parseSeed(argv: readonly string[]): number {
   const raw = argv[2];
@@ -38,11 +39,14 @@ function padLeft(text: string, width: number): string {
 }
 
 function main(): void {
-  const seed = parseSeed(process.argv);
-  const field = buildField();
+  const argv = withoutYear(process.argv);
+  const year = parseYear(process.argv);
+  const authored = seasonSeed(year);
+  const seed = parseSeed(argv);
+  const field = buildField(authored);
   // The calendar decides how many rounds the year has; it is also the only
   // thing that distinguishes them, since no circuit has any properties.
-  const calendar = season1980.calendar;
+  const calendar = authored.calendar;
   const season = simulateSeason(field, calendar.length, createRng(seed));
   const table = championshipStandings(season);
   const constructors = constructorStandings(season);
@@ -64,7 +68,7 @@ function main(): void {
   };
 
   console.log("");
-  console.log(`${season1980.year} season — ${season.races.length} races, seed ${seed}`);
+  console.log(`${authored.year} season — ${season.races.length} races, seed ${seed}`);
   console.log("");
 
   console.log(

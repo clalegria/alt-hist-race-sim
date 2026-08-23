@@ -1,4 +1,4 @@
-import { buildField } from "@alt-hist/data";
+import { buildField, FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
 import type { CarSpec, DriverRatings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { carOverall, driverOverall } from "./rating.js";
@@ -88,7 +88,7 @@ describe("against the authored grid", () => {
   // them would fail every time a number moved. The rule is in `CLAUDE.md`.
   // What is worth checking is that the heuristic survives contact with real
   // data at all.
-  const field = buildField();
+  const field = buildField(seasonSeed(FIRST_AUTHORED_SEASON));
 
   it("keeps every number on the grid inside the rating scale", () => {
     expect(field.length).toBeGreaterThan(0);

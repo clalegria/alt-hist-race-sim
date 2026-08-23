@@ -8,7 +8,6 @@
  * navigation logic.
  */
 
-import { season1980 } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
@@ -24,7 +23,7 @@ import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
 import type { View, World } from "./store/season.js";
-import { findWorld, seededWorld, starterCount, teamCount } from "./test-support.js";
+import { findWorld, SEED, seededWorld, starterCount, teamCount } from "./test-support.js";
 
 const world = seededWorld();
 const ROUNDS = world.season.races.length;
@@ -33,8 +32,8 @@ const SEATS = world.field.length;
 const TEAMS = teamCount(world);
 const STARTERS = starterCount(world);
 /** Round names come from the authored calendar, which is being re-authored too. */
-const FIRST_ROUND = season1980.calendar[0];
-const LAST_ROUND = season1980.calendar.at(-1);
+const FIRST_ROUND = SEED.calendar[0];
+const LAST_ROUND = SEED.calendar.at(-1);
 if (FIRST_ROUND === undefined || LAST_ROUND === undefined) {
   throw new Error("the authored season has no calendar");
 }
@@ -227,7 +226,7 @@ describe("the season summary", () => {
   });
 
   it("lists every round with its pole and winner", () => {
-    for (const race of season1980.calendar) {
+    for (const race of SEED.calendar) {
       expect(html, race.name).toContain(race.name);
     }
   });

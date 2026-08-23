@@ -1,4 +1,11 @@
-import { authoredLineup, reserveDrivers, season1980, swapDrivers } from "@alt-hist/data";
+import {
+  authoredLineup,
+  FIRST_AUTHORED_SEASON,
+  reserveDrivers,
+  seasonSeed,
+  seasons,
+  swapDrivers,
+} from "@alt-hist/data";
 import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
@@ -10,17 +17,19 @@ import {
   type World,
 } from "./season.js";
 
-/** Read off the seed data rather than written down: the grid is going to grow. */
-const SEATS = season1980.entries.flatMap((entry) => entry.drivers).length;
-const TEAMS = season1980.entries.length;
+/** The year these fixtures run in, and the seats it enters. */
+const YEAR = FIRST_AUTHORED_SEASON;
+const SEED = seasonSeed(YEAR);
+const SEATS = SEED.entries.flatMap((entry) => entry.drivers).length;
+const TEAMS = SEED.entries.length;
 
 /**
  * A driver in a seat, and one without — chosen out of the data rather than by
  * name, because roadmap 2 turns some of today's reserves into entrants.
  */
-const AUTHORED = authoredLineup(season1980);
-const SEATED = season1980.entries[0]?.drivers[0] ?? "";
-const SEATED_TEAM = season1980.entries[0]?.teamId ?? "";
+const AUTHORED = authoredLineup(SEED);
+const SEATED = SEED.entries[0]?.drivers[0] ?? "";
+const SEATED_TEAM = SEED.entries[0]?.teamId ?? "";
 const RESERVE = reserveDrivers(AUTHORED)[0]?.id ?? "";
 if (SEATED === "" || RESERVE === "") {
   throw new Error("the season needs a seated driver and a driver without a drive");
@@ -41,7 +50,7 @@ function agedDiffers(mode: World): string {
 
 describe("the world", () => {
   it("runs one race per round on the calendar", () => {
-    expect(createWorld(1, 1980).season.races).toHaveLength(season1980.calendar.length);
+    expect(createWorld(1, 1980).season.races).toHaveLength(SEED.calendar.length);
   });
 
   it("is the same world for the same seed", () => {
@@ -53,9 +62,12 @@ describe("the world", () => {
   });
 
   it("refuses a season nobody has authored", () => {
-    // Better a throw than a quiet fall back to 1980: a picker that offered 1981
-    // by mistake would otherwise look like it worked.
-    expect(() => createWorld(1, 1981)).toThrow("1981");
+    // Better a throw than a quiet fall back to the earliest year: a picker that
+    // offered an unauthored season by mistake would otherwise look like it
+    // worked, running someone else's grid under the wrong heading.
+    const unauthored = 1999;
+    expect(seasons.has(unauthored)).toBe(false);
+    expect(() => createWorld(1, unauthored)).toThrow(String(unauthored));
   });
 
   it("records the grid it actually raced", () => {
@@ -116,6 +128,46 @@ describe("the world", () => {
     expect(drivers.reduce((sum, s) => sum + s.points, 0)).toBe(
       teams.reduce((sum, t) => sum + t.points, 0),
     );
+  });
+});
+
+describe("every authored season", () => {
+  // The check that a newly authored year is actually playable, rather than
+  // present in the data and broken on the way to the grid. Loops the registry,
+  // so a season added tomorrow is covered without touching this file.
+  it("runs a full season from its own calendar and entry list", () => {
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const [year, seed] of seasons) {
+      const world = createWorld(1, year);
+      const seats = seed.entries.flatMap((entry) => entry.drivers);
+
+      expect(world.year, `${year}`).toBe(year);
+      expect(world.season.races, `${year}`).toHaveLength(seed.calendar.length);
+      expect(
+        world.field.map((entrant) => entrant.driverId),
+        `${year}`,
+      ).toEqual(seats);
+
+      // And it produces a championship somebody could read.
+      const standings = championshipStandings(world.season);
+      expect(standings, `${year}`).toHaveLength(seats.length);
+      expect(standings[0]?.points, `${year}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("gives each season its own results, not a copy of the first", () => {
+    const years = [...seasons.keys()];
+    if (years.length < 2) {
+      return;
+    }
+    const [first, second] = years;
+    expect(createWorld(1, first ?? 0).season).not.toEqual(createWorld(1, second ?? 0).season);
+  });
+
+  it("is reproducible per year, like any other world", () => {
+    for (const year of seasons.keys()) {
+      expect(createWorld(7, year), `${year}`).toEqual(createWorld(7, year));
+    }
   });
 });
 

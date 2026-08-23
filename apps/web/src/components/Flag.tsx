@@ -6,10 +6,13 @@ import {
   BR,
   CA,
   CH,
+  CL,
   DE,
+  ES,
   FI,
   FR,
   GB,
+  HK,
   IE,
   IT,
   MC,
@@ -31,14 +34,16 @@ import { cn } from "../lib/utils.js";
  *
  * Imported one country at a time on purpose. `import * as Flags` reads far
  * better and costs 240 kB — the namespace defeats tree-shaking and drags in all
- * ~250 flags, when this sim needs twenty. The price is that a new country in the
- * seed data must be added here too, which `Flag.test.tsx` fails loudly about.
+ * ~250 flags, when this sim needs a couple of dozen. The price is that a new
+ * country in the seed data — a new nationality, a new team base, a new round on
+ * a newly authored calendar — must be added here too, which `Flag.test.tsx`
+ * fails loudly about.
  *
  * An unknown code renders nothing rather than a placeholder: a missing flag is
  * quieter than a wrong one.
  */
 const FLAGS: Readonly<Record<string, React.ComponentType<{ className?: string; title?: string }>>> =
-  { AR, AT, AU, BE, BR, CA, CH, DE, FI, FR, GB, IE, IT, MC, MX, NL, NZ, SE, US, ZA };
+  { AR, AT, AU, BE, BR, CA, CH, CL, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, SE, US, ZA };
 
 export function Flag({
   country,
