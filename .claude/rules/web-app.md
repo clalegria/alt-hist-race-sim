@@ -152,8 +152,10 @@ because getting either wrong strands the reader mid-season.
 
 ## Display rules
 
-Moved to `.claude/rules/web-display.md`, which loads alongside this file whenever you
-open anything in `src/components/`.
+Split in two. `.claude/rules/web-display.md` owns the reveal — the sessions, their
+tables and the accent — and loads alongside this file whenever you open anything in
+`src/components/`. `.claude/rules/web-grid.md` owns the grid and its editor, and loads
+on those files plus `lib/people.ts` and `lib/rating.ts`.
 
 ## Type, palette and theme
 

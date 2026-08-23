@@ -15,16 +15,25 @@ import {
   reserveDrivers,
   type SeasonEngines,
   type SeasonLineup,
+  seatedDriverIds,
   seatOf,
   swapDrivers,
 } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
+import {
+  AGE_RANGE,
+  DEFAULT_DRIVER_FILTERS,
+  type DriverFilters,
+  filterDrivers,
+  withAge,
+} from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DriverLabel, type GridEditing, Overall, SeasonGrid } from "./SeasonGrid.js";
 import { Button } from "./ui/button.js";
+import { Input } from "./ui/input.js";
 
 /**
  * The opening grid, and the editor that lets a reader rearrange it.
@@ -49,10 +58,112 @@ import { Button } from "./ui/button.js";
  */
 
 /**
+ * One filter the pool can be narrowed by.
+ *
+ * A native checkbox rather than a styled control, for the reason the engine
+ * picker is a native `select`: the platform one is keyboard- and
+ * screen-reader-correct for free, and a DOM-less test can read `checked=""`
+ * back out of the markup.
+ */
+function FilterToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => {
+          onChange(event.target.checked);
+        }}
+        className="accent-primary size-3.5 cursor-pointer"
+      />
+      {label}
+    </label>
+  );
+}
+
+/**
+ * What narrows the pool: two career filters and an age range.
+ *
+ * Both career filters are phrased as what they *hide*, because that is what a
+ * checkbox turning on does — "drivers active in 1980" would leave a reader
+ * guessing which way the tick points.
+ */
+function ReserveFilters({
+  seasonYear,
+  filters,
+  onChange,
+}: {
+  seasonYear: number;
+  filters: DriverFilters;
+  onChange: (filters: DriverFilters) => void;
+}) {
+  return (
+    <fieldset className="border-border text-muted-foreground flex flex-col gap-1.5 rounded-lg border p-2 text-xs">
+      <legend className="px-1">Hide</legend>
+      <FilterToggle
+        label={`Retired before ${seasonYear}`}
+        checked={filters.hideRetired}
+        onChange={(hideRetired) => {
+          onChange({ ...filters, hideRetired });
+        }}
+      />
+      <FilterToggle
+        label={`Debuting after ${seasonYear}`}
+        checked={filters.hideFuture}
+        onChange={(hideFuture) => {
+          onChange({ ...filters, hideFuture });
+        }}
+      />
+      <div className="flex items-center gap-1.5">
+        <span>Aged</span>
+        <Input
+          type="number"
+          aria-label="Youngest age"
+          min={AGE_RANGE.min}
+          max={AGE_RANGE.max}
+          value={filters.minAge}
+          onChange={(event) => {
+            onChange(withAge(filters, "min", event.target.valueAsNumber));
+          }}
+          className="h-7 w-14 px-1.5 text-center text-xs"
+        />
+        <span>to</span>
+        <Input
+          type="number"
+          aria-label="Oldest age"
+          min={AGE_RANGE.min}
+          max={AGE_RANGE.max}
+          value={filters.maxAge}
+          onChange={(event) => {
+            onChange(withAge(filters, "max", event.target.valueAsNumber));
+          }}
+          className="h-7 w-14 px-1.5 text-center text-xs"
+        />
+      </div>
+    </fieldset>
+  );
+}
+
+/**
  * The drivers with no seat, as a pick-list beside the grid.
  *
  * Exported so it can be rendered on its own: `GridStage` keeps the draft in
- * component state, which a DOM-less test cannot open.
+ * component state, which a DOM-less test cannot open. The filters are
+ * **controlled** for the same reason — held above, passed in, so every state
+ * the list can be narrowed to renders without a click.
+ *
+ * `drivers` is the whole pool without a seat; what is drawn is that list
+ * filtered. Both counts are on screen, because "3 in the pool" with nothing
+ * saying the other twenty are hidden is how a reader concludes the app has lost
+ * half its drivers.
  */
 export function ReserveList({
   drivers,
@@ -60,23 +171,60 @@ export function ReserveList({
   ratingMode,
   selectedDriverId,
   onSelect,
+  filters,
+  onFiltersChange,
+  alwaysShow,
 }: {
   drivers: readonly Driver[];
   seasonYear: number;
   ratingMode: RatingMode;
   selectedDriverId: string | null;
   onSelect: (driverId: string) => void;
+  filters: DriverFilters;
+  /** Absent in tests, where nothing is clicked. The controls still render. */
+  onFiltersChange?: (filters: DriverFilters) => void;
+  /**
+   * Drivers the filters may not hide: everyone the season actually entered, so
+   * a reader who drops one from the grid can always put them back. Whoever is
+   * selected is added to it here.
+   */
+  alwaysShow?: ReadonlySet<string>;
 }) {
+  const keep = useMemo(() => {
+    const exempt = new Set(alwaysShow ?? []);
+    if (selectedDriverId !== null) {
+      exempt.add(selectedDriverId);
+    }
+    return exempt;
+  }, [alwaysShow, selectedDriverId]);
+  const shown = useMemo(
+    () => filterDrivers(drivers, seasonYear, filters, keep),
+    [drivers, seasonYear, filters, keep],
+  );
+
   return (
     <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold tracking-tight">Without a drive</h3>
         <p className="text-muted-foreground text-xs">
-          {drivers.length} in the pool. Select one to put them in the selected seat.
+          {shown.length === drivers.length
+            ? `${drivers.length} in the pool.`
+            : `${shown.length} of ${drivers.length} in the pool.`}{" "}
+          Select one to put them in the selected seat.
         </p>
       </div>
+      <ReserveFilters
+        seasonYear={seasonYear}
+        filters={filters}
+        onChange={onFiltersChange ?? (() => {})}
+      />
+      {shown.length === 0 ? (
+        <p className="text-muted-foreground text-xs">
+          Nobody in the pool matches. Widen the filters above.
+        </p>
+      ) : null}
       <ul className="flex flex-col gap-1">
-        {drivers.map((driver) => {
+        {shown.map((driver) => {
           const selected = driver.id === selectedDriverId;
           return (
             <li
@@ -181,6 +329,13 @@ export function GridStage({
   const [draft, setDraft] = useState<SeasonLineup | null>(null);
   const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // How the pool is narrowed. View state like the draft, and deliberately *not*
+  // reset when the editor closes: a reader who set it once meant it.
+  const [filters, setFilters] = useState<DriverFilters>(DEFAULT_DRIVER_FILTERS);
+
+  // Nobody the season actually entered is ever filtered out of the pool, so a
+  // driver dropped from the grid can always be put back — see `filterDrivers`.
+  const entered = useMemo(() => new Set(seatedDriverIds(authoredLineup(season))), [season]);
 
   const shown = draft ?? applied;
   const shownEngines = engineDraft ?? appliedEngines;
@@ -304,6 +459,9 @@ export function GridStage({
             ratingMode={ratingMode}
             selectedDriverId={selected}
             onSelect={select}
+            filters={filters}
+            onFiltersChange={setFilters}
+            alwaysShow={entered}
           />
         </aside>
       )}

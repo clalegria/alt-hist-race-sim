@@ -9,6 +9,7 @@
 
 import {
   authoredLineup,
+  type Driver,
   driversById,
   lineupChanges,
   reserveDrivers,
@@ -20,7 +21,13 @@ import {
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName, entryName, teamName } from "../lib/names.js";
-import { ageInSeason } from "../lib/people.js";
+import {
+  AGE_RANGE,
+  ageInSeason,
+  DEFAULT_DRIVER_FILTERS,
+  type DriverFilters,
+  matchesFilters,
+} from "../lib/people.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
@@ -57,6 +64,14 @@ const editedWorld = createWorld(3, YEAR, "peak", edited);
 const SEATS = world.field.length;
 const SPARE = reserveDrivers(authored).length;
 const swapLine = `${driverName(RESERVE)} for ${driverName(SEATED)}`;
+
+/** Filters that hide nobody, for the tests that are not about filtering. */
+const SHOW_ALL: DriverFilters = {
+  hideRetired: false,
+  hideFuture: false,
+  minAge: AGE_RANGE.min,
+  maxAge: AGE_RANGE.max,
+};
 
 /** How many times a class string appears. No regex: these contain slashes. */
 function occurrences(html: string, marker: string): number {
@@ -164,6 +179,7 @@ describe("the drivers without a drive", () => {
       ratingMode="peak"
       selectedDriverId={null}
       onSelect={() => {}}
+      filters={SHOW_ALL}
     />,
   );
 
@@ -190,6 +206,134 @@ describe("the drivers without a drive", () => {
     expect(after).toHaveLength(SPARE);
     expect(after).toContain(SEATED);
     expect(after).not.toContain(RESERVE);
+  });
+});
+
+/**
+ * Narrowing the pool.
+ *
+ * The rules themselves are unit-tested against synthetic careers in
+ * `lib/people.test.ts`; what these cover is that the list is actually drawn
+ * from the filtered set, and that it says how much it is hiding. Every expected
+ * count is derived from the seed data rather than written down — the pool grows
+ * every time a season is authored.
+ */
+describe("filtering the drivers without a drive", () => {
+  const reserve = reserveDrivers(authored);
+  const entered = new Set(seatedDriverIds(authored));
+
+  const render = (filters: DriverFilters, options: { selected?: string } = {}) =>
+    renderToStaticMarkup(
+      <ReserveList
+        drivers={reserve}
+        seasonYear={YEAR}
+        ratingMode="peak"
+        selectedDriverId={options.selected ?? null}
+        onSelect={() => {}}
+        filters={filters}
+        alwaysShow={entered}
+      />,
+    );
+
+  /** Who a set of filters is expected to leave, straight off the pool. */
+  const survivors = (filters: DriverFilters) =>
+    reserve.filter((driver) => matchesFilters(driver, YEAR, filters));
+
+  /** Rendered names, so "hidden" means hidden rather than merely unmentioned. */
+  const listed = (html: string, driver: Driver) => html.includes(`>${driver.name}<`);
+
+  it("offers all three filters, and opens on the year as it was", () => {
+    const html = render(DEFAULT_DRIVER_FILTERS);
+    expect(html).toContain(`Retired before ${YEAR}`);
+    expect(html).toContain(`Debuting after ${YEAR}`);
+    // Both career filters on, so the list opens on the drivers who were around.
+    expect(occurrences(html, 'type="checkbox"')).toBe(2);
+    expect(occurrences(html, 'checked=""')).toBe(2);
+    expect(html).toContain(`value="${DEFAULT_DRIVER_FILTERS.minAge}"`);
+    expect(html).toContain(`value="${DEFAULT_DRIVER_FILTERS.maxAge}"`);
+  });
+
+  it("ticks the boxes it was handed, and only those", () => {
+    expect(occurrences(render(SHOW_ALL), 'checked=""')).toBe(0);
+    expect(occurrences(render({ ...SHOW_ALL, hideRetired: true }), 'checked=""')).toBe(1);
+    expect(
+      occurrences(render({ ...SHOW_ALL, hideRetired: true, hideFuture: true }), 'checked=""'),
+    ).toBe(2);
+  });
+
+  it("draws the filtered list, not the whole pool", () => {
+    const filters = DEFAULT_DRIVER_FILTERS;
+    const left = survivors(filters);
+    // The seed data has to contain someone each filter removes, or this passes
+    // by having nothing to do.
+    expect(left.length).toBeLessThan(reserve.length);
+    expect(left.length).toBeGreaterThan(0);
+
+    const html = render(filters);
+    for (const driver of reserve) {
+      expect(listed(html, driver), driver.id).toBe(left.includes(driver));
+    }
+  });
+
+  it("says how many it is hiding, rather than quietly shrinking", () => {
+    const filters = DEFAULT_DRIVER_FILTERS;
+    const left = survivors(filters);
+    expect(left.length).toBeLessThan(reserve.length);
+    expect(render(filters)).toContain(`${left.length} of ${reserve.length} in the pool`);
+    // And says nothing of the sort when it is hiding nobody.
+    expect(render(SHOW_ALL)).toContain(`${reserve.length} in the pool`);
+    expect(render(SHOW_ALL)).not.toContain(`of ${reserve.length} in the pool`);
+  });
+
+  it("holds the age range against the season on screen", () => {
+    const oldest = Math.max(...reserve.map((driver) => ageInSeason(YEAR, driver.birthYear)));
+    const html = render({ ...SHOW_ALL, maxAge: oldest - 1 });
+    for (const driver of reserve) {
+      const age = ageInSeason(YEAR, driver.birthYear);
+      expect(listed(html, driver), `${driver.id} aged ${age}`).toBe(age <= oldest - 1);
+    }
+  });
+
+  it("keeps a driver the season entered, however narrow the filters", () => {
+    // The dead end: swap a driver out of the grid, tighten the range past their
+    // age, and without this they are unreachable by the list that puts them
+    // back. Everyone the season entered is exempt, so the case cannot arise.
+    const dropped = reserveDrivers(edited).find((driver) => driver.id === SEATED);
+    expect(dropped, "the swap should have freed the seated driver").toBeDefined();
+
+    const html = renderToStaticMarkup(
+      <ReserveList
+        drivers={reserveDrivers(edited)}
+        seasonYear={YEAR}
+        ratingMode="peak"
+        selectedDriverId={null}
+        onSelect={() => {}}
+        filters={{ hideRetired: true, hideFuture: true, minAge: 16, maxAge: 16 }}
+        alwaysShow={entered}
+      />,
+    );
+    expect(html).toContain(driverName(SEATED));
+  });
+
+  it("keeps whoever is selected, so a pick cannot vanish mid-swap", () => {
+    const html = render({ ...SHOW_ALL, minAge: 16, maxAge: 16 }, { selected: RESERVE });
+    expect(html).toContain(driverName(RESERVE));
+    expect(html).toContain('aria-pressed="true"');
+  });
+
+  it("explains an empty list instead of showing a blank panel", () => {
+    // Nobody exempt, and a range nobody in the pool can be in.
+    const html = renderToStaticMarkup(
+      <ReserveList
+        drivers={reserve}
+        seasonYear={YEAR}
+        ratingMode="peak"
+        selectedDriverId={null}
+        onSelect={() => {}}
+        filters={{ ...SHOW_ALL, minAge: 16, maxAge: 16 }}
+      />,
+    );
+    expect(html).toContain("Widen the filters");
   });
 });
 

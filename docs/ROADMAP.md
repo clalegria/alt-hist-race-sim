@@ -20,14 +20,6 @@ without a measuring instrument means authoring them blind.
 edit-grid half pays for itself immediately because it is the screen used while
 authoring a season. Ship in any order:
 
-- **Filter out drivers who had already retired** in real life before the season being
-  edited, on the edit-grid screen.
-- **Filter out drivers who were not yet rookies** in that season, likewise. Both
-  filters need a real-life debut/retirement year per driver, which the identity records
-  do not carry yet — that is the one piece of data work in this item.
-- **Filter the drivers without a seat by age.** Default to 18–42, widenable to 16–56 at
-  the extremes. Age comes from `birthYear` against the season's year, so unlike the two
-  filters above this one needs no new data.
 - **Sort teams alphabetically or by overall rating**, as a toggle, on both the
   edit-grid screen and the opening "show the grid" screen.
 - **Sort the drivers without a drive** the same two ways, on the edit-grid screen.
