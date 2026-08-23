@@ -32,7 +32,7 @@ const authored = authoredLineup(SEED);
 
 /**
  * A seated driver and one without a drive, picked out of the data rather than
- * named: roadmap 2 adds privateer entries, which promotes some of today's
+ * named: the driver market adds privateer entries, which promotes some of today's
  * reserves. See the testing rule in `CLAUDE.md`.
  */
 const FIRST_ENTRY = SEED.entries[0];

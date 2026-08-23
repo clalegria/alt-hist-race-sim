@@ -26,7 +26,7 @@ const TEAMS = SEED.entries.length;
 
 /**
  * A driver in a seat, and one without — chosen out of the data rather than by
- * name, because roadmap 2 turns some of today's reserves into entrants.
+ * name, because the driver market turns some of today's reserves into entrants.
  */
 const AUTHORED = authoredLineup(SEED);
 const SEATED = SEED.entries[0]?.drivers[0] ?? "";
