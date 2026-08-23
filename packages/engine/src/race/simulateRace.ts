@@ -33,9 +33,11 @@ function sameCountry(a: string | undefined, b: string | undefined): boolean {
 /**
  * Rating points a car collects for racing at home, added to both sessions.
  *
- * The driver's country and the team's are counted separately and stack, so an
- * Italian in a Ferrari at Monza gets both halves and a Brazilian in the same
- * car gets one. A round with no host country hands out nothing.
+ * An entry has three allegiances — its driver, its team and its engine supplier
+ * — and each is counted separately and stacks. A Frenchman in a Ligier-Matra at
+ * Paul Ricard collects all three; a Brazilian in the same car collects two; an
+ * Italian in a Cosworth-engined British car collects nothing at Monza but its
+ * driver's share. A round with no host country hands out nothing at all.
  */
 function homeAdvantage(
   entrant: RaceEntrant,
@@ -44,9 +46,11 @@ function homeAdvantage(
 ): number {
   const driverAtHome = sameCountry(entrant.driverCountry, round.country);
   const teamAtHome = sameCountry(entrant.teamCountry, round.country);
+  const engineAtHome = sameCountry(entrant.engineCountry, round.country);
   return (
     (driverAtHome ? constants.homeAdvantageDriver : 0) +
-    (teamAtHome ? constants.homeAdvantageTeam : 0)
+    (teamAtHome ? constants.homeAdvantageTeam : 0) +
+    (engineAtHome ? constants.homeAdvantageEngine : 0)
   );
 }
 

@@ -66,20 +66,28 @@ already inside it; 0.2 is the part that moves when a team changes supplier. A la
 share would also flatten the grid, because one engine is shared across a very wide range
 of chassis — the 1980 Cosworth DFV ran in cars rated from 42 to 91.
 
-**The 1980 calibration predates this and was not re-run.** Blending a shared engine into
-every DFV car compresses the field slightly around that engine's rating and moves the
-turbo runners relative to it, so the win and pole shares in `.claude/rules/calibration.md`
-are now a description of a grid the sim no longer runs. That is a known, deliberate
-debt: see `docs/DECISIONS.md`. Do not re-tune to close it without the author asking.
+**The chassis and engine ratings were fitted together, against both seasons.** Adding
+the engine changed what a chassis rating means, so the two were re-tuned as one set
+rather than the engine being layered onto settled cars — see
+`.claude/rules/calibration.md` for the resulting distributions and
+`tools/calibrate/src/tune.ts` for what the tuner is and is not allowed to move. Driver
+ratings were held fixed throughout, and remain the author's.
 
 ## Home advantage
 
-`homeAdvantageDriver` (1.0) is added to **both** session scores when the round's
-country matches the entrant's `driverCountry`, and `homeAdvantageTeam` (0.5) when it
-matches `teamCountry`. They stack, so an Italian in a Ferrari at Monza collects 1.5
-points and a Brazilian in the same car collects 0.5. Codes are ISO alpha-2, compared
-case- and whitespace-insensitively; anything absent — no round country, no entrant
-country — is simply no match. Set both constants to 0 to switch the term off.
+An entry has **three allegiances**, and each pays into *both* session scores when the
+round's country matches: `homeAdvantageDriver` (1.0) against `driverCountry`,
+`homeAdvantageTeam` (0.5) against `teamCountry`, and `homeAdvantageEngine` (0.25)
+against `engineCountry`. They stack, so a Frenchman in a Ligier-Matra at Paul Ricard
+collects all three — 1.75 points, and that ceiling is the number to weigh these by, not
+any one of them alone. An Italian in a Ferrari at Monza collects 1.5; a Brazilian in the
+same car collects 0.75.
+
+The ordering is the claim, and there is a test asserting it: a crowd shouts for the
+driver first, the team second, and the supplier least of all — it brought engineers and
+a truck, not a factory that slept in its own beds. Codes are ISO alpha-2, compared case-
+and whitespace-insensitively; anything absent — no round country, no entrant country, no
+engine — is simply no match. Set the constants to 0 to switch any share off.
 
 Three properties hold it in place, each with a test:
 
@@ -90,13 +98,24 @@ Three properties hold it in place, each with a test:
   grid where everyone is at home finishes in exactly the order it otherwise would.
   Most of the 1980 field was British, which means what this really prices is the
   *visitor's* deficit at a round the paddock treats as home.
-- **The countries are identity, not rating.** They ride on `RaceEntrant`, filled in by
-  `buildField` from `nationality` and `base`; the engine still reads no seed data, and
-  a field built without them races everywhere as a visitor.
+- **The countries are identity, not rating.** All three ride on `RaceEntrant`, filled
+  in by `buildField` from the driver's `nationality`, the team's `base` and the engine
+  manufacturer's; the engine still reads no seed data, and a field built without them
+  races everywhere as a visitor.
 
-The two numbers are a first guess, chosen for plausibility — a home race is worth a
-tenth or two, not a car upgrade — and have never been fitted. The calibration figures
-predate them and describe a neutral race; see `.claude/rules/calibration.md`.
+The three numbers are a first guess, chosen for plausibility — a home race is worth a
+tenth or two, not a car upgrade — and have never been fitted. **The calibration figures
+cannot see them**: `pnpm calibrate` and the tuner both run with no `RoundContext`, so
+home advantage pays nothing in any measured race. That is why adding the engine's share
+did not require re-tuning anything, and why fitting these would mean first deciding
+whether the harness should rotate through a real calendar. See
+`.claude/rules/calibration.md`.
+
+The engine's share is worth even less than 0.25 suggests, for the reason the other two
+are worth less than they look: a bonus most of the field collects is invisible. Ten of
+the fifteen 1980 entries ran a Cosworth, so at Brands Hatch this pays almost everybody
+— what it really prices is Ferrari's and Alfa's deficit there, and their advantage at
+Imola.
 
 ## Non-qualifiers still draw their dice
 

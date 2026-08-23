@@ -32,6 +32,12 @@ export interface RaceEntrant {
    */
   readonly driverCountry?: string;
   readonly teamCountry?: string;
+  /**
+   * Where the engine was built, for the third share of the same term. Absent on
+   * an entrant with no engine, and on one whose manufacturer the pool does not
+   * know — either way it simply never races at home.
+   */
+  readonly engineCountry?: string;
 }
 
 /**

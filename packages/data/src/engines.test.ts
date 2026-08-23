@@ -194,6 +194,44 @@ describe("buildField and engines", () => {
     }
   });
 
+  it("stamps where each engine was built, for the home-advantage term", () => {
+    const bases = new Map(engines.map((maker) => [maker.id, maker.base]));
+    const field = buildField(SEED);
+    for (const entrant of field) {
+      expect(entrant.engineCountry, entrant.driverId).toBe(bases.get(entrant.engineId ?? ""));
+    }
+    // Not vacuous: the pool has to actually carry a base for these to mean
+    // anything, and an entrant that never races at home would look identical.
+    expect(field.every((entrant) => /^[A-Z]{2}$/.test(entrant.engineCountry ?? ""))).toBe(true);
+  });
+
+  it("moves the engine's country with the engine when a team is re-supplied", () => {
+    const season = seasonWithAChoice();
+    const bases = new Map(engines.map((maker) => [maker.id, maker.base]));
+    // An alternative built somewhere else, so the country has somewhere to move
+    // to — a swap between two engines from the same country proves nothing.
+    const abroad = (() => {
+      for (const entry of season.entries) {
+        const other = season.engines.find(
+          (engine) =>
+            engine.engineId !== entry.engineId &&
+            bases.get(engine.engineId) !== bases.get(entry.engineId),
+        );
+        if (other !== undefined) {
+          return { teamId: entry.teamId, to: other.engineId };
+        }
+      }
+      throw new Error("every engine in the season is built in the same country");
+    })();
+
+    const changed = applyEngines(season, {
+      ...authoredEngines(season),
+      [abroad.teamId]: abroad.to,
+    });
+    const after = buildField(changed).find((entrant) => entrant.teamId === abroad.teamId);
+    expect(after?.engineCountry).toBe(bases.get(abroad.to));
+  });
+
   it("carries a re-supplied engine through to the field it builds", () => {
     const season = seasonWithAChoice();
     const swap = alternative(season);

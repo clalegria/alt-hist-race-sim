@@ -37,7 +37,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 525 tests (201 engine, 77 data, 247 web)
+pnpm test          # 529 tests (203 engine, 79 data, 247 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -183,11 +183,11 @@ question is open without carrying the argument.
   retires cars at 1980's rate. Live now that a second season is playable.
 - **Starting limit per era** — `maxStarters` is one engine constant pinned at 26.
   Real 1981 took 24. Probably belongs in `SeasonSeed`; needs the author's word.
-- **Engines landed without a re-calibration.** A new entity between car and result, so
-  the 1980 figures describe a grid the sim no longer runs. Deliberate, and **not** a
-  licence to re-tune or to run the harness to see how far it drifted. The engine ratings
-  and the 0.2 share are authored judgements; nothing moves a deal between seasons, and
-  a works team is inferred from the names matching.
+- **Engines are calibrated; the 0.2 share and the home-advantage numbers are not.**
+  Both seasons were re-tuned chassis-and-engine together at the author's request, with
+  driver ratings held fixed. The blend weight was not searched over, and no measured
+  race has a host country. Nothing moves an engine deal between seasons, and a works
+  team is inferred from the names matching.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
   costs strict dominance.
 - **Weekend-form share is a first guess** — 0.5, plausible but never fitted.

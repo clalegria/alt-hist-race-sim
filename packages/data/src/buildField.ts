@@ -16,8 +16,9 @@
  * - **`aged`** runs each driver's career through the engine's ageing curve and
  *   uses the ratings they held *in that season*. 1980 Prost is a rookie again.
  *
- * Each entrant also carries the driver's nationality and the team's base, which
- * is how the engine knows who is racing at home without ever reading this data.
+ * Each entrant also carries the driver's nationality, the team's base and the
+ * engine manufacturer's, which is how the engine knows who is racing at home
+ * without ever reading this data — all three stack.
  *
  * It carries the team's engine too, looked up in the season's own engine table.
  * The blend with the chassis is not done here: `powertrain()` in the engine
@@ -28,8 +29,8 @@
  */
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
-import { drivers as driverPool, teams as teamPool } from "./index.js";
-import type { Driver, SeasonSeed, Team } from "./types.js";
+import { drivers as driverPool, engines as enginePool, teams as teamPool } from "./index.js";
+import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
 
 /** Whether a field is built from authored peaks or from age-adjusted ratings. */
 export type RatingMode = "peak" | "aged";
@@ -81,6 +82,7 @@ export function buildField(
   pool: readonly Driver[] = driverPool,
   mode: RatingMode = DEFAULT_RATING_MODE,
   teams: readonly Team[] = teamPool,
+  makers: readonly EngineManufacturer[] = enginePool,
 ): RaceEntrant[] {
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
   // Where each team is based, for the engine's home-advantage term. A team the
@@ -88,6 +90,9 @@ export function buildField(
   // the same thing the engine does with a missing code.
   const baseOf = new Map(teams.map((team) => [team.id, team.base]));
   const engineOf = new Map(season.engines.map((engine) => [engine.engineId, engine]));
+  // Where each engine was built, for the third share of home advantage. Same
+  // treatment as a team the pool does not know: no code, so never at home.
+  const engineBaseOf = new Map(makers.map((maker) => [maker.id, maker.base]));
   const field: RaceEntrant[] = [];
 
   for (const entry of season.entries) {
@@ -99,6 +104,7 @@ export function buildField(
 
       const base = baseOf.get(entry.teamId);
       const engine = engineOf.get(entry.engineId);
+      const engineBase = engineBaseOf.get(entry.engineId);
       field.push({
         driverId,
         teamId: entry.teamId,
@@ -116,6 +122,7 @@ export function buildField(
             }),
         driverCountry: driver.nationality,
         ...(base === undefined ? {} : { teamCountry: base }),
+        ...(engineBase === undefined ? {} : { engineCountry: engineBase }),
       });
     }
   }

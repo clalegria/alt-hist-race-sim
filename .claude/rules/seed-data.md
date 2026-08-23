@@ -33,7 +33,7 @@ the JSON drift apart.
   why Ford is `GB`: the DFV was a Cosworth design assembled in Northampton and badged
   for its backer, and the flag beside it should be the one that built it.
 - `seasons/<year>.json` — **one file per season**, currently 1980 (14 rounds, 4
-  engines, 15 entries, 28 seats) and 1981 (15 rounds, 6 engines, 17 entries, 32 seats).
+  engines, 15 entries, 28 seats) and 1981 (15 rounds, 6 engines, 17 entries, 31 seats).
   `{ year, calendar: [{ round, name, circuit, country }], engines: [{ engineId, racing,
   qualifying, reliability }], entries: [{ teamId, engineId, car: { racing, qualifying,
   consistency, reliability }, drivers: [driverId, ...] }] }`. `country` is an ISO
@@ -76,9 +76,10 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
   covers `src/*.json` **and** `src/seasons/*.json`) to keep its one-record-per-line
   layout. Do not reformat it.
 - **Do not re-tune authored ratings.** See the invariant in `CLAUDE.md`. Seed ratings
-  are tuned via the Monte Carlo harness, never guessed in code. Car ratings have had
-  two calibration passes against 1980; driver ratings deliberately have not, and
-  cannot be until the ageing curve exists (`docs/DECISIONS.md`).
+  are tuned via the Monte Carlo harness, never guessed in code. **Chassis and engine
+  ratings for both 1980 and 1981 are fitted**, most recently in the engine pass that
+  tuned the two together (`.claude/rules/calibration.md`). Driver ratings deliberately
+  are not, and were held fixed through that pass (`docs/DECISIONS.md`).
 - **No test reads a value out of this JSON and asserts on it** — not a rating, not a
   peak season, not a count of drivers or entries. The tests here derive what they need
   (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a steep decline")
@@ -152,12 +153,14 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
     the pool without a seat) and `lineupChanges` round it out. A `SeatChange` always
     has `in.length === out.length` — seats are preserved, so every arrival displaced
     someone — and the UI relies on it to print "X for Y".
-- **The engine ratings have never been through the harness either.** They were written
-  to the 1980 scale by hand: the Renault turbo as the quickest and most fragile thing on
-  the grid, the Cosworth DFV near the mean of the cars that use it (which is what keeps
-  the blend from dragging the whole field toward one number), the Ferrari flat-12 strong
-  on power in a chassis that was not. Blending them in moved the calibrated 1980
-  distributions and the harness was **not** re-run — see `docs/DECISIONS.md`.
-- **1981 car and driver ratings are a first authored pass, not a calibration.** They
-  were written to the 1980 scale by hand and have never been through the harness. The
-  no-re-calibration invariant still holds: do not tune them unless the author asks.
+- **Engine ratings are fitted, and were fitted jointly with the chassis.** They were
+  authored by hand first — the Renault turbo quickest and most fragile, the Cosworth DFV
+  near the mean of the cars using it, the Ferrari flat-12 strong on power in a chassis
+  that was not — and then tuned against both seasons' win, pole and retirement records.
+  The shape survived the fit; the numbers moved. The tuner is allowed to move a car
+  ±12 and an engine ±15 from its authored value, which is what keeps a fitted rating
+  recognisable as the judgement it started from.
+- **1981 driver ratings are still a first authored pass**, as are 1980's. The chassis
+  and engine ratings for the year are no longer — they went through the harness in the
+  engine pass. The no-re-calibration invariant still holds for all of it: do not tune
+  anything here unless the author asks.

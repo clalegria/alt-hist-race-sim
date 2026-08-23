@@ -162,6 +162,23 @@ export interface RaceConstants {
    */
   readonly homeAdvantageDriver: number;
   readonly homeAdvantageTeam: number;
+  /**
+   * The engine's share of the same thing, when the round is held where the unit
+   * was built. Smallest of the three, and deliberately so: a supplier is the
+   * most distant of an entry's three allegiances — it brought engineers and a
+   * truck, not a factory that slept in its own beds — and it is the one a crowd
+   * is least likely to be shouting for.
+   *
+   * It stacks with the other two, so a French driver in a French car with a
+   * French engine collects all three at Paul Ricard. That is the *ceiling*, and
+   * it is the number to look at when weighing these: 1.75 rating points, well
+   * under half the spread the consistency penalty covers.
+   *
+   * Worth even less in practice than it looks, for the reason the other two are:
+   * a bonus most of the field shares is invisible. Ten of the fifteen 1980
+   * entries ran a Cosworth, so at Brands Hatch this pays almost everyone.
+   */
+  readonly homeAdvantageEngine: number;
 
   /**
    * Mechanical failure probability, interpolated from a car's reliability
@@ -282,6 +299,7 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
 
   homeAdvantageDriver: 1.0,
   homeAdvantageTeam: 0.5,
+  homeAdvantageEngine: 0.25,
 
   mechanicalDnfAtZeroReliability: 0.75,
   mechanicalDnfAtFullReliability: 0.12,

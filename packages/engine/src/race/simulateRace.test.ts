@@ -425,6 +425,21 @@ describe("gaps", () => {
   });
 });
 
+/**
+ * Cars differing only in where their *engine* was built, so the supplier's
+ * share can be read off on its own. Nobody's driver or team is Italian, which
+ * is what makes any gain at Monza the engine's and nothing else's.
+ */
+function suppliedField(): RaceEntrant[] {
+  const supplied = (id: string, engineCountry?: string): RaceEntrant => ({
+    ...entrant(id, `team-${id}`, 70, 70),
+    driverCountry: "BR",
+    teamCountry: "GB",
+    ...(engineCountry === undefined ? {} : { engineCountry }),
+  });
+  return [supplied("driver-a", "IT"), supplied("driver-b", "GB"), supplied("driver-c")];
+}
+
 describe("home advantage", () => {
   const italy = { country: "IT" } as const;
 
@@ -498,10 +513,15 @@ describe("home advantage", () => {
     expect(shouty).toEqual(plain);
   });
 
-  it("switches off entirely when both constants are zero", () => {
-    const off: RaceConstants = { ...NO_NOISE, homeAdvantageDriver: 0, homeAdvantageTeam: 0 };
-    expect(simulateRace(nationalField(), createRng(1), off, italy)).toEqual(
-      simulateRace(nationalField(), createRng(1), off),
+  it("switches off entirely when the constants are zero", () => {
+    const off: RaceConstants = {
+      ...NO_NOISE,
+      homeAdvantageDriver: 0,
+      homeAdvantageTeam: 0,
+      homeAdvantageEngine: 0,
+    };
+    expect(simulateRace(suppliedField(), createRng(1), off, italy)).toEqual(
+      simulateRace(suppliedField(), createRng(1), off),
     );
   });
 
@@ -513,6 +533,42 @@ describe("home advantage", () => {
     const away = createRng(5);
     simulateRace(nationalField(), away, NO_NOISE);
     expect(home.getState()).toEqual(away.getState());
+  });
+
+  it("pays the engine's share to a car built where the round is held", () => {
+    const home = simulateRace(suppliedField(), createRng(1), NO_NOISE, italy);
+    const neutral = simulateRace(suppliedField(), createRng(1), NO_NOISE);
+    const gained = (driverId: string): number =>
+      entryOf(home, driverId).qualifyingScore - entryOf(neutral, driverId).qualifyingScore;
+
+    expect(gained("driver-a")).toBeCloseTo(NO_NOISE.homeAdvantageEngine, 10);
+    // A British engine and no engine at all are both visitors at Monza.
+    expect(gained("driver-b")).toBeCloseTo(0, 10);
+    expect(gained("driver-c")).toBeCloseTo(0, 10);
+  });
+
+  it("stacks all three allegiances, and the engine's is the smallest", () => {
+    const everything: RaceEntrant[] = [
+      {
+        ...entrant("native", "team-native", 70, 70),
+        driverCountry: "IT",
+        teamCountry: "IT",
+        engineCountry: "IT",
+      },
+      { ...entrant("visitor", "team-visitor", 70, 70) },
+    ];
+    const home = simulateRace(everything, createRng(1), NO_NOISE, italy);
+    const neutral = simulateRace(everything, createRng(1), NO_NOISE);
+    const gained =
+      entryOf(home, "native").qualifyingScore - entryOf(neutral, "native").qualifyingScore;
+
+    expect(gained).toBeCloseTo(
+      NO_NOISE.homeAdvantageDriver + NO_NOISE.homeAdvantageTeam + NO_NOISE.homeAdvantageEngine,
+      10,
+    );
+    // The ordering is the claim: a crowd shouts for the driver, then the team.
+    expect(NO_NOISE.homeAdvantageEngine).toBeLessThan(NO_NOISE.homeAdvantageTeam);
+    expect(NO_NOISE.homeAdvantageTeam).toBeLessThan(NO_NOISE.homeAdvantageDriver);
   });
 });
 
