@@ -9,7 +9,7 @@
  *   pnpm calibrate-season              # 5000 seasons
  *   pnpm calibrate-season 20000        # more seasons, tighter numbers
  *   pnpm calibrate-season 20000 --year 1981
- *   pnpm calibrate-season 5000 --mode aged
+ *   pnpm calibrate-season 5000 --mode peak
  *
  * The race-level harness answers questions about the front of the grid — wins,
  * poles, retirements. It cannot answer what a midfield car is *worth*, because
@@ -29,7 +29,6 @@
 
 import {
   buildField,
-  DEFAULT_RATING_MODE,
   driversById,
   RATING_MODES,
   type RatingMode,
@@ -51,6 +50,12 @@ import { parseYear } from "./year.js";
  * 20000 when the numbers need to be tight.
  */
 const DEFAULT_SEASONS = 5000;
+
+/**
+ * Drivers at their ability *in that season*, not at their authored peak — see
+ * `parseMode`. Overridden by `--mode peak`.
+ */
+const SEASON_RATING_MODE: RatingMode = "aged";
 
 /** What one competitor — a driver or a team — accumulated over every season run. */
 interface Tally {
@@ -121,15 +126,24 @@ function parseSeasonCount(argv: readonly string[]): number {
 }
 
 /**
- * `peak` (the default, and the mode every calibration figure describes) or
- * `aged`. An unknown mode throws rather than falling back, for the same reason
- * an unauthored year does: a silent substitution prints one grid under another
+ * `aged` (the default here) or `peak`.
+ *
+ * This harness deliberately differs from the package-wide `DEFAULT_RATING_MODE`
+ * and from `pnpm calibrate`, both of which are `peak`. A season is a year in
+ * someone's career: running it with every driver at their authored peak asks
+ * what a grid of thirty simultaneous career-bests would do, which is not a year
+ * that ever happens. Ageing the field to the season's own year is the question
+ * worth measuring. `--mode peak` is still there for comparing against the
+ * race-level figures, which are all peak.
+ *
+ * An unknown mode throws rather than falling back, for the same reason an
+ * unauthored year does: a silent substitution prints one grid under another
  * grid's heading.
  */
 function parseMode(argv: readonly string[]): RatingMode {
   const raw = flagValue(argv, "--mode", "-m");
   if (raw === undefined) {
-    return DEFAULT_RATING_MODE;
+    return SEASON_RATING_MODE;
   }
   const mode = RATING_MODES.find((candidate) => candidate === raw);
   if (mode === undefined) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MainMenu } from "./components/MainMenu.js";
 import { SeasonPicker } from "./components/SeasonPicker.js";
 import { SeasonView } from "./components/SeasonView.js";
+import { SiteFooter } from "./components/SiteFooter.js";
 import { ThemeToggle } from "./components/ThemeToggle.js";
 import { Button } from "./components/ui/button.js";
 import type { ModeId } from "./lib/modes.js";
@@ -51,8 +52,24 @@ export function stageLabel(view: View, rounds: number): string {
   }
 }
 
-/** The page frame: sticky bar with the theme toggle, and a centred column. */
-function Shell({ bar, children }: { bar?: React.ReactNode; children: React.ReactNode }) {
+/**
+ * The page frame: sticky bar with the theme toggle, a centred column, and the
+ * site footer.
+ *
+ * The footer is rendered here rather than by each screen so that every screen
+ * has one — the attribution belongs to the app, not to the season screen that
+ * happened to have a seed worth printing. `seed` is the only part that varies,
+ * and only the season screen passes it.
+ */
+function Shell({
+  bar,
+  seed,
+  children,
+}: {
+  bar?: React.ReactNode;
+  seed?: number;
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-dvh">
       {/*
@@ -66,8 +83,13 @@ function Shell({ bar, children }: { bar?: React.ReactNode; children: React.React
           <ThemeToggle />
         </div>
       </header>
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 pb-8 sm:px-6 lg:pb-10">
+      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl flex-col gap-6 px-4 pb-8 sm:px-6 lg:pb-10">
         {children}
+        {/* Pushed to the bottom of the viewport on a short page, so the credit
+            sits at the foot of the window rather than under the last button. */}
+        <div className="mt-auto">
+          <SiteFooter {...(seed === undefined ? {} : { seed })} />
+        </div>
       </div>
     </div>
   );
@@ -215,6 +237,7 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
 
   return (
     <Shell
+      seed={world.seed}
       bar={
         <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col leading-tight">
@@ -240,10 +263,6 @@ function SeasonScreen({ world, view }: { world: World; view: View }) {
       <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">
         <Actions {...actionProps} />
       </div>
-
-      <footer className="text-muted-foreground/70 text-xs">
-        Seed <span className="font-mono tabular-nums">{world.seed}</span>
-      </footer>
     </Shell>
   );
 }

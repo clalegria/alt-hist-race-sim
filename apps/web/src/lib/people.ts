@@ -103,11 +103,11 @@ export function matchesFilters(
 /**
  * The drivers a narrowed list shows, in the order they came in.
  *
- * `keep` is never filtered out, whatever the settings say. It holds everyone
- * the season actually entered plus whoever is currently selected, and it exists
- * to close a dead end: without it, dropping a 43-year-old from the grid while
- * the range ends at 42 would make them vanish from the pool with no way back
- * short of restoring the whole grid.
+ * `keep` is never filtered out, whatever the settings say. It holds whoever is
+ * currently selected, and only them: a driver being held has to stay on screen
+ * to be put down again. Losing a seat is not itself an exemption — a driver
+ * swapped out of the grid rejoins the pool on the same terms as everyone else,
+ * and is reached the same way, by widening the filters.
  */
 export function filterDrivers(
   drivers: readonly Driver[],

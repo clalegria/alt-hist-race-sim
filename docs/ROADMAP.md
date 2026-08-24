@@ -58,9 +58,10 @@ the in-app career graph because that graph is the instrument this is judged by, 
 before *simulate an era*, because an era run is the thing that makes a wrong curve
 expensive.
 
-**3. Simulate an era.** The `career` mode in `apps/web/src/lib/modes.ts` is already
-renamed to **Simulate an era**; it is still `available: false`. Turn it on. The first
-phase is deliberately dumb: **no driver market, no car progression**. The user picks a
+**3. Simulate an era.** `apps/web/src/lib/modes.ts` already lists this as two cards,
+**era-basic** and **era-advanced**, both `available: false`. This item is the basic one:
+turn it on. It is deliberately dumb by design, not as a first phase — **no driver
+market**; the advanced card is where that lands. The user picks a
 starting year and the app runs the existing single-season flow year after year, with the
 same grid, for as long as they keep going or until 2026. Between years comes one new
 screen: the champions crowned so far, season by season.

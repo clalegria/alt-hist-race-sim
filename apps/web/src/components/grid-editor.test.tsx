@@ -238,7 +238,6 @@ describe("the drivers without a drive", () => {
  */
 describe("filtering the drivers without a drive", () => {
   const reserve = reserveDrivers(authored);
-  const entered = new Set(seatedDriverIds(authored));
 
   const render = (filters: DriverFilters, options: { selected?: string } = {}) =>
     renderToStaticMarkup(
@@ -249,7 +248,6 @@ describe("filtering the drivers without a drive", () => {
         selectedDriverId={options.selected ?? null}
         onSelect={() => {}}
         filters={filters}
-        alwaysShow={entered}
       />,
     );
 
@@ -340,22 +338,44 @@ describe("filtering the drivers without a drive", () => {
     expect(left.size).toBeGreaterThan(0);
   });
 
-  it("keeps a driver the season entered, however narrow the filters", () => {
-    // The dead end: swap a driver out of the grid, tighten the range past their
-    // age, and without this they are unreachable by the list that puts them
-    // back. Everyone the season entered is exempt, so the case cannot arise.
-    const dropped = reserveDrivers(edited).find((driver) => driver.id === SEATED);
+  it("narrows a driver dropped from the grid like anyone else in the pool", () => {
+    // Losing a seat is not an exemption. A driver the season entered joins the
+    // pool on the same terms as the rest of it, so the filters bite on them and
+    // the counts describe a list that has nothing hidden inside it.
+    const pool = reserveDrivers(edited);
+    const dropped = pool.find((driver) => driver.id === SEATED);
     expect(dropped, "the swap should have freed the seated driver").toBeDefined();
+
+    // An age band nobody is in, so what is asserted is the filter biting rather
+    // than one that happened to let this driver through.
+    const filters = { hideRetired: false, hideFuture: false, minAge: 16, maxAge: 16 };
+    expect(matchesFilters(dropped as Driver, YEAR, filters)).toBe(false);
 
     const html = renderToStaticMarkup(
       <ReserveList
-        drivers={reserveDrivers(edited)}
+        drivers={pool}
         seasonYear={YEAR}
         ratingMode="peak"
         selectedDriverId={null}
         onSelect={() => {}}
-        filters={{ hideRetired: true, hideFuture: true, minAge: 16, maxAge: 16 }}
-        alwaysShow={entered}
+        filters={filters}
+      />,
+    );
+    expect(html).not.toContain(`>${driverName(SEATED)}<`);
+  });
+
+  it("still holds a dropped driver on screen while they are selected", () => {
+    // The one exemption left: a pick the filters hide is a pick that cannot be
+    // put down, so whoever is held stays listed however narrow the band is.
+    const pool = reserveDrivers(edited);
+    const html = renderToStaticMarkup(
+      <ReserveList
+        drivers={pool}
+        seasonYear={YEAR}
+        ratingMode="peak"
+        selectedDriverId={SEATED}
+        onSelect={() => {}}
+        filters={{ hideRetired: false, hideFuture: false, minAge: 16, maxAge: 16 }}
       />,
     );
     expect(html).toContain(driverName(SEATED));

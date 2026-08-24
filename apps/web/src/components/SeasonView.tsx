@@ -241,14 +241,24 @@ function Summary({
       </div>
       <SeasonCalendar season={season} calendar={seed.calendar} points={points} teamFor={teamFor} />
       <Standings season={season} calendar={seed.calendar} points={points} midSeason={false} />
-      <SeasonGrid
-        field={field}
-        seasonYear={year}
-        changes={changes}
-        engineChanges={supplyChanges}
-        sort={teamSort}
-        onSortChange={setTeamSort}
-      />
+      {/*
+        A gap wider than the page's own, because this is where the season stops
+        being reported and starts being described: the two championship tables
+        run to the foot of the page, and the grid's heading sitting one ordinary
+        gap under the last constructor row reads as another row of it. The sort
+        switch above the cards made that worse — a control at the top of a
+        section looks like a control *for* the table it is under.
+      */}
+      <div className="pt-6">
+        <SeasonGrid
+          field={field}
+          seasonYear={year}
+          changes={changes}
+          engineChanges={supplyChanges}
+          sort={teamSort}
+          onSortChange={setTeamSort}
+        />
+      </div>
     </>
   );
 }

@@ -15,7 +15,6 @@ import {
   reserveDrivers,
   type SeasonEngines,
   type SeasonLineup,
-  seatedDriverIds,
   seatOf,
   swapDrivers,
 } from "@alt-hist/data";
@@ -166,6 +165,12 @@ function ReserveFilters({
  * filtered. Both counts are on screen, because "3 in the pool" with nothing
  * saying the other twenty are hidden is how a reader concludes the app has lost
  * half its drivers.
+ *
+ * The filters apply to *everyone* in the pool, including a driver the season
+ * entered who has just been swapped out of the grid — losing a seat puts them
+ * in the pool on the same terms as anyone else, and a list that quietly exempts
+ * some of its rows is a list whose counts lie. Getting them back is the same
+ * move as reaching anyone else the filters hide: widen the filters.
  */
 export function ReserveList({
   drivers,
@@ -177,7 +182,6 @@ export function ReserveList({
   onFiltersChange,
   sort = DEFAULT_SORT_ORDER,
   onSortChange,
-  alwaysShow,
 }: {
   drivers: readonly Driver[];
   seasonYear: number;
@@ -190,20 +194,14 @@ export function ReserveList({
   /** How the pool is ordered. Controlled, beside the filters, for the same reason. */
   sort?: SortOrder;
   onSortChange?: (order: SortOrder) => void;
-  /**
-   * Drivers the filters may not hide: everyone the season actually entered, so
-   * a reader who drops one from the grid can always put them back. Whoever is
-   * selected is added to it here.
-   */
-  alwaysShow?: ReadonlySet<string>;
 }) {
-  const keep = useMemo(() => {
-    const exempt = new Set(alwaysShow ?? []);
-    if (selectedDriverId !== null) {
-      exempt.add(selectedDriverId);
-    }
-    return exempt;
-  }, [alwaysShow, selectedDriverId]);
+  // The one exemption: whoever is held. A selection the filters hide is a
+  // selection the reader cannot put down, and it would be highlighted on a row
+  // that is not on screen.
+  const keep = useMemo(
+    () => (selectedDriverId === null ? new Set<string>() : new Set([selectedDriverId])),
+    [selectedDriverId],
+  );
   // Filtered, then ordered — the counts below describe the filtering, and the
   // order is only how what survived is laid out.
   const shown = useMemo(
@@ -365,10 +363,6 @@ export function GridStage({
   const [teamSort, setTeamSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
   const [reserveSort, setReserveSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
 
-  // Nobody the season actually entered is ever filtered out of the pool, so a
-  // driver dropped from the grid can always be put back — see `filterDrivers`.
-  const entered = useMemo(() => new Set(seatedDriverIds(authoredLineup(season))), [season]);
-
   const shown = draft ?? applied;
   const shownEngines = engineDraft ?? appliedEngines;
   const changes = useMemo(() => lineupChanges(season, shown), [season, shown]);
@@ -497,7 +491,6 @@ export function GridStage({
             onFiltersChange={setFilters}
             sort={reserveSort}
             onSortChange={setReserveSort}
-            alwaysShow={entered}
           />
         </aside>
       )}
