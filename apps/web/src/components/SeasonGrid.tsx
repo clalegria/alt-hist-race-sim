@@ -63,19 +63,13 @@ function Rating({ label, value, muted }: { label: string; value: number; muted?:
   return (
     <div className="flex items-center gap-2">
       <span
-        className={cn(
-          "w-24 shrink-0 text-xs",
-          muted ? "text-muted-foreground/60" : "text-muted-foreground",
-        )}
+        className={cn("w-24 shrink-0 text-xs", muted ? "text-subtle" : "text-muted-foreground")}
       >
         {label}
       </span>
       <span className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
         <span
-          className={cn(
-            "block h-full rounded-full",
-            muted ? "bg-muted-foreground/40" : "bg-primary",
-          )}
+          className={cn("block h-full rounded-full", muted ? "bg-subtle" : "bg-primary")}
           style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
         />
       </span>
@@ -100,18 +94,33 @@ export function Overall({ value }: { value: number }) {
   );
 }
 
+/**
+ * How a clickable name says so: nothing at rest, a soft fill under the cursor or
+ * the keyboard focus, and that same fill held open while its panel is.
+ *
+ * It used to be a dotted underline, which is the right mark for one link in a
+ * paragraph and the wrong one here — this page carries forty-odd names and the
+ * grid read as ruled paper, worst of all in dark where a broken line under warm
+ * grey text is the highest-frequency thing on the screen. Nothing about a driver
+ * name *needs* a permanent mark: the section header already says "Select any
+ * name for its full ratings", so the standing instruction is written once
+ * instead of restated under every row.
+ *
+ * The trade is touch, which has no hover and so sees no affordance until it taps
+ * — accepted, because the header sentence covers it and the alternative was an
+ * information glyph beside all forty-three names.
+ *
+ * `bg-accent` rather than `bg-muted` because a swapped-in driver's row is
+ * already `SWAPPED_IN`, and the hover has to be visible *on top of* that fill.
+ * Shared with the edit-mode buttons in `DriverEntry` and `ReserveList`, which
+ * are the same name in the same slot doing a different job.
+ */
+export const NAME_TARGET =
+  "hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent -mx-1 cursor-pointer rounded px-1 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none";
+
 /** The name button that opens an attribute panel. Same affordance for both. */
 function NameTrigger({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <PopoverTrigger
-      className={cn(
-        "focus-visible:ring-ring -mx-1 cursor-pointer rounded px-1 text-left underline decoration-dotted decoration-from-font underline-offset-4 focus-visible:ring-2 focus-visible:outline-none",
-        className,
-      )}
-    >
-      {children}
-    </PopoverTrigger>
-  );
+  return <PopoverTrigger className={cn(NAME_TARGET, className)}>{children}</PopoverTrigger>;
 }
 
 /**
@@ -189,7 +198,7 @@ function DriverEntry({
           onClick={() => {
             edit.onSelect(entrant.driverId);
           }}
-          className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:outline-none"
+          className={cn(NAME_TARGET, "flex min-w-0 flex-1 items-center gap-1.5")}
         >
           <DriverLabel driverId={entrant.driverId} seasonYear={seasonYear} />
         </button>

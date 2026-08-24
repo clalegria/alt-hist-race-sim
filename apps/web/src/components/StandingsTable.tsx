@@ -137,7 +137,7 @@ export function StandingsTable({
                       className={cn(
                         "text-right tabular-nums",
                         column.emphasis ? "font-semibold" : "text-muted-foreground",
-                        standing[column.key] === 0 && "text-muted-foreground/50 font-normal",
+                        standing[column.key] === 0 && "text-subtle font-normal",
                       )}
                     >
                       {standing[column.key]}

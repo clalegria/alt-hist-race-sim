@@ -34,7 +34,7 @@ function Pending({ label }: { label: string }) {
 
 export function SiteFooter({ seed }: { seed?: number }) {
   return (
-    <footer className="border-border text-muted-foreground/70 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-4 text-xs">
+    <footer className="border-border text-subtle mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-4 text-xs">
       <span>Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.</span>
       <Pending label="About this project" />
       <Pending label="Submit a bug report" />

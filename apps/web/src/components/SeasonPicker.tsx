@@ -40,7 +40,7 @@ export function SeasonPicker({ onStart }: { onStart: (year: number) => void }) {
                 "focus-visible:ring-ring h-11 rounded-md border text-sm font-medium tabular-nums transition focus-visible:ring-2 focus-visible:outline-none",
                 playable
                   ? "border-primary/50 bg-primary/10 text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
-                  : "border-border text-muted-foreground/50 cursor-not-allowed",
+                  : "border-border text-subtle cursor-not-allowed",
               )}
             >
               {year}

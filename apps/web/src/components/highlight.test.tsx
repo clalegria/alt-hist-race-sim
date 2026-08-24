@@ -104,10 +104,10 @@ describe("the standout accent", () => {
     const rounds = driverRounds(won.season, won.points, driverId);
 
     const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
-    // The row fills only. `STANDOUT_TEXT` is "text-primary", which is a
-    // substring of the `text-primary/80` a retirement's status line carries in
-    // the classification and here — the same trap the note on `PODIUM_TEXT`
-    // describes, so the fills are what this can honestly assert.
+    // The row fills only. `STANDOUT_TEXT` is "text-primary", which is exactly
+    // what a retirement's status line carries in the classification and here,
+    // and a substring of `PODIUM_TEXT` besides — so the fills are what this can
+    // honestly assert.
     for (const accent of [STANDOUT_ROW, PODIUM_ROW]) {
       expect(html, accent).not.toContain(accent);
     }

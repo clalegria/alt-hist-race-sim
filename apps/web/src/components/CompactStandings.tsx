@@ -117,7 +117,7 @@ export function CompactStandings({
                   className={cn(
                     "w-10 py-1.5 text-right font-semibold tabular-nums",
                     won && STANDOUT_TEXT,
-                    !won && standing.points === 0 && "text-muted-foreground/50 font-normal",
+                    !won && standing.points === 0 && "text-subtle font-normal",
                   )}
                 >
                   {standing.points}

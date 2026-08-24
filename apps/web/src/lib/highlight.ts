@@ -31,4 +31,4 @@ export const STANDOUT_TEXT = "text-primary";
  * the latter in a classification has to account for that.
  */
 export const PODIUM_ROW = "bg-primary/[0.045]";
-export const PODIUM_TEXT = "text-primary/70";
+export const PODIUM_TEXT = "text-primary/85";

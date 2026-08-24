@@ -35,7 +35,7 @@ import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { SeasonGrid } from "./SeasonGrid.js";
+import { NAME_TARGET, SeasonGrid } from "./SeasonGrid.js";
 import { StandingsTable } from "./StandingsTable.js";
 
 const world = seededWorld();
@@ -199,6 +199,18 @@ describe("the season grid", () => {
         driverName(entrant.driverId),
       );
     }
+  });
+
+  it("marks a clickable name with a fill rather than an underline", () => {
+    // The mark used to be a dotted underline, and forty-odd of them turned the
+    // page into ruled paper. Both halves matter: that the old mark is gone, and
+    // that every name still carries the affordance — a name that silently opens
+    // a panel is worse than one that is over-decorated.
+    expect(html).not.toContain("underline");
+    // The whole shared string, not one class off it: `cn` keeps what it is
+    // handed in order, so anything that reached for its own hover state instead
+    // of `NAME_TARGET` fails to match here.
+    expect(occurrencesOf(html, NAME_TARGET)).toBe(SEATS + TEAMS);
   });
 
   it("draws a flag for every driver and every team", () => {

@@ -76,13 +76,13 @@ export function RaceClassification({
                 className={cn(
                   "text-right tabular-nums",
                   won && cn(STANDOUT_TEXT, "font-semibold"),
-                  won || (finished ? "text-muted-foreground" : "text-muted-foreground/50"),
+                  won || (finished ? "text-muted-foreground" : "text-subtle"),
                 )}
               >
                 {gapOf(entry)}
               </TableCell>
               <TableCell
-                className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary/80")}
+                className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary")}
               >
                 {statusOf(entry)}
               </TableCell>

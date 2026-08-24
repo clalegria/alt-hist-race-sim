@@ -10,26 +10,47 @@
  * around hue 60-70 with almost no chroma — enough to read as charcoal and paper
  * instead of as blue — and the accent is a saturated pillarbox red at hue 25.
  *
+ * Dark's neutrals sit a deliberate step off the floor: background at 20.5%
+ * rather than the near-black 16% it started at. Below about 20% the surfaces
+ * stop separating — card, muted and background all collapse into one void
+ * (they were 1.08:1 and 1.21:1 apart, which is nothing), so the structure of a
+ * table had to be carried by text alone and the whole page read as flat and
+ * unlit. Lifting the floor costs a little text contrast and buys back the
+ * elevation; `border` was raised further still (1.27:1 → 1.5:1 against card)
+ * because on a dark theme the border, not the fill, is what actually draws a
+ * panel.
+ *
  * Dark is the default, so it lives here in plain `@theme` and needs no attribute
  * on the document. Light is the override below.
  */
 @theme {
-  --color-background: oklch(16% 0.008 60);
-  --color-foreground: oklch(95% 0.006 75);
-  --color-card: oklch(20.5% 0.01 60);
-  --color-card-foreground: oklch(95% 0.006 75);
-  --color-muted: oklch(25% 0.012 60);
-  --color-muted-foreground: oklch(68% 0.014 70);
-  --color-border: oklch(29% 0.012 60);
-  --color-input: oklch(29% 0.012 60);
-  --color-primary: oklch(64% 0.21 25);
-  --color-primary-foreground: oklch(16% 0.008 60);
-  --color-accent: oklch(26% 0.014 60);
-  --color-ring: oklch(64% 0.21 25);
+  --color-background: oklch(20.5% 0.009 60);
+  --color-foreground: oklch(96.5% 0.005 75);
+  --color-card: oklch(24.5% 0.011 60);
+  --color-card-foreground: oklch(96.5% 0.005 75);
+  --color-muted: oklch(30% 0.013 60);
+  --color-muted-foreground: oklch(76.5% 0.016 70);
+
+  /*
+   * De-emphasised text: a driver who scored nothing, a rating that is not the
+   * one being compared. It exists because the alternative — fading
+   * `muted-foreground` with an opacity modifier — is a trap. Alpha composites
+   * in gamma space, so `text-muted-foreground/50` landed at 2.5:1 against the
+   * card, well under half of what it looks like it should be, and that class
+   * was on a good fraction of every table. A token has a floor: this one holds
+   * ~4.8:1 on card, dim enough to recede and still legible.
+   */
+  --color-subtle: oklch(65.5% 0.014 70);
+  --color-border: oklch(36.5% 0.014 60);
+  --color-input: oklch(36.5% 0.014 60);
+  --color-primary: oklch(67.5% 0.195 25);
+  --color-primary-foreground: oklch(19% 0.01 40);
+  --color-accent: oklch(32% 0.016 60);
+  --color-ring: oklch(67.5% 0.195 25);
 
   /* Places gained and lost. Paired with different glyphs, never colour alone. */
-  --color-gain: oklch(72% 0.16 148);
-  --color-loss: oklch(68% 0.2 25);
+  --color-gain: oklch(75% 0.15 148);
+  --color-loss: oklch(70% 0.185 25);
 
   /*
    * Archivo is a grotesque with a signage/industrial cast — close enough to a
@@ -66,6 +87,7 @@
   --color-card-foreground: oklch(20% 0.012 60);
   --color-muted: oklch(95.5% 0.006 75);
   --color-muted-foreground: oklch(50% 0.014 60);
+  --color-subtle: oklch(57.5% 0.014 60);
   --color-border: oklch(90.5% 0.008 70);
   --color-input: oklch(90.5% 0.008 70);
   --color-primary: oklch(47% 0.2 25);

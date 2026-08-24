@@ -98,7 +98,7 @@ export function RaceByRace({
                 the car finished. What a reader is scanning this panel for is
                 the rounds that got away.
               */}
-              <TableCell className="text-primary/80 text-xs">
+              <TableCell className="text-primary text-xs">
                 {finished ? "" : statusOf(entry)}
               </TableCell>
               <TableCell className="text-right font-semibold tabular-nums">

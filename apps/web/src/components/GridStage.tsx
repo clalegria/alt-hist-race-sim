@@ -31,7 +31,7 @@ import { driverOverall } from "../lib/rating.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn } from "../lib/utils.js";
-import { DriverLabel, type GridEditing, Overall, SeasonGrid } from "./SeasonGrid.js";
+import { DriverLabel, type GridEditing, NAME_TARGET, Overall, SeasonGrid } from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
 import { Button } from "./ui/button.js";
 import { Input } from "./ui/input.js";
@@ -265,7 +265,7 @@ export function ReserveList({
                 onClick={() => {
                   onSelect(driver.id);
                 }}
-                className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left focus-visible:ring-2 focus-visible:outline-none"
+                className={cn(NAME_TARGET, "flex min-w-0 flex-1 items-center gap-1.5")}
               >
                 <DriverLabel driverId={driver.id} seasonYear={seasonYear} />
               </button>

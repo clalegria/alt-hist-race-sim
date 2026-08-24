@@ -22,6 +22,20 @@ the draft lives where it does, is in `.claude/rules/web-app.md`.
   rating; the individual ratings live behind a popover, and teams are listed
   alphabetically rather than by pace so the pecking order is not given away before a
   wheel turns. A test asserts no rating label appears in the closed markup.
+- **A clickable name is marked by a fill, never an underline.** `NAME_TARGET` in
+  `SeasonGrid.tsx` is the one definition — nothing at rest, `bg-accent` under the
+  cursor or the keyboard focus, and the same fill held while a panel is open — and it
+  is shared by the popover triggers and by the edit-mode buttons in `DriverEntry` and
+  `ReserveList`, which are the same name in the same slot doing a different job. The
+  mark used to be a dotted underline; it is the right convention for one link in a
+  paragraph and the wrong one for forty-odd names on a page, which read as ruled paper
+  and worst of all in dark. **The affordance is not restated per row** — the section
+  header says "Select any name for its full ratings" once, which is also what pays for
+  the trade: touch has no hover and so sees nothing until it taps. `bg-accent` and not
+  `bg-muted` because a swapped-in driver's row already carries `SWAPPED_IN`, and the
+  hover has to be visible on top of that fill. `components.test.tsx` counts the whole
+  shared string against seats-plus-teams and asserts the word "underline" appears
+  nowhere in a rendered grid.
 - **Both lists can be reordered: alphabetically, or best first.** `SortToggle` sits on
   the grid header and on the `ReserveList` header, and the rule behind it is `sortBy` in
   `lib/sort.ts` — a pure function, unit-tested against synthetic ratings for the reason

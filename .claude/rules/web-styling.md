@@ -36,3 +36,23 @@ any of this.
 
 Biome needs `css.parser.tailwindDirectives` to parse Tailwind 4's `@theme`; it is on
 in `biome.json`.
+
+## Two rules the dark palette is built on
+
+**Dark's floor is 20.5%, not the near-black it started at.** Below roughly 20%
+lightness the neutrals stop separating from each other: background, card and muted
+sat 1.08:1 and 1.21:1 apart, which is not a step anybody sees, so a card was drawn
+entirely by its border and the page read as one flat unlit sheet. Lifting the floor
+trades a little text contrast for elevation that is actually visible, and `border`
+was raised further still (now ~1.5:1 against card) because on a dark theme it is the
+border, not the fill, that draws a panel. If a surface needs to read as raised,
+raise `border` before reaching further down into `background`.
+
+**Never fade text with an opacity modifier.** `text-muted-foreground/50` measures
+2.5:1 against the card — not the ~3.1 that halving a 6.2:1 colour suggests, because
+CSS composites alpha in gamma space, and the shortfall is invisible in the source.
+That class was on a good fraction of every table (drivers on zero points, retired
+cars, unselected ratings). De-emphasised text uses `--color-subtle` instead, a real
+token with a floor of ~4.8:1 on card in dark and ~4.4:1 in light. Opacity modifiers
+are fine on *fills* — `bg-muted/60`, `bg-primary/10` — where nothing has to be read
+through them.
