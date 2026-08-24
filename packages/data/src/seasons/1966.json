@@ -1,0 +1,32 @@
+{
+  "year": 1966,
+  "calendar": [
+    { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  2, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  3, "name": "French GP",        "circuit": "Reims",             "country": "FR" },
+    { "round":  4, "name": "British GP",       "circuit": "Brands Hatch",      "country": "GB" },
+    { "round":  5, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  6, "name": "German GP",        "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  8, "name": "United States GP", "circuit": "Watkins Glen",      "country": "US" },
+    { "round":  9, "name": "Mexican GP",       "circuit": "Mexico City",       "country": "MX" }
+  ],
+  "engines": [
+    { "engineId": "repco",           "racing":  76, "qualifying":  74, "reliability":  80 },
+    { "engineId": "ferrari",         "racing":  86, "qualifying":  84, "reliability":  74 },
+    { "engineId": "brm",             "racing":  78, "qualifying":  76, "reliability":  58 },
+    { "engineId": "coventry_climax", "racing":  70, "qualifying":  68, "reliability":  76 },
+    { "engineId": "weslake",         "racing":  76, "qualifying":  74, "reliability":  54 },
+    { "engineId": "maserati",        "racing":  68, "qualifying":  66, "reliability":  64 },
+    { "engineId": "ford",            "racing":  58, "qualifying":  56, "reliability":  56 }
+  ],
+  "entries": [
+    { "teamId": "brabham", "engineId": "repco",           "car": { "racing":  80, "qualifying":  78, "consistency":  84, "reliability":  82 }, "drivers": ["brabham", "hulme"] },
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["surtees", "scarfiotti"] },
+    { "teamId": "cooper",  "engineId": "maserati",        "car": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  68 }, "drivers": ["rindt", "ginther"] },
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  76, "qualifying":  74, "consistency":  66, "reliability":  56 }, "drivers": ["stewart", "hill_g"] },
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  78, "qualifying":  80, "consistency":  66, "reliability":  60 }, "drivers": ["clark", "arundell"] },
+    { "teamId": "mclaren", "engineId": "ford",            "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  56 }, "drivers": ["mclaren"] },
+    { "teamId": "eagle",   "engineId": "weslake",         "car": { "racing":  72, "qualifying":  70, "consistency":  62, "reliability":  50 }, "drivers": ["gurney"] }
+  ]
+}

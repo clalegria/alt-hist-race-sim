@@ -1,0 +1,28 @@
+{
+  "year": 1959,
+  "calendar": [
+    { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",      "country": "MC" },
+    { "round":  2, "name": "Dutch GP",         "circuit": "Zandvoort",   "country": "NL" },
+    { "round":  3, "name": "French GP",        "circuit": "Reims",       "country": "FR" },
+    { "round":  4, "name": "British GP",       "circuit": "Aintree",     "country": "GB" },
+    { "round":  5, "name": "German GP",        "circuit": "Nürburgring", "country": "DE" },
+    { "round":  6, "name": "Portuguese GP",    "circuit": "Monsanto",    "country": "PT" },
+    { "round":  7, "name": "Italian GP",       "circuit": "Monza",       "country": "IT" },
+    { "round":  8, "name": "United States GP", "circuit": "Sebring",     "country": "US" }
+  ],
+  "engines": [
+    { "engineId": "coventry_climax", "racing":  84, "qualifying":  82, "reliability":  82 },
+    { "engineId": "ferrari",         "racing":  86, "qualifying":  84, "reliability":  78 },
+    { "engineId": "brm",             "racing":  80, "qualifying":  78, "reliability":  64 },
+    { "engineId": "vanwall",         "racing":  72, "qualifying":  70, "reliability":  58 },
+    { "engineId": "aston_martin",    "racing":  58, "qualifying":  56, "reliability":  60 }
+  ],
+  "entries": [
+    { "teamId": "cooper",       "engineId": "coventry_climax", "car": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  82 }, "drivers": ["brabham", "mclaren"] },
+    { "teamId": "ferrari",      "engineId": "ferrari",         "car": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["brooks", "hill_p"] },
+    { "teamId": "brm",          "engineId": "brm",             "car": { "racing":  78, "qualifying":  76, "consistency":  68, "reliability":  60 }, "drivers": ["bonnier", "schell"] },
+    { "teamId": "lotus",        "engineId": "coventry_climax", "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  68 }, "drivers": ["hill_g", "ireland"] },
+    { "teamId": "aston_martin", "engineId": "aston_martin",    "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  60 }, "drivers": ["salvadori", "trintignant"] },
+    { "teamId": "vanwall",      "engineId": "vanwall",         "car": { "racing":  72, "qualifying":  70, "consistency":  64, "reliability":  58 }, "drivers": ["moss", "gregory"] }
+  ]
+}

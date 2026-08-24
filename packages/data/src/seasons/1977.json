@@ -1,0 +1,44 @@
+{
+  "year": 1977,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP",          "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Brazilian GP",          "circuit": "Interlagos",        "country": "BR" },
+    { "round":  3, "name": "South African GP",      "circuit": "Kyalami",           "country": "ZA" },
+    { "round":  4, "name": "United States West GP", "circuit": "Long Beach",        "country": "US" },
+    { "round":  5, "name": "Spanish GP",            "circuit": "Jarama",            "country": "ES" },
+    { "round":  6, "name": "Monaco GP",             "circuit": "Monaco",            "country": "MC" },
+    { "round":  7, "name": "Belgian GP",            "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  8, "name": "Swedish GP",            "circuit": "Anderstorp",        "country": "SE" },
+    { "round":  9, "name": "French GP",             "circuit": "Dijon-Prenois",     "country": "FR" },
+    { "round": 10, "name": "British GP",            "circuit": "Silverstone",       "country": "GB" },
+    { "round": 11, "name": "German GP",             "circuit": "Hockenheimring",    "country": "DE" },
+    { "round": 12, "name": "Austrian GP",           "circuit": "Österreichring",    "country": "AT" },
+    { "round": 13, "name": "Dutch GP",              "circuit": "Zandvoort",         "country": "NL" },
+    { "round": 14, "name": "Italian GP",            "circuit": "Monza",             "country": "IT" },
+    { "round": 15, "name": "United States GP",      "circuit": "Watkins Glen",      "country": "US" },
+    { "round": 16, "name": "Canadian GP",           "circuit": "Mosport",           "country": "CA" },
+    { "round": 17, "name": "South African GP",      "circuit": "Kyalami",           "country": "ZA" }
+  ],
+  "engines": [
+    { "engineId": "ford",       "racing":  86, "qualifying":  86, "reliability":  84 },
+    { "engineId": "ferrari",    "racing":  90, "qualifying":  90, "reliability":  86 },
+    { "engineId": "matra",      "racing":  76, "qualifying":  74, "reliability":  72 },
+    { "engineId": "alfa_romeo", "racing":  78, "qualifying":  76, "reliability":  62 },
+    { "engineId": "renault",    "racing":  80, "qualifying":  78, "reliability":  38 }
+  ],
+  "entries": [
+    { "teamId": "ferrari",    "engineId": "ferrari",    "car": { "racing":  90, "qualifying":  90, "consistency":  88, "reliability":  86 }, "drivers": ["lauda", "reutemann"] },
+    { "teamId": "lotus",      "engineId": "ford",       "car": { "racing":  90, "qualifying":  92, "consistency":  78, "reliability":  70 }, "drivers": ["andretti", "nilsson"] },
+    { "teamId": "mclaren",    "engineId": "ford",       "car": { "racing":  84, "qualifying":  84, "consistency":  80, "reliability":  78 }, "drivers": ["hunt", "mass"] },
+    { "teamId": "brabham",    "engineId": "alfa_romeo", "car": { "racing":  78, "qualifying":  76, "consistency":  72, "reliability":  62 }, "drivers": ["watson", "stuck"] },
+    { "teamId": "tyrrell",    "engineId": "ford",       "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  78 }, "drivers": ["peterson", "depailler"] },
+    { "teamId": "wolf",       "engineId": "ford",       "car": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  78 }, "drivers": ["scheckter", "purley"] },
+    { "teamId": "ligier",     "engineId": "matra",      "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  72 }, "drivers": ["laffite", "ickx"] },
+    { "teamId": "shadow",     "engineId": "ford",       "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  72 }, "drivers": ["jones", "zorzi"] },
+    { "teamId": "renault",    "engineId": "renault",    "car": { "racing":  72, "qualifying":  70, "consistency":  58, "reliability":  34 }, "drivers": ["jabouille"] },
+    { "teamId": "march",      "engineId": "ford",       "car": { "racing":  60, "qualifying":  58, "consistency":  62, "reliability":  66 }, "drivers": ["ribeiro", "perkins"] },
+    { "teamId": "surtees",    "engineId": "ford",       "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  68 }, "drivers": ["brambilla", "lunger"] },
+    { "teamId": "fittipaldi", "engineId": "ford",       "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  64 }, "drivers": ["fittipaldi_e"] },
+    { "teamId": "ensign",     "engineId": "ford",       "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  64 }, "drivers": ["regazzoni", "tambay"] }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "year": 1955,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Monaco GP",    "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Belgian GP",   "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "Dutch GP",     "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  5, "name": "British GP",   "circuit": "Aintree",           "country": "GB" },
+    { "round":  6, "name": "Italian GP",   "circuit": "Monza",             "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  98, "qualifying":  98, "reliability":  88 },
+    { "engineId": "ferrari",  "racing":  78, "qualifying":  76, "reliability":  76 },
+    { "engineId": "maserati", "racing":  80, "qualifying":  78, "reliability":  72 },
+    { "engineId": "lancia",   "racing":  82, "qualifying":  80, "reliability":  64 },
+    { "engineId": "gordini",  "racing":  60, "qualifying":  58, "reliability":  52 },
+    { "engineId": "vanwall",  "racing":  56, "qualifying":  54, "reliability":  44 }
+  ],
+  "entries": [
+    { "teamId": "mercedes", "engineId": "mercedes", "car": { "racing":  98, "qualifying":  98, "consistency":  92, "reliability":  86 }, "drivers": ["fangio", "moss"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  74 }, "drivers": ["trintignant", "farina"] },
+    { "teamId": "maserati", "engineId": "maserati", "car": { "racing":  78, "qualifying":  76, "consistency":  74, "reliability":  70 }, "drivers": ["behra", "musso"] },
+    { "teamId": "lancia",   "engineId": "lancia",   "car": { "racing":  80, "qualifying":  78, "consistency":  66, "reliability":  58 }, "drivers": ["ascari", "castellotti"] },
+    { "teamId": "gordini",  "engineId": "gordini",  "car": { "racing":  58, "qualifying":  56, "consistency":  56, "reliability":  50 }, "drivers": ["manzon"] },
+    { "teamId": "vanwall",  "engineId": "vanwall",  "car": { "racing":  56, "qualifying":  54, "consistency":  54, "reliability":  44 }, "drivers": ["schell", "gerard"] }
+  ]
+}

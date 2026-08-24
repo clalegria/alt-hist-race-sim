@@ -1,0 +1,27 @@
+{
+  "year": 1960,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP",     "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  4, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  5, "name": "French GP",        "circuit": "Reims",             "country": "FR" },
+    { "round":  6, "name": "British GP",       "circuit": "Silverstone",       "country": "GB" },
+    { "round":  7, "name": "Portuguese GP",    "circuit": "Porto",             "country": "PT" },
+    { "round":  8, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  9, "name": "United States GP", "circuit": "Riverside",         "country": "US" }
+  ],
+  "engines": [
+    { "engineId": "coventry_climax", "racing":  88, "qualifying":  88, "reliability":  84 },
+    { "engineId": "ferrari",         "racing":  76, "qualifying":  74, "reliability":  80 },
+    { "engineId": "brm",             "racing":  78, "qualifying":  76, "reliability":  68 },
+    { "engineId": "scarab",          "racing":  38, "qualifying":  36, "reliability":  42 }
+  ],
+  "entries": [
+    { "teamId": "cooper",  "engineId": "coventry_climax", "car": { "racing":  90, "qualifying":  88, "consistency":  86, "reliability":  84 }, "drivers": ["brabham", "mclaren"] },
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  88, "qualifying":  90, "consistency":  76, "reliability":  70 }, "drivers": ["clark", "ireland"] },
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  72, "qualifying":  70, "consistency":  76, "reliability":  78 }, "drivers": ["hill_p", "von_trips"] },
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  76, "qualifying":  74, "consistency":  70, "reliability":  64 }, "drivers": ["bonnier", "hill_g"] },
+    { "teamId": "scarab",  "engineId": "scarab",          "car": { "racing":  38, "qualifying":  36, "consistency":  44, "reliability":  44 }, "drivers": ["gregory", "daigh"] }
+  ]
+}

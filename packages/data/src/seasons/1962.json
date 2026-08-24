@@ -1,0 +1,28 @@
+{
+  "year": 1962,
+  "calendar": [
+    { "round":  1, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  2, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "French GP",        "circuit": "Rouen",             "country": "FR" },
+    { "round":  5, "name": "British GP",       "circuit": "Aintree",           "country": "GB" },
+    { "round":  6, "name": "German GP",        "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  8, "name": "United States GP", "circuit": "Watkins Glen",      "country": "US" },
+    { "round":  9, "name": "South African GP", "circuit": "East London",       "country": "ZA" }
+  ],
+  "engines": [
+    { "engineId": "brm",             "racing":  88, "qualifying":  86, "reliability":  80 },
+    { "engineId": "coventry_climax", "racing":  90, "qualifying":  90, "reliability":  72 },
+    { "engineId": "ferrari",         "racing":  72, "qualifying":  70, "reliability":  76 },
+    { "engineId": "porsche",         "racing":  70, "qualifying":  68, "reliability":  74 }
+  ],
+  "entries": [
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  88, "qualifying":  86, "consistency":  84, "reliability":  80 }, "drivers": ["hill_g", "ginther"] },
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  92, "qualifying":  94, "consistency":  76, "reliability":  66 }, "drivers": ["clark", "taylor"] },
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  70, "qualifying":  68, "consistency":  74, "reliability":  76 }, "drivers": ["hill_p", "bandini"] },
+    { "teamId": "cooper",  "engineId": "coventry_climax", "car": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  76 }, "drivers": ["mclaren", "maggs"] },
+    { "teamId": "porsche", "engineId": "porsche",         "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  74 }, "drivers": ["gurney", "bonnier"] },
+    { "teamId": "lola",    "engineId": "coventry_climax", "car": { "racing":  72, "qualifying":  74, "consistency":  66, "reliability":  64 }, "drivers": ["surtees", "salvadori"] }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "year": 1954,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Belgian GP",   "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  3, "name": "French GP",    "circuit": "Reims",             "country": "FR" },
+    { "round":  4, "name": "British GP",   "circuit": "Silverstone",       "country": "GB" },
+    { "round":  5, "name": "German GP",    "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  6, "name": "Swiss GP",     "circuit": "Bremgarten",        "country": "CH" },
+    { "round":  7, "name": "Italian GP",   "circuit": "Monza",             "country": "IT" },
+    { "round":  8, "name": "Spanish GP",   "circuit": "Pedralbes",         "country": "ES" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  96, "qualifying":  96, "reliability":  84 },
+    { "engineId": "ferrari",  "racing":  84, "qualifying":  82, "reliability":  80 },
+    { "engineId": "maserati", "racing":  82, "qualifying":  80, "reliability":  72 },
+    { "engineId": "gordini",  "racing":  64, "qualifying":  62, "reliability":  54 },
+    { "engineId": "lancia",   "racing":  78, "qualifying":  76, "reliability":  60 },
+    { "engineId": "bristol",  "racing":  54, "qualifying":  52, "reliability":  68 }
+  ],
+  "entries": [
+    { "teamId": "mercedes",  "engineId": "mercedes", "car": { "racing":  96, "qualifying":  96, "consistency":  88, "reliability":  82 }, "drivers": ["fangio", "kling"] },
+    { "teamId": "ferrari",   "engineId": "ferrari",  "car": { "racing":  82, "qualifying":  80, "consistency":  80, "reliability":  78 }, "drivers": ["gonzalez", "hawthorn"] },
+    { "teamId": "maserati",  "engineId": "maserati", "car": { "racing":  80, "qualifying":  78, "consistency":  74, "reliability":  70 }, "drivers": ["moss", "marimon"] },
+    { "teamId": "gordini",   "engineId": "gordini",  "car": { "racing":  62, "qualifying":  60, "consistency":  58, "reliability":  52 }, "drivers": ["behra", "trintignant"] },
+    { "teamId": "lancia",    "engineId": "lancia",   "car": { "racing":  76, "qualifying":  74, "consistency":  62, "reliability":  54 }, "drivers": ["ascari", "villoresi"] },
+    { "teamId": "connaught", "engineId": "bristol",  "car": { "racing":  50, "qualifying":  48, "consistency":  56, "reliability":  64 }, "drivers": ["parnell", "gerard"] }
+  ]
+}

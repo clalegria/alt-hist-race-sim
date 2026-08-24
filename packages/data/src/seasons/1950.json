@@ -1,0 +1,25 @@
+{
+  "year": 1950,
+  "calendar": [
+    { "round":  1, "name": "British GP", "circuit": "Silverstone",       "country": "GB" },
+    { "round":  2, "name": "Monaco GP",  "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Swiss GP",   "circuit": "Bremgarten",        "country": "CH" },
+    { "round":  4, "name": "Belgian GP", "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  5, "name": "French GP",  "circuit": "Reims",             "country": "FR" },
+    { "round":  6, "name": "Italian GP", "circuit": "Monza",             "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "alfa_romeo", "racing":  96, "qualifying":  96, "reliability":  84 },
+    { "engineId": "ferrari",    "racing":  76, "qualifying":  74, "reliability":  72 },
+    { "engineId": "maserati",   "racing":  70, "qualifying":  68, "reliability":  66 },
+    { "engineId": "talbot",     "racing":  64, "qualifying":  62, "reliability":  74 },
+    { "engineId": "era_eng",    "racing":  52, "qualifying":  50, "reliability":  58 }
+  ],
+  "entries": [
+    { "teamId": "alfa_romeo",  "engineId": "alfa_romeo", "car": { "racing":  96, "qualifying":  96, "consistency":  88, "reliability":  84 }, "drivers": ["farina", "fangio"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",    "car": { "racing":  74, "qualifying":  72, "consistency":  72, "reliability":  70 }, "drivers": ["ascari", "villoresi"] },
+    { "teamId": "maserati",    "engineId": "maserati",   "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  64 }, "drivers": ["de_graffenried", "bira"] },
+    { "teamId": "talbot_lago", "engineId": "talbot",     "car": { "racing":  62, "qualifying":  60, "consistency":  68, "reliability":  74 }, "drivers": ["rosier", "etancelin"] },
+    { "teamId": "era",         "engineId": "era_eng",    "car": { "racing":  48, "qualifying":  46, "consistency":  52, "reliability":  56 }, "drivers": ["gerard", "parnell"] }
+  ]
+}

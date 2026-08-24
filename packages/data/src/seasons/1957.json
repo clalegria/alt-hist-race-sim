@@ -1,0 +1,26 @@
+{
+  "year": 1957,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires", "country": "AR" },
+    { "round":  2, "name": "Monaco GP",    "circuit": "Monaco",       "country": "MC" },
+    { "round":  3, "name": "French GP",    "circuit": "Rouen",        "country": "FR" },
+    { "round":  4, "name": "British GP",   "circuit": "Aintree",      "country": "GB" },
+    { "round":  5, "name": "German GP",    "circuit": "Nürburgring",  "country": "DE" },
+    { "round":  6, "name": "Pescara GP",   "circuit": "Pescara",      "country": "IT" },
+    { "round":  7, "name": "Italian GP",   "circuit": "Monza",        "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "maserati",        "racing":  90, "qualifying":  88, "reliability":  80 },
+    { "engineId": "ferrari",         "racing":  84, "qualifying":  82, "reliability":  78 },
+    { "engineId": "vanwall",         "racing":  92, "qualifying":  92, "reliability":  68 },
+    { "engineId": "brm",             "racing":  70, "qualifying":  68, "reliability":  48 },
+    { "engineId": "coventry_climax", "racing":  62, "qualifying":  60, "reliability":  74 }
+  ],
+  "entries": [
+    { "teamId": "maserati", "engineId": "maserati",        "car": { "racing":  90, "qualifying":  88, "consistency":  84, "reliability":  78 }, "drivers": ["fangio", "behra"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",         "car": { "racing":  82, "qualifying":  80, "consistency":  78, "reliability":  74 }, "drivers": ["hawthorn", "collins"] },
+    { "teamId": "vanwall",  "engineId": "vanwall",         "car": { "racing":  92, "qualifying":  92, "consistency":  74, "reliability":  62 }, "drivers": ["moss", "brooks"] },
+    { "teamId": "brm",      "engineId": "brm",             "car": { "racing":  68, "qualifying":  66, "consistency":  56, "reliability":  44 }, "drivers": ["flockhart", "schell"] },
+    { "teamId": "cooper",   "engineId": "coventry_climax", "car": { "racing":  62, "qualifying":  60, "consistency":  68, "reliability":  74 }, "drivers": ["brabham", "salvadori"] }
+  ]
+}

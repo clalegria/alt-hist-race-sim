@@ -1,0 +1,29 @@
+{
+  "year": 1965,
+  "calendar": [
+    { "round":  1, "name": "South African GP", "circuit": "East London",       "country": "ZA" },
+    { "round":  2, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "French GP",        "circuit": "Clermont-Ferrand",  "country": "FR" },
+    { "round":  5, "name": "British GP",       "circuit": "Silverstone",       "country": "GB" },
+    { "round":  6, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  7, "name": "German GP",        "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  8, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  9, "name": "United States GP", "circuit": "Watkins Glen",      "country": "US" },
+    { "round": 10, "name": "Mexican GP",       "circuit": "Mexico City",       "country": "MX" }
+  ],
+  "engines": [
+    { "engineId": "coventry_climax", "racing":  92, "qualifying":  92, "reliability":  86 },
+    { "engineId": "brm",             "racing":  88, "qualifying":  86, "reliability":  84 },
+    { "engineId": "ferrari",         "racing":  80, "qualifying":  78, "reliability":  80 },
+    { "engineId": "honda",           "racing":  78, "qualifying":  76, "reliability":  60 }
+  ],
+  "entries": [
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  96, "qualifying":  96, "consistency":  88, "reliability":  84 }, "drivers": ["clark", "spence"] },
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["hill_g", "stewart"] },
+    { "teamId": "brabham", "engineId": "coventry_climax", "car": { "racing":  80, "qualifying":  78, "consistency":  80, "reliability":  80 }, "drivers": ["brabham", "gurney"] },
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  78, "qualifying":  76, "consistency":  78, "reliability":  80 }, "drivers": ["surtees", "bandini"] },
+    { "teamId": "cooper",  "engineId": "coventry_climax", "car": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  74 }, "drivers": ["mclaren", "rindt"] },
+    { "teamId": "honda",   "engineId": "honda",           "car": { "racing":  74, "qualifying":  72, "consistency":  66, "reliability":  54 }, "drivers": ["ginther", "bucknum"] }
+  ]
+}

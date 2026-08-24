@@ -1,0 +1,28 @@
+{
+  "year": 1963,
+  "calendar": [
+    { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  2, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  3, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  4, "name": "French GP",        "circuit": "Rouen",             "country": "FR" },
+    { "round":  5, "name": "British GP",       "circuit": "Silverstone",       "country": "GB" },
+    { "round":  6, "name": "German GP",        "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  8, "name": "United States GP", "circuit": "Watkins Glen",      "country": "US" },
+    { "round":  9, "name": "Mexican GP",       "circuit": "Mexico City",       "country": "MX" },
+    { "round": 10, "name": "South African GP", "circuit": "East London",       "country": "ZA" }
+  ],
+  "engines": [
+    { "engineId": "coventry_climax", "racing":  92, "qualifying":  92, "reliability":  84 },
+    { "engineId": "brm",             "racing":  86, "qualifying":  84, "reliability":  80 },
+    { "engineId": "ferrari",         "racing":  76, "qualifying":  74, "reliability":  76 }
+  ],
+  "entries": [
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  96, "qualifying":  96, "consistency":  90, "reliability":  84 }, "drivers": ["clark", "taylor"] },
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  86, "qualifying":  84, "consistency":  82, "reliability":  80 }, "drivers": ["hill_g", "ginther"] },
+    { "teamId": "brabham", "engineId": "coventry_climax", "car": { "racing":  80, "qualifying":  78, "consistency":  76, "reliability":  74 }, "drivers": ["brabham", "gurney"] },
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  76 }, "drivers": ["surtees", "mairesse"] },
+    { "teamId": "cooper",  "engineId": "coventry_climax", "car": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  74 }, "drivers": ["mclaren", "maggs"] },
+    { "teamId": "brp",     "engineId": "brm",             "car": { "racing":  64, "qualifying":  62, "consistency":  64, "reliability":  66 }, "drivers": ["ireland", "hall"] }
+  ]
+}

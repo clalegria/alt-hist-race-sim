@@ -1,0 +1,26 @@
+{
+  "year": 1961,
+  "calendar": [
+    { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
+    { "round":  2, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  3, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "French GP",        "circuit": "Reims",             "country": "FR" },
+    { "round":  5, "name": "British GP",       "circuit": "Aintree",           "country": "GB" },
+    { "round":  6, "name": "German GP",        "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Italian GP",       "circuit": "Monza",             "country": "IT" },
+    { "round":  8, "name": "United States GP", "circuit": "Watkins Glen",      "country": "US" }
+  ],
+  "engines": [
+    { "engineId": "ferrari",         "racing":  92, "qualifying":  92, "reliability":  84 },
+    { "engineId": "coventry_climax", "racing":  72, "qualifying":  70, "reliability":  80 },
+    { "engineId": "porsche",         "racing":  70, "qualifying":  68, "reliability":  76 },
+    { "engineId": "brm",             "racing":  68, "qualifying":  66, "reliability":  70 }
+  ],
+  "entries": [
+    { "teamId": "ferrari", "engineId": "ferrari",         "car": { "racing":  92, "qualifying":  92, "consistency":  86, "reliability":  82 }, "drivers": ["hill_p", "von_trips"] },
+    { "teamId": "lotus",   "engineId": "coventry_climax", "car": { "racing":  78, "qualifying":  80, "consistency":  72, "reliability":  72 }, "drivers": ["clark", "ireland"] },
+    { "teamId": "cooper",  "engineId": "coventry_climax", "car": { "racing":  70, "qualifying":  68, "consistency":  74, "reliability":  78 }, "drivers": ["brabham", "mclaren"] },
+    { "teamId": "porsche", "engineId": "porsche",         "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["gurney", "bonnier"] },
+    { "teamId": "brm",     "engineId": "brm",             "car": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  70 }, "drivers": ["hill_g", "brooks"] }
+  ]
+}

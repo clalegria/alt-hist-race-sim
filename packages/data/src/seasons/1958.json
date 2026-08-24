@@ -1,0 +1,30 @@
+{
+  "year": 1958,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP",  "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Monaco GP",     "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Dutch GP",      "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  4, "name": "Belgian GP",    "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  5, "name": "French GP",     "circuit": "Reims",             "country": "FR" },
+    { "round":  6, "name": "British GP",    "circuit": "Silverstone",       "country": "GB" },
+    { "round":  7, "name": "German GP",     "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  8, "name": "Portuguese GP", "circuit": "Porto",             "country": "PT" },
+    { "round":  9, "name": "Italian GP",    "circuit": "Monza",             "country": "IT" },
+    { "round": 10, "name": "Moroccan GP",   "circuit": "Ain-Diab",          "country": "MA" }
+  ],
+  "engines": [
+    { "engineId": "vanwall",         "racing":  92, "qualifying":  92, "reliability":  72 },
+    { "engineId": "ferrari",         "racing":  90, "qualifying":  88, "reliability":  80 },
+    { "engineId": "coventry_climax", "racing":  70, "qualifying":  68, "reliability":  80 },
+    { "engineId": "brm",             "racing":  76, "qualifying":  74, "reliability":  58 },
+    { "engineId": "maserati",        "racing":  70, "qualifying":  68, "reliability":  68 }
+  ],
+  "entries": [
+    { "teamId": "vanwall",  "engineId": "vanwall",         "car": { "racing":  92, "qualifying":  92, "consistency":  80, "reliability":  70 }, "drivers": ["moss", "brooks"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",         "car": { "racing":  88, "qualifying":  86, "consistency":  84, "reliability":  78 }, "drivers": ["hawthorn", "collins"] },
+    { "teamId": "cooper",   "engineId": "coventry_climax", "car": { "racing":  72, "qualifying":  70, "consistency":  74, "reliability":  80 }, "drivers": ["brabham", "salvadori"] },
+    { "teamId": "brm",      "engineId": "brm",             "car": { "racing":  74, "qualifying":  72, "consistency":  64, "reliability":  54 }, "drivers": ["behra", "schell"] },
+    { "teamId": "lotus",    "engineId": "coventry_climax", "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  66 }, "drivers": ["hill_g", "allison"] },
+    { "teamId": "maserati", "engineId": "maserati",        "car": { "racing":  64, "qualifying":  62, "consistency":  66, "reliability":  66 }, "drivers": ["godia", "gregory"] }
+  ]
+}

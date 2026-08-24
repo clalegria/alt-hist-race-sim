@@ -1,0 +1,29 @@
+{
+  "year": 1969,
+  "calendar": [
+    { "round":  1, "name": "South African GP", "circuit": "Kyalami",          "country": "ZA" },
+    { "round":  2, "name": "Spanish GP",       "circuit": "Montjuïc",         "country": "ES" },
+    { "round":  3, "name": "Monaco GP",        "circuit": "Monaco",           "country": "MC" },
+    { "round":  4, "name": "Dutch GP",         "circuit": "Zandvoort",        "country": "NL" },
+    { "round":  5, "name": "French GP",        "circuit": "Clermont-Ferrand", "country": "FR" },
+    { "round":  6, "name": "British GP",       "circuit": "Silverstone",      "country": "GB" },
+    { "round":  7, "name": "German GP",        "circuit": "Nürburgring",      "country": "DE" },
+    { "round":  8, "name": "Italian GP",       "circuit": "Monza",            "country": "IT" },
+    { "round":  9, "name": "Canadian GP",      "circuit": "Mosport",          "country": "CA" },
+    { "round": 10, "name": "United States GP", "circuit": "Watkins Glen",     "country": "US" },
+    { "round": 11, "name": "Mexican GP",       "circuit": "Mexico City",      "country": "MX" }
+  ],
+  "engines": [
+    { "engineId": "ford",    "racing":  92, "qualifying":  92, "reliability":  80 },
+    { "engineId": "ferrari", "racing":  78, "qualifying":  76, "reliability":  70 },
+    { "engineId": "brm",     "racing":  70, "qualifying":  68, "reliability":  66 }
+  ],
+  "entries": [
+    { "teamId": "matra",   "engineId": "ford",    "car": { "racing":  94, "qualifying":  94, "consistency":  90, "reliability":  86 }, "drivers": ["stewart", "beltoise"] },
+    { "teamId": "lotus",   "engineId": "ford",    "car": { "racing":  88, "qualifying":  92, "consistency":  74, "reliability":  66 }, "drivers": ["rindt", "hill_g"] },
+    { "teamId": "brabham", "engineId": "ford",    "car": { "racing":  84, "qualifying":  82, "consistency":  80, "reliability":  76 }, "drivers": ["ickx", "brabham"] },
+    { "teamId": "mclaren", "engineId": "ford",    "car": { "racing":  82, "qualifying":  80, "consistency":  82, "reliability":  80 }, "drivers": ["hulme", "mclaren"] },
+    { "teamId": "ferrari", "engineId": "ferrari", "car": { "racing":  76, "qualifying":  74, "consistency":  70, "reliability":  66 }, "drivers": ["amon", "rodriguez_p"] },
+    { "teamId": "brm",     "engineId": "brm",     "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  64 }, "drivers": ["surtees", "oliver"] }
+  ]
+}

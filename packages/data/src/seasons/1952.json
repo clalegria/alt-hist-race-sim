@@ -1,0 +1,26 @@
+{
+  "year": 1952,
+  "calendar": [
+    { "round":  1, "name": "Swiss GP",   "circuit": "Bremgarten",        "country": "CH" },
+    { "round":  2, "name": "Belgian GP", "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  3, "name": "French GP",  "circuit": "Reims",             "country": "FR" },
+    { "round":  4, "name": "British GP", "circuit": "Silverstone",       "country": "GB" },
+    { "round":  5, "name": "German GP",  "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  6, "name": "Dutch GP",   "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  7, "name": "Italian GP", "circuit": "Monza",             "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "ferrari",  "racing":  94, "qualifying":  92, "reliability":  88 },
+    { "engineId": "maserati", "racing":  72, "qualifying":  70, "reliability":  66 },
+    { "engineId": "gordini",  "racing":  68, "qualifying":  66, "reliability":  58 },
+    { "engineId": "bristol",  "racing":  56, "qualifying":  54, "reliability":  68 }
+  ],
+  "entries": [
+    { "teamId": "ferrari",   "engineId": "ferrari",  "car": { "racing":  96, "qualifying":  94, "consistency":  92, "reliability":  88 }, "drivers": ["ascari", "farina"] },
+    { "teamId": "maserati",  "engineId": "maserati", "car": { "racing":  70, "qualifying":  68, "consistency":  68, "reliability":  64 }, "drivers": ["gonzalez", "bonetto"] },
+    { "teamId": "gordini",   "engineId": "gordini",  "car": { "racing":  68, "qualifying":  66, "consistency":  62, "reliability":  54 }, "drivers": ["behra", "manzon"] },
+    { "teamId": "hwm",       "engineId": "bristol",  "car": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  60 }, "drivers": ["trintignant", "collins"] },
+    { "teamId": "connaught", "engineId": "bristol",  "car": { "racing":  52, "qualifying":  50, "consistency":  58, "reliability":  62 }, "drivers": ["parnell", "gerard"] },
+    { "teamId": "cooper",    "engineId": "bristol",  "car": { "racing":  50, "qualifying":  48, "consistency":  56, "reliability":  64 }, "drivers": ["hawthorn", "brown"] }
+  ]
+}

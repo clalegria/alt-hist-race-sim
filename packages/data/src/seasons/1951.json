@@ -1,0 +1,26 @@
+{
+  "year": 1951,
+  "calendar": [
+    { "round":  1, "name": "Swiss GP",   "circuit": "Bremgarten",        "country": "CH" },
+    { "round":  2, "name": "Belgian GP", "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  3, "name": "French GP",  "circuit": "Reims",             "country": "FR" },
+    { "round":  4, "name": "British GP", "circuit": "Silverstone",       "country": "GB" },
+    { "round":  5, "name": "German GP",  "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  6, "name": "Italian GP", "circuit": "Monza",             "country": "IT" },
+    { "round":  7, "name": "Spanish GP", "circuit": "Pedralbes",         "country": "ES" }
+  ],
+  "engines": [
+    { "engineId": "alfa_romeo", "racing":  94, "qualifying":  94, "reliability":  80 },
+    { "engineId": "ferrari",    "racing":  92, "qualifying":  90, "reliability":  82 },
+    { "engineId": "maserati",   "racing":  68, "qualifying":  66, "reliability":  66 },
+    { "engineId": "talbot",     "racing":  62, "qualifying":  60, "reliability":  72 },
+    { "engineId": "brm",        "racing":  70, "qualifying":  68, "reliability":  44 }
+  ],
+  "entries": [
+    { "teamId": "alfa_romeo",  "engineId": "alfa_romeo", "car": { "racing":  94, "qualifying":  94, "consistency":  84, "reliability":  78 }, "drivers": ["fangio", "farina"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",    "car": { "racing":  92, "qualifying":  90, "consistency":  86, "reliability":  82 }, "drivers": ["ascari", "gonzalez"] },
+    { "teamId": "talbot_lago", "engineId": "talbot",     "car": { "racing":  60, "qualifying":  58, "consistency":  66, "reliability":  72 }, "drivers": ["rosier", "chiron"] },
+    { "teamId": "maserati",    "engineId": "maserati",   "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  62 }, "drivers": ["de_graffenried", "bira"] },
+    { "teamId": "brm",         "engineId": "brm",        "car": { "racing":  64, "qualifying":  62, "consistency":  54, "reliability":  38 }, "drivers": ["parnell"] }
+  ]
+}

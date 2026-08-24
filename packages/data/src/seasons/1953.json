@@ -1,0 +1,27 @@
+{
+  "year": 1953,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Dutch GP",     "circuit": "Zandvoort",         "country": "NL" },
+    { "round":  3, "name": "Belgian GP",   "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "French GP",    "circuit": "Reims",             "country": "FR" },
+    { "round":  5, "name": "British GP",   "circuit": "Silverstone",       "country": "GB" },
+    { "round":  6, "name": "German GP",    "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Swiss GP",     "circuit": "Bremgarten",        "country": "CH" },
+    { "round":  8, "name": "Italian GP",   "circuit": "Monza",             "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "ferrari",  "racing":  94, "qualifying":  92, "reliability":  88 },
+    { "engineId": "maserati", "racing":  82, "qualifying":  80, "reliability":  72 },
+    { "engineId": "gordini",  "racing":  66, "qualifying":  64, "reliability":  56 },
+    { "engineId": "bristol",  "racing":  54, "qualifying":  52, "reliability":  68 }
+  ],
+  "entries": [
+    { "teamId": "ferrari",   "engineId": "ferrari",  "car": { "racing":  94, "qualifying":  92, "consistency":  92, "reliability":  88 }, "drivers": ["ascari", "farina"] },
+    { "teamId": "maserati",  "engineId": "maserati", "car": { "racing":  82, "qualifying":  80, "consistency":  74, "reliability":  70 }, "drivers": ["fangio", "gonzalez"] },
+    { "teamId": "gordini",   "engineId": "gordini",  "car": { "racing":  64, "qualifying":  62, "consistency":  60, "reliability":  52 }, "drivers": ["trintignant", "behra"] },
+    { "teamId": "connaught", "engineId": "bristol",  "car": { "racing":  52, "qualifying":  50, "consistency":  58, "reliability":  64 }, "drivers": ["salvadori", "gerard"] },
+    { "teamId": "hwm",       "engineId": "bristol",  "car": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  60 }, "drivers": ["collins", "macklin"] },
+    { "teamId": "cooper",    "engineId": "bristol",  "car": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  64 }, "drivers": ["brown"] }
+  ]
+}

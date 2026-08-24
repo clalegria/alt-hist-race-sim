@@ -1,0 +1,28 @@
+{
+  "year": 1956,
+  "calendar": [
+    { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  2, "name": "Monaco GP",    "circuit": "Monaco",            "country": "MC" },
+    { "round":  3, "name": "Belgian GP",   "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  4, "name": "French GP",    "circuit": "Reims",             "country": "FR" },
+    { "round":  5, "name": "British GP",   "circuit": "Silverstone",       "country": "GB" },
+    { "round":  6, "name": "German GP",    "circuit": "Nürburgring",       "country": "DE" },
+    { "round":  7, "name": "Italian GP",   "circuit": "Monza",             "country": "IT" }
+  ],
+  "engines": [
+    { "engineId": "ferrari",  "racing":  92, "qualifying":  90, "reliability":  84 },
+    { "engineId": "maserati", "racing":  86, "qualifying":  84, "reliability":  74 },
+    { "engineId": "vanwall",  "racing":  78, "qualifying":  76, "reliability":  58 },
+    { "engineId": "brm",      "racing":  72, "qualifying":  70, "reliability":  44 },
+    { "engineId": "gordini",  "racing":  56, "qualifying":  54, "reliability":  52 },
+    { "engineId": "bristol",  "racing":  54, "qualifying":  52, "reliability":  66 }
+  ],
+  "entries": [
+    { "teamId": "ferrari",   "engineId": "ferrari",  "car": { "racing":  92, "qualifying":  90, "consistency":  86, "reliability":  82 }, "drivers": ["fangio", "collins"] },
+    { "teamId": "maserati",  "engineId": "maserati", "car": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["moss", "behra"] },
+    { "teamId": "vanwall",   "engineId": "vanwall",  "car": { "racing":  76, "qualifying":  74, "consistency":  64, "reliability":  54 }, "drivers": ["schell", "taruffi"] },
+    { "teamId": "brm",       "engineId": "brm",      "car": { "racing":  70, "qualifying":  68, "consistency":  54, "reliability":  38 }, "drivers": ["hawthorn", "brooks"] },
+    { "teamId": "gordini",   "engineId": "gordini",  "car": { "racing":  54, "qualifying":  52, "consistency":  54, "reliability":  50 }, "drivers": ["manzon"] },
+    { "teamId": "connaught", "engineId": "bristol",  "car": { "racing":  56, "qualifying":  54, "consistency":  60, "reliability":  64 }, "drivers": ["gerard", "salvadori"] }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "year": 1971,
+  "calendar": [
+    { "round":  1, "name": "South African GP", "circuit": "Kyalami",        "country": "ZA" },
+    { "round":  2, "name": "Spanish GP",       "circuit": "Montjuïc",       "country": "ES" },
+    { "round":  3, "name": "Monaco GP",        "circuit": "Monaco",         "country": "MC" },
+    { "round":  4, "name": "Dutch GP",         "circuit": "Zandvoort",      "country": "NL" },
+    { "round":  5, "name": "French GP",        "circuit": "Paul Ricard",    "country": "FR" },
+    { "round":  6, "name": "British GP",       "circuit": "Silverstone",    "country": "GB" },
+    { "round":  7, "name": "German GP",        "circuit": "Nürburgring",    "country": "DE" },
+    { "round":  8, "name": "Austrian GP",      "circuit": "Österreichring", "country": "AT" },
+    { "round":  9, "name": "Italian GP",       "circuit": "Monza",          "country": "IT" },
+    { "round": 10, "name": "Canadian GP",      "circuit": "Mosport",        "country": "CA" },
+    { "round": 11, "name": "United States GP", "circuit": "Watkins Glen",   "country": "US" }
+  ],
+  "engines": [
+    { "engineId": "ford",    "racing":  90, "qualifying":  90, "reliability":  82 },
+    { "engineId": "ferrari", "racing":  84, "qualifying":  82, "reliability":  72 },
+    { "engineId": "brm",     "racing":  82, "qualifying":  80, "reliability":  72 },
+    { "engineId": "matra",   "racing":  72, "qualifying":  70, "reliability":  70 }
+  ],
+  "entries": [
+    { "teamId": "tyrrell", "engineId": "ford",    "car": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["stewart", "cevert"] },
+    { "teamId": "brm",     "engineId": "brm",     "car": { "racing":  82, "qualifying":  80, "consistency":  76, "reliability":  70 }, "drivers": ["siffert", "gethin"] },
+    { "teamId": "ferrari", "engineId": "ferrari", "car": { "racing":  82, "qualifying":  80, "consistency":  76, "reliability":  70 }, "drivers": ["ickx", "regazzoni"] },
+    { "teamId": "lotus",   "engineId": "ford",    "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  74 }, "drivers": ["fittipaldi_e", "wisell"] },
+    { "teamId": "march",   "engineId": "ford",    "car": { "racing":  76, "qualifying":  78, "consistency":  70, "reliability":  72 }, "drivers": ["peterson", "pescarolo"] },
+    { "teamId": "mclaren", "engineId": "ford",    "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  76 }, "drivers": ["hulme", "oliver"] },
+    { "teamId": "matra",   "engineId": "matra",   "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  70 }, "drivers": ["beltoise", "amon"] },
+    { "teamId": "brabham", "engineId": "ford",    "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["hill_g", "schenken"] },
+    { "teamId": "surtees", "engineId": "ford",    "car": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  70 }, "drivers": ["surtees", "stommelen"] }
+  ]
+}
