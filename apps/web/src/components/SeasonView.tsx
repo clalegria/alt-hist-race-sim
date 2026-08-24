@@ -17,10 +17,11 @@ import {
   type RaceResult,
   type SeasonResult,
 } from "@alt-hist/engine";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverName } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
+import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { positionsOf } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
@@ -193,6 +194,9 @@ function Summary({
     () => (engines === null ? [] : engineChanges(seed, engines)),
     [engines, seed],
   );
+  // The grid at the foot of the season gets the same switch the opening one
+  // has: by then the pecking order is the point rather than a spoiler.
+  const [teamSort, setTeamSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
 
   return (
     <>
@@ -230,7 +234,14 @@ function Summary({
       </div>
       <SeasonCalendar season={season} calendar={seed.calendar} teamFor={teamFor} />
       <Standings season={season} calendar={seed.calendar} midSeason={false} />
-      <SeasonGrid field={field} seasonYear={year} changes={changes} engineChanges={supplyChanges} />
+      <SeasonGrid
+        field={field}
+        seasonYear={year}
+        changes={changes}
+        engineChanges={supplyChanges}
+        sort={teamSort}
+        onSortChange={setTeamSort}
+      />
     </>
   );
 }

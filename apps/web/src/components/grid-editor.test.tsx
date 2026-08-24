@@ -28,11 +28,13 @@ import {
   type DriverFilters,
   matchesFilters,
 } from "../lib/people.js";
+import { carOverall } from "../lib/rating.js";
+import type { SortOrder } from "../lib/sort.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
-import { SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
+import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
 const authored = authoredLineup(SEED);
@@ -258,23 +260,29 @@ describe("filtering the drivers without a drive", () => {
   /** Rendered names, so "hidden" means hidden rather than merely unmentioned. */
   const listed = (html: string, driver: Driver) => html.includes(`>${driver.name}<`);
 
+  /**
+   * Ticked *filters*. Matched on the input itself rather than on a bare
+   * `checked=""`, because the sort switch beside them is a radio and one of its
+   * two options is always checked.
+   */
+  const ticked = (html: string) =>
+    (html.match(/<input type="checkbox"[^>]*checked=""/g) ?? []).length;
+
   it("offers all three filters, and opens on the year as it was", () => {
     const html = render(DEFAULT_DRIVER_FILTERS);
     expect(html).toContain(`Retired before ${YEAR}`);
     expect(html).toContain(`Debuting after ${YEAR}`);
     // Both career filters on, so the list opens on the drivers who were around.
     expect(occurrences(html, 'type="checkbox"')).toBe(2);
-    expect(occurrences(html, 'checked=""')).toBe(2);
+    expect(ticked(html)).toBe(2);
     expect(html).toContain(`value="${DEFAULT_DRIVER_FILTERS.minAge}"`);
     expect(html).toContain(`value="${DEFAULT_DRIVER_FILTERS.maxAge}"`);
   });
 
   it("ticks the boxes it was handed, and only those", () => {
-    expect(occurrences(render(SHOW_ALL), 'checked=""')).toBe(0);
-    expect(occurrences(render({ ...SHOW_ALL, hideRetired: true }), 'checked=""')).toBe(1);
-    expect(
-      occurrences(render({ ...SHOW_ALL, hideRetired: true, hideFuture: true }), 'checked=""'),
-    ).toBe(2);
+    expect(ticked(render(SHOW_ALL))).toBe(0);
+    expect(ticked(render({ ...SHOW_ALL, hideRetired: true }))).toBe(1);
+    expect(ticked(render({ ...SHOW_ALL, hideRetired: true, hideFuture: true }))).toBe(2);
   });
 
   it("draws the filtered list, not the whole pool", () => {
@@ -497,5 +505,119 @@ describe("selecting drivers to swap", () => {
       expect(seatedDriverIds(lineup)).toHaveLength(SEATS);
       expect(new Set(seatedDriverIds(lineup)).size).toBe(SEATS);
     }
+  });
+});
+
+/**
+ * Ordering the two lists.
+ *
+ * The rule itself is unit-tested in `lib/sort.test.ts` against synthetic
+ * ratings; what is checked here is that each list applies it, read back off the
+ * component's *own* output rather than recomputed from the seed data — the
+ * numbers down the right-hand edge of the rendered rows have to be the ones the
+ * order was made from, or the page disagrees with itself.
+ */
+describe("ordering the grid and the pool", () => {
+  /** Every overall the markup printed, in the order it printed them. */
+  const overalls = (html: string) =>
+    [...html.matchAll(/tabular-nums[^>]*>(\d+)</g)].map((match) => Number(match[1]));
+
+  /**
+   * The option each switch has chosen, read out of the radio group by name.
+   * Parsed rather than substring-matched: which order React writes an input's
+   * attributes in is not something this should depend on.
+   */
+  const chosen = (html: string, group: string) =>
+    [...html.matchAll(/<input([^>]*)\/>/g)]
+      .map((match) => match[1] ?? "")
+      .filter((attrs) => attrs.includes(`name="${group}"`) && attrs.includes('checked=""'))
+      .map((attrs) => /value="([^"]+)"/.exec(attrs)?.[1]);
+
+  const descending = (values: readonly number[]) =>
+    values.every((value, index) => index === 0 || (values[index - 1] ?? 0) >= value);
+
+  describe("the team cards", () => {
+    const names = (order: SortOrder) => byTeam(world.field, order).map((e) => teamName(e.teamId));
+
+    it("opens alphabetically, so the pecking order is not given away", () => {
+      expect(names("name")).toEqual([...names("name")].sort((a, b) => a.localeCompare(b)));
+    });
+
+    it("puts the best car first when asked, and keeps every team", () => {
+      const ranked = byTeam(world.field, "overall");
+      expect(descending(ranked.map((entry) => carOverall(entry.car, entry.engine)))).toBe(true);
+      expect(new Set(names("overall"))).toEqual(new Set(names("name")));
+      // The alphabet is not already the pecking order, or the check above is
+      // satisfied by a component that ignores the switch entirely.
+      expect(names("overall")).not.toEqual(names("name"));
+    });
+
+    it("draws the cards in that order", () => {
+      const html = renderToStaticMarkup(
+        <SeasonGrid field={world.field} seasonYear={YEAR} sort="overall" />,
+      );
+      const positions = byTeam(world.field, "overall").map((entry) =>
+        html.indexOf(`>${entryName(entry.teamId, entry.engineId)}<`),
+      );
+      expect(positions.every((at) => at >= 0)).toBe(true);
+      expect(positions).toEqual([...positions].sort((a, b) => a - b));
+      // And not still alphabetical, which is what a switch nothing reads
+      // would leave on screen.
+      const alphabetical = byTeam(world.field, "name").map((entry) =>
+        html.indexOf(`>${entryName(entry.teamId, entry.engineId)}<`),
+      );
+      expect(alphabetical).not.toEqual([...alphabetical].sort((a, b) => a - b));
+    });
+
+    it("offers the switch, with the order it is in already chosen", () => {
+      const html = renderToStaticMarkup(
+        <SeasonGrid field={world.field} seasonYear={YEAR} sort="overall" />,
+      );
+      expect(chosen(html, "team-sort")).toEqual(["overall"]);
+    });
+  });
+
+  describe("the drivers without a drive", () => {
+    const render = (sort: SortOrder) =>
+      renderToStaticMarkup(
+        <ReserveList
+          drivers={reserveDrivers(authored)}
+          seasonYear={YEAR}
+          ratingMode="peak"
+          selectedDriverId={null}
+          onSelect={() => {}}
+          filters={DEFAULT_DRIVER_FILTERS}
+          sort={sort}
+        />,
+      );
+
+    it("lists the best of them first when asked", () => {
+      const ranked = overalls(render("overall"));
+      // Enough of a list for an order to mean anything.
+      expect(ranked.length).toBeGreaterThan(2);
+      expect(descending(ranked)).toBe(true);
+      // And the alphabet is not already that order, so the check has work to do.
+      expect(descending(overalls(render("name")))).toBe(false);
+    });
+
+    it("holds the same people either way round", () => {
+      expect(overalls(render("overall")).toSorted()).toEqual(overalls(render("name")).toSorted());
+    });
+
+    it("opens alphabetically", () => {
+      const html = render("name");
+      const at = reserveDrivers(authored)
+        .filter((driver) => matchesFilters(driver, YEAR, DEFAULT_DRIVER_FILTERS))
+        .map((driver) => html.indexOf(`>${driver.name}<`));
+      // `reserveDrivers` hands them over by name, so the rendered order is the
+      // order it was given.
+      expect(at.every((index) => index >= 0)).toBe(true);
+      expect(at).toEqual([...at].sort((a, b) => a - b));
+    });
+
+    it("offers its own switch, separately from the grid's", () => {
+      expect(chosen(render("name"), "reserve-sort")).toEqual(["name"]);
+      expect(chosen(render("name"), "team-sort")).toEqual([]);
+    });
   });
 });

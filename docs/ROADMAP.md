@@ -10,22 +10,14 @@ subsystem rules in `.claude/rules/` — and the open questions they left behind 
 `docs/DECISIONS.md`. Other documents therefore refer to items here by *name*, never by
 number: the numbering is the order, and it shifts every time something lands.
 
-The spine of the order: **cheap UI first**, then **the tools that make authored data
-judgeable**, then **the shape of the seed data**, then **the multi-season game**. Every
-season from 1950 to 2026 is now authored, so the seed-data-shape items no longer gate a
-writing job — they gate a *re-authoring pass across seventy-seven files*, which is the
-same argument for settling them together and early. And the data cannot be fine-tuned
-without a measuring instrument, which is why the harness and the editor come first.
+The spine of the order: **the tools that make authored data judgeable** first, then
+**the shape of the seed data**, then **the multi-season game**. Every season from 1950
+to 2026 is now authored, so the seed-data-shape items no longer gate a writing job —
+they gate a *re-authoring pass across seventy-seven files*, which is the same argument
+for settling them together and early. And the data cannot be fine-tuned without a
+measuring instrument, which is why the harness and the editor come first.
 
-**1. UI quality of life.** Small, independent, no engine or seed-data change, and the
-edit-grid half pays for itself immediately because it is the screen used while
-authoring a season. Ship in any order:
-
-- **Sort teams alphabetically or by overall rating**, as a toggle, on both the
-  edit-grid screen and the opening "show the grid" screen.
-- **Sort the drivers without a drive** the same two ways, on the edit-grid screen.
-
-**2. The season Monte Carlo harness.** `pnpm calibrate` runs a *grid* — one race, N
+**1. The season Monte Carlo harness.** `pnpm calibrate` runs a *grid* — one race, N
 times. This is the season-level counterpart: **run a whole season N times (20,000, or
 whatever is passed) and print the distribution.** Per driver and per team: how often
 they take the title, how often they win a race, how often they score at all, and the
@@ -39,7 +31,7 @@ that says whether the midfield is right. Tool work in `tools/calibrate` — no e
 change, and the same no-re-calibration rules in `.claude/rules/calibration.md` apply to
 what is done with its output.
 
-**3. The in-app data editor.** The other half of the manual calibration loop: the
+**2. The in-app data editor.** The other half of the manual calibration loop: the
 harness measures, this adjusts. Browser-side, phase-1 legal, and it turns authoring a
 season from hand-editing JSON into using the app.
 
@@ -57,7 +49,7 @@ season from hand-editing JSON into using the app.
   into the UI. It is also the first thing in the project that needs a chart, so it is
   where the Recharts decision in `docs/DECISIONS.md` gets cashed in.
 
-**4. Fine-tune the driver ageing curve.** The shape is right; the numbers are not. Away
+**3. Fine-tune the driver ageing curve.** The shape is right; the numbers are not. Away
 from the peak the curve falls off far too steeply, so a driver two or three years either
 side of their peak season is worth much less than the drivers who actually raced those
 years were. It suits the short, sharp careers and badly misdescribes everyone with a long
@@ -78,7 +70,7 @@ the in-app career graph because that graph is the instrument this is judged by, 
 before *simulate an era*, because an era run is the thing that makes a wrong curve
 expensive.
 
-**5. Simulate an era.** The `career` mode in `apps/web/src/lib/modes.ts` is already
+**4. Simulate an era.** The `career` mode in `apps/web/src/lib/modes.ts` is already
 renamed to **Simulate an era**; it is still `available: false`. Turn it on. The first
 phase is deliberately dumb: **no driver market, no car progression**. The user picks a
 starting year and the app runs the existing single-season flow year after year, with the
@@ -89,7 +81,7 @@ Worth doing before the market and before career mode because it is the shell bot
 those fill — the multi-season loop, the year-to-year state, the roll-up screen — and it
 is buildable today with nothing new in the engine.
 
-**6. Team lineage.** A way to say that a team in one season *is* a team from the
+**5. Team lineage.** A way to say that a team in one season *is* a team from the
 previous one under another name — Tyrrell into whatever follows it, a constructor sold
 and rebadged, a works partnership renamed around a new engine supplier. Today team
 identity is per-season by name, so a rename is indistinguishable from a team folding
@@ -104,7 +96,7 @@ below cannot be designed without it, which is the author's own reason for wantin
 Whether the link is a chain of ids on the identity record or a separate lineage table is
 open.
 
-**7. Seasonal factors.** Several numbers that are one global constant today are really
+**6. Seasonal factors.** Several numbers that are one global constant today are really
 per-era, and the season file is where they belong. One item, because it is one change to
 `SeasonSeed` and one authoring pass per year:
 
@@ -122,7 +114,7 @@ Calibrating the first two per year is a measurement job, and the author asking f
 here is the authorisation the no-re-calibration invariant requires — for *these*
 numbers, not for driver or car ratings, which stay fixed.
 
-**8. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**7. Wet racing.** A realistic share of races are declared wet. In the wet: a new
 **1–100 wet-weather rating** per driver carries a large part of the score,
 driver-error retirements rise sharply, and the noise term widens considerably — a wet
 race should be where the field genuinely reorders. The rating is a new authored field on
@@ -133,7 +125,7 @@ This is a deep change to how performance is computed — a new term in the race 
 it is one of the two cases where the no-re-calibration invariant yields. Say the re-tune
 is needed and why, and get agreement, before running the harness.
 
-**9. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**8. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -147,7 +139,7 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the reason items 6–9 should land together.
 
-**10. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**9. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts`, carrying a calendar, an engine table and an entry list (see
 `.claude/rules/seed-data.md`). What is left is judgement, not typing.
@@ -165,7 +157,7 @@ folder's `index.ts`, carrying a calendar, an engine table and an entry list (see
   shared drives in the 1950s and 1960s; and at the modern end, the reliability and
   overtaking assumptions baked into a model tuned on 1980.
 
-**11. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**10. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history. Needs ageing (who is declining, who retires) and more
 than one season to move between, hence its place here. What forces move the market is
 not yet decided — a design conversation, not a coding task — and `adaptability` is
@@ -173,7 +165,7 @@ authored and unused precisely for this. *Team lineage* above is a prerequisite f
 conversation: a market cannot reason about a team's standing across years while a
 rename looks like a disappearance.
 
-**12. Career mode, with the two car-progression submodes.** Cars stay true to real
+**11. Career mode, with the two car-progression submodes.** Cars stay true to real
 history, or drift from wherever they were: already sketched as the
 `SeasonProgressionModel` seam in the glossary — `HistoricalProgression` and
 `EvolutionaryProgression`. Building against that interface is the plan.
@@ -183,7 +175,7 @@ cars to develop, and `SeasonProgressionModel` has no `nextSeasonEngines()` yet. 
 a supplier relationship is something the market moves, something progression rolls, or
 something a team-management mode chooses is undecided.
 
-**13. Team management game mode.** Far future, and explicitly after a working
+**12. Team management game mode.** Far future, and explicitly after a working
 multi-season simulation: take charge of a team, hire and fire drivers, choose
 development directions. Nothing should be designed around this yet.
 

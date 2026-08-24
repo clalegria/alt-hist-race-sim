@@ -6,6 +6,8 @@ paths:
   - "apps/web/src/components/RatingModeToggle.tsx"
   - "apps/web/src/lib/people.ts"
   - "apps/web/src/lib/rating.ts"
+  - "apps/web/src/lib/sort.ts"
+  - "apps/web/src/components/SortToggle.tsx"
 ---
 
 # Web app — the grid and its editor
@@ -20,6 +22,30 @@ the draft lives where it does, is in `.claude/rules/web-app.md`.
   rating; the individual ratings live behind a popover, and teams are listed
   alphabetically rather than by pace so the pecking order is not given away before a
   wheel turns. A test asserts no rating label appears in the closed markup.
+- **Both lists can be reordered: alphabetically, or best first.** `SortToggle` sits on
+  the grid header and on the `ReserveList` header, and the rule behind it is `sortBy` in
+  `lib/sort.ts` — a pure function, unit-tested against synthetic ratings for the reason
+  the pool filters are. **Alphabetical is the default and stays it**: the point above
+  holds, and a page that opened on the pecking order would give it away unasked. By
+  rating it is *descending* — "sorted by rating" means "show me the front of the grid" —
+  and **name is always the tie-break**, which comes free from sorting by name first and
+  then by rating, since `Array.prototype.sort` is stable. Ratings are integers on a
+  1-100 scale, so ties are ordinary rather than exotic, and two cars on 84 trading
+  places between renders is flicker nobody can explain.
+  Each list gets the switch it needs where it needs it. The grid has one on all three
+  places it is drawn — the opening grid, the editor, and the season summary, where the
+  pecking order is the point rather than a spoiler. The pool has its own, held
+  **separately**: a reader hunting a name among the reserves has not asked for the team
+  cards to be reshuffled. Both are the same overall the rows already show —
+  `carOverall(car, engine)` and `driverOverall` — so a list agrees with the numbers down
+  its own right-hand edge. The pool is **filtered first and ordered second**; the counts
+  in its header describe the filtering only.
+  The control is **native radios in a fieldset**, visually hidden behind their labels,
+  for the reason the filters are native checkboxes: arrow-key navigation and the group
+  announcement come free, and a DOM-less test can read which option carries `checked=""`.
+  Two collisions that cost time once: a bare `checked=""` count now catches the sort
+  radio as well as the filter checkboxes, and React writes `checked` *before* `value`,
+  so tests parse the input's attributes rather than matching them as one string.
 - **The overall on a team card already has the engine in it**, via
   `carOverall(car, engine)` → the model's own `powertrain()`. Showing the bare chassis
   would be a number nothing races on. The popover behind it shows the parts instead:

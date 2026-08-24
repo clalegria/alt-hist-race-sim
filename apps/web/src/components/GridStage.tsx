@@ -30,8 +30,10 @@ import {
 } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { seasonSeed } from "../lib/seasons.js";
+import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn } from "../lib/utils.js";
 import { DriverLabel, type GridEditing, Overall, SeasonGrid } from "./SeasonGrid.js";
+import { SortToggle } from "./SortToggle.js";
 import { Button } from "./ui/button.js";
 import { Input } from "./ui/input.js";
 
@@ -173,6 +175,8 @@ export function ReserveList({
   onSelect,
   filters,
   onFiltersChange,
+  sort = DEFAULT_SORT_ORDER,
+  onSortChange,
   alwaysShow,
 }: {
   drivers: readonly Driver[];
@@ -183,6 +187,9 @@ export function ReserveList({
   filters: DriverFilters;
   /** Absent in tests, where nothing is clicked. The controls still render. */
   onFiltersChange?: (filters: DriverFilters) => void;
+  /** How the pool is ordered. Controlled, beside the filters, for the same reason. */
+  sort?: SortOrder;
+  onSortChange?: (order: SortOrder) => void;
   /**
    * Drivers the filters may not hide: everyone the season actually entered, so
    * a reader who drops one from the grid can always put them back. Whoever is
@@ -197,15 +204,35 @@ export function ReserveList({
     }
     return exempt;
   }, [alwaysShow, selectedDriverId]);
+  // Filtered, then ordered — the counts below describe the filtering, and the
+  // order is only how what survived is laid out.
   const shown = useMemo(
     () => filterDrivers(drivers, seasonYear, filters, keep),
     [drivers, seasonYear, filters, keep],
+  );
+  const listed = useMemo(
+    () =>
+      sortBy(
+        shown,
+        sort,
+        (driver) => driver.name,
+        (driver) => driverOverall(driverRatingsFor(driver, seasonYear, ratingMode)),
+      ),
+    [shown, sort, seasonYear, ratingMode],
   );
 
   return (
     <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold tracking-tight">Without a drive</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold tracking-tight">Without a drive</h3>
+          <SortToggle
+            label="Sort drivers without a drive"
+            name="reserve-sort"
+            order={sort}
+            {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
+          />
+        </div>
         <p className="text-muted-foreground text-xs">
           {shown.length === drivers.length
             ? `${drivers.length} in the pool.`
@@ -224,7 +251,7 @@ export function ReserveList({
         </p>
       ) : null}
       <ul className="flex flex-col gap-1">
-        {shown.map((driver) => {
+        {listed.map((driver) => {
           const selected = driver.id === selectedDriverId;
           return (
             <li
@@ -332,6 +359,11 @@ export function GridStage({
   // How the pool is narrowed. View state like the draft, and deliberately *not*
   // reset when the editor closes: a reader who set it once meant it.
   const [filters, setFilters] = useState<DriverFilters>(DEFAULT_DRIVER_FILTERS);
+  // How the two lists are ordered. Two pieces of state rather than one: the
+  // grid and the pool are read for different reasons, and a reader hunting a
+  // name among the reserves has not asked for the team cards to be reshuffled.
+  const [teamSort, setTeamSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
+  const [reserveSort, setReserveSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
 
   // Nobody the season actually entered is ever filtered out of the pool, so a
   // driver dropped from the grid can always be put back — see `filterDrivers`.
@@ -447,6 +479,8 @@ export function GridStage({
         changes={changes}
         engineChanges={supplyChanges}
         action={action}
+        sort={teamSort}
+        onSortChange={setTeamSort}
         {...(editing === undefined ? {} : { edit: editing })}
       />
       {draft === null ? null : (
@@ -461,6 +495,8 @@ export function GridStage({
             onSelect={select}
             filters={filters}
             onFiltersChange={setFilters}
+            sort={reserveSort}
+            onSortChange={setReserveSort}
             alwaysShow={entered}
           />
         </aside>

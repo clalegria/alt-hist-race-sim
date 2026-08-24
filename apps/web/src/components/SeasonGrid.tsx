@@ -4,9 +4,11 @@ import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
 import { driverName, engineName, entryName, teamName } from "../lib/names.js";
 import { ageInSeason } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
+import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
 import { GridChanges } from "./LineupChanges.js";
+import { SortToggle } from "./SortToggle.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 const drivers = driversById();
@@ -244,18 +246,24 @@ interface TeamEntry {
 }
 
 /**
- * Regroups the flat field into teams, alphabetically.
+ * Regroups the flat field into teams, in the order the reader asked for.
  *
- * Alphabetical on purpose: ordering by car pace would give away the pecking
- * order before a wheel has turned, which is the one thing this page must not do.
- * Sorted on the *team* name rather than the entry name, so a team does not move
- * down the page because it changed engine supplier.
+ * Alphabetical by default, and on purpose: ordering by car pace gives away the
+ * pecking order before a wheel has turned, which is not something the opening
+ * page should do unasked. Sorted on the *team* name rather than the entry name,
+ * so a team does not move down the page because it changed engine supplier.
+ *
+ * By rating it is the same overall the card shows — `carOverall`, engine
+ * included — so the list agrees with the numbers down its right-hand edge.
  *
  * The car and the engine come off the first entrant of each team, which is where
  * this whole page gets them: it reads the field it is handed and never the seed
  * files, so it can be shown a draft grid the world has never run.
  */
-function byTeam(field: readonly RaceEntrant[]): readonly TeamEntry[] {
+export function byTeam(
+  field: readonly RaceEntrant[],
+  order: SortOrder = DEFAULT_SORT_ORDER,
+): readonly TeamEntry[] {
   const grouped = new Map<string, TeamEntry & { drivers: RaceEntrant[] }>();
   for (const entrant of field) {
     const existing = grouped.get(entrant.teamId);
@@ -271,7 +279,12 @@ function byTeam(field: readonly RaceEntrant[]): readonly TeamEntry[] {
       existing.drivers.push(entrant);
     }
   }
-  return [...grouped.values()].sort((a, b) => teamName(a.teamId).localeCompare(teamName(b.teamId)));
+  return sortBy(
+    [...grouped.values()],
+    order,
+    (entry) => teamName(entry.teamId),
+    (entry) => carOverall(entry.car, entry.engine),
+  );
 }
 
 export function SeasonGrid({
@@ -281,6 +294,8 @@ export function SeasonGrid({
   engineChanges,
   action,
   edit,
+  sort = DEFAULT_SORT_ORDER,
+  onSortChange,
 }: {
   field: readonly RaceEntrant[];
   seasonYear: number;
@@ -292,8 +307,15 @@ export function SeasonGrid({
   action?: React.ReactNode;
   /** Present while the reader is rearranging the grid. */
   edit?: GridEditing;
+  /**
+   * How the team cards are ordered. Controlled, and held by whoever renders
+   * this — so every order the grid can be in renders without a click.
+   */
+  sort?: SortOrder;
+  /** Absent in tests, where nothing is clicked. The switch still renders. */
+  onSortChange?: (order: SortOrder) => void;
 }) {
-  const entries = byTeam(field);
+  const entries = byTeam(field, sort);
   const edited = changes ?? [];
   const resupplied = engineChanges ?? [];
   // Everyone who is not where the season put them, so the grid shows its own
@@ -312,7 +334,15 @@ export function SeasonGrid({
               : "Select a driver, then whoever takes the seat — teams keep the number of cars they entered, so every change is a swap. Each team can be given any engine the season ran."}
           </p>
         </div>
-        {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
+        <div className="flex flex-wrap items-center gap-3">
+          <SortToggle
+            label="Sort teams"
+            name="team-sort"
+            order={sort}
+            {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
+          />
+          {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
+        </div>
       </div>
 
       {edited.length === 0 && resupplied.length === 0 ? null : (
