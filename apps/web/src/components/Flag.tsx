@@ -1,32 +1,7 @@
-import {
-  AR,
-  AT,
-  AU,
-  BE,
-  BR,
-  CA,
-  CH,
-  CL,
-  CO,
-  DE,
-  ES,
-  FI,
-  FR,
-  GB,
-  HK,
-  IE,
-  IT,
-  MC,
-  MX,
-  NL,
-  NZ,
-  PT,
-  SE,
-  US,
-  VE,
-  ZA,
-} from "country-flag-icons/react/3x2";
+import * as CountryFlags from "country-flag-icons/react/3x2";
 import { cn } from "../lib/utils.js";
+
+type FlagIcon = React.ComponentType<{ className?: string; title?: string }>;
 
 /**
  * A country flag as an inline SVG.
@@ -35,18 +10,18 @@ import { cn } from "../lib/utils.js";
  * country-flag glyphs, so every driver rendered as two grey letters. These are
  * real vectors.
  *
- * Imported one country at a time on purpose. `import * as Flags` reads far
- * better and costs 240 kB — the namespace defeats tree-shaking and drags in all
- * ~250 flags, when this sim needs a couple of dozen. The price is that a new
- * country in the seed data — a new nationality, a new team base, a new round on
- * a newly authored calendar — must be added here too, which `Flag.test.tsx`
- * fails loudly about.
+ * Every flag in the package is imported, not a hand-kept subset. The subset was
+ * ~240 kB cheaper, but it made a new country in the seed data — a nationality, a
+ * team base, a round on a newly authored calendar — an edit to this file, which
+ * is exactly the kind of manual step that goes missing. The whole set is a few
+ * hundred kB of static SVG paths; correctness by construction is worth it.
  *
  * An unknown code renders nothing rather than a placeholder: a missing flag is
  * quieter than a wrong one.
  */
-const FLAGS: Readonly<Record<string, React.ComponentType<{ className?: string; title?: string }>>> =
-  { AR, AT, AU, BE, BR, CA, CH, CL, CO, DE, ES, FI, FR, GB, HK, IE, IT, MC, MX, NL, NZ, PT, SE, US, VE, ZA };
+const FLAGS: Readonly<Record<string, FlagIcon>> = Object.fromEntries(
+  Object.entries(CountryFlags).filter(([code]) => /^[A-Z]{2}$/.test(code)),
+) as Readonly<Record<string, FlagIcon>>;
 
 export function Flag({
   country,

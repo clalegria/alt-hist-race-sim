@@ -1,40 +1,96 @@
 /**
- * Every authored season, one JSON file per year.
+ * Every season, one JSON file per year, discovered rather than listed.
  *
- * **Adding a season is two lines**: drop `<year>.json` in this folder, and add
- * it to `AUTHORED` below. Everything downstream derives — which years the
- * picker offers, which of them are playable, what a world is built from — so
- * there is no UI change and no second list to keep in step.
+ * **Adding a season is one file**: drop `<year>.json` in this folder. There is
+ * no registry to update, so there is no way to add a season and forget to
+ * announce it — which years the picker offers, which of them are playable and
+ * what a world is built from all derive from what is on disk.
  *
- * The registry is written out rather than globbed on purpose. `import.meta.glob`
- * would auto-discover the folder in Vite and break every CLI tool the moment
- * `tsx` ran it, and a filesystem read would break the browser. A static import
- * per season is the one form that works in both, keeps the JSON in the bundle
- * with no I/O, and lets `tsc` check each file against `SeasonSeed`.
+ * Two environments have to agree on that, and they read a folder differently:
+ *
+ *  - **Node** (`tsx` for the CLI tools, Vitest for the suites) reads the
+ *    directory with `fs`, reached through `process.getBuiltinModule` so no
+ *    `node:` import statement exists for a bundler to trip over.
+ *  - **The browser** has no filesystem, so Vite's `import.meta.glob` inlines
+ *    the same files at build time. Bundled, no I/O, same result.
+ *
+ * `process.getBuiltinModule` is the discriminator: present in Node and in
+ * Vitest under either environment, absent in a real browser.
+ *
+ * The cost is that `tsc` no longer checks each season file against
+ * `SeasonSeed` — a glob has no per-file type. `validateSeedData()` covers the
+ * same ground at runtime, over every season, and its tests fail loudly.
  *
  * The end state is 1950 to 2026 and beyond. Nothing here is sized for two.
  */
 
 import type { SeasonSeed } from "../types.js";
-import season1980 from "./1980.json";
-import season1981 from "./1981.json";
-import season1982 from "./1982.json";
-import season1983 from "./1983.json";
-import season1984 from "./1984.json";
-import season1985 from "./1985.json";
 
-/** Add a season here, and nowhere else. Order does not matter. */
-const AUTHORED: readonly SeasonSeed[] = [season1980, season1981, season1982, season1983, season1984, season1985];
+/**
+ * Vite's `import.meta.glob`, typed by hand rather than by pulling in
+ * `vite/client`: this package has no Vite dependency and must not grow one —
+ * `tsx` and Vitest consume it too. A cast rather than a global declaration
+ * because `apps/web` type-checks this same source with `vite/client` loaded,
+ * and two declarations of `glob` collide. TypeScript erases the cast before
+ * Vite looks for the call, so the glob is still inlined at build time.
+ */
+type Globber = {
+  glob(pattern: string, options: { eager: true }): Record<string, unknown>;
+};
 
-/** Authored seasons by year. */
+/** `<year>.json`, and nothing else in the folder. */
+const SEASON_FILE = /^(\d{4})\.json$/;
+
+interface NodeFs {
+  readdirSync(path: string): string[];
+  readFileSync(path: string, encoding: "utf8"): string;
+}
+
+interface NodeUrl {
+  fileURLToPath(url: URL): string;
+}
+
+/** Node's escape hatch, or `undefined` in a browser. */
+const getBuiltinModule = (globalThis as { process?: { getBuiltinModule?: <T>(id: string) => T } })
+  .process?.getBuiltinModule;
+
+function seasonsFromDisk(read: <T>(id: string) => T): readonly SeasonSeed[] {
+  const fs = read<NodeFs>("node:fs");
+  const url = read<NodeUrl>("node:url");
+  // `import.meta.url` through a variable on purpose: written literally inside
+  // `new URL(...)`, Vite's asset plugin would treat this module as a static
+  // asset and emit a copy of it into `dist/`.
+  const self = import.meta.url;
+  const folder = url.fileURLToPath(new URL(".", self));
+  return fs
+    .readdirSync(folder)
+    .filter((file) => SEASON_FILE.test(file))
+    .map((file) => JSON.parse(fs.readFileSync(`${folder}/${file}`, "utf8")) as SeasonSeed);
+}
+
+function seasonsFromBundle(): readonly SeasonSeed[] {
+  const modules = (import.meta as unknown as Globber).glob("./*.json", {
+    eager: true,
+  }) as Record<string, { default: SeasonSeed }>;
+  return Object.entries(modules)
+    .filter(([path]) => SEASON_FILE.test(path.replace("./", "")))
+    .map(([, module]) => module.default);
+}
+
+const DISCOVERED: readonly SeasonSeed[] =
+  getBuiltinModule === undefined
+    ? seasonsFromBundle()
+    : seasonsFromDisk(getBuiltinModule.bind(globalThis));
+
+/** Every season on disk, by year. */
 export const seasons: ReadonlyMap<number, SeasonSeed> = new Map(
-  AUTHORED.map((season) => [season.year, season]),
+  [...DISCOVERED].sort((a, b) => a.year - b.year).map((season) => [season.year, season]),
 );
 
 /** The years that have seed data, earliest first. */
-export const authoredSeasons: readonly number[] = [...seasons.keys()].sort((a, b) => a - b);
+export const authoredSeasons: readonly number[] = [...seasons.keys()];
 
-/** The earliest authored season — where a run starts unless told otherwise. */
+/** The earliest season on disk — where a run starts unless told otherwise. */
 export const FIRST_AUTHORED_SEASON: number = authoredSeasons[0] ?? 1980;
 
 export function hasSeason(year: number): boolean {
@@ -44,14 +100,14 @@ export function hasSeason(year: number): boolean {
 /**
  * The seed data for a year, or a throw.
  *
- * A throw rather than a fallback: a picker that offered an unauthored year by
+ * A throw rather than a fallback: a picker that offered a year with no data by
  * mistake would otherwise look like it worked, quietly running someone else's
  * season under the wrong heading.
  */
 export function seasonSeed(year: number): SeasonSeed {
   const seed = seasons.get(year);
   if (seed === undefined) {
-    throw new Error(`Season ${year} has not been authored yet`);
+    throw new Error(`Season ${year} has no seed data`);
   }
   return seed;
 }

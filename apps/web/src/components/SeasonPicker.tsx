@@ -4,12 +4,12 @@ import { cn } from "../lib/utils.js";
 /**
  * Which year to start from.
  *
- * Every season from 1980 to 2026 is listed, and all but the authored ones are
+ * Every season in the range is listed, and the ones without seed data are
  * disabled. Showing the whole range rather than the years that work is
  * deliberate: it says what the app is for, and it means adding a season is a
  * file of data rather than a redesign. `isPlayable` is the only thing that
  * decides which are live and `playableSummary` writes the subtitle, so neither
- * the buttons nor the copy can fall out of step with what has been authored.
+ * the buttons nor the copy can fall out of step with the data.
  *
  * Nothing but the choice: the way back lives in the sticky bar, with every other
  * screen's navigation, and is `BackBar` in `App.tsx`.
@@ -20,8 +20,7 @@ export function SeasonPicker({ onStart }: { onStart: (year: number) => void }) {
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Simulate a season</h1>
         <p className="text-muted-foreground max-w-prose text-sm">
-          Pick the year to run. {playableSummary()} so far — the rest of the grid is what this
-          becomes.
+          Pick the year to run. {playableSummary()} — the rest of the grid is what this becomes.
         </p>
       </header>
 

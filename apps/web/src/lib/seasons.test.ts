@@ -70,23 +70,25 @@ describe("saying which seasons are playable", () => {
   it("collapses a run of consecutive years into a range", () => {
     // The end state is forty-odd consecutive years; a comma-separated list of
     // them is not a sentence.
-    expect(playableSummary([1980, 1981, 1982])).toBe("1980–1982 are authored");
-    expect(playableSummary([1980, 1981])).toBe("1980–1981 are authored");
+    expect(playableSummary([1980, 1981, 1982])).toBe("1980–1982 are playable so far");
+    expect(playableSummary([1980, 1981])).toBe("1980–1981 are playable so far");
   });
 
   it("keeps gaps visible rather than papering over them", () => {
-    expect(playableSummary([1980, 1981, 1985])).toBe("1980–1981 and 1985 are authored");
-    expect(playableSummary([1980, 1990, 2000])).toBe("1980, 1990 and 2000 are authored");
+    expect(playableSummary([1980, 1981, 1985])).toBe("1980–1981 and 1985 are playable so far");
+    expect(playableSummary([1980, 1990, 2000])).toBe("1980, 1990 and 2000 are playable so far");
   });
 
   it("reads as a sentence for one season, or none", () => {
-    expect(playableSummary([1980])).toBe("Only 1980 has been authored so far");
-    expect(playableSummary([])).toBe("No season has been authored yet");
+    expect(playableSummary([1980])).toBe("Only 1980 is playable so far");
+    expect(playableSummary([])).toBe("No season is playable yet");
   });
 
-  it("describes what is actually authored", () => {
-    for (const year of PLAYABLE_SEASONS) {
-      expect(playableSummary(), `${year}`).toContain(String(year));
-    }
+  it("describes what is actually playable", () => {
+    // The endpoints, not every year: a contiguous run collapses to a range, so
+    // the years in the middle of it are deliberately not written out.
+    const summary = playableSummary();
+    expect(summary).toContain(String(PLAYABLE_SEASONS[0]));
+    expect(summary).toContain(String(PLAYABLE_SEASONS[PLAYABLE_SEASONS.length - 1]));
   });
 });

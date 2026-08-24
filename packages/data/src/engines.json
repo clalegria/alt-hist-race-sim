@@ -9,5 +9,12 @@
   { "id": "tag",            "name": "TAG Porsche",    "base": "DE" },
   { "id": "honda",          "name": "Honda",          "base": "JP" },
   { "id": "motori_moderni", "name": "Motori Moderni", "base": "IT" },
-  { "id": "zakspeed",       "name": "Zakspeed",       "base": "DE" }
+  { "id": "zakspeed",       "name": "Zakspeed",       "base": "DE" },
+  { "id": "cosworth",       "name": "Cosworth",       "base": "GB" },
+  { "id": "megatron",       "name": "Megatron",       "base": "DE" },
+  { "id": "judd",           "name": "Judd",           "base": "GB" },
+  { "id": "yamaha",         "name": "Yamaha",         "base": "JP" },
+  { "id": "lamborghini",    "name": "Lamborghini",    "base": "IT" },
+  { "id": "subaru",         "name": "Subaru",         "base": "JP" },
+  { "id": "life",           "name": "Life",           "base": "IT" }
 ]

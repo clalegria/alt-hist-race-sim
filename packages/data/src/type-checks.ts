@@ -49,10 +49,11 @@ type EngineJson = (typeof enginesJson)[number];
 /**
  * Every season file, as a union.
  *
- * A new `seasons/<year>.json` is added here as well as to the registry — two
- * lines rather than one, and the second is what stops a season file drifting
- * from the shape the engine reads. `keyof` a union collapses to the shared
- * keys, which is exactly the "no extra keys" question being asked.
+ * A sample, not the folder: seasons are discovered at runtime now, so there is
+ * no per-file type to check them all against. These two hold the shape of the
+ * format honest at compile time, and `validateSeedData()` checks every season
+ * that is actually on disk. `keyof` a union collapses to the shared keys, which
+ * is exactly the "no extra keys" question being asked.
  */
 type SeasonJson = typeof season1980Json | typeof season1981Json;
 type SeasonEntryJson = SeasonJson["entries"][number];

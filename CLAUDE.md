@@ -17,10 +17,10 @@ client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a serv
 HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
-registered in that folder's `index.ts`. Each carries a calendar, an **engine table** and
-an entry list. 1980 and 1981 exist; the end state is 1950–2026 and beyond. Nothing
-outside that folder keeps a list of seasons — see `.claude/rules/seed-data.md` for the
-three edits an extra year takes.
+and that folder's `index.ts` discovers them — there is no registry to update. Each
+carries a calendar, an **engine table** and an entry list; the end state is 1950–2026
+and beyond. Nothing outside that folder keeps a list of seasons — see
+`.claude/rules/seed-data.md` for how discovery works in the browser and under `tsx`.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo calibration harness, and a React web app that

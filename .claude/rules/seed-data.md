@@ -48,23 +48,23 @@ the JSON drift apart.
 
 ## Adding a season
 
-Three edits, and the app and the tools light up on their own:
-
-1. `seasons/<year>.json` — calendar, engine table and entries, in the shape above.
-2. A line in `seasons/index.ts`: the static import, and the year in `AUTHORED`.
-3. A line in `type-checks.ts`, adding the file to the `SeasonJson` union.
+One file, and the app and the tools light up on their own: drop
+`seasons/<year>.json` in the folder, in the shape above. There is no registry to
+update — `seasons/index.ts` discovers whatever `<year>.json` files are there.
 
 Then whatever the new season needs: drivers it introduces in `drivers.json`, teams in
-`teams.json`, engine manufacturers in `engines.json`, and any new country in
-`apps/web/src/components/Flag.tsx` — `Flag.test.tsx` fails by name if you forget, as do
-`validateSeedData` and the typecheck.
+`teams.json` and engine manufacturers in `engines.json`. Countries need nothing —
+`Flag.tsx` imports every flag there is — and `validateSeedData` fails loudly if the
+new file contradicts itself or names something that does not exist.
 
-**Why a written-out registry and not a glob.** `import.meta.glob` would discover the
-folder automatically under Vite and break every CLI tool the moment `tsx` ran it; a
-filesystem read would break the browser. A static import per season is the one form
-that works in both, keeps the JSON bundled with no I/O, and lets `tsc` check each file
-against `SeasonSeed`. The end state is 1950–2026 and beyond, so one line per season is
-the cost of that.
+**How discovery works in both environments.** Node — `tsx` for the CLI tools, Vitest
+for the suites — reads the directory with `fs`, reached through
+`process.getBuiltinModule` so no `node:` import exists for a bundler to trip over. The
+browser has no filesystem, so Vite's `import.meta.glob` inlines the same files at
+build time; `process.getBuiltinModule` is the discriminator between the two. The cost
+is that `tsc` no longer checks each season file against `SeasonSeed` — a glob has no
+per-file type. `type-checks.ts` keeps two files as a compile-time sample of the
+format, and `validateSeedData()` checks every season actually on disk.
 
 Nothing else has a list of seasons in it. `apps/web/src/lib/seasons.ts` derives
 `PLAYABLE_SEASONS` and the picker's subtitle from `authoredSeasons`; the calibrate

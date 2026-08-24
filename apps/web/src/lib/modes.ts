@@ -25,7 +25,7 @@ export const MODES: readonly Mode[] = [
   },
   {
     id: "career",
-    title: "Simulate 1980–2026",
+    title: "Simulate an era",
     blurb:
       "Every season in sequence, with drivers ageing, retiring and changing teams between years.",
     available: false,

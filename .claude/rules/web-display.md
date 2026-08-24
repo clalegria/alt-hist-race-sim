@@ -82,8 +82,10 @@ which loads alongside this file.
   28-row tables, then landing mid-page in the next session.
 - **Flags** go beside every driver and team everywhere they are named, via the shared
   `DriverName` / `TeamName` pair so they cannot end up in some tables and not others.
-  SVGs from `country-flag-icons`, imported **one country at a time** in
+  SVGs from `country-flag-icons`, **all of them**, via `import * as` in
   `components/Flag.tsx`. Emoji flags were tried first and **do not render on Windows
-  at all**. `import * as Flags` costs 240 kB — the namespace defeats tree-shaking and
-  pulls in all ~250 flags for the twenty used — so the map is explicit, and
-  `Flag.test.tsx` fails if the seed data grows a country it does not cover.
+  at all**. The hand-kept subset that followed was ~240 kB cheaper and made every new
+  nationality, team base or race country an edit to that file — a manual step that
+  goes missing — so the whole set is imported and a new country just works.
+  `Flag.test.tsx` still checks the seed data against it, which now catches a bad code
+  rather than a missing import.

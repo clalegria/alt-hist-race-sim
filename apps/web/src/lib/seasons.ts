@@ -1,9 +1,9 @@
 /**
  * Which seasons the app offers, and which of them can actually be run.
  *
- * The picker is built for the whole 1980–2026 range from the start, so the day
- * a season is authored the only edit is in `@alt-hist/data` — a `<year>.json`
- * in `packages/data/src/seasons/` and a line in that folder's registry. Which
+ * The picker is built for the whole 1950–2026 range from the start, so adding a
+ * season is one file in `@alt-hist/data` — a `<year>.json` in
+ * `packages/data/src/seasons/`, which that package discovers by itself. Which
  * years are listed, which are selectable and what a world is built from all
  * derive from it, so this module holds no list of its own.
  *
@@ -15,17 +15,17 @@
 
 import { authoredSeasons, hasSeason, type SeasonSeed, seasonSeed } from "@alt-hist/data";
 
-/** The earliest and latest years the picker draws. Not what has been authored. */
+/** The earliest and latest years the picker draws. Not what has seed data. */
 export const FIRST_SEASON = 1950;
 export const LAST_SEASON = 2026;
 
-/** Every year in the range, authored or not: the shape of the picker. */
+/** Every year in the range, playable or not: the shape of the picker. */
 export const SEASON_YEARS: readonly number[] = Array.from(
   { length: LAST_SEASON - FIRST_SEASON + 1 },
   (_, offset) => FIRST_SEASON + offset,
 );
 
-/** Playable years, earliest first — the authored seasons, straight from the data. */
+/** Playable years, earliest first — whatever has seed data, straight from the data. */
 export const PLAYABLE_SEASONS: readonly number[] = authoredSeasons;
 
 export function isPlayable(year: number): boolean {
@@ -38,22 +38,23 @@ export const DEFAULT_SEASON: number = PLAYABLE_SEASONS[0] ?? FIRST_SEASON;
 export type { SeasonSeed };
 /**
  * The seed data for a season, or a throw. Callers only ever reach this through
- * a year that came out of the picker, and the picker offers no unauthored one.
+ * a year that came out of the picker, and the picker offers no year without it.
  */
 export { seasonSeed };
 
 /**
- * The authored years as a phrase, for the picker's subtitle.
+ * The playable years as a phrase, for the picker's subtitle.
  *
  * Contiguous runs collapse to a range, because the end state is forty-odd
  * consecutive years and "1980, 1981, 1982, 1983…" is not a sentence. Written
  * here rather than in the component so the copy cannot fall out of step with
  * which years are actually live — it said "Only 1980" for a while after 1981
- * landed, which is the failure this prevents.
+ * landed, which is the failure this prevents. It carries its own "so far", so
+ * the caller adds nothing.
  */
 export function playableSummary(years: readonly number[] = PLAYABLE_SEASONS): string {
   if (years.length === 0) {
-    return "No season has been authored yet";
+    return "No season is playable yet";
   }
   const runs: string[] = [];
   let start = years[0] ?? 0;
@@ -71,5 +72,5 @@ export function playableSummary(years: readonly number[] = PLAYABLE_SEASONS): st
     runs.length === 1
       ? (runs[0] ?? "")
       : `${runs.slice(0, -1).join(", ")} and ${runs[runs.length - 1]}`;
-  return years.length === 1 ? `Only ${list} has been authored so far` : `${list} are authored`;
+  return years.length === 1 ? `Only ${list} is playable so far` : `${list} are playable so far`;
 }
