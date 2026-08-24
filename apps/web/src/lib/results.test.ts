@@ -21,6 +21,8 @@ import { byClassification, driverRounds, pointsFor, statusOf, teamRounds } from 
 
 const world = seededWorld();
 const season = world.season;
+/** The scale the seeded world was scored on. Its year's, not a fixed one. */
+const points = world.points;
 
 /** A result row with everything defaulted, so a case states only what it means. */
 function entryOf(over: Partial<RaceEntryResult> & Pick<RaceEntryResult, "driverId">) {
@@ -96,9 +98,9 @@ describe("classification order", () => {
 
 describe("what a row is worth", () => {
   it("pays a finish and pays nothing for a retirement or a non-start", () => {
-    expect(pointsFor(entryOf({ driverId: "a", finishPosition: 1 }))).toBeGreaterThan(0);
-    expect(pointsFor(entryOf({ driverId: "a", retired: true }))).toBe(0);
-    expect(pointsFor(entryOf({ driverId: "a", started: false }))).toBe(0);
+    expect(pointsFor(entryOf({ driverId: "a", finishPosition: 1 }), points)).toBeGreaterThan(0);
+    expect(pointsFor(entryOf({ driverId: "a", retired: true }), points)).toBe(0);
+    expect(pointsFor(entryOf({ driverId: "a", started: false }), points)).toBe(0);
   });
 
   it("names why a car is not in the results", () => {
@@ -117,7 +119,7 @@ describe("a driver's season", () => {
   const someone = world.field[0]?.driverId ?? "";
 
   it("has a row for every round they entered, in order", () => {
-    const rounds = driverRounds(season, someone);
+    const rounds = driverRounds(season, points, someone);
     // Counted off the season rather than written down: the calendar grows.
     expect(rounds).toHaveLength(season.races.length);
     expect(rounds.map((round) => round.round)).toEqual(season.races.map((_race, index) => index));
@@ -129,8 +131,8 @@ describe("a driver's season", () => {
   it("adds up to the points the championship credits them with", () => {
     // The link that matters: this is a different walk over the same rows, so if
     // it ever disagrees with the derived table, one of the two is wrong.
-    for (const standing of championshipStandings(season)) {
-      const total = driverRounds(season, standing.driverId).reduce(
+    for (const standing of championshipStandings(season, points)) {
+      const total = driverRounds(season, points, standing.driverId).reduce(
         (sum, round) => sum + round.points,
         0,
       );
@@ -147,7 +149,7 @@ describe("a driver's season", () => {
       ],
     };
     // Rounds 1 and 3, keeping their real numbers so the gap is visible.
-    expect(driverRounds(partial, "a").map((round) => round.round)).toEqual([0, 2]);
+    expect(driverRounds(partial, points, "a").map((round) => round.round)).toEqual([0, 2]);
   });
 });
 
@@ -155,7 +157,7 @@ describe("a team's season", () => {
   const someTeam = world.field[0]?.teamId ?? "";
 
   it("has a row per car, not per round", () => {
-    const rows = teamRounds(season, someTeam);
+    const rows = teamRounds(season, points, someTeam);
     const cars = season.races.reduce(
       (count, race) => count + race.entries.filter((entry) => entry.teamId === someTeam).length,
       0,
@@ -167,8 +169,8 @@ describe("a team's season", () => {
   });
 
   it("adds up to the points the constructors' table credits them with", () => {
-    for (const standing of constructorStandings(season)) {
-      const total = teamRounds(season, standing.teamId).reduce(
+    for (const standing of constructorStandings(season, points)) {
+      const total = teamRounds(season, points, standing.teamId).reduce(
         (sum, round) => sum + round.points,
         0,
       );
@@ -197,7 +199,7 @@ describe("a team's season", () => {
         ]),
       ],
     };
-    const rows = teamRounds(three, "big");
+    const rows = teamRounds(three, points, "big");
 
     expect(rows.map((row) => row.round)).toEqual([0, 1, 1, 1]);
     expect(rows).toHaveLength(4);
@@ -227,12 +229,12 @@ describe("a team's season", () => {
         ]),
       ],
     };
-    const [champion] = championshipStandings(swapped);
+    const [champion] = championshipStandings(swapped, points);
     expect(champion?.driverId).toBe("star");
 
     // Round two put "mate" first on the sheet and "star" out of the race, and
     // the panel still lists them the way the championship does.
-    expect(teamRounds(swapped, "us").map((row) => row.entry.driverId)).toEqual([
+    expect(teamRounds(swapped, points, "us").map((row) => row.entry.driverId)).toEqual([
       "star",
       "mate",
       "star",
@@ -243,9 +245,9 @@ describe("a team's season", () => {
   it("keeps that order across every round of a real season", () => {
     // The same rule as a property, over whatever the seed produced: each round
     // is the season-long order with the absent cars taken out.
-    const order = championshipStandings(season).map((standing) => standing.driverId);
+    const order = championshipStandings(season, points).map((standing) => standing.driverId);
     for (const teamId of new Set(world.field.map((entrant) => entrant.teamId))) {
-      const rows = teamRounds(season, teamId);
+      const rows = teamRounds(season, points, teamId);
       const byRound = new Map<number, string[]>();
       for (const row of rows) {
         byRound.set(row.round, [...(byRound.get(row.round) ?? []), row.entry.driverId]);
@@ -266,6 +268,6 @@ describe("a team's season", () => {
         ]),
       ],
     };
-    expect(teamRounds(shared, "us").map((row) => row.entry.driverId)).toEqual(["ours"]);
+    expect(teamRounds(shared, points, "us").map((row) => row.entry.driverId)).toEqual(["ours"]);
   });
 });

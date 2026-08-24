@@ -6,8 +6,7 @@
  * this is worth computing rather than waiting for the last race.
  */
 
-import { SEASON_CONSTANTS, type SeasonConstants } from "./constants.js";
-import type { ConstructorStanding, DriverStanding } from "./types.js";
+import type { ConstructorStanding, DriverStanding, PointsScale } from "./types.js";
 
 /**
  * The most one round can be worth to a competitor fielding `cars` of them.
@@ -17,10 +16,10 @@ import type { ConstructorStanding, DriverStanding } from "./types.js";
  * scale, not 9. Getting this wrong declares titles settled a round or two early,
  * which is the kind of error that looks like a rounding slip and is not.
  */
-export function bestPossibleRound(cars: number, constants: SeasonConstants): number {
+export function bestPossibleRound(cars: number, points: PointsScale): number {
   let total = 0;
   for (let position = 0; position < cars; position += 1) {
-    total += constants.pointsByPosition[position] ?? 0;
+    total += points[position] ?? 0;
   }
   return total;
 }
@@ -72,9 +71,9 @@ export function titleClinchedBy<T extends { readonly points: number }>(
 export function driversTitleClinchedBy(
   standings: readonly DriverStanding[],
   roundsRemaining: number,
-  constants: SeasonConstants = SEASON_CONSTANTS,
+  points: PointsScale,
 ): DriverStanding | null {
-  const win = bestPossibleRound(1, constants);
+  const win = bestPossibleRound(1, points);
   return titleClinchedBy(standings, roundsRemaining, () => win);
 }
 
@@ -82,9 +81,9 @@ export function driversTitleClinchedBy(
 export function constructorsTitleClinchedBy(
   standings: readonly ConstructorStanding[],
   roundsRemaining: number,
-  constants: SeasonConstants = SEASON_CONSTANTS,
+  points: PointsScale,
 ): ConstructorStanding | null {
   return titleClinchedBy(standings, roundsRemaining, (team) =>
-    bestPossibleRound(team.cars, constants),
+    bestPossibleRound(team.cars, points),
   );
 }

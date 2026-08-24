@@ -1,5 +1,5 @@
 import type { CalendarRace } from "@alt-hist/data";
-import type { SeasonResult } from "@alt-hist/engine";
+import type { PointsScale, SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
@@ -11,11 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 export function SeasonCalendar({
   season,
   calendar,
+  points,
   teamFor,
 }: {
   season: SeasonResult;
   /** The rounds of the year being shown, in order. Names the races. */
   calendar: readonly CalendarRace[];
+  /** The season's points scale, for the classification each round opens into. */
+  points: PointsScale;
   teamFor: ReadonlyMap<string, string>;
 }) {
   // Which round is expanded, or null for none. Purely view state — it says
@@ -99,7 +102,7 @@ export function SeasonCalendar({
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={4} className="p-0">
                       <div className="bg-muted/40 border-border border-y px-3 py-3">
-                        <RaceClassification race={race} />
+                        <RaceClassification race={race} points={points} />
                       </div>
                     </TableCell>
                   </TableRow>

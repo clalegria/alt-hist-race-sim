@@ -1,6 +1,5 @@
 import type { RaceEntryResult } from "../race/types.js";
-import { SEASON_CONSTANTS, type SeasonConstants } from "./constants.js";
-import type { ConstructorStanding, DriverStanding, SeasonResult } from "./types.js";
+import type { ConstructorStanding, DriverStanding, PointsScale, SeasonResult } from "./types.js";
 
 /**
  * Championship points for a finishing position, one-based.
@@ -9,14 +8,11 @@ import type { ConstructorStanding, DriverStanding, SeasonResult } from "./types.
  * non-integer or nonsense position is treated rather than throwing: standings
  * are derived on read, and a display path is a bad place to explode.
  */
-export function pointsForPosition(
-  position: number,
-  constants: SeasonConstants = SEASON_CONSTANTS,
-): number {
+export function pointsForPosition(position: number, points: PointsScale): number {
   if (!Number.isInteger(position) || position < 1) {
     return 0;
   }
-  return constants.pointsByPosition[position - 1] ?? 0;
+  return points[position - 1] ?? 0;
 }
 
 /** Mutable accumulator; the exported shape is readonly. */
@@ -70,7 +66,7 @@ function bestFinishOf(finishCounts: readonly number[]): number | null {
 function tallySeason(
   season: SeasonResult,
   keyOf: (entry: RaceEntryResult) => string,
-  constants: SeasonConstants,
+  points: PointsScale,
 ): Tally[] {
   const tallies = new Map<string, Tally>();
 
@@ -114,7 +110,7 @@ function tallySeason(
       if (position === null) {
         continue;
       }
-      tally.points += pointsForPosition(position, constants);
+      tally.points += pointsForPosition(position, points);
       while (tally.finishCounts.length < position) {
         tally.finishCounts.push(0);
       }
@@ -155,9 +151,9 @@ function summarise(tally: Tally): Omit<DriverStanding, "driverId" | "teamId"> {
  */
 export function championshipStandings(
   season: SeasonResult,
-  constants: SeasonConstants = SEASON_CONSTANTS,
+  points: PointsScale,
 ): readonly DriverStanding[] {
-  return tallySeason(season, (entry) => entry.driverId, constants).map((tally) => ({
+  return tallySeason(season, (entry) => entry.driverId, points).map((tally) => ({
     driverId: tally.key,
     teamId: tally.teamId,
     ...summarise(tally),
@@ -195,10 +191,10 @@ function carsPerTeam(season: SeasonResult): ReadonlyMap<string, number> {
  */
 export function constructorStandings(
   season: SeasonResult,
-  constants: SeasonConstants = SEASON_CONSTANTS,
+  points: PointsScale,
 ): readonly ConstructorStanding[] {
   const cars = carsPerTeam(season);
-  return tallySeason(season, (entry) => entry.teamId, constants).map((tally) => ({
+  return tallySeason(season, (entry) => entry.teamId, points).map((tally) => ({
     teamId: tally.key,
     cars: cars.get(tally.key) ?? 0,
     ...summarise(tally),

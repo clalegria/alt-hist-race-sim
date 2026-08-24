@@ -1,5 +1,6 @@
 {
   "year": 1992,
+  "points": [10, 6, 4, 3, 2, 1],
   "calendar": [
     { "round":  1, "name": "South African GP", "circuit": "Kyalami",           "country": "ZA" },
     { "round":  2, "name": "Mexican GP",       "circuit": "Mexico City",       "country": "MX" },

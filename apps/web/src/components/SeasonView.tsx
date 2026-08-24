@@ -13,6 +13,7 @@ import {
   constructorStandings,
   constructorsTitleClinchedBy,
   driversTitleClinchedBy,
+  type PointsScale,
   type RaceEntrant,
   type RaceResult,
   type SeasonResult,
@@ -129,14 +130,16 @@ function Champion({
 function Standings({
   season,
   calendar,
+  points,
   midSeason,
 }: {
   season: SeasonResult;
   calendar: readonly CalendarRace[];
+  points: PointsScale;
   midSeason: boolean;
 }) {
-  const drivers = useMemo(() => championshipStandings(season), [season]);
-  const constructors = useMemo(() => constructorStandings(season), [season]);
+  const drivers = useMemo(() => championshipStandings(season, points), [season, points]);
+  const constructors = useMemo(() => constructorStandings(season, points), [season, points]);
   const when = midSeason
     ? `After ${plural(season.races.length, "round")}.`
     : "Final classification.";
@@ -149,6 +152,7 @@ function Standings({
         nameColumn="Driver"
         standings={drivers}
         season={season}
+        points={points}
         calendar={calendar}
       />
       <StandingsTable
@@ -157,6 +161,7 @@ function Standings({
         nameColumn="Team"
         standings={constructors}
         season={season}
+        points={points}
         calendar={calendar}
       />
     </>
@@ -167,18 +172,20 @@ function Summary({
   season,
   field,
   year,
+  points,
   lineup,
   engines,
 }: {
   season: SeasonResult;
   field: readonly RaceEntrant[];
   year: number;
+  points: PointsScale;
   lineup: SeasonLineup | null;
   engines: SeasonEngines | null;
 }) {
   const nameOf = useEntryName();
-  const champion = useMemo(() => championshipStandings(season)[0], [season]);
-  const topTeam = useMemo(() => constructorStandings(season)[0], [season]);
+  const champion = useMemo(() => championshipStandings(season, points)[0], [season, points]);
+  const topTeam = useMemo(() => constructorStandings(season, points)[0], [season, points]);
   const teamFor = useMemo(
     () => new Map(field.map((entrant) => [entrant.driverId, entrant.teamId])),
     [field],
@@ -232,8 +239,8 @@ function Summary({
           }
         />
       </div>
-      <SeasonCalendar season={season} calendar={seed.calendar} teamFor={teamFor} />
-      <Standings season={season} calendar={seed.calendar} midSeason={false} />
+      <SeasonCalendar season={season} calendar={seed.calendar} points={points} teamFor={teamFor} />
+      <Standings season={season} calendar={seed.calendar} points={points} midSeason={false} />
       <SeasonGrid
         field={field}
         seasonYear={year}
@@ -265,8 +272,9 @@ function RaceStage({
 }) {
   const nameOf = useEntryName();
   const soFar = useMemo(() => seasonSoFar(world.season, view.round), [world.season, view.round]);
-  const drivers = useMemo(() => championshipStandings(soFar), [soFar]);
-  const constructors = useMemo(() => constructorStandings(soFar), [soFar]);
+  const points = world.points;
+  const drivers = useMemo(() => championshipStandings(soFar, points), [soFar, points]);
+  const constructors = useMemo(() => constructorStandings(soFar, points), [soFar, points]);
 
   // The table as it stood a round ago, so each row can show what it gained or
   // lost. Round one has no "before" and gets undefined, so nobody reads as
@@ -279,10 +287,10 @@ function RaceStage({
     }
     const before = seasonSoFar(world.season, view.round - 1);
     return {
-      drivers: positionsOf(championshipStandings(before)),
-      constructors: positionsOf(constructorStandings(before)),
+      drivers: positionsOf(championshipStandings(before, points)),
+      constructors: positionsOf(constructorStandings(before, points)),
     };
-  }, [world.season, view.round]);
+  }, [world.season, view.round, points]);
 
   const label = roundLabel(seasonSeed(world.year).calendar, view.round);
   const total = world.season.races.length;
@@ -296,8 +304,8 @@ function RaceStage({
       const table = seasonSoFar(world.season, round);
       const left = total - table.races.length;
       return {
-        driver: driversTitleClinchedBy(championshipStandings(table), left),
-        team: constructorsTitleClinchedBy(constructorStandings(table), left),
+        driver: driversTitleClinchedBy(championshipStandings(table, points), left, points),
+        team: constructorsTitleClinchedBy(constructorStandings(table, points), left, points),
       };
     };
     const now = after(view.round);
@@ -308,7 +316,7 @@ function RaceStage({
       team: now.team,
       teamIsNew: now.team !== null && before.team === null,
     };
-  }, [world.season, view.round, total]);
+  }, [world.season, view.round, total, points]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -329,7 +337,7 @@ function RaceStage({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
         <Section title={`${label.name} — Race`} subtitle={label.circuit} country={label.country}>
-          <RaceClassification race={race} />
+          <RaceClassification race={race} points={points} />
         </Section>
 
         <aside className="flex flex-col gap-4">
@@ -425,6 +433,7 @@ function SeasonBody({
       season={world.season}
       field={world.field}
       year={world.year}
+      points={world.points}
       lineup={world.lineup}
       engines={world.engines}
     />

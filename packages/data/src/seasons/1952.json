@@ -1,5 +1,6 @@
 {
   "year": 1952,
+  "points": [8, 6, 4, 3, 2],
   "calendar": [
     { "round":  1, "name": "Swiss GP",   "circuit": "Bremgarten",        "country": "CH" },
     { "round":  2, "name": "Belgian GP", "circuit": "Spa-Francorchamps", "country": "BE" },

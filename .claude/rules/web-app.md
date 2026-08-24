@@ -90,10 +90,15 @@ localStorage: a lineup and a set of engine deals belong to the year they were dr
 for, so starting a season from the menu gets the real grid back.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, ratingMode, rngState, field, lineup, engines, season }`) — one per
-season screen, none before one is started. `field` is the grid exactly as raced, and is
-no longer derivable from the seed files: who is in it depends on `lineup`, what they
-drive on `engines`, and their ratings on `ratingMode`.
+(`{ seed, year, points, ratingMode, rngState, field, lineup, engines, season }`) — one
+per season screen, none before one is started. `field` is the grid exactly as raced,
+and is no longer derivable from the seed files: who is in it depends on `lineup`, what
+they drive on `engines`, and their ratings on `ratingMode`. `points` is the year's
+championship scale, off its seed file, for the same reason: it is the record of what
+the season was actually scored on. Every table takes it — `championshipStandings`,
+`constructorStandings`, the clinch functions, `pointsFor`, `driverRounds` and
+`teamRounds` all require it, and `RaceClassification`, `StandingsTable` and
+`SeasonCalendar` take it as a prop. Nothing anywhere assumes a scale.
 
 **Who is running whose engine travels by context, not by prop.** A result row records a
 `teamId` and nothing else, but "Williams-Ford" has to be the same name in the standings,

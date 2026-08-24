@@ -66,12 +66,69 @@ describe("validateSeedData", () => {
     }
   });
 
+  it("gives every authored season a points scale that only ever falls", () => {
+    // The rule, not the eras: which scale a year pays is history and lives in
+    // its own file, but *every* year must pay a winner something and must never
+    // pay a lower place more than a higher one.
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const season of seasons.values()) {
+      expect(season.points.length, `${season.year}`).toBeGreaterThan(0);
+      expect(season.points[0] ?? 0, `${season.year} pays nothing for a win`).toBeGreaterThan(0);
+      for (const [index, points] of season.points.entries()) {
+        expect(points, `${season.year} position ${index + 1}`).toBeGreaterThanOrEqual(0);
+        expect(points, `${season.year} position ${index + 1}`).toBeLessThanOrEqual(
+          season.points[index - 1] ?? Number.POSITIVE_INFINITY,
+        );
+      }
+    }
+  });
+
+  it("rejects a season with no points scale", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      points: [],
+      calendar: [],
+      engines: [engineSpec()],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/no points scale/);
+  });
+
+  it("rejects a scale that pays a lower place more than a higher one", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      points: [9, 6, 4, 5],
+      calendar: [],
+      engines: [engineSpec()],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/must never rise/);
+  });
+
+  it("rejects negative points", () => {
+    const broken: SeasonSeed = {
+      year: 1980,
+      points: [9, 6, -1],
+      calendar: [],
+      engines: [engineSpec()],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [broken]);
+    }).toThrow(/non-negative/);
+  });
+
   it("allows seatless drivers and single-car entries", () => {
     // The rule, against a fixture — not a season that happens to have a
     // one-car team today. Whether any authored year has one is data, and the
     // point here is that validation permits it.
     const seatless: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -102,6 +159,7 @@ describe("validateSeedData", () => {
   it("rejects an entry referencing an unknown driver", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [engineSpec()],
       entries: [{ teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: ["ghost"] }],
@@ -114,6 +172,7 @@ describe("validateSeedData", () => {
   it("rejects an entry referencing an unknown team", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -130,6 +189,7 @@ describe("validateSeedData", () => {
     // position mislabels every result printed against it.
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [
         { round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" },
         { round: 3, name: "Brazilian GP", circuit: "Interlagos", country: "BR" },
@@ -145,6 +205,7 @@ describe("validateSeedData", () => {
   it("rejects a calendar race whose country is not an ISO alpha-2 code", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "ARG" }],
       engines: [engineSpec()],
       entries: [],
@@ -157,6 +218,7 @@ describe("validateSeedData", () => {
   it("rejects a calendar race with no name or no circuit", () => {
     const withName = (name: string, circuit: string): SeasonSeed => ({
       year: 1980,
+      points: pointsScale(),
       calendar: [{ round: 1, name, circuit, country: "AR" }],
       engines: [engineSpec()],
       entries: [],
@@ -172,6 +234,7 @@ describe("validateSeedData", () => {
   it("rejects a driver seated at two teams", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -198,6 +261,11 @@ describe("validateSeedData", () => {
 
 function carSpec() {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50 };
+}
+
+/** A scale for fixtures that are not about the scale. Shape, not history. */
+function pointsScale() {
+  return [9, 6, 4, 3, 2, 1];
 }
 
 /** The season menu every fixture entry draws its engine from. */
@@ -227,6 +295,7 @@ describe("engines", () => {
   it("rejects a season rating an engine nobody makes", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [{ engineId: "phlogiston", racing: 50, qualifying: 50, reliability: 50 }],
       entries: [],
@@ -239,6 +308,7 @@ describe("engines", () => {
   it("rejects an entry running an engine the season does not rate", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [],
       entries: [
@@ -253,6 +323,7 @@ describe("engines", () => {
   it("rejects the same engine rated twice in one season", () => {
     const broken: SeasonSeed = {
       year: 1980,
+      points: pointsScale(),
       calendar: [],
       engines: [engineSpec(), engineSpec()],
       entries: [],

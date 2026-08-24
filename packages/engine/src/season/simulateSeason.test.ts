@@ -5,6 +5,10 @@ import type { RaceEntrant, RaceModel, RoundContext } from "../race/types.js";
 import { createRng } from "../rng/index.js";
 import { simulateSeason } from "./simulateSeason.js";
 import { championshipStandings, pointsForPosition } from "./standings.js";
+import type { PointsScale } from "./types.js";
+
+/** The scale these seasons are scored on: 9-6-4-3-2-1, as 1961 to 1990 paid. */
+const CLASSIC: PointsScale = [9, 6, 4, 3, 2, 1];
 
 function entrant(driverId: string, teamId: string, ability: number, car: number): RaceEntrant {
   return {
@@ -139,7 +143,7 @@ describe("running a season", () => {
 describe("a season and its championship", () => {
   it("awards the season's points to the drivers who scored them", () => {
     const season = simulateSeason(field(), rounds(14), createRng(21), NO_DNFS);
-    const table = championshipStandings(season);
+    const table = championshipStandings(season, CLASSIC);
 
     // Recompute independently from the raw results: the table must be derived,
     // with nothing accumulated along the way that the results do not justify.
@@ -149,7 +153,7 @@ describe("a season and its championship", () => {
         if (entry.finishPosition !== null) {
           expected.set(
             entry.driverId,
-            (expected.get(entry.driverId) ?? 0) + pointsForPosition(entry.finishPosition),
+            (expected.get(entry.driverId) ?? 0) + pointsForPosition(entry.finishPosition, CLASSIC),
           );
         }
       }
@@ -162,19 +166,22 @@ describe("a season and its championship", () => {
   it("hands the title to the fastest car over a long season", () => {
     // Not a certainty in one race; over 30 rounds with no retirements it should
     // be. If this ever fails, the pace model has stopped rewarding pace.
-    const table = championshipStandings(simulateSeason(field(), rounds(30), createRng(8), NO_DNFS));
+    const table = championshipStandings(
+      simulateSeason(field(), rounds(30), createRng(8), NO_DNFS),
+      CLASSIC,
+    );
     expect(table[0]?.driverId).toBe("driver-0");
   });
 
   it("puts every driver in the table exactly once", () => {
-    const table = championshipStandings(simulateSeason(field(), rounds(14), createRng(4)));
+    const table = championshipStandings(simulateSeason(field(), rounds(14), createRng(4)), CLASSIC);
     expect(table).toHaveLength(20);
     expect(new Set(table.map((s) => s.driverId)).size).toBe(20);
   });
 
   it("accounts for every entry as a start or a non-qualification", () => {
     const season = simulateSeason(field(), rounds(14), createRng(12));
-    for (const standing of championshipStandings(season)) {
+    for (const standing of championshipStandings(season, CLASSIC)) {
       expect(standing.starts + standing.nonQualifications).toBe(14);
       expect(standing.retirements).toBeLessThanOrEqual(standing.starts);
     }
@@ -184,7 +191,7 @@ describe("a season and its championship", () => {
     // Nobody retires and the field is far bigger than the points table, so
     // every round must pay out the whole scale: 9+6+4+3+2+1 = 25.
     const season = simulateSeason(field(), rounds(14), createRng(15), NO_DNFS);
-    const total = championshipStandings(season).reduce((sum, s) => sum + s.points, 0);
+    const total = championshipStandings(season, CLASSIC).reduce((sum, s) => sum + s.points, 0);
     expect(total).toBe(25 * 14);
   });
 });

@@ -123,8 +123,8 @@ describe("the world", () => {
 
   it("produces a season the championship can be derived from", () => {
     const world = createWorld(4, YEAR);
-    const drivers = championshipStandings(world.season);
-    const teams = constructorStandings(world.season);
+    const drivers = championshipStandings(world.season, world.points);
+    const teams = constructorStandings(world.season, world.points);
     expect(drivers).toHaveLength(SEATS);
     expect(teams).toHaveLength(TEAMS);
     expect(drivers.reduce((sum, s) => sum + s.points, 0)).toBe(
@@ -151,9 +151,52 @@ describe("every authored season", () => {
       ).toEqual(seats);
 
       // And it produces a championship somebody could read.
-      const standings = championshipStandings(world.season);
+      const standings = championshipStandings(world.season, world.points);
       expect(standings, `${year}`).toHaveLength(seats.length);
       expect(standings[0]?.points, `${year}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("scores each year on its own points scale", () => {
+    for (const [year, seed] of seasons) {
+      expect(createWorld(1, year).points, `${year}`).toEqual(seed.points);
+    }
+  });
+
+  it("pays a race winner what that season's scale pays, not one fixed number", () => {
+    // The assertion that catches a scale hard-coded anywhere between the result
+    // rows and the table: after one round the winner's total is the first entry
+    // of that year's own scale, whatever it happens to be.
+    for (const [year, seed] of seasons) {
+      const world = createWorld(1, year);
+      const opener = world.season.races[0];
+      const winner = opener?.winnerDriverId;
+      if (opener === undefined || winner === null || winner === undefined) {
+        continue;
+      }
+      const afterOne = championshipStandings({ races: [opener] }, world.points);
+      const leader = afterOne.find((standing) => standing.driverId === winner);
+      // Against the *authored* scale, not the world's copy of it, so the whole
+      // path from seed file to table is on the hook rather than half of it.
+      expect(leader?.points, `${year}`).toBe(seed.points[0]);
+    }
+  });
+
+  it("pays exactly as many places as its scale has, and no more", () => {
+    // The other half: a year paying ten places must credit a tenth place, and a
+    // year paying six must not. Counted off the scale, never written down.
+    for (const [year, seed] of seasons) {
+      const world = createWorld(1, year);
+      const opener = world.season.races[0];
+      if (opener === undefined) {
+        continue;
+      }
+      const table = championshipStandings({ races: [opener] }, world.points);
+      const scored = table.filter((standing) => standing.points > 0).length;
+      const places = opener.entries.filter(
+        (entry) => entry.finishPosition !== null && entry.finishPosition <= seed.points.length,
+      ).length;
+      expect(scored, `${year}`).toBe(places);
     }
   });
 
@@ -447,7 +490,8 @@ describe("the chosen grid", () => {
 
   it("races whoever was put in, so the results are theirs", () => {
     useSeasonStore.getState().setGrid(swapped, null);
-    const scorers = championshipStandings(running().world.season).map((row) => row.driverId);
+    const scored = running().world;
+    const scorers = championshipStandings(scored.season, scored.points).map((row) => row.driverId);
     expect(scorers).toContain(RESERVE);
     expect(scorers).not.toContain(SEATED);
   });

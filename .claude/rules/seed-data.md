@@ -34,10 +34,18 @@ the JSON drift apart.
   for its backer, and the flag beside it should be the one that built it.
 - `seasons/<year>.json` — **one file per season**, currently 1980 (14 rounds, 4
   engines, 15 entries, 28 seats) and 1981 (15 rounds, 6 engines, 17 entries, 31 seats).
-  `{ year, calendar: [{ round, name, circuit, country }], engines: [{ engineId, racing,
-  qualifying, reliability }], entries: [{ teamId, engineId, car: { racing, qualifying,
-  consistency, reliability }, drivers: [driverId, ...] }] }`. `country` is an ISO
-  3166-1 alpha-2 code, matching `nationality` on drivers and `base` on teams.
+  `{ year, points: [9, 6, 4, ...], calendar: [{ round, name, circuit, country }],
+  engines: [{ engineId, racing, qualifying, reliability }], entries: [{ teamId,
+  engineId, car: { racing, qualifying, consistency, reliability },
+  drivers: [driverId, ...] }] }`. `country` is an ISO 3166-1 alpha-2 code, matching
+  `nationality` on drivers and `base` on teams.
+  - `points` is the year's **championship scale**, best first, and its length is how
+    many places score. Period-accurate and authored per year, because the scale is the
+    part of the sport that changed most: 8-6-4-3-2 through the fifties, 8-6-4-3-2-1 in
+    1960, 9-6-4-3-2-1 from 1961, 10 for a win from 1991, eight scorers from 2003, ten
+    places from 2010. The array is the whole rule — no dropped scores, no fastest-lap
+    point, no sprint. `validateSeedData` rejects an empty scale, a negative entry, or
+    one that pays a lower place more than a higher one.
   - **`engines` is the season's menu, not a record of what was used.** An engine
     nobody entered is legal, and is exactly what the grid editor offers as an
     alternative. What is *not* legal is an entry naming a unit the season does not

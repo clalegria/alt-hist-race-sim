@@ -1,5 +1,6 @@
 {
   "year": 2013,
+  "points": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
   "calendar": [
     { "round":  1, "name": "Australian GP",    "circuit": "Melbourne",               "country": "AU" },
     { "round":  2, "name": "Malaysian GP",     "circuit": "Sepang",                  "country": "MY" },

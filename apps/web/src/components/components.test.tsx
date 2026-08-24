@@ -12,7 +12,6 @@ import {
   championshipStandings,
   constructorStandings,
   type RaceEntryResult,
-  SEASON_CONSTANTS,
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -74,7 +73,7 @@ describe("the race classification", () => {
   if (race === undefined) {
     throw new Error("seeded world has no races");
   }
-  const html = renderToStaticMarkup(<RaceClassification race={race} />);
+  const html = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />);
 
   it("lists every car that entered, not just the finishers", () => {
     expect(race.entries).toHaveLength(SEATS);
@@ -99,7 +98,7 @@ describe("the race classification", () => {
       .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
 
     // Each scoring place shows its own total, on whatever scale the era pays.
-    const scale = SEASON_CONSTANTS.pointsByPosition;
+    const scale = world.points;
     for (const [index, points] of scale.entries()) {
       const entry = classified[index];
       if (entry === undefined) {
@@ -157,7 +156,7 @@ describe("the race classification", () => {
     if (round === undefined) {
       throw new Error("no race had both a retirement and a non-qualifier");
     }
-    const mixed = renderToStaticMarkup(<RaceClassification race={round} />);
+    const mixed = renderToStaticMarkup(<RaceClassification race={round} points={world.points} />);
     expect(mixed).toContain("Retired");
     expect(mixed).toContain("Did not qualify");
   });
@@ -255,8 +254,8 @@ describe("the compact standings", () => {
   // deliberately not expandable and the fixture year fields exactly eight.
   const crowded = seededWorld(3, undefined, OVERSUBSCRIBED_YEAR);
   const CROWDED_TEAMS = teamCount(crowded);
-  const drivers = championshipStandings(world.season);
-  const teams = constructorStandings(crowded.season);
+  const drivers = championshipStandings(world.season, world.points);
+  const teams = constructorStandings(crowded.season, crowded.points);
   const driverHtml = renderToStaticMarkup(<CompactStandings title="Drivers" standings={drivers} />);
   const teamHtml = renderToStaticMarkup(
     <CompactStandings title="Constructors" standings={teams} />,
@@ -293,8 +292,8 @@ describe("the compact standings", () => {
   it("marks who gained and who lost places since the previous round", () => {
     // Positions after round 1 against positions after round 2: anyone whose
     // number went down climbed, and must carry an up arrow.
-    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) });
-    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) });
+    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) }, world.points);
+    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) }, world.points);
     const previous = positionsOf(afterOne);
     const moved = afterTwo
       .map((standing, index) => ({
@@ -332,8 +331,8 @@ describe("the compact standings", () => {
 
   it("says which way and how far, not just colour", () => {
     // An arrow distinguished only by hue tells a colourblind reader nothing.
-    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) });
-    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) });
+    const afterOne = championshipStandings({ races: world.season.races.slice(0, 1) }, world.points);
+    const afterTwo = championshipStandings({ races: world.season.races.slice(0, 2) }, world.points);
     const html = renderToStaticMarkup(
       <CompactStandings
         title="Drivers"
@@ -416,8 +415,8 @@ describe("the starting grid layout", () => {
  * should when rendered directly.
  */
 describe("expanding a row of the championship", () => {
-  const drivers = championshipStandings(world.season);
-  const teams = constructorStandings(world.season);
+  const drivers = championshipStandings(world.season, world.points);
+  const teams = constructorStandings(world.season, world.points);
   const firstRound = SEED.calendar[0];
   if (firstRound === undefined) {
     throw new Error("the season has no calendar");
@@ -430,6 +429,7 @@ describe("expanding a row of the championship", () => {
       nameColumn="Driver"
       standings={drivers}
       season={world.season}
+      points={world.points}
       calendar={SEED.calendar}
     />,
   );
@@ -453,7 +453,10 @@ describe("expanding a row of the championship", () => {
   it("gives a driver one row per round, naming each one", () => {
     const someone = drivers[0]?.driverId ?? "";
     const html = renderToStaticMarkup(
-      <RaceByRace rounds={driverRounds(world.season, someone)} calendar={SEED.calendar} />,
+      <RaceByRace
+        rounds={driverRounds(world.season, world.points, someone)}
+        calendar={SEED.calendar}
+      />,
     );
     // Every round of the year, named, plus the header row.
     expect(html.split("<tr").length - 1).toBe(SEED.calendar.length + 1);
@@ -464,7 +467,7 @@ describe("expanding a row of the championship", () => {
 
   it("gives a team a row per car, and names the round once", () => {
     const teamId = teams[0]?.teamId ?? "";
-    const rounds = teamRounds(world.season, teamId);
+    const rounds = teamRounds(world.season, world.points, teamId);
     const html = renderToStaticMarkup(
       <RaceByRace rounds={rounds} calendar={SEED.calendar} showDriver={true} />,
     );
@@ -505,7 +508,7 @@ describe("expanding a row of the championship", () => {
     // got away are the whole reason to open the panel.
     const bothOutcomes = (of: World): string | undefined =>
       of.field.find((entrant) => {
-        const rounds = driverRounds(of.season, entrant.driverId);
+        const rounds = driverRounds(of.season, of.points, entrant.driverId);
         return (
           rounds.some((round) => round.entry.finishPosition !== null) &&
           rounds.some((round) => round.entry.retired)
@@ -515,7 +518,7 @@ describe("expanding a row of the championship", () => {
     // Searched for rather than assumed: a driver who finished everything would
     // pass the first assertion for the wrong reason.
     const mixed = findWorld((candidate) => bothOutcomes(candidate) !== undefined);
-    const rounds = driverRounds(mixed.season, bothOutcomes(mixed) ?? "");
+    const rounds = driverRounds(mixed.season, mixed.points, bothOutcomes(mixed) ?? "");
     const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
 
     expect(html).not.toContain("Finished");

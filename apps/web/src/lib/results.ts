@@ -12,6 +12,7 @@
 
 import {
   championshipStandings,
+  type PointsScale,
   pointsForPosition,
   type RaceEntryResult,
   type SeasonResult,
@@ -57,11 +58,15 @@ export function statusOf(entry: RaceEntryResult): string {
   return "Finished";
 }
 
-/** What a result row was worth. Zero for a retirement, a DNQ, and 7th down. */
-export function pointsFor(entry: RaceEntryResult): number {
-  // The default scale, as the classification uses: nothing yet runs a season on
-  // another one.
-  return entry.finishPosition === null ? 0 : pointsForPosition(entry.finishPosition);
+/**
+ * What a result row was worth on the season's own scale. Zero for a retirement,
+ * a DNQ, and anything past the last scoring place.
+ *
+ * The scale comes in rather than being assumed, because every year has its own:
+ * a sixth place is worth a point in 1980 and nothing at all in 2003.
+ */
+export function pointsFor(entry: RaceEntryResult, points: PointsScale): number {
+  return entry.finishPosition === null ? 0 : pointsForPosition(entry.finishPosition, points);
 }
 
 /** One result row, with the round it came from. */
@@ -86,6 +91,7 @@ export interface RoundEntry {
  */
 function roundsMatching(
   season: SeasonResult,
+  points: PointsScale,
   matches: (entry: RaceEntryResult) => boolean,
   within: (a: RaceEntryResult, b: RaceEntryResult) => number = byClassification,
 ): readonly RoundEntry[] {
@@ -93,15 +99,19 @@ function roundsMatching(
   season.races.forEach((race, round) => {
     // `filter` copies, so the sort cannot disturb the stored result order.
     for (const entry of race.entries.filter(matches).sort(within)) {
-      rounds.push({ round, entry, points: pointsFor(entry) });
+      rounds.push({ round, entry, points: pointsFor(entry, points) });
     }
   });
   return rounds;
 }
 
 /** One driver's season, round by round. One row per round they entered. */
-export function driverRounds(season: SeasonResult, driverId: string): readonly RoundEntry[] {
-  return roundsMatching(season, (entry) => entry.driverId === driverId);
+export function driverRounds(
+  season: SeasonResult,
+  points: PointsScale,
+  driverId: string,
+): readonly RoundEntry[] {
+  return roundsMatching(season, points, (entry) => entry.driverId === driverId);
 }
 
 /**
@@ -110,9 +120,9 @@ export function driverRounds(season: SeasonResult, driverId: string): readonly R
  * Derived from the same results as everything else here, so it costs a walk of
  * the season and never disagrees with the table on screen.
  */
-function championshipOrder(season: SeasonResult): ReadonlyMap<string, number> {
+function championshipOrder(season: SeasonResult, points: PointsScale): ReadonlyMap<string, number> {
   return new Map(
-    championshipStandings(season).map((standing, index) => [standing.driverId, index]),
+    championshipStandings(season, points).map((standing, index) => [standing.driverId, index]),
   );
 }
 
@@ -131,11 +141,16 @@ function championshipOrder(season: SeasonResult): ReadonlyMap<string, number> {
  * one driver each. Classification order breaks a tie — two cars level in the
  * championship, or a driver who somehow has no standing at all.
  */
-export function teamRounds(season: SeasonResult, teamId: string): readonly RoundEntry[] {
-  const order = championshipOrder(season);
+export function teamRounds(
+  season: SeasonResult,
+  points: PointsScale,
+  teamId: string,
+): readonly RoundEntry[] {
+  const order = championshipOrder(season, points);
   const place = (entry: RaceEntryResult) => order.get(entry.driverId) ?? Number.MAX_SAFE_INTEGER;
   return roundsMatching(
     season,
+    points,
     (entry) => entry.teamId === teamId,
     (a, b) => place(a) - place(b) || byClassification(a, b),
   );

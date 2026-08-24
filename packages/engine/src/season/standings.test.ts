@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { RaceEntryResult, RaceResult } from "../race/types.js";
-import type { SeasonConstants } from "./constants.js";
 import { championshipStandings, constructorStandings, pointsForPosition } from "./standings.js";
-import type { SeasonResult } from "./types.js";
+import type { PointsScale, SeasonResult } from "./types.js";
+
+/**
+ * The scale these tests score on: 9-6-4-3-2-1, as every season from 1961 to
+ * 1990 paid. A fixture, not a default — the functions have none.
+ */
+const CLASSIC: PointsScale = [9, 6, 4, 3, 2, 1];
 
 /** The late-2010s scale, as a second scale to prove the first is not baked in. */
-const MODERN: SeasonConstants = {
-  pointsByPosition: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
-};
+const MODERN: PointsScale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
 function entry(driverId: string, finishPosition: number | null): RaceEntryResult {
   const started = finishPosition !== null;
@@ -63,12 +66,14 @@ function teamRace(finishers: readonly (readonly [string, string])[]): RaceResult
 
 describe("points for a position", () => {
   it("pays the 1980 scale to six places", () => {
-    expect([1, 2, 3, 4, 5, 6].map((p) => pointsForPosition(p))).toEqual([9, 6, 4, 3, 2, 1]);
+    expect([1, 2, 3, 4, 5, 6].map((p) => pointsForPosition(p, CLASSIC))).toEqual([
+      9, 6, 4, 3, 2, 1,
+    ]);
   });
 
   it("pays nothing outside the scale", () => {
-    expect(pointsForPosition(7)).toBe(0);
-    expect(pointsForPosition(28)).toBe(0);
+    expect(pointsForPosition(7, CLASSIC)).toBe(0);
+    expect(pointsForPosition(28, CLASSIC)).toBe(0);
   });
 
   it("takes a different scale without touching the logic", () => {
@@ -79,10 +84,10 @@ describe("points for a position", () => {
   });
 
   it("refuses nonsense positions instead of throwing", () => {
-    expect(pointsForPosition(0)).toBe(0);
-    expect(pointsForPosition(-3)).toBe(0);
-    expect(pointsForPosition(1.5)).toBe(0);
-    expect(pointsForPosition(Number.NaN)).toBe(0);
+    expect(pointsForPosition(0, CLASSIC)).toBe(0);
+    expect(pointsForPosition(-3, CLASSIC)).toBe(0);
+    expect(pointsForPosition(1.5, CLASSIC)).toBe(0);
+    expect(pointsForPosition(Number.NaN, CLASSIC)).toBe(0);
   });
 });
 
@@ -90,6 +95,7 @@ describe("championship standings", () => {
   it("adds up points across the season", () => {
     const table = championshipStandings(
       season([race(["a", "b", "c"]), race(["b", "a", "c"]), race(["a", "c", "b"])]),
+      CLASSIC,
     );
     expect(table.map((s) => [s.driverId, s.points])).toEqual([
       ["a", 24],
@@ -99,7 +105,10 @@ describe("championship standings", () => {
   });
 
   it("orders by points, highest first", () => {
-    const table = championshipStandings(season([race(["c", "b", "a"]), race(["c", "b", "a"])]));
+    const table = championshipStandings(
+      season([race(["c", "b", "a"]), race(["c", "b", "a"])]),
+      CLASSIC,
+    );
     for (let i = 1; i < table.length; i += 1) {
       expect(table[i]?.points ?? 0).toBeLessThanOrEqual(table[i - 1]?.points ?? 0);
     }
@@ -118,6 +127,7 @@ describe("championship standings", () => {
         race(["x1", "x2", "steady", "x3", "x4", "winner"]),
         race(["x1", "x2", "steady", "x3", "x4", "winner"]),
       ]),
+      CLASSIC,
     );
     const order = table.map((s) => s.driverId);
     const winner = table.find((s) => s.driverId === "winner");
@@ -137,6 +147,7 @@ describe("championship standings", () => {
         race(["x1", "second", "x2", "fourth", "x3", "x4"]),
         race(["x1", "x2", "x3", "fourth", "x4", "x5", "second"]),
       ]),
+      CLASSIC,
     );
     const second = table.find((s) => s.driverId === "second");
     const fourth = table.find((s) => s.driverId === "fourth");
@@ -149,8 +160,8 @@ describe("championship standings", () => {
   });
 
   it("falls back to driver id so the order is always total", () => {
-    const first = championshipStandings(season([race(["a", "b"]), race(["b", "a"])]));
-    const again = championshipStandings(season([race(["a", "b"]), race(["b", "a"])]));
+    const first = championshipStandings(season([race(["a", "b"]), race(["b", "a"])]), CLASSIC);
+    const again = championshipStandings(season([race(["a", "b"]), race(["b", "a"])]), CLASSIC);
     expect(first.map((s) => s.driverId)).toEqual(again.map((s) => s.driverId));
   });
 
@@ -161,6 +172,7 @@ describe("championship standings", () => {
         race(["b", "a", "c", "d"], "d"),
         race(["c", "d", "a", "b"], "d"),
       ]),
+      CLASSIC,
     );
     const a = table.find((s) => s.driverId === "a");
     expect(a?.wins).toBe(1);
@@ -173,7 +185,10 @@ describe("championship standings", () => {
   });
 
   it("gives a driver who never finished a null best finish", () => {
-    const table = championshipStandings(season([{ ...race(["a"]), entries: [entry("a", null)] }]));
+    const table = championshipStandings(
+      season([{ ...race(["a"]), entries: [entry("a", null)] }]),
+      CLASSIC,
+    );
     expect(table[0]?.bestFinish).toBeNull();
     expect(table[0]?.points).toBe(0);
     expect(table[0]?.retirements).toBe(1);
@@ -188,7 +203,7 @@ describe("championship standings", () => {
       mechanicalFailure: false,
       raceScore: null,
     };
-    const table = championshipStandings(season([{ ...race(["a"]), entries: [dnq] }]));
+    const table = championshipStandings(season([{ ...race(["a"]), entries: [dnq] }]), CLASSIC);
     expect(table[0]?.nonQualifications).toBe(1);
     expect(table[0]?.starts).toBe(0);
     expect(table[0]?.retirements).toBe(0);
@@ -196,15 +211,18 @@ describe("championship standings", () => {
 
   it("scores the same season differently under a different scale", () => {
     const year = season([race(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"])]);
-    expect(championshipStandings(year)[0]?.points).toBe(9);
+    expect(championshipStandings(year, CLASSIC)[0]?.points).toBe(9);
     expect(championshipStandings(year, MODERN)[0]?.points).toBe(25);
     // Tenth scores nothing in 1980 and a point in the modern scale.
-    expect(championshipStandings(year).find((s) => s.driverId === "j")?.points).toBe(0);
+    expect(championshipStandings(year, CLASSIC).find((s) => s.driverId === "j")?.points).toBe(0);
     expect(championshipStandings(year, MODERN).find((s) => s.driverId === "j")?.points).toBe(1);
   });
 
   it("includes every driver who appeared, scoring or not", () => {
-    const table = championshipStandings(season([race(["a", "b", "c", "d", "e", "f", "g"])]));
+    const table = championshipStandings(
+      season([race(["a", "b", "c", "d", "e", "f", "g"])]),
+      CLASSIC,
+    );
     expect(table).toHaveLength(7);
     expect(table.find((s) => s.driverId === "g")?.points).toBe(0);
   });
@@ -212,12 +230,12 @@ describe("championship standings", () => {
   it("derives the table without touching the results", () => {
     const year = season([race(["a", "b"]), race(["b", "a"])]);
     const before = JSON.stringify(year);
-    championshipStandings(year);
+    championshipStandings(year, CLASSIC);
     expect(JSON.stringify(year)).toBe(before);
   });
 
   it("returns an empty table for a season with no races", () => {
-    expect(championshipStandings(season([]))).toEqual([]);
+    expect(championshipStandings(season([]), CLASSIC)).toEqual([]);
   });
 });
 
@@ -233,7 +251,7 @@ describe("constructor standings", () => {
   it("adds both of a team's cars together", () => {
     // The post-1979 rule: every car scores, not just the best-placed one.
     // Alpha takes 9 + 4, beta 6 + 3.
-    const table = constructorStandings(season([oneTwoThreeFour]));
+    const table = constructorStandings(season([oneTwoThreeFour]), CLASSIC);
     expect(table.map((t) => [t.teamId, t.points])).toEqual([
       ["alpha", 13],
       ["beta", 9],
@@ -241,7 +259,7 @@ describe("constructor standings", () => {
   });
 
   it("counts starts per car but poles per race", () => {
-    const table = constructorStandings(season([oneTwoThreeFour, oneTwoThreeFour]));
+    const table = constructorStandings(season([oneTwoThreeFour, oneTwoThreeFour]), CLASSIC);
     const alpha = table.find((t) => t.teamId === "alpha");
     expect(alpha?.starts).toBe(4);
     expect(alpha?.poles).toBe(2);
@@ -257,12 +275,13 @@ describe("constructor standings", () => {
           ["b1", "beta"],
         ]),
       ]),
+      CLASSIC,
     );
     expect(table.find((t) => t.teamId === "alpha")?.podiums).toBe(2);
   });
 
   it("puts every team in the table exactly once", () => {
-    const table = constructorStandings(season([oneTwoThreeFour, oneTwoThreeFour]));
+    const table = constructorStandings(season([oneTwoThreeFour, oneTwoThreeFour]), CLASSIC);
     expect(table).toHaveLength(2);
     expect(new Set(table.map((t) => t.teamId)).size).toBe(2);
   });
@@ -278,8 +297,8 @@ describe("constructor standings", () => {
         ["b1", "beta"],
       ]),
     ]);
-    const drivers = championshipStandings(year).reduce((sum, s) => sum + s.points, 0);
-    const teams = constructorStandings(year).reduce((sum, t) => sum + t.points, 0);
+    const drivers = championshipStandings(year, CLASSIC).reduce((sum, s) => sum + s.points, 0);
+    const teams = constructorStandings(year, CLASSIC).reduce((sum, t) => sum + t.points, 0);
     expect(teams).toBe(drivers);
   });
 
@@ -298,6 +317,7 @@ describe("constructor standings", () => {
           ["z2", "zulu"],
         ]),
       ]),
+      CLASSIC,
     );
     const zulu = table.find((t) => t.teamId === "zulu");
     const beta = table.find((t) => t.teamId === "beta");
@@ -313,6 +333,6 @@ describe("constructor standings", () => {
   });
 
   it("returns an empty table for a season with no races", () => {
-    expect(constructorStandings(season([]))).toEqual([]);
+    expect(constructorStandings(season([]), CLASSIC)).toEqual([]);
   });
 });

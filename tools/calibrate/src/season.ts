@@ -48,8 +48,10 @@ function main(): void {
   // which is what the home-advantage term reads.
   const calendar = authored.calendar;
   const season = simulateSeason(field, calendar, createRng(seed));
-  const table = championshipStandings(season);
-  const constructors = constructorStandings(season);
+  // The year's own scale, straight off its seed file: 9-6-4-3-2-1 in 1980,
+  // 25-18-15-12-10-8-6-4-2-1 in 2010.
+  const table = championshipStandings(season, authored.points);
+  const constructors = constructorStandings(season, authored.points);
 
   const drivers = driversById();
   const teams = teamsById();

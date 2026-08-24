@@ -41,7 +41,7 @@ describe("the standout accent", () => {
   });
 
   it("marks the race winner, and nobody else in the classification", () => {
-    const html = renderToStaticMarkup(<RaceClassification race={race} />);
+    const html = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />);
     expect(occurrences(html, STANDOUT_ROW)).toBe(1);
     // The winner's row, not the fastest qualifier's.
     const winnerRow = html.split("<tr").find((row) => row.includes(STANDOUT_ROW));
@@ -51,7 +51,7 @@ describe("the standout accent", () => {
   it("marks the rest of the podium a step below the winner, and stops at third", () => {
     // Rows in classification order, past the prefix and the header row: the
     // winner, then second, third, fourth.
-    const rows = renderToStaticMarkup(<RaceClassification race={race} />)
+    const rows = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />)
       .split("<tr")
       .slice(2);
     const [first, second, third, fourth] = rows;
@@ -94,13 +94,14 @@ describe("the standout accent", () => {
     // The season is *searched* for a driver holding both a win and a podium,
     // rather than assumed: on a season with neither, this would pass by having
     // nothing to accent in the first place.
-    const leader = (candidate: World) => championshipStandings(candidate.season)[0];
+    const leader = (candidate: World) =>
+      championshipStandings(candidate.season, candidate.points)[0];
     const won = findWorld((candidate) => {
       const standing = leader(candidate);
       return standing !== undefined && standing.wins > 0 && standing.podiums > standing.wins;
     });
     const driverId = leader(won)?.driverId ?? "";
-    const rounds = driverRounds(won.season, driverId);
+    const rounds = driverRounds(won.season, won.points, driverId);
 
     const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
     // The row fills only. `STANDOUT_TEXT` is "text-primary", which is a

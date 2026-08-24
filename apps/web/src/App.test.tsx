@@ -181,7 +181,7 @@ describe("a race", () => {
     // pinned, since which round that is depends on every rating in the pool.
     const shuffled = (season: SeasonResult, round: number): boolean => {
       const top = (through: number): string[] =>
-        championshipStandings({ races: season.races.slice(0, through + 1) })
+        championshipStandings({ races: season.races.slice(0, through + 1) }, world.points)
           .slice(0, 8)
           .map((row) => row.driverId);
       const before = top(round - 1);
@@ -213,7 +213,10 @@ describe("a race", () => {
       expect(html, `${column} should not be in the race sidebar`).not.toContain(`>${column}<`);
     }
     // The leader's points are on screen, whatever the scale pays for a win.
-    const leader = championshipStandings({ races: world.season.races.slice(0, 1) })[0];
+    const leader = championshipStandings(
+      { races: world.season.races.slice(0, 1) },
+      world.points,
+    )[0];
     expect(leader).toBeDefined();
     expect(html).toContain(`>${leader?.points}<`);
   });
@@ -295,8 +298,8 @@ describe("flags", () => {
 
   it("flies a flag on both champion cards", () => {
     const html = render({ kind: "summary" });
-    const champion = championshipStandings(world.season)[0];
-    const topTeam = constructorStandings(world.season)[0];
+    const champion = championshipStandings(world.season, world.points)[0];
+    const topTeam = constructorStandings(world.season, world.points)[0];
     if (champion === undefined || topTeam === undefined) {
       throw new Error("seeded world crowned nobody");
     }
@@ -326,8 +329,8 @@ describe("a settled championship", () => {
       const left = rounds - soFar.races.length;
       const settled =
         which === "drivers"
-          ? driversTitleClinchedBy(championshipStandings(soFar), left)
-          : constructorsTitleClinchedBy(constructorStandings(soFar), left);
+          ? driversTitleClinchedBy(championshipStandings(soFar, of.points), left, of.points)
+          : constructorsTitleClinchedBy(constructorStandings(soFar, of.points), left, of.points);
       if (settled !== null) {
         return round;
       }
@@ -380,7 +383,11 @@ describe("a settled championship", () => {
     // as a team line under every one of their drivers in the table above it.
     const championRow = (html: string): string => {
       const card = html.slice(html.lastIndexOf(">Constructors<"));
-      const champion = constructorsTitleClinchedBy(constructorStandings(settled.season), 0);
+      const champion = constructorsTitleClinchedBy(
+        constructorStandings(settled.season, settled.points),
+        0,
+        settled.points,
+      );
       if (champion === null) {
         throw new Error("the season crowned no constructor");
       }

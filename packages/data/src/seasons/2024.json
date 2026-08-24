@@ -1,5 +1,6 @@
 {
   "year": 2024,
+  "points": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
   "calendar": [
     { "round":  1, "name": "Bahrain GP",        "circuit": "Sakhir",                  "country": "BH" },
     { "round":  2, "name": "Saudi Arabian GP",  "circuit": "Jeddah",                  "country": "SA" },

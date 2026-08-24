@@ -18,8 +18,8 @@ HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
 and that folder's `index.ts` discovers them — there is no registry to update. Each
-carries a calendar, an **engine table** and an entry list; the end state is 1950–2026
-and beyond. Nothing outside that folder keeps a list of seasons — see
+carries a calendar, a points scale, an **engine table** and an entry list; the end
+state is 1950–2026 and beyond. Nothing outside that folder keeps a list of seasons — see
 `.claude/rules/seed-data.md` for how discovery works in the browser and under `tsx`.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
@@ -37,7 +37,7 @@ calibration, and the web app split across architecture, display rules and stylin
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 571 tests (203 engine, 79 data, 289 web)
+pnpm test          # 892 tests (203 engine, 83 data, 606 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .

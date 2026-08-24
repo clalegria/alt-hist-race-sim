@@ -1,5 +1,5 @@
 import type { CalendarRace } from "@alt-hist/data";
-import type { SeasonResult } from "@alt-hist/engine";
+import type { PointsScale, SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
@@ -41,6 +41,7 @@ export function StandingsTable({
   nameColumn,
   standings,
   season,
+  points,
   calendar,
 }: {
   title: string;
@@ -49,6 +50,8 @@ export function StandingsTable({
   standings: readonly Standing[];
   /** The results both the table and its expansions are derived from. */
   season: SeasonResult;
+  /** The season's points scale, so an expansion scores its rounds as the table did. */
+  points: PointsScale;
   /** Names the rounds inside an expansion. From the world's year, not a fixed one. */
   calendar: readonly CalendarRace[];
 }) {
@@ -148,8 +151,8 @@ export function StandingsTable({
                         <RaceByRace
                           rounds={
                             isDriver
-                              ? driverRounds(season, standing.driverId)
-                              : teamRounds(season, standing.teamId)
+                              ? driverRounds(season, points, standing.driverId)
+                              : teamRounds(season, points, standing.teamId)
                           }
                           calendar={calendar}
                           showDriver={!isDriver}

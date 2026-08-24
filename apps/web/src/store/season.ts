@@ -31,6 +31,7 @@ import {
 } from "@alt-hist/data";
 import {
   createRng,
+  type PointsScale,
   type RaceEntrant,
   type RngState,
   type SeasonResult,
@@ -51,6 +52,17 @@ export interface World {
    * the same seed under the other mode is a different championship.
    */
   readonly ratingMode: RatingMode;
+  /**
+   * The championship points scale the year was scored on, straight from its
+   * seed file — 9-6-4-3-2-1 for 1980, 25-18-15-12-10-8-6-4-2-1 for 2010.
+   *
+   * Held here rather than looked up from the year for the same reason `field`
+   * is: this is the record of the season as it was actually run. A save file
+   * opened after its year's scale was re-authored should still add up to the
+   * totals the reader saw, and every table on screen scores off this one array
+   * rather than each deriving its own.
+   */
+  readonly points: PointsScale;
   /**
    * The generator's position after the last race simulated. Rebuild with
    * `createRngFromState` to continue the same stream into the next season.
@@ -119,6 +131,7 @@ export function createWorld(
     seed,
     year: entered.year,
     ratingMode,
+    points: entered.points,
     rngState: rng.getState(),
     field,
     lineup: edited,

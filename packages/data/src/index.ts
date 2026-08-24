@@ -201,6 +201,27 @@ function validateSeason(
 ): void {
   const seatedDrivers = new Map<string, string>();
 
+  // The points scale, before anything that could be scored on it. A season
+  // without one would silently crown whoever the countback favoured, and a
+  // scale that pays 4th more than 3rd is an authoring slip that looks like a
+  // simulation bug three tables downstream.
+  if (season.points.length === 0) {
+    throw new Error(`Season ${season.year} has no points scale`);
+  }
+  season.points.forEach((points, index) => {
+    if (!Number.isFinite(points) || points < 0) {
+      throw new Error(
+        `Season ${season.year} pays ${points} for position ${index + 1}; points must be a non-negative number`,
+      );
+    }
+    const ahead = season.points[index - 1];
+    if (ahead !== undefined && points > ahead) {
+      throw new Error(
+        `Season ${season.year} pays ${points} for position ${index + 1} but only ${ahead} for position ${index}; the scale must never rise`,
+      );
+    }
+  });
+
   // The season's own engine menu, checked before the entries that draw on it —
   // an entry naming a unit the year does not have is the failure this catches,
   // and it would otherwise surface as a car quietly racing without an engine.

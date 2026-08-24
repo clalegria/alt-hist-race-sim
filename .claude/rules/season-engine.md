@@ -29,8 +29,8 @@ market; when it exists, this loop takes a field per round instead of one for the
 
 ## Standings are derived, never accumulated
 
-`championshipStandings(season, constants?)` and `constructorStandings(season,
-constants?)` build their tables from the stored results on read. Nothing anywhere
+`championshipStandings(season, points)` and `constructorStandings(season, points)`
+build their tables from the stored results on read. Nothing anywhere
 keeps a running points total — that would be a second source of truth waiting to
 disagree with the first. Order is points, then countback (most wins, then most
 seconds, and so on down, as 1980 did), then driver id so the order is total and never
@@ -43,13 +43,29 @@ this sim needs, since it starts in 1980 and runs forward. That makes a team's
 finished all fourteen rounds with both cars has 28 starts), while `poles` stays per
 race because only one car starts from pole.
 
-Points come from `season/constants.ts` as a plain array, `pointsByPosition`, best
-first. Its *length* is how many places score, so the late-2010s
-25-18-15-12-10-8-6-4-2-1 drops in as a different array and nothing else changes.
-Default is the 1980 scale, 9-6-4-3-2-1.
+## The points scale is a property of the season, not a constant
 
-**The dropped-scores rule is deliberately not modelled** (author's call). 1980 counted
-each driver's best five results from the first seven races and best five from the last
+`PointsScale` is a plain `readonly number[]`, best first, and it is **authored per
+year** in `packages/data/src/seasons/<year>.json` as `points`. Its *length* is how many
+places score, so 1950's 8-6-4-3-2 and 2010's 25-18-15-12-10-8-6-4-2-1 are the same code
+with a different array.
+
+**Nothing has a default.** `pointsForPosition`, both standings functions and both
+clinch functions take the scale as a required argument, because a season quietly scored
+on another era's table produces a plausible championship and no error at all. The web
+world carries it (`World.points`, straight off the seed file, the same reason `field`
+is stored) and the components take it as a prop; `validateSeedData` rejects a season
+with no scale, a negative entry, or a scale that pays a lower place more than a higher
+one.
+
+Which scale a year pays is history and belongs in that year's file: 8-6-4-3-2 through
+the fifties, 8-6-4-3-2-1 in 1960, 9-6-4-3-2-1 from 1961, 10 for a win from 1991, eight
+scorers from 2003, and ten places from 2010.
+
+**The array is the whole rule** (author's call). No dropped scores, no point for
+fastest lap, no sprint points, no half points for a race stopped early — every race
+counts and a finishing position is the only thing that scores. 1980 counted each
+driver's best five results from the first seven races and best five from the last
 seven, so real totals are lower than every-race totals — Jones scored 71 gross against
 67 counted. Here every race counts, and a simulated Jones season lands around 72.
 

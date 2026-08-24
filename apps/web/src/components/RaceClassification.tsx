@@ -1,4 +1,4 @@
-import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
+import type { PointsScale, RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
 import { PODIUM_ROW, PODIUM_TEXT, STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { byClassification, pointsFor, statusOf } from "../lib/results.js";
@@ -24,7 +24,14 @@ function gapOf(entry: RaceEntryResult): string {
   return entry.raceGapToWinner === null ? "—" : formatGap(entry.raceGapToWinner);
 }
 
-export function RaceClassification({ race }: { race: RaceResult }) {
+export function RaceClassification({
+  race,
+  points,
+}: {
+  race: RaceResult;
+  /** The season's points scale. What a finish is worth depends on the year. */
+  points: PointsScale;
+}) {
   return (
     <Table>
       <TableHeader>
@@ -43,7 +50,7 @@ export function RaceClassification({ race }: { race: RaceResult }) {
           const won = entry.finishPosition === 1;
           // The other two on the podium, marked a step below the winner.
           const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
-          const points = pointsFor(entry);
+          const scored = pointsFor(entry, points);
           return (
             <TableRow
               key={entry.driverId}
@@ -87,7 +94,7 @@ export function RaceClassification({ race }: { race: RaceResult }) {
                 )}
               >
                 {/* Blank rather than a column of zeroes: only six cars score. */}
-                {points === 0 ? "" : points}
+                {scored === 0 ? "" : scored}
               </TableCell>
             </TableRow>
           );

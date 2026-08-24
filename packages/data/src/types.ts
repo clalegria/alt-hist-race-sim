@@ -151,6 +151,26 @@ export interface CalendarRace {
 
 export interface SeasonSeed {
   readonly year: number;
+  /**
+   * Championship points by finishing position, best first: index 0 is the win.
+   * A position past the end of the table scores nothing, so the length *is* how
+   * many places score.
+   *
+   * Per season rather than a constant, because the scale is the part of the
+   * sport that changed most and it changed on dates: 8-6-4-3-2 through the
+   * fifties, 9-6-4-3-2-1 from 1961, 10 for a win from 1991, eight scorers from
+   * 2003, and 25-18-15-12-10-8-6-4-2-1 to ten places from 2010. Each year
+   * carries its own, and the engine is handed it rather than assuming one.
+   *
+   * Deliberately nothing but the array. Real championships bolted rules onto
+   * it — dropped scores (1980 counted each driver's best five results from the
+   * first seven races and best five from the last seven, so Jones scored 71
+   * gross and 67 counted), a point for fastest lap, points for the sprint, half
+   * points for a race stopped early — and none of them are modelled, on the
+   * author's call. Every race counts, and a finishing position is the only
+   * thing that scores.
+   */
+  readonly points: readonly number[];
   /** The season's rounds, in order. Its length is how many races the year has. */
   readonly calendar: readonly CalendarRace[];
   /**

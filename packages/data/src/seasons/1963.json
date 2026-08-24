@@ -1,5 +1,6 @@
 {
   "year": 1963,
+  "points": [9, 6, 4, 3, 2, 1],
   "calendar": [
     { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
     { "round":  2, "name": "Belgian GP",       "circuit": "Spa-Francorchamps", "country": "BE" },

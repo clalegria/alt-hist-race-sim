@@ -1,6 +1,24 @@
 import type { RaceResult } from "../race/types.js";
 
 /**
+ * Championship points by finishing position, best first: index 0 is the win.
+ * A position past the end of the scale scores nothing, so the length *is* how
+ * many places score.
+ *
+ * A plain array and an *input*, never a constant. The scale is the part of the
+ * sport that changed most — 8-6-4-3-2 in the fifties, 9-6-4-3-2-1 from 1961,
+ * 25-18-15-12-10-8-6-4-2-1 to ten places from 2010 — so it is a property of the
+ * season being run, authored alongside its calendar and entry list, and handed
+ * to every function that turns results into points. Nothing here has a default:
+ * a wrong scale is invisible in the output, and a season silently scored on
+ * another era's table is exactly the bug worth making impossible.
+ *
+ * Only the array. No dropped scores, no point for fastest lap, no sprint, no
+ * half points — every race counts and a finishing position is all that scores.
+ */
+export type PointsScale = readonly number[];
+
+/**
  * A season's worth of races, in order. A race's position in the array is its
  * round number, one-based.
  *
