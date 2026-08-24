@@ -1,0 +1,40 @@
+{
+  "year": 2020,
+  "calendar": [
+    { "round":  1, "name": "Austrian GP",         "circuit": "Red Bull Ring",     "country": "AT" },
+    { "round":  2, "name": "Styrian GP",          "circuit": "Red Bull Ring",     "country": "AT" },
+    { "round":  3, "name": "Hungarian GP",        "circuit": "Hungaroring",       "country": "HU" },
+    { "round":  4, "name": "British GP",          "circuit": "Silverstone",       "country": "GB" },
+    { "round":  5, "name": "70th Anniversary GP", "circuit": "Silverstone",       "country": "GB" },
+    { "round":  6, "name": "Spanish GP",          "circuit": "Barcelona",         "country": "ES" },
+    { "round":  7, "name": "Belgian GP",          "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round":  8, "name": "Italian GP",          "circuit": "Monza",             "country": "IT" },
+    { "round":  9, "name": "Tuscan GP",           "circuit": "Mugello",           "country": "IT" },
+    { "round": 10, "name": "Russian GP",          "circuit": "Sochi",             "country": "RU" },
+    { "round": 11, "name": "Eifel GP",            "circuit": "Nürburgring",       "country": "DE" },
+    { "round": 12, "name": "Portuguese GP",       "circuit": "Portimão",          "country": "PT" },
+    { "round": 13, "name": "Emilia Romagna GP",   "circuit": "Imola",             "country": "IT" },
+    { "round": 14, "name": "Turkish GP",          "circuit": "Istanbul Park",     "country": "TR" },
+    { "round": 15, "name": "Bahrain GP",          "circuit": "Sakhir",            "country": "BH" },
+    { "round": 16, "name": "Sakhir GP",           "circuit": "Sakhir",            "country": "BH" },
+    { "round": 17, "name": "Abu Dhabi GP",        "circuit": "Yas Marina",        "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  98, "qualifying":  98, "reliability":  92 },
+    { "engineId": "ferrari",  "racing":  76, "qualifying":  74, "reliability":  80 },
+    { "engineId": "honda",    "racing":  88, "qualifying":  86, "reliability":  86 },
+    { "engineId": "renault",  "racing":  82, "qualifying":  80, "reliability":  80 }
+  ],
+  "entries": [
+    { "teamId": "mercedes",     "engineId": "mercedes", "car": { "racing":  98, "qualifying":  98, "consistency":  94, "reliability":  92 }, "drivers": ["hamilton", "bottas"] },
+    { "teamId": "red_bull",     "engineId": "honda",    "car": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["verstappen_m", "albon"] },
+    { "teamId": "racing_point", "engineId": "mercedes", "car": { "racing":  82, "qualifying":  80, "consistency":  80, "reliability":  80 }, "drivers": ["perez", "stroll"] },
+    { "teamId": "mclaren",      "engineId": "renault",  "car": { "racing":  78, "qualifying":  76, "consistency":  80, "reliability":  84 }, "drivers": ["norris", "sainz"] },
+    { "teamId": "renault",      "engineId": "renault",  "car": { "racing":  78, "qualifying":  76, "consistency":  78, "reliability":  80 }, "drivers": ["ricciardo", "ocon"] },
+    { "teamId": "ferrari",      "engineId": "ferrari",  "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  78 }, "drivers": ["leclerc", "vettel"] },
+    { "teamId": "toro_rosso",   "engineId": "honda",    "car": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  78 }, "drivers": ["gasly", "kvyat"] },
+    { "teamId": "sauber",       "engineId": "ferrari",  "car": { "racing":  56, "qualifying":  54, "consistency":  60, "reliability":  72 }, "drivers": ["raikkonen", "giovinazzi"] },
+    { "teamId": "haas",         "engineId": "ferrari",  "car": { "racing":  50, "qualifying":  48, "consistency":  54, "reliability":  66 }, "drivers": ["grosjean", "magnussen_k"] },
+    { "teamId": "williams",     "engineId": "mercedes", "car": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  72 }, "drivers": ["russell", "latifi"] }
+  ]
+}

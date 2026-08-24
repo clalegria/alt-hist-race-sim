@@ -1,0 +1,46 @@
+{
+  "year": 1997,
+  "calendar": [
+    { "round":  1, "name": "Australian GP", "circuit": "Melbourne",         "country": "AU" },
+    { "round":  2, "name": "Brazilian GP",  "circuit": "Interlagos",        "country": "BR" },
+    { "round":  3, "name": "Argentine GP",  "circuit": "Buenos Aires",      "country": "AR" },
+    { "round":  4, "name": "San Marino GP", "circuit": "Imola",             "country": "IT" },
+    { "round":  5, "name": "Monaco GP",     "circuit": "Monaco",            "country": "MC" },
+    { "round":  6, "name": "Spanish GP",    "circuit": "Barcelona",         "country": "ES" },
+    { "round":  7, "name": "Canadian GP",   "circuit": "Montreal",          "country": "CA" },
+    { "round":  8, "name": "French GP",     "circuit": "Magny-Cours",       "country": "FR" },
+    { "round":  9, "name": "British GP",    "circuit": "Silverstone",       "country": "GB" },
+    { "round": 10, "name": "German GP",     "circuit": "Hockenheimring",    "country": "DE" },
+    { "round": 11, "name": "Hungarian GP",  "circuit": "Hungaroring",       "country": "HU" },
+    { "round": 12, "name": "Belgian GP",    "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round": 13, "name": "Italian GP",    "circuit": "Monza",             "country": "IT" },
+    { "round": 14, "name": "Austrian GP",   "circuit": "A1-Ring",           "country": "AT" },
+    { "round": 15, "name": "Luxembourg GP", "circuit": "Nürburgring",       "country": "DE" },
+    { "round": 16, "name": "Japanese GP",   "circuit": "Suzuka",            "country": "JP" },
+    { "round": 17, "name": "European GP",   "circuit": "Jerez",             "country": "ES" }
+  ],
+  "engines": [
+    { "engineId": "renault",  "racing":  96, "qualifying":  94, "reliability":  92 },
+    { "engineId": "ferrari",  "racing":  90, "qualifying":  88, "reliability":  84 },
+    { "engineId": "mercedes", "racing":  88, "qualifying":  86, "reliability":  72 },
+    { "engineId": "mugen",    "racing":  84, "qualifying":  82, "reliability":  82 },
+    { "engineId": "peugeot",  "racing":  82, "qualifying":  80, "reliability":  72 },
+    { "engineId": "ford",     "racing":  80, "qualifying":  78, "reliability":  80 },
+    { "engineId": "petronas", "racing":  76, "qualifying":  74, "reliability":  76 },
+    { "engineId": "yamaha",   "racing":  74, "qualifying":  72, "reliability":  70 },
+    { "engineId": "hart",     "racing":  70, "qualifying":  68, "reliability":  70 }
+  ],
+  "entries": [
+    { "teamId": "williams", "engineId": "renault",  "car": { "racing":  94, "qualifying":  94, "consistency":  86, "reliability":  82 }, "drivers": ["villeneuve_jq", "frentzen"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "car": { "racing":  88, "qualifying":  86, "consistency":  82, "reliability":  76 }, "drivers": ["schumacher_m", "irvine"] },
+    { "teamId": "benetton", "engineId": "renault",  "car": { "racing":  80, "qualifying":  78, "consistency":  78, "reliability":  78 }, "drivers": ["berger", "alesi"] },
+    { "teamId": "mclaren",  "engineId": "mercedes", "car": { "racing":  82, "qualifying":  80, "consistency":  78, "reliability":  68 }, "drivers": ["hakkinen", "coulthard"] },
+    { "teamId": "jordan",   "engineId": "peugeot",  "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  72 }, "drivers": ["fisichella", "schumacher_r"] },
+    { "teamId": "prost",    "engineId": "mugen",    "car": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  74 }, "drivers": ["panis", "trulli"] },
+    { "teamId": "sauber",   "engineId": "petronas", "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  70 }, "drivers": ["herbert", "larini"] },
+    { "teamId": "stewart",  "engineId": "ford",     "car": { "racing":  66, "qualifying":  64, "consistency":  64, "reliability":  52 }, "drivers": ["barrichello", "magnussen"] },
+    { "teamId": "arrows",   "engineId": "yamaha",   "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  60 }, "drivers": ["hill_d", "diniz"] },
+    { "teamId": "tyrrell",  "engineId": "ford",     "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  64 }, "drivers": ["salo", "verstappen_j"] },
+    { "teamId": "minardi",  "engineId": "hart",     "car": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  58 }, "drivers": ["katayama", "marques"] }
+  ]
+}

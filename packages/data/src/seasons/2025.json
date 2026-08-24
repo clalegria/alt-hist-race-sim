@@ -1,0 +1,47 @@
+{
+  "year": 2025,
+  "calendar": [
+    { "round":  1, "name": "Australian GP",     "circuit": "Melbourne",               "country": "AU" },
+    { "round":  2, "name": "Chinese GP",        "circuit": "Shanghai",                "country": "CN" },
+    { "round":  3, "name": "Japanese GP",       "circuit": "Suzuka",                  "country": "JP" },
+    { "round":  4, "name": "Bahrain GP",        "circuit": "Sakhir",                  "country": "BH" },
+    { "round":  5, "name": "Saudi Arabian GP",  "circuit": "Jeddah",                  "country": "SA" },
+    { "round":  6, "name": "Miami GP",          "circuit": "Miami",                   "country": "US" },
+    { "round":  7, "name": "Emilia Romagna GP", "circuit": "Imola",                   "country": "IT" },
+    { "round":  8, "name": "Monaco GP",         "circuit": "Monaco",                  "country": "MC" },
+    { "round":  9, "name": "Spanish GP",        "circuit": "Barcelona",               "country": "ES" },
+    { "round": 10, "name": "Canadian GP",       "circuit": "Montreal",                "country": "CA" },
+    { "round": 11, "name": "Austrian GP",       "circuit": "Red Bull Ring",           "country": "AT" },
+    { "round": 12, "name": "British GP",        "circuit": "Silverstone",             "country": "GB" },
+    { "round": 13, "name": "Belgian GP",        "circuit": "Spa-Francorchamps",       "country": "BE" },
+    { "round": 14, "name": "Hungarian GP",      "circuit": "Hungaroring",             "country": "HU" },
+    { "round": 15, "name": "Dutch GP",          "circuit": "Zandvoort",               "country": "NL" },
+    { "round": 16, "name": "Italian GP",        "circuit": "Monza",                   "country": "IT" },
+    { "round": 17, "name": "Azerbaijan GP",     "circuit": "Baku",                    "country": "AZ" },
+    { "round": 18, "name": "Singapore GP",      "circuit": "Marina Bay",              "country": "SG" },
+    { "round": 19, "name": "United States GP",  "circuit": "Circuit of the Americas", "country": "US" },
+    { "round": 20, "name": "Mexican GP",        "circuit": "Mexico City",             "country": "MX" },
+    { "round": 21, "name": "Brazilian GP",      "circuit": "Interlagos",              "country": "BR" },
+    { "round": 22, "name": "Las Vegas GP",      "circuit": "Las Vegas",               "country": "US" },
+    { "round": 23, "name": "Qatar GP",          "circuit": "Lusail",                  "country": "QA" },
+    { "round": 24, "name": "Abu Dhabi GP",      "circuit": "Yas Marina",              "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  90, "qualifying":  88, "reliability":  88 },
+    { "engineId": "ferrari",  "racing":  88, "qualifying":  86, "reliability":  86 },
+    { "engineId": "rbpt",     "racing":  86, "qualifying":  86, "reliability":  84 },
+    { "engineId": "renault",  "racing":  76, "qualifying":  74, "reliability":  78 }
+  ],
+  "entries": [
+    { "teamId": "mclaren",      "engineId": "mercedes", "car": { "racing":  96, "qualifying":  96, "consistency":  92, "reliability":  90 }, "drivers": ["norris", "piastri"] },
+    { "teamId": "ferrari",      "engineId": "ferrari",  "car": { "racing":  84, "qualifying":  82, "consistency":  84, "reliability":  86 }, "drivers": ["hamilton", "leclerc"] },
+    { "teamId": "red_bull",     "engineId": "rbpt",     "car": { "racing":  86, "qualifying":  88, "consistency":  78, "reliability":  80 }, "drivers": ["verstappen_m", "tsunoda"] },
+    { "teamId": "mercedes",     "engineId": "mercedes", "car": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  86 }, "drivers": ["russell", "antonelli"] },
+    { "teamId": "williams",     "engineId": "mercedes", "car": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  78 }, "drivers": ["albon", "sainz"] },
+    { "teamId": "aston_martin", "engineId": "mercedes", "car": { "racing":  64, "qualifying":  62, "consistency":  68, "reliability":  78 }, "drivers": ["alonso", "stroll"] },
+    { "teamId": "renault",      "engineId": "renault",  "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  74 }, "drivers": ["gasly", "colapinto"] },
+    { "teamId": "haas",         "engineId": "ferrari",  "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  76 }, "drivers": ["ocon", "bearman"] },
+    { "teamId": "toro_rosso",   "engineId": "rbpt",     "car": { "racing":  64, "qualifying":  62, "consistency":  66, "reliability":  76 }, "drivers": ["lawson", "hadjar"] },
+    { "teamId": "sauber",       "engineId": "ferrari",  "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  74 }, "drivers": ["hulkenberg", "bortoleto"] }
+  ]
+}

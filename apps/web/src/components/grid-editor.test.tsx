@@ -65,7 +65,14 @@ const SEATS = world.field.length;
 const SPARE = reserveDrivers(authored).length;
 const swapLine = `${driverName(RESERVE)} for ${driverName(SEATED)}`;
 
-/** Filters that hide nobody, for the tests that are not about filtering. */
+/**
+ * The widest the filters go, for the tests that are not about filtering.
+ *
+ * Widest is not "everybody": the age band bottoms out at `AGE_RANGE.min`, and
+ * the pool now spans enough seasons that a driver can be younger than that in
+ * the year on screen — a 1990 debutant is a child in 1980. Tests that need the
+ * set actually on screen derive it rather than assuming the whole pool.
+ */
 const SHOW_ALL: DriverFilters = {
   hideRetired: false,
   hideFuture: false,
@@ -184,9 +191,12 @@ describe("the drivers without a drive", () => {
   );
 
   it("lists everyone in the pool without a seat, and nobody with one", () => {
-    expect(reserve.length).toBeGreaterThan(0);
+    // Everyone the widest filters allow: someone too young for the year on
+    // screen is out of the band, and out of the band is out of the list.
+    const shown = reserve.filter((driver) => matchesFilters(driver, YEAR, SHOW_ALL));
+    expect(shown.length).toBeGreaterThan(0);
     expect(html).toContain(`${SPARE} in the pool`);
-    for (const driver of reserve) {
+    for (const driver of shown) {
       expect(html, `missing ${driver.id}`).toContain(driver.name);
     }
     for (const driverId of seatedDriverIds(authored)) {
@@ -280,18 +290,40 @@ describe("filtering the drivers without a drive", () => {
     const left = survivors(filters);
     expect(left.length).toBeLessThan(reserve.length);
     expect(render(filters)).toContain(`${left.length} of ${reserve.length} in the pool`);
-    // And says nothing of the sort when it is hiding nobody.
-    expect(render(SHOW_ALL)).toContain(`${reserve.length} in the pool`);
-    expect(render(SHOW_ALL)).not.toContain(`of ${reserve.length} in the pool`);
+  });
+
+  it("says nothing of the sort when it is hiding nobody", () => {
+    // Handed only the drivers the filters already allow, so nothing is hidden.
+    // No filter set can do this on the whole pool: the age band cannot reach
+    // below `AGE_RANGE.min`, and the pool has drivers younger than that.
+    const shown = survivors(SHOW_ALL);
+    const html = renderToStaticMarkup(
+      <ReserveList
+        drivers={shown}
+        seasonYear={YEAR}
+        ratingMode="peak"
+        selectedDriverId={null}
+        onSelect={() => {}}
+        filters={SHOW_ALL}
+      />,
+    );
+    expect(html).toContain(`${shown.length} in the pool`);
+    expect(html).not.toContain(`of ${shown.length} in the pool`);
   });
 
   it("holds the age range against the season on screen", () => {
     const oldest = Math.max(...reserve.map((driver) => ageInSeason(YEAR, driver.birthYear)));
-    const html = render({ ...SHOW_ALL, maxAge: oldest - 1 });
+    const filters = { ...SHOW_ALL, maxAge: oldest - 1 };
+    const html = render(filters);
+    const left = new Set(survivors(filters).map((driver) => driver.id));
     for (const driver of reserve) {
       const age = ageInSeason(YEAR, driver.birthYear);
-      expect(listed(html, driver), `${driver.id} aged ${age}`).toBe(age <= oldest - 1);
+      // Both ends of the band bite: the oldest are out by the cap just set,
+      // and anyone below `AGE_RANGE.min` in this year was never in it.
+      expect(listed(html, driver), `${driver.id} aged ${age}`).toBe(left.has(driver.id));
     }
+    expect(left.size).toBeLessThan(reserve.length);
+    expect(left.size).toBeGreaterThan(0);
   });
 
   it("keeps a driver the season entered, however narrow the filters", () => {
@@ -322,7 +354,15 @@ describe("filtering the drivers without a drive", () => {
   });
 
   it("explains an empty list instead of showing a blank panel", () => {
-    // Nobody exempt, and a range nobody in the pool can be in.
+    // Nobody exempt, and an age nobody in the pool is — searched for rather
+    // than written down, since which ages the pool covers keeps changing.
+    const ages = new Set(reserve.map((driver) => ageInSeason(YEAR, driver.birthYear)));
+    const spare = Array.from(
+      { length: AGE_RANGE.max - AGE_RANGE.min + 1 },
+      (_, offset) => AGE_RANGE.min + offset,
+    ).find((age) => !ages.has(age));
+    expect(spare, "no age in the range is free of the pool").toBeDefined();
+
     const html = renderToStaticMarkup(
       <ReserveList
         drivers={reserve}
@@ -330,7 +370,7 @@ describe("filtering the drivers without a drive", () => {
         ratingMode="peak"
         selectedDriverId={null}
         onSelect={() => {}}
-        filters={{ ...SHOW_ALL, minAge: 16, maxAge: 16 }}
+        filters={{ ...SHOW_ALL, minAge: spare ?? 0, maxAge: spare ?? 0 }}
       />,
     );
     expect(html).toContain("Widen the filters");

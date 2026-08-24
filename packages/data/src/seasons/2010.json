@@ -1,0 +1,44 @@
+{
+  "year": 2010,
+  "calendar": [
+    { "round":  1, "name": "Bahrain GP",    "circuit": "Sakhir",            "country": "BH" },
+    { "round":  2, "name": "Australian GP", "circuit": "Melbourne",         "country": "AU" },
+    { "round":  3, "name": "Malaysian GP",  "circuit": "Sepang",            "country": "MY" },
+    { "round":  4, "name": "Chinese GP",    "circuit": "Shanghai",          "country": "CN" },
+    { "round":  5, "name": "Spanish GP",    "circuit": "Barcelona",         "country": "ES" },
+    { "round":  6, "name": "Monaco GP",     "circuit": "Monaco",            "country": "MC" },
+    { "round":  7, "name": "Turkish GP",    "circuit": "Istanbul Park",     "country": "TR" },
+    { "round":  8, "name": "Canadian GP",   "circuit": "Montreal",          "country": "CA" },
+    { "round":  9, "name": "European GP",   "circuit": "Nürburgring",       "country": "DE" },
+    { "round": 10, "name": "British GP",    "circuit": "Silverstone",       "country": "GB" },
+    { "round": 11, "name": "German GP",     "circuit": "Hockenheimring",    "country": "DE" },
+    { "round": 12, "name": "Hungarian GP",  "circuit": "Hungaroring",       "country": "HU" },
+    { "round": 13, "name": "Belgian GP",    "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round": 14, "name": "Italian GP",    "circuit": "Monza",             "country": "IT" },
+    { "round": 15, "name": "Singapore GP",  "circuit": "Marina Bay",        "country": "SG" },
+    { "round": 16, "name": "Japanese GP",   "circuit": "Suzuka",            "country": "JP" },
+    { "round": 17, "name": "Korean GP",     "circuit": "Yeongam",           "country": "KR" },
+    { "round": 18, "name": "Brazilian GP",  "circuit": "Interlagos",        "country": "BR" },
+    { "round": 19, "name": "Abu Dhabi GP",  "circuit": "Yas Marina",        "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "renault",  "racing":  88, "qualifying":  88, "reliability":  84 },
+    { "engineId": "mercedes", "racing":  92, "qualifying":  90, "reliability":  88 },
+    { "engineId": "ferrari",  "racing":  92, "qualifying":  90, "reliability":  88 },
+    { "engineId": "cosworth", "racing":  80, "qualifying":  78, "reliability":  82 }
+  ],
+  "entries": [
+    { "teamId": "red_bull",    "engineId": "renault",  "car": { "racing":  96, "qualifying":  98, "consistency":  86, "reliability":  78 }, "drivers": ["vettel", "webber"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "car": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["hamilton", "button"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["alonso", "massa"] },
+    { "teamId": "mercedes",    "engineId": "mercedes", "car": { "racing":  80, "qualifying":  78, "consistency":  80, "reliability":  84 }, "drivers": ["schumacher_m", "rosberg_n"] },
+    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  78 }, "drivers": ["kubica", "petrov"] },
+    { "teamId": "force_india", "engineId": "mercedes", "car": { "racing":  70, "qualifying":  70, "consistency":  70, "reliability":  74 }, "drivers": ["sutil", "liuzzi"] },
+    { "teamId": "williams",    "engineId": "cosworth", "car": { "racing":  68, "qualifying":  68, "consistency":  68, "reliability":  72 }, "drivers": ["barrichello", "hulkenberg"] },
+    { "teamId": "sauber",      "engineId": "ferrari",  "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  62 }, "drivers": ["kobayashi", "de_la_rosa"] },
+    { "teamId": "toro_rosso",  "engineId": "ferrari",  "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  68 }, "drivers": ["buemi", "alguersuari"] },
+    { "teamId": "caterham",    "engineId": "cosworth", "car": { "racing":  42, "qualifying":  40, "consistency":  46, "reliability":  54 }, "drivers": ["trulli", "kovalainen"] },
+    { "teamId": "virgin",      "engineId": "cosworth", "car": { "racing":  36, "qualifying":  34, "consistency":  40, "reliability":  42 }, "drivers": ["glock", "di_grassi"] },
+    { "teamId": "hrt",         "engineId": "cosworth", "car": { "racing":  32, "qualifying":  30, "consistency":  36, "reliability":  40 }, "drivers": ["senna_b", "chandhok"] }
+  ]
+}

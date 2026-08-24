@@ -40,20 +40,24 @@ describe("the main menu", () => {
   });
 
   it("lists every mode, finished or not", () => {
+    // Titles come from `MODES` rather than being written out here: they are
+    // copy, and a test that pins them fails for a reason that is not a bug.
+    expect(MODES.length).toBeGreaterThan(0);
     for (const mode of MODES) {
       expect(html, mode.id).toContain(mode.title);
     }
-    expect(html).toContain("Simulate a season");
-    expect(html).toContain("Simulate 1980–2026");
   });
 
   it("greys out the modes that do not exist yet, and only those", () => {
+    const unfinished = MODES.filter((mode) => !mode.available);
     const disabled = buttons(html).filter(isDisabled);
-    expect(disabled).toHaveLength(MODES.filter((mode) => !mode.available).length);
+    expect(disabled).toHaveLength(unfinished.length);
     // Named on the card rather than left as a button that silently does
     // nothing when pressed.
-    expect(disabled[0]).toContain("Not yet");
-    expect(disabled[0]).toContain("Simulate 1980–2026");
+    for (const [index, mode] of unfinished.entries()) {
+      expect(disabled[index], mode.id).toContain("Not yet");
+      expect(disabled[index], mode.id).toContain(mode.title);
+    }
   });
 
   it("reveals nothing about a season nobody has started", () => {

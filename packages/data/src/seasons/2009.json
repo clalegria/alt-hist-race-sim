@@ -1,0 +1,41 @@
+{
+  "year": 2009,
+  "calendar": [
+    { "round":  1, "name": "Australian GP", "circuit": "Melbourne",         "country": "AU" },
+    { "round":  2, "name": "Malaysian GP",  "circuit": "Sepang",            "country": "MY" },
+    { "round":  3, "name": "Chinese GP",    "circuit": "Shanghai",          "country": "CN" },
+    { "round":  4, "name": "Bahrain GP",    "circuit": "Sakhir",            "country": "BH" },
+    { "round":  5, "name": "Spanish GP",    "circuit": "Barcelona",         "country": "ES" },
+    { "round":  6, "name": "Monaco GP",     "circuit": "Monaco",            "country": "MC" },
+    { "round":  7, "name": "Turkish GP",    "circuit": "Istanbul Park",     "country": "TR" },
+    { "round":  8, "name": "British GP",    "circuit": "Silverstone",       "country": "GB" },
+    { "round":  9, "name": "German GP",     "circuit": "Hockenheimring",    "country": "DE" },
+    { "round": 10, "name": "Hungarian GP",  "circuit": "Hungaroring",       "country": "HU" },
+    { "round": 11, "name": "European GP",   "circuit": "Nürburgring",       "country": "DE" },
+    { "round": 12, "name": "Belgian GP",    "circuit": "Spa-Francorchamps", "country": "BE" },
+    { "round": 13, "name": "Italian GP",    "circuit": "Monza",             "country": "IT" },
+    { "round": 14, "name": "Singapore GP",  "circuit": "Marina Bay",        "country": "SG" },
+    { "round": 15, "name": "Japanese GP",   "circuit": "Suzuka",            "country": "JP" },
+    { "round": 16, "name": "Brazilian GP",  "circuit": "Interlagos",        "country": "BR" },
+    { "round": 17, "name": "Abu Dhabi GP",  "circuit": "Yas Marina",        "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  92, "qualifying":  92, "reliability":  86 },
+    { "engineId": "ferrari",  "racing":  88, "qualifying":  86, "reliability":  84 },
+    { "engineId": "renault",  "racing":  86, "qualifying":  86, "reliability":  84 },
+    { "engineId": "bmw",      "racing":  84, "qualifying":  82, "reliability":  84 },
+    { "engineId": "toyota",   "racing":  84, "qualifying":  82, "reliability":  84 }
+  ],
+  "entries": [
+    { "teamId": "brawn",       "engineId": "mercedes", "car": { "racing":  92, "qualifying":  92, "consistency":  86, "reliability":  84 }, "drivers": ["button", "barrichello"] },
+    { "teamId": "red_bull",    "engineId": "renault",  "car": { "racing":  92, "qualifying":  92, "consistency":  84, "reliability":  80 }, "drivers": ["vettel", "webber"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "car": { "racing":  80, "qualifying":  80, "consistency":  78, "reliability":  78 }, "drivers": ["hamilton", "kovalainen"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  78, "qualifying":  76, "consistency":  78, "reliability":  78 }, "drivers": ["raikkonen", "massa"] },
+    { "teamId": "sauber",      "engineId": "bmw",      "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  80 }, "drivers": ["kubica", "heidfeld"] },
+    { "teamId": "williams",    "engineId": "toyota",   "car": { "racing":  74, "qualifying":  74, "consistency":  74, "reliability":  76 }, "drivers": ["rosberg_n", "nakajima_k"] },
+    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["alonso", "grosjean"] },
+    { "teamId": "toyota",      "engineId": "toyota",   "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  78 }, "drivers": ["trulli", "glock"] },
+    { "teamId": "force_india", "engineId": "mercedes", "car": { "racing":  66, "qualifying":  68, "consistency":  64, "reliability":  66 }, "drivers": ["sutil", "fisichella"] },
+    { "teamId": "toro_rosso",  "engineId": "ferrari",  "car": { "racing":  60, "qualifying":  58, "consistency":  62, "reliability":  66 }, "drivers": ["buemi", "alguersuari"] }
+  ]
+}

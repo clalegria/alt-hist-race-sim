@@ -1,0 +1,42 @@
+{
+  "year": 2014,
+  "calendar": [
+    { "round":  1, "name": "Australian GP",    "circuit": "Melbourne",               "country": "AU" },
+    { "round":  2, "name": "Malaysian GP",     "circuit": "Sepang",                  "country": "MY" },
+    { "round":  3, "name": "Bahrain GP",       "circuit": "Sakhir",                  "country": "BH" },
+    { "round":  4, "name": "Chinese GP",       "circuit": "Shanghai",                "country": "CN" },
+    { "round":  5, "name": "Spanish GP",       "circuit": "Barcelona",               "country": "ES" },
+    { "round":  6, "name": "Monaco GP",        "circuit": "Monaco",                  "country": "MC" },
+    { "round":  7, "name": "Canadian GP",      "circuit": "Montreal",                "country": "CA" },
+    { "round":  8, "name": "Austrian GP",      "circuit": "Red Bull Ring",           "country": "AT" },
+    { "round":  9, "name": "British GP",       "circuit": "Silverstone",             "country": "GB" },
+    { "round": 10, "name": "German GP",        "circuit": "Hockenheimring",          "country": "DE" },
+    { "round": 11, "name": "Hungarian GP",     "circuit": "Hungaroring",             "country": "HU" },
+    { "round": 12, "name": "Belgian GP",       "circuit": "Spa-Francorchamps",       "country": "BE" },
+    { "round": 13, "name": "Italian GP",       "circuit": "Monza",                   "country": "IT" },
+    { "round": 14, "name": "Singapore GP",     "circuit": "Marina Bay",              "country": "SG" },
+    { "round": 15, "name": "Japanese GP",      "circuit": "Suzuka",                  "country": "JP" },
+    { "round": 16, "name": "Russian GP",       "circuit": "Sochi",                   "country": "RU" },
+    { "round": 17, "name": "United States GP", "circuit": "Circuit of the Americas", "country": "US" },
+    { "round": 18, "name": "Brazilian GP",     "circuit": "Interlagos",              "country": "BR" },
+    { "round": 19, "name": "Abu Dhabi GP",     "circuit": "Yas Marina",              "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  98, "qualifying":  98, "reliability":  84 },
+    { "engineId": "ferrari",  "racing":  80, "qualifying":  78, "reliability":  80 },
+    { "engineId": "renault",  "racing":  76, "qualifying":  74, "reliability":  66 }
+  ],
+  "entries": [
+    { "teamId": "mercedes",    "engineId": "mercedes", "car": { "racing":  98, "qualifying":  98, "consistency":  90, "reliability":  80 }, "drivers": ["hamilton", "rosberg_n"] },
+    { "teamId": "red_bull",    "engineId": "renault",  "car": { "racing":  84, "qualifying":  80, "consistency":  84, "reliability":  72 }, "drivers": ["ricciardo", "vettel"] },
+    { "teamId": "williams",    "engineId": "mercedes", "car": { "racing":  86, "qualifying":  88, "consistency":  78, "reliability":  80 }, "drivers": ["bottas", "massa"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  80 }, "drivers": ["alonso", "raikkonen"] },
+    { "teamId": "force_india", "engineId": "mercedes", "car": { "racing":  76, "qualifying":  76, "consistency":  74, "reliability":  76 }, "drivers": ["hulkenberg", "perez"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "car": { "racing":  72, "qualifying":  70, "consistency":  74, "reliability":  78 }, "drivers": ["button", "magnussen_k"] },
+    { "teamId": "toro_rosso",  "engineId": "renault",  "car": { "racing":  64, "qualifying":  64, "consistency":  64, "reliability":  62 }, "drivers": ["vergne", "kvyat"] },
+    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  58 }, "drivers": ["grosjean", "maldonado"] },
+    { "teamId": "sauber",      "engineId": "ferrari",  "car": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  66 }, "drivers": ["sutil", "gutierrez"] },
+    { "teamId": "marussia",    "engineId": "ferrari",  "car": { "racing":  40, "qualifying":  38, "consistency":  44, "reliability":  56 }, "drivers": ["bianchi", "chilton"] },
+    { "teamId": "caterham",    "engineId": "renault",  "car": { "racing":  34, "qualifying":  32, "consistency":  38, "reliability":  46 }, "drivers": ["kobayashi", "ericsson"] }
+  ]
+}

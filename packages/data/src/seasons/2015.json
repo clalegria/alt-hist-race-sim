@@ -1,0 +1,42 @@
+{
+  "year": 2015,
+  "calendar": [
+    { "round":  1, "name": "Australian GP",    "circuit": "Melbourne",               "country": "AU" },
+    { "round":  2, "name": "Malaysian GP",     "circuit": "Sepang",                  "country": "MY" },
+    { "round":  3, "name": "Chinese GP",       "circuit": "Shanghai",                "country": "CN" },
+    { "round":  4, "name": "Bahrain GP",       "circuit": "Sakhir",                  "country": "BH" },
+    { "round":  5, "name": "Spanish GP",       "circuit": "Barcelona",               "country": "ES" },
+    { "round":  6, "name": "Monaco GP",        "circuit": "Monaco",                  "country": "MC" },
+    { "round":  7, "name": "Canadian GP",      "circuit": "Montreal",                "country": "CA" },
+    { "round":  8, "name": "Austrian GP",      "circuit": "Red Bull Ring",           "country": "AT" },
+    { "round":  9, "name": "British GP",       "circuit": "Silverstone",             "country": "GB" },
+    { "round": 10, "name": "Hungarian GP",     "circuit": "Hungaroring",             "country": "HU" },
+    { "round": 11, "name": "Belgian GP",       "circuit": "Spa-Francorchamps",       "country": "BE" },
+    { "round": 12, "name": "Italian GP",       "circuit": "Monza",                   "country": "IT" },
+    { "round": 13, "name": "Singapore GP",     "circuit": "Marina Bay",              "country": "SG" },
+    { "round": 14, "name": "Japanese GP",      "circuit": "Suzuka",                  "country": "JP" },
+    { "round": 15, "name": "Russian GP",       "circuit": "Sochi",                   "country": "RU" },
+    { "round": 16, "name": "United States GP", "circuit": "Circuit of the Americas", "country": "US" },
+    { "round": 17, "name": "Mexican GP",       "circuit": "Mexico City",             "country": "MX" },
+    { "round": 18, "name": "Brazilian GP",     "circuit": "Interlagos",              "country": "BR" },
+    { "round": 19, "name": "Abu Dhabi GP",     "circuit": "Yas Marina",              "country": "AE" }
+  ],
+  "engines": [
+    { "engineId": "mercedes", "racing":  96, "qualifying":  96, "reliability":  88 },
+    { "engineId": "ferrari",  "racing":  86, "qualifying":  84, "reliability":  84 },
+    { "engineId": "renault",  "racing":  70, "qualifying":  68, "reliability":  64 },
+    { "engineId": "honda",    "racing":  56, "qualifying":  54, "reliability":  40 }
+  ],
+  "entries": [
+    { "teamId": "mercedes",    "engineId": "mercedes", "car": { "racing":  98, "qualifying":  98, "consistency":  92, "reliability":  86 }, "drivers": ["hamilton", "rosberg_n"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  84 }, "drivers": ["vettel", "raikkonen"] },
+    { "teamId": "williams",    "engineId": "mercedes", "car": { "racing":  80, "qualifying":  80, "consistency":  78, "reliability":  82 }, "drivers": ["bottas", "massa"] },
+    { "teamId": "red_bull",    "engineId": "renault",  "car": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  66 }, "drivers": ["ricciardo", "kvyat"] },
+    { "teamId": "force_india", "engineId": "mercedes", "car": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  78 }, "drivers": ["perez", "hulkenberg"] },
+    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  64 }, "drivers": ["grosjean", "maldonado"] },
+    { "teamId": "toro_rosso",  "engineId": "renault",  "car": { "racing":  70, "qualifying":  70, "consistency":  66, "reliability":  62 }, "drivers": ["verstappen_m", "sainz"] },
+    { "teamId": "sauber",      "engineId": "ferrari",  "car": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  72 }, "drivers": ["ericsson", "nasr"] },
+    { "teamId": "mclaren",     "engineId": "honda",    "car": { "racing":  56, "qualifying":  54, "consistency":  58, "reliability":  40 }, "drivers": ["alonso", "button"] },
+    { "teamId": "marussia",    "engineId": "ferrari",  "car": { "racing":  30, "qualifying":  28, "consistency":  34, "reliability":  50 }, "drivers": ["stevens", "merhi"] }
+  ]
+}
