@@ -18,8 +18,14 @@ describe("each authored season, through the whole reveal", () => {
   for (const [year, seed] of seasons) {
     describe(`${year}`, () => {
       const world = createWorld(5, year);
+      // Entities decoded: React escapes an apostrophe to `&#x27;`, and the
+      // pool holds names with one in them. Every assertion here is against a
+      // name, so decode once at the source rather than at each match.
       const render = (view: View): string =>
-        renderToStaticMarkup(<SeasonView world={world} view={view} />);
+        renderToStaticMarkup(<SeasonView world={world} view={view} />)
+          .replace(/&#x27;/g, "'")
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, "&");
 
       it("puts its own grid on the opening page", () => {
         const html = render({ kind: "grid" });

@@ -13,13 +13,17 @@
     { "engineId": "ferrari",    "racing":  76, "qualifying":  74, "reliability":  72 },
     { "engineId": "maserati",   "racing":  70, "qualifying":  68, "reliability":  66 },
     { "engineId": "talbot",     "racing":  64, "qualifying":  62, "reliability":  74 },
-    { "engineId": "era_eng",    "racing":  52, "qualifying":  50, "reliability":  58 }
+    { "engineId": "era_eng",    "racing":  52, "qualifying":  50, "reliability":  58 },
+    { "engineId": "alta",       "racing":  44, "qualifying":  42, "reliability":  48 }
   ],
   "entries": [
-    { "teamId": "alfa_romeo",  "engineId": "alfa_romeo", "car": { "racing":  96, "qualifying":  96, "consistency":  88, "reliability":  84 }, "drivers": ["farina", "fangio"] },
-    { "teamId": "ferrari",     "engineId": "ferrari",    "car": { "racing":  74, "qualifying":  72, "consistency":  72, "reliability":  70 }, "drivers": ["ascari", "villoresi"] },
-    { "teamId": "maserati",    "engineId": "maserati",   "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  64 }, "drivers": ["de_graffenried", "bira"] },
-    { "teamId": "talbot_lago", "engineId": "talbot",     "car": { "racing":  62, "qualifying":  60, "consistency":  68, "reliability":  74 }, "drivers": ["rosier", "etancelin"] },
-    { "teamId": "era",         "engineId": "era_eng",    "car": { "racing":  48, "qualifying":  46, "consistency":  52, "reliability":  56 }, "drivers": ["gerard", "parnell"] }
+    { "teamId": "alfa_romeo",      "engineId": "alfa_romeo", "car": { "racing":  96, "qualifying":  96, "consistency":  88, "reliability":  84 }, "drivers": ["farina", "fangio", "fagioli"] },
+    { "teamId": "ferrari",         "engineId": "ferrari",    "car": { "racing":  74, "qualifying":  72, "consistency":  72, "reliability":  70 }, "drivers": ["ascari", "villoresi"] },
+    { "teamId": "maserati",        "engineId": "maserati",   "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  64 }, "drivers": ["de_graffenried", "bira"] },
+    { "teamId": "talbot_lago",     "engineId": "talbot",     "car": { "racing":  62, "qualifying":  60, "consistency":  68, "reliability":  74 }, "drivers": ["rosier", "etancelin"] },
+    { "teamId": "scuderia_milano", "engineId": "maserati",   "car": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  60 }, "drivers": ["chiron", "carini"] },
+    { "teamId": "ecurie_ecosse",   "engineId": "talbot",     "car": { "racing":  56, "qualifying":  54, "consistency":  62, "reliability":  70 }, "drivers": ["claes", "cabantous"] },
+    { "teamId": "era",             "engineId": "era_eng",    "car": { "racing":  48, "qualifying":  46, "consistency":  52, "reliability":  56 }, "drivers": ["gerard", "parnell"] },
+    { "teamId": "alta",            "engineId": "alta",       "car": { "racing":  40, "qualifying":  38, "consistency":  46, "reliability":  46 }, "drivers": ["chaboud", "murray_d"] }
   ]
 }

@@ -47,7 +47,13 @@ const SECOND_ENTRY = SEED.entries[1];
 const SEATED = FIRST_ENTRY?.drivers[0] ?? "";
 const TEAM_MATE = FIRST_ENTRY?.drivers[1] ?? "";
 const ELSEWHERE = SECOND_ENTRY?.drivers[0] ?? "";
-const [FREE, ALSO_FREE] = reserveDrivers(authored);
+// Reserves the widest filters would actually draw: the pool spans every
+// authored season, so plenty of it is unborn in the fixture year and never
+// reaches the list.
+const [FREE, ALSO_FREE] = reserveDrivers(authored).filter((driver) => {
+  const age = ageInSeason(YEAR, driver.birthYear);
+  return age >= AGE_RANGE.min && age <= AGE_RANGE.max;
+});
 if (FIRST_ENTRY === undefined || FREE === undefined || ALSO_FREE === undefined) {
   throw new Error("the season needs an entry list and two drivers without a seat");
 }

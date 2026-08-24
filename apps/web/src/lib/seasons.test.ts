@@ -30,11 +30,11 @@ describe("which seasons can be run", () => {
     }
   });
 
-  it("is not the whole range — most years are still unauthored", () => {
-    expect(PLAYABLE_SEASONS.length).toBeLessThan(SEASON_YEARS.length);
-    const unauthored = SEASON_YEARS.find((year) => !PLAYABLE_SEASONS.includes(year));
-    expect(unauthored).toBeDefined();
-    expect(isPlayable(unauthored ?? 0)).toBe(false);
+  it("is not open-ended — a year off the end of the range is not playable", () => {
+    // Every year in the range is authored today, so the check that still means
+    // something is that `isPlayable` says no to one outside it.
+    expect(isPlayable(LAST_SEASON + 1)).toBe(false);
+    expect(isPlayable(FIRST_SEASON - 1)).toBe(false);
   });
 
   it("only ever offers a year the picker lists", () => {

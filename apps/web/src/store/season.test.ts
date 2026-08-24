@@ -51,41 +51,42 @@ function agedDiffers(mode: World): string {
 
 describe("the world", () => {
   it("runs one race per round on the calendar", () => {
-    expect(createWorld(1, 1980).season.races).toHaveLength(SEED.calendar.length);
+    expect(createWorld(1, YEAR).season.races).toHaveLength(SEED.calendar.length);
   });
 
   it("is the same world for the same seed", () => {
-    expect(createWorld(7, 1980)).toEqual(createWorld(7, 1980));
+    expect(createWorld(7, YEAR)).toEqual(createWorld(7, YEAR));
   });
 
   it("is a different world for a different seed", () => {
-    expect(createWorld(7, 1980)).not.toEqual(createWorld(8, 1980));
+    expect(createWorld(7, YEAR)).not.toEqual(createWorld(8, YEAR));
   });
 
   it("refuses a season nobody has authored", () => {
     // Better a throw than a quiet fall back to the earliest year: a picker that
     // offered an unauthored season by mistake would otherwise look like it
     // worked, running someone else's grid under the wrong heading.
-    const unauthored = 1999;
+    const unauthored = Math.max(...seasons.keys()) + 1;
     expect(seasons.has(unauthored)).toBe(false);
     expect(() => createWorld(1, unauthored)).toThrow(String(unauthored));
   });
 
   it("records the grid it actually raced", () => {
-    const world = createWorld(1, 1980);
+    const world = createWorld(1, YEAR);
     expect(world.field).toHaveLength(SEATS);
     // Not just ids: the ratings that fed the simulation, which is what makes
     // this the record of the season rather than a pointer back to the seed.
-    const jones = world.field.find((entrant) => entrant.driverId === "jones");
-    expect(jones?.teamId).toBe("williams");
-    expect(jones?.driver.racing).toBeGreaterThan(0);
-    expect(jones?.car.reliability).toBeGreaterThan(0);
+    const entry = SEED.entries[0];
+    const first = world.field.find((entrant) => entrant.driverId === entry?.drivers[0]);
+    expect(first?.teamId).toBe(entry?.teamId);
+    expect(first?.driver.racing).toBeGreaterThan(0);
+    expect(first?.car.reliability).toBeGreaterThan(0);
   });
 
   it("survives a JSON round trip unchanged", () => {
     // The save-game invariant: the world is plain data. A function, a Map, or a
     // live `Rng` anywhere in it would silently vanish here.
-    const world = createWorld(3, 1980);
+    const world = createWorld(3, YEAR);
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
 
@@ -107,21 +108,21 @@ describe("the world", () => {
         walk(child, `${path}.${key}`);
       }
     };
-    walk(createWorld(2, 1980), "world");
+    walk(createWorld(2, YEAR), "world");
   });
 
   it("stores an RNG snapshot that resumes the stream", () => {
     // Not a decoration: this is what a saved game continues from. Rebuilding
     // from the snapshot must give the same next value as carrying on would.
-    const world = createWorld(5, 1980);
+    const world = createWorld(5, YEAR);
     const resumed = createRngFromState(world.rngState);
     const again = createRngFromState(world.rngState);
     expect(resumed.next()).toBe(again.next());
-    expect(world.rngState).not.toEqual(createWorld(6, 1980).rngState);
+    expect(world.rngState).not.toEqual(createWorld(6, YEAR).rngState);
   });
 
   it("produces a season the championship can be derived from", () => {
-    const world = createWorld(4, 1980);
+    const world = createWorld(4, YEAR);
     const drivers = championshipStandings(world.season);
     const teams = constructorStandings(world.season);
     expect(drivers).toHaveLength(SEATS);
@@ -198,13 +199,13 @@ describe("the screens", () => {
   it("goes menu, then setup, then a season", () => {
     useSeasonStore.getState().openSeasonSetup();
     expect(screen().kind).toBe("season-setup");
-    useSeasonStore.getState().startSeason(1980);
-    expect(running().world.year).toBe(1980);
+    useSeasonStore.getState().startSeason(YEAR);
+    expect(running().world.year).toBe(YEAR);
     expect(running().view).toEqual({ kind: "grid" });
   });
 
   it("comes back to the menu from a season in progress", () => {
-    useSeasonStore.getState().simulate(11, 1980);
+    useSeasonStore.getState().simulate(11, YEAR);
     useSeasonStore.getState().skipToEnd();
     useSeasonStore.getState().openMenu();
     expect(screen()).toEqual({ kind: "menu" });
@@ -220,21 +221,21 @@ describe("the screens", () => {
   });
 
   it("draws a different season each time one is started", () => {
-    useSeasonStore.getState().startSeason(1980);
+    useSeasonStore.getState().startSeason(YEAR);
     const first = running().world.seed;
-    useSeasonStore.getState().startSeason(1980);
+    useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.seed).not.toBe(first);
   });
 
   it("gives the same world for the same seed however it is reached", () => {
-    useSeasonStore.getState().simulate(9, 1980);
-    expect(running().world).toEqual(createWorld(9, 1980));
+    useSeasonStore.getState().simulate(9, YEAR);
+    expect(running().world).toEqual(createWorld(9, YEAR));
   });
 
   it("replaces the world when a new seed is simulated", () => {
-    useSeasonStore.getState().simulate(21, 1980);
+    useSeasonStore.getState().simulate(21, YEAR);
     const before = running().world;
-    useSeasonStore.getState().simulate(22, 1980);
+    useSeasonStore.getState().simulate(22, YEAR);
     const after = running().world;
     expect(after.seed).toBe(22);
     expect(after.season).not.toEqual(before.season);
@@ -248,7 +249,7 @@ describe("revealing the season", () => {
   const ROUNDS = 14;
 
   beforeEach(() => {
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
   });
 
   it("opens on the grid", () => {
@@ -325,7 +326,7 @@ describe("revealing the season", () => {
 
 describe("driver ability mode", () => {
   beforeEach(() => {
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
   });
 
   it("starts on peak, which is the mode the calibration describes", () => {
@@ -366,7 +367,7 @@ describe("driver ability mode", () => {
   it("goes back to peak again", () => {
     useSeasonStore.getState().setRatingMode("aged");
     useSeasonStore.getState().setRatingMode("peak");
-    expect(running().world).toEqual(createWorld(3, 1980, "peak"));
+    expect(running().world).toEqual(createWorld(3, YEAR, "peak"));
   });
 
   it("refuses to switch once the season has started revealing", () => {
@@ -412,7 +413,7 @@ describe("the chosen grid", () => {
   const swapped = swapDrivers(authored, SEATED, RESERVE);
 
   beforeEach(() => {
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
   });
 
   it("starts on the grid the season was entered with", () => {
@@ -440,7 +441,7 @@ describe("the chosen grid", () => {
     expect(team.map((entrant) => entrant.driverId)).toContain(RESERVE);
     expect(field.map((entrant) => entrant.driverId)).not.toContain(SEATED);
     // The car is the team's, not the driver's: the newcomer inherits it.
-    const was = createWorld(3, 1980).field.find((entrant) => entrant.driverId === SEATED)?.car;
+    const was = createWorld(3, YEAR).field.find((entrant) => entrant.driverId === SEATED)?.car;
     expect(team.find((entrant) => entrant.driverId === RESERVE)?.car).toEqual(was);
   });
 
@@ -457,13 +458,13 @@ describe("the chosen grid", () => {
     useSeasonStore.getState().setGrid(swapped, null);
     useSeasonStore.getState().setGrid(swapDrivers(swapped, RESERVE, SEATED), null);
     expect(running().world.lineup).toBeNull();
-    expect(running().world.season).toEqual(createWorld(3, 1980).season);
+    expect(running().world.season).toEqual(createWorld(3, YEAR).season);
   });
 
   it("goes back to the entered grid when handed null", () => {
     useSeasonStore.getState().setGrid(swapped, null);
     useSeasonStore.getState().setGrid(null, null);
-    expect(running().world).toEqual(createWorld(3, 1980));
+    expect(running().world).toEqual(createWorld(3, YEAR));
   });
 
   it("refuses to change the grid once the season has started revealing", () => {
@@ -495,7 +496,7 @@ describe("the chosen grid", () => {
     expect(world.lineup).toEqual(swapped);
     expect(world.ratingMode).toBe("aged");
     // And the two are applied together: the chosen grid, at its real ages.
-    expect(world.field).toEqual(createWorld(3, 1980, "aged", swapped).field);
+    expect(world.field).toEqual(createWorld(3, YEAR, "aged", swapped).field);
     expect(world.field.map((entrant) => entrant.driverId)).toContain(RESERVE);
   });
 
@@ -504,7 +505,7 @@ describe("the chosen grid", () => {
     // grid, unlike the ability mode, which is a way of playing.
     useSeasonStore.getState().setGrid(swapped, null);
     useSeasonStore.getState().openMenu();
-    useSeasonStore.getState().startSeason(1980);
+    useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.lineup).toBeNull();
   });
 
@@ -518,7 +519,7 @@ describe("the chosen grid", () => {
     // The store is not the only way in — a save file is another — and a field
     // of 29 would quietly break the arithmetic the starting limit was set to.
     const crowded = [...(authored[SEATED_TEAM] ?? []), RESERVE];
-    expect(() => createWorld(3, 1980, "peak", { ...authored, [SEATED_TEAM]: crowded })).toThrow(
+    expect(() => createWorld(3, YEAR, "peak", { ...authored, [SEATED_TEAM]: crowded })).toThrow(
       `${crowded.length} drivers`,
     );
   });
@@ -541,17 +542,17 @@ describe("the remembered ability mode", () => {
   });
 
   it("starts a season from the menu in the remembered mode", () => {
-    // The path the reader takes on Start again → Main menu → 1980. Without the
+    // The path the reader takes on Start again → Main menu → YEAR. Without the
     // preference this came back peak every time.
     storedAs("aged");
     useSeasonStore.getState().openMenu();
-    useSeasonStore.getState().startSeason(1980);
+    useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.ratingMode).toBe("aged");
   });
 
   it("still opens on peak when nothing has been chosen", () => {
     useSeasonStore.getState().openMenu();
-    useSeasonStore.getState().startSeason(1980);
+    useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.ratingMode).toBe("peak");
   });
 
@@ -568,7 +569,7 @@ describe("the remembered ability mode", () => {
         },
       },
     });
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
     useSeasonStore.getState().setRatingMode("aged");
     expect(written).toContain("aged");
   });
@@ -577,7 +578,7 @@ describe("the remembered ability mode", () => {
     // `simulate` must depend only on its arguments, or every test that uses it
     // becomes order-dependent on whatever was last remembered.
     storedAs("aged");
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
     expect(running().world.ratingMode).toBe("peak");
   });
 });
@@ -601,7 +602,7 @@ describe("the chosen engines", () => {
   const resupplied = { ...authored, [swap.teamId]: swap.to };
 
   beforeEach(() => {
-    useSeasonStore.getState().simulate(3, 1980);
+    useSeasonStore.getState().simulate(3, YEAR);
   });
 
   it("starts on the supply deals the season was entered with", () => {
@@ -642,7 +643,7 @@ describe("the chosen engines", () => {
     useSeasonStore.getState().setGrid(null, resupplied);
     useSeasonStore.getState().setGrid(null, authored);
     expect(running().world.engines).toBeNull();
-    expect(running().world.season).toEqual(createWorld(3, 1980).season);
+    expect(running().world.season).toEqual(createWorld(3, YEAR).season);
   });
 
   it("applies drivers and engines as one edit", () => {
@@ -652,7 +653,7 @@ describe("the chosen engines", () => {
 
     expect(world.lineup).toEqual(swapped);
     expect(world.engines).toEqual(resupplied);
-    expect(world.season).toEqual(createWorld(3, 1980, "peak", swapped, resupplied).season);
+    expect(world.season).toEqual(createWorld(3, YEAR, "peak", swapped, resupplied).season);
   });
 
   it("carries the supply into a fresh seed of the same season", () => {

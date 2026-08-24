@@ -67,9 +67,22 @@ describe("validateSeedData", () => {
   });
 
   it("allows seatless drivers and single-car entries", () => {
+    // The rule, against a fixture — not a season that happens to have a
+    // one-car team today. Whether any authored year has one is data, and the
+    // point here is that validation permits it.
+    const seatless: SeasonSeed = {
+      year: 1980,
+      calendar: [],
+      engines: [engineSpec()],
+      entries: [
+        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+      ],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [seatless]);
+    }).not.toThrow();
     const seated = new Set(SEED.entries.flatMap((entry) => entry.drivers));
     expect(seated.size).toBeLessThan(drivers.length);
-    expect(SEED.entries.some((entry) => entry.drivers.length === 1)).toBe(true);
   });
 
   it("lets a driver hold a seat in more than one season", () => {

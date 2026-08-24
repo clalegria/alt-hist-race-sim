@@ -16,7 +16,12 @@
  * Not a `.test.ts` file, so Vitest does not collect it.
  */
 
-import { FIRST_AUTHORED_SEASON, type RatingMode, seasonSeed } from "@alt-hist/data";
+import {
+  authoredSeasons,
+  FIRST_AUTHORED_SEASON,
+  type RatingMode,
+  seasonSeed,
+} from "@alt-hist/data";
 import { createWorld, type World } from "./store/season.js";
 
 /**
@@ -30,9 +35,21 @@ export const YEAR = FIRST_AUTHORED_SEASON;
 export const SEED = seasonSeed(YEAR);
 
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
-export function seededWorld(seed = 3, mode?: RatingMode): World {
-  return mode === undefined ? createWorld(seed, YEAR) : createWorld(seed, YEAR, mode);
+export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {
+  return mode === undefined ? createWorld(seed, year) : createWorld(seed, year, mode);
 }
+
+/**
+ * The earliest authored season that enters more cars than the grid holds.
+ *
+ * Not every year has non-qualifiers — the fifties fields are well inside the
+ * starting limit — so a test about the DNQ cut has to be handed a season that
+ * actually has one rather than assume the fixture year does.
+ */
+export const OVERSUBSCRIBED_YEAR: number =
+  authoredSeasons.find((year) =>
+    createWorld(1, year).season.races.some((race) => race.entries.some((entry) => !entry.started)),
+  ) ?? YEAR;
 
 /**
  * The first season matching a condition, by seed.
@@ -45,10 +62,10 @@ export function seededWorld(seed = 3, mode?: RatingMode): World {
  */
 export function findWorld(
   matches: (world: World) => boolean,
-  { seeds = 200, mode }: { seeds?: number; mode?: RatingMode } = {},
+  { seeds = 200, mode, year = YEAR }: { seeds?: number; mode?: RatingMode; year?: number } = {},
 ): World {
   for (let seed = 1; seed <= seeds; seed += 1) {
-    const world = seededWorld(seed, mode);
+    const world = seededWorld(seed, mode, year);
     if (matches(world)) {
       return world;
     }

@@ -44,5 +44,7 @@
   { "id": "bristol",         "name": "Bristol",              "base": "GB" },
   { "id": "tecno",           "name": "Tecno",                "base": "IT" },
   { "id": "aston_martin",    "name": "Aston Martin",         "base": "GB" },
-  { "id": "scarab",          "name": "Scarab",               "base": "US" }
+  { "id": "scarab",          "name": "Scarab",               "base": "US" },
+  { "id": "alta",            "name": "Alta",                 "base": "GB" },
+  { "id": "veritas",         "name": "Veritas",              "base": "DE" }
 ]

@@ -167,13 +167,18 @@ describe("applying a lineup to a season", () => {
   });
 
   it("rejects a team that gained a car", () => {
-    const overloaded = { ...authored, [seatedTeam]: [seated, teamMate, reserve] };
-    expect(() => applyLineup(SEED, overloaded)).toThrow("3 drivers");
+    // Seat counts derived, not written down: the team picked above enters
+    // however many cars the season gave it, and that number changes with the
+    // data.
+    const seats = authored[seatedTeam] ?? [];
+    const overloaded = { ...authored, [seatedTeam]: [...seats, reserve] };
+    expect(() => applyLineup(SEED, overloaded)).toThrow(`${seats.length + 1} drivers`);
   });
 
   it("rejects a team that lost one", () => {
-    const short = { ...authored, [seatedTeam]: [seated] };
-    expect(() => applyLineup(SEED, short)).toThrow("2 cars");
+    const seats = authored[seatedTeam] ?? [];
+    const short = { ...authored, [seatedTeam]: seats.slice(0, -1) };
+    expect(() => applyLineup(SEED, short)).toThrow(`${seats.length} cars`);
   });
 
   it("rejects a driver seated twice", () => {

@@ -22,7 +22,15 @@ import { carOverall, driverOverall } from "../lib/rating.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { positionsOf } from "../lib/standings.js";
 import type { World } from "../store/season.js";
-import { findWorld, SEED, seededWorld, starterCount, teamCount, YEAR } from "../test-support.js";
+import {
+  findWorld,
+  OVERSUBSCRIBED_YEAR,
+  SEED,
+  seededWorld,
+  starterCount,
+  teamCount,
+  YEAR,
+} from "../test-support.js";
 
 import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
@@ -131,12 +139,15 @@ describe("the race classification", () => {
   it("distinguishes retirements from non-qualifiers", () => {
     // Both outcomes have to be on screen at once, so the race is chosen for
     // having both rather than assumed to.
-    const both = findWorld((candidate) =>
-      candidate.season.races.some(
-        (round) =>
-          round.entries.some((entry) => entry.retired) &&
-          round.entries.some((entry) => !entry.started),
-      ),
+    const both = findWorld(
+      (candidate) =>
+        candidate.season.races.some(
+          (round) =>
+            round.entries.some((entry) => entry.retired) &&
+            round.entries.some((entry) => !entry.started),
+        ),
+      // Only a year that enters more cars than the grid holds has a DNQ at all.
+      { year: OVERSUBSCRIBED_YEAR },
     );
     const round = both.season.races.find(
       (candidate) =>
@@ -180,7 +191,7 @@ describe("the race classification", () => {
 });
 
 describe("the season grid", () => {
-  const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={1980} />);
+  const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={YEAR} />);
 
   it("groups every driver under their team", () => {
     for (const entrant of world.field) {
@@ -240,8 +251,12 @@ describe("the season grid", () => {
 });
 
 describe("the compact standings", () => {
+  // A season with more than eight teams, since a table that already fits is
+  // deliberately not expandable and the fixture year fields exactly eight.
+  const crowded = seededWorld(3, undefined, OVERSUBSCRIBED_YEAR);
+  const CROWDED_TEAMS = teamCount(crowded);
   const drivers = championshipStandings(world.season);
-  const teams = constructorStandings(world.season);
+  const teams = constructorStandings(crowded.season);
   const driverHtml = renderToStaticMarkup(<CompactStandings title="Drivers" standings={drivers} />);
   const teamHtml = renderToStaticMarkup(
     <CompactStandings title="Constructors" standings={teams} />,
@@ -249,7 +264,7 @@ describe("the compact standings", () => {
 
   it("shows only the top eight until it is expanded", () => {
     expect(drivers.length).toBe(SEATS);
-    expect(teams.length).toBe(TEAMS);
+    expect(teams.length).toBe(CROWDED_TEAMS);
     // One row each, and one flag per row, so counting flags counts rows.
     expect((driverHtml.match(/<svg/g) ?? []).length).toBe(8);
     expect((teamHtml.match(/<svg/g) ?? []).length).toBe(8);
@@ -263,7 +278,7 @@ describe("the compact standings", () => {
 
   it("offers a way to see the rest, naming how many there are", () => {
     expect(driverHtml).toContain(`Show all ${SEATS}`);
-    expect(teamHtml).toContain(`Show all ${TEAMS}`);
+    expect(teamHtml).toContain(`Show all ${CROWDED_TEAMS}`);
     expect(driverHtml).toContain('aria-expanded="false"');
   });
 

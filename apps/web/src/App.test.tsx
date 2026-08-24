@@ -23,7 +23,14 @@ import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
 import type { View, World } from "./store/season.js";
-import { findWorld, SEED, seededWorld, starterCount, teamCount } from "./test-support.js";
+import {
+  findWorld,
+  OVERSUBSCRIBED_YEAR,
+  SEED,
+  seededWorld,
+  starterCount,
+  teamCount,
+} from "./test-support.js";
 
 const world = seededWorld();
 const ROUNDS = world.season.races.length;
@@ -276,10 +283,14 @@ describe("flags", () => {
   it("keeps the non-qualifiers off the starting grid", () => {
     // Cars outside the cut never form up, so they are listed apart rather than
     // taking a slot that would shift everyone behind them onto the wrong side.
-    expect(STARTERS).toBeLessThan(SEATS);
-    const html = render({ kind: "qualifying", round: 0 });
+    // A year that actually enters more cars than the grid holds: the fixture
+    // season is well inside the starting limit, so nobody misses the cut there.
+    const oversubscribed = seededWorld(3, undefined, OVERSUBSCRIBED_YEAR);
+    const started = starterCount(oversubscribed);
+    expect(started).toBeLessThan(oversubscribed.field.length);
+    const html = render({ kind: "qualifying", round: 0 }, oversubscribed);
     const grid = html.slice(0, html.indexOf("Did not qualify"));
-    expect(grid.split("<li").length - 1).toBe(STARTERS);
+    expect(grid.split("<li").length - 1).toBe(started);
   });
 
   it("flies a flag on both champion cards", () => {
@@ -421,7 +432,9 @@ describe("the buttons", () => {
   });
 
   it("offers a step and a skip through the season", () => {
-    for (const round of [0, 5, ROUNDS - 2]) {
+    // Rounds derived from the calendar: any round before the last has both a
+    // session to step to and a season left to skip.
+    for (const round of new Set([0, Math.floor((ROUNDS - 1) / 2), ROUNDS - 2])) {
       expect(actionsFor({ kind: "qualifying", round }, ROUNDS).next).toBe("Simulate next session");
       expect(actionsFor({ kind: "race", round }, ROUNDS).skip).toBe("Simulate rest of the season");
       // A season being revealed is left through "Start again", not through Back.
