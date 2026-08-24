@@ -44,7 +44,8 @@ pnpm format        # biome check --write .
 pnpm race [seed]   # simulate ONE race, print the classification
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
-                   # all three take --year <n>; default is the earliest authored season
+pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
+                   # all four take --year <n>; default is the earliest authored season
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
 ```

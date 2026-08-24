@@ -32,6 +32,23 @@ engine's share needed no re-measurement. Rotating the harness through a season's
 calendar would fold home advantage into every number here; that is a change to what the
 harness measures, and it needs the author's word before anyone runs it.
 
+## The two harnesses
+
+`pnpm calibrate` runs one race N times; **`pnpm calibrate-season` runs a whole season N
+times** (`tools/calibrate/src/seasons.ts`) and prints, per driver and per team, how often
+they take the title, how often they win a race, how often they score at all, and the
+average points they end the year on. It is the instrument for the *midfield*: wins and
+poles describe the front of the grid, and a season is where sixth places add up.
+
+**Its numbers are not comparable with the figures below.** Every table here is a race
+with no host country; a season runs the year's real calendar, so home advantage pays at
+every round that has one. The two win shares are different quantities, and the gap
+between them is what home advantage is worth. Neither is the other's check.
+
+It is a reading instrument, not a target set: nothing scores against it, the tuner does
+not use it, and the rule above — do not run a harness to check something — covers it
+too.
+
 ## The engine pass (both seasons, cars and engines together)
 
 Engine manufacturers made a car `0.8 · chassis + 0.2 · engine`, which changes what a

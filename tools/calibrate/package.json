@@ -10,6 +10,7 @@
     "tune": "tsx src/tune.ts",
     "race": "tsx src/race.ts",
     "season": "tsx src/season.ts",
+    "seasons": "tsx src/seasons.ts",
     "progression": "tsx src/progression.ts"
   },
   "dependencies": {
