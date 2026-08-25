@@ -46,10 +46,12 @@ which loads alongside this file.
 - **Every row of the summary's championship tables opens into its own season.**
   `StandingsTable` owns the toggle and `RaceByRace` draws the panel, so the drivers'
   and constructors' tables get the expansion from one place — the same reason they
-  share the table itself. The control is the **name**, with the calendar's `▶` chevron
-  and `aria-expanded`, rather than a separate button: one action does not deserve two
-  tab stops. The chevron is a text glyph, not an SVG, because a test counts one flag
-  per row by counting `<svg>`.
+  share the table itself. The **pair** of them is `SeasonStandings`, which the era's
+  roll of honour opens a year into as well: one answer to "the championship, as this
+  app draws it", rather than a copy per screen. The control is the **name**, with the
+  calendar's `▶` chevron and `aria-expanded`, rather than a separate button: one action
+  does not deserve two tab stops. The chevron is a text glyph, not an SVG, because a
+  test counts one flag per row by counting `<svg>`.
   A driver's panel is a row per round; **a team's is a row per _car_** — one, two or
   three of them — with the round columns written once and blanked on the cars beneath,
   so a three-car round does not read as three races. Those cars are ordered by **where

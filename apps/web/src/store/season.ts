@@ -39,8 +39,8 @@ import {
 } from "@alt-hist/engine";
 import { create } from "zustand";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
-import { seasonSeed } from "../lib/seasons.js";
-import { randomSeed } from "../lib/seed.js";
+import { nextEraYear, seasonSeed } from "../lib/seasons.js";
+import { nextSeed, randomSeed } from "../lib/seed.js";
 
 /** The serializable world. Add to this and it must stay plain data. */
 export interface World {
@@ -161,10 +161,33 @@ export type View =
   | { readonly kind: "summary" };
 
 /**
+ * A run of seasons — the basic era mode: where it started, and every year
+ * already finished, in order.
+ *
+ * The finished worlds themselves rather than a table of champions, because
+ * **results are the source of truth and statistics are derived**: who won 1983
+ * is a `championshipStandings` call over the season that is already here, and
+ * keeping a champion beside it would be a second copy of a fact nobody has to
+ * store. It also means the roll-up can grow a column without the run changing
+ * shape. Plain data throughout, like the world it holds, so an era serialises to
+ * a save file exactly as one season does.
+ *
+ * The season currently being revealed is *not* in here — it lives on the era
+ * screen beside the run, and joins the list when the reader steps off its
+ * summary. So `seasons` is precisely "the years that have been crowned".
+ */
+export interface EraRun {
+  readonly startYear: number;
+  readonly seasons: readonly World[];
+}
+
+/**
  * Which page the app is on.
  *
- * Three today; the menu is the seam every future mode arrives through, so a new
- * one is a new variant here rather than a branch inside the season screen.
+ * The menu is the seam every future mode arrives through, so a new one is a new
+ * variant here rather than a branch inside the season screen. The era mode is
+ * the first to take that route: it reuses the season screen's own reveal, with
+ * a run carried alongside and a roll-up between years.
  */
 export type Screen =
   /** The opening screen: what this is, and which mode to run. */
@@ -172,7 +195,33 @@ export type Screen =
   /** Choosing the year to start from. */
   | { readonly kind: "season-setup" }
   /** A season, simulated and being revealed. */
-  | { readonly kind: "season"; readonly world: World; readonly view: View };
+  | { readonly kind: "season"; readonly world: World; readonly view: View }
+  /** Choosing the year an era starts from. */
+  | { readonly kind: "era-setup" }
+  /** One season of an era, revealed exactly as a standalone one is. */
+  | {
+      readonly kind: "era";
+      readonly run: EraRun;
+      readonly world: World;
+      readonly view: View;
+    }
+  /** Between years: the champions crowned so far, season by season. */
+  | { readonly kind: "era-champions"; readonly run: EraRun };
+
+/**
+ * The screens that carry a season being revealed.
+ *
+ * A standalone season and a season inside an era are the same screen with a
+ * different frame around it, so every action over a world — stepping the
+ * cursor, skipping, re-running on other ratings or another grid — works on
+ * either. Narrowing to this once is what keeps the store from growing a second
+ * copy of each of those actions.
+ */
+export type PlayingScreen = Extract<Screen, { kind: "season" } | { kind: "era" }>;
+
+export function isPlaying(screen: Screen): screen is PlayingScreen {
+  return screen.kind === "season" || screen.kind === "era";
+}
 
 /**
  * The next thing to show: qualifying, then that race, then the next qualifying,
@@ -197,8 +246,10 @@ interface SeasonStore {
   readonly screen: Screen;
   /** Back to the opening screen, abandoning whatever season was running. */
   readonly openMenu: () => void;
-  /** The year picker. */
+  /** The year picker, for a single season. */
   readonly openSeasonSetup: () => void;
+  /** The year picker, for an era: the year it starts from. */
+  readonly openEraSetup: () => void;
   /**
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
@@ -211,6 +262,58 @@ interface SeasonStore {
    * point whose output must depend only on its arguments.
    */
   readonly simulate: (seed: number, year: number, ratingMode?: RatingMode) => void;
+  /**
+   * Starts an era at the given year: its first season, opened at the grid, with
+   * an empty run behind it.
+   */
+  readonly startEra: (year: number) => void;
+  /** The same from a chosen seed, and for the same reason: tests need one. */
+  readonly simulateEra: (seed: number, year: number, ratingMode?: RatingMode) => void;
+  /**
+   * Ends the season on screen and shows the champions crowned so far.
+   *
+   * The moment a season stops being the one being played and becomes part of
+   * the run: this is the only thing that appends to `run.seasons`, so a year
+   * cannot be counted twice, and none is crowned before it has been read.
+   */
+  readonly showEraChampions: () => void;
+  /**
+   * Leaves the era season on screen without crowning it, back to the page it
+   * was reached from: the roll-up if any year has been crowned, the era picker
+   * if this is the run's first.
+   *
+   * The grid's Back, in other words. It exists because a grid inside an era has
+   * nowhere else to go — "Start again" is not offered there, since nothing has
+   * been revealed to start again *from* — and because leaving a year unread must
+   * not add it to the roll of honour.
+   */
+  readonly leaveEraSeason: () => void;
+  /**
+   * Runs the next year of the era, on the grid history had that year.
+   *
+   * **This is the seam the advanced mode replaces.** The field for year N+1
+   * comes from that year's seed file and nothing else — no market, no
+   * progression model, nothing carried forward but the dice and how the reader
+   * chose to play. A mode that simulates the grid instead substitutes what is
+   * handed to `createWorld` here, and nothing else about the loop changes.
+   *
+   * Nothing happens past the end of the authored range: `nextEraYear` says the
+   * era stops there, and the screen offers no button to call this.
+   */
+  readonly nextEraSeason: () => void;
+  /**
+   * Runs every remaining year of the era in one go, straight to the last
+   * authored season.
+   *
+   * The era's "skip to the end", and it must produce **exactly** the history
+   * stepping through would have: each year is built the way `nextEraSeason`
+   * builds one, off the year before it, so skipping and playing differ only in
+   * what the reader stopped to read. A test asserts the two are identical.
+   *
+   * None of these years is revealed session by session — they are crowned
+   * unread, which is what skipping means everywhere else here too.
+   */
+  readonly simulateRestOfEra: () => void;
   /**
    * Re-runs the season from the same seed with the other ability model.
    *
@@ -249,13 +352,23 @@ interface SeasonStore {
    * an edited grid alike — drivers and engines both — because a reader who put
    * Mansell in the Williams asked for that grid, not for one season of it. Only
    * the dice change. The menu is where a different year comes from.
+   *
+   * Inside an era it re-runs the current year only. The seasons already crowned
+   * stand: they were read, and this one has not been finished.
    */
   readonly restartSeason: () => void;
 }
 
-/** A season screen at its opening grid. */
+/** A standalone season screen at its opening grid. */
 function openSeason(world: World): Screen {
   return { kind: "season", world, view: { kind: "grid" } };
+}
+
+/** The screen it already was, showing a different world, back at the grid. */
+function replaceWorld(screen: PlayingScreen, world: World): PlayingScreen {
+  return screen.kind === "season"
+    ? { kind: "season", world, view: { kind: "grid" } }
+    : { kind: "era", run: screen.run, world, view: { kind: "grid" } };
 }
 
 export const useSeasonStore = create<SeasonStore>((set) => ({
@@ -268,20 +381,124 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
   openSeasonSetup: () => {
     set({ screen: { kind: "season-setup" } });
   },
+  openEraSetup: () => {
+    set({ screen: { kind: "era-setup" } });
+  },
   startSeason: (year) => {
     set({ screen: openSeason(createWorld(randomSeed(), year, readRatingMode())) });
   },
   simulate: (seed, year, ratingMode) => {
     set({ screen: openSeason(createWorld(seed, year, ratingMode)) });
   },
+  startEra: (year) => {
+    set({
+      screen: {
+        kind: "era",
+        run: { startYear: year, seasons: [] },
+        world: createWorld(randomSeed(), year, readRatingMode()),
+        view: { kind: "grid" },
+      },
+    });
+  },
+  simulateEra: (seed, year, ratingMode) => {
+    set({
+      screen: {
+        kind: "era",
+        run: { startYear: year, seasons: [] },
+        world: createWorld(seed, year, ratingMode),
+        view: { kind: "grid" },
+      },
+    });
+  },
+  showEraChampions: () => {
+    set((state) =>
+      state.screen.kind === "era"
+        ? {
+            screen: {
+              kind: "era-champions",
+              run: {
+                startYear: state.screen.run.startYear,
+                seasons: [...state.screen.run.seasons, state.screen.world],
+              },
+            },
+          }
+        : state,
+    );
+  },
+  leaveEraSeason: () => {
+    set((state) =>
+      state.screen.kind === "era"
+        ? {
+            screen:
+              state.screen.run.seasons.length === 0
+                ? { kind: "era-setup" }
+                : { kind: "era-champions", run: state.screen.run },
+          }
+        : state,
+    );
+  },
+  nextEraSeason: () => {
+    set((state) => {
+      if (state.screen.kind !== "era-champions") {
+        return state;
+      }
+      const last = state.screen.run.seasons.at(-1);
+      const year = last === undefined ? null : nextEraYear(last.year);
+      if (last === undefined || year === null) {
+        return state;
+      }
+      return {
+        screen: {
+          kind: "era",
+          run: state.screen.run,
+          // The next year's dice continue the last year's stream, and its grid
+          // is that year's own entry list. What the reader chose about *how to
+          // play* — the ability mode — carries; what they chose about one grid
+          // does not, because it was a grid for a year now behind them.
+          world: createWorld(nextSeed(last.rngState), year, last.ratingMode),
+          view: { kind: "grid" },
+        },
+      };
+    });
+  },
+  simulateRestOfEra: () => {
+    set((state) => {
+      if (state.screen.kind !== "era-champions") {
+        return state;
+      }
+      const seasons = [...state.screen.run.seasons];
+      let last = seasons.at(-1);
+      // Nothing left to run is nothing to do — and returning the state itself
+      // rather than an equal copy keeps the screen from re-rendering the whole
+      // roll of honour for a button press that changed nothing.
+      if (last === undefined || nextEraYear(last.year) === null) {
+        return state;
+      }
+      // The same step `nextEraSeason` takes, taken until the data runs out:
+      // that year's own entry list, and dice continuing the year before's
+      // stream. Written as a loop rather than a second rule so the two cannot
+      // produce different histories.
+      for (let year = nextEraYear(last.year); year !== null; year = nextEraYear(last.year)) {
+        last = createWorld(nextSeed(last.rngState), year, last.ratingMode);
+        seasons.push(last);
+      }
+      return {
+        screen: {
+          kind: "era-champions",
+          run: { startYear: state.screen.run.startYear, seasons },
+        },
+      };
+    });
+  },
   setRatingMode: (mode) => {
     // Remembered even if the switch itself is a no-op, so the choice survives
     // whatever the reader does next.
     rememberRatingMode(mode);
     set((state) =>
-      state.screen.kind === "season" && state.screen.view.kind === "grid"
+      isPlaying(state.screen) && state.screen.view.kind === "grid"
         ? {
-            screen: openSeason(
+            screen: replaceWorld(
+              state.screen,
               createWorld(
                 state.screen.world.seed,
                 state.screen.world.year,
@@ -296,9 +513,10 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
   },
   setGrid: (lineup, engines) => {
     set((state) =>
-      state.screen.kind === "season" && state.screen.view.kind === "grid"
+      isPlaying(state.screen) && state.screen.view.kind === "grid"
         ? {
-            screen: openSeason(
+            screen: replaceWorld(
+              state.screen,
               createWorld(
                 state.screen.world.seed,
                 state.screen.world.year,
@@ -313,7 +531,7 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
   },
   nextSession: () => {
     set((state) =>
-      state.screen.kind === "season"
+      isPlaying(state.screen)
         ? {
             screen: {
               ...state.screen,
@@ -325,16 +543,15 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
   },
   skipToEnd: () => {
     set((state) =>
-      state.screen.kind === "season"
-        ? { screen: { ...state.screen, view: { kind: "summary" } } }
-        : state,
+      isPlaying(state.screen) ? { screen: { ...state.screen, view: { kind: "summary" } } } : state,
     );
   },
   restartSeason: () => {
     set((state) =>
-      state.screen.kind === "season"
+      isPlaying(state.screen)
         ? {
-            screen: openSeason(
+            screen: replaceWorld(
+              state.screen,
               createWorld(
                 randomSeed(),
                 state.screen.world.year,

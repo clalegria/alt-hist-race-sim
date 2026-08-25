@@ -74,3 +74,15 @@ export function playableSummary(years: readonly number[] = PLAYABLE_SEASONS): st
       : `${runs.slice(0, -1).join(", ")} and ${runs[runs.length - 1]}`;
   return years.length === 1 ? `Only ${list} is playable so far` : `${list} are playable so far`;
 }
+
+/**
+ * The year an era runs on to after this one, or null where it stops.
+ *
+ * The stop is "the next year has no seed data", not a year written down: an era
+ * ends at 2026 today because that is the last season authored, and it will end
+ * later without this changing. The basic era mode reads the real grid for every
+ * year it runs, so a year nobody has authored is a year it cannot play.
+ */
+export function nextEraYear(year: number): number | null {
+  return isPlayable(year + 1) ? year + 1 : null;
+}

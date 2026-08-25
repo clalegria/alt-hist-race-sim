@@ -17,11 +17,12 @@ import {
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { actionsFor } from "./App.js";
+import { actionsFor, eraActionsFor } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
+import { PLAYABLE_SEASONS } from "./lib/seasons.js";
 import type { View, World } from "./store/season.js";
 import {
   findWorld,
@@ -33,6 +34,9 @@ import {
 } from "./test-support.js";
 
 const world = seededWorld();
+/** The ends of the authored range, off the data: an era runs between them. */
+const FIRST_PLAYABLE = PLAYABLE_SEASONS[0] ?? 0;
+const LAST_PLAYABLE = PLAYABLE_SEASONS.at(-1) ?? 0;
 const ROUNDS = world.season.races.length;
 /** Read off the grid, never written down: the field is going to grow. */
 const SEATS = world.field.length;
@@ -467,5 +471,44 @@ describe("the buttons", () => {
       skip: null,
       back: null,
     });
+  });
+
+  it("takes an era's summary on to the champions instead of stopping there", () => {
+    // The one stage the era mode changes: a standalone season ends at its
+    // summary, a year of an era has a roll of honour after it.
+    expect(actionsFor({ kind: "summary" }, ROUNDS, true)).toEqual({
+      next: "Show champions so far",
+      skip: null,
+      back: null,
+    });
+  });
+
+  it("offers the next year and the far end from the roll of honour", () => {
+    const onward = eraActionsFor(FIRST_PLAYABLE);
+    expect(onward.next).toBe(FIRST_PLAYABLE + 1);
+    expect(onward.rest).toBe(LAST_PLAYABLE);
+  });
+
+  it("drops the skip when the next year is the last one anyway", () => {
+    // Two buttons doing the same thing is a worse offer than one.
+    expect(eraActionsFor(LAST_PLAYABLE - 1)).toEqual({ next: LAST_PLAYABLE, rest: null });
+  });
+
+  it("offers nothing forward once the era reaches the end of the data", () => {
+    expect(eraActionsFor(LAST_PLAYABLE)).toEqual({ next: null, rest: null });
+  });
+
+  it("leaves every other stage of an era exactly as it was", () => {
+    // The point of running the era on the season flow rather than beside it: if
+    // any other stage differed, there would be two reveals to keep in step.
+    const views: View[] = [
+      { kind: "grid" },
+      { kind: "qualifying", round: 0 },
+      { kind: "race", round: 0 },
+      { kind: "race", round: ROUNDS - 1 },
+    ];
+    for (const view of views) {
+      expect(actionsFor(view, ROUNDS, true), view.kind).toEqual(actionsFor(view, ROUNDS));
+    }
   });
 });

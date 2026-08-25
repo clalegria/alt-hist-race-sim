@@ -36,7 +36,7 @@ import { RaceClassification } from "./RaceClassification.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
-import { StandingsTable } from "./StandingsTable.js";
+import { SeasonStandings } from "./SeasonStandings.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 
@@ -126,48 +126,6 @@ function Champion({
   );
 }
 
-/** Both championship tables over whatever slice of the season is given. */
-function Standings({
-  season,
-  calendar,
-  points,
-  midSeason,
-}: {
-  season: SeasonResult;
-  calendar: readonly CalendarRace[];
-  points: PointsScale;
-  midSeason: boolean;
-}) {
-  const drivers = useMemo(() => championshipStandings(season, points), [season, points]);
-  const constructors = useMemo(() => constructorStandings(season, points), [season, points]);
-  const when = midSeason
-    ? `After ${plural(season.races.length, "round")}.`
-    : "Final classification.";
-
-  return (
-    <>
-      <StandingsTable
-        title="Drivers&rsquo; Championship"
-        description={when}
-        nameColumn="Driver"
-        standings={drivers}
-        season={season}
-        points={points}
-        calendar={calendar}
-      />
-      <StandingsTable
-        title="Constructors&rsquo; Championship"
-        description={when}
-        nameColumn="Team"
-        standings={constructors}
-        season={season}
-        points={points}
-        calendar={calendar}
-      />
-    </>
-  );
-}
-
 function Summary({
   season,
   field,
@@ -240,7 +198,12 @@ function Summary({
         />
       </div>
       <SeasonCalendar season={season} calendar={seed.calendar} points={points} teamFor={teamFor} />
-      <Standings season={season} calendar={seed.calendar} points={points} midSeason={false} />
+      <SeasonStandings
+        season={season}
+        calendar={seed.calendar}
+        points={points}
+        description="Final classification."
+      />
       {/*
         A gap wider than the page's own, because this is where the season stops
         being reported and starts being described: the two championship tables

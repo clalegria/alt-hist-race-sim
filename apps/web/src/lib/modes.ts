@@ -37,7 +37,7 @@ export const MODES: readonly Mode[] = [
     title: "Simulate an era (basic version)",
     blurb:
       "The extension of simulate a season mode, but for multiple years. Grid changes year after year as per real life, but again, can be edited manually any year if you so wish.",
-    available: false,
+    available: true,
   },
   {
     id: "era-advanced",
