@@ -12,14 +12,10 @@ number: the numbering is the order, and it shifts every time something lands.
 
 The spine of the order: **the multi-season shell first** — now built — then **how a run
 feels**, then **going live**, then **the shape of the seed data**, then **the alternate
-history**. The shell came first because every season from 1950 to 2026 is already
-authored, which made the basic era mode almost free, and because it is the only
-instrument that shows seventy-seven seasons of first-draft ratings behaving badly *at
-once*: that instrument now exists, and the ageing-curve and seasonal-factor items below
-are read off it. Publishing sits in the middle rather than at either end: nothing in the
-code gates it, but **the author does** — see that item for what it is waiting on. The
-seed-data-shape items follow as a block: each adds a field to all seventy-seven files,
-so they are settled together and paid for in one authoring pass.
+history**. Publishing sits in the middle rather than at either end: nothing in the code
+gates it, but **the author does** — see that item. The seed-data-shape items follow as a
+block: each adds a field to all seventy-seven files, so they are settled together and
+paid for in one authoring pass.
 
 `apps/web/src/lib/modes.ts` lists the five modes the finished app is meant to offer —
 `season` and `era-basic` (both shipped), `era-advanced`, `game`, `edit-ratings`. That
@@ -31,9 +27,9 @@ on the last one.
 **1. The randomness slider.** A setting the user picks *before* simulating — one season
 or a whole era — with three stops: **realistic** (what the model does today),
 **exciting** (more randomness), **chaotic** (more again). The cheapest large change in
-how the game feels, which is why it comes this early: it is one number threaded from a
-menu control to the race score, and it makes the difference between a replay and a
-what-if without any new data, any new model, or any new authored field.
+how the game feels, which is why it comes this early: one number threaded from a menu
+control to the race score, and it makes the difference between a replay and a what-if
+without any new data, model or authored field.
 
 Mechanically it is a multiplier on the race model's noise term — the same `sigma` the
 score already samples against — and possibly a second one widening the DNF rates, if
@@ -43,16 +39,52 @@ chaotic ought to mean unreliable as well as unpredictable. That second question 
 whose realistic setting is exactly `1.0`, applied on top of the calibrated constants
 rather than replacing them, so the calibration still describes the default and no
 re-tune is triggered. Do not implement it by editing `race/constants.ts` values. The two
-higher settings are *not* calibrated against anything and are not meant to be — they are
-a knob for the player, not a claim about 1980 — so no measurement job is implied here.
+higher settings are not calibrated against anything and are not meant to be.
 
-Where the setting lives is worth getting right: it is a property of a run, so it belongs
-in the world state alongside the seed, not in React state and not as a module-level
-constant. Two runs at the same seed and different settings should diverge; the same seed
-and the same setting must still reproduce exactly. It is also one of the facts a bug
-report has to carry, per *publish it* below.
+The setting is a property of a run, so it belongs in the world state alongside the seed,
+not in React state and not as a module-level constant. Two runs at the same seed and
+different settings should diverge; the same seed and the same setting must still
+reproduce exactly. It is also one of the facts a bug report has to carry, per *publish
+it* below.
 
-**2. The in-app ratings editor.** Turn on the `edit-ratings` card. **This is a player
+**2. Standings evolution charts.** On the season summary screen, a line chart of the
+championship as it stood after each round — the **top six drivers**, and a second chart
+for the **top four teams**. A season is a set of tables today, and they say who won;
+this says *when* it was won, which is the part a table cannot show: the run of form that
+turned a season, the round where a lead became unassailable, the two cars that swapped
+places all year.
+
+Points are already derived from result rows, so the data is a cumulative fold over
+rounds the app can compute — no new state and no engine change. Two decisions to make:
+whether the series are the top six *at season end* (simple, and the reader already knows
+who matters) or the top six at any point (honest, but the legend grows); and whether the
+y axis is points or championship position. Colours come from the web app's palette for
+now, and should switch to *liveries* once those land.
+
+**This is the first chart in the project**, so it cashes in the Recharts decision in
+`docs/DECISIONS.md`, and it lands before the editor's career chart deliberately: the
+same library, axes and theming get settled against simpler data first.
+
+**3. Phone layout.** The app is built for a desktop window; a public site gets most of
+its traffic from a phone held vertically. Several screens do not survive that — the
+grid, the results classification and the standings are wide tables, and the session
+reveal assumes room beside the table.
+
+Detect by **viewport width via CSS media queries, not by user-agent sniffing** — that is
+the practice, it handles narrow desktop windows and tablets for free, and it keeps the
+decision in the stylesheet rather than in a device list that ages. Per screen, choose
+deliberately between three moves: **drop columns** that are context rather than content
+(gaps, grid position, engine), with the full row available on tap; **restack the row**
+into a card so the same facts read vertically; or **let the table scroll horizontally**
+inside its own container, which is the honest answer for a classification where every
+column is a result. The charts above need their own answer — a six-series legend does
+not fit beside a narrow plot, so plan for it moving below.
+
+Ordered here because it is cheaper before the editor adds more screens, and because
+*publish it* is what makes it matter. Nothing about the model changes; this is styling
+and layout only.
+
+**4. The in-app ratings editor.** Turn on the `edit-ratings` card. **This is a player
 feature first**, not an authoring tool: someone who disagrees that a driver was worth
 what the data says should be able to change it and run their own what-if, in the
 browser, without touching a JSON file. Editing drivers, teams/chassis, engines and
@@ -61,10 +93,8 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
 - **The driver editor shows that driver's whole career progression, as a table and as a
   chart.** Not a nice-to-have — it is the screen, because a driver is not a set of
   numbers for one year but a curve, and editing the curve blind is not usable. Age along
-  the bottom, the ratings up the side, the authored peak marked. The numbers already
-  exist: this is `pnpm progression` brought into the UI. It is also the first thing in
-  the project that needs a chart, so it is where the Recharts decision in
-  `docs/DECISIONS.md` gets cashed in.
+  the bottom, the ratings up the side, the authored peak marked. This is `pnpm
+  progression` brought into the UI, on the charting groundwork laid above.
 - **The hard part is that ratings are not authored per season.** A driver is a `peak`
   block plus a career shape (`peakSeasons`, `developmentSpeed`, `declineSpeed`,
   `steepDecline`), and what the app displays for a given year is *derived* from those by
@@ -74,23 +104,22 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   and solves back to a curve that produces it (friendlier, sometimes impossible).
   **Decide this before writing the export**, and record it in `docs/DECISIONS.md` — it
   determines what the editor's main screen even is. Teams, engines and circuits have no
-  equivalent problem: those ratings are authored per season already. The career chart
-  above is what makes either choice legible.
-- **Edits apply to the user's run and survive the sitting.** File-based export/import
-  of a save is the phase-1 form of the local persistence decided in
-  `docs/DECISIONS.md`; Dexie/IndexedDB remains the later phase. The world state and the
-  seed are already plain serialisable objects specifically so this is a small job.
-  An imported file is untrusted input — validate it, per *publish it* below.
+  equivalent problem: those ratings are authored per season already.
+- **Edits apply to the user's run and survive the sitting.** File-based export/import of
+  a save is the phase-1 form of the local persistence decided in `docs/DECISIONS.md`;
+  Dexie/IndexedDB remains the later phase. The world state and the seed are already
+  plain serialisable objects specifically so this is a small job. An imported file is
+  untrusted input — validate it, per *publish it* below.
 - **Export in the authored seed format — `drivers.json`, `teams.json`, `engines.json`,
   `seasons/<year>.json`, shaped exactly as the repo writes them.** This is the half that
   also serves the author: it makes the editor an alternative to hand-editing seed files,
-  and it means a user's tuning can be sent in as data. Whether it is always on or behind
-  a flag is open.
+  and a user's tuning can be sent in as data. Whether it is always on or behind a flag
+  is open.
 
-**3. Fine-tune the driver ageing curve.** The shape is right; the numbers are not. Away
+**5. Fine-tune the driver ageing curve.** The shape is right; the numbers are not. Away
 from the peak the curve falls off far too steeply, so a driver two or three years either
 side of their peak season is worth much less than the drivers who actually raced those
-years were. It suits the short, sharp careers and badly misdescribes everyone with a long
+years were. It suits short, sharp careers and badly misdescribes everyone with a long
 plateau or a slow fade — and with 1950–2026 authored, that mis-shape is now visible in
 every era at once.
 
@@ -106,81 +135,73 @@ This is a re-tune of engine constants, so the no-re-calibration invariant applie
 progression constants only. Driver, chassis and engine ratings stay fixed.
 
 The instrument is `pnpm progression`, which already exists, so this is **not** strictly
-gated on the editor's career chart — if *the in-app ratings editor* slips, take this
-anyway, though the chart is the better instrument and that is why it is listed first. It
-comes after *simulate an era* because an era run is what makes a wrong curve visible
-across every generation at once, and it belongs before the seed-data authoring pass
-below, so that pass is judged against a curve worth trusting.
+gated on the editor's career chart — if the editor slips, take this anyway, though the
+chart is the better instrument and that is why it is listed first. It belongs before the
+seed-data authoring pass below, so that pass is judged against a curve worth trusting.
 
-**4. Publish it.** Put the app on the public internet, unfinished, and keep it there.
+**6. Publish it.** Put the app on the public internet, unfinished, and keep it there.
 The author has never shipped anything before, so this item is written as much to say
 what is *not* a problem as what is.
 
 **Nothing in the code gates this — the author does.** It could technically ship today,
 and the unfinished modes already render as greyed-out cards, which is exactly the right
-way for a public app to admit what it cannot do yet. What it is waiting on is the
-author being content with the ratings, which he is not: putting seventy-seven seasons of
-first drafts in front of strangers is not the same kind of unfinished as a greyed-out
-card, because a wrong rating does not announce itself as unfinished — it just reads as a
-wrong opinion about a real driver.
+way for a public app to admit what it cannot do yet. What it is waiting on is the author
+being content with the ratings, which he is not: a wrong rating does not announce itself
+as unfinished — it just reads as a wrong opinion about a real driver.
 
-That is why it sits after *fine-tune the driver ageing curve*, which is the single
-biggest lever on how right the ratings feel, and after the editor that makes the curve
-judgeable. **It is deliberately not placed after *season fine-tuning***, the era-by-era
-pass at the far end of this file: waiting for that means waiting for the whole roadmap,
-and the intent is to publish long before the project is finished. Somewhere between
-those two is the author's call, and moving this item is how that call gets recorded.
+That is why it sits after *fine-tune the driver ageing curve*, the single biggest lever
+on how right the ratings feel, and after the editor that makes the curve judgeable. **It
+is deliberately not placed after *season fine-tuning***, the era-by-era pass at the far
+end of this file: waiting for that means waiting for the whole roadmap, and the intent
+is to publish long before the project is finished. Somewhere between those two is the
+author's call, and moving this item is how that call gets recorded.
 
-Once it lands the cost is paid once and the benefit compounds — everything below goes
-live as it lands. Three parts, because they are one release.
+Once it lands the cost is paid once and everything below goes live as it lands. Three
+parts, because they are one release.
 
 ***The About page.*** The footer already has the destination stubbed as a disabled
-`Pending` button; this fills it in. What it should carry: what the project is (an
-alternate history, not a prediction or a re-creation — it starts from a real season and
-diverges); roughly how the model works, in a paragraph a non-programmer can read; that
-the ratings are the author's opinions and mostly first drafts; the AI-collaboration
-credit the footer already makes; where the historical data came from, with whatever
-attribution that source requires; a link to the GitHub repository; and the disclaimer
-described under *going live* below.
+`Pending` button. What it should carry: what the project is (an alternate history, not a
+prediction or a re-creation — it starts from a real season and diverges); roughly how
+the model works, in a paragraph a non-programmer can read; that the ratings are the
+author's opinions and mostly first drafts; the AI-collaboration credit the footer
+already makes; where the historical data came from, with whatever attribution that
+source requires; a link to the GitHub repository; and the disclaimer described under
+*going live* below.
 
-***The bug report page.*** The other stubbed footer destination. The design problem is
-that phase 1 has no backend, so there is nowhere for a form to post to. Three options,
-and they are not equal:
+***The bug report page.*** The other stubbed footer destination. Phase 1 has no backend,
+so there is nowhere for a form to post to. Three options, and they are not equal:
 
 - **A pre-filled GitHub issue link** — a URL with the title and body as query
-  parameters. No infrastructure, no third-party account, nothing to maintain, and the
-  author handles no one else's personal data. Costs the reporter a GitHub account.
-  This is the recommendation.
+  parameters. No infrastructure, nothing to maintain, and the author handles no one
+  else's personal data. Costs the reporter a GitHub account. **This is the
+  recommendation.**
 - **A `mailto:` link** — simplest, but publishes the author's email address to every
   scraper that reads the page, permanently.
 - **A hosted form service** — friendliest to the reporter, but it adds a dependency, and
-  the moment strangers' text and email addresses are collected there are privacy
-  obligations that did not exist before.
+  collecting strangers' text and email addresses creates privacy obligations that did
+  not exist before.
 
-Whichever it is, **the page's real job is to make the report reproducible**: it should
-pre-fill the seed, the season, the rating mode, the randomness setting once that exists,
-and a build identifier, because a seeded simulation with those five facts reproduces
-exactly and without them a bug report is a ghost story. That build identifier is a
-reason to put a version stamp in the footer as part of this item.
+Whichever it is, **the page's real job is to make the report reproducible**: pre-fill the
+seed, the season, the rating mode, the randomness setting once that exists, and a build
+identifier, because a seeded simulation with those five facts reproduces exactly and
+without them a bug report is a ghost story. That build identifier is a reason to put a
+version stamp in the footer as part of this item.
 
 ***Going live.*** The deployment and the readiness pass.
 
-- **Hosting.** It is a static site with no backend, so any static host works. The repo is
+- **Hosting.** A static site with no backend, so any static host works. The repo is
   already on GitHub, so GitHub Pages needs no new account — but a project site is served
   from a subpath, which means setting `base` in `apps/web/vite.config.ts` and a router
   that agrees with it. Netlify or Cloudflare Pages avoid the subpath problem and deploy
   from the same repo. Pick one and do not agonise; moving later is an afternoon.
 - **A domain name is optional, and is not a blocker.** Every static host hands out a
-  free subdomain — `<something>.pages.dev`, `<something>.netlify.app`,
-  `<user>.github.io/<repo>` — which works completely and can be replaced later without
-  rebuilding anything. Buy a name because it is wanted, not because publishing requires
-  one. When buying: it is an annual rent rather than a purchase, so it lapses if the
-  renewal is missed; the registrar sells the name and the host serves the site, and the
-  two are connected by pointing the domain's DNS at the host. **Turn on the registrar's
-  WHOIS privacy** — domain registration is a public record, and without masking it
-  publishes the registrant's real name, postal address, phone number and email for
-  anyone to look up. Most registrars include the masking free; some charge for it, which
-  is a reason to pick a different one.
+  free subdomain, which works completely and can be replaced later without rebuilding
+  anything. When buying: it is an annual rent rather than a purchase, so it lapses if
+  the renewal is missed; the registrar sells the name and the host serves the site, and
+  the two are connected by pointing the domain's DNS at the host. **Turn on the
+  registrar's WHOIS privacy** — without masking, registration publishes the registrant's
+  real name, postal address, phone number and email for anyone to look up. Most
+  registrars include it free; some charge, which is a reason to pick a different one.
 - **Continuous integration first.** There is no `.github/` directory today. Deploying on
   every push without gates means a broken `main` is a broken public site, so the workflow
   that runs `pnpm typecheck`, `pnpm lint` and `pnpm test` should exist *before* the one
@@ -193,28 +214,27 @@ reason to put a version stamp in the footer as part of this item.
 - **Nothing here is a security problem, and it is worth knowing why.** No backend, no
   database, no accounts, no sessions, no secrets, and nothing a user does leaves their
   browser. That removes essentially every category of web vulnerability there is — there
-  is no server to attack, no data of anyone's to breach, and no credentials to steal.
-  Do not spend effort defending against those.
+  is no server to attack, no data of anyone's to breach, and no credentials to steal. Do
+  not spend effort defending against those.
 - **What actually applies is smaller and different.** Four things:
-  1. **Publishing makes the whole repository public, not just the app.** Everything
-     shipped in the bundle is readable by anyone, and if the repo is public so are
-     `CLAUDE.md`, `docs/`, `.claude/rules/` and the commit history. That is probably
-     fine and arguably good, but it should be a decision rather than a discovery.
-     Confirm there is no `.env` and nothing personal in the history first.
+  1. **Publishing makes the whole repository public, not just the app.** If the repo is
+     public so are `CLAUDE.md`, `docs/`, `.claude/rules/` and the commit history. That
+     is probably fine and arguably good, but it should be a decision rather than a
+     discovery. Confirm there is no `.env` and nothing personal in the history first.
   2. **Names and trademarks are the real exposure.** Using real drivers' and teams'
      names to describe history is ordinary and fine. The championship's word marks and
      the teams' logos are not the author's to use, so do not put them in the app, and
      keep *liveries* to colours rather than badges. Add a plain line to the About page
      saying the project is unofficial, unaffiliated with and unendorsed by anyone, and
      is a work of alternate history. This is a note to be careful, not legal advice.
-  3. **User-supplied text arrives with the editor.** Once someone can rename a team,
-     the app renders a string a person typed. React escapes by default, so this is safe
-     as long as `dangerouslySetInnerHTML` never appears — and imported save files are
+  3. **User-supplied text arrives with the editor.** Once someone can rename a team, the
+     app renders a string a person typed. React escapes by default, so this is safe as
+     long as `dangerouslySetInnerHTML` never appears — and imported save files are
      untrusted input that must be validated on load, the way `validateSeedData()`
      already validates the seeds, never trusted or evaluated.
-  4. **Analytics are the one thing that would create obligations.** Adding a tracker
-     means a privacy notice and possibly a consent banner. Not adding one means neither.
-     Prefer none, or a cookieless one, and decide deliberately.
+  4. **Analytics are the one thing that would create obligations.** A tracker means a
+     privacy notice and possibly a consent banner. Not adding one means neither. Prefer
+     none, or a cookieless one, and decide deliberately.
 - **The licence question is half-answered.** The repo is MIT, which covers the code. The
   authored season data is a different kind of thing and may carry conditions from
   wherever it was sourced. Settle what the data is licensed as, and say so on the About
@@ -227,11 +247,10 @@ seventy-seven season files — lineage links, career records, era numbers, liver
 ratings, per-round circuit blocks. **Settle them together and make one authoring pass**,
 in *season fine-tuning* below, rather than six passes over the same files.
 
-**5. Team lineage.** A way to say that a team in one season *is* a team from the
-previous one under another name — Tyrrell into whatever follows it, a constructor sold
-and rebadged, a works partnership renamed around a new engine supplier. Today team
-identity is per-season by name, so a rename is indistinguishable from a team folding
-and a new one appearing.
+**7. Team lineage.** A way to say that a team in one season *is* a team from the
+previous one under another name — a constructor sold and rebadged, a works partnership
+renamed around a new engine supplier. Today team identity is per-season by name, so a
+rename is indistinguishable from a team folding and a new one appearing.
 
 The cheapest of the block — a successor/predecessor link on the team identity records,
 no model change, no re-tune. It heads the block for four reasons: *simulate an era*'s
@@ -242,19 +261,19 @@ items; and the *driver market* cannot be designed without it, which is the autho
 reason for wanting it. Whether the link is a chain of ids on the identity record or a
 separate lineage table is open.
 
-**6. Historical career records.** When a run starts in 1980, Jones should already have
-his previous wins and Ferrari its previous titles, so the first screen reads as a
-career in progress rather than everyone's debut — and so the simulated results add onto
-a real total as the era runs.
+**8. Historical career records.** When a run starts in 1980, Jones should already have
+his previous wins and Ferrari its previous titles, so the first screen reads as a career
+in progress rather than everyone's debut — and so the simulated results add onto a real
+total as the era runs.
 
 Each season file carries, per driver and per team, the **championships, wins, podiums
 and poles accumulated *before* that season**. Four points about the shape:
 
-- **It is an opening balance, not a running counter, and this does not violate
-  "results are the source of truth".** Nothing before the starting year has results to
-  derive from, so the balance is authored; everything the simulation produces is still
-  derived from result rows, and the display total is the authored opening balance plus
-  the derived one. Never write simulated results back into the balance.
+- **It is an opening balance, not a running counter, and this does not violate "results
+  are the source of truth".** Nothing before the starting year has results to derive
+  from, so the balance is authored; everything the simulation produces is still derived
+  from result rows, and the display total is the authored opening balance plus the
+  derived one. Never write simulated results back into the balance.
 - **It must cover people who are not on that season's grid.** Mid-season replacements,
   one-off entries and drivers between seats still have histories, and a driver who
   appears in 1982 needs the record he brought with him. So the block is keyed by driver
@@ -268,13 +287,13 @@ and poles accumulated *before* that season**. Four points about the shape:
 Consumed by *simulate an era*'s champions screen, and later by anything that wants to
 say who the established names are — including the driver market.
 
-**7. Seasonal factors.** Several numbers that are one global constant today are really
+**9. Seasonal factors.** Several numbers that are one global constant today are really
 per-era, and the season file is where they belong. One item, because it is one change to
 `SeasonSeed` and one authoring pass per year:
 
-- **Retirement rate per season.** `mechanicalDnfEraScale` has no per-year curve, so
-  1981 retires cars at 1980's rate. Turbo-era attrition and 2010s attrition are not the
-  same sport.
+- **Retirement rate per season.** `mechanicalDnfEraScale` has no per-year curve, so 1981
+  retires cars at 1980's rate. Turbo-era attrition and 2010s attrition are not the same
+  sport.
 - **The cosmetic qualifying and race gaps** shown in the UI, per season. A 1955 field, a
   1994 field and a 2015 field spread out very differently, and today one scale serves
   all of them. Display-only — nothing in the model reads it.
@@ -283,31 +302,31 @@ per-era, and the season file is where they belong. One item, because it is one c
   numbers live rather than three.
 
 Calibrating the first two per year is a measurement job, and the author asking for it
-here is the authorisation the no-re-calibration invariant requires — for *these*
-numbers, not for driver or car ratings, which stay fixed.
+here is the authorisation the no-re-calibration invariant requires — for *these* numbers,
+not for driver or car ratings, which stay fixed.
 
-**8. Liveries.** A car's colour scheme for that season, shown in the UI. The grid is a
+**10. Liveries.** A car's colour scheme for that season, shown in the UI. The grid is a
 list of names today, and a 1980s field is far more recognisable by colour than by team
 name — this is the cheapest thing on the list that makes the app *look* like the sport.
 
 A per-entry authored block on each season file, because a team's colours change between
 years and sometimes between cars. Probably two or three colours (primary, secondary,
 accent) rather than one, so a grid row, a standings row and a results table can all be
-tinted from the same source. Where it shows is a display decision: a colour bar on the
-grid and standings rows is the obvious first use; a rendered car is not in scope.
+tinted from the same source — as can the *standings evolution charts* above. A colour
+bar on the grid and standings rows is the obvious first use; a rendered car is not in
+scope.
 
 **Display-only. Nothing in the model reads it, so no re-tune and no engine change** —
-it is an authoring job plus a styling one. Contrast in both themes is the real
-constraint, and some historical liveries are white, black or very nearly the background;
-see `.claude/rules/` on the web app's styling for how the palette is handled before
-picking a representation. **Colours, not badges** — see the trademark note in
-*publish it*.
+an authoring job plus a styling one. Contrast in both themes is the real constraint, and
+some historical liveries are white, black or very nearly the background; see
+`.claude/rules/` on the web app's styling for how the palette is handled before picking
+a representation. **Colours, not badges** — see the trademark note in *publish it*.
 
-**9. Wet racing.** A realistic share of races are declared wet. In the wet: a new
-**1–100 wet-weather rating** per driver carries a large part of the score,
-driver-error retirements rise sharply, and the noise term widens considerably — a wet
-race should be where the field genuinely reorders. The rating is a new authored field on
-every driver, which is why it is in this block rather than taken alone.
+**11. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**1–100 wet-weather rating** per driver carries a large part of the score, driver-error
+retirements rise sharply, and the noise term widens considerably — a wet race should be
+where the field genuinely reorders. The rating is a new authored field on every driver,
+which is why it is in this block rather than taken alone.
 
 This is a deep change to how performance is computed — a new term in the race score — so
 it is one of the two cases where the no-re-calibration invariant yields. Say the re-tune
@@ -315,7 +334,7 @@ is needed and why, and get agreement, before running the harness. Note that it a
 *randomness slider* both widen the same noise term from different directions; they
 should compose as separate multipliers, not fight over one constant.
 
-**10. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**12. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -329,10 +348,10 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**11. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**13. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
-folder's `index.ts`, carrying a calendar, an engine table and an entry list (see
-`.claude/rules/seed-data.md`). What is left is judgement, not typing.
+folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
+typing.
 
 - **This is where the single authoring pass for the block above is made** — lineage
   links, career records, era numbers, liveries, wet ratings, per-round circuit blocks —
@@ -347,7 +366,7 @@ folder's `index.ts`, carrying a calendar, an engine table and an entry list (see
   shared drives in the 1950s and 1960s; and at the modern end, the reliability and
   overtaking assumptions baked into a model tuned on 1980.
 
-**12. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**14. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
@@ -359,7 +378,7 @@ records* give it the reputations to reason about.
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**13. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**15. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.
@@ -370,7 +389,7 @@ Car progression lives here rather than as a mode of its own. The
 file", and `EvolutionaryProgression` (random walk + mean reversion), which is what makes
 cars drift from real history. Only the second is real work, and it is a **submode inside
 this mode and `era-advanced`**, not a card on the menu. Build the interface when that
-second implementation lands, not before — the basic era mode does not need it.
+second implementation lands, not before.
 
 Engines make this bigger than it was: a career needs engine *deals* to move as well as
 cars to develop, and `SeasonProgressionModel` has no `nextSeasonEngines()`. Whether a
