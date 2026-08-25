@@ -4,6 +4,7 @@ import { STANDOUT_ROW } from "../lib/highlight.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import type { EraRun } from "../store/season.js";
+import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { SeasonStandings } from "./SeasonStandings.js";
@@ -44,23 +45,9 @@ export function ChampionRow({
     <EntryNames field={season.world.field}>
       <TableRow className={cn(latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}>
         <TableCell className="font-semibold tabular-nums">
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={onToggle}
-            className="focus-visible:ring-ring -mx-1 flex cursor-pointer items-center gap-2 rounded px-1 text-left focus-visible:ring-2 focus-visible:outline-none"
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                "text-muted-foreground inline-block text-xs transition-transform",
-                open && "rotate-90",
-              )}
-            >
-              ▶
-            </span>
+          <DisclosureButton open={open} onToggle={onToggle}>
             {season.year}
-          </button>
+          </DisclosureButton>
         </TableCell>
         <TableCell>
           <DriverName

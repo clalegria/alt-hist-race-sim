@@ -14,6 +14,7 @@
 import type { Driver } from "@alt-hist/data";
 import { driverCareer, driverOverall, drivers } from "@alt-hist/data";
 import { type DriverRatings, peakWindow, ratingsForSeason, seasonDeficits } from "@alt-hist/engine";
+import { padLeft, padRight } from "./format.js";
 
 const FIRST_AGE = 18;
 const LAST_AGE = 50;
@@ -25,14 +26,6 @@ const ATTRIBUTES = [
   ["Adaptability", "adaptability"],
   ["Composure", "composure"],
 ] as const satisfies readonly (readonly [string, keyof DriverRatings])[];
-
-function padRight(text: string, width: number): string {
-  return text.length >= width ? text : text + " ".repeat(width - text.length);
-}
-
-function padLeft(text: string, width: number): string {
-  return text.length >= width ? text : " ".repeat(width - text.length) + text;
-}
 
 /**
  * Finds a driver by exact id, then by a case-insensitive name fragment.
@@ -105,7 +98,7 @@ function noteFor(driver: Driver, season: number): string {
   return notes.join(", ");
 }
 
-export function printProgression(driver: Driver): void {
+function printProgression(driver: Driver): void {
   const career = driverCareer(driver);
   const window = peakWindow(career);
 

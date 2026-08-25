@@ -29,7 +29,7 @@ const NO_ENGINES: ReadonlyMap<string, string> = new Map();
 const EngineSupply = createContext<ReadonlyMap<string, string>>(NO_ENGINES);
 
 /** Which engine each team runs, taken off the grid as it was raced. */
-export function engineSupplyOf(field: readonly RaceEntrant[]): ReadonlyMap<string, string> {
+function engineSupplyOf(field: readonly RaceEntrant[]): ReadonlyMap<string, string> {
   const supply = new Map<string, string>();
   for (const entrant of field) {
     if (entrant.engineId !== undefined) {

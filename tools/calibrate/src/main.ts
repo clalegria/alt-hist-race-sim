@@ -12,6 +12,8 @@
 
 import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
 import { createRng, simulateRace } from "@alt-hist/engine";
+import { parseCount } from "./args.js";
+import { padLeft, padRight, pct } from "./format.js";
 import { parseYear, withoutYear } from "./year.js";
 
 const DEFAULT_RACES = 5000;
@@ -39,34 +41,10 @@ interface DriverTally {
   nonQualifications: number;
 }
 
-function parseRaceCount(argv: readonly string[]): number {
-  const raw = argv[2];
-  if (raw === undefined) {
-    return DEFAULT_RACES;
-  }
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    throw new Error(`Race count must be a positive integer, received "${raw}"`);
-  }
-  return parsed;
-}
-
-function pct(value: number, total: number): string {
-  return total === 0 ? "0.0%" : `${((value / total) * 100).toFixed(1)}%`;
-}
-
-function padRight(text: string, width: number): string {
-  return text.length >= width ? text : text + " ".repeat(width - text.length);
-}
-
-function padLeft(text: string, width: number): string {
-  return text.length >= width ? text : " ".repeat(width - text.length) + text;
-}
-
 function main(): void {
   const argv = withoutYear(process.argv);
   const year = parseYear(process.argv);
-  const races = parseRaceCount(argv);
+  const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
   const field = buildField(seasonSeed(year));
   const teams = teamsById();
   const drivers = driversById();
@@ -153,13 +131,13 @@ function main(): void {
   const elapsed = performance.now() - startedAt;
 
   console.log("");
-  console.log(`1980 grid — ${races} races, seeds 1..${races}`);
+  console.log(`${year} grid — ${races} races, seeds 1..${races}`);
   console.log(`${field.length} cars, ${teamTallies.size} teams, ${elapsed.toFixed(0)}ms`);
   console.log("");
 
   console.log(
     [
-      padRight("TEAM", 12),
+      padRight("TEAM", 16),
       padLeft("WIN%", 7),
       padLeft("POLE%", 7),
       padLeft("DNF/RACE", 10),
@@ -169,7 +147,7 @@ function main(): void {
       padLeft("DNQ%", 7),
     ].join(""),
   );
-  console.log("-".repeat(64));
+  console.log("-".repeat(68));
 
   const rankedTeams = [...teamTallies.values()].sort(
     (a, b) => b.wins - a.wins || b.poles - a.poles,
@@ -177,7 +155,7 @@ function main(): void {
   for (const team of rankedTeams) {
     console.log(
       [
-        padRight(team.name, 12),
+        padRight(team.name, 16),
         padLeft(pct(team.wins, races), 7),
         padLeft(pct(team.poles, races), 7),
         padLeft((team.retirements / races).toFixed(2), 10),
@@ -193,7 +171,7 @@ function main(): void {
   console.log(
     [
       padRight("DRIVER", 22),
-      padRight("TEAM", 12),
+      padRight("TEAM", 16),
       padLeft("WINS", 7),
       padLeft("WIN%", 7),
       padLeft("POLE%", 7),
@@ -201,7 +179,7 @@ function main(): void {
       padLeft("DNQ%", 7),
     ].join(""),
   );
-  console.log("-".repeat(69));
+  console.log("-".repeat(73));
 
   const rankedDrivers = [...driverTallies.values()].sort(
     (a, b) => b.wins - a.wins || b.poles - a.poles,
@@ -210,7 +188,7 @@ function main(): void {
     console.log(
       [
         padRight(driver.name, 22),
-        padRight(teams.get(driver.teamId)?.name ?? driver.teamId, 12),
+        padRight(teams.get(driver.teamId)?.name ?? driver.teamId, 16),
         padLeft(String(driver.wins), 7),
         padLeft(pct(driver.wins, races), 7),
         padLeft(pct(driver.poles, races), 7),

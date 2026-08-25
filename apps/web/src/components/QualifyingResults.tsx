@@ -1,13 +1,10 @@
-import { driversById } from "@alt-hist/data";
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverName } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
-
-const drivers = driversById();
 
 /**
  * One car's slot on the grid.
@@ -18,7 +15,7 @@ const drivers = driversById();
  */
 function GridSlot({ entry }: { entry: RaceEntryResult }) {
   const nameOf = useEntryName();
-  const nationality = drivers.get(entry.driverId)?.nationality;
+  const nationality = driverCountry(entry.driverId);
   const pole = entry.gridPosition === 1;
 
   return (

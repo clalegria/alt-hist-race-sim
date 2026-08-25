@@ -1,10 +1,7 @@
-import { driversById } from "@alt-hist/data";
-import { driverName } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
-
-const drivers = driversById();
 
 /**
  * A driver, as every table shows them: flag, name, and their team underneath.
@@ -28,7 +25,7 @@ export function DriverName({
   if (driverId === null) {
     return <span className="text-muted-foreground">—</span>;
   }
-  const nationality = drivers.get(driverId)?.nationality;
+  const nationality = driverCountry(driverId);
 
   return (
     <div className={cn("flex flex-col leading-tight", className)}>

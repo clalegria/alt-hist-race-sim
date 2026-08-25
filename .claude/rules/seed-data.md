@@ -7,10 +7,11 @@ paths:
 
 The JSON lives in `packages/data/src/`, is imported statically (so it is bundled and
 available in the browser with no I/O) and re-exported under types derived from the
-JSON itself. `packages/data/src/type-checks.ts` fails the typecheck if the types and
-the JSON drift apart.
+JSON itself. `type-checks.ts` fails the typecheck if the **pool** files and their types
+drift apart; the **seasons** are checked the same two ways at runtime by
+`validateSeedData()` instead — see "Adding a season" for why.
 
-- `drivers.json` — every driver across every authored season (51 today). `{ id, name,
+- `drivers.json` — every driver across every authored season (450 today). `{ id, name,
   nationality, birthYear, debutSeason,
   finalSeason, peak: { season, racing, qualifying, consistency, adaptability,
   composure }, peakSeasons, developmentSpeed, declineSpeed, steepDecline?,
@@ -24,16 +25,17 @@ the JSON drift apart.
   - `steepDecline: { season, severity }` is an optional persistent step down
     (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
     severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.
-- `teams.json` — every team across every season, so Shadow (1980, not 1981) and
-  Toleman (1981, not 1980) both live here. `{ id, name, base, foundedYear }`.
+- `teams.json` — every team across every season (113 today), so Shadow (1980, not 1981)
+  and Toleman (1981, not 1980) both live here. `{ id, name, base, foundedYear }`.
 - `engines.json` — every engine manufacturer, across every season. `{ id, name, base }`
   — **identity only**. What a unit is *worth* is a per-season fact and lives in the
   season file, because Ferrari's 1980 flat-12 and its 1981 turbo V6 are the same
   manufacturer and not remotely the same engine. `base` is where it was built, which is
   why Ford is `GB`: the DFV was a Cosworth design assembled in Northampton and badged
   for its backer, and the flag beside it should be the one that built it.
-- `seasons/<year>.json` — **one file per season**, currently 1980 (14 rounds, 4
-  engines, 15 entries, 28 seats) and 1981 (15 rounds, 6 engines, 17 entries, 31 seats).
+- `seasons/<year>.json` — **one file per season**, and all 77 of 1950–2026 are written.
+  They vary widely: 1950 is 6 rounds and 8 entries, 1980 is 14 rounds and 15, 2026 is 23
+  rounds and 11. Derive a count, never assume one.
   `{ year, points: [9, 6, 4, ...], calendar: [{ round, name, circuit, country }],
   engines: [{ engineId, racing, qualifying, reliability }], entries: [{ teamId,
   engineId, car: { racing, qualifying, consistency, reliability },
@@ -71,8 +73,12 @@ for the suites — reads the directory with `fs`, reached through
 browser has no filesystem, so Vite's `import.meta.glob` inlines the same files at
 build time; `process.getBuiltinModule` is the discriminator between the two. The cost
 is that `tsc` no longer checks each season file against `SeasonSeed` — a glob has no
-per-file type. `type-checks.ts` keeps two files as a compile-time sample of the
-format, and `validateSeedData()` checks every season actually on disk.
+per-file type. **`type-checks.ts` does not paper over that with a sample**: naming two
+season files there would rebuild the registry this folder exists to avoid, and the next
+year authored would be the one nobody checked. It covers the pools only, and
+`validateSeedData()` does the seasons — over every year on disk, in both directions:
+every declared field present and in range, and no field present that the type does not
+declare.
 
 Nothing else has a list of seasons in it. `apps/web/src/lib/seasons.ts` derives
 `PLAYABLE_SEASONS` and the picker's subtitle from `authoredSeasons`; the calibrate
@@ -111,56 +117,6 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
 - `validateSeedData()` is called on demand, not as a module-load side effect, so
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
-- `buildField(season, pool, mode, teams)` is the seam between authored data and the
-  engine's runtime model. **`season` is required** — a field built from whichever year
-  happened to be the default is the bug this seam exists to prevent. It lives here
-  rather than in either package: the engine may not read data, and every consumer that
-  wants to run a race needs exactly this mapping.
-  - It stamps each entrant with `driverCountry` (the driver's `nationality`) and
-    `teamCountry` (the team's `base`), which is how home advantage reaches the engine
-    without the engine ever reading this package. A team missing from the pool gets no
-    `teamCountry` and races everywhere as a visitor.
-  - It stamps `engineId` and the season's `engine` ratings the same way. **It does not
-    blend them** — `powertrain()` in the engine package owns that, so the number the
-    race is run on and the number the grid page shows come from one place.
-  - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
-    that way** — it feeds authored peaks straight in, which is what the 1980
-    calibration was measured against. `"aged"` calls the engine's ageing curve for
-    the season's year.
-  - This package now calls **into** the engine at runtime (`ratingsForSeason`), so
-    the dependency is no longer type-only. Still one-directional: the engine imports
-    nothing from here, and that is the invariant that matters.
-- `engines.ts` is the supply layer over a season seed, and mirrors `lineup.ts`
-  deliberately: a `SeasonEngines` is `Record<teamId, engineId>` with the same keys as
-  the season it overrides, and `applyEngines(season, engines)` hands back a
-  `SeasonSeed` that `buildField` consumes unchanged.
-  - `authoredEngines`, `isAuthoredEngines`, `engineChanges` and `availableEngines`
-    round it out. `availableEngines` orders the season's table by `engines.json` so a
-    picker does not reshuffle itself between years; `engineSpecOf` is the lookup.
-  - **A team can only be given an engine the season has.** `applyEngines` re-validates
-    rather than trusting, because an override can arrive from a save file — the same
-    reason `applyLineup` does.
-  - An `EngineChange` is `{ teamId, from, to }`, always both halves: a car has exactly
-    one engine, so fitting one always removes another.
-- `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
-  It sits here, not in the web app, because the progression tool needs the same
-  number and two copies of those weights would be two answers to "how good is this
-  driver". `apps/web/src/lib/rating.ts` re-exports it.
-- `lineup.ts` is the seat-allocation layer over a season seed: a `SeasonLineup` is
-  `Record<teamId, driverIds>` with the same keys and the same seat counts as the
-  season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`
-  that `buildField` consumes unchanged. It lives here because it is a transformation
-  of seed data, and because the driver market will want the same shape.
-  - **Only swaps are representable.** `swapDrivers(lineup, a, b)` preserves every
-    team's seat count and therefore the size of the field — which is what the
-    starting limit and the DNQ arithmetic are calibrated against. It requires at
-    least one of the two to hold a seat and throws otherwise; a driver swapped with
-    themselves is a no-op. `applyLineup` re-validates rather than trusting, because a
-    lineup can arrive from a save file.
-  - `authoredLineup`, `isAuthoredLineup`, `reserveDrivers` (alphabetical, everyone in
-    the pool without a seat) and `lineupChanges` round it out. A `SeatChange` always
-    has `in.length === out.length` — seats are preserved, so every arrival displaced
-    someone — and the UI relies on it to print "X for Y".
 - **Engine ratings are fitted, and were fitted jointly with the chassis.** They were
   authored by hand first — the Renault turbo quickest and most fragile, the Cosworth DFV
   near the mean of the cars using it, the Ferrari flat-12 strong on power in a chassis
@@ -172,3 +128,9 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
   and engine ratings for the year are no longer — they went through the harness in the
   engine pass. The no-re-calibration invariant still holds for all of it: do not tune
   anything here unless the author asks.
+
+## The layer over the seed
+
+`buildField`, `lineup.ts`, `engines.ts` and `rating.ts` turn authored JSON into
+something the engine or the UI can use. They have their own rule file,
+`.claude/rules/data-layers.md`, which loads when you open one of them.

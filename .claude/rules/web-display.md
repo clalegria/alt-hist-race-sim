@@ -15,9 +15,8 @@ which loads alongside this file.
   "Renault-Renault", and neither is Ferrari. Compared on the names, not the ids: the
   same manufacturer can be a team in one season and only a supplier in another.
   `entryName` in `lib/names.ts` owns the rule, and everything downstream of a season
-  reaches it through `useEntryName()` — see the context note in `web-app.md`. Teams are
-  still **sorted on the plain team name**, so a team does not move down the page for
-  changing supplier.
+  reaches it through `useEntryName()` — see below. Teams are still **sorted on the plain
+  team name**, so a team does not move down the page for changing supplier.
 - **One accent, defined once in `lib/highlight.ts`**: pole on the grid, the winner of
   a race, each champion on the summary, and the champion's row in the race sidebar
   from the round the arithmetic settles it. The banner announcing a title appears on
@@ -48,10 +47,12 @@ which loads alongside this file.
   and constructors' tables get the expansion from one place — the same reason they
   share the table itself. The **pair** of them is `SeasonStandings`, which the era's
   roll of honour opens a year into as well: one answer to "the championship, as this
-  app draws it", rather than a copy per screen. The control is the **name**, with the
-  calendar's `▶` chevron and `aria-expanded`, rather than a separate button: one action
-  does not deserve two tab stops. The chevron is a text glyph, not an SVG, because a
-  test counts one flag per row by counting `<svg>`.
+  app draws it", rather than a copy per screen. The control is the **name**, via the
+  shared `DisclosureButton` — `▶` chevron, `aria-expanded`, the name itself as the
+  button — rather than a separate control: one action does not deserve two tab stops.
+  One component for it, because the calendar and the era's roll of honour open the same
+  way and three copies of the markup drifted. The chevron is a text glyph, not an SVG,
+  because a test counts one flag per row by counting `<svg>`.
   A driver's panel is a row per round; **a team's is a row per _car_** — one, two or
   three of them — with the round columns written once and blanked on the cars beneath,
   so a three-car round does not read as three races. Those cars are ordered by **where
@@ -91,3 +92,17 @@ which loads alongside this file.
   goes missing — so the whole set is imported and a new country just works.
   `Flag.test.tsx` still checks the seed data against it, which now catches a bad code
   rather than a missing import.
+
+## Naming a team, across every table
+
+**Who is running whose engine travels by context, not by prop.** A result row records a
+`teamId` and nothing else, but "Williams-Ford" has to be the same name in the standings,
+the classification, the qualifying sheet and the summary or it reads as a bug. Threading
+a map through `StandingsTable`, `CompactStandings`, `DriverName`, `QualifyingResults` and
+the summary would be six pass-through props deep, so `SeasonView` wraps its body in
+`EntryNames` and those components call `useEntryName()`. The map is built from
+**`world.field`**, not the seed files — the field is the record of the grid as it was
+actually raced. The default is empty, so a component rendered on its own shows plain
+team names rather than throwing, which is what keeps every DOM-less test renderable.
+`SeasonGrid` deliberately does *not* use the context: it reads the engine off the field
+it is handed, which is what lets the editor preview a draft the world has never seen.

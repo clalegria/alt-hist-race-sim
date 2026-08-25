@@ -11,27 +11,9 @@
 
 import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
 import { createRng, type RaceGap, simulateRace } from "@alt-hist/engine";
+import { parseSeed } from "./args.js";
+import { padLeft, padRight } from "./format.js";
 import { parseYear, withoutYear } from "./year.js";
-
-function parseSeed(argv: readonly string[]): number {
-  const raw = argv[2];
-  if (raw === undefined) {
-    return 1;
-  }
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`Seed must be an integer, received "${raw}"`);
-  }
-  return parsed;
-}
-
-function padRight(text: string, width: number): string {
-  return text.length >= width ? text.slice(0, width) : text + " ".repeat(width - text.length);
-}
-
-function padLeft(text: string, width: number): string {
-  return text.length >= width ? text : " ".repeat(width - text.length) + text;
-}
 
 /** "+5.234s", or "+1:17.230s" once a gap runs past the minute. */
 function formatSeconds(seconds: number): string {

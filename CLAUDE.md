@@ -2,10 +2,10 @@
 
 ## Project
 **alt-hist-race-sim** (working name) — an alternate-history motor racing simulator.
-Starts from a real season — 1980 and 1981 today, others later — and simulates forward,
-year by year, diverging from history as it goes. Drivers and teams have 1–100
-attributes; races are resolved probabilistically; drivers age, move between teams via
-a transfer market, and retire; statistics accumulate over the run.
+Starts from a real season — 1950 to 2026, all authored — and simulates forward, year by
+year, diverging from history as it goes. Drivers and teams have 1–100 attributes; races
+are resolved probabilistically; drivers age, move between teams via a transfer market,
+and retire; statistics accumulate over the run.
 
 Hobby project for learning modern TypeScript/React. Will eventually be shared publicly
 as a static site. ~90% of code is AI-generated, so the rules below are the guardrails
@@ -18,9 +18,9 @@ HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
 and that folder's `index.ts` discovers them — there is no registry to update. Each
-carries a calendar, a points scale, an **engine table** and an entry list; the end
-state is 1950–2026 and beyond. Nothing outside that folder keeps a list of seasons — see
-`.claude/rules/seed-data.md` for how discovery works in the browser and under `tsx`.
+carries a calendar, a points scale, an **engine table** and an entry list. All 77 are
+written, but only 1980 and 1981 are calibrated; the rest are first drafts. Nothing else
+keeps a list of seasons — `.claude/rules/seed-data.md` has how discovery works.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo calibration harness, and a React web app that
@@ -30,14 +30,14 @@ reveals a season session by session.
 **Read `docs/ROADMAP.md` (what to build next, and why in that order) and
 `docs/DECISIONS.md` (open decisions in full) before starting new feature work.**
 Subsystem detail lives in `.claude/rules/*.md` and loads automatically when you open
-files in the matching package — engine race, season and progression models, seed data,
-calibration, and the web app split across architecture, display rules and styling.
+files in the matching package — the models, the seed data, calibration, the web app. Each
+stays under ~150 lines, splitting by narrower path scope past that.
 
 ## Commands
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 950 tests (203 engine, 83 data, 664 web)
+pnpm test          # 950 tests (202 engine, 85 data, 663 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -47,7 +47,7 @@ pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
                    # all four take --year <n>; default is the earliest authored season
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
-pnpm --filter @alt-hist/calibrate tune   # rating tuner (prints proposals, writes nothing)
+pnpm tune          # rating tuner (prints proposals, writes nothing)
 ```
 
 ## Architecture rules (invariants — do not violate)

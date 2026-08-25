@@ -41,6 +41,8 @@ import {
   createRng,
   simulateSeason,
 } from "@alt-hist/engine";
+import { parseCount } from "./args.js";
+import { padLeft, padRight, pct } from "./format.js";
 import { parseYear } from "./year.js";
 
 /**
@@ -113,18 +115,6 @@ function positionals(argv: readonly string[]): string[] {
   return kept;
 }
 
-function parseSeasonCount(argv: readonly string[]): number {
-  const raw = positionals(argv)[0];
-  if (raw === undefined) {
-    return DEFAULT_SEASONS;
-  }
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    throw new Error(`Season count must be a positive integer, received "${raw}"`);
-  }
-  return parsed;
-}
-
 /**
  * `aged` (the default here) or `peak`.
  *
@@ -152,20 +142,8 @@ function parseMode(argv: readonly string[]): RatingMode {
   return mode;
 }
 
-function pct(value: number, total: number): string {
-  return total === 0 ? "0.0%" : `${((value / total) * 100).toFixed(1)}%`;
-}
-
 function per(value: number, seasons: number, digits: number): string {
   return seasons === 0 ? (0).toFixed(digits) : (value / seasons).toFixed(digits);
-}
-
-function padRight(text: string, width: number): string {
-  return text.length >= width ? text.slice(0, width) : text + " ".repeat(width - text.length);
-}
-
-function padLeft(text: string, width: number): string {
-  return text.length >= width ? text : " ".repeat(width - text.length) + text;
 }
 
 function emptyTally(key: string, name: string, teamId: string): Tally {
@@ -234,7 +212,7 @@ function clearProgress(): void {
 
 function main(): void {
   const year = parseYear(process.argv);
-  const count = parseSeasonCount(process.argv);
+  const count = parseCount(positionals(process.argv)[0], DEFAULT_SEASONS, "Season count");
   const mode = parseMode(process.argv);
   const authored = seasonSeed(year);
   const field = buildField(authored, undefined, mode);

@@ -2,6 +2,7 @@ import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
 import { cn } from "../lib/utils.js";
+import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -53,23 +54,12 @@ export function SeasonCalendar({
                     {index + 1}
                   </TableCell>
                   <TableCell>
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      onClick={() => {
+                    <DisclosureButton
+                      open={isOpen}
+                      onToggle={() => {
                         setOpenRound(isOpen ? null : index);
                       }}
-                      className="focus-visible:ring-ring -mx-1 flex cursor-pointer items-center gap-2 rounded px-1 text-left focus-visible:ring-2 focus-visible:outline-none"
                     >
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "text-muted-foreground inline-block text-xs transition-transform",
-                          isOpen && "rotate-90",
-                        )}
-                      >
-                        ▶
-                      </span>
                       <span className="flex flex-col leading-tight">
                         <span className="flex items-center gap-1.5 font-medium">
                           {round === undefined ? null : (
@@ -81,7 +71,7 @@ export function SeasonCalendar({
                           <span className="text-muted-foreground text-xs">{round.circuit}</span>
                         )}
                       </span>
-                    </button>
+                    </DisclosureButton>
                   </TableCell>
                   <TableCell>
                     <DriverName

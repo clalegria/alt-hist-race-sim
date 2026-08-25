@@ -146,7 +146,7 @@ const BY_YEAR: ReadonlyMap<number, SeasonTargets> = new Map(
 );
 
 /** The years that can be tuned. Authoring a season does not create targets. */
-export const TARGET_YEARS: readonly number[] = [...BY_YEAR.keys()].sort((a, b) => a - b);
+const TARGET_YEARS: readonly number[] = [...BY_YEAR.keys()].sort((a, b) => a - b);
 
 /**
  * The targets for a year, or a throw.

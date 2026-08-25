@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
+import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { TeamName } from "./TeamName.js";
@@ -98,28 +99,12 @@ export function StandingsTable({
                     {index + 1}
                   </TableCell>
                   <TableCell>
-                    {/*
-                      The name itself is the control, as it is on the calendar:
-                      a separate chevron button would be a second tab stop for
-                      one action, and the row is what the reader is aiming at.
-                    */}
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      onClick={() => {
+                    <DisclosureButton
+                      open={isOpen}
+                      onToggle={() => {
                         setOpenKey(isOpen ? null : key);
                       }}
-                      className="focus-visible:ring-ring -mx-1 flex cursor-pointer items-center gap-2 rounded px-1 text-left focus-visible:ring-2 focus-visible:outline-none"
                     >
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "text-muted-foreground inline-block text-xs transition-transform",
-                          isOpen && "rotate-90",
-                        )}
-                      >
-                        ▶
-                      </span>
                       {isDriver ? (
                         <DriverName
                           driverId={standing.driverId}
@@ -129,7 +114,7 @@ export function StandingsTable({
                       ) : (
                         <TeamName teamId={standing.teamId} emphasis={index === 0} />
                       )}
-                    </button>
+                    </DisclosureButton>
                   </TableCell>
                   {COLUMNS.map((column) => (
                     <TableCell

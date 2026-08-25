@@ -1,9 +1,7 @@
-import { teamsById } from "@alt-hist/data";
+import { teamCountry } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
-
-const teams = teamsById();
 
 /**
  * A team with the flag of its base, mirroring `DriverName`.
@@ -21,7 +19,7 @@ export function TeamName({
   emphasis?: boolean;
   className?: string;
 }) {
-  const base = teams.get(teamId)?.base;
+  const base = teamCountry(teamId);
   const nameOf = useEntryName();
   return (
     <span className={cn("flex items-center gap-1.5", className)}>

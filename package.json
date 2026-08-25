@@ -21,7 +21,8 @@
     "race": "pnpm --filter @alt-hist/calibrate race",
     "season": "pnpm --filter @alt-hist/calibrate season",
     "calibrate-season": "pnpm --filter @alt-hist/calibrate seasons",
-    "progression": "pnpm --filter @alt-hist/calibrate progression"
+    "progression": "pnpm --filter @alt-hist/calibrate progression",
+    "tune": "pnpm --filter @alt-hist/calibrate tune"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",

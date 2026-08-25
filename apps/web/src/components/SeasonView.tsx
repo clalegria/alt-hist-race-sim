@@ -1,12 +1,10 @@
 import {
   type CalendarRace,
-  driversById,
   engineChanges,
   lineupChanges,
   type RatingMode,
   type SeasonEngines,
   type SeasonLineup,
-  teamsById,
 } from "@alt-hist/data";
 import {
   championshipStandings,
@@ -20,7 +18,7 @@ import {
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverName } from "../lib/names.js";
+import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { positionsOf } from "../lib/standings.js";
@@ -39,9 +37,6 @@ import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-
-const driverRecords = driversById();
-const teams = teamsById();
 
 /** The name of a round, falling back to a bare number if the calendar is short. */
 function roundLabel(
@@ -177,9 +172,7 @@ function Summary({
         <Champion
           label="Drivers&rsquo; champion"
           name={champion === undefined ? "—" : driverName(champion.driverId)}
-          country={
-            champion === undefined ? undefined : driverRecords.get(champion.driverId)?.nationality
-          }
+          country={champion === undefined ? undefined : driverCountry(champion.driverId)}
           detail={
             champion === undefined
               ? "Nobody scored."
@@ -189,7 +182,7 @@ function Summary({
         <Champion
           label="Constructors&rsquo; champion"
           name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
-          country={topTeam === undefined ? undefined : teams.get(topTeam.teamId)?.base}
+          country={topTeam === undefined ? undefined : teamCountry(topTeam.teamId)}
           detail={
             topTeam === undefined
               ? "Nobody scored."
@@ -297,14 +290,14 @@ function RaceStage({
         <TitleBanner
           title="Drivers"
           name={driverName(titles.driver.driverId)}
-          country={driverRecords.get(titles.driver.driverId)?.nationality}
+          country={driverCountry(titles.driver.driverId)}
         />
       ) : null}
       {titles.team !== null && titles.teamIsNew ? (
         <TitleBanner
           title="Constructors"
           name={nameOf(titles.team.teamId)}
-          country={teams.get(titles.team.teamId)?.base}
+          country={teamCountry(titles.team.teamId)}
         />
       ) : null}
 

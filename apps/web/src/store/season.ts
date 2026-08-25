@@ -217,9 +217,9 @@ export type Screen =
  * either. Narrowing to this once is what keeps the store from growing a second
  * copy of each of those actions.
  */
-export type PlayingScreen = Extract<Screen, { kind: "season" } | { kind: "era" }>;
+type PlayingScreen = Extract<Screen, { kind: "season" } | { kind: "era" }>;
 
-export function isPlaying(screen: Screen): screen is PlayingScreen {
+function isPlaying(screen: Screen): screen is PlayingScreen {
   return screen.kind === "season" || screen.kind === "era";
 }
 

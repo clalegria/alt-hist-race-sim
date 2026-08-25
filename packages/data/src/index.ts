@@ -119,6 +119,44 @@ function findDuplicates(ids: readonly string[]): string[] {
 }
 
 /**
+ * The season half of what `type-checks.ts` does for the pools, done at runtime
+ * because a season is discovered from disk rather than imported.
+ *
+ * Naming season files in `type-checks.ts` would rebuild the registry
+ * `seasons/index.ts` exists to avoid — the next year authored would be the one
+ * nobody checked. These two run over *every* season instead, and cover the same
+ * two directions: every declared field is present and a number, and no field is
+ * present that the type does not declare.
+ */
+function checkRatings(where: string, ratings: object, keys: readonly string[]): void {
+  const fields = ratings as Record<string, unknown>;
+  for (const key of keys) {
+    const value = fields[key];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw new Error(`${where} has ${key} "${String(value)}"; every rating must be a number`);
+    }
+    if (value < 0 || value > 100) {
+      throw new Error(`${where} has ${key} ${value}; ratings run from 0 to 100`);
+    }
+  }
+}
+
+/** Fails on a field the type does not declare — an authoring slip nothing reads. */
+function checkNoExtraKeys(where: string, record: object, keys: readonly string[]): void {
+  const extra = Object.keys(record).filter((key) => !keys.includes(key));
+  if (extra.length > 0) {
+    throw new Error(`${where} has fields nothing reads: ${extra.join(", ")}`);
+  }
+}
+
+const CAR_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
+const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
+const ENTRY_KEYS = ["teamId", "engineId", "car", "drivers"] as const;
+const SEASON_ENGINE_KEYS = ["engineId", ...ENGINE_RATING_KEYS] as const;
+const CALENDAR_KEYS = ["round", "name", "circuit", "country"] as const;
+const SEASON_KEYS = ["year", "points", "calendar", "engines", "entries"] as const;
+
+/**
  * Checks referential integrity of the seed data, throwing on the first problem
  * found. Drivers without a seat are legal — they sit in the pool available to
  * the transfer market — as are teams entering a single car.
@@ -200,6 +238,7 @@ function validateSeason(
   knownEngines: ReadonlySet<string>,
 ): void {
   const seatedDrivers = new Map<string, string>();
+  checkNoExtraKeys(`Season ${season.year}`, season, SEASON_KEYS);
 
   // The points scale, before anything that could be scored on it. A season
   // without one would silently crown whoever the countback favoured, and a
@@ -229,6 +268,9 @@ function validateSeason(
     if (!knownEngines.has(engine.engineId)) {
       throw new Error(`Season ${season.year} rates unknown engine "${engine.engineId}"`);
     }
+    const where = `Season ${season.year} engine "${engine.engineId}"`;
+    checkRatings(where, engine, ENGINE_RATING_KEYS);
+    checkNoExtraKeys(where, engine, SEASON_ENGINE_KEYS);
   }
   const duplicateEngines = findDuplicates(season.engines.map((engine) => engine.engineId));
   if (duplicateEngines.length > 0) {
@@ -242,6 +284,11 @@ function validateSeason(
     if (!knownTeams.has(entry.teamId)) {
       throw new Error(`Season ${season.year} entry references unknown team "${entry.teamId}"`);
     }
+
+    const where = `Season ${season.year} entry "${entry.teamId}"`;
+    checkNoExtraKeys(where, entry, ENTRY_KEYS);
+    checkRatings(`${where} car`, entry.car, CAR_KEYS);
+    checkNoExtraKeys(`${where} car`, entry.car, CAR_KEYS);
 
     if (!available.has(entry.engineId)) {
       throw new Error(
@@ -282,6 +329,7 @@ function validateSeason(
         `Season ${season.year} round ${race.round} has country "${race.country}", not an ISO alpha-2 code`,
       );
     }
+    checkNoExtraKeys(`Season ${season.year} round ${race.round}`, race, CALENDAR_KEYS);
   });
 
   const duplicateEntries = findDuplicates(season.entries.map((entry) => entry.teamId));

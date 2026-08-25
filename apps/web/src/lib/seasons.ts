@@ -32,9 +32,6 @@ export function isPlayable(year: number): boolean {
   return hasSeason(year);
 }
 
-/** The year a season starts from unless something offers a choice of another. */
-export const DEFAULT_SEASON: number = PLAYABLE_SEASONS[0] ?? FIRST_SEASON;
-
 export type { SeasonSeed };
 /**
  * The seed data for a season, or a throw. Callers only ever reach this through

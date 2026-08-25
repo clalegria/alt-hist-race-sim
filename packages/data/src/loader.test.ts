@@ -247,6 +247,92 @@ describe("validateSeedData", () => {
     }).toThrow(/seated at both/);
   });
 
+  /**
+   * The season half of what `type-checks.ts` does for the pools, and the reason
+   * it moved: a season is discovered from disk, so a compile-time check means
+   * naming its file — and the next year authored would be the one nobody
+   * checked. These run over every season on disk instead.
+   *
+   * Each case is a real authoring slip: a rating that never made it into the
+   * file, one typed as text, one out of range, and a field somebody added that
+   * nothing reads. All four look like data and none of them would surface as an
+   * error — they would surface as a car that is quietly wrong.
+   */
+  it("rejects a car or engine rating that is missing, not a number, or out of range", () => {
+    const withCar = (car: Record<string, unknown>): SeasonSeed => ({
+      year: 1980,
+      points: pointsScale(),
+      calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
+      engines: [engineSpec()],
+      entries: [
+        { teamId: knownTeam, engineId: knownEngine, car, drivers: [] },
+      ] as unknown as SeasonSeed["entries"],
+    });
+    const { racing: _dropped, ...noRacing } = carSpec();
+    expect(() => {
+      validateSeedData(drivers, teams, [withCar(noRacing)]);
+    }).toThrow(/racing "undefined"; every rating must be a number/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withCar({ ...carSpec(), qualifying: "quick" })]);
+    }).toThrow(/every rating must be a number/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withCar({ ...carSpec(), reliability: 140 })]);
+    }).toThrow(/ratings run from 0 to 100/);
+
+    const badEngine: SeasonSeed = {
+      year: 1980,
+      points: pointsScale(),
+      calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
+      engines: [{ ...engineSpec(), reliability: -1 }],
+      entries: [],
+    };
+    expect(() => {
+      validateSeedData(drivers, teams, [badEngine]);
+    }).toThrow(/ratings run from 0 to 100/);
+  });
+
+  it("rejects a season, entry, car, engine or round carrying a field nothing reads", () => {
+    // Built loose and cast once, because the whole point of each case is a
+    // field the type does not have: a typed fixture cannot express one.
+    const withExtra = (place: string, key: string): SeasonSeed => {
+      const season: Record<string, unknown> = {
+        year: 1980,
+        points: pointsScale(),
+        calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
+        engines: [engineSpec()],
+        entries: [{ teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [] }],
+      };
+      const targets: Record<string, Record<string, unknown>> = {
+        season,
+        entry: (season.entries as Record<string, unknown>[])[0] ?? {},
+        car: ((season.entries as Record<string, unknown>[])[0]?.car ?? {}) as Record<
+          string,
+          unknown
+        >,
+        engine: (season.engines as Record<string, unknown>[])[0] ?? {},
+        round: (season.calendar as Record<string, unknown>[])[0] ?? {},
+      };
+      (targets[place] ?? {})[key] = 1;
+      return season as unknown as SeasonSeed;
+    };
+
+    expect(() => {
+      validateSeedData(drivers, teams, [withExtra("season", "notes")]);
+    }).toThrow(/Season 1980 has fields nothing reads: notes/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withExtra("entry", "budget")]);
+    }).toThrow(/entry "[^"]+" has fields nothing reads: budget/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withExtra("car", "downforce")]);
+    }).toThrow(/car has fields nothing reads: downforce/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withExtra("engine", "consistency")]);
+    }).toThrow(/engine "[^"]+" has fields nothing reads: consistency/);
+    expect(() => {
+      validateSeedData(drivers, teams, [withExtra("round", "laps")]);
+    }).toThrow(/round 1 has fields nothing reads: laps/);
+  });
+
   it("rejects duplicate driver ids in the pool", () => {
     const first = drivers[0];
     if (first === undefined) {

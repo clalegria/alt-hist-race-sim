@@ -25,6 +25,22 @@ export function engineName(engineId: string): string {
 }
 
 /**
+ * Which flag goes beside a name: a driver's nationality, a team's base.
+ *
+ * Here rather than in each component that draws one, because the alternative
+ * was five more module-level `driversById()` / `teamsById()` maps and seven
+ * copies of `.get(id)?.nationality`. Undefined for an id the seed data does not
+ * know, which is what `Flag` and every caller already treat as "no flag".
+ */
+export function driverCountry(driverId: string): string | undefined {
+  return drivers.get(driverId)?.nationality;
+}
+
+export function teamCountry(teamId: string): string | undefined {
+  return teams.get(teamId)?.base;
+}
+
+/**
  * A team as an entry: chassis and engine, the way a season's entry list writes
  * it — "Williams-Ford", "Ligier-Matra", "Toleman-Hart".
  *

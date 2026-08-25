@@ -1,7 +1,6 @@
 import { authoredSeasons } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_SEASON,
   FIRST_SEASON,
   isPlayable,
   LAST_SEASON,
@@ -43,10 +42,6 @@ describe("which seasons can be run", () => {
     for (const year of PLAYABLE_SEASONS) {
       expect(SEASON_YEARS, `${year} is playable but unlisted`).toContain(year);
     }
-  });
-
-  it("opens on a year that actually works", () => {
-    expect(isPlayable(DEFAULT_SEASON)).toBe(true);
   });
 });
 

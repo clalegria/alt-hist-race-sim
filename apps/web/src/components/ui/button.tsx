@@ -7,7 +7,7 @@ const VARIANTS = {
   ghost: "text-muted-foreground hover:text-foreground hover:bg-accent bg-transparent",
 } as const;
 
-export interface ButtonProps extends ComponentProps<"button"> {
+interface ButtonProps extends ComponentProps<"button"> {
   readonly variant?: keyof typeof VARIANTS;
 }
 
