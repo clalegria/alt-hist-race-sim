@@ -40,8 +40,8 @@ architecture underneath all three, including why the draft lives where it does, 
   shared string against seats-plus-teams and asserts the word "underline" appears
   nowhere in a rendered grid.
 - **The overall on a team card already has the engine in it**, via
-  `carOverall(car, engine)` → the model's own `powertrain()`. Showing the bare chassis
-  would be a number nothing races on. The popover behind it shows the parts instead:
+  `carOverall(chassis, engine)` → the model's own `powertrain()`. Showing the bare
+  chassis would be a number nothing races on. The popover behind it shows the parts instead:
   the four chassis ratings, then the engine's three under its own heading — an engine
   has no consistency, so that panel is one row shorter, which is the point rather than
   an omission.
@@ -78,3 +78,6 @@ architecture underneath all three, including why the draft lives where it does, 
   The engine is the exception to "the weights live here": `carOverall` folds it in
   through the engine package's `powertrain()` rather than giving it weights of its own,
   because how much an engine is worth is a *model* claim and there must be one answer.
+  That claim is now two ratios, not one — 0.3 of pace and half of reliability — so a
+  local copy would be twice as easy to get wrong. The card's rating rows come from
+  `CHASSIS_RATINGS`, and they are the chassis as authored, not the blend.

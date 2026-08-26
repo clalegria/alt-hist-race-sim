@@ -61,13 +61,23 @@ Landed. What they left open:
   uncovered. Driver ratings were held fixed. What is still open is only what was open
   before: whether to fit the drivers at all, and whether the harness should ever
   measure a real calendar rather than neutral races.
-- **The 0.2 engine share is a judgement, not a measurement.** The reasoning is that an
-  authored car rating already contains most of what its engine contributed, so this is
-  only the part that moves when a team changes supplier — and that a larger share would
-  flatten a grid where one engine spans chassis rated 42 to 91. Both are arguments, not
-  evidence, and the re-tune did not test the share: it fitted ratings *given* 0.2 rather
-  than searching over it. Raising it is how you would make an engine deal matter more;
-  the price is a more uniform field, and a third calibration pass.
+- **The engine share is a judgement, not a measurement — and it has now been raised
+  once on judgement alone.** The author moved it from 0.2 to **0.3 on pace**, and split
+  reliability off into its own even **0.5 / 0.5** pair, on the argument that an engine
+  ends as many races as the chassis around it: blowing up or dropping a valve owes
+  nothing to the tub. The pace share stays the minority one for the original reasons —
+  an authored chassis rating already contains part of what its engine contributed, and
+  a larger share flattens a grid where one engine spans chassis rated 42 to 91.
+
+  **Neither number has been searched over.** The 1980 and 1981 fits were run *given*
+  0.2 on all three attributes, so those ratings are now stale — see the warning at the
+  top of `.claude/rules/calibration.md`. **The re-tune this calls for has not been run
+  and needs the author's word.** Expect the reliability change to move the retirement
+  rates most, since that weight travelled furthest, and expect `MAX_DRIFT_CHASSIS` to
+  need widening again (the old 8 → 12 move was the same argument at a 20% share).
+
+  Splitting one ratio into two also reopens a question the single share hid: whether
+  `consistency` should stay chassis-only. It is still the author's call that it should.
 - **An engine has no consistency.** A modelling claim — repeatability is a chassis and
   setup property, while an engine either makes its power or breaks — and settled.
 - **An engine now has home advantage** (`homeAdvantageEngine`, 0.25), stacking with the

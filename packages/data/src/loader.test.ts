@@ -132,7 +132,12 @@ describe("validateSeedData", () => {
       calendar: [],
       engines: [engineSpec()],
       entries: [
-        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+        {
+          teamId: knownTeam,
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          drivers: [knownDriver],
+        },
       ],
     };
     expect(() => {
@@ -162,7 +167,9 @@ describe("validateSeedData", () => {
       points: pointsScale(),
       calendar: [],
       engines: [engineSpec()],
-      entries: [{ teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: ["ghost"] }],
+      entries: [
+        { teamId: knownTeam, engineId: knownEngine, chassis: chassisSpec(), drivers: ["ghost"] },
+      ],
     };
     expect(() => {
       validateSeedData(drivers, teams, [broken]);
@@ -176,7 +183,12 @@ describe("validateSeedData", () => {
       calendar: [],
       engines: [engineSpec()],
       entries: [
-        { teamId: "phantom", engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+        {
+          teamId: "phantom",
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          drivers: [knownDriver],
+        },
       ],
     };
     expect(() => {
@@ -238,8 +250,18 @@ describe("validateSeedData", () => {
       calendar: [],
       engines: [engineSpec()],
       entries: [
-        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
-        { teamId: otherTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+        {
+          teamId: knownTeam,
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          drivers: [knownDriver],
+        },
+        {
+          teamId: otherTeam,
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          drivers: [knownDriver],
+        },
       ],
     };
     expect(() => {
@@ -258,25 +280,25 @@ describe("validateSeedData", () => {
    * nothing reads. All four look like data and none of them would surface as an
    * error — they would surface as a car that is quietly wrong.
    */
-  it("rejects a car or engine rating that is missing, not a number, or out of range", () => {
-    const withCar = (car: Record<string, unknown>): SeasonSeed => ({
+  it("rejects a chassis or engine rating that is missing, not a number, or out of range", () => {
+    const withChassis = (chassis: Record<string, unknown>): SeasonSeed => ({
       year: 1980,
       points: pointsScale(),
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
       engines: [engineSpec()],
       entries: [
-        { teamId: knownTeam, engineId: knownEngine, car, drivers: [] },
+        { teamId: knownTeam, engineId: knownEngine, chassis, drivers: [] },
       ] as unknown as SeasonSeed["entries"],
     });
-    const { racing: _dropped, ...noRacing } = carSpec();
+    const { racing: _dropped, ...noRacing } = chassisSpec();
     expect(() => {
-      validateSeedData(drivers, teams, [withCar(noRacing)]);
+      validateSeedData(drivers, teams, [withChassis(noRacing)]);
     }).toThrow(/racing "undefined"; every rating must be a number/);
     expect(() => {
-      validateSeedData(drivers, teams, [withCar({ ...carSpec(), qualifying: "quick" })]);
+      validateSeedData(drivers, teams, [withChassis({ ...chassisSpec(), qualifying: "quick" })]);
     }).toThrow(/every rating must be a number/);
     expect(() => {
-      validateSeedData(drivers, teams, [withCar({ ...carSpec(), reliability: 140 })]);
+      validateSeedData(drivers, teams, [withChassis({ ...chassisSpec(), reliability: 140 })]);
     }).toThrow(/ratings run from 0 to 100/);
 
     const badEngine: SeasonSeed = {
@@ -291,7 +313,7 @@ describe("validateSeedData", () => {
     }).toThrow(/ratings run from 0 to 100/);
   });
 
-  it("rejects a season, entry, car, engine or round carrying a field nothing reads", () => {
+  it("rejects a season, entry, chassis, engine or round carrying a field nothing reads", () => {
     // Built loose and cast once, because the whole point of each case is a
     // field the type does not have: a typed fixture cannot express one.
     const withExtra = (place: string, key: string): SeasonSeed => {
@@ -300,12 +322,14 @@ describe("validateSeedData", () => {
         points: pointsScale(),
         calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
         engines: [engineSpec()],
-        entries: [{ teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [] }],
+        entries: [
+          { teamId: knownTeam, engineId: knownEngine, chassis: chassisSpec(), drivers: [] },
+        ],
       };
       const targets: Record<string, Record<string, unknown>> = {
         season,
         entry: (season.entries as Record<string, unknown>[])[0] ?? {},
-        car: ((season.entries as Record<string, unknown>[])[0]?.car ?? {}) as Record<
+        chassis: ((season.entries as Record<string, unknown>[])[0]?.chassis ?? {}) as Record<
           string,
           unknown
         >,
@@ -323,8 +347,8 @@ describe("validateSeedData", () => {
       validateSeedData(drivers, teams, [withExtra("entry", "budget")]);
     }).toThrow(/entry "[^"]+" has fields nothing reads: budget/);
     expect(() => {
-      validateSeedData(drivers, teams, [withExtra("car", "downforce")]);
-    }).toThrow(/car has fields nothing reads: downforce/);
+      validateSeedData(drivers, teams, [withExtra("chassis", "downforce")]);
+    }).toThrow(/chassis has fields nothing reads: downforce/);
     expect(() => {
       validateSeedData(drivers, teams, [withExtra("engine", "consistency")]);
     }).toThrow(/engine "[^"]+" has fields nothing reads: consistency/);
@@ -345,7 +369,7 @@ describe("validateSeedData", () => {
   });
 });
 
-function carSpec() {
+function chassisSpec() {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50 };
 }
 
@@ -398,7 +422,12 @@ describe("engines", () => {
       calendar: [],
       engines: [],
       entries: [
-        { teamId: knownTeam, engineId: knownEngine, car: carSpec(), drivers: [knownDriver] },
+        {
+          teamId: knownTeam,
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          drivers: [knownDriver],
+        },
       ],
     };
     expect(() => {

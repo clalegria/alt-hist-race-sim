@@ -149,12 +149,12 @@ describe("applying a lineup to a season", () => {
     expect(applyLineup(SEED, authored)).toEqual(SEED);
   });
 
-  it("re-seats the driver in the team's own car", () => {
+  it("re-seats the driver in the team's own chassis", () => {
     const season = applyLineup(SEED, swapDrivers(authored, seated, reserve));
     const team = season.entries.find((entry) => entry.teamId === seatedTeam);
     const original = SEED.entries.find((entry) => entry.teamId === seatedTeam);
     expect(team?.drivers).toContain(reserve);
-    expect(team?.car).toEqual(original?.car);
+    expect(team?.chassis).toEqual(original?.chassis);
   });
 
   it("builds a field the engine can race", () => {

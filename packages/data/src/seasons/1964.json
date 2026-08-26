@@ -21,16 +21,16 @@
     { "engineId": "porsche",         "racing":  54, "qualifying":  52, "reliability":  64 }
   ],
   "entries": [
-    { "teamId": "ferrari",     "engineId": "ferrari",         "car": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["surtees", "bandini"] },
-    { "teamId": "brm",         "engineId": "brm",             "car": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  82 }, "drivers": ["hill_g", "ginther"] },
-    { "teamId": "lotus",       "engineId": "coventry_climax", "car": { "racing":  90, "qualifying":  92, "consistency":  78, "reliability":  68 }, "drivers": ["clark", "arundell"] },
-    { "teamId": "brabham",     "engineId": "coventry_climax", "car": { "racing":  82, "qualifying":  80, "consistency":  80, "reliability":  78 }, "drivers": ["brabham", "gurney"] },
-    { "teamId": "cooper",      "engineId": "coventry_climax", "car": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  74 }, "drivers": ["mclaren", "hill_p"] },
-    { "teamId": "honda",       "engineId": "honda",           "car": { "racing":  66, "qualifying":  64, "consistency":  60, "reliability":  46 }, "drivers": ["bucknum"] },
-    { "teamId": "rob_walker",  "engineId": "brm",             "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["siffert", "bonnier"] },
-    { "teamId": "reg_parnell", "engineId": "coventry_climax", "car": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["hailwood", "taylor"] },
-    { "teamId": "brp",         "engineId": "brm",             "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  66 }, "drivers": ["ireland", "anderson_b"] },
-    { "teamId": "centro_sud",  "engineId": "brm",             "car": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["mitter", "solana"] },
-    { "teamId": "filipinetti", "engineId": "porsche",         "car": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  60 }, "drivers": ["de_beaufort", "cabral"] }
+    { "teamId": "ferrari",     "engineId": "ferrari",         "chassis": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["surtees", "bandini"] },
+    { "teamId": "brm",         "engineId": "brm",             "chassis": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  82 }, "drivers": ["hill_g", "ginther"] },
+    { "teamId": "lotus",       "engineId": "coventry_climax", "chassis": { "racing":  90, "qualifying":  92, "consistency":  78, "reliability":  68 }, "drivers": ["clark", "arundell"] },
+    { "teamId": "brabham",     "engineId": "coventry_climax", "chassis": { "racing":  82, "qualifying":  80, "consistency":  80, "reliability":  78 }, "drivers": ["brabham", "gurney"] },
+    { "teamId": "cooper",      "engineId": "coventry_climax", "chassis": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  74 }, "drivers": ["mclaren", "hill_p"] },
+    { "teamId": "honda",       "engineId": "honda",           "chassis": { "racing":  66, "qualifying":  64, "consistency":  60, "reliability":  46 }, "drivers": ["bucknum"] },
+    { "teamId": "rob_walker",  "engineId": "brm",             "chassis": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["siffert", "bonnier"] },
+    { "teamId": "reg_parnell", "engineId": "coventry_climax", "chassis": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["hailwood", "taylor"] },
+    { "teamId": "brp",         "engineId": "brm",             "chassis": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  66 }, "drivers": ["ireland", "anderson_b"] },
+    { "teamId": "centro_sud",  "engineId": "brm",             "chassis": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["mitter", "solana"] },
+    { "teamId": "filipinetti", "engineId": "porsche",         "chassis": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  60 }, "drivers": ["de_beaufort", "cabral"] }
   ]
 }

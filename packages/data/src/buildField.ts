@@ -110,7 +110,7 @@ export function buildField(
         driverId,
         teamId: entry.teamId,
         driver: driverRatingsFor(driver, season.year, mode),
-        car: entry.car,
+        chassis: entry.chassis,
         engineId: entry.engineId,
         ...(engine === undefined
           ? {}

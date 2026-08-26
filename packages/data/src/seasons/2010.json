@@ -29,17 +29,17 @@
     { "engineId": "cosworth", "racing":  80, "qualifying":  78, "reliability":  82 }
   ],
   "entries": [
-    { "teamId": "red_bull",    "engineId": "renault",  "car": { "racing":  96, "qualifying":  98, "consistency":  86, "reliability":  78 }, "drivers": ["vettel", "webber"] },
-    { "teamId": "mclaren",     "engineId": "mercedes", "car": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["hamilton", "button"] },
-    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["alonso", "massa"] },
-    { "teamId": "mercedes",    "engineId": "mercedes", "car": { "racing":  80, "qualifying":  78, "consistency":  80, "reliability":  84 }, "drivers": ["schumacher_m", "rosberg_n"] },
-    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  78 }, "drivers": ["kubica", "petrov"] },
-    { "teamId": "force_india", "engineId": "mercedes", "car": { "racing":  70, "qualifying":  70, "consistency":  70, "reliability":  74 }, "drivers": ["sutil", "liuzzi"] },
-    { "teamId": "williams",    "engineId": "cosworth", "car": { "racing":  68, "qualifying":  68, "consistency":  68, "reliability":  72 }, "drivers": ["barrichello", "hulkenberg"] },
-    { "teamId": "sauber",      "engineId": "ferrari",  "car": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  62 }, "drivers": ["kobayashi", "de_la_rosa"] },
-    { "teamId": "toro_rosso",  "engineId": "ferrari",  "car": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  68 }, "drivers": ["buemi", "alguersuari"] },
-    { "teamId": "caterham",    "engineId": "cosworth", "car": { "racing":  42, "qualifying":  40, "consistency":  46, "reliability":  54 }, "drivers": ["trulli", "kovalainen"] },
-    { "teamId": "virgin",      "engineId": "cosworth", "car": { "racing":  36, "qualifying":  34, "consistency":  40, "reliability":  42 }, "drivers": ["glock", "di_grassi"] },
-    { "teamId": "hrt",         "engineId": "cosworth", "car": { "racing":  32, "qualifying":  30, "consistency":  36, "reliability":  40 }, "drivers": ["senna_b", "chandhok"] }
+    { "teamId": "red_bull",    "engineId": "renault",  "chassis": { "racing":  96, "qualifying":  98, "consistency":  86, "reliability":  78 }, "drivers": ["vettel", "webber"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["hamilton", "button"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["alonso", "massa"] },
+    { "teamId": "mercedes",    "engineId": "mercedes", "chassis": { "racing":  80, "qualifying":  78, "consistency":  80, "reliability":  84 }, "drivers": ["schumacher_m", "rosberg_n"] },
+    { "teamId": "renault",     "engineId": "renault",  "chassis": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  78 }, "drivers": ["kubica", "petrov"] },
+    { "teamId": "force_india", "engineId": "mercedes", "chassis": { "racing":  70, "qualifying":  70, "consistency":  70, "reliability":  74 }, "drivers": ["sutil", "liuzzi"] },
+    { "teamId": "williams",    "engineId": "cosworth", "chassis": { "racing":  68, "qualifying":  68, "consistency":  68, "reliability":  72 }, "drivers": ["barrichello", "hulkenberg"] },
+    { "teamId": "sauber",      "engineId": "ferrari",  "chassis": { "racing":  66, "qualifying":  64, "consistency":  66, "reliability":  62 }, "drivers": ["kobayashi", "de_la_rosa"] },
+    { "teamId": "toro_rosso",  "engineId": "ferrari",  "chassis": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  68 }, "drivers": ["buemi", "alguersuari"] },
+    { "teamId": "caterham",    "engineId": "cosworth", "chassis": { "racing":  42, "qualifying":  40, "consistency":  46, "reliability":  54 }, "drivers": ["trulli", "kovalainen"] },
+    { "teamId": "virgin",      "engineId": "cosworth", "chassis": { "racing":  36, "qualifying":  34, "consistency":  40, "reliability":  42 }, "drivers": ["glock", "di_grassi"] },
+    { "teamId": "hrt",         "engineId": "cosworth", "chassis": { "racing":  32, "qualifying":  30, "consistency":  36, "reliability":  40 }, "drivers": ["senna_b", "chandhok"] }
   ]
 }

@@ -614,7 +614,7 @@ describe("ordering the grid and the pool", () => {
 
     it("puts the best car first when asked, and keeps every team", () => {
       const ranked = byTeam(world.field, "overall");
-      expect(descending(ranked.map((entry) => carOverall(entry.car, entry.engine)))).toBe(true);
+      expect(descending(ranked.map((entry) => carOverall(entry.chassis, entry.engine)))).toBe(true);
       expect(new Set(names("overall"))).toEqual(new Set(names("name")));
       // The alphabet is not already the pecking order, or the check above is
       // satisfied by a component that ignores the switch entirely.

@@ -88,8 +88,9 @@ export interface EngineManufacturer {
  * One engine manufacturer's unit for one season.
  *
  * Three ratings, not four: an engine has no consistency of its own — that is a
- * chassis property. The engine package blends these with the car in
- * `powertrain()`, at `weightEngine` (0.2) against the chassis's 0.8.
+ * chassis property. The engine package blends these with the chassis in
+ * `powertrain()`: 0.3 of a car's pace against the chassis's 0.7, and an even
+ * half of its reliability.
  */
 export interface SeasonEngine {
   readonly engineId: string;
@@ -106,8 +107,15 @@ export interface Team {
   readonly foundedYear: number;
 }
 
-/** A team's car attributes for one season. */
-export interface CarSpec {
+/**
+ * A team's *chassis* attributes for one season — the tub, with nothing in the
+ * back of it.
+ *
+ * This is the authored rating and the only car-side rating anyone edits. It is
+ * not what the race model scores: the engine package blends it with that year's
+ * `SeasonEngine` in `powertrain()`, and the result of that blend is the car.
+ */
+export interface ChassisSpec {
   readonly racing: number;
   readonly qualifying: number;
   readonly consistency: number;
@@ -126,7 +134,8 @@ export interface SeasonEntry {
    * and `validateSeedData` says so.
    */
   readonly engineId: string;
-  readonly car: CarSpec;
+  /** The chassis the team built. The engine above is blended into it later. */
+  readonly chassis: ChassisSpec;
   /** Driver ids. Length varies — some teams field a single car. */
   readonly drivers: readonly string[];
 }

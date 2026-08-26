@@ -7,6 +7,15 @@ paths:
 
 # Calibration
 
+> **⚠ THESE TABLES ARE STALE.** Every figure below was measured with the powertrain
+> blended `0.8 · chassis + 0.2 · engine` on all three attributes. The weights have since
+> moved to **`0.7 / 0.3` on pace and an even `0.5 / 0.5` on reliability**, and the
+> chassis and engine ratings have **not** been re-fitted. The win and pole shares below
+> will have drifted; the retirement rates will have moved most, since reliability's
+> blend changed the furthest. A re-tune is needed and **has not been run** — it needs
+> the author's word. Do not treat any number here as current, and do not re-measure to
+> find out how far off it is.
+
 **Read the no-re-calibration invariant in `CLAUDE.md` before touching any number in
 these files.** Short version: the values below are settled, and re-tuning happens only
 when the author asks or when a deep change to how performance is computed makes the
@@ -28,7 +37,8 @@ two different questions.
 **They also describe a race with no host country.** `pnpm calibrate` and the tuner both
 run `simulateRace` with no `RoundContext`, so all three shares of home advantage —
 driver, team and engine — pay nothing in any measured race. That is why adding the
-engine's share needed no re-measurement. Rotating the harness through a season's
+engine's *home-advantage* share needed no re-measurement — which is not true of the
+blend weights, and the warning at the top of this file is about those. Rotating the harness through a season's
 calendar would fold home advantage into every number here; that is a change to what the
 harness measures, and it needs the author's word before anyone runs it.
 
@@ -49,12 +59,13 @@ It is a reading instrument, not a target set: nothing scores against it, the tun
 not use it, and the rule above — do not run a harness to check something — covers it
 too.
 
-## The engine pass (both seasons, cars and engines together)
+## The engine pass (both seasons, chassis and engines together)
 
 Engine manufacturers made a car `0.8 · chassis + 0.2 · engine`, which changes what a
 chassis rating *means* — the case the invariant lists as needing the author's word.
 The author gave it, so **1980 and 1981 were re-tuned as one set each**: chassis and
-engine ratings fitted together rather than an engine layered onto settled cars.
+engine ratings fitted together rather than an engine layered onto settled chassis.
+**That 0.8 / 0.2 is no longer the blend** — see the warning at the top of this file.
 **Driver ratings were held fixed throughout** and remain the author's; see
 `docs/DECISIONS.md`.
 
@@ -70,6 +81,8 @@ Two things came out of it worth knowing:
 - **The chassis drift band went from 8 to 12.** Holding effective pace steady while the
   engine takes 20% needs the chassis to move 1.25× whatever the engine took out, so the
   old band would have capped the fit below where the previous calibration already sat.
+  At the engine's current 30% pace share the same argument asks for ~1.43×, so whoever
+  runs the next pass should expect to widen `MAX_DRIFT_CHASSIS` again.
 
 ## Status against the real 1980 season (14 races), at 20,000 simulated races
 
@@ -123,10 +136,10 @@ weekend: Osella 95.3%, Toleman 86.0%, Ensign 35.7%, ATS 24.2%, March 19.0%, Fitt
   The most opinionated number in the set: the win share it produces is right, and the
   car it implies is flattering.
 - **Three 1981 proposals were rejected as noise-fitting**, not applied: `engine
-  hart.qualifying 62 → 77`, `engine hart.reliability 26 → 11`, `car arrows.qualifying
-  69 → 57`. Hart powered only Toleman, which contributes to no win or pole target and
-  is 2 of 31 cars in the retirement rate; the Arrows move went *away* from its one
-  target. Rejecting them cost 0.2 points of retirement rate and nothing else.
+  hart.qualifying 62 → 77`, `engine hart.reliability 26 → 11`, `chassis
+  arrows.qualifying 69 → 57`. Hart powered only Toleman, which contributes to no win or
+  pole target and is 2 of 31 cars in the retirement rate; the Arrows move went *away*
+  from its one target. Rejecting them cost 0.2 points of retirement rate and nothing else.
 
 ## Working here
 
@@ -135,11 +148,11 @@ weekend: Osella 95.3%, Toleman 86.0%, Ensign 35.7%, ATS 24.2%, March 19.0%, Fitt
 - `simulateRace` and `simulateSeason` both take constants as an optional override,
   which is how the harness sweeps values **without editing source**. Sweeping by
   editing a constants file and reverting is the wrong way round.
-- **The tuner moves cars and engines, and nothing else by default.** Driver ratings need
-  `--drivers` and the noise constants need `--noise`, because the failure mode of a
+- **The tuner moves chassis and engines, and nothing else by default.** Driver ratings
+  need `--drivers` and the noise constants need `--noise`, because the failure mode of a
   tuner is quietly rewriting more than you meant. Targets are per year in
-  `tools/calibrate/src/targets.ts`, and a year with no targets throws rather than
-  borrowing another season's.
+  `tools/calibrate/src/targets.ts` under `tunedChassis`, and a year with no targets
+  throws rather than borrowing another season's.
 - `buildFieldFrom` in the tuner must keep matching `buildField` attribute for attribute,
   or the tuner optimises a model the sim does not run. It builds fields by hand only
   because the whole point is to race ratings that are not in the JSON yet.

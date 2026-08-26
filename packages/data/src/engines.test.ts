@@ -132,7 +132,7 @@ describe("applyEngines", () => {
     expect(changed.entries).toHaveLength(season.entries.length);
     for (const entry of changed.entries) {
       const before = season.entries.find((candidate) => candidate.teamId === entry.teamId);
-      expect(entry.car, entry.teamId).toEqual(before?.car);
+      expect(entry.chassis, entry.teamId).toEqual(before?.chassis);
       expect(entry.drivers, entry.teamId).toEqual(before?.drivers);
     }
   });
@@ -241,10 +241,12 @@ describe("buildField and engines", () => {
 
     expect(after?.engineId).toBe(swap.to);
     // Same chassis, different unit: the car that gets raced is not the same car.
-    expect(after?.car).toEqual(before?.car);
+    expect(after?.chassis).toEqual(before?.chassis);
     if (before === undefined || after === undefined) {
       throw new Error("expected the team to hold a seat");
     }
-    expect(powertrain(after.car, after.engine)).not.toEqual(powertrain(before.car, before.engine));
+    expect(powertrain(after.chassis, after.engine)).not.toEqual(
+      powertrain(before.chassis, before.engine),
+    );
   });
 });

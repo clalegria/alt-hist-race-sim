@@ -37,7 +37,7 @@ import {
   simulateRace,
 } from "@alt-hist/engine";
 import {
-  type CarField,
+  type ChassisField,
   type EngineField,
   type SeasonTargets,
   share,
@@ -70,7 +70,7 @@ const TUNE_NOISE = process.argv.includes("--noise");
  * the engine took out of it. Keeping the old band would have capped the fit
  * below where the previous calibration already sat.
  */
-const MAX_DRIFT_CAR = 12;
+const MAX_DRIFT_CHASSIS = 12;
 const MAX_DRIFT_ENGINE = 15;
 const SWEEPS = 10;
 
@@ -103,7 +103,7 @@ function noiseCandidates(low: number, high: number): (current: number) => number
       .filter((value) => value >= low && value <= high);
 }
 
-interface CarState {
+interface ChassisState {
   racing: number;
   qualifying: number;
   consistency: number;
@@ -111,7 +111,7 @@ interface CarState {
 }
 
 interface State {
-  cars: Map<string, CarState>;
+  chassis: Map<string, ChassisState>;
   engines: Map<string, EngineSpec & { racing: number; qualifying: number; reliability: number }>;
   drivers: Map<string, { racing: number; qualifying: number }>;
   /** Noise constants are searched too, on `--noise` — see the note in `buildKnobs`. */
@@ -119,13 +119,13 @@ interface State {
 }
 
 function initialState(): State {
-  const cars = new Map<string, CarState>();
+  const chassis = new Map<string, ChassisState>();
   for (const entry of TUNED_SEASON.entries) {
-    cars.set(entry.teamId, {
-      racing: entry.car.racing,
-      qualifying: entry.car.qualifying,
-      consistency: entry.car.consistency,
-      reliability: entry.car.reliability,
+    chassis.set(entry.teamId, {
+      racing: entry.chassis.racing,
+      qualifying: entry.chassis.qualifying,
+      consistency: entry.chassis.consistency,
+      reliability: entry.chassis.reliability,
     });
   }
 
@@ -144,7 +144,7 @@ function initialState(): State {
   }
 
   return {
-    cars,
+    chassis,
     engines,
     drivers,
     noise: {
@@ -177,9 +177,9 @@ function buildFieldFrom(state: State): RaceEntrant[] {
   const field: RaceEntrant[] = [];
 
   for (const entry of TUNED_SEASON.entries) {
-    const car = state.cars.get(entry.teamId);
-    if (car === undefined) {
-      throw new Error(`No car state for ${entry.teamId}`);
+    const chassis = state.chassis.get(entry.teamId);
+    if (chassis === undefined) {
+      throw new Error(`No chassis state for ${entry.teamId}`);
     }
     const engine = state.engines.get(entry.engineId);
     if (engine === undefined) {
@@ -201,7 +201,7 @@ function buildFieldFrom(state: State): RaceEntrant[] {
           adaptability: authored.peak.adaptability,
           composure: authored.peak.composure,
         },
-        car,
+        chassis,
         engineId: entry.engineId,
         engine,
       });
@@ -294,27 +294,27 @@ function error(state: State, races = RACES_PER_EVAL): number {
 function buildKnobs(state: State): Knob[] {
   const knobs: Knob[] = [];
 
-  // Only the cars that contended. Tuning the tail would be fitting noise: those
-  // cars never win regardless of where in range their rating sits.
-  for (const [teamId, fields] of TARGETS.tunedCars) {
-    for (const field of fields as readonly CarField[]) {
-      const authored = state.cars.get(teamId)?.[field] ?? 0;
+  // Only the chassis that contended. Tuning the tail would be fitting noise:
+  // those cars never win regardless of where in range their rating sits.
+  for (const [teamId, fields] of TARGETS.tunedChassis) {
+    for (const field of fields as readonly ChassisField[]) {
+      const authored = state.chassis.get(teamId)?.[field] ?? 0;
       knobs.push({
-        label: `car ${teamId}.${field}`,
+        label: `chassis ${teamId}.${field}`,
         authored,
-        candidates: ratingCandidates(authored, MAX_DRIFT_CAR),
-        get: (s) => s.cars.get(teamId)?.[field] ?? 0,
+        candidates: ratingCandidates(authored, MAX_DRIFT_CHASSIS),
+        get: (s) => s.chassis.get(teamId)?.[field] ?? 0,
         set: (s, value) => {
-          const car = s.cars.get(teamId);
-          if (car !== undefined) {
-            car[field] = value;
+          const tub = s.chassis.get(teamId);
+          if (tub !== undefined) {
+            tub[field] = value;
           }
         },
       });
     }
   }
 
-  // Every engine the season rates, on all three attributes. Unlike cars there is
+  // Every engine the season rates, on all three attributes. Unlike a chassis there is
   // no tail to leave alone: an engine nobody at the front runs is still in ten
   // cars at the back, and those cars are most of the retirement rate.
   const engineFields: readonly EngineField[] = ["racing", "qualifying", "reliability"];
@@ -345,7 +345,7 @@ function buildKnobs(state: State): Knob[] {
         knobs.push({
           label: `driver ${driverId}.${field}`,
           authored,
-          candidates: ratingCandidates(authored, MAX_DRIFT_CAR),
+          candidates: ratingCandidates(authored, MAX_DRIFT_CHASSIS),
           get: (s) => s.drivers.get(driverId)?.[field] ?? 0,
           set: (s, value) => {
             const driver = s.drivers.get(driverId);

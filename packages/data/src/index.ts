@@ -53,7 +53,7 @@ export {
 } from "./seasons/index.js";
 export type {
   CalendarRace,
-  CarSpec,
+  ChassisSpec,
   Driver,
   DriverOffSeason,
   DriverPeak,
@@ -149,9 +149,9 @@ function checkNoExtraKeys(where: string, record: object, keys: readonly string[]
   }
 }
 
-const CAR_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
+const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
 const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
-const ENTRY_KEYS = ["teamId", "engineId", "car", "drivers"] as const;
+const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers"] as const;
 const SEASON_ENGINE_KEYS = ["engineId", ...ENGINE_RATING_KEYS] as const;
 const CALENDAR_KEYS = ["round", "name", "circuit", "country"] as const;
 const SEASON_KEYS = ["year", "points", "calendar", "engines", "entries"] as const;
@@ -287,8 +287,8 @@ function validateSeason(
 
     const where = `Season ${season.year} entry "${entry.teamId}"`;
     checkNoExtraKeys(where, entry, ENTRY_KEYS);
-    checkRatings(`${where} car`, entry.car, CAR_KEYS);
-    checkNoExtraKeys(`${where} car`, entry.car, CAR_KEYS);
+    checkRatings(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
+    checkNoExtraKeys(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
 
     if (!available.has(entry.engineId)) {
       throw new Error(

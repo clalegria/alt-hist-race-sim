@@ -7,7 +7,7 @@ import {
   ratingsForSeason,
   seasonDeficits,
 } from "./ageing.js";
-import { AGEING_CONSTANTS } from "./constants.js";
+import { AGEING_CONSTANTS, type AttributeSensitivity } from "./constants.js";
 import type { DriverCareer } from "./types.js";
 
 /**
@@ -49,6 +49,15 @@ function career(overrides: Partial<DriverCareer> = {}): DriverCareer {
 
 const ATTRIBUTES = ["racing", "qualifying", "consistency", "adaptability", "composure"] as const;
 
+/**
+ * Slack for comparing two slopes off the anchor table.
+ *
+ * Two segments the author wrote as equal falls — 0.90 → 0.85 and 0.85 → 0.80 —
+ * do not subtract to the same double, so a bare `>=` between them fails by
+ * 5e-17. Far below any difference the table means to express.
+ */
+const SLOPE_EPSILON = 1e-9;
+
 /** Every attribute at once, so a claim about "getting better" cannot cherry-pick. */
 function total(ratings: DriverRatings): number {
   return ATTRIBUTES.reduce((sum, key) => sum + ratings[key], 0);
@@ -81,7 +90,14 @@ describe("the population curve", () => {
 
   it("steepens with every segment past the plateau, so decline accelerates", () => {
     // The property the old exponent bought, now a shape rather than a formula.
-    // A table with a constant slope anywhere past the plateau fails here.
+    // A table with a constant slope past the plateau fails the acceleration
+    // check at the bottom.
+    //
+    // Runs to the end of the table, which is only possible because the table
+    // reaches its floor *at* its last anchor rather than easing onto one: a
+    // fall that keeps steepening has to cross zero, so a tail that lands softly
+    // on a floor has to decelerate to get there. That is why the anchors stop
+    // at the floor and `canonicalAbility` holds flat past it.
     const past = anchors.filter((anchor) => anchor.age >= canonical.plateauEnd);
     const slopes = past.slice(1).map((anchor, index) => {
       const previous = past[index];
@@ -95,14 +111,26 @@ describe("the population curve", () => {
       if (before === undefined || after === undefined) {
         throw new Error("unreachable");
       }
-      expect(after, `segment ${index}`).toBeGreaterThan(before);
+      expect(after, `segment ${index}`).toBeGreaterThanOrEqual(before - SLOPE_EPSILON);
     }
+    // Never easing is not enough on its own — a straight line satisfies it. The
+    // fall has to actually get faster, and by a lot, or "decline accelerates"
+    // is not a claim the table makes.
+    const [first, last] = [slopes[0], slopes[slopes.length - 1]];
+    if (first === undefined || last === undefined) {
+      throw new Error("unreachable");
+    }
+    expect(last).toBeGreaterThan(first * 2);
     expect(slopes.length).toBeGreaterThan(2);
   });
 
-  it("eases the whole way in on the rising side", () => {
+  it("ramps in, peaks in the teens, then eases the whole way into the plateau", () => {
     // A teenager gains far more per year than a 24-year-old, which is the other
-    // half of the shape the author asked for.
+    // half of the shape the author asked for. It is not a monotone ease from
+    // the very bottom, though: the table ramps *in* below the mid-teens, since
+    // a twelve-year-old is not improving as a racing driver faster than a
+    // sixteen-year-old is. So the claim is a single maximum with no wobble on
+    // either side of it, which is stronger than "eases throughout" would be.
     const rising = anchors.filter((anchor) => anchor.age <= canonical.plateauStart);
     const slopes = rising.slice(1).map((anchor, index) => {
       const previous = rising[index];
@@ -111,13 +139,33 @@ describe("the population curve", () => {
       }
       return (anchor.ability - previous.ability) / (anchor.age - previous.age);
     });
-    for (let index = 1; index < slopes.length; index += 1) {
+    const steepest = slopes.indexOf(Math.max(...slopes));
+
+    for (let index = 1; index <= steepest; index += 1) {
       const [before, after] = [slopes[index - 1], slopes[index]];
       if (before === undefined || after === undefined) {
         throw new Error("unreachable");
       }
-      expect(after, `segment ${index}`).toBeLessThan(before);
+      expect(after, `ramping in, segment ${index}`).toBeGreaterThan(before);
     }
+    for (let index = steepest + 1; index < slopes.length; index += 1) {
+      const [before, after] = [slopes[index - 1], slopes[index]];
+      if (before === undefined || after === undefined) {
+        throw new Error("unreachable");
+      }
+      expect(after, `easing in, segment ${index}`).toBeLessThan(before);
+    }
+
+    // The maximum sits in the teens, and there is a real ease after it — both
+    // halves have to exist, or a monotone ramp passes the loops above.
+    const fastest = rising[steepest + 1];
+    if (fastest === undefined) {
+      throw new Error("unreachable");
+    }
+    expect(fastest.age).toBeGreaterThanOrEqual(13);
+    expect(fastest.age).toBeLessThanOrEqual(20);
+    expect(steepest).toBeGreaterThan(0);
+    expect(steepest).toBeLessThan(slopes.length - 1);
   });
 
   it("holds flat beyond both ends instead of running off the scale", () => {
@@ -281,20 +329,33 @@ describe("the shape of a career", () => {
     // authored events, a rating is exactly the canonical ability at the driver's
     // canonical age, through the decline sensitivity. Any extra term anywhere in
     // the decline path — an exponent, a per-driver steepness — shows up here.
+    //
+    // The clamp is part of the composition and has to be applied here too. A
+    // fast decliner swept two decades past his plateau reads off the bottom of
+    // the population curve, and `qualifying` — the most decline-sensitive
+    // attribute — goes negative before the floor catches it.
+    const { minRating, maxRating, declineSensitivity } = AGEING_CONSTANTS;
+    let unclamped = 0;
     for (const declineSpeed of [1, 5, 10]) {
       const driver = career({ declineSpeed });
       for (let season = 1988; season <= 2005; season += 1) {
         const shortfall = 1 - canonicalAbility(canonicalAge(driver, season));
         for (const key of ATTRIBUTES) {
-          const expected = Math.round(
-            PEAK[key] * (1 - shortfall * AGEING_CONSTANTS.declineSensitivity[key]),
-          );
+          const raw = PEAK[key] * (1 - shortfall * declineSensitivity[key]);
+          const expected = Math.round(Math.min(Math.max(raw, minRating), maxRating));
+          if (raw > minRating && raw < maxRating) {
+            unclamped += 1;
+          }
           expect(ratingsForSeason(driver, season)[key], `${declineSpeed} ${key} ${season}`).toBe(
             expected,
           );
         }
       }
     }
+    // Most of the sweep must land inside the range, or the assertion above is
+    // mostly comparing the floor with itself and would survive the composition
+    // being wrong everywhere it matters.
+    expect(unclamped).toBeGreaterThan(3 * (2005 - 1988 + 1) * ATTRIBUTES.length * 0.75);
   });
 
   it("keeps every rating inside 1–100, whatever the career", () => {
@@ -316,18 +377,54 @@ describe("young and old are different, not just better and worse", () => {
   // flat, every attribute here lands on exactly the same value.
   const FLAT = { racing: 90, qualifying: 90, consistency: 90, adaptability: 90, composure: 90 };
 
+  /**
+   * Every pair of attributes, read against the sensitivity that separates them:
+   * the more sensitive of the two sits lower, and two the table treats alike
+   * land on the same number.
+   *
+   * Derived from the table rather than naming one pair, so it covers all five
+   * attributes and cannot go stale when a sensitivity is retuned — `racing` and
+   * `consistency` are both 1.0 in decline today, and a test that hard-coded
+   * `racing < consistency` was asserting a gap the table had stopped claiming.
+   */
+  function expectProfile(
+    ratings: DriverRatings,
+    sensitivity: AttributeSensitivity,
+    label: string,
+  ): void {
+    for (const a of ATTRIBUTES) {
+      for (const b of ATTRIBUTES) {
+        const where = `${label}: ${a} (${sensitivity[a]}) vs ${b} (${sensitivity[b]})`;
+        if (sensitivity[a] > sensitivity[b]) {
+          expect(ratings[a], where).toBeLessThan(ratings[b]);
+        } else if (sensitivity[a] === sensitivity[b]) {
+          expect(ratings[a], where).toBe(ratings[b]);
+        }
+      }
+    }
+    // A table flattened to one value satisfies every equality above and says
+    // nothing. The profile has to actually separate the attributes.
+    expect(new Set(ATTRIBUTES.map((key) => ratings[key])).size, label).toBeGreaterThan(1);
+  }
+
   it("makes the young driver quick but wild", () => {
     const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992, peak: FLAT });
     const young = ratingsForSeason(driver, 1981);
+    // The headline claim, in the terms a reader would put it in...
     expect(young.composure).toBeLessThan(young.qualifying);
     expect(young.consistency).toBeLessThan(young.racing);
+    // ...and the whole profile, so no pair drifts out of order unnoticed.
+    expectProfile(young, AGEING_CONSTANTS.developmentSensitivity, "young");
   });
 
   it("makes the old driver wise but slow", () => {
     const driver = career({ peak: FLAT });
     const old = ratingsForSeason(driver, peakWindow(driver).end + 8);
+    // One-lap pace is the first thing to go and judgement the last, which is
+    // what "wise but slow" means. Racing and consistency are level in decline
+    // today, so the pair that carries the claim is qualifying against composure.
     expect(old.qualifying).toBeLessThan(old.composure);
-    expect(old.racing).toBeLessThan(old.consistency);
+    expectProfile(old, AGEING_CONSTANTS.declineSensitivity, "old");
   });
 
   it("agrees they are the same driver at their peak", () => {

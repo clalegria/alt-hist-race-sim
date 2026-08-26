@@ -240,7 +240,7 @@ describe("the season grid", () => {
     for (const entrant of world.field) {
       expect(html, entrant.driverId).toContain(`>${driverOverall(entrant.driver)}<`);
       // Engine included: the headline number is the car that gets raced.
-      expect(html, entrant.teamId).toContain(`>${carOverall(entrant.car, entrant.engine)}<`);
+      expect(html, entrant.teamId).toContain(`>${carOverall(entrant.chassis, entrant.engine)}<`);
     }
   });
 

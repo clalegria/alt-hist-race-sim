@@ -1,17 +1,21 @@
-import type { CarSpec, DriverRatings, EngineSpec } from "../model/ratings.js";
+import type { ChassisSpec, DriverRatings, EngineSpec } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
 import type { RaceConstants } from "./constants.js";
 
-/** One car on the grid: a driver, in a team's car. */
+/** One car on the grid: a driver, in a team's chassis, with an engine in it. */
 export interface RaceEntrant {
   readonly driverId: string;
   readonly teamId: string;
   readonly driver: DriverRatings;
-  readonly car: CarSpec;
   /**
-   * The engine in the back of it, blended with the car by `powertrain()` before
-   * anything is scored. Optional: an entrant without one races on its chassis
-   * alone, which is exactly what every field did before engines existed.
+   * The tub the team built, as authored. Not what gets scored — `powertrain()`
+   * blends it with the engine below into the car that does.
+   */
+  readonly chassis: ChassisSpec;
+  /**
+   * The engine in the back of it, blended with the chassis by `powertrain()`
+   * before anything is scored. Optional: an entrant without one races on its
+   * chassis alone, which is exactly what every field did before engines existed.
    */
   readonly engine?: EngineSpec;
   /**

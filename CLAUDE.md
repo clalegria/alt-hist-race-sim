@@ -37,7 +37,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 972 tests (224 engine, 85 data, 663 web)
+pnpm test          # 999 tests (227 engine, 85 data, 687 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -92,17 +92,18 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   it and stop; do not fix it unprompted.
 
 ## Domain glossary
-- **Entry**: one team's participation in one season — a team + a car spec + an engine
+- **Entry**: one team's participation in one season — a team + a chassis + an engine
   + its drivers.
-- **Car spec**: a team's per-season *chassis* attributes (racing, qualifying, consistency,
-  reliability).
+- **Chassis spec** (`ChassisSpec`): a team's per-season chassis attributes — racing,
+  qualifying, consistency, reliability. Authored, and **not** what is scored.
 - **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability.
-  Three, not four: consistency belongs to the chassis. Identity (`engines.json`) is
-  separate from the per-season ratings, as it is for drivers and teams.
-- **Powertrain**: chassis and engine blended into the one car the model scores,
-  `0.8 · chassis + 0.2 · engine`, consistency untouched. `powertrain()` lives in the
-  engine package and **the UI's overall calls it too**, so there is one answer to "what
-  is this car worth". No engine is the identity: `powertrain(car)` is `car`.
+  Three, not four: consistency belongs to the chassis. `engines.json` is identity only.
+- **Car spec** (`CarSpec`): the blend of the two, and what the model scores. Same
+  shape as `ChassisSpec`; the name marks what has been through `powertrain()`.
+- **Powertrain**: that blend, by **two ratios, not one**. Pace (racing, qualifying) is
+  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`, an engine ending as
+  many races as the chassis around it. Consistency untouched. It lives in the engine
+  package and **the UI's overall calls it too**; `powertrain(chassis)` is the chassis.
 - **Peak vs aged**: the two rating modes a season can be built from — every driver at
   their authored peak (the default, and what the calibration describes), or at their
   ability in that season via the ageing curve.
@@ -175,20 +176,18 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows a
 question is open without carrying the argument.
 - **Per-run scatter on the ageing curve** — settled as *no scatter for now*: the curve
-  is deterministic and identical in every seed. Peak-scatter shape and the debut/peak
-  gap only matter again if that reopens.
+  is deterministic. Peak shape and the debut/peak gap matter again only if that reopens.
 - **Driver ratings are still un-tuned**, but no longer un-tunable: the ageing curve
-  landed, so the blocker is gone. This does **not** authorise a re-tune — see the
-  no-re-calibration invariant. It is a job waiting for the author to ask for it.
+  landed. This does **not** authorise a re-tune — it waits for the author to ask.
 - **Reliability era curve** — `mechanicalDnfEraScale` has no per-year curve, so 1981
   retires cars at 1980's rate. Live now that a second season is playable.
 - **Starting limit per era** — `maxStarters` is one engine constant pinned at 26.
   Real 1981 took 24. Probably belongs in `SeasonSeed`; needs the author's word.
-- **Engines are calibrated; the 0.2 share and the home-advantage numbers are not.**
-  Both seasons were re-tuned chassis-and-engine together at the author's request, with
-  driver ratings held fixed. The blend weight was not searched over, and no measured
-  race has a host country. Nothing moves an engine deal between seasons, and a works
-  team is inferred from the names matching.
+- **The blend weights moved; the fitted ratings have not caught up.** 1980 and 1981
+  were fitted against the old `0.8 / 0.2`, so `.claude/rules/calibration.md` no longer
+  describes the model — the 50/50 reliability split moves every retirement rate.
+  **A re-tune is needed and has not been run**; it needs the author's word. Otherwise:
+  no measured race has a host country, and nothing moves a deal between seasons.
 - **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
   costs strict dominance.
 - **Weekend-form share is a first guess** — 0.5, plausible but never fitted.

@@ -41,8 +41,8 @@ and its editor; both load together in `src/components/`.
   of a save file. `sessionStorage` rather than `localStorage` because the alphabetical
   default has a reason behind it and a fresh visit should still open on it.
   Both switches show the same overall the rows already show —
-  `carOverall(car, engine)` and `driverOverall` — so a list agrees with the numbers down
-  its own right-hand edge. The pool is **filtered first and ordered second**; the counts
+  `carOverall(chassis, engine)` and `driverOverall` — so a list agrees with the numbers
+  down its own right-hand edge. The pool is **filtered first and ordered second**; the counts
   in its header describe the filtering only.
   The control is **native radios in a fieldset**, visually hidden behind their labels,
   for the reason the filters are native checkboxes: arrow-key navigation and the group

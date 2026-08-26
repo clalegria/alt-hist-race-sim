@@ -22,19 +22,19 @@
     { "engineId": "tecno",   "racing":  52, "qualifying":  50, "reliability":  46 }
   ],
   "entries": [
-    { "teamId": "lotus",          "engineId": "ford",    "car": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["fittipaldi_e", "walker"] },
-    { "teamId": "tyrrell",        "engineId": "ford",    "car": { "racing":  90, "qualifying":  90, "consistency":  84, "reliability":  80 }, "drivers": ["stewart", "cevert"] },
-    { "teamId": "mclaren",        "engineId": "ford",    "car": { "racing":  82, "qualifying":  80, "consistency":  82, "reliability":  80 }, "drivers": ["hulme", "revson"] },
-    { "teamId": "ferrari",        "engineId": "ferrari", "car": { "racing":  84, "qualifying":  82, "consistency":  76, "reliability":  70 }, "drivers": ["ickx", "regazzoni"] },
-    { "teamId": "brm",            "engineId": "brm",     "car": { "racing":  74, "qualifying":  72, "consistency":  68, "reliability":  62 }, "drivers": ["beltoise", "ganley"] },
-    { "teamId": "march",          "engineId": "ford",    "car": { "racing":  72, "qualifying":  74, "consistency":  68, "reliability":  70 }, "drivers": ["peterson", "lauda"] },
-    { "teamId": "surtees",        "engineId": "ford",    "car": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  72 }, "drivers": ["hailwood", "schenken"] },
-    { "teamId": "brabham",        "engineId": "ford",    "car": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["hill_g", "reutemann"] },
-    { "teamId": "williams",       "engineId": "ford",    "car": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["pescarolo", "galli"] },
-    { "teamId": "politoys",       "engineId": "ford",    "car": { "racing":  54, "qualifying":  52, "consistency":  58, "reliability":  62 }, "drivers": ["pace", "marko"] },
-    { "teamId": "tecno",          "engineId": "tecno",   "car": { "racing":  48, "qualifying":  46, "consistency":  52, "reliability":  48 }, "drivers": ["bell", "barber"] },
-    { "teamId": "ecurie_bonnier", "engineId": "ford",    "car": { "racing":  46, "qualifying":  44, "consistency":  52, "reliability":  58 }, "drivers": ["soler_roig"] },
-    { "teamId": "connew",         "engineId": "ford",    "car": { "racing":  38, "qualifying":  36, "consistency":  44, "reliability":  48 }, "drivers": ["migault", "de_adamich"] },
-    { "teamId": "gunston",        "engineId": "brm",     "car": { "racing":  44, "qualifying":  42, "consistency":  50, "reliability":  56 }, "drivers": ["charlton", "pretorius"] }
+    { "teamId": "lotus",          "engineId": "ford",    "chassis": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["fittipaldi_e", "walker"] },
+    { "teamId": "tyrrell",        "engineId": "ford",    "chassis": { "racing":  90, "qualifying":  90, "consistency":  84, "reliability":  80 }, "drivers": ["stewart", "cevert"] },
+    { "teamId": "mclaren",        "engineId": "ford",    "chassis": { "racing":  82, "qualifying":  80, "consistency":  82, "reliability":  80 }, "drivers": ["hulme", "revson"] },
+    { "teamId": "ferrari",        "engineId": "ferrari", "chassis": { "racing":  84, "qualifying":  82, "consistency":  76, "reliability":  70 }, "drivers": ["ickx", "regazzoni"] },
+    { "teamId": "brm",            "engineId": "brm",     "chassis": { "racing":  74, "qualifying":  72, "consistency":  68, "reliability":  62 }, "drivers": ["beltoise", "ganley"] },
+    { "teamId": "march",          "engineId": "ford",    "chassis": { "racing":  72, "qualifying":  74, "consistency":  68, "reliability":  70 }, "drivers": ["peterson", "lauda"] },
+    { "teamId": "surtees",        "engineId": "ford",    "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  72 }, "drivers": ["hailwood", "schenken"] },
+    { "teamId": "brabham",        "engineId": "ford",    "chassis": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  72 }, "drivers": ["hill_g", "reutemann"] },
+    { "teamId": "williams",       "engineId": "ford",    "chassis": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["pescarolo", "galli"] },
+    { "teamId": "politoys",       "engineId": "ford",    "chassis": { "racing":  54, "qualifying":  52, "consistency":  58, "reliability":  62 }, "drivers": ["pace", "marko"] },
+    { "teamId": "tecno",          "engineId": "tecno",   "chassis": { "racing":  48, "qualifying":  46, "consistency":  52, "reliability":  48 }, "drivers": ["bell", "barber"] },
+    { "teamId": "ecurie_bonnier", "engineId": "ford",    "chassis": { "racing":  46, "qualifying":  44, "consistency":  52, "reliability":  58 }, "drivers": ["soler_roig"] },
+    { "teamId": "connew",         "engineId": "ford",    "chassis": { "racing":  38, "qualifying":  36, "consistency":  44, "reliability":  48 }, "drivers": ["migault", "de_adamich"] },
+    { "teamId": "gunston",        "engineId": "brm",     "chassis": { "racing":  44, "qualifying":  42, "consistency":  50, "reliability":  56 }, "drivers": ["charlton", "pretorius"] }
   ]
 }

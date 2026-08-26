@@ -135,7 +135,7 @@ export function simulateRace(
     const { driver } = entrant;
     // Blended once, here, rather than at each of the three places a car rating
     // is read: the engine is part of what the car *is* for this weekend.
-    const car = powertrain(entrant.car, entrant.engine, constants);
+    const car = powertrain(entrant.chassis, entrant.engine, constants);
 
     const consistency =
       constants.weightCarConsistency * car.consistency +

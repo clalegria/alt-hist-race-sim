@@ -1,1 +1,1 @@
-export type { CarSpec, DriverRatings, EngineSpec } from "./ratings.js";
+export type { CarSpec, ChassisSpec, DriverRatings, EngineSpec } from "./ratings.js";

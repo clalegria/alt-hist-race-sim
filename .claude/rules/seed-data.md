@@ -38,9 +38,11 @@ drift apart; the **seasons** are checked the same two ways at runtime by
   rounds and 11. Derive a count, never assume one.
   `{ year, points: [9, 6, 4, ...], calendar: [{ round, name, circuit, country }],
   engines: [{ engineId, racing, qualifying, reliability }], entries: [{ teamId,
-  engineId, car: { racing, qualifying, consistency, reliability },
-  drivers: [driverId, ...] }] }`. `country` is an ISO 3166-1 alpha-2 code, matching
-  `nationality` on drivers and `base` on teams.
+  engineId, chassis: { racing, qualifying, consistency, reliability },
+  drivers: [driverId, ...] }] }`. The entry key is `chassis`, not `car`: it is the tub
+  as authored, and the *car* is what `powertrain()` makes of it and the engine.
+  `country` is an ISO 3166-1 alpha-2 code, matching `nationality` on drivers and `base`
+  on teams.
   - `points` is the year's **championship scale**, best first, and its length is how
     many places score. Period-accurate and authored per year, because the scale is the
     part of the sport that changed most: 8-6-4-3-2 through the fifties, 8-6-4-3-2-1 in
@@ -53,8 +55,9 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     alternative. What is *not* legal is an entry naming a unit the season does not
     rate, which `validateSeedData` rejects.
   - An engine has **three ratings, not four**: consistency belongs to the chassis. The
-    engine package blends the two in `powertrain()` at 0.2 against the chassis's 0.8 —
-    see `.claude/rules/race-engine.md`.
+    engine package blends the two in `powertrain()` by two ratios — 0.3 of a car's pace
+    against the chassis's 0.7, and an even half of its reliability — see
+    `.claude/rules/race-engine.md`.
 
 ## Adding a season
 
@@ -87,13 +90,18 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
 ## Rules and gotchas
 
 - **The seed JSON is exempt from Biome formatting** (`overrides` in `biome.json`, which
-  covers `src/*.json` **and** `src/seasons/*.json`) to keep its one-record-per-line
-  layout. Do not reformat it.
+  covers `src/*.json` **and** `src/seasons/*.json`), so its layout is authored rather
+  than tool-imposed and differs by file. `drivers.json` is fully indented, one field per
+  line, because a driver record is long and is read and edited by hand; the season files
+  and the other pools keep their compact one-record-per-line layout. Match whichever
+  file you are in — do not reformat either way.
 - **Do not re-tune authored ratings.** See the invariant in `CLAUDE.md`. Seed ratings
   are tuned via the Monte Carlo harness, never guessed in code. **Chassis and engine
-  ratings for both 1980 and 1981 are fitted**, most recently in the engine pass that
-  tuned the two together (`.claude/rules/calibration.md`). Driver ratings deliberately
-  are not, and were held fixed through that pass (`docs/DECISIONS.md`).
+  ratings for both 1980 and 1981 were fitted** in the engine pass that tuned the two
+  together (`.claude/rules/calibration.md`) — but against the old `0.8 / 0.2` blend,
+  which has since moved to `0.7 / 0.3` on pace and `0.5 / 0.5` on reliability. They
+  are therefore **fitted-but-stale**, and re-fitting them needs the author's word.
+  Driver ratings deliberately are not fitted at all (`docs/DECISIONS.md`).
 - **No test reads a value out of this JSON and asserts on it** — not a rating, not a
   peak season, not a count of drivers or entries. The tests here derive what they need
   (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a steep decline")
@@ -117,17 +125,18 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
 - `validateSeedData()` is called on demand, not as a module-load side effect, so
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
-- **Engine ratings are fitted, and were fitted jointly with the chassis.** They were
-  authored by hand first — the Renault turbo quickest and most fragile, the Cosworth DFV
+- **Engine ratings are fitted (at the old weights), and were fitted jointly with the
+  chassis.** They were authored by hand first — the Renault turbo quickest and most fragile, the Cosworth DFV
   near the mean of the cars using it, the Ferrari flat-12 strong on power in a chassis
   that was not — and then tuned against both seasons' win, pole and retirement records.
   The shape survived the fit; the numbers moved. The tuner is allowed to move a car
   ±12 and an engine ±15 from its authored value, which is what keeps a fitted rating
-  recognisable as the judgement it started from.
+  recognisable as the judgement it started from. The tuner's knobs are labelled
+  `chassis <team>.<field>` and its targets key is `tunedChassis`.
 - **1981 driver ratings are still a first authored pass**, as are 1980's. The chassis
-  and engine ratings for the year are no longer — they went through the harness in the
-  engine pass. The no-re-calibration invariant still holds for all of it: do not tune
-  anything here unless the author asks.
+  and engine ratings for the year went through the harness in the engine pass, and are
+  now stale against the current blend weights. The no-re-calibration invariant still
+  holds for all of it: do not tune anything here unless the author asks.
 
 ## The layer over the seed
 

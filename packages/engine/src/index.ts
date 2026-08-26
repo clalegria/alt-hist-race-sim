@@ -5,7 +5,7 @@
  * no file reads, no `Date.now()`, no `Math.random()`. Inputs in, results out.
  */
 
-export type { CarSpec, DriverRatings, EngineSpec } from "./model/index.js";
+export type { CarSpec, ChassisSpec, DriverRatings, EngineSpec } from "./model/index.js";
 export {
   type AbilityAnchor,
   AGEING_CONSTANTS,

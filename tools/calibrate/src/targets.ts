@@ -13,8 +13,8 @@
  * tuned, and says so rather than falling back to somebody else's numbers.
  */
 
-/** The car attributes the tuner is allowed to move. */
-export type CarField = "racing" | "qualifying" | "consistency" | "reliability";
+/** The chassis attributes the tuner is allowed to move. */
+export type ChassisField = "racing" | "qualifying" | "consistency" | "reliability";
 
 /** The engine attributes it is allowed to move. Engines have no consistency. */
 export type EngineField = "racing" | "qualifying" | "reliability";
@@ -43,7 +43,7 @@ export interface SeasonTargets {
    * fitting noise. The tail still matters to the retirement rate, and that is
    * reached through the *engine* knobs, which move every customer at once.
    */
-  readonly tunedCars: ReadonlyArray<readonly [string, readonly CarField[]]>;
+  readonly tunedChassis: ReadonlyArray<readonly [string, readonly ChassisField[]]>;
   /**
    * Which drivers the tuner may move, on the `--drivers` flag only.
    *
@@ -69,7 +69,7 @@ const TARGETS_1980: SeasonTargets = {
   teamPoles: { renault: 6, ligier: 3, williams: 3, brabham: 1, alfa_romeo: 1 },
   // Roughly 40-45% of a 1980 field failed to see the flag.
   retirementRate: 0.42,
-  tunedCars: [
+  tunedChassis: [
     ["williams", ["racing", "qualifying", "reliability"]],
     ["ligier", ["racing", "qualifying", "reliability"]],
     ["brabham", ["racing", "qualifying", "reliability"]],
@@ -120,7 +120,7 @@ const TARGETS_1981: SeasonTargets = {
   teamWins: { williams: 4, brabham: 3, renault: 3, ferrari: 2, ligier: 2, mclaren: 1 },
   teamPoles: { renault: 6, brabham: 4, williams: 2, ferrari: 1, ligier: 1, arrows: 1 },
   retirementRate: 0.42,
-  tunedCars: [
+  tunedChassis: [
     ["williams", ["racing", "qualifying", "reliability"]],
     ["brabham", ["racing", "qualifying", "reliability"]],
     ["renault", ["racing", "qualifying", "reliability"]],

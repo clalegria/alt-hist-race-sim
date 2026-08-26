@@ -24,17 +24,17 @@
     { "engineId": "coventry_climax", "racing":  56, "qualifying":  54, "reliability":  68 }
   ],
   "entries": [
-    { "teamId": "lotus",          "engineId": "ford",            "car": { "racing":  92, "qualifying":  94, "consistency":  80, "reliability":  70 }, "drivers": ["hill_g", "oliver"] },
-    { "teamId": "matra",          "engineId": "ford",            "car": { "racing":  90, "qualifying":  90, "consistency":  84, "reliability":  78 }, "drivers": ["stewart", "beltoise"] },
-    { "teamId": "mclaren",        "engineId": "ford",            "car": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  76 }, "drivers": ["hulme", "mclaren"] },
-    { "teamId": "ferrari",        "engineId": "ferrari",         "car": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["ickx", "amon"] },
-    { "teamId": "brm",            "engineId": "brm",             "car": { "racing":  72, "qualifying":  70, "consistency":  70, "reliability":  68 }, "drivers": ["rodriguez_p", "attwood"] },
-    { "teamId": "brabham",        "engineId": "repco",           "car": { "racing":  72, "qualifying":  70, "consistency":  70, "reliability":  60 }, "drivers": ["rindt", "brabham"] },
-    { "teamId": "cooper",         "engineId": "brm",             "car": { "racing":  60, "qualifying":  58, "consistency":  62, "reliability":  64 }, "drivers": ["elford", "scarfiotti"] },
-    { "teamId": "honda",          "engineId": "honda",           "car": { "racing":  74, "qualifying":  72, "consistency":  66, "reliability":  56 }, "drivers": ["surtees"] },
-    { "teamId": "rob_walker",     "engineId": "ford",            "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  74 }, "drivers": ["siffert", "courage"] },
-    { "teamId": "reg_parnell",    "engineId": "brm",             "car": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["schlesser", "bianchi_l"] },
-    { "teamId": "ecurie_bonnier", "engineId": "coventry_climax", "car": { "racing":  50, "qualifying":  48, "consistency":  56, "reliability":  62 }, "drivers": ["bonnier", "moser"] },
-    { "teamId": "gunston",        "engineId": "brm",             "car": { "racing":  46, "qualifying":  44, "consistency":  52, "reliability":  58 }, "drivers": ["love", "de_klerk"] }
+    { "teamId": "lotus",          "engineId": "ford",            "chassis": { "racing":  92, "qualifying":  94, "consistency":  80, "reliability":  70 }, "drivers": ["hill_g", "oliver"] },
+    { "teamId": "matra",          "engineId": "ford",            "chassis": { "racing":  90, "qualifying":  90, "consistency":  84, "reliability":  78 }, "drivers": ["stewart", "beltoise"] },
+    { "teamId": "mclaren",        "engineId": "ford",            "chassis": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  76 }, "drivers": ["hulme", "mclaren"] },
+    { "teamId": "ferrari",        "engineId": "ferrari",         "chassis": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["ickx", "amon"] },
+    { "teamId": "brm",            "engineId": "brm",             "chassis": { "racing":  72, "qualifying":  70, "consistency":  70, "reliability":  68 }, "drivers": ["rodriguez_p", "attwood"] },
+    { "teamId": "brabham",        "engineId": "repco",           "chassis": { "racing":  72, "qualifying":  70, "consistency":  70, "reliability":  60 }, "drivers": ["rindt", "brabham"] },
+    { "teamId": "cooper",         "engineId": "brm",             "chassis": { "racing":  60, "qualifying":  58, "consistency":  62, "reliability":  64 }, "drivers": ["elford", "scarfiotti"] },
+    { "teamId": "honda",          "engineId": "honda",           "chassis": { "racing":  74, "qualifying":  72, "consistency":  66, "reliability":  56 }, "drivers": ["surtees"] },
+    { "teamId": "rob_walker",     "engineId": "ford",            "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  74 }, "drivers": ["siffert", "courage"] },
+    { "teamId": "reg_parnell",    "engineId": "brm",             "chassis": { "racing":  58, "qualifying":  56, "consistency":  62, "reliability":  66 }, "drivers": ["schlesser", "bianchi_l"] },
+    { "teamId": "ecurie_bonnier", "engineId": "coventry_climax", "chassis": { "racing":  50, "qualifying":  48, "consistency":  56, "reliability":  62 }, "drivers": ["bonnier", "moser"] },
+    { "teamId": "gunston",        "engineId": "brm",             "chassis": { "racing":  46, "qualifying":  44, "consistency":  52, "reliability":  58 }, "drivers": ["love", "de_klerk"] }
   ]
 }

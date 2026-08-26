@@ -19,14 +19,14 @@
     { "engineId": "bristol",  "racing":  52, "qualifying":  50, "reliability":  66 }
   ],
   "entries": [
-    { "teamId": "ferrari",       "engineId": "ferrari",  "car": { "racing":  92, "qualifying":  90, "consistency":  86, "reliability":  82 }, "drivers": ["fangio", "collins", "castellotti"] },
-    { "teamId": "maserati",      "engineId": "maserati", "car": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["moss", "behra", "perdisa"] },
-    { "teamId": "vanwall",       "engineId": "vanwall",  "car": { "racing":  76, "qualifying":  74, "consistency":  64, "reliability":  54 }, "drivers": ["schell", "trintignant"] },
-    { "teamId": "brm",           "engineId": "brm",      "car": { "racing":  70, "qualifying":  68, "consistency":  54, "reliability":  38 }, "drivers": ["hawthorn", "brooks"] },
-    { "teamId": "centro_sud",    "engineId": "maserati", "car": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  68 }, "drivers": ["gerini", "piotti"] },
-    { "teamId": "gordini",       "engineId": "gordini",  "car": { "racing":  54, "qualifying":  52, "consistency":  54, "reliability":  50 }, "drivers": ["manzon", "da_silva_ramos"] },
-    { "teamId": "connaught",     "engineId": "bristol",  "car": { "racing":  56, "qualifying":  54, "consistency":  60, "reliability":  64 }, "drivers": ["gerard", "fairman"] },
-    { "teamId": "rob_walker",    "engineId": "maserati", "car": { "racing":  60, "qualifying":  58, "consistency":  64, "reliability":  66 }, "drivers": ["salvadori", "halford_b"] },
-    { "teamId": "ecurie_ecosse", "engineId": "maserati", "car": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["godia", "scarlatti"] }
+    { "teamId": "ferrari",       "engineId": "ferrari",  "chassis": { "racing":  92, "qualifying":  90, "consistency":  86, "reliability":  82 }, "drivers": ["fangio", "collins", "castellotti"] },
+    { "teamId": "maserati",      "engineId": "maserati", "chassis": { "racing":  86, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["moss", "behra", "perdisa"] },
+    { "teamId": "vanwall",       "engineId": "vanwall",  "chassis": { "racing":  76, "qualifying":  74, "consistency":  64, "reliability":  54 }, "drivers": ["schell", "trintignant"] },
+    { "teamId": "brm",           "engineId": "brm",      "chassis": { "racing":  70, "qualifying":  68, "consistency":  54, "reliability":  38 }, "drivers": ["hawthorn", "brooks"] },
+    { "teamId": "centro_sud",    "engineId": "maserati", "chassis": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  68 }, "drivers": ["gerini", "piotti"] },
+    { "teamId": "gordini",       "engineId": "gordini",  "chassis": { "racing":  54, "qualifying":  52, "consistency":  54, "reliability":  50 }, "drivers": ["manzon", "da_silva_ramos"] },
+    { "teamId": "connaught",     "engineId": "bristol",  "chassis": { "racing":  56, "qualifying":  54, "consistency":  60, "reliability":  64 }, "drivers": ["gerard", "fairman"] },
+    { "teamId": "rob_walker",    "engineId": "maserati", "chassis": { "racing":  60, "qualifying":  58, "consistency":  64, "reliability":  66 }, "drivers": ["salvadori", "halford_b"] },
+    { "teamId": "ecurie_ecosse", "engineId": "maserati", "chassis": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["godia", "scarlatti"] }
   ]
 }

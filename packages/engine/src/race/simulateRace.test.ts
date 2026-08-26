@@ -22,7 +22,7 @@ function entrant(
       adaptability: ability,
       composure: ability,
     },
-    car: {
+    chassis: {
       racing: carAbility,
       qualifying: carAbility,
       consistency: carAbility,
@@ -1041,8 +1041,12 @@ describe("engines", () => {
     const gained =
       entryOf(result, "driver-c").qualifyingScore - entryOf(result, "driver-a").qualifyingScore;
     // 30 rating points of engine advantage over the chassis it replaces, taken
-    // at the engine's share of the car, then at the car's share of qualifying.
-    expect(gained).toBeCloseTo(30 * NO_NOISE.weightEngine * NO_NOISE.weightCarQualifying, 10);
+    // at the engine's share of the car's pace, then at the car's share of
+    // qualifying.
+    expect(gained).toBeCloseTo(
+      30 * NO_NOISE.weightEnginePerformance * NO_NOISE.weightCarQualifying,
+      10,
+    );
   });
 
   it("leaves consistency alone, so the pace penalty does not move", () => {

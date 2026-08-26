@@ -151,7 +151,7 @@ describe("building a field", () => {
 
   it("builds a field for every authored season", () => {
     // The check that a new season is playable at all: every seat resolves to a
-    // driver in the pool, and to that team's car.
+    // driver in the pool, and to that team's chassis.
     expect(seasons.size).toBeGreaterThan(0);
     for (const season of seasons.values()) {
       const field = buildField(season);
@@ -162,7 +162,7 @@ describe("building a field", () => {
       ).toEqual(seats);
       for (const entrant of field) {
         expect(entrant.driver.racing, `${season.year} ${entrant.driverId}`).toBeGreaterThan(0);
-        expect(entrant.car.racing, `${season.year} ${entrant.teamId}`).toBeGreaterThan(0);
+        expect(entrant.chassis.racing, `${season.year} ${entrant.teamId}`).toBeGreaterThan(0);
       }
     }
   });

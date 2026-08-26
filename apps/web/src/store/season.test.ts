@@ -80,7 +80,7 @@ describe("the world", () => {
     const first = world.field.find((entrant) => entrant.driverId === entry?.drivers[0]);
     expect(first?.teamId).toBe(entry?.teamId);
     expect(first?.driver.racing).toBeGreaterThan(0);
-    expect(first?.car.reliability).toBeGreaterThan(0);
+    expect(first?.chassis.reliability).toBeGreaterThan(0);
   });
 
   it("survives a JSON round trip unchanged", () => {
@@ -475,7 +475,7 @@ describe("the chosen grid", () => {
     expect(running().view).toEqual({ kind: "grid" });
   });
 
-  it("puts the swapped-in driver in the team's car, and the other out of the field", () => {
+  it("puts the swapped-in driver in the team's chassis, and the other out of the field", () => {
     useSeasonStore.getState().setGrid(swapped, null);
     const field = running().world.field;
     const team = field.filter((entrant) => entrant.teamId === SEATED_TEAM);
@@ -483,9 +483,9 @@ describe("the chosen grid", () => {
     expect(field).toHaveLength(SEATS);
     expect(team.map((entrant) => entrant.driverId)).toContain(RESERVE);
     expect(field.map((entrant) => entrant.driverId)).not.toContain(SEATED);
-    // The car is the team's, not the driver's: the newcomer inherits it.
-    const was = createWorld(3, YEAR).field.find((entrant) => entrant.driverId === SEATED)?.car;
-    expect(team.find((entrant) => entrant.driverId === RESERVE)?.car).toEqual(was);
+    // The chassis is the team's, not the driver's: the newcomer inherits it.
+    const was = createWorld(3, YEAR).field.find((entrant) => entrant.driverId === SEATED)?.chassis;
+    expect(team.find((entrant) => entrant.driverId === RESERVE)?.chassis).toEqual(was);
   });
 
   it("races whoever was put in, so the results are theirs", () => {

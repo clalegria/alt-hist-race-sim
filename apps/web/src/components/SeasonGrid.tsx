@@ -22,7 +22,7 @@ const DRIVER_RATINGS = [
   { key: "adaptability", label: "Adaptability" },
 ] as const;
 
-const CAR_RATINGS = [
+const CHASSIS_RATINGS = [
   { key: "racing", label: "Racing" },
   { key: "qualifying", label: "Qualifying" },
   { key: "consistency", label: "Consistency" },
@@ -269,7 +269,7 @@ function EnginePicker({
 
 interface TeamEntry {
   readonly teamId: string;
-  readonly car: RaceEntrant["car"];
+  readonly chassis: RaceEntrant["chassis"];
   /** The unit in the back of it, as the field was built. */
   readonly engine: EngineSpec | undefined;
   readonly engineId: string | undefined;
@@ -287,9 +287,9 @@ interface TeamEntry {
  * By rating it is the same overall the card shows — `carOverall`, engine
  * included — so the list agrees with the numbers down its right-hand edge.
  *
- * The car and the engine come off the first entrant of each team, which is where
- * this whole page gets them: it reads the field it is handed and never the seed
- * files, so it can be shown a draft grid the world has never run.
+ * The chassis and the engine come off the first entrant of each team, which is
+ * where this whole page gets them: it reads the field it is handed and never the
+ * seed files, so it can be shown a draft grid the world has never run.
  */
 export function byTeam(
   field: readonly RaceEntrant[],
@@ -301,7 +301,7 @@ export function byTeam(
     if (existing === undefined) {
       grouped.set(entrant.teamId, {
         teamId: entrant.teamId,
-        car: entrant.car,
+        chassis: entrant.chassis,
         engine: entrant.engine,
         engineId: entrant.engineId,
         drivers: [entrant],
@@ -314,7 +314,7 @@ export function byTeam(
     [...grouped.values()],
     order,
     (entry) => teamName(entry.teamId),
-    (entry) => carOverall(entry.car, entry.engine),
+    (entry) => carOverall(entry.chassis, entry.engine),
   );
 }
 
@@ -427,11 +427,11 @@ export function SeasonGrid({
                       </span>
                     </div>
                     <div className="flex flex-col gap-2">
-                      {CAR_RATINGS.map((rating) => (
+                      {CHASSIS_RATINGS.map((rating) => (
                         <Rating
                           key={rating.key}
                           label={rating.label}
-                          value={entry.car[rating.key]}
+                          value={entry.chassis[rating.key]}
                         />
                       ))}
                     </div>
@@ -459,7 +459,7 @@ export function SeasonGrid({
                     )}
                   </PopoverContent>
                 </Popover>
-                <Overall value={carOverall(entry.car, entry.engine)} />
+                <Overall value={carOverall(entry.chassis, entry.engine)} />
               </div>
 
               {edit === undefined ? null : (

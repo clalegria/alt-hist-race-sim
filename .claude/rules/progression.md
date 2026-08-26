@@ -22,10 +22,21 @@ the day per-run scatter lands.
 split is the whole model, and the thing to protect.
 
 `CANONICAL_ABILITY` in `constants.ts` is a table of ability-as-a-fraction-of-peak
-against age — what an average career looks like. Steep improvement before 20 easing all
-the way in, flat from 28 to 33, a *gentle* nine percent between 35 and 42, then a fall
-that steepens with every segment. It is authored, not fitted, and it is the only thing
-that decides how much a year off peak costs.
+against age — what an average career looks like. Improvement peaking in the mid-teens
+and easing from there into the plateau (it ramps *in* below that, so the very bottom of
+the table is not its steepest part), flat from 28 to 33, a *gentle* nine percent between
+35 and 42, then a fall that never eases and keeps steepening all the way down — one
+point a year at 35, seven a year at 53. It is authored, not fitted, and it is the only
+thing that decides how much a year off peak costs.
+
+**The table ends *on* its floor (0.1 at 55) rather than easing onto one, and that is
+load-bearing.** A fall that keeps steepening has to cross zero, so any tail that lands
+softly on a floor must decelerate to get there — an earlier version did exactly that
+between 47 and 55, and no single anchor could fix it because the tail is zero-sum:
+pulling one point down steepens the segment to its left and flattens the one to its
+right. Ending at the floor and letting `canonicalAbility` hold flat past it is what buys
+the accelerating-decline property across the whole table. **Do not add an anchor past 55
+without re-deriving the tail**; it reintroduces the dip.
 
 `canonicalAge(career, season)` maps a real age onto that curve in four segments, pinned
 at three points — the driver's plateau start onto `canonical.plateauStart`, his peak
@@ -93,11 +104,19 @@ season is **form**, which hits every attribute equally because a bad year is a b
 
 **Young drivers are fast but wild; old drivers are wise but slow.** In development, raw
 pace arrives first (qualifying sensitivity 0.7) while consistency and composure are the
-last things to come (1.25, 1.35). In decline it inverts: reflexes and one-lap pace go
-first (qualifying 1.3) and the judgement built over a career barely erodes (composure
-0.5). Flatten both tables and a 40-year-old becomes a uniformly worse driver instead of
-a different one — there are tests that fail on exactly that, using a peak with all five
-attributes equal so rounding cannot mask it.
+last things to come (both 1.25). In decline it inverts: one-lap pace goes first
+(qualifying 1.3) and the judgement built over a career barely erodes (composure 0.75),
+with racing, consistency and adaptability tracking the deficit as it is. Flatten either
+table and a 40-year-old becomes a uniformly worse driver instead of a different one —
+there are tests that fail on exactly that, using a peak with all five attributes equal
+so rounding cannot mask it.
+
+**The profile tests read the ordering out of the sensitivity tables rather than naming
+a pair.** They assert that a more sensitive attribute sits lower, that two the table
+treats alike land on the same number, and that the five are not all equal. Naming a pair
+is how they went stale once already: `racing` and `consistency` are both 1.0 in decline
+now, and a test asserting `racing < consistency` was claiming a gap the table had
+stopped making.
 
 ## Gotchas
 

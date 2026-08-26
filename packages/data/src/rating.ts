@@ -19,7 +19,13 @@
  * it owns its own display heuristic.
  */
 
-import { type CarSpec, type DriverRatings, type EngineSpec, powertrain } from "@alt-hist/engine";
+import {
+  type CarSpec,
+  type ChassisSpec,
+  type DriverRatings,
+  type EngineSpec,
+  powertrain,
+} from "@alt-hist/engine";
 
 /**
  * Driver weights.
@@ -45,6 +51,10 @@ const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
 
 /**
  * Car weights.
+ *
+ * Applied to the *blended* car — chassis and engine as `powertrain()` leaves
+ * them — never to a bare chassis, so the headline number describes the thing
+ * that races.
  *
  * Reliability carries a quarter of the number, which looks high next to the race
  * model — where it touches no score at all — and is not. Roughly 42% of the 1980
@@ -74,13 +84,16 @@ export function driverOverall(ratings: DriverRatings): number {
 }
 
 /**
- * How good a car is, engine included.
+ * How good a car is: a chassis with the engine folded into it.
  *
  * The engine is folded in through the model's own `powertrain()` rather than
  * given weights of its own here, so the headline number on the grid page is a
  * summary of the car that will actually be raced — not of the chassis drawing
- * the wrong conclusions about the package. Omit it and this is the bare chassis.
+ * the wrong conclusions about the package. That matters more now that the two
+ * blend unevenly: a strong chassis behind a fragile engine loses half its
+ * reliability to the swap but only a third of its pace, and only the blend
+ * shows it. Omit the engine and this is the bare chassis.
  */
-export function carOverall(car: CarSpec, engine?: EngineSpec): number {
-  return weighted(powertrain(car, engine), CAR_WEIGHTS);
+export function carOverall(chassis: ChassisSpec, engine?: EngineSpec): number {
+  return weighted(powertrain(chassis, engine), CAR_WEIGHTS);
 }

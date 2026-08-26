@@ -52,16 +52,26 @@ export interface AbilityAnchor {
  *
  * The shape is authored, not fitted, and it encodes four claims:
  *
- * - Improvement is steepest before 20 and eases the whole way in — a teenager
- *   gains five points a year, a 24-year-old gains one.
+ * - Improvement peaks in the mid-teens and eases from there into the plateau,
+ *   ramping *in* below it rather than starting at its steepest: a 16-year-old
+ *   gains eight points a year, an 18-year-old five, a 24-year-old under three.
  * - 28 to 33 is genuinely flat. A driver is at their best for years, not for a
  *   season, and the plateau either side of that is within a few percent.
  * - 35 to 42 is a *gentle* slope: nine percent over seven years. This is the
  *   number that most shapes how the sim feels, because it decides whether a
  *   35-year-old champion is finished or merely no longer favourite.
- * - Past 42 it steepens, and keeps steepening. Every segment after the plateau
- *   is steeper than the one before it, so decline accelerates without needing an
- *   exponent anywhere.
+ * - Past the plateau no segment is gentler than the one before it, all the way
+ *   to the end of the table: the fall runs from one point a year at 35 to seven
+ *   at 53, so decline accelerates without needing an exponent anywhere.
+ *
+ *   **The table reaches its floor at its last anchor rather than easing onto
+ *   one, and it has to.** A fall that keeps steepening must cross zero, so a
+ *   tail that lands softly on a floor has to decelerate on the way in — which
+ *   is exactly what an earlier version did between 47 and 55. Ending at 0.1 at
+ *   55 and letting `canonicalAbility` hold flat past it buys the property back.
+ *   Anyone beyond canonical 55 sits at the floor, which for the fastest
+ *   decliners is real age 42 and up; they are long retired by any measure the
+ *   sim has. Do not re-add an anchor past 55 without re-deriving the whole tail.
  */
 export const CANONICAL_ABILITY: readonly AbilityAnchor[] = [
   { age: 8, ability: 0.1 },
@@ -84,9 +94,10 @@ export const CANONICAL_ABILITY: readonly AbilityAnchor[] = [
   { age: 43, ability: 0.8 },
   { age: 45, ability: 0.7 },
   { age: 47, ability: 0.6 },
-  { age: 50, ability: 0.5 },
-  { age: 55, ability: 0.3 },
-  { age: 60, ability: 0.1 },
+  { age: 49, ability: 0.49 },
+  { age: 51, ability: 0.37 },
+  { age: 53, ability: 0.24 },
+  { age: 55, ability: 0.1 },
 ];
 
 /**
@@ -177,10 +188,11 @@ export interface AgeingConstants {
    */
   readonly developmentSensitivity: AttributeSensitivity;
   /**
-   * In decline it inverts. Reflexes and one-lap pace go first; the judgement
-   * built over a career barely erodes, so consistency and composure are nearly
-   * immune. This is what makes a 40-year-old a different driver rather than
-   * simply a worse one.
+   * In decline it inverts. One-lap pace goes first — `qualifying` carries the
+   * heaviest multiplier — while the judgement built over a career barely erodes,
+   * which is `composure` alone at 0.75. Racing, consistency and adaptability
+   * track the deficit as it is. This is what makes a 40-year-old a different
+   * driver rather than simply a worse one.
    */
   readonly declineSensitivity: AttributeSensitivity;
 

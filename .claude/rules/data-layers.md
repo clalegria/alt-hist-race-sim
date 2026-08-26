@@ -26,7 +26,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     `teamCountry` and races everywhere as a visitor.
   - It stamps `engineId` and the season's `engine` ratings the same way. **It does not
     blend them** — `powertrain()` in the engine package owns that, so the number the
-    race is run on and the number the grid page shows come from one place.
+    race is run on and the number the grid page shows come from one place. The entrant
+    therefore carries `chassis`, not `car`: the blend has not happened yet.
   - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
     that way** — it feeds authored peaks straight in, which is what the 1980
     calibration was measured against. `"aged"` calls the engine's ageing curve for
@@ -45,11 +46,16 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     rather than trusting, because an override can arrive from a save file — the same
     reason `applyLineup` does.
   - An `EngineChange` is `{ teamId, from, to }`, always both halves: a car has exactly
-    one engine, so fitting one always removes another.
+    one engine, so fitting one always removes another. Swapping one changes the car
+    without touching the chassis, which is the distinction the two names exist for.
 - `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.
+  - `carOverall(chassis, engine)` takes a **chassis** and runs it through the engine's
+    own `powertrain()` before weighting, so the headline number describes the car that
+    gets raced. Omit the engine and it is the bare chassis. It never weights the engine
+    itself — with two blend ratios in play, a second copy would be twice as wrong.
 - `lineup.ts` is the seat-allocation layer over a season seed: a `SeasonLineup` is
   `Record<teamId, driverIds>` with the same keys and the same seat counts as the
   season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`

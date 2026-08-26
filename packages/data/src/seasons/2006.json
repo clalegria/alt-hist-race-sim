@@ -31,16 +31,16 @@
     { "engineId": "cosworth", "racing":  78, "qualifying":  76, "reliability":  80 }
   ],
   "entries": [
-    { "teamId": "renault",     "engineId": "renault",  "car": { "racing":  94, "qualifying":  92, "consistency":  90, "reliability":  88 }, "drivers": ["alonso", "fisichella"] },
-    { "teamId": "ferrari",     "engineId": "ferrari",  "car": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["schumacher_m", "massa"] },
-    { "teamId": "mclaren",     "engineId": "mercedes", "car": { "racing":  80, "qualifying":  80, "consistency":  78, "reliability":  74 }, "drivers": ["raikkonen", "montoya"] },
-    { "teamId": "honda",       "engineId": "honda",    "car": { "racing":  78, "qualifying":  76, "consistency":  76, "reliability":  70 }, "drivers": ["button", "barrichello"] },
-    { "teamId": "sauber",      "engineId": "bmw",      "car": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  78 }, "drivers": ["heidfeld", "villeneuve_jq"] },
-    { "teamId": "toyota",      "engineId": "toyota",   "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["trulli", "schumacher_r"] },
-    { "teamId": "red_bull",    "engineId": "ferrari",  "car": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  68 }, "drivers": ["coulthard", "klien"] },
-    { "teamId": "williams",    "engineId": "cosworth", "car": { "racing":  64, "qualifying":  62, "consistency":  66, "reliability":  62 }, "drivers": ["webber", "rosberg_n"] },
-    { "teamId": "toro_rosso",  "engineId": "cosworth", "car": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  60 }, "drivers": ["liuzzi", "speed"] },
-    { "teamId": "midland",     "engineId": "toyota",   "car": { "racing":  44, "qualifying":  42, "consistency":  48, "reliability":  56 }, "drivers": ["monteiro", "albers"] },
-    { "teamId": "super_aguri", "engineId": "honda",    "car": { "racing":  36, "qualifying":  34, "consistency":  40, "reliability":  48 }, "drivers": ["sato", "ide"] }
+    { "teamId": "renault",     "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  92, "consistency":  90, "reliability":  88 }, "drivers": ["alonso", "fisichella"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["schumacher_m", "massa"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  80, "qualifying":  80, "consistency":  78, "reliability":  74 }, "drivers": ["raikkonen", "montoya"] },
+    { "teamId": "honda",       "engineId": "honda",    "chassis": { "racing":  78, "qualifying":  76, "consistency":  76, "reliability":  70 }, "drivers": ["button", "barrichello"] },
+    { "teamId": "sauber",      "engineId": "bmw",      "chassis": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  78 }, "drivers": ["heidfeld", "villeneuve_jq"] },
+    { "teamId": "toyota",      "engineId": "toyota",   "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["trulli", "schumacher_r"] },
+    { "teamId": "red_bull",    "engineId": "ferrari",  "chassis": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  68 }, "drivers": ["coulthard", "klien"] },
+    { "teamId": "williams",    "engineId": "cosworth", "chassis": { "racing":  64, "qualifying":  62, "consistency":  66, "reliability":  62 }, "drivers": ["webber", "rosberg_n"] },
+    { "teamId": "toro_rosso",  "engineId": "cosworth", "chassis": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  60 }, "drivers": ["liuzzi", "speed"] },
+    { "teamId": "midland",     "engineId": "toyota",   "chassis": { "racing":  44, "qualifying":  42, "consistency":  48, "reliability":  56 }, "drivers": ["monteiro", "albers"] },
+    { "teamId": "super_aguri", "engineId": "honda",    "chassis": { "racing":  36, "qualifying":  34, "consistency":  40, "reliability":  48 }, "drivers": ["sato", "ide"] }
   ]
 }

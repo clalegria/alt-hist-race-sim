@@ -19,15 +19,15 @@
     { "engineId": "maserati",        "racing":  52, "qualifying":  50, "reliability":  62 }
   ],
   "entries": [
-    { "teamId": "ferrari",     "engineId": "ferrari",         "car": { "racing":  92, "qualifying":  92, "consistency":  86, "reliability":  82 }, "drivers": ["hill_p", "von_trips", "baghetti"] },
-    { "teamId": "lotus",       "engineId": "coventry_climax", "car": { "racing":  78, "qualifying":  80, "consistency":  72, "reliability":  72 }, "drivers": ["clark", "ireland"] },
-    { "teamId": "cooper",      "engineId": "coventry_climax", "car": { "racing":  70, "qualifying":  68, "consistency":  74, "reliability":  78 }, "drivers": ["brabham", "mclaren"] },
-    { "teamId": "porsche",     "engineId": "porsche",         "car": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["gurney", "bonnier"] },
-    { "teamId": "brm",         "engineId": "brm",             "car": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  70 }, "drivers": ["hill_g", "brooks"] },
-    { "teamId": "rob_walker",  "engineId": "coventry_climax", "car": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  74 }, "drivers": ["moss", "trintignant"] },
-    { "teamId": "reg_parnell", "engineId": "coventry_climax", "car": { "racing":  60, "qualifying":  58, "consistency":  64, "reliability":  68 }, "drivers": ["salvadori", "marsh"] },
-    { "teamId": "centro_sud",  "engineId": "maserati",        "car": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["gregory", "burgess"] },
-    { "teamId": "emeryson",    "engineId": "coventry_climax", "car": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  58 }, "drivers": ["lewis_j", "seidel"] },
-    { "teamId": "nart",        "engineId": "ferrari",         "car": { "racing":  62, "qualifying":  60, "consistency":  66, "reliability":  70 }, "drivers": ["gendebien", "greene"] }
+    { "teamId": "ferrari",     "engineId": "ferrari",         "chassis": { "racing":  92, "qualifying":  92, "consistency":  86, "reliability":  82 }, "drivers": ["hill_p", "von_trips", "baghetti"] },
+    { "teamId": "lotus",       "engineId": "coventry_climax", "chassis": { "racing":  78, "qualifying":  80, "consistency":  72, "reliability":  72 }, "drivers": ["clark", "ireland"] },
+    { "teamId": "cooper",      "engineId": "coventry_climax", "chassis": { "racing":  70, "qualifying":  68, "consistency":  74, "reliability":  78 }, "drivers": ["brabham", "mclaren"] },
+    { "teamId": "porsche",     "engineId": "porsche",         "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["gurney", "bonnier"] },
+    { "teamId": "brm",         "engineId": "brm",             "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  70 }, "drivers": ["hill_g", "brooks"] },
+    { "teamId": "rob_walker",  "engineId": "coventry_climax", "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  74 }, "drivers": ["moss", "trintignant"] },
+    { "teamId": "reg_parnell", "engineId": "coventry_climax", "chassis": { "racing":  60, "qualifying":  58, "consistency":  64, "reliability":  68 }, "drivers": ["salvadori", "marsh"] },
+    { "teamId": "centro_sud",  "engineId": "maserati",        "chassis": { "racing":  54, "qualifying":  52, "consistency":  60, "reliability":  64 }, "drivers": ["gregory", "burgess"] },
+    { "teamId": "emeryson",    "engineId": "coventry_climax", "chassis": { "racing":  48, "qualifying":  46, "consistency":  54, "reliability":  58 }, "drivers": ["lewis_j", "seidel"] },
+    { "teamId": "nart",        "engineId": "ferrari",         "chassis": { "racing":  62, "qualifying":  60, "consistency":  66, "reliability":  70 }, "drivers": ["gendebien", "greene"] }
   ]
 }

@@ -91,12 +91,12 @@ describe("the grid", () => {
     // A team whose engine actually moves the number, found rather than named:
     // an engine rated exactly like the chassis it sits in would prove nothing.
     const moved = world.field.find(
-      (entrant) => carOverall(entrant.car, entrant.engine) !== carOverall(entrant.car),
+      (entrant) => carOverall(entrant.chassis, entrant.engine) !== carOverall(entrant.chassis),
     );
     if (moved === undefined) {
       throw new Error("no engine on this grid changes what its car is worth");
     }
-    expect(html).toContain(`>${carOverall(moved.car, moved.engine)}<`);
+    expect(html).toContain(`>${carOverall(moved.chassis, moved.engine)}<`);
   });
 
   it("keeps the engine's own ratings behind the popover, like every other rating", () => {
@@ -253,7 +253,7 @@ describe("every authored season", () => {
     for (const season of seasons.values()) {
       const built = createWorld(1, season.year);
       const moved = built.field.filter(
-        (entrant) => powertrain(entrant.car, entrant.engine).racing !== entrant.car.racing,
+        (entrant) => powertrain(entrant.chassis, entrant.engine).racing !== entrant.chassis.racing,
       );
       // Not every car — a chassis and an engine rated alike blend to themselves
       // — but a season where the engines changed nothing at all would mean the

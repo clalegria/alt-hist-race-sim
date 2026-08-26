@@ -1,5 +1,5 @@
 import { buildField, FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
-import type { CarSpec, DriverRatings } from "@alt-hist/engine";
+import type { ChassisSpec, DriverRatings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { carOverall, driverOverall } from "./rating.js";
 
@@ -14,7 +14,7 @@ function driver(overrides: Partial<DriverRatings> = {}): DriverRatings {
   };
 }
 
-function car(overrides: Partial<CarSpec> = {}): CarSpec {
+function chassis(overrides: Partial<ChassisSpec> = {}): ChassisSpec {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50, ...overrides };
 }
 
@@ -66,15 +66,15 @@ describe("driverOverall", () => {
 
 describe("carOverall", () => {
   it("stays on the same 0-100 scale", () => {
-    expect(carOverall(car())).toBe(50);
+    expect(carOverall(chassis())).toBe(50);
     expect(
-      carOverall(car({ racing: 100, qualifying: 100, consistency: 100, reliability: 100 })),
+      carOverall(chassis({ racing: 100, qualifying: 100, consistency: 100, reliability: 100 })),
     ).toBe(100);
   });
 
   it("weighs racing first and reliability second", () => {
-    const base = carOverall(car());
-    const bump = (key: keyof CarSpec): number => carOverall(car({ [key]: 90 })) - base;
+    const base = carOverall(chassis());
+    const bump = (key: keyof ChassisSpec): number => carOverall(chassis({ [key]: 90 })) - base;
     expect(bump("racing")).toBeGreaterThan(bump("reliability"));
     expect(bump("reliability")).toBeGreaterThan(bump("qualifying"));
     expect(bump("qualifying")).toBeGreaterThan(bump("consistency"));
@@ -95,15 +95,15 @@ describe("against the authored grid", () => {
     for (const entrant of field) {
       expect(driverOverall(entrant.driver), entrant.driverId).toBeGreaterThanOrEqual(0);
       expect(driverOverall(entrant.driver), entrant.driverId).toBeLessThanOrEqual(100);
-      expect(carOverall(entrant.car), entrant.teamId).toBeGreaterThanOrEqual(0);
-      expect(carOverall(entrant.car), entrant.teamId).toBeLessThanOrEqual(100);
+      expect(carOverall(entrant.chassis), entrant.teamId).toBeGreaterThanOrEqual(0);
+      expect(carOverall(entrant.chassis), entrant.teamId).toBeLessThanOrEqual(100);
     }
   });
 
   it("returns a whole number for every entrant, since the grid prints it raw", () => {
     for (const entrant of field) {
       expect(Number.isInteger(driverOverall(entrant.driver)), entrant.driverId).toBe(true);
-      expect(Number.isInteger(carOverall(entrant.car)), entrant.teamId).toBe(true);
+      expect(Number.isInteger(carOverall(entrant.chassis)), entrant.teamId).toBe(true);
     }
   });
 
@@ -111,6 +111,6 @@ describe("against the authored grid", () => {
     // Not a claim about who is quick: only that the heuristic discriminates. A
     // weighting bug that returned a constant would pass every scale check above.
     expect(new Set(field.map((entrant) => driverOverall(entrant.driver))).size).toBeGreaterThan(1);
-    expect(new Set(field.map((entrant) => carOverall(entrant.car))).size).toBeGreaterThan(1);
+    expect(new Set(field.map((entrant) => carOverall(entrant.chassis))).size).toBeGreaterThan(1);
   });
 });

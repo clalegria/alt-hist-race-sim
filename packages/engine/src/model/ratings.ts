@@ -16,13 +16,31 @@ export interface DriverRatings {
   readonly composure: number;
 }
 
-/** A team's car for one season. */
-export interface CarSpec {
+/**
+ * A team's *chassis* for one season — the tub they built, with nothing in the
+ * back of it. This is the authored rating: what `packages/data` stores per
+ * entry, and what a reader edits.
+ *
+ * It is not what the race model scores. Blend it with an `EngineSpec` through
+ * `powertrain()` and you get a `CarSpec`, which is.
+ */
+export interface ChassisSpec {
   readonly racing: number;
   readonly qualifying: number;
   readonly consistency: number;
   readonly reliability: number;
 }
+
+/**
+ * A whole car for one season: a chassis with an engine in it, as scored.
+ *
+ * Structurally a `ChassisSpec` — same four ratings, same 1-100 scale — because
+ * blending does not add or remove any. The separate name is the point: it marks
+ * the values that have been through `powertrain()` from the authored ones that
+ * have not, so a reader can tell at the type whether they are looking at what a
+ * team built or at what it races. A chassis with no engine is its own car.
+ */
+export type CarSpec = ChassisSpec;
 
 /**
  * An engine manufacturer's unit for one season.
@@ -33,8 +51,8 @@ export interface CarSpec {
  * engine either makes its power or breaks, and the second of those is
  * `reliability`.
  *
- * Same 1-100 scale and same polarity as `CarSpec`, because the two are blended
- * into one another: see `powertrain()` in `race/powertrain.ts`.
+ * Same 1-100 scale and same polarity as `ChassisSpec`, because the two are
+ * blended into one another: see `powertrain()` in `race/powertrain.ts`.
  */
 export interface EngineSpec {
   readonly racing: number;
