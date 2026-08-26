@@ -1,6 +1,6 @@
 /** Small facts the UI shows that the engine does not model. */
 
-import type { Driver } from "@alt-hist/data";
+import type { Driver, RatingMode } from "@alt-hist/data";
 
 /**
  * Age during a season.
@@ -11,6 +11,38 @@ import type { Driver } from "@alt-hist/data";
  */
 export function ageInSeason(seasonYear: number, birthYear: number): number {
   return seasonYear - birthYear;
+}
+
+/**
+ * The age a driver was in the season they were at their best.
+ *
+ * Authored, not derived from form: `peak.season` is the year the ratings in the
+ * seed file describe, so this is the age those ratings belong to.
+ */
+export function peakAge(driver: Driver): number {
+  return ageInSeason(driver.peak.season, driver.birthYear);
+}
+
+/**
+ * The age that goes with the ratings on screen.
+ *
+ * The two rating modes are two different claims, and the age has to make the
+ * same one. In `aged` the grid shows what a driver was worth *that year*, so the
+ * age is the age they were that year. In `peak` it shows what they were worth at
+ * their best, wherever in history that fell — a 1980 grid can carry Fangio's
+ * 1954 ratings — and printing "1980 minus his birth year" beside those numbers
+ * describes nobody: not the ratings, which are a 43-year-old's, and not the
+ * season, which he did not race.
+ *
+ * It is also what makes the pool filters usable in `peak` mode. Filtering the
+ * pool on an age nothing on screen shows is what kept a dream field of the best
+ * drivers ever out of reach: every one of them was a child or a pensioner in
+ * whatever year was loaded, so the age range hid them however the ratings read.
+ * Against peak age, every driver in the pool sits inside a plausible racing
+ * range, and opening the range fully reaches all of them.
+ */
+export function ratedAge(driver: Driver, seasonYear: number, mode: RatingMode): number {
+  return mode === "peak" ? peakAge(driver) : ageInSeason(seasonYear, driver.birthYear);
 }
 
 /**
@@ -61,6 +93,24 @@ export const DEFAULT_DRIVER_FILTERS: DriverFilters = {
   maxAge: 42,
 };
 
+/**
+ * What the list opens on for a given rating mode.
+ *
+ * The age range is the same either way — it reads whichever age the mode shows,
+ * and 18 to 42 is a racing age on both scales. The two career filters are not:
+ * in `peak` mode they open *off*, because a grid built from authored peaks is
+ * already out of time, and hiding everyone whose career missed the loaded year
+ * is the app enforcing a chronology the mode has explicitly set aside. They stay
+ * on the panel and still work — a reader who wants "the drivers of 1980, at
+ * their best" is one click from it — but the field of the best drivers ever is
+ * the thing `peak` is for, and it should not open three clicks away from itself.
+ */
+export function defaultDriverFilters(mode: RatingMode): DriverFilters {
+  return mode === "peak"
+    ? { ...DEFAULT_DRIVER_FILTERS, hideRetired: false, hideFuture: false }
+    : DEFAULT_DRIVER_FILTERS;
+}
+
 /** An age the range can actually hold: a whole number, inside the limits. */
 export function clampAge(value: number): number {
   if (!Number.isFinite(value)) {
@@ -89,6 +139,8 @@ export function matchesFilters(
   driver: Driver,
   seasonYear: number,
   filters: DriverFilters,
+  /** Which age the range is read against. See `ratedAge`. */
+  mode: RatingMode = "aged",
 ): boolean {
   if (filters.hideRetired && driver.finalSeason < seasonYear) {
     return false;
@@ -96,7 +148,7 @@ export function matchesFilters(
   if (filters.hideFuture && driver.debutSeason > seasonYear) {
     return false;
   }
-  const age = ageInSeason(seasonYear, driver.birthYear);
+  const age = ratedAge(driver, seasonYear, mode);
   return age >= filters.minAge && age <= filters.maxAge;
 }
 
@@ -114,8 +166,9 @@ export function filterDrivers(
   seasonYear: number,
   filters: DriverFilters,
   keep: ReadonlySet<string> = new Set(),
+  mode: RatingMode = "aged",
 ): readonly Driver[] {
   return drivers.filter(
-    (driver) => keep.has(driver.id) || matchesFilters(driver, seasonYear, filters),
+    (driver) => keep.has(driver.id) || matchesFilters(driver, seasonYear, filters, mode),
   );
 }

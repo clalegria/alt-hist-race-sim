@@ -76,7 +76,9 @@ describe("naming an entry", () => {
 });
 
 describe("the grid", () => {
-  const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={YEAR} />);
+  const html = renderToStaticMarkup(
+    <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={world.ratingMode} />,
+  );
 
   it("names each team the way the season entered it", () => {
     expect(html).toContain(`>${CUSTOMER_NAME}<`);
@@ -123,7 +125,13 @@ describe("the supplier picker", () => {
     onEngineChange: () => {},
   };
   const html = renderToStaticMarkup(
-    <SeasonGrid field={world.field} seasonYear={YEAR} edit={editing} changes={[]} />,
+    <SeasonGrid
+      field={world.field}
+      seasonYear={YEAR}
+      ratingMode={world.ratingMode}
+      edit={editing}
+      changes={[]}
+    />,
   );
   const teams = new Set(world.field.map((entrant) => entrant.teamId));
 

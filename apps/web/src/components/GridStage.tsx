@@ -22,14 +22,15 @@ import type { RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
 import {
   AGE_RANGE,
-  DEFAULT_DRIVER_FILTERS,
   type DriverFilters,
+  defaultDriverFilters,
   filterDrivers,
   withAge,
 } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
+import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
 import { DriverLabel, type GridEditing, NAME_TARGET, Overall, SeasonGrid } from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
@@ -99,10 +100,12 @@ function FilterToggle({
  */
 function ReserveFilters({
   seasonYear,
+  ratingMode,
   filters,
   onChange,
 }: {
   seasonYear: number;
+  ratingMode: RatingMode;
   filters: DriverFilters;
   onChange: (filters: DriverFilters) => void;
 }) {
@@ -124,7 +127,14 @@ function ReserveFilters({
         }}
       />
       <div className="flex items-center gap-1.5">
-        <span>Aged</span>
+        {/*
+          Which age is being narrowed, said out loud in peak mode. The numbers
+          are read against the age each driver was at their best there, and a
+          bare "Aged 18 to 42" beside a 1980 season is read as 1980 ages — which
+          is the misreading that makes the list look broken when a driver from
+          another decade survives it.
+        */}
+        <span>{ratingMode === "peak" ? "Peak age" : "Aged"}</span>
         <Input
           type="number"
           aria-label="Youngest age"
@@ -205,8 +215,8 @@ export function ReserveList({
   // Filtered, then ordered — the counts below describe the filtering, and the
   // order is only how what survived is laid out.
   const shown = useMemo(
-    () => filterDrivers(drivers, seasonYear, filters, keep),
-    [drivers, seasonYear, filters, keep],
+    () => filterDrivers(drivers, seasonYear, filters, keep, ratingMode),
+    [drivers, seasonYear, filters, keep, ratingMode],
   );
   const listed = useMemo(
     () =>
@@ -240,6 +250,7 @@ export function ReserveList({
       </div>
       <ReserveFilters
         seasonYear={seasonYear}
+        ratingMode={ratingMode}
         filters={filters}
         onChange={onFiltersChange ?? (() => {})}
       />
@@ -267,7 +278,7 @@ export function ReserveList({
                 }}
                 className={cn(NAME_TARGET, "flex min-w-0 flex-1 items-center gap-1.5")}
               >
-                <DriverLabel driverId={driver.id} seasonYear={seasonYear} />
+                <DriverLabel driverId={driver.id} seasonYear={seasonYear} ratingMode={ratingMode} />
               </button>
               <Overall value={driverOverall(driverRatingsFor(driver, seasonYear, ratingMode))} />
             </li>
@@ -356,12 +367,23 @@ export function GridStage({
   const [selected, setSelected] = useState<string | null>(null);
   // How the pool is narrowed. View state like the draft, and deliberately *not*
   // reset when the editor closes: a reader who set it once meant it.
-  const [filters, setFilters] = useState<DriverFilters>(DEFAULT_DRIVER_FILTERS);
-  // How the two lists are ordered. Two pieces of state rather than one: the
-  // grid and the pool are read for different reasons, and a reader hunting a
-  // name among the reserves has not asked for the team cards to be reshuffled.
-  const [teamSort, setTeamSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
-  const [reserveSort, setReserveSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
+  const [filters, setFilters] = useState<DriverFilters>(() => defaultDriverFilters(ratingMode));
+  // The mode the filters above were opened for. Changing modes changes what the
+  // age range *means* — season age becomes peak age — and which career filters
+  // make sense, so the defaults are laid down again rather than carried across.
+  // A reader who had narrowed the pool by hand loses that, which is the right
+  // trade: the alternative is an untouched-looking panel filtering on the other
+  // mode's ages. Adjusting state during render is React's own pattern for this.
+  const [filtersMode, setFiltersMode] = useState<RatingMode>(ratingMode);
+  if (filtersMode !== ratingMode) {
+    setFiltersMode(ratingMode);
+    setFilters(defaultDriverFilters(ratingMode));
+  }
+  // How every list on the app is ordered — one shared, session-remembered
+  // choice, not one per switch. Both switches stay on screen, because they are
+  // still where a reader reaches for the order; what changed is that they are
+  // two views of one preference. See `lib/sort-preference.ts`.
+  const [sort, setSort] = useSortOrder();
 
   const shown = draft ?? applied;
   const shownEngines = engineDraft ?? appliedEngines;
@@ -473,8 +495,9 @@ export function GridStage({
         changes={changes}
         engineChanges={supplyChanges}
         action={action}
-        sort={teamSort}
-        onSortChange={setTeamSort}
+        ratingMode={ratingMode}
+        sort={sort}
+        onSortChange={setSort}
         {...(editing === undefined ? {} : { edit: editing })}
       />
       {draft === null ? null : (
@@ -489,8 +512,8 @@ export function GridStage({
             onSelect={select}
             filters={filters}
             onFiltersChange={setFilters}
-            sort={reserveSort}
-            onSortChange={setReserveSort}
+            sort={sort}
+            onSortChange={setSort}
           />
         </aside>
       )}

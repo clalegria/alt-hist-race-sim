@@ -1,8 +1,8 @@
-import type { EngineChange, SeatChange } from "@alt-hist/data";
+import type { EngineChange, RatingMode, SeatChange } from "@alt-hist/data";
 import { driversById, teamsById } from "@alt-hist/data";
 import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
 import { driverName, engineName, entryName, teamName } from "../lib/names.js";
-import { ageInSeason } from "../lib/people.js";
+import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn } from "../lib/utils.js";
@@ -126,10 +126,22 @@ function NameTrigger({ className, children }: { className?: string; children: Re
 /**
  * Flag, name and age, laid out identically whether the row opens a popover or
  * picks the driver up — so the grid does not reflow on entering edit mode.
+ *
+ * The age is the one the ratings beside it describe, which in `peak` mode is the
+ * age the driver was at their best rather than their age in the loaded year —
+ * see `ratedAge`.
  */
-export function DriverLabel({ driverId, seasonYear }: { driverId: string; seasonYear: number }) {
+export function DriverLabel({
+  driverId,
+  seasonYear,
+  ratingMode,
+}: {
+  driverId: string;
+  seasonYear: number;
+  ratingMode: RatingMode;
+}) {
   const driver = drivers.get(driverId);
-  const age = driver === undefined ? null : ageInSeason(seasonYear, driver.birthYear);
+  const age = driver === undefined ? null : ratedAge(driver, seasonYear, ratingMode);
 
   return (
     <>
@@ -147,16 +159,18 @@ export function DriverLabel({ driverId, seasonYear }: { driverId: string; season
 function DriverEntry({
   entrant,
   seasonYear,
+  ratingMode,
   edit,
   swappedIn,
 }: {
   entrant: RaceEntrant;
   seasonYear: number;
+  ratingMode: RatingMode;
   edit?: GridEditing;
   swappedIn: boolean;
 }) {
   const driver = drivers.get(entrant.driverId);
-  const age = driver === undefined ? null : ageInSeason(seasonYear, driver.birthYear);
+  const age = driver === undefined ? null : ratedAge(driver, seasonYear, ratingMode);
   const selected = edit?.selectedDriverId === entrant.driverId;
 
   return (
@@ -170,7 +184,11 @@ function DriverEntry({
       {edit === undefined ? (
         <Popover>
           <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5">
-            <DriverLabel driverId={entrant.driverId} seasonYear={seasonYear} />
+            <DriverLabel
+              driverId={entrant.driverId}
+              seasonYear={seasonYear}
+              ratingMode={ratingMode}
+            />
           </NameTrigger>
           <PopoverContent>
             <div className="mb-3 flex items-baseline justify-between gap-2">
@@ -200,7 +218,11 @@ function DriverEntry({
           }}
           className={cn(NAME_TARGET, "flex min-w-0 flex-1 items-center gap-1.5")}
         >
-          <DriverLabel driverId={entrant.driverId} seasonYear={seasonYear} />
+          <DriverLabel
+            driverId={entrant.driverId}
+            seasonYear={seasonYear}
+            ratingMode={ratingMode}
+          />
         </button>
       )}
       <Overall value={driverOverall(entrant.driver)} />
@@ -299,6 +321,7 @@ export function byTeam(
 export function SeasonGrid({
   field,
   seasonYear,
+  ratingMode,
   changes,
   engineChanges,
   action,
@@ -308,6 +331,12 @@ export function SeasonGrid({
 }: {
   field: readonly RaceEntrant[];
   seasonYear: number;
+  /**
+   * Which ratings the field was built from. Only the ages read it: the numbers
+   * arrive already resolved on the entrants, but a driver's age does not, and
+   * the age has to describe the same season the ratings do.
+   */
+  ratingMode: RatingMode;
   /** Differences from the authored grid, if any. Drives the note and the marks. */
   changes?: readonly SeatChange[];
   /** Teams running an engine the season did not give them. */
@@ -443,6 +472,7 @@ export function SeasonGrid({
                     key={entrant.driverId}
                     entrant={entrant}
                     seasonYear={seasonYear}
+                    ratingMode={ratingMode}
                     swappedIn={swappedIn.has(entrant.driverId)}
                     {...(edit === undefined ? {} : { edit })}
                   />

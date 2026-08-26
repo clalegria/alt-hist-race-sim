@@ -16,7 +16,7 @@ import {
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverName, entryName, teamName } from "../lib/names.js";
-import { ageInSeason } from "../lib/people.js";
+import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { positionsOf } from "../lib/standings.js";
@@ -190,7 +190,9 @@ describe("the race classification", () => {
 });
 
 describe("the season grid", () => {
-  const html = renderToStaticMarkup(<SeasonGrid field={world.field} seasonYear={YEAR} />);
+  const html = renderToStaticMarkup(
+    <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={world.ratingMode} />,
+  );
 
   it("groups every driver under their team", () => {
     for (const entrant of world.field) {
@@ -220,13 +222,16 @@ describe("the season grid", () => {
 
   it("shows each driver's age beside their name, not next to their rating", () => {
     // "Alan Jones (34y)  89" reads; "Alan Jones  34 89" reads as two ratings.
+    // The age is the one the ratings on the row describe — `ratedAge` — rather
+    // than the loaded year minus a birth year, because those are two different
+    // numbers in peak mode and only one of them belongs beside those ratings.
     const drivers = driversById();
     for (const entrant of world.field) {
       const record = drivers.get(entrant.driverId);
       if (record === undefined) {
         throw new Error(`no record for ${entrant.driverId}`);
       }
-      expect(html, entrant.driverId).toContain(`(${ageInSeason(YEAR, record.birthYear)}y)`);
+      expect(html, entrant.driverId).toContain(`(${ratedAge(record, YEAR, world.ratingMode)}y)`);
     }
   });
 

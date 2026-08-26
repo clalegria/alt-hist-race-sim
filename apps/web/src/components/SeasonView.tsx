@@ -16,11 +16,11 @@ import {
   type RaceResult,
   type SeasonResult,
 } from "@alt-hist/engine";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
-import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
+import { useSortOrder } from "../lib/sort-preference.js";
 import { positionsOf } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
@@ -125,6 +125,7 @@ function Summary({
   season,
   field,
   year,
+  ratingMode,
   points,
   lineup,
   engines,
@@ -132,6 +133,8 @@ function Summary({
   season: SeasonResult;
   field: readonly RaceEntrant[];
   year: number;
+  /** The mode the season was *raced* on, so the grid's ages match its ratings. */
+  ratingMode: RatingMode;
   points: PointsScale;
   lineup: SeasonLineup | null;
   engines: SeasonEngines | null;
@@ -155,8 +158,9 @@ function Summary({
     [engines, seed],
   );
   // The grid at the foot of the season gets the same switch the opening one
-  // has: by then the pecking order is the point rather than a spoiler.
-  const [teamSort, setTeamSort] = useState<SortOrder>(DEFAULT_SORT_ORDER);
+  // has: by then the pecking order is the point rather than a spoiler. Same
+  // switch and the same choice — it is shared with every other list on the app.
+  const [teamSort, setTeamSort] = useSortOrder();
 
   return (
     <>
@@ -209,6 +213,7 @@ function Summary({
         <SeasonGrid
           field={field}
           seasonYear={year}
+          ratingMode={ratingMode}
           changes={changes}
           engineChanges={supplyChanges}
           sort={teamSort}
@@ -399,6 +404,7 @@ function SeasonBody({
       season={world.season}
       field={world.field}
       year={world.year}
+      ratingMode={world.ratingMode}
       points={world.points}
       lineup={world.lineup}
       engines={world.engines}

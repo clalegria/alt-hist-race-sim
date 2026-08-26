@@ -6,8 +6,11 @@ import {
   clampAge,
   DEFAULT_DRIVER_FILTERS,
   type DriverFilters,
+  defaultDriverFilters,
   filterDrivers,
   matchesFilters,
+  peakAge,
+  ratedAge,
   withAge,
 } from "./people.js";
 
@@ -152,5 +155,82 @@ describe("who survives the filters", () => {
     expect(
       filterDrivers(all, 1980, nobody, new Set(["veteran"])).map((driver) => driver.id),
     ).toEqual(["veteran"]);
+  });
+});
+
+describe("the age that goes with the ratings", () => {
+  // Born 1950, at his best in 1980: 30 at his peak, and 51 in a 2001 season he
+  // is being cast into.
+  const driver = driverOf({ id: "veteran" });
+
+  it("is the peak age at peak, whatever season is loaded", () => {
+    expect(peakAge(driver)).toBe(30);
+    expect(ratedAge(driver, 2001, "peak")).toBe(30);
+    expect(ratedAge(driver, 1955, "peak")).toBe(30);
+  });
+
+  it("is the season age when the ratings are the season's", () => {
+    expect(ratedAge(driver, 2001, "aged")).toBe(51);
+    expect(ratedAge(driver, 1980, "aged")).toBe(30);
+  });
+});
+
+describe("the age filter under peak ratings", () => {
+  // A driver whose whole career is somewhere else: born 1990, at his best in
+  // 2015. In a 1980 season he is not born, and no age range can reach him on
+  // the season scale — the whole point of reading peak age instead.
+  const modern = driverOf({
+    id: "modern",
+    birthYear: 1990,
+    debutSeason: 2012,
+    finalSeason: 2020,
+    peak: { ...driverOf({ id: "x" }).peak, season: 2015 },
+  });
+
+  it("reaches a driver from another era, which the season scale cannot", () => {
+    expect(ratedAge(modern, 1980, "peak")).toBe(25);
+    expect(matchesFilters(modern, 1980, SHOW_ALL, "peak")).toBe(true);
+    // The same driver, the same widest range, read against 1980: unreachable.
+    expect(matchesFilters(modern, 1980, SHOW_ALL, "aged")).toBe(false);
+  });
+
+  it("still bites — it is a filter, not a way of switching filtering off", () => {
+    const band = { ...SHOW_ALL, minAge: 30, maxAge: 40 };
+    expect(matchesFilters(modern, 1980, band, "peak")).toBe(false);
+  });
+
+  it("narrows the same list the same way", () => {
+    const pool = [modern, driverOf({ id: "veteran" })];
+    expect(filterDrivers(pool, 1980, SHOW_ALL, new Set(), "peak").map((d) => d.id)).toEqual([
+      "modern",
+      "veteran",
+    ]);
+    expect(filterDrivers(pool, 1980, SHOW_ALL, new Set(), "aged").map((d) => d.id)).toEqual([
+      "veteran",
+    ]);
+  });
+
+  it("reads the season age unless told otherwise", () => {
+    // The default is the historical reading, so a caller that forgets the mode
+    // gets the behaviour the app had before peak ages existed.
+    expect(matchesFilters(modern, 1980, SHOW_ALL)).toBe(
+      matchesFilters(modern, 1980, SHOW_ALL, "aged"),
+    );
+  });
+});
+
+describe("what the filters open on", () => {
+  it("keeps the career filters for a season played at its own ratings", () => {
+    expect(defaultDriverFilters("aged")).toEqual(DEFAULT_DRIVER_FILTERS);
+  });
+
+  it("drops them under peak ratings, so a field of the best ever is reachable", () => {
+    const opened = defaultDriverFilters("peak");
+    expect(opened.hideRetired).toBe(false);
+    expect(opened.hideFuture).toBe(false);
+    // The age range is untouched: it is the one filter that still means
+    // something, and it now means peak age.
+    expect(opened.minAge).toBe(DEFAULT_DRIVER_FILTERS.minAge);
+    expect(opened.maxAge).toBe(DEFAULT_DRIVER_FILTERS.maxAge);
   });
 });

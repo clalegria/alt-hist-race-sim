@@ -12,6 +12,7 @@ import {
   type Driver,
   driversById,
   lineupChanges,
+  type RatingMode,
   reserveDrivers,
   type SeasonLineup,
   seatedDriverIds,
@@ -19,17 +20,18 @@ import {
   swapDrivers,
 } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { driverName, entryName, teamName } from "../lib/names.js";
 import {
   AGE_RANGE,
-  ageInSeason,
   DEFAULT_DRIVER_FILTERS,
   type DriverFilters,
   matchesFilters,
+  ratedAge,
 } from "../lib/people.js";
 import { carOverall } from "../lib/rating.js";
-import type { SortOrder } from "../lib/sort.js";
+import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
+import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { GridStage, pickUp, ReserveList } from "./GridStage.js";
@@ -38,6 +40,16 @@ import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
 const authored = authoredLineup(SEED);
+
+/**
+ * The mode every fixture here is built and drawn in.
+ *
+ * Named rather than repeated as a literal because it is load-bearing: the ages
+ * the grid prints and the ages the filters read are both `ratedAge` under this
+ * mode, and a test that renders in one mode and expects the other passes or
+ * fails for the wrong reason.
+ */
+const MODE: RatingMode = "peak";
 
 /**
  * A seated driver and one without a drive, picked out of the data rather than
@@ -53,7 +65,7 @@ const ELSEWHERE = SECOND_ENTRY?.drivers[0] ?? "";
 // authored season, so plenty of it is unborn in the fixture year and never
 // reaches the list.
 const [FREE, ALSO_FREE] = reserveDrivers(authored).filter((driver) => {
-  const age = ageInSeason(YEAR, driver.birthYear);
+  const age = ratedAge(driver, YEAR, MODE);
   return age >= AGE_RANGE.min && age <= AGE_RANGE.max;
 });
 if (FIRST_ENTRY === undefined || FREE === undefined || ALSO_FREE === undefined) {
@@ -68,7 +80,7 @@ const ENTRY_NAME = entryName(SEATED_TEAM, FIRST_ENTRY.engineId);
 const edited = swapDrivers(authored, SEATED, RESERVE);
 const changes = lineupChanges(SEED, edited);
 const world = seededWorld();
-const editedWorld = createWorld(3, YEAR, "peak", edited);
+const editedWorld = createWorld(3, YEAR, MODE, edited);
 const SEATS = world.field.length;
 const SPARE = reserveDrivers(authored).length;
 const swapLine = `${driverName(RESERVE)} for ${driverName(SEATED)}`;
@@ -88,6 +100,17 @@ const SHOW_ALL: DriverFilters = {
   maxAge: AGE_RANGE.max,
 };
 
+/**
+ * A name as it appears in the markup.
+ *
+ * React escapes apostrophes, and the pool is full of them — d'Ambrosio, De
+ * Angelis's team-mates, every `L'` and `d'` in seventy-six seasons. Matching the
+ * raw name looks fine right up until a filter widens far enough to draw one of
+ * them, and a *negative* assertion on a raw name never matches at all, which is
+ * the worse failure: it passes whatever the component does.
+ */
+const escaped = (name: string) => name.replace(/'/g, "&#x27;");
+
 /** How many times a class string appears. No regex: these contain slashes. */
 function occurrences(html: string, marker: string): number {
   return html.split(marker).length - 1;
@@ -95,7 +118,7 @@ function occurrences(html: string, marker: string): number {
 
 describe("the grid before it is edited", () => {
   const html = renderToStaticMarkup(
-    <GridStage field={world.field} year={YEAR} ratingMode="peak" lineup={null} engines={null} />,
+    <GridStage field={world.field} year={YEAR} ratingMode={MODE} lineup={null} engines={null} />,
   );
 
   it("offers a way in", () => {
@@ -124,7 +147,7 @@ describe("the grid once a lineup is applied", () => {
     <GridStage
       field={editedWorld.field}
       year={YEAR}
-      ratingMode="peak"
+      ratingMode={MODE}
       lineup={edited}
       engines={null}
     />,
@@ -132,14 +155,14 @@ describe("the grid once a lineup is applied", () => {
 
   it("seats the swapped-in driver at their new team", () => {
     const card = html.slice(html.indexOf(`>${ENTRY_NAME}<`));
-    expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(driverName(RESERVE));
+    expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(escaped(driverName(RESERVE)));
   });
 
   it("leaves the driver who lost the seat off the grid entirely", () => {
     // Named in the note above the cards, but in nobody's car: matching the
     // wrapped name rather than the bare string keeps the two apart.
-    expect(html).not.toContain(`>${driverName(SEATED)}<`);
-    expect(html).toContain(`for ${driverName(SEATED)}`);
+    expect(html).not.toContain(`>${escaped(driverName(SEATED))}<`);
+    expect(html).toContain(`for ${escaped(driverName(SEATED))}`);
   });
 
   it("says what was changed, and marks who is new", () => {
@@ -162,7 +185,13 @@ describe("the grid in edit mode", () => {
     onEngineChange: () => {},
   };
   const html = renderToStaticMarkup(
-    <SeasonGrid field={world.field} seasonYear={YEAR} edit={editing} changes={[]} />,
+    <SeasonGrid
+      field={world.field}
+      seasonYear={YEAR}
+      ratingMode={MODE}
+      edit={editing}
+      changes={[]}
+    />,
   );
 
   it("explains that every change is a swap", () => {
@@ -174,14 +203,14 @@ describe("the grid in edit mode", () => {
     expect(occurrences(html, "aria-pressed")).toBe(SEATS);
     expect(occurrences(html, 'aria-pressed="true"')).toBe(1);
     const pressed = html.slice(html.indexOf('aria-pressed="true"'));
-    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain(driverName(SEATED));
+    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain(escaped(driverName(SEATED)));
   });
 
   it("still shows the age and overall the reader is choosing on", () => {
     const record = driversById().get(TEAM_MATE === "" ? SEATED : TEAM_MATE);
     expect(record).toBeDefined();
-    expect(html).toContain(record?.name ?? "");
-    expect(html).toContain(`(${ageInSeason(YEAR, record?.birthYear ?? YEAR)}y)`);
+    expect(html).toContain(escaped(record?.name ?? ""));
+    expect(html).toContain(`(${record === undefined ? "" : ratedAge(record, YEAR, MODE)}y)`);
   });
 });
 
@@ -191,7 +220,7 @@ describe("the drivers without a drive", () => {
     <ReserveList
       drivers={reserve}
       seasonYear={YEAR}
-      ratingMode="peak"
+      ratingMode={MODE}
       selectedDriverId={null}
       onSelect={() => {}}
       filters={SHOW_ALL}
@@ -201,22 +230,22 @@ describe("the drivers without a drive", () => {
   it("lists everyone in the pool without a seat, and nobody with one", () => {
     // Everyone the widest filters allow: someone too young for the year on
     // screen is out of the band, and out of the band is out of the list.
-    const shown = reserve.filter((driver) => matchesFilters(driver, YEAR, SHOW_ALL));
+    const shown = reserve.filter((driver) => matchesFilters(driver, YEAR, SHOW_ALL, MODE));
     expect(shown.length).toBeGreaterThan(0);
     expect(html).toContain(`${SPARE} in the pool`);
     for (const driver of shown) {
-      expect(html, `missing ${driver.id}`).toContain(driver.name);
+      expect(html, `missing ${driver.id}`).toContain(escaped(driver.name));
     }
     for (const driverId of seatedDriverIds(authored)) {
-      expect(html, `${driverId} has a seat`).not.toContain(`>${driverName(driverId)}<`);
+      expect(html, `${driverId} has a seat`).not.toContain(`>${escaped(driverName(driverId))}<`);
     }
   });
 
   it("shows the same age and overall the grid does, so the two compare", () => {
     const record = driversById().get(RESERVE);
     expect(record).toBeDefined();
-    expect(html).toContain(record?.name ?? "");
-    expect(html).toContain(`(${ageInSeason(YEAR, record?.birthYear ?? YEAR)}y)`);
+    expect(html).toContain(escaped(record?.name ?? ""));
+    expect(html).toContain(`(${record === undefined ? "" : ratedAge(record, YEAR, MODE)}y)`);
   });
 
   it("trades one for one as seats change hands", () => {
@@ -244,7 +273,7 @@ describe("filtering the drivers without a drive", () => {
       <ReserveList
         drivers={reserve}
         seasonYear={YEAR}
-        ratingMode="peak"
+        ratingMode={MODE}
         selectedDriverId={options.selected ?? null}
         onSelect={() => {}}
         filters={filters}
@@ -253,10 +282,10 @@ describe("filtering the drivers without a drive", () => {
 
   /** Who a set of filters is expected to leave, straight off the pool. */
   const survivors = (filters: DriverFilters) =>
-    reserve.filter((driver) => matchesFilters(driver, YEAR, filters));
+    reserve.filter((driver) => matchesFilters(driver, YEAR, filters, MODE));
 
   /** Rendered names, so "hidden" means hidden rather than merely unmentioned. */
-  const listed = (html: string, driver: Driver) => html.includes(`>${driver.name}<`);
+  const listed = (html: string, driver: Driver) => html.includes(`>${escaped(driver.name)}<`);
 
   /**
    * Ticked *filters*. Matched on the input itself rather than on a bare
@@ -313,7 +342,7 @@ describe("filtering the drivers without a drive", () => {
       <ReserveList
         drivers={shown}
         seasonYear={YEAR}
-        ratingMode="peak"
+        ratingMode={MODE}
         selectedDriverId={null}
         onSelect={() => {}}
         filters={SHOW_ALL}
@@ -324,12 +353,12 @@ describe("filtering the drivers without a drive", () => {
   });
 
   it("holds the age range against the season on screen", () => {
-    const oldest = Math.max(...reserve.map((driver) => ageInSeason(YEAR, driver.birthYear)));
+    const oldest = Math.max(...reserve.map((driver) => ratedAge(driver, YEAR, MODE)));
     const filters = { ...SHOW_ALL, maxAge: oldest - 1 };
     const html = render(filters);
     const left = new Set(survivors(filters).map((driver) => driver.id));
     for (const driver of reserve) {
-      const age = ageInSeason(YEAR, driver.birthYear);
+      const age = ratedAge(driver, YEAR, MODE);
       // Both ends of the band bite: the oldest are out by the cap just set,
       // and anyone below `AGE_RANGE.min` in this year was never in it.
       expect(listed(html, driver), `${driver.id} aged ${age}`).toBe(left.has(driver.id));
@@ -349,19 +378,19 @@ describe("filtering the drivers without a drive", () => {
     // An age band nobody is in, so what is asserted is the filter biting rather
     // than one that happened to let this driver through.
     const filters = { hideRetired: false, hideFuture: false, minAge: 16, maxAge: 16 };
-    expect(matchesFilters(dropped as Driver, YEAR, filters)).toBe(false);
+    expect(matchesFilters(dropped as Driver, YEAR, filters, MODE)).toBe(false);
 
     const html = renderToStaticMarkup(
       <ReserveList
         drivers={pool}
         seasonYear={YEAR}
-        ratingMode="peak"
+        ratingMode={MODE}
         selectedDriverId={null}
         onSelect={() => {}}
         filters={filters}
       />,
     );
-    expect(html).not.toContain(`>${driverName(SEATED)}<`);
+    expect(html).not.toContain(`>${escaped(driverName(SEATED))}<`);
   });
 
   it("still holds a dropped driver on screen while they are selected", () => {
@@ -372,25 +401,45 @@ describe("filtering the drivers without a drive", () => {
       <ReserveList
         drivers={pool}
         seasonYear={YEAR}
-        ratingMode="peak"
+        ratingMode={MODE}
         selectedDriverId={SEATED}
         onSelect={() => {}}
         filters={{ hideRetired: false, hideFuture: false, minAge: 16, maxAge: 16 }}
       />,
     );
-    expect(html).toContain(driverName(SEATED));
+    expect(html).toContain(escaped(driverName(SEATED)));
   });
 
   it("keeps whoever is selected, so a pick cannot vanish mid-swap", () => {
     const html = render({ ...SHOW_ALL, minAge: 16, maxAge: 16 }, { selected: RESERVE });
-    expect(html).toContain(driverName(RESERVE));
+    expect(html).toContain(escaped(driverName(RESERVE)));
     expect(html).toContain('aria-pressed="true"');
+  });
+
+  it("can reach every driver in history under peak ratings", () => {
+    // The point of reading peak age: a field of the best drivers ever, which is
+    // impossible on the season scale because most of the pool was a child or a
+    // pensioner in whatever year is loaded. Widest range, career filters off —
+    // and nobody is left out. Derived from the pool rather than a count, since
+    // it grows with every season authored.
+    const html = render(SHOW_ALL);
+    expect(reserve.length).toBeGreaterThan(0);
+    for (const driver of reserve) {
+      expect(listed(html, driver), `${driver.id} unreachable`).toBe(true);
+    }
+    expect(html).toContain(`${reserve.length} in the pool`);
+    expect(html).not.toContain(`of ${reserve.length} in the pool`);
+
+    // And the same range against the season scale cannot: this is a real
+    // difference, not a filter that stopped filtering.
+    const bySeason = reserve.filter((driver) => matchesFilters(driver, YEAR, SHOW_ALL, "aged"));
+    expect(bySeason.length).toBeLessThan(reserve.length);
   });
 
   it("explains an empty list instead of showing a blank panel", () => {
     // Nobody exempt, and an age nobody in the pool is — searched for rather
     // than written down, since which ages the pool covers keeps changing.
-    const ages = new Set(reserve.map((driver) => ageInSeason(YEAR, driver.birthYear)));
+    const ages = new Set(reserve.map((driver) => ratedAge(driver, YEAR, MODE)));
     const spare = Array.from(
       { length: AGE_RANGE.max - AGE_RANGE.min + 1 },
       (_, offset) => AGE_RANGE.min + offset,
@@ -401,7 +450,7 @@ describe("filtering the drivers without a drive", () => {
       <ReserveList
         drivers={reserve}
         seasonYear={YEAR}
-        ratingMode="peak"
+        ratingMode={MODE}
         selectedDriverId={null}
         onSelect={() => {}}
         filters={{ ...SHOW_ALL, minAge: spare ?? 0, maxAge: spare ?? 0 }}
@@ -460,7 +509,7 @@ describe("counting the changes", () => {
     lineup = swapDrivers(lineup, TEAM_MATE, ALSO_FREE.id);
     const html = renderToStaticMarkup(<GridChanges changes={lineupChanges(SEED, lineup)} />);
     expect(html).toContain(swapLine);
-    expect(html).toContain(`${ALSO_FREE.name} for ${driverName(TEAM_MATE)}`);
+    expect(html).toContain(escaped(`${ALSO_FREE.name} for ${driverName(TEAM_MATE)}`));
   });
 
   it("lists the teams alphabetically, as the grid does", () => {
@@ -474,7 +523,7 @@ describe("counting the changes", () => {
     expect(drawn).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     expect(html).toContain("2 changes");
     for (const driverId of [SEATED, RESERVE, ELSEWHERE, ALSO_FREE.id]) {
-      expect(html, driverId).toContain(driverName(driverId));
+      expect(html, driverId).toContain(escaped(driverName(driverId)));
     }
   });
 });
@@ -574,7 +623,7 @@ describe("ordering the grid and the pool", () => {
 
     it("draws the cards in that order", () => {
       const html = renderToStaticMarkup(
-        <SeasonGrid field={world.field} seasonYear={YEAR} sort="overall" />,
+        <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} sort="overall" />,
       );
       const positions = byTeam(world.field, "overall").map((entry) =>
         html.indexOf(`>${entryName(entry.teamId, entry.engineId)}<`),
@@ -591,7 +640,7 @@ describe("ordering the grid and the pool", () => {
 
     it("offers the switch, with the order it is in already chosen", () => {
       const html = renderToStaticMarkup(
-        <SeasonGrid field={world.field} seasonYear={YEAR} sort="overall" />,
+        <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} sort="overall" />,
       );
       expect(chosen(html, "team-sort")).toEqual(["overall"]);
     });
@@ -603,7 +652,7 @@ describe("ordering the grid and the pool", () => {
         <ReserveList
           drivers={reserveDrivers(authored)}
           seasonYear={YEAR}
-          ratingMode="peak"
+          ratingMode={MODE}
           selectedDriverId={null}
           onSelect={() => {}}
           filters={DEFAULT_DRIVER_FILTERS}
@@ -627,17 +676,74 @@ describe("ordering the grid and the pool", () => {
     it("opens alphabetically", () => {
       const html = render("name");
       const at = reserveDrivers(authored)
-        .filter((driver) => matchesFilters(driver, YEAR, DEFAULT_DRIVER_FILTERS))
-        .map((driver) => html.indexOf(`>${driver.name}<`));
+        .filter((driver) => matchesFilters(driver, YEAR, DEFAULT_DRIVER_FILTERS, MODE))
+        .map((driver) => html.indexOf(`>${escaped(driver.name)}<`));
       // `reserveDrivers` hands them over by name, so the rendered order is the
       // order it was given.
       expect(at.every((index) => index >= 0)).toBe(true);
       expect(at).toEqual([...at].sort((a, b) => a - b));
     });
 
-    it("offers its own switch, separately from the grid's", () => {
+    it("carries its own radio group, so the two switches do not collide", () => {
+      // Separate `name` attributes, not separate choices: what they are set to
+      // is one shared preference — see `lib/sort-preference.test.ts`. Two radio
+      // groups sharing a name on one page would move together for the wrong
+      // reason, and the pool renders beside the grid while the editor is open.
       expect(chosen(render("name"), "reserve-sort")).toEqual(["name"]);
       expect(chosen(render("name"), "team-sort")).toEqual([]);
     });
+  });
+});
+
+/**
+ * One sort order, across every screen that has a switch.
+ *
+ * Setting it on the grid and being handed an alphabetical pool a click later is
+ * the behaviour these replace. Static renders cannot click a switch, so what is
+ * asserted is the half that matters and that a render *can* see: both screens
+ * read the shared preference rather than a default of their own.
+ */
+describe("remembering how the reader wants lists ordered", () => {
+  afterEach(() => {
+    resetSortOrder();
+  });
+
+  const gridStage = () =>
+    renderToStaticMarkup(
+      <GridStage field={world.field} year={YEAR} ratingMode={MODE} lineup={null} engines={null} />,
+    );
+  const summary = () =>
+    renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+
+  /**
+   * The order the grid's switch has chosen. Parsed attribute by attribute, like
+   * `chosen` above: which order React writes them in is not something to depend
+   * on, and a regex that silently stops matching would turn every case here into
+   * `null === null`.
+   */
+  const order = (html: string) => {
+    const radios = [...html.matchAll(/<input([^>]*)\/>/g)]
+      .map((match) => match[1] ?? "")
+      .filter((attrs) => attrs.includes('name="team-sort"') && attrs.includes('checked=""'));
+    expect(radios, "the grid should render exactly one chosen order").toHaveLength(1);
+    return /value="([^"]*)"/.exec(radios[0] ?? "")?.[1] ?? null;
+  };
+
+  it("opens both screens on the default", () => {
+    expect(order(gridStage())).toBe(DEFAULT_SORT_ORDER);
+    expect(order(summary())).toBe(DEFAULT_SORT_ORDER);
+  });
+
+  it("carries a chosen order onto the other screen", () => {
+    setSortOrder("overall");
+    expect(order(gridStage())).toBe("overall");
+    expect(order(summary())).toBe("overall");
+  });
+
+  it("carries it back again", () => {
+    setSortOrder("overall");
+    setSortOrder("name");
+    expect(order(gridStage())).toBe("name");
+    expect(order(summary())).toBe("name");
   });
 });
