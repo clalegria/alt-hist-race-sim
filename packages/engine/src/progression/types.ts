@@ -24,13 +24,25 @@ export interface OffSeason {
 }
 
 export interface DriverCareer {
+  /**
+   * The year of birth, which is what makes the curve an *age* curve.
+   *
+   * The population shape in `constants.ts` is defined against age, so every
+   * season has to be turned into one before anything else can happen. It is
+   * carried here rather than derived from the debut because age and experience
+   * are separate axes: a 28-year-old rookie and a 19-year-old rookie sit in very
+   * different places on the ability curve and in the same place on the other.
+   */
+  readonly birthYear: number;
   /** First season in the sport. Carries an extra rookie penalty on its own. */
   readonly debutSeason: number;
   /** The single season the driver is at 100% of the ratings below. */
   readonly peakSeason: number;
   /**
    * How many seasons the driver spends at or very near their peak, centred on
-   * `peakSeason`. 1 means a single season; 7 means three either side.
+   * `peakSeason`. A literal count: 1 means a single season, 7 means seven, and
+   * `peakWindow` returns exactly that many. An even span puts its extra season
+   * after the peak rather than before.
    */
   readonly peakSeasons: number;
   /** 1–10. Shapes the rise from debut to plateau; see `ageing.ts`. */

@@ -56,6 +56,7 @@ describe("the authored careers", () => {
   it("centres every plateau on the authored peak, spanning the authored length", () => {
     // The relationship, not the values: whatever a career is retuned to, its
     // window must still be `peakSeasons` long and sit around `peak.season`.
+    // What is authored is what is used — no scaling in between.
     for (const record of drivers) {
       const window = peakWindow(driverCareer(record));
       expect(window.end - window.start + 1, record.id).toBe(record.peakSeasons);
@@ -211,11 +212,7 @@ describe("building a field", () => {
     // yet.
     let checked = 0;
     for (const record of drivers) {
-      if (
-        record.steepDecline !== undefined ||
-        record.offSeasons !== undefined ||
-        record.peak.season <= record.debutSeason
-      ) {
+      if (record.steepDecline !== undefined || record.offSeasons !== undefined) {
         continue;
       }
       const career = driverCareer(record);

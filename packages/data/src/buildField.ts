@@ -48,6 +48,7 @@ export const DEFAULT_RATING_MODE: RatingMode = "peak";
  */
 export function driverCareer(driver: Driver): DriverCareer {
   return {
+    birthYear: driver.birthYear,
     debutSeason: driver.debutSeason,
     peakSeason: driver.peak.season,
     peakSeasons: driver.peakSeasons,

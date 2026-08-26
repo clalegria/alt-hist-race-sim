@@ -1,10 +1,15 @@
 /**
  * Driver progression viewer.
  *
- * Prints one driver's ageing curve season by season, from age 18 to 50, with
+ * Prints one driver's ageing curve season by season, from age 16 to 55, with
  * every attribute and the same overall rating the web grid shows. The curve is
  * deterministic, so this is the whole truth about a driver — there is no seed to
  * vary and no distribution to sample.
+ *
+ * The `Curve` column is the driver's **canonical** age: where his real age lands
+ * on the population curve once `developmentSpeed` and `declineSpeed` have warped
+ * the axis. It is the column to read when a career looks wrong — a 44-year-old
+ * who is still quick reads as 38, and one who is finished reads as 52.
  *
  *   pnpm progression prost      # by id
  *   pnpm progression "Keke"     # or by a fragment of the name
@@ -13,11 +18,17 @@
 
 import type { Driver } from "@alt-hist/data";
 import { driverCareer, driverOverall, drivers } from "@alt-hist/data";
-import { type DriverRatings, peakWindow, ratingsForSeason, seasonDeficits } from "@alt-hist/engine";
+import {
+  canonicalAge,
+  type DriverRatings,
+  peakWindow,
+  ratingsForSeason,
+  seasonDeficits,
+} from "@alt-hist/engine";
 import { padLeft, padRight } from "./format.js";
 
-const FIRST_AGE = 18;
-const LAST_AGE = 50;
+const FIRST_AGE = 16;
+const LAST_AGE = 55;
 
 const ATTRIBUTES = [
   ["Racing", "racing"],
@@ -116,6 +127,7 @@ function printProgression(driver: Driver): void {
 
   const header =
     padLeft("Age", 4) +
+    padLeft("Curve", 7) +
     padLeft("Season", 8) +
     ATTRIBUTES.map(([label]) => padLeft(label, 13)).join("") +
     padLeft("Overall", 9) +
@@ -131,6 +143,7 @@ function printProgression(driver: Driver): void {
 
     const row =
       padLeft(String(age), 4) +
+      padLeft(canonicalAge(career, season).toFixed(1), 7) +
       padLeft(String(season), 8) +
       ATTRIBUTES.map(([, key]) => padLeft(String(ratings[key]), 13)).join("") +
       padLeft(String(driverOverall(ratings)), 9) +

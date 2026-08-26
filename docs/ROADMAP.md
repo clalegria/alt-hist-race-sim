@@ -116,28 +116,30 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   and a user's tuning can be sent in as data. Whether it is always on or behind a flag
   is open.
 
-**5. Fine-tune the driver ageing curve.** The shape is right; the numbers are not. Away
-from the peak the curve falls off far too steeply, so a driver two or three years either
-side of their peak season is worth much less than the drivers who actually raced those
-years were. It suits short, sharp careers and badly misdescribes everyone with a long
-plateau or a slow fade — and with 1950–2026 authored, that mis-shape is now visible in
-every era at once.
+**5. Fine-tune the driver ageing curve.** *The model has been rebuilt; the authored
+career fields have not been re-authored against it.*
 
-The levers are all in the progression constants and the authored career fields:
-`plateauEdgeDeficit` and `peakSeasons` set how wide "near enough to peak" is,
-`declineExponent` and `declineSpeed` set how fast the fall accelerates, and
-`deficitPerDevelopmentSeason` does the same job on the way up. See
-`.claude/rules/progression.md` for what each one means. Whatever moves, the anchor holds:
-`ratingsForSeason(career, peakSeason)` must still return the authored ratings exactly.
+The diagnosis was that the curve fell away from the peak far too steeply and that
+neither `developmentSpeed` nor `declineSpeed` could prevent it — the shape was *derived*
+from the traits rather than modulated by them, and `developmentSpeed` provably had no
+effect at all on the debut season. That is fixed. One population ability curve now owns
+the shape (steep improvement before 20, flat 28–33, a gentle slope to 42, then an
+accelerating fall) and the two traits warp only the age axis: they say when a driver
+arrives and how long he lasts, never how hard he falls. Experience became a second axis
+of its own, scaled by `developmentSpeed`, so a rookie season can be a formality for one
+driver and a jumping-off point for another. `.claude/rules/progression.md` has the
+whole design.
 
-This is a re-tune of engine constants, so the no-re-calibration invariant applies — and
-**this item is the author asking, which is the authorisation it requires**, for the
-progression constants only. Driver, chassis and engine ratings stay fixed.
+**What remains is the authoring pass, and it is the author's.** Every field means what
+it says — `peakSeasons` 7 is a seven-season plateau, and an intermediate version that
+scaled it into seventeen has been removed — but the pool still carries a first pass:
+`developmentSpeed` clustered at 4, `declineSpeed` at 5, `peakSeasons` at 2 and 3. The
+model can now express a Verstappen and a Fangio; nobody in `drivers.json` is yet
+authored as one. The instrument is `pnpm progression`, whose new `Curve` column shows
+where a real age lands on the population curve.
 
-The instrument is `pnpm progression`, which already exists, so this is **not** strictly
-gated on the editor's career chart — if the editor slips, take this anyway, though the
-chart is the better instrument and that is why it is listed first. It belongs before the
-seed-data authoring pass below, so that pass is judged against a curve worth trusting.
+The anchor holds either way: `ratingsForSeason(career, peakSeason)` still returns the
+authored ratings exactly, and tests in both packages pin it.
 
 **6. Publish it.** Put the app on the public internet, unfinished, and keep it there.
 The author has never shipped anything before, so this item is written as much to say

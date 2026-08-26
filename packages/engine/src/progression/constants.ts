@@ -7,6 +7,25 @@
  * per-run scatter on the realized peak is a later decision, and the
  * realize-once-and-store invariant exists for the day it lands.
  *
+ * The model has two halves, and the split is the point:
+ *
+ * - **`CANONICAL_ABILITY` owns the shape.** One population curve — what a career
+ *   looks like for the average driver — as ability against age. It says how much
+ *   a year off peak costs, and nothing a driver is authored with can change that.
+ * - **The rates below own the placement.** `developmentSpeed` and `declineSpeed`
+ *   warp the *age axis* only: they say when a driver reaches the plateau and how
+ *   quickly they run off the end of it, never how steep the fall is once they do.
+ *
+ * A driver who peaks at 30 with a plateau as wide as the canonical one and both
+ * traits at 5 is warped by the identity — they *are* the canonical curve.
+ * Everything else is that curve read faster or slower.
+ *
+ * **`peakSeasons` is a literal count and is not a lever here.** Author 7 and the
+ * driver holds a seven-season plateau; nothing in this file scales it. An
+ * earlier version made it a nudge against a nominal width, which turned an
+ * authored 7 into 17 seasons and stretched the curve's flat top across all of
+ * them. Do not reintroduce a mapping between what is authored and what is used.
+ *
  * Deficits are fractions of the peak rating: 0.20 means "20% below peak". They
  * are accumulated into three buckets — development, decline and form — because
  * each bucket hits the five attributes differently (see the sensitivity tables).
@@ -17,64 +36,132 @@ import type { DriverRatings } from "../model/index.js";
 /** Per-attribute multipliers on a deficit. 1.0 = the attribute tracks it exactly. */
 export type AttributeSensitivity = Readonly<Record<keyof DriverRatings, number>>;
 
+/** One point on the population curve: an age, and ability as a fraction of peak. */
+export interface AbilityAnchor {
+  readonly age: number;
+  readonly ability: number;
+}
+
+/**
+ * The population ability curve: what an average driving career looks like.
+ *
+ * Read as fractions of the driver's own peak, against **canonical** age — the
+ * age the warp maps a real age onto, not the age on the driver's licence. Points
+ * are joined by straight lines and held flat beyond both ends, which is what
+ * stops a swept table bottoming out at the rating floor.
+ *
+ * The shape is authored, not fitted, and it encodes four claims:
+ *
+ * - Improvement is steepest before 20 and eases the whole way in — a teenager
+ *   gains five points a year, a 24-year-old gains one.
+ * - 28 to 33 is genuinely flat. A driver is at their best for years, not for a
+ *   season, and the plateau either side of that is within a few percent.
+ * - 35 to 42 is a *gentle* slope: nine percent over seven years. This is the
+ *   number that most shapes how the sim feels, because it decides whether a
+ *   35-year-old champion is finished or merely no longer favourite.
+ * - Past 42 it steepens, and keeps steepening. Every segment after the plateau
+ *   is steeper than the one before it, so decline accelerates without needing an
+ *   exponent anywhere.
+ */
+export const CANONICAL_ABILITY: readonly AbilityAnchor[] = [
+  { age: 8, ability: 0.1 },
+  { age: 12, ability: 0.3 },
+  { age: 15, ability: 0.505 },
+  { age: 17, ability: 0.665 },
+  { age: 19, ability: 0.765 },
+  { age: 21, ability: 0.84 },
+  { age: 23, ability: 0.905 },
+  { age: 25, ability: 0.96 },
+  { age: 27, ability: 0.992 },
+  { age: 28, ability: 1.0 },
+  { age: 30, ability: 1.0 },
+  { age: 32, ability: 0.995 },
+  { age: 33, ability: 0.99 },
+  { age: 35, ability: 0.97 },
+  { age: 37, ability: 0.95 },
+  { age: 39, ability: 0.9 },
+  { age: 41, ability: 0.85 },
+  { age: 43, ability: 0.8 },
+  { age: 45, ability: 0.7 },
+  { age: 47, ability: 0.6 },
+  { age: 50, ability: 0.5 },
+  { age: 55, ability: 0.3 },
+  { age: 60, ability: 0.1 },
+];
+
+/**
+ * The three canonical ages the warp pins a driver's own career to.
+ *
+ * Every driver's authored plateau, however many seasons it is, is stretched or
+ * squeezed onto `plateauStart`–`plateauEnd`, with the peak season landing on
+ * `peak`. That is what keeps `peakSeasons` a literal count.
+ *
+ * **Both plateau ends want to sit where the curve is already within a percent of
+ * peak**, and 27–34 is chosen for exactly that: an authored plateau should read
+ * back as a plateau. Widening this interval towards the curve's real shoulders
+ * makes every authored plateau report shorter than it was written, because its
+ * outermost seasons land on ability the reader would not call a peak. It also
+ * widens the step into the peak season for a driver with no season authored
+ * before it — `peakSeasons` 1 or 2 — which is a third of the pool.
+ */
+export interface CanonicalAges {
+  /** Where the plateau opens. Must sit on the rising side of the curve. */
+  readonly plateauStart: number;
+  /** The single canonical age at which ability is exactly 1.0. */
+  readonly peak: number;
+  /** Where the plateau closes and decline begins. */
+  readonly plateauEnd: number;
+}
+
 export interface AgeingConstants {
-  /**
-   * How far below peak a driver debuts, per season of runway between their
-   * debut and the start of their plateau, capped by `maxRookieDeficit`.
-   * A driver who debuts the year their plateau starts is already there.
-   */
-  readonly deficitPerDevelopmentSeason: number;
-  readonly maxRookieDeficit: number;
+  /** The population curve. `CANONICAL_ABILITY` unless a caller substitutes one. */
+  readonly canonicalAbility: readonly AbilityAnchor[];
+  readonly canonical: CanonicalAges;
 
   /**
-   * `developmentSpeed` 1–10 maps linearly onto this exponent range, applied to
-   * progress through the development years. A *high* speed gives a *low*
-   * exponent: a concave curve that climbs steeply out of the rookie season and
-   * flattens into the plateau — the early bloomer. A low speed gives a convex
-   * curve: years of little progress, then a late surge.
+   * How many canonical years one real year covers on the rising side, by
+   * `developmentSpeed`. **Below 1 is the fast developer**: three real years short
+   * of his plateau read as one and a half canonical years short, so he is nearly
+   * there already. Above 1 is the slow burner, whose real years buy less.
+   *
+   * This is why the rates are on the age axis and not the value axis — a fast
+   * developer does not climb a different curve, he climbs the same one sooner.
    */
-  readonly developmentExponentAtSpeedOne: number;
-  readonly developmentExponentAtSpeedTen: number;
+  readonly riseRateAtSpeedOne: number;
+  readonly riseRateAtSpeedFive: number;
+  readonly riseRateAtSpeedTen: number;
 
   /**
-   * How far below 100% the edges of the plateau sit. A driver is only truly at
-   * peak for one season; the rest of the plateau is "very close", which is what
-   * this number means. Quadratic across the window, so the seasons either side
-   * of the peak are barely off it.
+   * The same idea past the plateau, by `declineSpeed`, and the reason a driver
+   * can still be worth a seat at 45. At 0.35 a real decade past the plateau is
+   * three and a half canonical years — Fangio, Alonso. At 2.5 it is twenty-five,
+   * and the driver is gone inside five seasons.
    */
-  readonly plateauEdgeDeficit: number;
+  readonly declineRateAtSpeedOne: number;
+  readonly declineRateAtSpeedFive: number;
+  readonly declineRateAtSpeedTen: number;
 
   /**
-   * Decline is `declineBaseRate · (declineSpeed / nominalDeclineSpeed) ·
-   * years^declineExponent`, measured from the end of the plateau. The exponent
-   * is above 1 so decline accelerates: the first season past peak costs little,
-   * the fifth costs a lot.
-   */
-  readonly declineBaseRate: number;
-  readonly declineExponent: number;
-  readonly nominalDeclineSpeed: number;
-
-  /**
-   * An extra deficit for being a rookie, applied to the debut season **and to
-   * every season before it**. Not applying it before the debut made the seasons
-   * leading up to a career better than the career's first season, which is
-   * backwards.
+   * Being new to the sport, as distinct from being young.
+   *
+   * Age and experience are separate axes because the data authors them
+   * separately: a 28-year-old rookie is on the plateau of the ability curve and
+   * still does not know the job, and a 21-year-old in his fourth season does.
+   * The full penalty lands in the debut season — and in every season before it,
+   * so the curve never rewards a driver for not having started yet — then fades
+   * linearly over the adaptation seasons.
+   *
+   * Both halves are scaled by `developmentSpeed`, which is the whole complaint
+   * the split answers: it is the trait that means "learns fast", so it has to
+   * reach the rookie season itself, not merely the shape of the years after it.
+   * At speed 10 the relief leaves 15% of the penalty and it is gone by season
+   * two; at speed 1 it lands in full and takes five seasons to clear.
    */
   readonly rookieSeasonPenalty: number;
-
-  /**
-   * How much further below the rookie season each season before the debut sits,
-   * capped by `maxPreDebutDeficit`.
-   *
-   * The development curve proper only spans debut → plateau, so without this the
-   * pre-debut years were flat at rookie level. A driver was not born at the
-   * standard of his first Grand Prix: the rise starts before the debut, and
-   * these two numbers are all it takes to say so. Nothing in the sim reads these
-   * seasons — no driver holds a seat before their debut — so this is for the
-   * progression tool, and for the day junior careers mean something.
-   */
-  readonly preDebutDeficitPerSeason: number;
-  readonly maxPreDebutDeficit: number;
+  readonly rookieReliefAtSpeedTen: number;
+  readonly adaptationSeasonsAtSpeedOne: number;
+  readonly adaptationSeasonsAtSpeedFive: number;
+  readonly adaptationSeasonsAtSpeedTen: number;
 
   /** Full-severity magnitudes for the two authored career events. */
   readonly steepDeclineMaxDrop: number;
@@ -103,22 +190,22 @@ export interface AgeingConstants {
 }
 
 export const AGEING_CONSTANTS: AgeingConstants = {
-  deficitPerDevelopmentSeason: 0.055,
-  maxRookieDeficit: 0.34,
+  canonicalAbility: CANONICAL_ABILITY,
+  canonical: { plateauStart: 27, peak: 30, plateauEnd: 34 },
 
-  developmentExponentAtSpeedOne: 1.9,
-  developmentExponentAtSpeedTen: 0.55,
+  riseRateAtSpeedOne: 1.9,
+  riseRateAtSpeedFive: 1.0,
+  riseRateAtSpeedTen: 0.5,
 
-  plateauEdgeDeficit: 0.03,
+  declineRateAtSpeedOne: 0.35,
+  declineRateAtSpeedFive: 1.0,
+  declineRateAtSpeedTen: 2.5,
 
-  declineBaseRate: 0.035,
-  declineExponent: 1.25,
-  nominalDeclineSpeed: 5,
-
-  rookieSeasonPenalty: 0.06,
-
-  preDebutDeficitPerSeason: 0.045,
-  maxPreDebutDeficit: 0.25,
+  rookieSeasonPenalty: 0.16,
+  rookieReliefAtSpeedTen: 0.85,
+  adaptationSeasonsAtSpeedOne: 5,
+  adaptationSeasonsAtSpeedFive: 3,
+  adaptationSeasonsAtSpeedTen: 1,
 
   steepDeclineMaxDrop: 0.3,
   offSeasonMaxDrop: 0.12,
@@ -127,15 +214,15 @@ export const AGEING_CONSTANTS: AgeingConstants = {
     racing: 0.9,
     qualifying: 0.7,
     consistency: 1.25,
-    adaptability: 0.85,
-    composure: 1.35,
+    adaptability: 1.0,
+    composure: 1.25,
   },
   declineSensitivity: {
     racing: 1.0,
     qualifying: 1.3,
-    consistency: 0.55,
-    adaptability: 1.15,
-    composure: 0.5,
+    consistency: 1.0,
+    adaptability: 1.0,
+    composure: 0.75,
   },
 
   minRating: 1,

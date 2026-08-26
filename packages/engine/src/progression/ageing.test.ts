@@ -1,8 +1,22 @@
 import { describe, expect, it } from "vitest";
 import type { DriverRatings } from "../model/index.js";
-import { peakWindow, ratingsForSeason, seasonDeficits } from "./ageing.js";
+import {
+  canonicalAbility,
+  canonicalAge,
+  peakWindow,
+  ratingsForSeason,
+  seasonDeficits,
+} from "./ageing.js";
 import { AGEING_CONSTANTS } from "./constants.js";
 import type { DriverCareer } from "./types.js";
+
+/**
+ * The authored plateau width that the warp maps one-for-one onto the canonical
+ * one. Derived rather than written down, because the identity property below is
+ * exactly the claim that these two agree.
+ */
+const CANONICAL_PEAK_SEASONS =
+  AGEING_CONSTANTS.canonical.plateauEnd - AGEING_CONSTANTS.canonical.plateauStart + 1;
 
 const PEAK: DriverRatings = {
   racing: 90,
@@ -12,11 +26,20 @@ const PEAK: DriverRatings = {
   composure: 86,
 };
 
+/**
+ * The nominal career: peaks at 30, as wide as the canonical plateau, both traits
+ * at 5.
+ *
+ * Chosen so the warp is the identity — this driver *is* the population curve —
+ * because most of what follows is easier to reason about when canonical age and
+ * real age are the same number.
+ */
 function career(overrides: Partial<DriverCareer> = {}): DriverCareer {
   return {
+    birthYear: 1957,
     debutSeason: 1980,
     peakSeason: 1987,
-    peakSeasons: 5,
+    peakSeasons: CANONICAL_PEAK_SEASONS,
     developmentSpeed: 5,
     declineSpeed: 5,
     peak: PEAK,
@@ -31,13 +54,149 @@ function total(ratings: DriverRatings): number {
   return ATTRIBUTES.reduce((sum, key) => sum + ratings[key], 0);
 }
 
-describe("the peak window", () => {
-  it("centres an odd span on the peak season", () => {
-    expect(peakWindow(career({ peakSeason: 1987, peakSeasons: 7 }))).toEqual({
-      start: 1984,
-      end: 1990,
+describe("the population curve", () => {
+  const { canonicalAbility: anchors, canonical } = AGEING_CONSTANTS;
+
+  it("is exactly 1.0 across the canonical peak, and never above it", () => {
+    expect(canonicalAbility(canonical.peak)).toBe(1);
+    for (let age = 0; age <= 70; age += 0.5) {
+      expect(canonicalAbility(age), `${age}`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("rises the whole way to the peak and falls the whole way after it", () => {
+    for (let age = 0; age < canonical.peak - 2; age += 0.5) {
+      expect(canonicalAbility(age + 0.5), `${age}`).toBeGreaterThanOrEqual(canonicalAbility(age));
+    }
+    for (let age = canonical.plateauEnd; age < 70; age += 0.5) {
+      expect(canonicalAbility(age + 0.5), `${age}`).toBeLessThanOrEqual(canonicalAbility(age));
+    }
+  });
+
+  it("holds the plateau within a few percent of peak", () => {
+    for (let age = canonical.plateauStart; age <= canonical.plateauEnd; age += 0.5) {
+      expect(canonicalAbility(age), `${age}`).toBeGreaterThan(0.95);
+    }
+  });
+
+  it("steepens with every segment past the plateau, so decline accelerates", () => {
+    // The property the old exponent bought, now a shape rather than a formula.
+    // A table with a constant slope anywhere past the plateau fails here.
+    const past = anchors.filter((anchor) => anchor.age >= canonical.plateauEnd);
+    const slopes = past.slice(1).map((anchor, index) => {
+      const previous = past[index];
+      if (previous === undefined) {
+        throw new Error("unreachable");
+      }
+      return (previous.ability - anchor.ability) / (anchor.age - previous.age);
     });
-    expect(peakWindow(career({ peakSeasons: 1 }))).toEqual({ start: 1987, end: 1987 });
+    for (let index = 1; index < slopes.length; index += 1) {
+      const [before, after] = [slopes[index - 1], slopes[index]];
+      if (before === undefined || after === undefined) {
+        throw new Error("unreachable");
+      }
+      expect(after, `segment ${index}`).toBeGreaterThan(before);
+    }
+    expect(slopes.length).toBeGreaterThan(2);
+  });
+
+  it("eases the whole way in on the rising side", () => {
+    // A teenager gains far more per year than a 24-year-old, which is the other
+    // half of the shape the author asked for.
+    const rising = anchors.filter((anchor) => anchor.age <= canonical.plateauStart);
+    const slopes = rising.slice(1).map((anchor, index) => {
+      const previous = rising[index];
+      if (previous === undefined) {
+        throw new Error("unreachable");
+      }
+      return (anchor.ability - previous.ability) / (anchor.age - previous.age);
+    });
+    for (let index = 1; index < slopes.length; index += 1) {
+      const [before, after] = [slopes[index - 1], slopes[index]];
+      if (before === undefined || after === undefined) {
+        throw new Error("unreachable");
+      }
+      expect(after, `segment ${index}`).toBeLessThan(before);
+    }
+  });
+
+  it("holds flat beyond both ends instead of running off the scale", () => {
+    const first = anchors[0];
+    const last = anchors[anchors.length - 1];
+    if (first === undefined || last === undefined) {
+      throw new Error("unreachable");
+    }
+    expect(canonicalAbility(first.age - 30)).toBe(first.ability);
+    expect(canonicalAbility(last.age + 30)).toBe(last.ability);
+    expect(first.ability).toBeGreaterThan(0);
+  });
+});
+
+describe("the warp onto the population curve", () => {
+  it("is the identity for the nominal career", () => {
+    // The property the whole design rests on: a driver whose plateau is as wide
+    // as the canonical one is not warped at all, so the canonical curve is a
+    // description of him and not a coincidence.
+    const nominal = career();
+    for (let season = 1965; season <= 2010; season += 1) {
+      expect(canonicalAge(nominal, season), `${season}`).toBeCloseTo(season - nominal.birthYear, 9);
+    }
+  });
+
+  it("pins the peak season to the canonical peak, however the career is authored", () => {
+    for (const overrides of [
+      { peakSeason: 1975, birthYear: 1953, developmentSpeed: 9, declineSpeed: 2 },
+      { peakSeason: 2001, birthYear: 1975, peakSeasons: 8, developmentSpeed: 1 },
+      { peakSeason: 1990, birthYear: 1944, peakSeasons: 1, declineSpeed: 10 },
+    ]) {
+      const driver = career(overrides);
+      expect(canonicalAge(driver, driver.peakSeason), `${driver.peakSeason}`).toBeCloseTo(
+        AGEING_CONSTANTS.canonical.peak,
+        9,
+      );
+    }
+  });
+
+  it("lets a fast developer reach the same canonical age younger", () => {
+    const fast = career({ developmentSpeed: 10 });
+    const slow = career({ developmentSpeed: 1 });
+    for (let season = 1970; season < 1980; season += 1) {
+      expect(canonicalAge(fast, season), `${season}`).toBeGreaterThan(canonicalAge(slow, season));
+    }
+  });
+
+  it("lets a slow decliner spend real years on very few canonical ones", () => {
+    const durable = career({ declineSpeed: 1 });
+    const brittle = career({ declineSpeed: 10 });
+    const end = peakWindow(durable).end;
+    for (let season = end + 1; season <= end + 12; season += 1) {
+      expect(canonicalAge(durable, season), `${season}`).toBeLessThan(
+        canonicalAge(brittle, season),
+      );
+    }
+  });
+
+  it("moves monotonically with the season, so no season is out of order", () => {
+    for (const driver of [career(), career({ developmentSpeed: 1, declineSpeed: 10 })]) {
+      for (let season = 1960; season < 2020; season += 1) {
+        expect(canonicalAge(driver, season + 1), `${season}`).toBeGreaterThan(
+          canonicalAge(driver, season),
+        );
+      }
+    }
+  });
+});
+
+describe("the peak window", () => {
+  it("is exactly as many seasons as were authored", () => {
+    // `peakSeasons` is a count, not a nudge against some nominal width. An
+    // earlier version scaled it, and an authored 7 came back as 17.
+    for (const peakSeasons of [1, 2, 3, 7, 12]) {
+      const window = peakWindow(career({ peakSeasons }));
+      expect(window.end - window.start + 1, `${peakSeasons}`).toBe(peakSeasons);
+      expect(window.start, `${peakSeasons}`).toBeLessThanOrEqual(1987);
+      expect(window.end, `${peakSeasons}`).toBeGreaterThanOrEqual(1987);
+    }
   });
 
   it("gives an even span its extra season after the peak, not before", () => {
@@ -49,8 +208,7 @@ describe("the peak window", () => {
   it("never disappears, however it is authored", () => {
     for (const peakSeasons of [0, -3, 0.4]) {
       const window = peakWindow(career({ peakSeasons }));
-      expect(window.start, `${peakSeasons}`).toBeLessThanOrEqual(1987);
-      expect(window.end, `${peakSeasons}`).toBeGreaterThanOrEqual(1987);
+      expect(window, `${peakSeasons}`).toEqual({ start: 1987, end: 1987 });
     }
   });
 });
@@ -61,8 +219,8 @@ describe("the shape of a career", () => {
   });
 
   it("improves every season from debut to the plateau", () => {
-    const driver = career({ debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 });
-    for (let season = 1980; season < 1989; season += 1) {
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
+    for (let season = 1980; season < peakWindow(driver).start; season += 1) {
       expect(
         total(ratingsForSeason(driver, season + 1)),
         `${season} → ${season + 1}`,
@@ -71,12 +229,28 @@ describe("the shape of a career", () => {
   });
 
   it("holds within a few percent of peak across the whole plateau", () => {
-    const driver = career({ peakSeasons: 7 });
+    // Debuting well before the plateau opens, so no season here is still
+    // paying the inexperience penalty — that is a separate axis, tested below.
+    const driver = career({ debutSeason: 1975, peakSeasons: 7 });
     const window = peakWindow(driver);
     for (let season = window.start; season <= window.end; season += 1) {
       const ratio = ratingsForSeason(driver, season).racing / PEAK.racing;
-      expect(ratio, `${season}`).toBeGreaterThan(1 - AGEING_CONSTANTS.plateauEdgeDeficit * 1.5);
+      expect(ratio, `${season}`).toBeGreaterThan(0.95);
       expect(ratio, `${season}`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("never gets worse on the way up or better on the way down", () => {
+    const driver = career();
+    for (let season = 1970; season < 1987; season += 1) {
+      expect(total(ratingsForSeason(driver, season + 1)), `${season}`).toBeGreaterThanOrEqual(
+        total(ratingsForSeason(driver, season)),
+      );
+    }
+    for (let season = 1987; season < 2015; season += 1) {
+      expect(total(ratingsForSeason(driver, season + 1)), `${season}`).toBeLessThanOrEqual(
+        total(ratingsForSeason(driver, season)),
+      );
     }
   });
 
@@ -91,14 +265,36 @@ describe("the shape of a career", () => {
   });
 
   it("declines faster the further past peak it gets", () => {
-    // The exponent above 1 is the point: the first season past the plateau
-    // should cost less than the fifth. A linear decline passes the test above
-    // and fails this one.
+    // The first season past the plateau should cost less than the fifth. A
+    // straight-line decline passes the test above and fails this one.
+    // Measured over three seasons rather than one: a single season's fall is a
+    // couple of rating points, and integer rounding can swallow the difference.
     const driver = career();
     const end = peakWindow(driver).end;
-    const drop = (season: number): number =>
-      total(ratingsForSeason(driver, season)) - total(ratingsForSeason(driver, season + 1));
-    expect(drop(end + 4)).toBeGreaterThan(drop(end));
+    const dropOver = (from: number, to: number): number =>
+      total(ratingsForSeason(driver, from)) - total(ratingsForSeason(driver, to));
+    expect(dropOver(end + 6, end + 9)).toBeGreaterThan(dropOver(end, end + 3));
+  });
+
+  it("is the population curve read at the driver's own pace, and nothing more", () => {
+    // Pins the composition rather than any one number: past the peak, with no
+    // authored events, a rating is exactly the canonical ability at the driver's
+    // canonical age, through the decline sensitivity. Any extra term anywhere in
+    // the decline path — an exponent, a per-driver steepness — shows up here.
+    for (const declineSpeed of [1, 5, 10]) {
+      const driver = career({ declineSpeed });
+      for (let season = 1988; season <= 2005; season += 1) {
+        const shortfall = 1 - canonicalAbility(canonicalAge(driver, season));
+        for (const key of ATTRIBUTES) {
+          const expected = Math.round(
+            PEAK[key] * (1 - shortfall * AGEING_CONSTANTS.declineSensitivity[key]),
+          );
+          expect(ratingsForSeason(driver, season)[key], `${declineSpeed} ${key} ${season}`).toBe(
+            expected,
+          );
+        }
+      }
+    }
   });
 
   it("keeps every rating inside 1–100, whatever the career", () => {
@@ -121,12 +317,7 @@ describe("young and old are different, not just better and worse", () => {
   const FLAT = { racing: 90, qualifying: 90, consistency: 90, adaptability: 90, composure: 90 };
 
   it("makes the young driver quick but wild", () => {
-    const driver = career({
-      debutSeason: 1980,
-      peakSeason: 1990,
-      peakSeasons: 3,
-      peak: FLAT,
-    });
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992, peak: FLAT });
     const young = ratingsForSeason(driver, 1981);
     expect(young.composure).toBeLessThan(young.qualifying);
     expect(young.consistency).toBeLessThan(young.racing);
@@ -146,11 +337,49 @@ describe("young and old are different, not just better and worse", () => {
   });
 });
 
+describe("age and experience are separate axes", () => {
+  it("holds the older rookie to the same inexperience as the younger one", () => {
+    const young = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
+    const old = career({ birthYear: 1952, debutSeason: 1980, peakSeason: 1985 });
+    const inexperience = (driver: DriverCareer): number =>
+      seasonDeficits(driver, 1980).development - (1 - canonicalAbility(canonicalAge(driver, 1980)));
+    expect(inexperience(old)).toBeCloseTo(inexperience(young), 9);
+  });
+
+  it("still rates the older rookie higher, because he is further up the ability curve", () => {
+    const young = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
+    const old = career({ birthYear: 1955, debutSeason: 1980, peakSeason: 1985 });
+    expect(total(ratingsForSeason(old, 1980))).toBeGreaterThan(
+      total(ratingsForSeason(young, 1980)),
+    );
+  });
+
+  it("has always spent the inexperience penalty by the peak season", () => {
+    // Otherwise a driver who peaks in his second season can never be rated what
+    // he is authored at, and the authored peak stops being reachable at all.
+    // The slowest learner is the one that catches it.
+    for (const gap of [0, 1, 2]) {
+      const driver = career({ debutSeason: 1987 - gap, developmentSpeed: 1 });
+      expect(ratingsForSeason(driver, 1987), `debut ${1987 - gap}`).toEqual(PEAK);
+    }
+  });
+
+  it("rates the experienced driver above an identical rookie of the same age", () => {
+    // Same birth year, same peak, same traits: the only difference is that one
+    // of them has been doing this for four years.
+    const rookie = career({ birthYear: 1958, debutSeason: 1982 });
+    const experienced = career({ birthYear: 1958, debutSeason: 1978 });
+    expect(total(ratingsForSeason(experienced, 1982))).toBeGreaterThan(
+      total(ratingsForSeason(rookie, 1982)),
+    );
+  });
+});
+
 describe("authored career events", () => {
   it("costs a driver something extra in their debut season", () => {
-    const driver = career({ debutSeason: 1980, peakSeason: 1990 });
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
     const withRookie = seasonDeficits(driver, 1980).development;
-    const withoutRookie = seasonDeficits({ ...driver, debutSeason: 1979 }, 1980).development;
+    const withoutRookie = seasonDeficits({ ...driver, debutSeason: 1975 }, 1980).development;
     expect(withRookie).toBeGreaterThan(withoutRookie);
   });
 
@@ -158,7 +387,7 @@ describe("authored career events", () => {
     // The bug this pins: the rookie penalty landed only on the debut season and
     // the development curve was flat-clamped before it, so a driver's last year
     // out of the sport outrated his first year in it.
-    const driver = career({ debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 });
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
     const debut = total(ratingsForSeason(driver, 1980));
     for (let season = 1979; season >= 1966; season -= 1) {
       expect(total(ratingsForSeason(driver, season)), `${season}`).toBeLessThan(debut);
@@ -166,7 +395,7 @@ describe("authored career events", () => {
   });
 
   it("climbs towards the debut instead of sitting flat", () => {
-    const driver = career({ debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 });
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
     for (let season = 1974; season < 1980; season += 1) {
       expect(
         total(ratingsForSeason(driver, season + 1)),
@@ -175,25 +404,20 @@ describe("authored career events", () => {
     }
   });
 
-  it("carries the rookie penalty into every season before the debut", () => {
-    const driver = career({ debutSeason: 1980, peakSeason: 1990 });
-    const penalty = AGEING_CONSTANTS.rookieSeasonPenalty;
-    // Both the debut season and the one before it carry it; the season after
-    // does not.
-    expect(seasonDeficits(driver, 1980).development).toBeGreaterThanOrEqual(penalty);
-    expect(seasonDeficits(driver, 1979).development).toBeGreaterThan(penalty);
-    expect(seasonDeficits(driver, 1981).development).toBeLessThan(
-      seasonDeficits(driver, 1980).development,
-    );
+  it("carries the full inexperience penalty into every season before the debut", () => {
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
+    const inexperience = (season: number): number =>
+      seasonDeficits(driver, season).development -
+      (1 - canonicalAbility(canonicalAge(driver, season)));
+    expect(inexperience(1979)).toBeCloseTo(inexperience(1980), 9);
+    expect(inexperience(1981)).toBeLessThan(inexperience(1980));
   });
 
-  it("stops falling away once the pre-debut cap is reached", () => {
+  it("stops falling away once the population curve bottoms out", () => {
     // Otherwise a late debutant swept from age 18 hits the rating floor and the
     // table becomes a column of 1s.
-    const driver = career({ debutSeason: 1980, peakSeason: 1990 });
-    const far = seasonDeficits(driver, 1960).development;
-    const further = seasonDeficits(driver, 1950).development;
-    expect(further).toBe(far);
+    const driver = career({ birthYear: 1962, debutSeason: 1980, peakSeason: 1992 });
+    expect(seasonDeficits(driver, 1950).development).toBe(seasonDeficits(driver, 1940).development);
   });
 
   it("applies a steep decline from its season onward, and never before", () => {
@@ -230,16 +454,75 @@ describe("authored career events", () => {
 });
 
 describe("development speed", () => {
-  it("puts the fast developer ahead of the slow one early on", () => {
-    const shared = { debutSeason: 1980, peakSeason: 1990, peakSeasons: 3 } as const;
+  const shared = { birthYear: 1962, debutSeason: 1980, peakSeason: 1992 } as const;
+
+  it("reaches the rookie season itself, not just the years after it", () => {
+    // The bug this replaces: rookie level was set by the gap between debut and
+    // plateau alone, so a driver authored at 10 debuted exactly as far below
+    // peak as one authored at 1. Both halves of the fix are in play here — the
+    // warp puts the fast developer further up the ability curve, and the relief
+    // takes most of the inexperience penalty off him.
+    const fast = ratingsForSeason(career({ ...shared, developmentSpeed: 10 }), 1980);
+    const slow = ratingsForSeason(career({ ...shared, developmentSpeed: 1 }), 1980);
+    expect(total(fast)).toBeGreaterThan(total(slow));
+  });
+
+  it("gives the slow developer the bigger jump out of his rookie season", () => {
+    // "Some drivers have a big jump from their rookie season to their second,
+    // but not all." The fast developer arrives already close to his plateau, so
+    // there is less of a jump left to make.
+    const jump = (developmentSpeed: number): number =>
+      total(ratingsForSeason(career({ ...shared, developmentSpeed }), 1981)) -
+      total(ratingsForSeason(career({ ...shared, developmentSpeed }), 1980));
+    expect(jump(1)).toBeGreaterThan(jump(10));
+  });
+
+  it("puts the fast developer ahead of the slow one all the way up", () => {
     const fast = career({ ...shared, developmentSpeed: 9 });
     const slow = career({ ...shared, developmentSpeed: 2 });
-    expect(total(ratingsForSeason(fast, 1983))).toBeGreaterThan(
-      total(ratingsForSeason(slow, 1983)),
-    );
-    // Both still arrive at the same plateau — speed shapes the route, not the
-    // destination.
-    expect(ratingsForSeason(fast, 1990)).toEqual(ratingsForSeason(slow, 1990));
+    for (let season = 1980; season < peakWindow(fast).start; season += 1) {
+      expect(total(ratingsForSeason(fast, season)), `${season}`).toBeGreaterThan(
+        total(ratingsForSeason(slow, season)),
+      );
+    }
+    // Both still arrive at the same plateau — speed shapes when, not what.
+    expect(ratingsForSeason(fast, 1992)).toEqual(ratingsForSeason(slow, 1992));
+  });
+
+  it("clears the inexperience penalty sooner for the fast learner", () => {
+    const inexperience = (developmentSpeed: number, season: number): number => {
+      const driver = career({ ...shared, developmentSpeed });
+      return (
+        seasonDeficits(driver, season).development -
+        (1 - canonicalAbility(canonicalAge(driver, season)))
+      );
+    };
+    expect(inexperience(10, 1982)).toBeCloseTo(0, 9);
+    expect(inexperience(1, 1982)).toBeGreaterThan(0);
+  });
+});
+
+describe("decline speed", () => {
+  it("decides when a driver falls away, not how hard", () => {
+    // A durable driver is still near peak at an age that finishes a brittle one,
+    // but neither ever falls faster than the population curve allows — which is
+    // the property that stops an ordinary career collapsing in its thirties.
+    const durable = career({ declineSpeed: 1 });
+    const brittle = career({ declineSpeed: 10 });
+    const at = (driver: DriverCareer, season: number): number =>
+      ratingsForSeason(driver, season).racing / PEAK.racing;
+    expect(at(durable, 2001)).toBeGreaterThan(0.9);
+    expect(at(brittle, 2001)).toBeLessThan(at(durable, 2001));
+  });
+
+  it("costs the durable driver less every season past the plateau", () => {
+    const durable = career({ declineSpeed: 2 });
+    const brittle = career({ declineSpeed: 9 });
+    for (let season = peakWindow(durable).end + 1; season <= 2005; season += 1) {
+      expect(total(ratingsForSeason(durable, season)), `${season}`).toBeGreaterThan(
+        total(ratingsForSeason(brittle, season)),
+      );
+    }
   });
 });
 

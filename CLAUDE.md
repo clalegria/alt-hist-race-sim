@@ -37,7 +37,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 950 tests (202 engine, 85 data, 663 web)
+pnpm test          # 972 tests (224 engine, 85 data, 663 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .

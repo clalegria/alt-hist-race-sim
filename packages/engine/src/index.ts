@@ -7,9 +7,14 @@
 
 export type { CarSpec, DriverRatings, EngineSpec } from "./model/index.js";
 export {
+  type AbilityAnchor,
   AGEING_CONSTANTS,
   type AgeingConstants,
   type AttributeSensitivity,
+  CANONICAL_ABILITY,
+  type CanonicalAges,
+  canonicalAbility,
+  canonicalAge,
   type DriverCareer,
   type OffSeason,
   type PeakWindow,
