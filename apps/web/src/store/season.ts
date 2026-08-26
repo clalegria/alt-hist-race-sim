@@ -102,6 +102,23 @@ export interface World {
 }
 
 /**
+ * The only ability model an era runs on.
+ *
+ * Not a default an era starts from — the mode it is *fixed* at, with no switch
+ * offered anywhere in the run. "At their peak" answers a question about one
+ * season: what if these people met at the best they ever were. An era asks a
+ * different question, and the answer to it is the ageing curve — drivers arrive
+ * raw, come good, hold form and fall away, and who is quick in the tenth year is
+ * not who was quick in the first. Peak ratings across a run would freeze every
+ * driver at one age for twenty seasons and quietly delete the thing the mode
+ * exists to show.
+ *
+ * A constant rather than a literal at each call site, so the two entry points
+ * into an era cannot drift apart, and so the reason lives somewhere.
+ */
+export const ERA_RATING_MODE: RatingMode = "aged";
+
+/**
  * Runs a season from a seed and returns the world it produced.
  *
  * Pure: same seed and year in, same world out, no store involved. The store is
@@ -265,10 +282,12 @@ interface SeasonStore {
   /**
    * Starts an era at the given year: its first season, opened at the grid, with
    * an empty run behind it.
+   *
+   * Always at `ERA_RATING_MODE`, and the reader is not offered the choice.
    */
   readonly startEra: (year: number) => void;
   /** The same from a chosen seed, and for the same reason: tests need one. */
-  readonly simulateEra: (seed: number, year: number, ratingMode?: RatingMode) => void;
+  readonly simulateEra: (seed: number, year: number) => void;
   /**
    * Ends the season on screen and shows the champions crowned so far.
    *
@@ -320,6 +339,10 @@ interface SeasonStore {
    * Only on the grid: past it, the reader has seen results that the new field
    * would not have produced. Keeping the seed makes the two modes comparable —
    * same dice, different drivers.
+   *
+   * **Standalone seasons only.** An era runs at `ERA_RATING_MODE` throughout and
+   * offers no switch; called on an era screen this does nothing at all, not even
+   * remember the choice — see the note on the constant.
    */
   readonly setRatingMode: (mode: RatingMode) => void;
   /**
@@ -371,7 +394,7 @@ function replaceWorld(screen: PlayingScreen, world: World): PlayingScreen {
     : { kind: "era", run: screen.run, world, view: { kind: "grid" } };
 }
 
-export const useSeasonStore = create<SeasonStore>((set) => ({
+export const useSeasonStore = create<SeasonStore>((set, get) => ({
   // Nothing is simulated until a mode is chosen: the app opens on the menu, and
   // a season nobody asked for is neither shown nor computed.
   screen: { kind: "menu" },
@@ -395,17 +418,17 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
       screen: {
         kind: "era",
         run: { startYear: year, seasons: [] },
-        world: createWorld(randomSeed(), year, readRatingMode()),
+        world: createWorld(randomSeed(), year, ERA_RATING_MODE),
         view: { kind: "grid" },
       },
     });
   },
-  simulateEra: (seed, year, ratingMode) => {
+  simulateEra: (seed, year) => {
     set({
       screen: {
         kind: "era",
         run: { startYear: year, seasons: [] },
-        world: createWorld(seed, year, ratingMode),
+        world: createWorld(seed, year, ERA_RATING_MODE),
         view: { kind: "grid" },
       },
     });
@@ -491,11 +514,17 @@ export const useSeasonStore = create<SeasonStore>((set) => ({
     });
   },
   setRatingMode: (mode) => {
+    // An era does not have this choice, and calling it there must not leave a
+    // trace: remembering a mode chosen on a screen that never offered it would
+    // reach the *next standalone season* the reader starts.
+    if (get().screen.kind === "era") {
+      return;
+    }
     // Remembered even if the switch itself is a no-op, so the choice survives
     // whatever the reader does next.
     rememberRatingMode(mode);
     set((state) =>
-      isPlaying(state.screen) && state.screen.view.kind === "grid"
+      state.screen.kind === "season" && state.screen.view.kind === "grid"
         ? {
             screen: replaceWorld(
               state.screen,

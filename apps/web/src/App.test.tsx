@@ -17,13 +17,13 @@ import {
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { actionsFor, eraActionsFor } from "./App.js";
+import { actionsFor, eraActionsFor, SeasonScreen } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
 import { PLAYABLE_SEASONS } from "./lib/seasons.js";
-import type { View, World } from "./store/season.js";
+import type { EraRun, View, World } from "./store/season.js";
 import {
   findWorld,
   OVERSUBSCRIBED_YEAR,
@@ -94,6 +94,24 @@ describe("the driver ability toggle", () => {
     const aged = render({ kind: "grid" }, seededWorld(3, "aged"));
     expect(aged).toContain("rookies are raw");
     expect(aged).toContain(String(world.year));
+  });
+
+  it("is not offered at all inside an era, which fixes the ability model", () => {
+    // "At their peak" answers a question about one season; an era is the ageing
+    // curve's mode by construction, so there is nothing to choose. Both labels,
+    // not just the pressed one — a switch drawn with one option greyed out is
+    // still a switch.
+    const inEra = renderToStaticMarkup(
+      <SeasonView world={world} view={{ kind: "grid" }} canChooseAbility={false} />,
+    );
+    expect(inEra).not.toContain("At their peak");
+    expect(inEra).not.toContain("At their age");
+    expect(inEra).not.toContain("Driver ability");
+    // And the grid it was hiding is still all there: this removes a control,
+    // not the page under it.
+    for (const entrant of world.field) {
+      expect(inEra, entrant.driverId).toContain(driverName(entrant.driverId));
+    }
   });
 
   it("stays off every page after the grid", () => {
@@ -510,5 +528,39 @@ describe("the buttons", () => {
     for (const view of views) {
       expect(actionsFor(view, ROUNDS, true), view.kind).toEqual(actionsFor(view, ROUNDS));
     }
+  });
+});
+
+/**
+ * The one seam the component tests above cannot reach: which screen passes
+ * `canChooseAbility`.
+ *
+ * `SeasonView` renders the toggle or does not, and the store refuses the change
+ * or does not — both covered on their own. What connects them is a single
+ * expression in `SeasonScreen`, and a year inside an era that forgot to say so
+ * would draw a control that silently does nothing.
+ */
+describe("who is offered the ability toggle", () => {
+  const shown = (run?: EraRun) =>
+    renderToStaticMarkup(
+      <SeasonScreen
+        world={world}
+        view={{ kind: "grid" }}
+        {...(run === undefined ? {} : { run })}
+      />,
+    ).includes("Driver ability");
+
+  it("offers it on a standalone season's grid", () => {
+    expect(shown()).toBe(true);
+  });
+
+  it("does not offer it on the grid of a year inside an era", () => {
+    // The same world and the same view: only the run alongside it differs, which
+    // is the whole of what makes a season an era's.
+    expect(shown({ startYear: world.year, seasons: [] })).toBe(false);
+  });
+
+  it("keeps that true once years have been crowned, not just on the first", () => {
+    expect(shown({ startYear: world.year - 3, seasons: [world] })).toBe(false);
   });
 });

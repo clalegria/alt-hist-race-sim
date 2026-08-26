@@ -7,10 +7,11 @@
  * champion, a points total or an authored rating.
  */
 
-import { FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
-import { beforeEach, describe, expect, it } from "vitest";
+import { DEFAULT_RATING_MODE, FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { type EraRun, type Screen, useSeasonStore, type World } from "./season.js";
+import { ERA_RATING_MODE, type EraRun, type Screen, useSeasonStore, type World } from "./season.js";
 
 /** The earliest authored year, which is where an era has the most left to run. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -77,6 +78,33 @@ describe("starting an era", () => {
     const first = running().world.seed;
     useSeasonStore.getState().startEra(YEAR);
     expect(running().world.seed).not.toBe(first);
+  });
+
+  it("runs on the ageing curve, whichever mode a season was last played in", () => {
+    // The remembered mode seeds the next *standalone* season and must not reach
+    // an era: peak ratings across a run would freeze every driver at one age for
+    // twenty years and delete the thing the mode exists to show. Stubbed rather
+    // than assumed, because Vitest has no DOM and `preferences.ts` would
+    // otherwise no-op its way to a pass — see the note in the mode tests below.
+    const stored = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        stored.set(key, value);
+      },
+    });
+    try {
+      rememberRatingMode("peak");
+      expect(readRatingMode()).toBe("peak");
+      expect(ERA_RATING_MODE).not.toBe("peak");
+
+      useSeasonStore.getState().startEra(YEAR);
+      expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
+      useSeasonStore.getState().simulateEra(3, YEAR);
+      expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("ignores the era controls when no era is on screen", () => {
@@ -179,13 +207,13 @@ describe("an era as a whole", () => {
   });
 
   it("carries the ability mode from year to year", () => {
-    // A choice about how to play, not a property of one season — the same rule
-    // Start again follows inside a single year.
-    useSeasonStore.getState().simulateEra(5, YEAR, "aged");
+    // Fixed for the whole run rather than chosen, but the property that matters
+    // is the same one: year N+1 is built the way year N was.
+    useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
     useSeasonStore.getState().showEraChampions();
     useSeasonStore.getState().nextEraSeason();
-    expect(running().world.ratingMode).toBe("aged");
+    expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
   });
 
   it("is a save file like a single season", () => {
@@ -300,10 +328,41 @@ describe("a season inside an era", () => {
     expect(running().run.seasons.map((world) => world.year)).toEqual([YEAR]);
   });
 
-  it("can be re-run on the other ability model, like any grid", () => {
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(running().world.ratingMode).toBe("aged");
+  it("refuses to change the ability model, which an era does not offer", () => {
+    // The switch is not drawn inside an era, so this is the store closing the
+    // back door rather than a case the UI can reach. The grid is untouched: the
+    // world on screen is the one the era built.
+    const before = running().world;
+    useSeasonStore.getState().setRatingMode("peak");
+    expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
+    expect(running().world).toBe(before);
     expect(running().run.seasons).toHaveLength(1);
+  });
+
+  it("does not even remember a mode set from inside an era", () => {
+    // The nastier half: `rememberRatingMode` seeds the *next standalone season*,
+    // so a call that leaked through here would change a screen the reader never
+    // connected it to.
+    //
+    // Vitest runs without a DOM, so `preferences.ts` finds no `localStorage` and
+    // every call to it is a silent no-op — which would make this assertion pass
+    // against any implementation at all. The stub is what gives it teeth.
+    const stored = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        stored.set(key, value);
+      },
+    });
+    try {
+      rememberRatingMode(DEFAULT_RATING_MODE);
+      expect(readRatingMode()).toBe(DEFAULT_RATING_MODE);
+
+      useSeasonStore.getState().setRatingMode("aged");
+      expect(readRatingMode()).toBe(DEFAULT_RATING_MODE);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("keeps the run through a change of grid", () => {

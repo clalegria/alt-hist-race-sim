@@ -48,8 +48,9 @@ ratingMode)` and nothing else: the field is that year's own entry list, straight
 `<year+1>.json`. **This is the seam `era-advanced` replaces** — a mode that simulates
 the grid substitutes what is handed to `createWorld` there, and nothing else about the
 loop changes. Keep it a single call. An edited lineup or engine supply is deliberately
-*not* carried: it was a grid for a year now behind them. The ability mode is, being a
-choice about how to play rather than about one season.
+*not* carried: it was a grid for a year now behind them. The ability mode is carried,
+but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
+switch; see `.claude/rules/web-store.md` for why.
 
 **The dice do.** The next year's seed is `nextSeed(world.rngState)` — drawn from where
 the last season's generator stopped, in `lib/seed.ts`. So an era is reproducible end to

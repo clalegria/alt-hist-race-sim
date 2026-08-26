@@ -19,6 +19,18 @@ driver's ability in that season, via the engine's curve). `RatingModeToggle` ren
 never have produced — and `setRatingMode` re-runs the year *from the same seed*, so
 the two modes are the same dice thrown at different drivers.
 
+**And only in a standalone season.** An era is pinned to `ERA_RATING_MODE` (`"aged"`),
+with no switch anywhere in the run: "at their peak" answers a question about *one*
+season — what if these people met at the best they ever were — while an era's whole
+subject is the ageing curve, drivers arriving raw, coming good and falling away. Peak
+ratings across twenty years would freeze everyone at one age and delete that. Three
+places enforce it, and all three are needed: `startEra`/`simulateEra` build with the
+constant rather than the remembered mode, `setRatingMode` returns early on an era
+screen — **without remembering**, since the preference seeds the next *standalone*
+season and would otherwise reach a screen the reader never connected it to — and
+`SeasonScreen` passes `canChooseAbility={run === undefined}` so the control is not
+drawn. A control that fires into a no-op is how the choice comes back by accident.
+
 The choice **sticks**, via `lib/preferences.ts` (localStorage, guarded exactly as
 `theme.ts` guards it — storage is absent under Vitest and throws in private
 browsing). Two levels, and the split is the point: the *world* owns the mode it was

@@ -337,6 +337,16 @@ function RaceStage({
 interface SeasonViewProps {
   readonly world: World;
   readonly view: View;
+  /**
+   * Whether the reader gets to choose the ability model at all.
+   *
+   * True for a standalone season, false for a year inside an era, which is fixed
+   * at `ERA_RATING_MODE` — see the note on that constant. Not derivable from the
+   * world: an era year and a standalone season played "at their age" are the
+   * same world, and only one of them offers the switch. Defaults to offering it,
+   * so a bare render is the standalone case.
+   */
+  readonly canChooseAbility?: boolean;
   /** Absent in tests, where nothing is clicked. The toggle still renders. */
   readonly onRatingModeChange?: (mode: RatingMode) => void;
   /** The same, for the grid editor: it draws without one, it just cannot apply. */
@@ -354,6 +364,7 @@ interface SeasonViewProps {
 function SeasonBody({
   world,
   view,
+  canChooseAbility = true,
   onRatingModeChange,
   onGridChange,
   onGridEditingChange,
@@ -364,11 +375,13 @@ function SeasonBody({
   if (view.kind === "grid") {
     return (
       <div className="flex flex-col gap-6">
-        <RatingModeToggle
-          mode={world.ratingMode}
-          year={world.year}
-          {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
-        />
+        {canChooseAbility ? (
+          <RatingModeToggle
+            mode={world.ratingMode}
+            year={world.year}
+            {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
+          />
+        ) : null}
         <GridStage
           field={world.field}
           year={world.year}

@@ -248,10 +248,15 @@ function Actions(props: SeasonActions) {
  * One screen for both. An era is the season flow run again and again, so a
  * second copy of this with a different header is exactly the duplication the
  * mode was meant not to need: what differs is the run carried alongside, which
- * changes where the summary leads and where the grid's Back goes, and nothing
- * else.
+ * changes where the summary leads and where the grid's Back goes, whether the
+ * ability toggle is offered at all, and nothing else.
+ *
+ * Exported for the tests, like `actionsFor` beside it: `run` is a prop, so both
+ * cases render statically. The app as a whole cannot be — Zustand serves a
+ * *server* snapshot of its initial state to `renderToStaticMarkup`, so a driven
+ * store never reaches the markup and every such render is the opening menu.
  */
-function SeasonScreen({ world, view, run }: { world: World; view: View; run?: EraRun }) {
+export function SeasonScreen({ world, view, run }: { world: World; view: View; run?: EraRun }) {
   const nextSession = useSeasonStore((state) => state.nextSession);
   const skipToEnd = useSeasonStore((state) => state.skipToEnd);
   const restartSeason = useSeasonStore((state) => state.restartSeason);
@@ -316,7 +321,11 @@ function SeasonScreen({ world, view, run }: { world: World; view: View; run?: Er
         <SeasonView
           world={world}
           view={view}
-          onRatingModeChange={setRatingMode}
+          // An era is fixed at `ERA_RATING_MODE` and offers no switch, so the
+          // handler is not passed either — the store would refuse it anyway, and
+          // wiring a control that cannot fire is how one comes back by accident.
+          canChooseAbility={run === undefined}
+          {...(run === undefined ? { onRatingModeChange: setRatingMode } : {})}
           onGridChange={(edit) => {
             setGrid(edit.lineup, edit.engines);
           }}
