@@ -116,32 +116,7 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   and a user's tuning can be sent in as data. Whether it is always on or behind a flag
   is open.
 
-**5. Fine-tune the driver ageing curve.** *The model has been rebuilt; the authored
-career fields have not been re-authored against it.*
-
-The diagnosis was that the curve fell away from the peak far too steeply and that
-neither `developmentSpeed` nor `declineSpeed` could prevent it — the shape was *derived*
-from the traits rather than modulated by them, and `developmentSpeed` provably had no
-effect at all on the debut season. That is fixed. One population ability curve now owns
-the shape (steep improvement before 20, flat 28–33, a gentle slope to 42, then an
-accelerating fall) and the two traits warp only the age axis: they say when a driver
-arrives and how long he lasts, never how hard he falls. Experience became a second axis
-of its own, scaled by `developmentSpeed`, so a rookie season can be a formality for one
-driver and a jumping-off point for another. `.claude/rules/progression.md` has the
-whole design.
-
-**What remains is the authoring pass, and it is the author's.** Every field means what
-it says — `peakSeasons` 7 is a seven-season plateau, and an intermediate version that
-scaled it into seventeen has been removed — but the pool still carries a first pass:
-`developmentSpeed` clustered at 4, `declineSpeed` at 5, `peakSeasons` at 2 and 3. The
-model can now express a Verstappen and a Fangio; nobody in `drivers.json` is yet
-authored as one. The instrument is `pnpm progression`, whose new `Curve` column shows
-where a real age lands on the population curve.
-
-The anchor holds either way: `ratingsForSeason(career, peakSeason)` still returns the
-authored ratings exactly, and tests in both packages pin it.
-
-**6. Publish it.** Put the app on the public internet, unfinished, and keep it there.
+**5. Publish it.** Put the app on the public internet, unfinished, and keep it there.
 The author has never shipped anything before, so this item is written as much to say
 what is *not* a problem as what is.
 
@@ -151,8 +126,8 @@ way for a public app to admit what it cannot do yet. What it is waiting on is th
 being content with the ratings, which he is not: a wrong rating does not announce itself
 as unfinished — it just reads as a wrong opinion about a real driver.
 
-That is why it sits after *fine-tune the driver ageing curve*, the single biggest lever
-on how right the ratings feel, and after the editor that makes the curve judgeable. **It
+That is why it sits after the editor that makes the ageing curve judgeable — the single
+biggest lever on how right the ratings feel is the authoring pass they need. **It
 is deliberately not placed after *season fine-tuning***, the era-by-era pass at the far
 end of this file: waiting for that means waiting for the whole roadmap, and the intent
 is to publish long before the project is finished. Somewhere between those two is the
@@ -249,7 +224,7 @@ seventy-seven season files — lineage links, career records, era numbers, liver
 ratings, per-round circuit blocks. **Settle them together and make one authoring pass**,
 in *season fine-tuning* below, rather than six passes over the same files.
 
-**7. Team lineage.** A way to say that a team in one season *is* a team from the
+**6. Team lineage.** A way to say that a team in one season *is* a team from the
 previous one under another name — a constructor sold and rebadged, a works partnership
 renamed around a new engine supplier. Today team identity is per-season by name, so a
 rename is indistinguishable from a team folding and a new one appearing.
@@ -263,7 +238,7 @@ items; and the *driver market* cannot be designed without it, which is the autho
 reason for wanting it. Whether the link is a chain of ids on the identity record or a
 separate lineage table is open.
 
-**8. Historical career records.** When a run starts in 1980, Jones should already have
+**7. Historical career records.** When a run starts in 1980, Jones should already have
 his previous wins and Ferrari its previous titles, so the first screen reads as a career
 in progress rather than everyone's debut — and so the simulated results add onto a real
 total as the era runs.
@@ -289,7 +264,7 @@ and poles accumulated *before* that season**. Four points about the shape:
 Consumed by *simulate an era*'s champions screen, and later by anything that wants to
 say who the established names are — including the driver market.
 
-**9. Seasonal factors.** Several numbers that are one global constant today are really
+**8. Seasonal factors.** Several numbers that are one global constant today are really
 per-era, and the season file is where they belong. One item, because it is one change to
 `SeasonSeed` and one authoring pass per year:
 
@@ -307,7 +282,7 @@ Calibrating the first two per year is a measurement job, and the author asking f
 here is the authorisation the no-re-calibration invariant requires — for *these* numbers,
 not for driver or car ratings, which stay fixed.
 
-**10. Liveries.** A car's colour scheme for that season, shown in the UI. The grid is a
+**9. Liveries.** A car's colour scheme for that season, shown in the UI. The grid is a
 list of names today, and a 1980s field is far more recognisable by colour than by team
 name — this is the cheapest thing on the list that makes the app *look* like the sport.
 
@@ -324,7 +299,7 @@ some historical liveries are white, black or very nearly the background; see
 `.claude/rules/` on the web app's styling for how the palette is handled before picking
 a representation. **Colours, not badges** — see the trademark note in *publish it*.
 
-**11. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**10. Wet racing.** A realistic share of races are declared wet. In the wet: a new
 **1–100 wet-weather rating** per driver carries a large part of the score, driver-error
 retirements rise sharply, and the noise term widens considerably — a wet race should be
 where the field genuinely reorders. The rating is a new authored field on every driver,
@@ -336,7 +311,7 @@ is needed and why, and get agreement, before running the harness. Note that it a
 *randomness slider* both widen the same noise term from different directions; they
 should compose as separate multipliers, not fight over one constant.
 
-**12. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**11. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -350,7 +325,7 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**13. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**12. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
 typing.
@@ -368,7 +343,7 @@ typing.
   shared drives in the 1950s and 1960s; and at the modern end, the reliability and
   overtaking assumptions baked into a model tuned on 1980.
 
-**14. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**13. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
@@ -380,7 +355,7 @@ records* give it the reputations to reason about.
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**15. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**14. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.
