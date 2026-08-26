@@ -14,7 +14,7 @@ drift apart; the **seasons** are checked the same two ways at runtime by
 - `drivers.json` — every driver across every authored season (450 today). `{ id, name,
   nationality, birthYear, debutSeason,
   finalSeason, peak: { season, racing, qualifying, consistency, adaptability,
-  composure }, peakSeasons, developmentSpeed, declineSpeed, steepDecline?,
+  composure }, peakSeasons, developmentSpeed, declineSpeed, stepDown?,
   offSeasons? }`. The career fields feed the ageing curve — see
   `.claude/rules/progression.md` for what each one does to it:
   - `debutSeason` is the rookie season; `finalSeason` is the last season raced in
@@ -22,7 +22,7 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     of it.
   - `peakSeasons` is how many seasons the plateau spans, centred on `peak.season`.
     Prost's 7 runs 1984-1990.
-  - `steepDecline: { season, severity }` is an optional persistent step down
+  - `stepDown: { season, severity }` is an optional persistent step down
     (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
     severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.
 - `teams.json` — every team across every season (113 today), so Shadow (1980, not 1981)
@@ -104,7 +104,7 @@ tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
   Driver ratings deliberately are not fitted at all (`docs/DECISIONS.md`).
 - **No test reads a value out of this JSON and asserts on it** — not a rating, not a
   peak season, not a count of drivers or entries. The tests here derive what they need
-  (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a steep decline")
+  (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a step down")
   so the author can retune freely and add entries without going red. Tuning these files
   must never be a reason to edit a test.
 - All five driver attributes share polarity: higher = better. `composure` replaced

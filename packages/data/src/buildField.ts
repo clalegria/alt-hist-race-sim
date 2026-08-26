@@ -61,7 +61,7 @@ export function driverCareer(driver: Driver): DriverCareer {
       adaptability: driver.peak.adaptability,
       composure: driver.peak.composure,
     },
-    ...(driver.steepDecline === undefined ? {} : { steepDecline: driver.steepDecline }),
+    ...(driver.stepDown === undefined ? {} : { stepDown: driver.stepDown }),
     ...(driver.offSeasons === undefined ? {} : { offSeasons: driver.offSeasons }),
   };
 }

@@ -70,7 +70,7 @@ season before the peak inside the plateau at all.
 This replaces a model that derived the whole shape from the traits, where a nominal
 `declineSpeed` put a 40-year-old 40% below his peak and no authored value could prevent
 it. Nothing a driver is authored with can now make the fall steeper than the
-population's; that is the point, and `steepDecline` is where a genuine cliff belongs.
+population's; that is the point, and `stepDown` is where a genuine cliff belongs.
 
 ## Age and experience are separate axes
 
@@ -99,7 +99,7 @@ because each bucket hits the five attributes through a different sensitivity tab
 The age curve's shortfall goes to **development** before the peak season and to
 **decline** after it — the same number meaning opposite things. Short of peak on the
 way up is a driver who has not arrived; short of it on the way down is one who is
-going. Inexperience joins development, a steep decline joins decline, and an off-form
+going. Inexperience joins development, a step down joins decline, and an off-form
 season is **form**, which hits every attribute equally because a bad year is a bad year.
 
 **Young drivers are fast but wild; old drivers are wise but slow.** In development, raw

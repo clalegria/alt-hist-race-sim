@@ -175,7 +175,7 @@ export interface AgeingConstants {
   readonly adaptationSeasonsAtSpeedTen: number;
 
   /** Full-severity magnitudes for the two authored career events. */
-  readonly steepDeclineMaxDrop: number;
+  readonly stepDownMaxDrop: number;
   readonly offSeasonMaxDrop: number;
 
   /**
@@ -219,7 +219,7 @@ export const AGEING_CONSTANTS: AgeingConstants = {
   adaptationSeasonsAtSpeedFive: 3,
   adaptationSeasonsAtSpeedTen: 1,
 
-  steepDeclineMaxDrop: 0.3,
+  stepDownMaxDrop: 0.3,
   offSeasonMaxDrop: 0.12,
 
   developmentSensitivity: {

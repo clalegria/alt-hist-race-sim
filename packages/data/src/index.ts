@@ -57,7 +57,7 @@ export type {
   Driver,
   DriverOffSeason,
   DriverPeak,
-  DriverSteepDecline,
+  DriverStepDown,
   EngineManufacturer,
   SeasonEngine,
   SeasonEntry,
@@ -209,7 +209,7 @@ export function validateSeedData(
       );
     }
     const severities = [
-      ...(driver.steepDecline === undefined ? [] : [driver.steepDecline]),
+      ...(driver.stepDown === undefined ? [] : [driver.stepDown]),
       ...(driver.offSeasons ?? []),
     ];
     for (const event of severities) {

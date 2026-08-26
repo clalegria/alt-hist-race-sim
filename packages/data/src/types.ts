@@ -24,10 +24,10 @@ export interface DriverPeak {
  * Rosberg in 1986, Nigel Mansell in 1995, Jody Scheckter in 1980. Persistent:
  * it applies from `season` onward, on top of the ordinary decline.
  */
-export interface DriverSteepDecline {
+export interface DriverStepDown {
   /** The first season the drop applies to. */
   readonly season: number;
-  /** 0-1. Scaled by the engine's `steepDeclineMaxDrop`. */
+  /** 0-1. Scaled by the engine's `stepDownMaxDrop`. */
   readonly severity: number;
 }
 
@@ -65,7 +65,7 @@ export interface Driver {
   readonly developmentSpeed: number;
   /** 1-10. How fast ability falls away once the plateau ends. */
   readonly declineSpeed: number;
-  readonly steepDecline?: DriverSteepDecline;
+  readonly stepDown?: DriverStepDown;
   readonly offSeasons?: readonly DriverOffSeason[];
 }
 

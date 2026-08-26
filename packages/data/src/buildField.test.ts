@@ -28,7 +28,7 @@ function driver(id: string): Driver {
  * The first driver in the pool matching a condition.
  *
  * Every test below that needs "a driver who has not peaked yet" or "one with a
- * steep decline" goes through this rather than naming one: the authored careers
+ * step down" goes through this rather than naming one: the authored careers
  * are tuned continuously, and a test pinned to Prost's 1987 peak fails the day
  * that number moves. See the testing rule in `CLAUDE.md`.
  */
@@ -67,10 +67,10 @@ describe("the authored careers", () => {
 
   it("carries authored career events through to the engine's career shape", () => {
     const declining = someDriver(
-      (record) => record.steepDecline !== undefined,
-      "driver with a steep decline",
+      (record) => record.stepDown !== undefined,
+      "driver with a step down",
     );
-    expect(driverCareer(declining).steepDecline).toEqual(declining.steepDecline);
+    expect(driverCareer(declining).stepDown).toEqual(declining.stepDown);
 
     const dipped = someDriver(
       (record) => record.offSeasons !== undefined,
@@ -81,10 +81,10 @@ describe("the authored careers", () => {
     // A driver with neither keeps the fields absent rather than null, which is
     // what the engine's optional handling is written against.
     const steady = someDriver(
-      (record) => record.steepDecline === undefined && record.offSeasons === undefined,
+      (record) => record.stepDown === undefined && record.offSeasons === undefined,
       "driver with an uneventful career",
     );
-    expect(driverCareer(steady).steepDecline).toBeUndefined();
+    expect(driverCareer(steady).stepDown).toBeUndefined();
     expect(driverCareer(steady).offSeasons).toBeUndefined();
   });
 });
@@ -126,7 +126,7 @@ describe("validating career shape", () => {
   it("rejects a career event severity outside 0-1", () => {
     for (const severity of [-0.1, 1.4]) {
       expect(() => {
-        validateSeedData(broken({ steepDecline: { season: 1990, severity } }), undefined, [
+        validateSeedData(broken({ stepDown: { season: 1990, severity } }), undefined, [
           {
             ...SEED,
             entries: [],
@@ -212,7 +212,7 @@ describe("building a field", () => {
     // yet.
     let checked = 0;
     for (const record of drivers) {
-      if (record.steepDecline !== undefined || record.offSeasons !== undefined) {
+      if (record.stepDown !== undefined || record.offSeasons !== undefined) {
         continue;
       }
       const career = driverCareer(record);

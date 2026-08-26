@@ -32,7 +32,7 @@ import type {
   Driver,
   DriverOffSeason,
   DriverPeak,
-  DriverSteepDecline,
+  DriverStepDown,
   EngineManufacturer,
   Team,
 } from "./types.js";
@@ -53,13 +53,10 @@ export type DriversHaveNoExtraKeys = Extends<keyof DriverJson, keyof Driver>;
 export type PeakHasNoExtraKeys = Extends<keyof DriverJson["peak"], keyof DriverPeak>;
 // The two optional career events, checked on the drivers that actually carry
 // them — `keyof` a union would collapse to the keys they share with everyone.
-type SteepDeclineJson = Extract<DriverJson, { steepDecline: unknown }>["steepDecline"];
+type StepDownJson = Extract<DriverJson, { stepDown: unknown }>["stepDown"];
 type OffSeasonJson = Extract<DriverJson, { offSeasons: unknown }>["offSeasons"][number];
-export type SteepDeclinesMatch = Extends<SteepDeclineJson, DriverSteepDecline>;
-export type SteepDeclinesHaveNoExtraKeys = Extends<
-  keyof SteepDeclineJson,
-  keyof DriverSteepDecline
->;
+export type StepDownsMatch = Extends<StepDownJson, DriverStepDown>;
+export type StepDownsHaveNoExtraKeys = Extends<keyof StepDownJson, keyof DriverStepDown>;
 export type OffSeasonsMatch = Extends<OffSeasonJson, DriverOffSeason>;
 export type OffSeasonsHaveNoExtraKeys = Extends<keyof OffSeasonJson, keyof DriverOffSeason>;
 

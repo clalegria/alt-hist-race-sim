@@ -27,8 +27,8 @@
  *
  * On top of the age curve sits a second, independent axis — **experience**,
  * counted from the debut season, because being new to the sport is not the same
- * thing as being young — and three authored events: an optional persistent steep
- * decline, and any number of one-off off-form seasons.
+ * thing as being young — and three authored events: an optional persistent step
+ * down, and any number of one-off off-form seasons.
  *
  * Deterministic by design — no `Rng` parameter, and none is coming without a
  * decision from the author. See `constants.ts`.
@@ -241,8 +241,8 @@ export function seasonDeficits(
     decline += shortfall;
   }
 
-  if (career.steepDecline !== undefined && season >= career.steepDecline.season) {
-    decline += clamp(career.steepDecline.severity, 0, 1) * constants.steepDeclineMaxDrop;
+  if (career.stepDown !== undefined && season >= career.stepDown.season) {
+    decline += clamp(career.stepDown.severity, 0, 1) * constants.stepDownMaxDrop;
   }
 
   for (const off of career.offSeasons ?? []) {

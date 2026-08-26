@@ -17,7 +17,7 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 5,
-    "steepDecline": {
+    "stepDown": {
       "season": 1985,
       "severity": 0.5
     }
@@ -303,7 +303,7 @@
     "peakSeasons": 4,
     "developmentSpeed": 5,
     "declineSpeed": 6,
-    "steepDecline": {
+    "stepDown": {
       "season": 1980,
       "severity": 0.6
     }
@@ -345,7 +345,7 @@
     "peakSeasons": 7,
     "developmentSpeed": 6,
     "declineSpeed": 4,
-    "steepDecline": {
+    "stepDown": {
       "season": 1995,
       "severity": 0.8
     }
@@ -425,7 +425,7 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 6,
-    "steepDecline": {
+    "stepDown": {
       "season": 1981,
       "severity": 0.7
     }
@@ -448,7 +448,7 @@
     "peakSeasons": 5,
     "developmentSpeed": 5,
     "declineSpeed": 5,
-    "steepDecline": {
+    "stepDown": {
       "season": 1986,
       "severity": 0.5
     },
@@ -534,7 +534,7 @@
     "peakSeasons": 6,
     "developmentSpeed": 5,
     "declineSpeed": 5,
-    "steepDecline": {
+    "stepDown": {
       "season": 1986,
       "severity": 0.55
     }
@@ -576,7 +576,7 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 6,
-    "steepDecline": {
+    "stepDown": {
       "season": 1979,
       "severity": 0.6
     }
@@ -675,7 +675,7 @@
     "peakSeasons": 8,
     "developmentSpeed": 8,
     "declineSpeed": 7,
-    "steepDecline": {
+    "stepDown": {
       "season": 1992,
       "severity": 0.4
     }
@@ -812,7 +812,7 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 6,
-    "steepDecline": {
+    "stepDown": {
       "season": 1980,
       "severity": 0.85
     }
@@ -1050,7 +1050,7 @@
     "peakSeasons": 8,
     "developmentSpeed": 6,
     "declineSpeed": 4,
-    "steepDecline": {
+    "stepDown": {
       "season": 1985,
       "severity": 0.4
     }
@@ -2162,7 +2162,7 @@
     "peakSeasons": 4,
     "developmentSpeed": 7,
     "declineSpeed": 6,
-    "steepDecline": {
+    "stepDown": {
       "season": 2001,
       "severity": 0.1
     }
@@ -2185,7 +2185,7 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 5,
-    "steepDecline": {
+    "stepDown": {
       "season": 1999,
       "severity": 0.6
     }
@@ -3164,7 +3164,7 @@
     "peakSeasons": 5,
     "developmentSpeed": 7,
     "declineSpeed": 2,
-    "steepDecline": {
+    "stepDown": {
       "season": 2007,
       "severity": 0.15
     }
@@ -3288,7 +3288,7 @@
     "peakSeasons": 6,
     "developmentSpeed": 5,
     "declineSpeed": 3,
-    "steepDecline": {
+    "stepDown": {
       "season": 2010,
       "severity": 0.15
     }
@@ -3653,7 +3653,7 @@
     "peakSeasons": 7,
     "developmentSpeed": 6,
     "declineSpeed": 4,
-    "steepDecline": {
+    "stepDown": {
       "season": 2021,
       "severity": 0.5
     }
@@ -3746,7 +3746,7 @@
         "severity": 0.6
       }
     ],
-    "steepDecline": {
+    "stepDown": {
       "season": 2020,
       "severity": 0.1
     }
@@ -4130,7 +4130,7 @@
     "peakSeasons": 6,
     "developmentSpeed": 5,
     "declineSpeed": 4,
-    "steepDecline": {
+    "stepDown": {
       "season": 2021,
       "severity": 0.25
     }

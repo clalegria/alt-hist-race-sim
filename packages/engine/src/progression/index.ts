@@ -13,4 +13,4 @@ export {
   CANONICAL_ABILITY,
   type CanonicalAges,
 } from "./constants.js";
-export type { DriverCareer, OffSeason, PeakWindow, SteepDecline } from "./types.js";
+export type { DriverCareer, OffSeason, PeakWindow, StepDown } from "./types.js";

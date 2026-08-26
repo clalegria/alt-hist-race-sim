@@ -97,7 +97,7 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   progression` brought into the UI, on the charting groundwork laid above.
 - **The hard part is that ratings are not authored per season.** A driver is a `peak`
   block plus a career shape (`peakSeasons`, `developmentSpeed`, `declineSpeed`,
-  `steepDecline`), and what the app displays for a given year is *derived* from those by
+  `stepDown`), and what the app displays for a given year is *derived* from those by
   the ageing curve. So "make Piquet an 88 in 1982" has no direct representation in
   `drivers.json`. Either the editor edits peak-and-curve directly and shows the derived
   year (honest, but asks the user to think in careers), or it accepts a per-year edit

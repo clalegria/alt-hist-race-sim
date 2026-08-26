@@ -359,7 +359,7 @@ describe("the shape of a career", () => {
   });
 
   it("keeps every rating inside 1–100, whatever the career", () => {
-    const brutal = career({ declineSpeed: 10, steepDecline: { season: 1995, severity: 1 } });
+    const brutal = career({ declineSpeed: 10, stepDown: { season: 1995, severity: 1 } });
     for (let season = 1960; season <= 2040; season += 1) {
       for (const key of ATTRIBUTES) {
         const value = ratingsForSeason(brutal, season)[key];
@@ -517,8 +517,8 @@ describe("authored career events", () => {
     expect(seasonDeficits(driver, 1950).development).toBe(seasonDeficits(driver, 1940).development);
   });
 
-  it("applies a steep decline from its season onward, and never before", () => {
-    const driver = career({ steepDecline: { season: 1993, severity: 0.8 } });
+  it("applies a step down from its season onward, and never before", () => {
+    const driver = career({ stepDown: { season: 1993, severity: 0.8 } });
     const plain = career();
     expect(total(ratingsForSeason(driver, 1992))).toBe(total(ratingsForSeason(plain, 1992)));
     expect(total(ratingsForSeason(driver, 1993))).toBeLessThan(
@@ -530,9 +530,9 @@ describe("authored career events", () => {
     );
   });
 
-  it("scales a steep decline by its severity", () => {
-    const mild = career({ steepDecline: { season: 1993, severity: 0.2 } });
-    const severe = career({ steepDecline: { season: 1993, severity: 0.9 } });
+  it("scales a step down by its severity", () => {
+    const mild = career({ stepDown: { season: 1993, severity: 0.2 } });
+    const severe = career({ stepDown: { season: 1993, severity: 0.9 } });
     expect(total(ratingsForSeason(severe, 1993))).toBeLessThan(total(ratingsForSeason(mild, 1993)));
   });
 

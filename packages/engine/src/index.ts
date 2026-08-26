@@ -20,7 +20,7 @@ export {
   type PeakWindow,
   peakWindow,
   ratingsForSeason,
-  type SteepDecline,
+  type StepDown,
   seasonDeficits,
 } from "./progression/index.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";

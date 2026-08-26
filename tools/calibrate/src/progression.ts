@@ -91,8 +91,8 @@ function noteFor(driver: Driver, season: number): string {
   } else if (season >= window.start && season <= window.end) {
     notes.push("plateau");
   }
-  if (driver.steepDecline !== undefined && season === driver.steepDecline.season) {
-    notes.push(`steep decline (${driver.steepDecline.severity})`);
+  if (driver.stepDown !== undefined && season === driver.stepDown.season) {
+    notes.push(`step down (${driver.stepDown.severity})`);
   }
   for (const off of driver.offSeasons ?? []) {
     if (off.season === season) {

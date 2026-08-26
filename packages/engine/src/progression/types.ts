@@ -9,10 +9,10 @@
 import type { DriverRatings } from "../model/index.js";
 
 /** A career-ending step down that the normal decline curve would not produce. */
-export interface SteepDecline {
+export interface StepDown {
   /** The first season the drop applies to. It persists from then on. */
   readonly season: number;
-  /** 0–1, scaled by `steepDeclineMaxDrop`. */
+  /** 0–1, scaled by `stepDownMaxDrop`. */
   readonly severity: number;
 }
 
@@ -51,7 +51,7 @@ export interface DriverCareer {
   readonly declineSpeed: number;
   /** The ratings the driver holds in `peakSeason`, before any modifier. */
   readonly peak: DriverRatings;
-  readonly steepDecline?: SteepDecline;
+  readonly stepDown?: StepDown;
   readonly offSeasons?: readonly OffSeason[];
 }
 

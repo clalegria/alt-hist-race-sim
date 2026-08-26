@@ -11,7 +11,7 @@ here. Read this before starting new feature work.
   the curve computes in season space. Age is derived where it is wanted — the
   progression tool sweeps ages 18–50 and maps each to `birthYear + age`. The
   conversion is lossless, so this is a coordinate choice rather than a model one.
-  **Revisit under multi-season divergence:** a steep decline authored for 1986 is a
+  **Revisit under multi-season divergence:** a step down authored for 1986 is a
   *historical* event, and once a run diverges far from history it may want to travel
   with the driver's age instead.
 - **Per-run scatter — settled as none, for now.** The curve is deterministic: same
