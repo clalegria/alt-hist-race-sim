@@ -35,6 +35,43 @@ been authored" for a while after 1981 landed, and that is why the copy is derive
 `createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
 year rather than quietly falling back.
 
+## The setup screen
+
+**Nothing is simulated until the button at the foot of the page.** Picking a year used
+to start the run on the spot, which made the preferences above it a trap: a reader who
+reached for a year first — as most will — was into the season before they had seen that
+randomness was theirs to choose. Every control on `SeasonPicker` now only *answers*
+something, and one full-width `Begin …` commits the lot, so the year and the level reach
+`onStart` together and what was on screen is what gets simulated.
+
+**The year picker is a rail of decades, then the years in one of them**, in
+`YearPicker` — seventy-seven near-identical numbers in one block was a wall rather than
+a choice. It is **controlled by the selected year alone**: which decade is open is
+`decadeOf(year)`, not a second piece of state beside it, so the picker cannot reach the
+one incoherent position it otherwise could — a decade open with the selection somewhere
+else and the Begin button quietly naming a year that is not on screen. Picking a decade
+therefore *selects* its earliest playable year. That single-value shape is also what
+keeps every state renderable without a click.
+
+**`YearPicker` takes `playable` as a prop** (defaulting to `isPlayable`) purely so the
+disabled branches can be tested. Every season from 1950 to 2026 is authored, so against
+the seed data an unavailable year cannot occur — assertions about it pass just as
+happily with the disabling removed, which is how the test this replaced was passing.
+The two tests that care hand it a range with a gap in it.
+
+**Randomness lives in `Preferences`**, a panel named for the category rather than for
+its one occupant, because it is going to gain others. A setting is a *direct child* —
+the padding and the rules between them are applied by the panel — so adding one is
+adding a child. What does not belong there is anything a reader can still change once a
+season exists; the ability toggle is on the grid for that reason, and moving it would be
+a decision about when it stops being changeable rather than a tidying-up.
+
+**`max-w-prose` is for paragraphs, not for one-line notes.** The setup screen's lead is
+capped because it runs to two or three lines and is read down. The notes inside the
+panels are not: a single sentence capped at 65ch inside a card several hundred pixels
+wider leaves a stubby column with a hard edge two-thirds of the way across, which reads
+as a mistake because it looks like one.
+
 **No component may read a season fixed at import time.** Round names come from the
 world's own year — `SeasonView` resolves `seasonSeed(world.year)` and hands
 `SeasonCalendar` a `calendar` prop. This was the 1980 coupling the roadmap called

@@ -32,6 +32,36 @@ export function isPlayable(year: number): boolean {
   return hasSeason(year);
 }
 
+/**
+ * The decade a year belongs to, named by its first year: 1980 for 1984.
+ *
+ * The picker is two steps — a rail of decades, then the years in one of them —
+ * because seventy-seven near-identical numbers in one block is a wall rather
+ * than a choice. Which decade is *open* is not state: it is `decadeOf` the year
+ * currently selected, so there is no way to be in a decade without a year, and
+ * the whole picker is controlled by that one value.
+ */
+export function decadeOf(year: number): number {
+  return Math.floor(year / 10) * 10;
+}
+
+/** Every decade the range touches, earliest first. The rail. */
+export const SEASON_DECADES: readonly number[] = [...new Set(SEASON_YEARS.map(decadeOf))];
+
+/**
+ * The years of one decade that the range actually covers.
+ *
+ * Filtered rather than counted to ten: the range starts and ends mid-decade
+ * (1950 and 2026 today), so the first and last rows are short, and writing ten
+ * would draw years the app does not claim to offer.
+ */
+export function yearsInDecade(decade: number): readonly number[] {
+  return SEASON_YEARS.filter((year) => decadeOf(year) === decade);
+}
+
+/** The year the picker opens on. The earliest playable one, not a year written down. */
+export const DEFAULT_SEASON_YEAR: number = PLAYABLE_SEASONS[0] ?? FIRST_SEASON;
+
 export type { SeasonSeed };
 /**
  * The seed data for a season, or a throw. Callers only ever reach this through

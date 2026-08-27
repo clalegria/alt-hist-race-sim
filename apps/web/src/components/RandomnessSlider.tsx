@@ -85,7 +85,11 @@ export function RandomnessSlider({
   const steps = Math.max(RANDOMNESS_OPTIONS.length - 1, 1);
 
   return (
-    <div className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-sm">
+    // No card chrome of its own: it is one setting inside `Preferences`, which
+    // draws the panel and the rule between settings. It kept its own name in
+    // the row below, though — the name belongs to the control that answers to
+    // it, not to whatever happens to be wrapping it today.
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="text-sm font-semibold tracking-tight">Randomness</span>
         <span className="text-muted-foreground text-xs">
@@ -151,7 +155,14 @@ export function RandomnessSlider({
         </div>
       </div>
 
-      <p className="text-muted-foreground max-w-prose text-xs">{active?.detail}</p>
+      {/*
+        Uncapped: `max-w-prose` is for a paragraph someone reads down, and this
+        is a single sentence sitting in a panel several hundred pixels wider
+        than 65ch. The cap did not aid reading here, it just left a stubby
+        column with a hard edge two-thirds of the way across an otherwise
+        full-width card, which read as a mistake because it looked like one.
+      */}
+      <p className="text-muted-foreground text-xs">{active?.detail}</p>
     </div>
   );
 }

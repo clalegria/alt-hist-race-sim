@@ -10,6 +10,7 @@ import { cn } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
 import { GridChanges } from "./LineupChanges.js";
 import { SortToggle } from "./SortToggle.js";
+import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 const drivers = driversById();
@@ -363,15 +364,24 @@ export function SeasonGrid({
   const movedEngine = new Set(resupplied.map((change) => change.teamId));
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    // A `Card`, like every results panel, rather than the bare section this was:
+    // the grid is the same kind of thing as a classification — one titled block
+    // of the season — and the background texture made the difference obvious,
+    // since a transparent panel let the checkerboard run straight through it.
+    // The team tiles inside stay `bg-card` on a `bg-card` panel, drawn by their
+    // borders and liveries; the qualifying grid already nests exactly that way.
+    <Card>
+      {/* `flex-row` beats `CardHeader`'s own `flex-col` through `cn`, so the
+          sort switch and the Edit/Apply buttons keep their place opposite the
+          title instead of stacking under the description. */}
+      <CardHeader className="flex-row flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold tracking-tight">Grid</h2>
-          <p className="text-muted-foreground text-sm">
+          <CardTitle>Grid</CardTitle>
+          <CardDescription>
             {edit === undefined
               ? `${field.length} cars, ${entries.length} teams. Select any name for its full ratings.`
               : "Select a driver, then whoever takes the seat — teams keep the number of cars they entered, so every change is a swap. Each team can be given any engine the season ran."}
-          </p>
+          </CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <SortToggle
@@ -382,121 +392,123 @@ export function SeasonGrid({
           />
           {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
         </div>
-      </div>
+      </CardHeader>
 
-      {edited.length === 0 && resupplied.length === 0 ? null : (
-        <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
-          <span className="text-xs font-semibold tracking-tight">
-            {edit === undefined ? "This grid was edited" : "Changes so far"}
-          </span>
-          <GridChanges changes={edited} engineChanges={resupplied} />
-        </div>
-      )}
-
-      <ul
-        className={cn(
-          "grid gap-3 sm:grid-cols-2",
-          // Three across normally, two while the reserve list holds the third
-          // column, so the cards are not squeezed by a sidebar beside them.
-          edit === undefined && "lg:grid-cols-3",
+      <div className="flex flex-col gap-4 px-5 py-4">
+        {edited.length === 0 && resupplied.length === 0 ? null : (
+          <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
+            <span className="text-xs font-semibold tracking-tight">
+              {edit === undefined ? "This grid was edited" : "Changes so far"}
+            </span>
+            <GridChanges changes={edited} engineChanges={resupplied} />
+          </div>
         )}
-      >
-        {entries.map((entry) => {
-          const team = teams.get(entry.teamId);
-          const name = entryName(entry.teamId, entry.engineId);
-          const livery = liveryFor(entry.teamId, seasonYear);
-          return (
-            <li
-              key={entry.teamId}
-              className={cn(
-                "border-border bg-card rounded-xl p-4",
-                // A team without a livery keeps the plain hairline, so the
-                // card is never left with no edge at all.
-                livery === undefined ? "border" : "border-2",
-              )}
-              style={
-                livery === undefined
-                  ? undefined
-                  : { backgroundImage: cardTint(livery), borderColor: cardOutline(livery) }
-              }
-            >
-              <div
+
+        <ul
+          className={cn(
+            "grid gap-3 sm:grid-cols-2",
+            // Three across normally, two while the reserve list holds the third
+            // column, so the cards are not squeezed by a sidebar beside them.
+            edit === undefined && "lg:grid-cols-3",
+          )}
+        >
+          {entries.map((entry) => {
+            const team = teams.get(entry.teamId);
+            const name = entryName(entry.teamId, entry.engineId);
+            const livery = liveryFor(entry.teamId, seasonYear);
+            return (
+              <li
+                key={entry.teamId}
                 className={cn(
-                  "border-border/60 flex items-center gap-2 border-b pb-2",
-                  // The same soft fill a moved driver carries, for the same
-                  // reason: the note at the top and the cards should agree
-                  // without the reader matching names between them.
-                  movedEngine.has(entry.teamId) && cn(SWAPPED_IN, "-mx-1 rounded px-1"),
+                  "border-border bg-card rounded-xl p-4",
+                  // A team without a livery keeps the plain hairline, so the
+                  // card is never left with no edge at all.
+                  livery === undefined ? "border" : "border-2",
                 )}
+                style={
+                  livery === undefined
+                    ? undefined
+                    : { backgroundImage: cardTint(livery), borderColor: cardOutline(livery) }
+                }
               >
-                <Popover>
-                  <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
-                    {team === undefined ? null : <Flag country={team.base} title={team.base} />}
-                    <span className="truncate">{name}</span>
-                  </NameTrigger>
-                  <PopoverContent>
-                    <div className="mb-3 flex items-baseline justify-between gap-2">
-                      <span className="font-semibold">{name}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {team === undefined ? "" : `est. ${team.foundedYear}`}
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {CHASSIS_RATINGS.map((rating) => (
-                        <Rating
-                          key={rating.key}
-                          label={rating.label}
-                          value={entry.chassis[rating.key]}
-                        />
-                      ))}
-                    </div>
-                    {entry.engine === undefined || entry.engineId === undefined ? null : (
-                      // The chassis above and the engine below it, separately,
-                      // because the headline number is already the two blended
-                      // and a reader who opens this wants the parts.
-                      <>
-                        <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
-                          <span className="text-xs font-semibold">
-                            {engineName(entry.engineId)} engine
-                          </span>
-                          <span className="text-muted-foreground text-xs">{seasonYear} spec</span>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {ENGINE_RATINGS.map((rating) => (
-                            <Rating
-                              key={rating.key}
-                              label={rating.label}
-                              value={entry.engine?.[rating.key] ?? 0}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </PopoverContent>
-                </Popover>
-                <Overall value={carOverall(entry.chassis, entry.engine)} />
-              </div>
+                <div
+                  className={cn(
+                    "border-border/60 flex items-center gap-2 border-b pb-2",
+                    // The same soft fill a moved driver carries, for the same
+                    // reason: the note at the top and the cards should agree
+                    // without the reader matching names between them.
+                    movedEngine.has(entry.teamId) && cn(SWAPPED_IN, "-mx-1 rounded px-1"),
+                  )}
+                >
+                  <Popover>
+                    <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
+                      {team === undefined ? null : <Flag country={team.base} title={team.base} />}
+                      <span className="truncate">{name}</span>
+                    </NameTrigger>
+                    <PopoverContent>
+                      <div className="mb-3 flex items-baseline justify-between gap-2">
+                        <span className="font-semibold">{name}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {team === undefined ? "" : `est. ${team.foundedYear}`}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {CHASSIS_RATINGS.map((rating) => (
+                          <Rating
+                            key={rating.key}
+                            label={rating.label}
+                            value={entry.chassis[rating.key]}
+                          />
+                        ))}
+                      </div>
+                      {entry.engine === undefined || entry.engineId === undefined ? null : (
+                        // The chassis above and the engine below it, separately,
+                        // because the headline number is already the two blended
+                        // and a reader who opens this wants the parts.
+                        <>
+                          <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                            <span className="text-xs font-semibold">
+                              {engineName(entry.engineId)} engine
+                            </span>
+                            <span className="text-muted-foreground text-xs">{seasonYear} spec</span>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {ENGINE_RATINGS.map((rating) => (
+                              <Rating
+                                key={rating.key}
+                                label={rating.label}
+                                value={entry.engine?.[rating.key] ?? 0}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                  <Overall value={carOverall(entry.chassis, entry.engine)} />
+                </div>
 
-              {edit === undefined ? null : (
-                <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
-              )}
+                {edit === undefined ? null : (
+                  <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
+                )}
 
-              <ul className="mt-2.5 flex flex-col gap-1.5">
-                {entry.drivers.map((entrant) => (
-                  <DriverEntry
-                    key={entrant.driverId}
-                    entrant={entrant}
-                    seasonYear={seasonYear}
-                    ratingMode={ratingMode}
-                    swappedIn={swappedIn.has(entrant.driverId)}
-                    {...(edit === undefined ? {} : { edit })}
-                  />
-                ))}
-              </ul>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+                <ul className="mt-2.5 flex flex-col gap-1.5">
+                  {entry.drivers.map((entrant) => (
+                    <DriverEntry
+                      key={entrant.driverId}
+                      entrant={entrant}
+                      seasonYear={seasonYear}
+                      ratingMode={ratingMode}
+                      swappedIn={swappedIn.has(entrant.driverId)}
+                      {...(edit === undefined ? {} : { edit })}
+                    />
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </Card>
   );
 }

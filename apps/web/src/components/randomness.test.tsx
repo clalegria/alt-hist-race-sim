@@ -89,12 +89,6 @@ describe("where the level is chosen", () => {
     }
   });
 
-  it("tells an era reader that the choice is made once", () => {
-    // The one thing the two modes do differently with it, so it is the one
-    // thing the era screen has to say out loud.
-    expect(renderToStaticMarkup(<EraPicker onStart={noop} />)).toContain("cannot be changed");
-  });
-
   it("is stated but not offered once a season exists", () => {
     const world = createWorld(3, FIRST_AUTHORED_SEASON, "peak", null, null, 5);
     const html = renderToStaticMarkup(<RandomnessNote level={world.randomness} />);

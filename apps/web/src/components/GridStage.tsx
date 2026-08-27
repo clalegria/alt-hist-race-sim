@@ -230,7 +230,10 @@ export function ReserveList({
   );
 
   return (
-    <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
+    // Card's own classes minus the header, since this panel's heading is a
+    // smaller one inside it: `shadow-sm` included, so it sits at the same
+    // elevation as the grid it stands beside.
+    <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4 shadow-sm">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold tracking-tight">Without a drive</h3>

@@ -14,7 +14,15 @@ import { describe, expect, it } from "vitest";
 import { eraChampions, eraSpan } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import { driverName, entryName, teamName } from "../lib/names.js";
-import { nextEraYear, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
+import {
+  DEFAULT_SEASON_YEAR,
+  decadeOf,
+  isPlayable,
+  nextEraYear,
+  PLAYABLE_SEASONS,
+  playableSummary,
+  yearsInDecade,
+} from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
 import { ChampionRow, EraChampions } from "./EraChampions.js";
@@ -251,14 +259,23 @@ describe("the era picker", () => {
     expect(picker).toContain(playableSummary());
   });
 
-  it("offers exactly the years a season can be run from", () => {
+  it("offers exactly the years an era can be started from", () => {
     // The same rule as the season picker, because it is the same picker: an era
-    // cannot start in a year nobody has authored.
+    // cannot start in a year nobody has authored. Only the open decade is drawn
+    // now, so the count is that decade's, derived rather than written down.
+    const open = yearsInDecade(decadeOf(DEFAULT_SEASON_YEAR));
     const buttons = picker.split("<button").slice(1);
-    const enabled = buttons.filter(
-      (button) => !button.slice(0, button.indexOf(">")).includes('disabled=""'),
-    );
-    expect(enabled).toHaveLength(PLAYABLE_SEASONS.length);
-    expect(enabled[0]).toContain(`aria-label="Start an era in ${PLAYABLE_SEASONS[0]}"`);
+    for (const year of open.filter(isPlayable)) {
+      expect(picker, `${year}`).toContain(`aria-label="Start an era in ${year}"`);
+    }
+    const drawn = buttons.filter((button) => open.some((year) => button.includes(`>${year}<`)));
+    expect(drawn).toHaveLength(open.length);
+  });
+
+  it("commits on its own button, which says an era rather than a season", () => {
+    // The era and the season share one component, so the one thing that must
+    // not be shared is the sentence on the button that starts the run.
+    expect(picker).toContain(`Begin an era from ${DEFAULT_SEASON_YEAR}`);
+    expect(picker).not.toContain("Begin the");
   });
 });

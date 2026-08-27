@@ -242,11 +242,11 @@ function Summary({
       </div>
       {/*
         A gap wider than the page's own, because this is where the season stops
-        being reported and starts being described: the two championship tables
-        run to the foot of the page, and the grid's heading sitting one ordinary
-        gap under the last constructor row reads as another row of it. The sort
-        switch above the cards made that worse — a control at the top of a
-        section looks like a control *for* the table it is under.
+        being reported and starts being described. The grid draws its own panel
+        now, so this no longer has to do the whole job of separating it — a bare
+        heading one ordinary gap under the last constructor row used to read as
+        another row of that table, and a border settles that on its own. The
+        wider gap stays for the subject change, not for the ambiguity.
       */}
       <div className="pt-6">
         <SeasonGrid

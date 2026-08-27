@@ -17,6 +17,20 @@ whenever you are in `src/components/`. How either list is *ordered* and how the 
 architecture underneath all three, including why the draft lives where it does, is in
 `.claude/rules/web-app.md`.
 
+- **The grid is a `Card`, like every results panel.** It was a bare `<section>` for a
+  long time and got away with it because the page behind it was flat; the background
+  checkerboard made it obvious, since a transparent panel lets the texture run straight
+  through what is supposed to be a solid block. Every sibling on that page —
+  `SeasonCalendar`, `StandingsTable`, each `Section` — is a `Card`, so the grid was the
+  only one. Its header is `CardHeader` with `flex-row` overriding the default
+  `flex-col` through `cn`, which keeps the sort switch and the Edit/Apply buttons
+  opposite the title rather than stacked under the description. The **team tiles inside
+  stay `bg-card` on a `bg-card` panel**, drawn by their borders and liveries and not by
+  a fill step — the qualifying grid already nests exactly that way, and it is the case
+  `.claude/rules/web-styling.md` means when it says the border draws the panel on dark.
+  The reserve list beside it carries `shadow-sm` for the same reason: two panels side
+  by side at different elevations is worse than either elevation.
+
 - **The grid opens closed.** Teams and drivers with a flag, an age and one overall
   rating; the individual ratings live behind a popover, and teams are listed
   alphabetically rather than by pace so the pecking order is not given away before a
