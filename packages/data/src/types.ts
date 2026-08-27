@@ -99,7 +99,40 @@ export interface SeasonEngine {
   readonly reliability: number;
 }
 
-export interface Team {
+/**
+ * A team's colours: what a livery is reduced to for display.
+ *
+ * Not a rating and not simulated — nothing in the engine reads any of this. It
+ * exists so the UI can colour a team consistently wherever it appears, and draw
+ * a circular badge for it.
+ *
+ * The fields are spread flat across `Team` and `SeasonEntry` rather than nested,
+ * so the JSON stays one line per team. This interface is the single declaration
+ * of their shape; both sides extend it, and `LIVERY_KEYS` is the runtime echo.
+ */
+export interface Livery {
+  /** The team's dominant colour, as `#RRGGBB`. */
+  readonly primaryColor: string;
+  /** First accent, as `#RRGGBB`. The inner badge stripe when one is drawn. */
+  readonly secondaryColor1: string;
+  /** Second accent, as `#RRGGBB`. The outer badge stripe when two are drawn. */
+  readonly secondaryColor2: string;
+  /**
+   * How many of the two accents the badge wears as stripes: 0 draws a plain
+   * disc in the primary colour, 1 adds `secondaryColor1`, 2 adds both.
+   *
+   * Typed `number` rather than `0 | 1 | 2` because TypeScript infers `number`
+   * for a JSON literal, and `type-checks.ts` requires the JSON to satisfy this
+   * interface. The 0-2 range is enforced at runtime by `validateSeedData`, the
+   * same division of labour as `base` and every rating.
+   *
+   * The colours stay authored either way — a team with 0 stripes still has
+   * accents available for text and backgrounds.
+   */
+  readonly badgeStripes: number;
+}
+
+export interface Team extends Livery {
   readonly id: string;
   readonly name: string;
   /** ISO 3166-1 alpha-2 country code. */
@@ -125,8 +158,15 @@ export interface ChassisSpec {
 /**
  * One team's participation in one season: a team, a chassis, an engine, and its
  * drivers.
+ *
+ * The `Livery` fields are inherited as optional and override the team's default
+ * in `teams.json` for this season only — Benetton is green in 1991 and blue in
+ * 1996, and both are the same team. They are **all-or-nothing**: an entry
+ * carries all four or none, which `validateSeedData` enforces. Partial
+ * overrides are banned because the fields that fell back would combine into a
+ * livery nobody authored.
  */
-export interface SeasonEntry {
+export interface SeasonEntry extends Partial<Livery> {
   readonly teamId: string;
   /**
    * Which manufacturer supplies its engine that year. Must name one of the

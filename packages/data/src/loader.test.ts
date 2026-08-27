@@ -9,6 +9,7 @@ import {
   type SeasonSeed,
   seasonSeed,
   seasons,
+  type Team,
   teams,
   teamsById,
   validateSeedData,
@@ -369,6 +370,52 @@ describe("validateSeedData", () => {
   });
 });
 
+/**
+ * A season with nothing in it, so a fixture that replaces the *team pool* is
+ * tested against the team rules alone — the authored seasons name teams a
+ * one-team pool does not have, and that error would fire first.
+ */
+function noEntries(): SeasonSeed {
+  return { year: 1980, points: pointsScale(), calendar: [], engines: [engineSpec()], entries: [] };
+}
+
+/** A valid livery, for fixtures that are about something else in it. */
+function livery() {
+  return {
+    primaryColor: "#123456",
+    secondaryColor1: "#ABCDEF",
+    secondaryColor2: "#000000",
+    badgeStripes: 2,
+  };
+}
+
+/** One team, valid in every respect, for a fixture to break one field of. */
+function team() {
+  return { id: knownTeam, name: "Fixture", base: "GB", foundedYear: 1970, ...livery() };
+}
+
+/**
+ * A season whose single entry carries `override` verbatim — the livery fields
+ * under test, whole, partial or absent.
+ */
+function seasonWithLivery(override: Record<string, unknown>): SeasonSeed {
+  return {
+    year: 1980,
+    points: pointsScale(),
+    calendar: [],
+    engines: [engineSpec()],
+    entries: [
+      {
+        teamId: knownTeam,
+        engineId: knownEngine,
+        chassis: chassisSpec(),
+        drivers: [knownDriver],
+        ...override,
+      },
+    ],
+  };
+}
+
 function chassisSpec() {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50 };
 }
@@ -446,6 +493,81 @@ describe("engines", () => {
     expect(() => {
       validateSeedData(drivers, teams, [broken]);
     }).toThrow(/rates these engines twice/);
+  });
+
+  it("rejects a team whose colour is not a hex triplet", () => {
+    expect(() => {
+      validateSeedData(drivers, [{ ...team(), primaryColor: "red" }], [noEntries()]);
+    }).toThrow(/primaryColor "red", not a #RRGGBB colour/);
+    expect(() => {
+      validateSeedData(drivers, [{ ...team(), secondaryColor2: "#ABC" }], [noEntries()]);
+    }).toThrow(/secondaryColor2 "#ABC", not a #RRGGBB colour/);
+  });
+
+  it("rejects a team field nothing reads", () => {
+    // The teams file has the same two-direction guard the seasons do: the
+    // compile-time half lives in type-checks.ts, this is the runtime half.
+    expect(() => {
+      validateSeedData(drivers, [{ ...team(), tyreSupplier: "goodyear" } as Team], [noEntries()]);
+    }).toThrow(/has fields nothing reads: tyreSupplier/);
+  });
+
+  it("rejects a badge wearing more stripes than it has accents", () => {
+    expect(() => {
+      validateSeedData(drivers, [{ ...team(), badgeStripes: 3 }], [noEntries()]);
+    }).toThrow(/badgeStripes 3; a badge wears 0, 1 or 2 stripes/);
+  });
+
+  it("accepts a badge with no stripes at all", () => {
+    // 0 is a plain disc, not a missing value — the accents stay authored.
+    expect(() => {
+      validateSeedData(drivers, [{ ...team(), badgeStripes: 0 }], [noEntries()]);
+    }).not.toThrow();
+  });
+
+  it("accepts a season entry that overrides the whole livery", () => {
+    expect(() => {
+      validateSeedData(drivers, teams, [seasonWithLivery(livery())]);
+    }).not.toThrow();
+  });
+
+  it("accepts a season entry that overrides no part of the livery", () => {
+    expect(() => {
+      validateSeedData(drivers, teams, [seasonWithLivery({})]);
+    }).not.toThrow();
+  });
+
+  it("rejects a season entry that overrides only part of the livery", () => {
+    // All-or-nothing: the fields that fell back would combine with the ones
+    // authored here into a livery nobody chose.
+    for (const key of [
+      "primaryColor",
+      "secondaryColor1",
+      "secondaryColor2",
+      "badgeStripes",
+    ] as const) {
+      const partial: Record<string, unknown> = { ...livery() };
+      delete partial[key];
+      expect(() => {
+        validateSeedData(drivers, teams, [seasonWithLivery(partial)]);
+      }, key).toThrow(/a season livery is all four fields or none/);
+
+      // ...and the mirror image: that field alone, the rest absent.
+      expect(() => {
+        validateSeedData(drivers, teams, [seasonWithLivery({ [key]: livery()[key] })]);
+      }, key).toThrow(/a season livery is all four fields or none/);
+    }
+  });
+
+  it("holds a season's livery override to the same colour rules as a team's", () => {
+    expect(() => {
+      validateSeedData(drivers, teams, [
+        seasonWithLivery({ ...livery(), secondaryColor1: "hotpink" }),
+      ]);
+    }).toThrow(/secondaryColor1 "hotpink", not a #RRGGBB colour/);
+    expect(() => {
+      validateSeedData(drivers, teams, [seasonWithLivery({ ...livery(), badgeStripes: 9 })]);
+    }).toThrow(/badgeStripes 9; a badge wears 0, 1 or 2 stripes/);
   });
 
   it("rejects duplicate manufacturer ids in the pool", () => {

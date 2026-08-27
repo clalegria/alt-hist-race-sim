@@ -11,7 +11,7 @@ import driversJson from "./drivers.json";
 import enginesJson from "./engines.json";
 import { seasons } from "./seasons/index.js";
 import teamsJson from "./teams.json";
-import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
+import type { Driver, EngineManufacturer, Livery, SeasonEntry, SeasonSeed, Team } from "./types.js";
 
 export {
   buildField,
@@ -149,9 +149,55 @@ function checkNoExtraKeys(where: string, record: object, keys: readonly string[]
   }
 }
 
+const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
+
+/**
+ * A livery's four fields, wherever they appear — a team's default or a season's
+ * override. Nothing simulated depends on these, but a malformed colour reaches
+ * the DOM as a silently ignored CSS value, which shows up as a team rendered in
+ * the fallback grey rather than as an error.
+ */
+function checkLivery(where: string, livery: Livery): void {
+  for (const key of ["primaryColor", "secondaryColor1", "secondaryColor2"] as const) {
+    const value = livery[key];
+    if (typeof value !== "string" || !HEX_COLOR.test(value)) {
+      throw new Error(`${where} has ${key} "${String(value)}", not a #RRGGBB colour`);
+    }
+  }
+  const { badgeStripes } = livery;
+  if (badgeStripes !== 0 && badgeStripes !== 1 && badgeStripes !== 2) {
+    throw new Error(
+      `${where} has badgeStripes ${String(badgeStripes)}; a badge wears 0, 1 or 2 stripes`,
+    );
+  }
+}
+
+/**
+ * A season entry's optional livery override, which is all-or-nothing: four
+ * fields or none.
+ *
+ * A partial override would blend authored colours with fallen-back ones into a
+ * livery nobody chose, so it is an authoring error rather than a merge.
+ */
+function checkLiveryOverride(where: string, entry: SeasonEntry): void {
+  const present = LIVERY_KEYS.filter((key) => entry[key] !== undefined);
+  if (present.length === 0) {
+    return;
+  }
+  if (present.length < LIVERY_KEYS.length) {
+    const missing = LIVERY_KEYS.filter((key) => entry[key] === undefined);
+    throw new Error(
+      `${where} overrides livery fields ${present.join(", ")} but not ${missing.join(", ")}; a season livery is all four fields or none`,
+    );
+  }
+  checkLivery(`${where} livery`, entry as Livery);
+}
+
+const LIVERY_KEYS = ["primaryColor", "secondaryColor1", "secondaryColor2", "badgeStripes"] as const;
+const TEAM_KEYS = ["id", "name", "base", "foundedYear", ...LIVERY_KEYS] as const;
 const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
 const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
-const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers"] as const;
+const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers", ...LIVERY_KEYS] as const;
 const SEASON_ENGINE_KEYS = ["engineId", ...ENGINE_RATING_KEYS] as const;
 const CALENDAR_KEYS = ["round", "name", "circuit", "country"] as const;
 const SEASON_KEYS = ["year", "points", "calendar", "engines", "entries"] as const;
@@ -183,6 +229,12 @@ export function validateSeedData(
   const duplicateTeams = findDuplicates(teamPool.map((team) => team.id));
   if (duplicateTeams.length > 0) {
     throw new Error(`Duplicate team ids: ${duplicateTeams.join(", ")}`);
+  }
+
+  for (const team of teamPool) {
+    const where = `Team "${team.id}"`;
+    checkLivery(where, team);
+    checkNoExtraKeys(where, team, TEAM_KEYS);
   }
 
   const duplicateEngines = findDuplicates(enginePool.map((maker) => maker.id));
@@ -287,6 +339,7 @@ function validateSeason(
 
     const where = `Season ${season.year} entry "${entry.teamId}"`;
     checkNoExtraKeys(where, entry, ENTRY_KEYS);
+    checkLiveryOverride(where, entry);
     checkRatings(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
     checkNoExtraKeys(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
 
