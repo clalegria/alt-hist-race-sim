@@ -7,7 +7,12 @@ import {
   seasons,
   swapDrivers,
 } from "@alt-hist/data";
-import { championshipStandings, constructorStandings, createRngFromState } from "@alt-hist/engine";
+import {
+  championshipStandings,
+  constructorStandings,
+  createRngFromState,
+  DEFAULT_RANDOMNESS_LEVEL,
+} from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   advance,
@@ -445,6 +450,68 @@ describe("driver ability mode", () => {
 
   it("is part of the save file like everything else", () => {
     useSeasonStore.getState().setRatingMode("aged");
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
+describe("the randomness level", () => {
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("starts on the level the calibration describes", () => {
+    expect(running().world.randomness).toBe(DEFAULT_RANDOMNESS_LEVEL);
+  });
+
+  it("races the same seed to a different season at a different level", () => {
+    // The whole point of the setting: same year, same grid, same dice — a
+    // different championship, because the dice are weighted differently.
+    const balanced = createWorld(3, YEAR, "peak", null, null, DEFAULT_RANDOMNESS_LEVEL);
+    const chaotic = createWorld(3, YEAR, "peak", null, null, 5);
+
+    expect(chaotic.randomness).toBe(5);
+    expect(chaotic.seed).toBe(balanced.seed);
+    expect(chaotic.field).toEqual(balanced.field);
+    expect(chaotic.season).not.toEqual(balanced.season);
+  });
+
+  it("reproduces exactly at the same seed and the same level", () => {
+    expect(createWorld(3, YEAR, "peak", null, null, 4)).toEqual(
+      createWorld(3, YEAR, "peak", null, null, 4),
+    );
+  });
+
+  it("leaves the default season byte for byte what it always was", () => {
+    // The guarantee the whole feature rests on: passing the default explicitly
+    // must be indistinguishable from a build that had never heard of the
+    // slider, so the calibration still describes what the app runs.
+    expect(createWorld(3, YEAR, "peak", null, null, DEFAULT_RANDOMNESS_LEVEL)).toEqual(
+      createWorld(3, YEAR, "peak"),
+    );
+  });
+
+  it("is fixed for the run: no action on a season changes it", () => {
+    const level = 5;
+    useSeasonStore.getState().simulate(3, YEAR, "peak", level);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world.randomness).toBe(level);
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.randomness).toBe(level);
+  });
+
+  it("carries through Start again, like every other choice", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", 4);
+    const before = running().world;
+    useSeasonStore.getState().restartSeason();
+    const after = running().world;
+
+    expect(after.randomness).toBe(4);
+    expect(after.seed).not.toBe(before.seed);
+  });
+
+  it("is part of the save file like everything else", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", 5);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });

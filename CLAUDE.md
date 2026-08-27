@@ -37,7 +37,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 999 tests (227 engine, 85 data, 687 web)
+pnpm test          # 1064 tests (233 engine, 93 data, 738 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -45,7 +45,7 @@ pnpm race [seed]   # simulate ONE race, print the classification
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
-                   # all four take --year <n>; default is the earliest authored season
+                   # all four take --year <n> and --randomness <1-5>
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm tune          # rating tuner (prints proposals, writes nothing)
 ```
@@ -112,6 +112,9 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   behind the `RaceModel` interface so a richer model can replace it.
 - **Round context**: what the engine knows about *where* a round is held. Today one
   field, `country`; the seam every circuit feature hangs off.
+- **Randomness level**: 1–5, how much the dice decide, chosen before a run and fixed for
+  it. Scales the two noise sigmas only; `withRandomness(2)` — the default — returns the
+  constants **unchanged**, so the calibration still describes them. The rest is taste.
 - **Progression model**: the swappable seam between the two planned modes.
   Interface `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`.
   Implement `EvolutionaryProgression` (random walk + mean reversion) first;
@@ -121,9 +124,8 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
 - **No build step.** Packages export TypeScript source directly
-  (`"exports": "./src/index.ts"`); Vite/Vitest/tsx transpile on the fly, and
-  `tsc --noEmit` is the correctness check. Add a real build only if something needs to
-  consume these packages from plain Node.
+  (`"exports": "./src/index.ts"`); Vite/Vitest/tsx transpile on the fly, and `tsc
+  --noEmit` is the correctness check. Add one only if plain Node must consume these.
 - Every engine module ships with Vitest tests. `apps/web` is tested at the store and
   smoke-render level rather than component by component. Favour property-style checks:
   finish order is a valid permutation, nobody finishes twice, DNFs remove cars.
@@ -149,23 +151,21 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   - Same rule, same reason, for the calibration harness: **do not run it to check
     anything.** Its figures are the record of one measurement, not a test, and
     re-measuring on spec is a long loop that answers a question nobody asked.
-- **Statistical tests must be mutation-checked.** A distribution test that passes
-  against a deliberately broken implementation is worthless. Break it on purpose,
-  confirm it fails, revert. This has repeatedly caught tests that asserted nothing —
-  a counter blind to `gaussian()`, a tie-break case that was not tied, an assertion
-  read off the engine's data instead of the component's output.
-- **Check `Test Files`, not just `Tests`, when reading a Vitest run.** A file that
-  fails to *compile* is not counted in the `Tests` line, so a broken test file can
-  leave a run looking green. `Test Files 11 passed (11)` is the line that proves
-  everything was collected.
+- **Statistical tests must be mutation-checked.** A distribution test that passes against
+  a deliberately broken implementation is worthless. Break it on purpose, confirm it
+  fails, revert. This has repeatedly caught tests that asserted nothing — a counter blind
+  to `gaussian()`, a tie-break case that was not tied, an assertion read off the
+  engine's data rather than the component's output.
+- **Check `Test Files`, not just `Tests`, when reading a Vitest run.** A file that fails
+  to *compile* is not counted in the `Tests` line, so a broken test file leaves a run
+  looking green. `Test Files 11 passed (11)` proves everything was collected.
 - **New dependencies are checked against a release-age policy.** pnpm rejects packages
-  published within the last few days and will offer to write a `minimumReleaseAgeExclude`
+  published within the last few days and offers to write a `minimumReleaseAgeExclude`
   entry into `pnpm-workspace.yaml`. Do not take it — pick the previous stable version
-  instead. Freshly published versions are exactly the window a compromised package
-  lands in. This has already happened once, with a Vite release hours old.
-- `tools/*` may use dev dependencies (tsx runs the TS directly). The engine may not,
-  and do not add runtime dependencies to `packages/engine` without a strong reason.
-- Secrets (none in phase 1) live only in gitignored `.env`.
+  instead: fresh versions are the window a compromised package lands in. Has happened
+  once here, with a Vite release hours old.
+- `tools/*` may use dev dependencies (tsx runs the TS directly); the engine may not, and
+  takes no runtime dependency without a strong reason. Secrets live only in a gitignored `.env`.
 - **This file stays under 200 lines.** When documenting a newly implemented subsystem,
   write it as a path-scoped rule in `.claude/rules/` (YAML `paths:` frontmatter), not
   into this file — only project-wide invariants, commands, glossary and conventions

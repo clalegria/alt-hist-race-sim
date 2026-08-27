@@ -26,6 +26,14 @@ export {
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
 export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
 export { powertrain } from "./race/powertrain.js";
+export {
+  DEFAULT_RANDOMNESS_LEVEL,
+  parseRandomnessLevel,
+  RANDOMNESS_LEVELS,
+  type RandomnessLevel,
+  randomnessNoiseScale,
+  withRandomness,
+} from "./race/randomness.js";
 export { scoreAndSortRaceModel, simulateRace } from "./race/simulateRace.js";
 export type {
   DnfCause,

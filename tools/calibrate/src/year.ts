@@ -35,17 +35,21 @@ export function parseYear(argv: readonly string[]): number {
   return parsed;
 }
 
+/** Every flag these tools take, with the value each one swallows after it. */
+const FLAGS = new Set(["--year", "-y", "--randomness", "-r"]);
+
 /**
- * Positional arguments, with any `--year <n>` pair removed.
+ * Positional arguments, with any flag-and-value pair removed.
  *
- * The tools read their seed and race count by position, so the flag has to come
- * out before they count.
+ * The tools read their seed and race count by position, so a flag has to come
+ * out before they count. Named rather than "anything starting with `-`" because
+ * a seed may legitimately be negative — `pnpm race -12` is a seed, not a flag.
  */
-export function withoutYear(argv: readonly string[]): string[] {
+export function withoutFlags(argv: readonly string[]): string[] {
   const kept: string[] = [];
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--year" || arg === "-y") {
+    if (arg !== undefined && FLAGS.has(arg)) {
       index += 1;
       continue;
     }

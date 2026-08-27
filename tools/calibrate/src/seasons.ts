@@ -10,6 +10,7 @@
  *   pnpm calibrate-season 20000        # more seasons, tighter numbers
  *   pnpm calibrate-season 20000 --year 1981
  *   pnpm calibrate-season 5000 --mode peak
+ *   pnpm calibrate-season 5000 --randomness 5
  *
  * The race-level harness answers questions about the front of the grid — wins,
  * poles, retirements. It cannot answer what a midfield car is *worth*, because
@@ -40,9 +41,11 @@ import {
   constructorStandings,
   createRng,
   simulateSeason,
+  withRandomness,
 } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
+import { parseRandomness } from "./randomness.js";
 import { parseYear } from "./year.js";
 
 /**
@@ -214,6 +217,8 @@ function main(): void {
   const year = parseYear(process.argv);
   const count = parseCount(positionals(process.argv)[0], DEFAULT_SEASONS, "Season count");
   const mode = parseMode(process.argv);
+  const randomness = parseRandomness(process.argv);
+  const constants = withRandomness(randomness);
   const authored = seasonSeed(year);
   const field = buildField(authored, undefined, mode);
   const teams = teamsById();
@@ -250,7 +255,7 @@ function main(): void {
     // One RNG per season, seeded by the season number: seed 7 here is the same
     // year `pnpm season 7` prints, so anything odd in this table can be read
     // race by race without re-running anything.
-    const season = simulateSeason(field, authored.calendar, createRng(seed));
+    const season = simulateSeason(field, authored.calendar, createRng(seed), constants);
     const table = championshipStandings(season, authored.points);
     const constructors = constructorStandings(season, authored.points);
 

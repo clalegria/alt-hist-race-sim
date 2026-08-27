@@ -216,6 +216,31 @@ describe("an era as a whole", () => {
     expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
   });
 
+  it("bakes the randomness level in: every year runs at the level the era started on", () => {
+    // The one thing an era does differently with this setting. A run is one
+    // long championship under one set of rules — a level the reader could turn
+    // up the moment a season went against them would be a different feature.
+    useSeasonStore.getState().simulateEra(5, YEAR, 5);
+    const played = [running().world];
+    for (let i = 0; i < 3; i += 1) {
+      useSeasonStore.getState().skipToEnd();
+      useSeasonStore.getState().showEraChampions();
+      useSeasonStore.getState().nextEraSeason();
+      played.push(running().world);
+    }
+    expect(played.map((world) => world.randomness)).toEqual(played.map(() => 5));
+  });
+
+  it("bakes it in through skipping to the end as well as stepping", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, 4);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra();
+    const seasons = crowned().seasons;
+    expect(seasons.length).toBeGreaterThan(1);
+    expect(seasons.map((world) => world.randomness)).toEqual(seasons.map(() => 4));
+  });
+
   it("is a save file like a single season", () => {
     const run: EraRun = { startYear: YEAR, seasons: playEra(9, YEAR, 2) };
     expect(JSON.parse(JSON.stringify(run))).toEqual(run);

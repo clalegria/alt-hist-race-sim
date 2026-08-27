@@ -9,6 +9,7 @@ import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
@@ -133,6 +134,7 @@ export function EraChampions({ run }: { run: EraRun }) {
   // screen's: which year a reader is reading says nothing about the simulation.
   // One at a time, because two full championship tables is already a page.
   const [openYear, setOpenYear] = useState<number | null>(null);
+  const first = seasons[0];
   const last = seasons.at(-1);
   const nextYear = last === undefined ? null : nextEraYear(last.year);
   const span = eraSpan(seasons);
@@ -149,6 +151,17 @@ export function EraChampions({ run }: { run: EraRun }) {
             ? "There is no season after this one to run — the era ends here."
             : `Next comes ${nextYear}, on the grid that year actually had.`}
         </p>
+        {/*
+          The settings the run was started on, which every year of it shares —
+          they are baked in when an era begins. Read off the first season
+          crowned rather than the last, because that is the one that fixed them.
+        */}
+        {first === undefined ? null : (
+          <SimulationSettings
+            settings={settingsOf(first.world)}
+            className="text-muted-foreground text-xs"
+          />
+        )}
       </header>
 
       <Card>

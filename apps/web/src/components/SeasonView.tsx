@@ -32,10 +32,12 @@ import { EditedGridBanner } from "./LineupChanges.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
+import { RandomnessNote } from "./RandomnessNote.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { type Setting, SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -138,6 +140,7 @@ function Summary({
   points,
   lineup,
   engines,
+  settings,
 }: {
   season: SeasonResult;
   field: readonly RaceEntrant[];
@@ -147,6 +150,8 @@ function Summary({
   points: PointsScale;
   lineup: SeasonLineup | null;
   engines: SeasonEngines | null;
+  /** What the year was run under, from `settingsOf`. */
+  settings: readonly Setting[];
 }) {
   const nameOf = useEntryName();
   const champion = useMemo(() => championshipStandings(season, points)[0], [season, points]);
@@ -205,14 +210,36 @@ function Summary({
           }
         />
       </div>
-      <SeasonCalendar season={season} calendar={seed.calendar} points={points} teamFor={teamFor} />
-      <SeasonStandings
-        season={season}
-        calendar={seed.calendar}
-        points={points}
-        description="Final classification."
-        badge
-      />
+      {/*
+        Between the champions and the season they came out of, which is the
+        break in the page anyway: the result above it, how it was arrived at
+        below, and the terms both were settled under in the gap. The padding is
+        the gap — these sections are stacked without one.
+      */}
+      <SimulationSettings settings={settings} className="text-muted-foreground py-5 text-xs" />
+      {/*
+        The three tables the season is reported in, set apart from each other.
+        `SeasonStandings` returns its two tables in a fragment, so they become
+        items of this column alongside the calendar and take the same gap — one
+        rule for all three rather than margins hung on each. Narrower than the
+        gap under it: these belong together, the grid below them is a different
+        subject.
+      */}
+      <div className="flex flex-col gap-4">
+        <SeasonCalendar
+          season={season}
+          calendar={seed.calendar}
+          points={points}
+          teamFor={teamFor}
+        />
+        <SeasonStandings
+          season={season}
+          calendar={seed.calendar}
+          points={points}
+          description="Final classification."
+          badge
+        />
+      </div>
       {/*
         A gap wider than the page's own, because this is where the season stops
         being reported and starts being described: the two championship tables
@@ -394,6 +421,7 @@ function SeasonBody({
             {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
           />
         ) : null}
+        <RandomnessNote level={world.randomness} />
         <GridStage
           field={world.field}
           year={world.year}
@@ -433,6 +461,7 @@ function SeasonBody({
       points={world.points}
       lineup={world.lineup}
       engines={world.engines}
+      settings={settingsOf(world)}
     />
   );
 }

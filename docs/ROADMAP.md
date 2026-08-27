@@ -24,28 +24,32 @@ turns on `edit-ratings`, *driver market* turns on `era-advanced`, and *game mode
 on the last one.
 
 
-**1. The randomness slider.** A setting the user picks *before* simulating — one season
-or a whole era — with three stops: **realistic** (what the model does today),
-**exciting** (more randomness), **chaotic** (more again). The cheapest large change in
-how the game feels, which is why it comes this early: one number threaded from a menu
-control to the race score, and it makes the difference between a replay and a what-if
-without any new data, model or authored field.
+**1. The randomness slider — shipped.** A setting the user picks *before* simulating —
+one season or a whole era — and **five stops rather than the three planned here**:
+realistic, balanced (the default), exciting, more exciting, chaotic. The middle one is
+what the model has always done. Realistic came out *below* it, because the sim as it
+stood felt a shade more chaotic than realistic, so the tamest setting tightens the
+field rather than leaving it alone.
 
-Mechanically it is a multiplier on the race model's noise term — the same `sigma` the
-score already samples against — and possibly a second one widening the DNF rates, if
-chaotic ought to mean unreliable as well as unpredictable. That second question is open.
+The upper three stops are steep — 1.5, 2.1 and 3.0 times the calibrated sigmas — because
+the first, gentler attempt at them did not read as chaotic at all: a season averages its
+noise away over a dozen rounds, so the favourite still took ~39% of titles. At 3.0 that
+falls to ~30%, with twenty different champions across a run rather than seven.
 
-**Realistic must remain numerically identical to today.** The slider is a scale factor
-whose realistic setting is exactly `1.0`, applied on top of the calibrated constants
-rather than replacing them, so the calibration still describes the default and no
-re-tune is triggered. Do not implement it by editing `race/constants.ts` values. The two
-higher settings are not calibrated against anything and are not meant to be.
+It is a scale factor over the calibrated constants and never an edit to them:
+`withRandomness(2)` returns `RACE_CONSTANTS` itself, by identity, so the calibration
+still describes the default and no re-tune was triggered. Only the two noise sigmas
+move, and by the same factor, which leaves `weekendFormShare`'s variance split intact.
+**Reliability was deliberately left out** — the question this item carried is answered
+"not here": chaotic means unpredictable, not fragile, and a separate reliability setting is
+the author's plan.
 
-The setting is a property of a run, so it belongs in the world state alongside the seed,
-not in React state and not as a module-level constant. Two runs at the same seed and
-different settings should diverge; the same seed and the same setting must still
-reproduce exactly. It is also one of the facts a bug report has to carry, per *publish
-it* below.
+The level lives in the world state beside the seed, is chosen on the setup screen of
+both modes, and is fixed for the run — an era bakes in the level its first year started
+on and carries it through every year. It is remembered between visits like the ability
+mode, stated read-only on the grid so a bug report can quote it, and the tools take
+`--randomness <1-5>`. Detail in `.claude/rules/race-constants.md`; the two higher
+settings are not calibrated against anything and are not meant to be.
 
 **2. Standings evolution charts.** On the season summary screen, a line chart of the
 championship as it stood after each round — the **top six drivers**, and a second chart
@@ -162,7 +166,7 @@ so there is nowhere for a form to post to. Three options, and they are not equal
   not exist before.
 
 Whichever it is, **the page's real job is to make the report reproducible**: pre-fill the
-seed, the season, the rating mode, the randomness setting once that exists, and a build
+seed, the season, the rating mode, the randomness level, and a build
 identifier, because a seeded simulation with those five facts reproduces exactly and
 without them a bug report is a ghost story. That build identifier is a reason to put a
 version stamp in the footer as part of this item.

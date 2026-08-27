@@ -31,14 +31,17 @@ import {
 } from "@alt-hist/data";
 import {
   createRng,
+  DEFAULT_RANDOMNESS_LEVEL,
   type PointsScale,
   type RaceEntrant,
+  type RandomnessLevel,
   type RngState,
   type SeasonResult,
   simulateSeason,
+  withRandomness,
 } from "@alt-hist/engine";
 import { create } from "zustand";
-import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
+import { readRandomness, readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 
@@ -52,6 +55,19 @@ export interface World {
    * the same seed under the other mode is a different championship.
    */
   readonly ratingMode: RatingMode;
+  /**
+   * How much the dice decided — the randomness level the run was started on.
+   *
+   * In the world for the same reason `ratingMode` is: it is a simulation input,
+   * and the same seed at two levels is two different championships. It is also
+   * one of the handful of facts a bug report has to carry, since without it a
+   * seed reproduces nothing.
+   *
+   * Chosen once, on the setup screen, and never changed after: a standalone
+   * season keeps the level it was started on, and an era keeps the level its
+   * first year was started on for every year that follows.
+   */
+  readonly randomness: RandomnessLevel;
   /**
    * The championship points scale the year was scored on, straight from its
    * seed file — 9-6-4-3-2-1 for 1980, 25-18-15-12-10-8-6-4-2-1 for 2010.
@@ -130,6 +146,7 @@ export function createWorld(
   ratingMode: RatingMode = DEFAULT_RATING_MODE,
   lineup: SeasonLineup | null = null,
   engines: SeasonEngines | null = null,
+  randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
 ): World {
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
@@ -142,12 +159,15 @@ export function createWorld(
   const field = buildField(entered, undefined, ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
   // drivers and teams from it their home advantage.
-  const season = simulateSeason(field, entered.calendar, rng);
+  // The level reaches the model as a derived copy of the calibrated constants,
+  // never as an edit to them — at the default it *is* them, untouched.
+  const season = simulateSeason(field, entered.calendar, rng, withRandomness(randomness));
 
   return {
     seed,
     year: entered.year,
     ratingMode,
+    randomness,
     points: entered.points,
     rngState: rng.getState(),
     field,
@@ -270,24 +290,38 @@ interface SeasonStore {
   /**
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
+   *
+   * The randomness level comes from the setup screen, which is the only place
+   * it is ever chosen. Omitted, the remembered one is used — the setup screen
+   * seeds its slider from the same value, so the two cannot disagree.
    */
-  readonly startSeason: (year: number) => void;
+  readonly startSeason: (year: number, randomness?: RandomnessLevel) => void;
   /**
    * The same, from a chosen seed — the reproducible entry point tests use.
    *
    * Deliberately does *not* consult the remembered mode: this is the entry
    * point whose output must depend only on its arguments.
    */
-  readonly simulate: (seed: number, year: number, ratingMode?: RatingMode) => void;
+  readonly simulate: (
+    seed: number,
+    year: number,
+    ratingMode?: RatingMode,
+    randomness?: RandomnessLevel,
+  ) => void;
   /**
    * Starts an era at the given year: its first season, opened at the grid, with
    * an empty run behind it.
    *
    * Always at `ERA_RATING_MODE`, and the reader is not offered the choice.
+   *
+   * The randomness level, by contrast, *is* the reader's — but only here. It is
+   * baked into the run at this point and carried by every year that follows, so
+   * an era is one long championship run under one set of rules rather than a
+   * dial the reader can turn the moment a season goes against them.
    */
-  readonly startEra: (year: number) => void;
+  readonly startEra: (year: number, randomness?: RandomnessLevel) => void;
   /** The same from a chosen seed, and for the same reason: tests need one. */
-  readonly simulateEra: (seed: number, year: number) => void;
+  readonly simulateEra: (seed: number, year: number, randomness?: RandomnessLevel) => void;
   /**
    * Ends the season on screen and shows the champions crowned so far.
    *
@@ -407,28 +441,30 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   openEraSetup: () => {
     set({ screen: { kind: "era-setup" } });
   },
-  startSeason: (year) => {
-    set({ screen: openSeason(createWorld(randomSeed(), year, readRatingMode())) });
+  startSeason: (year, randomness = readRandomness()) => {
+    set({
+      screen: openSeason(createWorld(randomSeed(), year, readRatingMode(), null, null, randomness)),
+    });
   },
-  simulate: (seed, year, ratingMode) => {
-    set({ screen: openSeason(createWorld(seed, year, ratingMode)) });
+  simulate: (seed, year, ratingMode, randomness) => {
+    set({ screen: openSeason(createWorld(seed, year, ratingMode, null, null, randomness)) });
   },
-  startEra: (year) => {
+  startEra: (year, randomness = readRandomness()) => {
     set({
       screen: {
         kind: "era",
         run: { startYear: year, seasons: [] },
-        world: createWorld(randomSeed(), year, ERA_RATING_MODE),
+        world: createWorld(randomSeed(), year, ERA_RATING_MODE, null, null, randomness),
         view: { kind: "grid" },
       },
     });
   },
-  simulateEra: (seed, year) => {
+  simulateEra: (seed, year, randomness) => {
     set({
       screen: {
         kind: "era",
         run: { startYear: year, seasons: [] },
-        world: createWorld(seed, year, ERA_RATING_MODE),
+        world: createWorld(seed, year, ERA_RATING_MODE, null, null, randomness),
         view: { kind: "grid" },
       },
     });
@@ -478,7 +514,16 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
           // is that year's own entry list. What the reader chose about *how to
           // play* — the ability mode — carries; what they chose about one grid
           // does not, because it was a grid for a year now behind them.
-          world: createWorld(nextSeed(last.rngState), year, last.ratingMode),
+          world: createWorld(
+            nextSeed(last.rngState),
+            year,
+            last.ratingMode,
+            null,
+            null,
+            // Baked in at the era's setup screen: every year of a run is raced
+            // under the level its first year was started on.
+            last.randomness,
+          ),
           view: { kind: "grid" },
         },
       };
@@ -502,7 +547,14 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       // stream. Written as a loop rather than a second rule so the two cannot
       // produce different histories.
       for (let year = nextEraYear(last.year); year !== null; year = nextEraYear(last.year)) {
-        last = createWorld(nextSeed(last.rngState), year, last.ratingMode);
+        last = createWorld(
+          nextSeed(last.rngState),
+          year,
+          last.ratingMode,
+          null,
+          null,
+          last.randomness,
+        );
         seasons.push(last);
       }
       return {
@@ -534,6 +586,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 mode,
                 state.screen.world.lineup,
                 state.screen.world.engines,
+                state.screen.world.randomness,
               ),
             ),
           }
@@ -552,6 +605,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.screen.world.ratingMode,
                 lineup,
                 engines,
+                state.screen.world.randomness,
               ),
             ),
           }
@@ -587,6 +641,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.screen.world.ratingMode,
                 state.screen.world.lineup,
                 state.screen.world.engines,
+                state.screen.world.randomness,
               ),
             ),
           }

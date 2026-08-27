@@ -11,10 +11,11 @@
  */
 
 import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
-import { createRng, simulateRace } from "@alt-hist/engine";
+import { createRng, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
-import { parseYear, withoutYear } from "./year.js";
+import { parseRandomness } from "./randomness.js";
+import { parseYear, withoutFlags } from "./year.js";
 
 const DEFAULT_RACES = 5000;
 
@@ -42,9 +43,11 @@ interface DriverTally {
 }
 
 function main(): void {
-  const argv = withoutYear(process.argv);
+  const argv = withoutFlags(process.argv);
   const year = parseYear(process.argv);
   const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
+  const randomness = parseRandomness(process.argv);
+  const constants = withRandomness(randomness);
   const field = buildField(seasonSeed(year));
   const teams = teamsById();
   const drivers = driversById();
@@ -83,7 +86,7 @@ function main(): void {
   const startedAt = performance.now();
 
   for (let seed = 1; seed <= races; seed += 1) {
-    const result = simulateRace(field, createRng(seed));
+    const result = simulateRace(field, createRng(seed), constants);
     totalRetirements += result.retirements;
     totalStarters += field.length - result.nonQualifiers;
 
@@ -132,7 +135,9 @@ function main(): void {
 
   console.log("");
   console.log(`${year} grid — ${races} races, seeds 1..${races}`);
-  console.log(`${field.length} cars, ${teamTallies.size} teams, ${elapsed.toFixed(0)}ms`);
+  console.log(
+    `${field.length} cars, ${teamTallies.size} teams, randomness ${randomness}, ${elapsed.toFixed(0)}ms`,
+  );
   console.log("");
 
   console.log(

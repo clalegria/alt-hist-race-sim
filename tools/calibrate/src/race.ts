@@ -7,13 +7,15 @@
  *
  *   pnpm race          # seed 1
  *   pnpm race 7        # seed 7 — same seed always gives the same race
+ *   pnpm race 7 --randomness 5   # the same race, with the dice turned up
  */
 
 import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
-import { createRng, type RaceGap, simulateRace } from "@alt-hist/engine";
+import { createRng, type RaceGap, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
-import { parseYear, withoutYear } from "./year.js";
+import { parseRandomness } from "./randomness.js";
+import { parseYear, withoutFlags } from "./year.js";
 
 /** "+5.234s", or "+1:17.230s" once a gap runs past the minute. */
 function formatSeconds(seconds: number): string {
@@ -37,11 +39,12 @@ function formatGap(gap: RaceGap): string {
 }
 
 function main(): void {
-  const argv = withoutYear(process.argv);
+  const argv = withoutFlags(process.argv);
   const year = parseYear(process.argv);
   const seed = parseSeed(argv);
+  const randomness = parseRandomness(process.argv);
   const field = buildField(seasonSeed(year));
-  const result = simulateRace(field, createRng(seed));
+  const result = simulateRace(field, createRng(seed), withRandomness(randomness));
 
   const drivers = driversById();
   const teams = teamsById();

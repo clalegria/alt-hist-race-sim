@@ -59,8 +59,22 @@ chose, like the ability mode. Unlike the ability mode it is **not** remembered i
 localStorage: a lineup and a set of engine deals belong to the year they were drawn
 for, so starting a season from the menu gets the real grid back.
 
+**Randomness is chosen once and never again.** `world.randomness` is a level 1–5 (2 is
+the calibrated default), picked on the setup screen of *both* modes — `SeasonPicker`
+holds it in component state seeded from `readRandomness()` and hands it to `onStart`,
+which is why `startSeason`/`startEra` take it as an argument rather than reading storage
+themselves. It reaches the model as `withRandomness(level)`, a derived copy of the
+constants; at level 2 it *is* `RACE_CONSTANTS`, untouched. Nothing on a season screen
+changes it — `setRatingMode`, `setGrid` and `restartSeason` all carry it forward, and an
+era carries `last.randomness` into every following year, so a run is one championship
+under one set of rules. The grid stage states it (`RandomnessNote`) and offers no
+control; the season summary and the roll of honour carry it as one small line
+(`SimulationSettings`), which is written as a *list* of settings because more are coming
+— adding one is a line in `settingsOf`, not a rewrite of the copy on two screens. Remembered in localStorage beside the ability mode, both being answers the
+*next* run is simulated against rather than ways of reading a table.
+
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, points, ratingMode, rngState, field, lineup, engines, season }`) — one
+(`{ seed, year, points, ratingMode, randomness, rngState, field, lineup, engines, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines`, and their ratings on `ratingMode`. `points` is the year's

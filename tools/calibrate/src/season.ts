@@ -7,6 +7,7 @@
  *
  *   pnpm season          # seed 1
  *   pnpm season 12       # seed 12 — same seed always gives the same season
+ *   pnpm season 12 --randomness 1  # the same season, with the dice turned down
  */
 
 import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
@@ -15,21 +16,24 @@ import {
   constructorStandings,
   createRng,
   simulateSeason,
+  withRandomness,
 } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
-import { parseYear, withoutYear } from "./year.js";
+import { parseRandomness } from "./randomness.js";
+import { parseYear, withoutFlags } from "./year.js";
 
 function main(): void {
-  const argv = withoutYear(process.argv);
+  const argv = withoutFlags(process.argv);
   const year = parseYear(process.argv);
   const authored = seasonSeed(year);
   const seed = parseSeed(argv);
+  const randomness = parseRandomness(process.argv);
   const field = buildField(authored);
   // The calendar decides how many rounds the year has, and where each is held —
   // which is what the home-advantage term reads.
   const calendar = authored.calendar;
-  const season = simulateSeason(field, calendar, createRng(seed));
+  const season = simulateSeason(field, calendar, createRng(seed), withRandomness(randomness));
   // The year's own scale, straight off its seed file: 9-6-4-3-2-1 in 1980,
   // 25-18-15-12-10-8-6-4-2-1 in 2010.
   const table = championshipStandings(season, authored.points);
