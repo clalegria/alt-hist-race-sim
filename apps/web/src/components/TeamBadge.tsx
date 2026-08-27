@@ -6,7 +6,7 @@ import { useLivery } from "./Liveries.js";
  * A team's colours as a circular badge: the primary colour as the disc, with up
  * to two diagonal stripes across it in the accents.
  *
- * **Drawn as a CSS gradient on a `div`, not an SVG.** The shape is two hard
+ * **Drawn as a CSS gradient on a `span`, not an SVG.** The shape is two hard
  * colour stops on one axis, which a gradient states exactly and a vector would
  * spell out in clip paths — and more to the point, several tests count the
  * flags in a table by counting `<svg>` elements. A badge beside every flag
@@ -17,6 +17,13 @@ import { useLivery } from "./Liveries.js";
  * glyph beside a name, and it is meant to be centred against the entry rather
  * than aligned to a line of text. Callers wanting a different size override it
  * through `className`.
+ *
+ * **Where it appears is decided per call site**, never here: the race sheet,
+ * the starting grid, both champions, the calendar's poles and winners, both
+ * championship tables and the roll of honour. Nothing that only appears after a
+ * click wears one — an expansion repeating the screen the reader just left is
+ * noise rather than detail — which is why `RaceClassification` and
+ * `StandingsTable` take a `badge` prop instead of drawing one unconditionally.
  */
 
 /**
@@ -66,6 +73,22 @@ export function badgeBackground(livery: Livery): string {
   return primaryColor;
 }
 
+/**
+ * The badge's own shape, exported so tests can count badges by it.
+ *
+ * `aria-hidden` is the obvious thing to count and the wrong one: chevrons,
+ * layout spacers and the theme toggle all carry it, so counting that finds
+ * badges only in a tree that happens to have none of them. Following
+ * `NAME_TARGET` in `SeasonGrid`, the whole string is the marker.
+ *
+ * The hairline keeps a white or near-black primary from dissolving into the
+ * page in one theme or the other. The size is against the row rather than the
+ * text beside it: this is a mark for a whole entry, not a glyph in a sentence,
+ * so it is deliberately larger than the flag next to it.
+ */
+export const BADGE_SHAPE =
+  "border-border/60 inline-block size-[1.5em] shrink-0 rounded-full border";
+
 export function TeamBadge({ teamId, className }: { teamId: string; className?: string }) {
   const liveryOf = useLivery();
   const livery = liveryOf(teamId);
@@ -79,15 +102,7 @@ export function TeamBadge({ teamId, className }: { teamId: string; className?: s
       // Decorative: the team is named in the same row, so a screen reader
       // reading a colour here would only add noise.
       aria-hidden="true"
-      className={cn(
-        // The hairline is what keeps a white or near-black primary from
-        // dissolving into the page in one theme or the other.
-        // Sized against the row rather than the text beside it: this is a mark
-        // for the whole entry, not a glyph in a sentence, so it is deliberately
-        // larger than the flag it sits next to.
-        "border-border/60 inline-block size-[1.5em] shrink-0 rounded-full border",
-        className,
-      )}
+      className={cn(BADGE_SHAPE, className)}
       style={{ background: badgeBackground(livery) }}
     />
   );

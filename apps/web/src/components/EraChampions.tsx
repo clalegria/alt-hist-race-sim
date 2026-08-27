@@ -7,6 +7,7 @@ import type { EraRun } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
+import { Liveries } from "./Liveries.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -43,60 +44,67 @@ export function ChampionRow({
 }) {
   return (
     <EntryNames field={season.world.field}>
-      <TableRow className={cn(latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}>
-        <TableCell className="font-semibold tabular-nums">
-          <DisclosureButton open={open} onToggle={onToggle}>
-            {season.year}
-          </DisclosureButton>
-        </TableCell>
-        <TableCell>
-          <DriverName
-            driverId={season.driver?.driverId ?? null}
-            {...(season.driver === null ? {} : { teamId: season.driver.teamId })}
-            emphasis
-          />
-        </TableCell>
-        <TableCell className="text-right font-semibold tabular-nums">
-          {season.driver?.points ?? "—"}
-        </TableCell>
-        <TableCell className="text-muted-foreground text-right tabular-nums">
-          {season.driver?.wins ?? "—"}
-        </TableCell>
-        <TableCell>
-          {season.team === null ? (
-            <span className="text-muted-foreground">—</span>
-          ) : (
-            <TeamName teamId={season.team.teamId} emphasis />
-          )}
-        </TableCell>
-        <TableCell className="text-right font-semibold tabular-nums">
-          {season.team?.points ?? "—"}
-        </TableCell>
-        <TableCell className="text-muted-foreground text-right tabular-nums">
-          {season.team?.wins ?? "—"}
-        </TableCell>
-      </TableRow>
-      {open ? (
-        <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={COLUMN_COUNT} className="p-0">
-            {/*
-              The same two tables the season summary ends on, drawn by the same
-              component — so a year read out of the roll of honour and a year
-              just finished say the same thing, down to the columns. Each row of
-              them still opens into its own race-by-race, off this year's own
-              calendar rather than a season fixed at import time.
-            */}
-            <div className="bg-muted/40 border-border flex flex-col gap-4 border-y px-3 py-4">
-              <SeasonStandings
-                season={season.world.season}
-                calendar={seasonSeed(season.year).calendar}
-                points={season.world.points}
-                description="Final classification."
-              />
-            </div>
+      {/*
+        This year's colours, not the era's: a team's livery is a per-season fact
+        and the roll of honour spans many, so each row resolves its own.
+      */}
+      <Liveries year={season.year}>
+        <TableRow className={cn(latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}>
+          <TableCell className="font-semibold tabular-nums">
+            <DisclosureButton open={open} onToggle={onToggle}>
+              {season.year}
+            </DisclosureButton>
+          </TableCell>
+          <TableCell>
+            <DriverName
+              driverId={season.driver?.driverId ?? null}
+              {...(season.driver === null ? {} : { teamId: season.driver.teamId })}
+              emphasis
+              badge
+            />
+          </TableCell>
+          <TableCell className="text-right font-semibold tabular-nums">
+            {season.driver?.points ?? "—"}
+          </TableCell>
+          <TableCell className="text-muted-foreground text-right tabular-nums">
+            {season.driver?.wins ?? "—"}
+          </TableCell>
+          <TableCell>
+            {season.team === null ? (
+              <span className="text-muted-foreground">—</span>
+            ) : (
+              <TeamName teamId={season.team.teamId} emphasis badge />
+            )}
+          </TableCell>
+          <TableCell className="text-right font-semibold tabular-nums">
+            {season.team?.points ?? "—"}
+          </TableCell>
+          <TableCell className="text-muted-foreground text-right tabular-nums">
+            {season.team?.wins ?? "—"}
           </TableCell>
         </TableRow>
-      ) : null}
+        {open ? (
+          <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={COLUMN_COUNT} className="p-0">
+              {/*
+                The same two tables the season summary ends on, drawn by the same
+                component — so a year read out of the roll of honour and a year
+                just finished say the same thing, down to the columns. Each row of
+                them still opens into its own race-by-race, off this year's own
+                calendar rather than a season fixed at import time.
+              */}
+              <div className="bg-muted/40 border-border flex flex-col gap-4 border-y px-3 py-4">
+                <SeasonStandings
+                  season={season.world.season}
+                  calendar={seasonSeed(season.year).calendar}
+                  points={season.world.points}
+                  description="Final classification."
+                />
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : null}
+      </Liveries>
     </EntryNames>
   );
 }

@@ -5,6 +5,7 @@ import { driverCountry, driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
+import { TeamBadge } from "./TeamBadge.js";
 
 /**
  * One car's slot on the grid.
@@ -33,6 +34,7 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
       >
         {entry.gridPosition}
       </span>
+      <TeamBadge teamId={entry.teamId} />
       {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
       <span className="flex min-w-0 flex-1 flex-col leading-tight">
         <span className={cn("truncate text-sm", pole && "font-semibold")}>

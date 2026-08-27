@@ -44,11 +44,17 @@ export function StandingsTable({
   season,
   points,
   calendar,
+  badge = false,
 }: {
   title: string;
   description: string;
   nameColumn: string;
   standings: readonly Standing[];
+  /**
+   * Draw a livery badge on every row. On for the season summary, off where
+   * these tables are themselves the expansion of a roll-of-honour row.
+   */
+  badge?: boolean;
   /** The results both the table and its expansions are derived from. */
   season: SeasonResult;
   /** The season's points scale, so an expansion scores its rounds as the table did. */
@@ -110,9 +116,10 @@ export function StandingsTable({
                           driverId={standing.driverId}
                           teamId={standing.teamId}
                           emphasis={index === 0}
+                          badge={badge}
                         />
                       ) : (
-                        <TeamName teamId={standing.teamId} emphasis={index === 0} />
+                        <TeamName teamId={standing.teamId} emphasis={index === 0} badge={badge} />
                       )}
                     </DisclosureButton>
                   </TableCell>

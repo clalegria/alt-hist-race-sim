@@ -58,8 +58,11 @@ Points are already derived from result rows, so the data is a cumulative fold ov
 rounds the app can compute — no new state and no engine change. Two decisions to make:
 whether the series are the top six *at season end* (simple, and the reader already knows
 who matters) or the top six at any point (honest, but the legend grows); and whether the
-y axis is points or championship position. Colours come from the web app's palette for
-now, and should switch to *liveries* once those land.
+y axis is points or championship position. **Series colours should come from the
+liveries**, which are built: `liveryFor(teamId, year)` in `apps/web/src/lib/livery.ts`
+resolves a team's colours for a season, and `legible()` beside it is how a team colour is
+made safe against either theme — a chart drawing raw authored colours will lose the white
+and near-black teams exactly as the team cards did.
 
 **This is the first chart in the project**, so it cashes in the Recharts decision in
 `docs/DECISIONS.md`, and it lands before the editor's career chart deliberately: the
@@ -200,8 +203,10 @@ version stamp in the footer as part of this item.
      discovery. Confirm there is no `.env` and nothing personal in the history first.
   2. **Names and trademarks are the real exposure.** Using real drivers' and teams'
      names to describe history is ordinary and fine. The championship's word marks and
-     the teams' logos are not the author's to use, so do not put them in the app, and
-     keep *liveries* to colours rather than badges. Add a plain line to the About page
+     the teams' logos are not the author's to use, so do not put them in the app. The
+     livery badge is fine and deliberately so: it is a disc generated from three authored
+     colours, not a reproduction of anyone's mark. The line not to cross is a real logo
+     or word mark, not a coloured shape. Add a plain line to the About page
      saying the project is unofficial, unaffiliated with and unendorsed by anyone, and
      is a work of alternate history. This is a note to be careful, not legal advice.
   3. **User-supplied text arrives with the editor.** Once someone can rename a team, the
@@ -219,10 +224,11 @@ version stamp in the footer as part of this item.
 
 ---
 
-*The next six items are the seed-data-shape block.* Each adds an authored field to all
-seventy-seven season files — lineage links, career records, era numbers, liveries, wet
-ratings, per-round circuit blocks. **Settle them together and make one authoring pass**,
-in *season fine-tuning* below, rather than six passes over the same files.
+*The next five items are the seed-data-shape block.* Each adds an authored field to all
+seventy-seven season files — lineage links, career records, era numbers, wet ratings,
+per-round circuit blocks. **Settle them together and make one authoring pass**, in
+*season fine-tuning* below, rather than five passes over the same files. Liveries were
+the sixth and are done, so their colours can join that pass without holding it up.
 
 **6. Team lineage.** A way to say that a team in one season *is* a team from the
 previous one under another name — a constructor sold and rebadged, a works partnership
@@ -282,24 +288,7 @@ Calibrating the first two per year is a measurement job, and the author asking f
 here is the authorisation the no-re-calibration invariant requires — for *these* numbers,
 not for driver or car ratings, which stay fixed.
 
-**9. Liveries.** A car's colour scheme for that season, shown in the UI. The grid is a
-list of names today, and a 1980s field is far more recognisable by colour than by team
-name — this is the cheapest thing on the list that makes the app *look* like the sport.
-
-A per-entry authored block on each season file, because a team's colours change between
-years and sometimes between cars. Probably two or three colours (primary, secondary,
-accent) rather than one, so a grid row, a standings row and a results table can all be
-tinted from the same source — as can the *standings evolution charts* above. A colour
-bar on the grid and standings rows is the obvious first use; a rendered car is not in
-scope.
-
-**Display-only. Nothing in the model reads it, so no re-tune and no engine change** —
-an authoring job plus a styling one. Contrast in both themes is the real constraint, and
-some historical liveries are white, black or very nearly the background; see
-`.claude/rules/` on the web app's styling for how the palette is handled before picking
-a representation. **Colours, not badges** — see the trademark note in *publish it*.
-
-**10. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**9. Wet racing.** A realistic share of races are declared wet. In the wet: a new
 **1–100 wet-weather rating** per driver carries a large part of the score, driver-error
 retirements rise sharply, and the noise term widens considerably — a wet race should be
 where the field genuinely reorders. The rating is a new authored field on every driver,
@@ -311,7 +300,7 @@ is needed and why, and get agreement, before running the harness. Note that it a
 *randomness slider* both widen the same noise term from different directions; they
 should compose as separate multipliers, not fight over one constant.
 
-**11. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**10. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -325,14 +314,16 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**12. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**11. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
 typing.
 
 - **This is where the single authoring pass for the block above is made** — lineage
-  links, career records, era numbers, liveries, wet ratings, per-round circuit blocks —
-  which is why those are settled first and paid for once.
+  links, career records, era numbers, wet ratings, per-round circuit blocks — which is
+  why those are settled first and paid for once. Liveries are in the same pass but not
+  waiting on anything: their format is already settled, so they can be written for any
+  year at any time.
 - **The ratings are first drafts.** Seventy-seven seasons were written far faster than
   they can be measured, and only 1980 and 1981 have ever been calibrated. Going back
   over them era by era — against `pnpm calibrate-season`, in the editor — is the
@@ -342,8 +333,15 @@ typing.
   model was built and calibrated against: tiny fields, wild attrition, privateers and
   shared drives in the 1950s and 1960s; and at the modern end, the reliability and
   overtaking assumptions baked into a model tuned on 1980.
+- **Liveries are authored for almost no season yet.** The feature itself is built — every
+  team carries a default in `teams.json`, any season may override it per entry, and the
+  UI draws both (`.claude/rules/web-display.md`). What is missing is the *writing*: only
+  1991 has season overrides, so every other year falls back to one set of colours per
+  team and a team that changed livery between seasons does not show it. Worth doing for
+  the modern seasons first, where a reader is most likely to notice — but it is typing
+  against reference photos, not a decision, and nothing depends on it.
 
-**13. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**12. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
@@ -355,7 +353,7 @@ records* give it the reputations to reason about.
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**14. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**13. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.

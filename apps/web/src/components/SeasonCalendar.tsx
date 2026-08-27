@@ -77,6 +77,7 @@ export function SeasonCalendar({
                     <DriverName
                       driverId={race.poleDriverId}
                       teamId={teamFor.get(race.poleDriverId)}
+                      badge
                     />
                   </TableCell>
                   <TableCell>
@@ -85,6 +86,7 @@ export function SeasonCalendar({
                       teamId={
                         race.winnerDriverId === null ? undefined : teamFor.get(race.winnerDriverId)
                       }
+                      badge
                     />
                   </TableCell>
                 </TableRow>

@@ -10,14 +10,18 @@
 
 import type { Livery } from "@alt-hist/data";
 import { seasonSeed, seasons, teamsById } from "@alt-hist/data";
+import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
-import { seededWorld, teamCount, YEAR } from "../test-support.js";
+import { SEED, seededWorld, teamCount, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
+import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
-import { badgeBackground, TeamBadge } from "./TeamBadge.js";
+import { SeasonStandings } from "./SeasonStandings.js";
+import { SeasonView } from "./SeasonView.js";
+import { BADGE_SHAPE, badgeBackground, TeamBadge } from "./TeamBadge.js";
 
 /** A livery whose four values are distinguishable in a gradient string. */
 function livery(badgeStripes: number): Livery {
@@ -37,6 +41,17 @@ function stops(background: string): readonly (readonly [string, number])[] {
 }
 
 const someTeamId = [...teamsById().keys()][0] ?? "";
+
+/**
+ * Badges in a rendered tree, counted by the badge's own class string.
+ *
+ * Not by `aria-hidden`: chevrons, spacers and the theme toggle carry it too, so
+ * that count is right only in a tree with none of them — which is exactly how
+ * it passed here while silently counting the wrong things elsewhere.
+ */
+function badgeCount(html: string): number {
+  return html.split(BADGE_SHAPE).length - 1;
+}
 
 describe("the badge", () => {
   it("draws a plain disc when a team wears no stripes", () => {
@@ -153,13 +168,13 @@ describe("where liveries appear", () => {
 
   const classification = renderToStaticMarkup(
     <Liveries year={YEAR}>
-      <RaceClassification race={race} points={world.points} />
+      <RaceClassification race={race} points={world.points} badge />
     </Liveries>,
   );
 
   it("puts a badge on every row of the race classification", () => {
     // Counted off the field rather than a written-down grid size.
-    expect(classification.split('aria-hidden="true"').length - 1).toBe(race.entries.length);
+    expect(badgeCount(classification)).toBe(race.entries.length);
   });
 
   it("draws the badge left of the driver's flag, not right of it", () => {
@@ -167,9 +182,7 @@ describe("where liveries appear", () => {
     // in the markup, *and* nothing reverses the row visually afterwards. The
     // second half was added when flipping the container to `flex-row-reverse`
     // moved the badge to the right of the flag with this test still green.
-    expect(classification.indexOf('aria-hidden="true"')).toBeLessThan(
-      classification.indexOf("<svg"),
-    );
+    expect(classification.indexOf(BADGE_SHAPE)).toBeLessThan(classification.indexOf("<svg"));
     expect(classification).not.toContain("row-reverse");
   });
 
@@ -194,6 +207,32 @@ describe("where liveries appear", () => {
     }
   });
 
+  const summary = renderToStaticMarkup(
+    <Liveries year={YEAR}>
+      <SeasonView world={world} view={{ kind: "summary" }} />
+    </Liveries>,
+  );
+
+  const qualifying = renderToStaticMarkup(
+    <Liveries year={YEAR}>
+      <QualifyingResults race={race} />
+    </Liveries>,
+  );
+
+  it("puts a badge in every slot of the starting grid", () => {
+    expect(badgeCount(qualifying)).toBe(race.entries.length);
+  });
+
+  it("badges both champions, both standings tables and every pole and winner", () => {
+    // Counted against what the season actually holds rather than a written-down
+    // total: two champion boxes, a pole and a winner per round, and a row per
+    // competitor in each championship table.
+    const drivers = championshipStandings(world.season, world.points).length;
+    const teams = constructorStandings(world.season, world.points).length;
+    const rounds = world.season.races.length;
+    expect(badgeCount(summary)).toBe(2 + drivers + teams + 2 * rounds);
+  });
+
   it("outlines every grid card in its team's first accent", () => {
     const cards = teamCount(world);
     expect(grid.split("border-color:").length - 1).toBe(cards);
@@ -204,6 +243,57 @@ describe("where liveries appear", () => {
       }
       expect(grid, entrant.teamId).toContain(resolved.secondaryColor1);
     }
+  });
+});
+
+describe("keeping badges out of what a click opens", () => {
+  // Everything that only appears after a click stays a step down in weight: an
+  // expansion repeating the screen the reader just left is noise, not detail.
+  const world = seededWorld();
+  const race = world.season.races[0];
+  if (race === undefined) {
+    throw new Error("seeded world has no races");
+  }
+
+  it("draws none in a race sheet opened out of the calendar", () => {
+    // The same component the race screen badges, asked not to here.
+    const expansion = renderToStaticMarkup(
+      <Liveries year={YEAR}>
+        <RaceClassification race={race} points={world.points} />
+      </Liveries>,
+    );
+    expect(badgeCount(expansion)).toBe(0);
+  });
+
+  it("draws none in championship tables opened out of the roll of honour", () => {
+    const expansion = renderToStaticMarkup(
+      <Liveries year={YEAR}>
+        <SeasonStandings
+          season={world.season}
+          calendar={SEED.calendar}
+          points={world.points}
+          description="Final classification."
+        />
+      </Liveries>,
+    );
+    expect(badgeCount(expansion)).toBe(0);
+  });
+
+  it("badges the same tables when they are the screen rather than an expansion", () => {
+    // The other half of the rule: the prop is what decides, so the summary's
+    // own copy of these tables must still carry them.
+    const onScreen = renderToStaticMarkup(
+      <Liveries year={YEAR}>
+        <SeasonStandings
+          season={world.season}
+          calendar={SEED.calendar}
+          points={world.points}
+          description="Final classification."
+          badge
+        />
+      </Liveries>,
+    );
+    expect(badgeCount(onScreen)).toBeGreaterThan(0);
   });
 });
 

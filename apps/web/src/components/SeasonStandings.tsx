@@ -25,6 +25,7 @@ export function SeasonStandings({
   calendar,
   points,
   description,
+  badge = false,
 }: {
   season: SeasonResult;
   /** Names the rounds inside a row's expansion. From the season's own year. */
@@ -33,6 +34,11 @@ export function SeasonStandings({
   points: PointsScale;
   /** What the table is of — "Final classification.", or a round count. */
   description: string;
+  /**
+   * Draw a livery badge on every row. The season summary does; the roll of
+   * honour, where this pair *is* an expansion, does not.
+   */
+  badge?: boolean;
 }) {
   const drivers = useMemo(() => championshipStandings(season, points), [season, points]);
   const constructors = useMemo(() => constructorStandings(season, points), [season, points]);
@@ -47,6 +53,7 @@ export function SeasonStandings({
         season={season}
         points={points}
         calendar={calendar}
+        badge={badge}
       />
       <StandingsTable
         title="Constructors&rsquo; Championship"
@@ -56,6 +63,7 @@ export function SeasonStandings({
         season={season}
         points={points}
         calendar={calendar}
+        badge={badge}
       />
     </>
   );

@@ -137,8 +137,25 @@ than the flag next to it. The stripes are narrow enough that the primary colour 
 the dominant one; note when tuning that a 135° axis runs about 1.41x the disc'''s
 diameter, so a sash reads wider than its percentage suggests.
 
-**It is opted into per table**, via `badge` on `DriverName` — the race classification
-wears it today. A badge everywhere is a decision to make after seeing it somewhere. The
+**It is opted into per call site**, via `badge` on `DriverName` and `TeamName`. It is
+worn by the race sheet, the starting grid, both champion boxes, the calendar's poles and
+winners, both championship tables on the summary, and the roll of honour.
+
+**Nothing that only appears after a click wears one.** An expansion repeating the screen
+the reader just left is noise rather than detail, so a badge marks the row you can see,
+not the panel it opens. Two components are used *both* ways and therefore take a `badge`
+prop rather than deciding for themselves: `RaceClassification` (the race screen, versus a
+round opened out of the calendar) and `StandingsTable` via `SeasonStandings` (the season
+summary, versus a year opened out of the roll of honour). Both default to **off**, so a
+new call site has to ask.
+
+**Count badges by `BADGE_SHAPE`, never by `aria-hidden`.** The badge is decorative and
+hidden, but so are chevrons, layout spacers and the theme toggle — a count of
+`aria-hidden` is right only in a tree that happens to contain none of them, which is
+exactly how such a test passed while measuring the wrong thing. The exported class string
+is the marker, the same way `NAME_TARGET` is in `SeasonGrid`.
+
+The
 badge sits in a **column of its own** beside the two text lines rather than inside the
 first, so the team line keeps its one fixed inset; an arithmetic indent was tried and
 put a literal `+1em` in the class list, which the classification's "no gap on a

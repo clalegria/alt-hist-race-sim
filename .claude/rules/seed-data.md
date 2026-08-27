@@ -83,6 +83,16 @@ year authored would be the one nobody checked. It covers the pools only, and
 every declared field present and in range, and no field present that the type does not
 declare.
 
+**Liveries are optional per season and required per team.** Every team in `teams.json`
+carries `primaryColor`, `secondaryColor1`, `secondaryColor2` (all `#RRGGBB`) and
+`badgeStripes` (0, 1 or 2) as its default. A season entry may override all four for that
+year — Benetton is green in 1991 and blue in 1996 — and **it is all four or none**:
+`validateSeedData` rejects a partial override rather than merging one, because the fields
+that fell back would combine into a livery nobody authored. Only 1991 carries overrides
+today; every other year draws its teams in the team defaults, which is correct but not
+yet the history. Adding them to a year is pure authoring — no code changes, nothing to
+re-tune, and nothing reads a livery except the UI.
+
 Nothing else has a list of seasons in it. `apps/web/src/lib/seasons.ts` derives
 `PLAYABLE_SEASONS` and the picker's subtitle from `authoredSeasons`; the calibrate
 tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.

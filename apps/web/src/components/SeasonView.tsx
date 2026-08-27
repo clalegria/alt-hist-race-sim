@@ -36,6 +36,7 @@ import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { TeamBadge } from "./TeamBadge.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 
@@ -98,11 +99,17 @@ function Champion({
   name,
   detail,
   country,
+  teamId,
 }: {
   label: string;
   name: string;
   detail: string;
   country?: string | undefined;
+  /**
+   * Whose colours the box wears — the champion's team, or the champion itself
+   * on the constructors' side. Undefined before anyone has scored.
+   */
+  teamId?: string | undefined;
 }) {
   return (
     // The same accent pole and the race winner carry: whoever won the thing on
@@ -111,6 +118,7 @@ function Champion({
       <CardHeader>
         <CardDescription>{label}</CardDescription>
         <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
+          {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
           {country === undefined || country === "" ? null : (
             <Flag country={country} title={country} className="h-4 w-6" />
           )}
@@ -178,6 +186,7 @@ function Summary({
           label="Drivers&rsquo; champion"
           name={champion === undefined ? "—" : driverName(champion.driverId)}
           country={champion === undefined ? undefined : driverCountry(champion.driverId)}
+          {...(champion === undefined ? {} : { teamId: champion.teamId })}
           detail={
             champion === undefined
               ? "Nobody scored."
@@ -188,6 +197,7 @@ function Summary({
           label="Constructors&rsquo; champion"
           name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
           country={topTeam === undefined ? undefined : teamCountry(topTeam.teamId)}
+          {...(topTeam === undefined ? {} : { teamId: topTeam.teamId })}
           detail={
             topTeam === undefined
               ? "Nobody scored."
@@ -201,6 +211,7 @@ function Summary({
         calendar={seed.calendar}
         points={points}
         description="Final classification."
+        badge
       />
       {/*
         A gap wider than the page's own, because this is where the season stops
@@ -309,7 +320,7 @@ function RaceStage({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
         <Section title={`${label.name} — Race`} subtitle={label.circuit} country={label.country}>
-          <RaceClassification race={race} points={points} />
+          <RaceClassification race={race} points={points} badge />
         </Section>
 
         <aside className="flex flex-col gap-4">

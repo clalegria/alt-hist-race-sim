@@ -19,6 +19,7 @@ import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
 import { ChampionRow, EraChampions } from "./EraChampions.js";
 import { EraPicker } from "./SeasonPicker.js";
+import { BADGE_SHAPE } from "./TeamBadge.js";
 
 const noop = () => {};
 
@@ -190,6 +191,15 @@ describe("a year opened out of the roll of honour", () => {
     expect(shut).toContain('aria-expanded="false"');
     expect(shut).toContain("▶");
     expect(wide).toContain('aria-expanded="true"');
+  });
+
+  it("badges both champions on the row, and nothing inside the expansion", () => {
+    // Two on a crowned row — the drivers' champion and the constructors' — and
+    // none in what the click reveals, which is the rule everywhere: an
+    // expansion repeating the screen above it is noise rather than detail.
+    const badges = (html: string) => html.split(BADGE_SHAPE).length - 1;
+    expect(badges(shut)).toBe(2);
+    expect(badges(wide)).toBe(2);
   });
 
   it("shows both championships of that year when it is open", () => {

@@ -39,10 +39,18 @@ function gapOf(entry: RaceEntryResult): string {
 export function RaceClassification({
   race,
   points,
+  badge = false,
 }: {
   race: RaceResult;
   /** The season's points scale. What a finish is worth depends on the year. */
   points: PointsScale;
+  /**
+   * Draw a livery badge on every row. On for the race screen, off where this
+   * sheet is the *expansion* of a calendar row — nothing that only appears
+   * after a click wears one, so opening a round stays a step down in weight
+   * rather than repeating the screen the reader just left.
+   */
+  badge?: boolean;
 }) {
   return (
     <Table>
@@ -86,7 +94,12 @@ export function RaceClassification({
                   finished || "text-muted-foreground",
                 )}
               >
-                <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} badge />
+                <DriverName
+                  driverId={entry.driverId}
+                  teamId={entry.teamId}
+                  emphasis={won}
+                  badge={badge}
+                />
               </TableCell>
               <TableCell className={cn(CELL, "text-muted-foreground text-right tabular-nums")}>
                 {entry.gridPosition}
