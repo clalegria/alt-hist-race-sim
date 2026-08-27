@@ -14,6 +14,7 @@ import {
   DEFAULT_RANDOMNESS_LEVEL,
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { adjacentSeason } from "../lib/seasons.js";
 import {
   advance,
   createWorld,
@@ -796,5 +797,74 @@ describe("the chosen engines", () => {
     expect(() => {
       useSeasonStore.getState().setGrid(null, { ...authored, [swap.teamId]: "phlogiston" });
     }).toThrow(/no engine "phlogiston"/);
+  });
+});
+
+describe("stepping to the season next door", () => {
+  /** The year after the fixture one, off the playable list. */
+  const NEXT = adjacentSeason(YEAR, 1);
+  if (NEXT === null) {
+    throw new Error("the fixtures need at least two authored seasons");
+  }
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR, "aged", 4);
+  });
+
+  it("runs the neighbouring year, back at its grid", () => {
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(running().world.year).toBe(NEXT);
+    expect(running().view).toEqual({ kind: "grid" });
+  });
+
+  it("keeps how the reader chose to play, not the remembered preferences", () => {
+    // The whole difference from `startSeason`: someone stepping through a
+    // decade keeps the ability mode and the randomness they set for the first
+    // of them rather than being handed whatever storage last saw.
+    const before = running().world;
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    const after = running().world;
+    expect(after.ratingMode).toBe(before.ratingMode);
+    expect(after.randomness).toBe(before.randomness);
+  });
+
+  it("draws fresh dice rather than replaying the year's stream", () => {
+    const before = running().world.seed;
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(running().world.seed).not.toBe(before);
+  });
+
+  it("does not carry a grid across a year boundary", () => {
+    // A lineup and a set of supply deals belong to the entry list they were
+    // drawn for; there is no sense in which they mean anything a year later.
+    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
+    expect(running().world.lineup).not.toBeNull();
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(running().world.lineup).toBeNull();
+    expect(running().world.engines).toBeNull();
+  });
+
+  it("refuses once the season has started revealing", () => {
+    // Same rule as the ability toggle and the grid editor, for the same reason.
+    useSeasonStore.getState().nextSession();
+    const before = running().world;
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(running().world).toBe(before);
+    expect(running().world.year).toBe(YEAR);
+  });
+
+  it("does nothing at all off a season screen", () => {
+    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(screen()).toEqual({ kind: "menu" });
+  });
+
+  it("leaves an era's year to the run", () => {
+    // An era's next year comes from the run, not the reader: a button that
+    // jumped out of it would be leaving the mode rather than stepping in it.
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    const before = screen();
+    useSeasonStore.getState().switchSeasonYear(NEXT);
+    expect(screen()).toBe(before);
   });
 });

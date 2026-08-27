@@ -37,6 +37,7 @@ import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { type Setting, SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TitleBanner } from "./TitleBanner.js";
@@ -389,6 +390,14 @@ interface SeasonViewProps {
   readonly canChooseAbility?: boolean;
   /** Absent in tests, where nothing is clicked. The toggle still renders. */
   readonly onRatingModeChange?: (mode: RatingMode) => void;
+  /**
+   * Jump to the season either side of this one, from the grid.
+   *
+   * Absent inside an era, where the year belongs to the run rather than to the
+   * reader — the switcher is not drawn at all then, the same way the ability
+   * toggle is not. Absent in tests too, where nothing is clicked.
+   */
+  readonly onYearChange?: (year: number) => void;
   /** The same, for the grid editor: it draws without one, it just cannot apply. */
   readonly onGridChange?: (edit: GridEdit) => void;
   /** Raised while the grid editor is open, so the page can hide the way forward. */
@@ -406,6 +415,7 @@ function SeasonBody({
   view,
   canChooseAbility = true,
   onRatingModeChange,
+  onYearChange,
   onGridChange,
   onGridEditingChange,
 }: SeasonViewProps) {
@@ -422,7 +432,20 @@ function SeasonBody({
             {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
           />
         ) : null}
-        <RandomnessNote level={world.randomness} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <RandomnessNote level={world.randomness} />
+          {/*
+            Beside the randomness note rather than under the buttons: both are
+            facts about *which season this is*, and the row reads as one line —
+            what is being raced, and the years next to it.
+          */}
+          {canChooseAbility ? (
+            <SeasonSwitcher
+              year={world.year}
+              {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
+            />
+          ) : null}
+        </div>
         <GridStage
           field={world.field}
           year={world.year}

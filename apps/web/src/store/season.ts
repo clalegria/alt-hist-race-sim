@@ -41,7 +41,12 @@ import {
   withRandomness,
 } from "@alt-hist/engine";
 import { create } from "zustand";
-import { readRandomness, readRatingMode, rememberRatingMode } from "../lib/preferences.js";
+import {
+  readRandomness,
+  readRatingMode,
+  rememberRatingMode,
+  rememberSeasonYear,
+} from "../lib/preferences.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 
@@ -400,6 +405,27 @@ interface SeasonStore {
   /** Jumps straight to the finished season. */
   readonly skipToEnd: () => void;
   /**
+   * The grid of the season next door — the year before or the year after — on a
+   * fresh seed.
+   *
+   * The shortcut off the grid screen, for the reader who has just finished 1980
+   * and wants 1981. It is `startSeason` in every respect but where the settings
+   * come from: the *world on screen* rather than the remembered preferences, so
+   * stepping through a decade keeps the ability mode and the randomness level
+   * the reader chose for the first of them, and does not quietly hand them a
+   * different set of rules for the next.
+   *
+   * What does not carry is the grid: a lineup and a set of supply deals belong
+   * to the year they were drawn for, and there is no sense in which Piquet at
+   * Williams in 1980 means anything about the 1981 entry list.
+   *
+   * **Standalone seasons only, and only on the grid.** An era's year is decided
+   * by the run rather than by the reader, and past the grid the results on
+   * screen belong to a season this would replace. The year is remembered, since
+   * it is the same choice the picker makes.
+   */
+  readonly switchSeasonYear: (year: number) => void;
+  /**
    * Back to the grid of the same *year* and the same ability mode, on a fresh
    * seed.
    *
@@ -628,6 +654,28 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
     set((state) =>
       isPlaying(state.screen) ? { screen: { ...state.screen, view: { kind: "summary" } } } : state,
     );
+  },
+  switchSeasonYear: (year) => {
+    set((state) => {
+      if (state.screen.kind !== "season" || state.screen.view.kind !== "grid") {
+        return state;
+      }
+      rememberSeasonYear(year);
+      return {
+        screen: openSeason(
+          createWorld(
+            randomSeed(),
+            year,
+            state.screen.world.ratingMode,
+            // A grid the reader assembled was assembled for another year's
+            // entry list; nothing about it transfers.
+            null,
+            null,
+            state.screen.world.randomness,
+          ),
+        ),
+      };
+    });
   },
   restartSeason: () => {
     set((state) =>

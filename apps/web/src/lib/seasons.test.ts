@@ -1,6 +1,7 @@
 import { authoredSeasons } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import {
+  adjacentSeason,
   FIRST_SEASON,
   isPlayable,
   LAST_SEASON,
@@ -85,5 +86,41 @@ describe("saying which seasons are playable", () => {
     const summary = playableSummary();
     expect(summary).toContain(String(PLAYABLE_SEASONS[0]));
     expect(summary).toContain(String(PLAYABLE_SEASONS[PLAYABLE_SEASONS.length - 1]));
+  });
+});
+
+describe("the seasons either side of one", () => {
+  it("walks the playable list rather than adding one", () => {
+    // Every year in the range is authored today, so what proves the rule is a
+    // list with a hole in it — which is the whole reason this is not `year ± 1`.
+    const first = PLAYABLE_SEASONS[0] ?? 0;
+    const second = PLAYABLE_SEASONS[1] ?? 0;
+    expect(adjacentSeason(first, 1)).toBe(second);
+    expect(adjacentSeason(second, -1)).toBe(first);
+  });
+
+  it("has nothing beyond either end of the range", () => {
+    expect(adjacentSeason(PLAYABLE_SEASONS[0] ?? 0, -1)).toBeNull();
+    expect(adjacentSeason(PLAYABLE_SEASONS.at(-1) ?? 0, 1)).toBeNull();
+  });
+
+  it("gives an unplayable year no neighbours at all", () => {
+    // Callers reach this through a world, whose year is always playable; a year
+    // outside the range must not be handed one that `seasonSeed` would throw on.
+    expect(adjacentSeason(FIRST_SEASON - 1, 1)).toBeNull();
+    expect(adjacentSeason(LAST_SEASON + 1, -1)).toBeNull();
+  });
+
+  it("steps from every playable year to its neighbour and back", () => {
+    for (const [at, year] of PLAYABLE_SEASONS.entries()) {
+      const next = adjacentSeason(year, 1);
+      if (next === null) {
+        expect(at).toBe(PLAYABLE_SEASONS.length - 1);
+        continue;
+      }
+      expect(isPlayable(next)).toBe(true);
+      expect(next).toBeGreaterThan(year);
+      expect(adjacentSeason(next, -1)).toBe(year);
+    }
   });
 });

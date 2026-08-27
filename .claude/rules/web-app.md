@@ -53,6 +53,17 @@ else and the Begin button quietly naming a year that is not on screen. Picking a
 therefore *selects* its earliest playable year. That single-value shape is also what
 keeps every state renderable without a click.
 
+**The year sticks, like the other two answers.** `readSeasonYear` /
+`rememberSeasonYear` in `lib/preferences.ts` seed the picker and are written on every
+selection, so coming back to try the season after the one just run does not hand the
+reader 1950 again. It was deliberately *not* remembered while a run was a one-off — the
+year is the question the screen is asking — and that reasoning stopped holding once
+readers started stepping through a decade. **One key for both pickers**: a season and
+an era ask the same question of the same years, and two answers to "which year was I
+on" is worse than one. Validated against `isPlayable` on the way out rather than merely
+parsed, since a stored year with no seed file behind it reaches `seasonSeed`, which
+throws.
+
 **`YearPicker` takes `playable` as a prop** (defaulting to `isPlayable`) purely so the
 disabled branches can be tested. Every season from 1950 to 2026 is authored, so against
 the seed data an unavailable year cannot occur — assertions about it pass just as
@@ -86,6 +97,16 @@ draws a **fresh seed for the same year and the same `ratingMode`**: another go, 
 replay, and everything the reader *chose* carries over — only the dice change. Both
 copies of the action row — sticky bar and page foot — share one confirming flag so
 they cannot disagree.
+
+**The grid offers the seasons either side of it**, in `SeasonSwitcher` — the shortcut
+for a reader who has just watched 1980 and wants 1981. It is where "Start again →
+Beginning of the season" lands them, and the alternative was Back plus a decade rail to
+answer a one-button question. Drawn **only on the grid**, for the reason
+`RatingModeToggle` is — past it the reader has seen results that switching would throw
+away — and **only in a standalone season**, since an era's year belongs to the run.
+The neighbours come from `adjacentSeason(year, ±1)` in `lib/seasons.ts`, which walks
+`PLAYABLE_SEASONS` rather than adding one, so a gap in the seed data is skipped rather
+than offered.
 
 **The grid leaves through a plain Back**, to the year picker it came from — no
 confirming step, because nothing has been revealed yet and leaving costs the reader

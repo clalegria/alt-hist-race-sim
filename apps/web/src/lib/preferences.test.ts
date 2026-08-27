@@ -12,12 +12,16 @@ import {
   parseRatingMode,
   readRandomness,
   readRatingMode,
+  readSeasonYear,
   rememberRandomness,
   rememberRatingMode,
+  rememberSeasonYear,
 } from "./preferences.js";
+import { DEFAULT_SEASON_YEAR, isPlayable, LAST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
 const STORAGE_KEY = "alt-hist-rating-mode";
 const RANDOMNESS_KEY = "alt-hist-randomness";
+const YEAR_KEY = "alt-hist-season-year";
 
 /**
  * Installs a fake storage and hands back the map behind it.
@@ -152,6 +156,63 @@ describe("remembering the randomness level", () => {
     stubStorage();
     rememberRatingMode("aged");
     rememberRandomness(5);
+    expect(readRatingMode()).toBe("aged");
+    expect(readRandomness()).toBe(5);
+  });
+});
+
+describe("remembering the year a picker opens on", () => {
+  it("survives without any storage at all", () => {
+    expect(typeof localStorage).toBe("undefined");
+    expect(readSeasonYear()).toBe(DEFAULT_SEASON_YEAR);
+    expect(() => {
+      rememberSeasonYear(DEFAULT_SEASON_YEAR);
+    }).not.toThrow();
+  });
+
+  it("reads back what it wrote", () => {
+    const store = stubStorage();
+    // Not the default, so the assertion cannot pass by falling back — and taken
+    // off the playable list rather than written down.
+    const other = PLAYABLE_SEASONS.at(-1) ?? DEFAULT_SEASON_YEAR;
+    expect(other).not.toBe(DEFAULT_SEASON_YEAR);
+
+    rememberSeasonYear(other);
+    expect(store.get(YEAR_KEY)).toBe(String(other));
+    expect(readSeasonYear()).toBe(other);
+  });
+
+  it("picks up a year chosen on an earlier visit", () => {
+    const stored = PLAYABLE_SEASONS.at(-1) ?? DEFAULT_SEASON_YEAR;
+    stubStorage({ key: YEAR_KEY, initial: String(stored) });
+    expect(readSeasonYear()).toBe(stored);
+  });
+
+  it("falls back for a year nothing could be simulated from", () => {
+    // The case that matters: a stored year with no seed file behind it reaches
+    // `seasonSeed`, which throws. A year outside the authored range stands in
+    // for a season file that has been removed.
+    const unauthored = LAST_SEASON + 10;
+    expect(isPlayable(unauthored)).toBe(false);
+    for (const raw of ["", "nineteen eighty", "1980.5", "[]", String(unauthored)]) {
+      stubStorage({ key: YEAR_KEY, initial: raw });
+      expect(readSeasonYear(), JSON.stringify(raw)).toBe(DEFAULT_SEASON_YEAR);
+    }
+  });
+
+  it("shrugs off storage that throws", () => {
+    stubStorage({ throws: true });
+    expect(readSeasonYear()).toBe(DEFAULT_SEASON_YEAR);
+    expect(() => {
+      rememberSeasonYear(DEFAULT_SEASON_YEAR);
+    }).not.toThrow();
+  });
+
+  it("does not disturb the two preferences it shares a storage with", () => {
+    stubStorage();
+    rememberRatingMode("aged");
+    rememberRandomness(5);
+    rememberSeasonYear(PLAYABLE_SEASONS.at(-1) ?? DEFAULT_SEASON_YEAR);
     expect(readRatingMode()).toBe("aged");
     expect(readRandomness()).toBe(5);
   });

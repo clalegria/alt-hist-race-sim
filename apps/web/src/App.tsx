@@ -265,6 +265,7 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
   const showEraChampions = useSeasonStore((state) => state.showEraChampions);
   const leaveEraSeason = useSeasonStore((state) => state.leaveEraSeason);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
+  const switchSeasonYear = useSeasonStore((state) => state.switchSeasonYear);
   const setGrid = useSeasonStore((state) => state.setGrid);
 
   // Purely about what the reader is being asked, so it stays out of the store:
@@ -325,7 +326,9 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
           // handler is not passed either — the store would refuse it anyway, and
           // wiring a control that cannot fire is how one comes back by accident.
           canChooseAbility={run === undefined}
-          {...(run === undefined ? { onRatingModeChange: setRatingMode } : {})}
+          {...(run === undefined
+            ? { onRatingModeChange: setRatingMode, onYearChange: switchSeasonYear }
+            : {})}
           onGridChange={(edit) => {
             setGrid(edit.lineup, edit.engines);
           }}

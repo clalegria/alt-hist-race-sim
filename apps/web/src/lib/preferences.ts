@@ -1,8 +1,9 @@
 /**
  * Choices the reader makes that outlive a season.
  *
- * Two of them so far, and both are *simulation* inputs rather than display
- * ones — which ratings the field is built from, and how much the dice decide.
+ * Three of them so far, and all are *simulation* inputs rather than display
+ * ones — which ratings the field is built from, how much the dice decide, and
+ * which year a picker opens on.
  * That is what separates this module from `sort-preference.ts`: those are ways
  * of reading a list, these are answers the next season is run against.
  *
@@ -26,12 +27,16 @@ import {
   parseRandomnessLevel,
   type RandomnessLevel,
 } from "@alt-hist/engine";
+import { DEFAULT_SEASON_YEAR, isPlayable } from "./seasons.js";
 
 /** Where the choice is remembered between visits. */
 const STORAGE_KEY = "alt-hist-rating-mode";
 
 /** The same, for how much the dice decide. */
 const RANDOMNESS_KEY = "alt-hist-randomness";
+
+/** And for the year a picker opens on — shared by both pickers, see below. */
+const YEAR_KEY = "alt-hist-season-year";
 
 /**
  * Reads a stored value, falling back for anything that is not a known mode.
@@ -101,6 +106,52 @@ export function rememberRandomness(level: RandomnessLevel): void {
   }
   try {
     localStorage.setItem(RANDOMNESS_KEY, String(level));
+  } catch {
+    // Remembering is a convenience; failing to is not worth surfacing.
+  }
+}
+
+/**
+ * The year the picker opens on.
+ *
+ * A third preference of the same kind: not how a table is drawn but what gets
+ * simulated. It was deliberately *not* remembered for a while — the year is the
+ * question the screen is asking, and opening on wherever someone was last time
+ * is a different feature — but that reasoning only held while a run was a
+ * one-off. Coming back to the picker to try 1981 after 1980 and being handed
+ * 1950 every time is the app forgetting something it was just told, which is
+ * exactly what the other two preferences exist to prevent.
+ *
+ * One key for both pickers rather than one each. A season and an era ask the
+ * same question of the same years, and someone who has just been reading the
+ * eighties means the eighties whichever mode they start next; splitting it
+ * would mean two answers to "which year was I on" and no way to tell which one
+ * a screen would use.
+ *
+ * Validated against the playable list on the way out, not just parsed as a
+ * number: a year stored before its season file was removed — or a decade the
+ * range no longer draws — must fall back rather than reach `seasonSeed`, which
+ * throws on a year nobody authored.
+ */
+export function readSeasonYear(): number {
+  if (typeof localStorage === "undefined") {
+    return DEFAULT_SEASON_YEAR;
+  }
+  try {
+    const stored = Number(localStorage.getItem(YEAR_KEY));
+    return Number.isInteger(stored) && isPlayable(stored) ? stored : DEFAULT_SEASON_YEAR;
+  } catch {
+    return DEFAULT_SEASON_YEAR;
+  }
+}
+
+/** Remembers the year for the next visit to a picker. */
+export function rememberSeasonYear(year: number): void {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  try {
+    localStorage.setItem(YEAR_KEY, String(year));
   } catch {
     // Remembering is a convenience; failing to is not worth surfacing.
   }

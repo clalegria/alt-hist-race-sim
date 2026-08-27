@@ -1,13 +1,12 @@
 import type { RandomnessLevel } from "@alt-hist/engine";
 import { useState } from "react";
-import { readRandomness, rememberRandomness } from "../lib/preferences.js";
 import {
-  DEFAULT_SEASON_YEAR,
-  FIRST_SEASON,
-  LAST_SEASON,
-  PLAYABLE_SEASONS,
-  playableSummary,
-} from "../lib/seasons.js";
+  readRandomness,
+  readSeasonYear,
+  rememberRandomness,
+  rememberSeasonYear,
+} from "../lib/preferences.js";
+import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
 import { Preferences } from "./Preferences.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { Button } from "./ui/button.js";
@@ -29,11 +28,11 @@ import { YearPicker } from "./YearPicker.js";
  * `Preferences`, which is named for the category rather than for its one
  * occupant because it is going to gain others.
  *
- * The level is seeded from the remembered preference and written back the
- * moment it moves — so it survives a reader who changes their mind about the
- * year, goes back to the menu, or comes back tomorrow. The *year* is
- * deliberately not remembered: it is the question the screen is asking, and
- * opening on wherever someone was last time is a different feature.
+ * Both answers are seeded from the remembered preference and written back the
+ * moment they move — so they survive a reader who goes back to the menu, or who
+ * comes back tomorrow. That includes the year: coming back to try the season
+ * after the one just run and being handed 1950 every time is the app forgetting
+ * something it was told a moment ago. See `readSeasonYear`.
  *
  * One picker serves both modes. A season and an era ask the same question of
  * the same years and differ only in what the answer starts — which is copy, so
@@ -66,7 +65,10 @@ export function SeasonPicker({
   // Read once, on mount: this is the seed for the control, not a live mirror of
   // storage, and nothing else on the screen can change it underneath.
   const [randomness, setRandomness] = useState<RandomnessLevel>(readRandomness);
-  const [year, setYear] = useState<number>(DEFAULT_SEASON_YEAR);
+  // Read once on mount for the same reason, and validated in `readSeasonYear`
+  // against the playable list — a stored year with no seed file behind it would
+  // reach `seasonSeed` and throw.
+  const [year, setYear] = useState<number>(readSeasonYear);
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
@@ -83,7 +85,10 @@ export function SeasonPicker({
 
       <YearPicker
         year={year}
-        onSelect={setYear}
+        onSelect={(picked) => {
+          setYear(picked);
+          rememberSeasonYear(picked);
+        }}
         title={yearTitle}
         lead={yearLead}
         describeYear={describeYear}

@@ -113,3 +113,20 @@ export function playableSummary(years: readonly number[] = PLAYABLE_SEASONS): st
 export function nextEraYear(year: number): number | null {
   return isPlayable(year + 1) ? year + 1 : null;
 }
+
+/**
+ * The playable season either side of one, or null where the range runs out.
+ *
+ * `step` is -1 for the year before and +1 for the year after. Not `year ± 1`:
+ * what a reader wants next to 1980 is the previous *playable* season, and the
+ * authored range is only contiguous by accident of it being fully written. This
+ * walks the playable list instead, so a gap in the seed data skips rather than
+ * offering a year that `seasonSeed` would throw on.
+ *
+ * A year that is not itself playable has no neighbours here — every caller
+ * reaches this through a world, and a world's year is always playable.
+ */
+export function adjacentSeason(year: number, step: -1 | 1): number | null {
+  const at = PLAYABLE_SEASONS.indexOf(year);
+  return at === -1 ? null : (PLAYABLE_SEASONS[at + step] ?? null);
+}

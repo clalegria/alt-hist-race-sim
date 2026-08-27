@@ -31,6 +31,16 @@ season and would otherwise reach a screen the reader never connected it to — a
 `SeasonScreen` passes `canChooseAbility={run === undefined}` so the control is not
 drawn. A control that fires into a no-op is how the choice comes back by accident.
 
+**`switchSeasonYear(year)` is the grid's shortcut to the season next door.** It is
+`startSeason` in every respect but where the settings come from: the ability mode and
+the randomness level are taken off the *world on screen* rather than off the remembered
+preferences, so stepping through a decade keeps the rules the reader chose for the
+first of them. The grid does not carry — a lineup and a set of supply deals belong to
+the entry list they were drawn for — and the dice are fresh. Standalone seasons only,
+and only on the grid stage, guarded exactly as `setGrid` and `setRatingMode` are. It
+writes the year through `rememberSeasonYear`, since it is the same choice the picker
+makes.
+
 The choice **sticks**, via `lib/preferences.ts` (localStorage, guarded exactly as
 `theme.ts` guards it — storage is absent under Vitest and throws in private
 browsing). Two levels, and the split is the point: the *world* owns the mode it was

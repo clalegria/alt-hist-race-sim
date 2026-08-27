@@ -22,7 +22,7 @@ import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
-import { PLAYABLE_SEASONS } from "./lib/seasons.js";
+import { adjacentSeason, PLAYABLE_SEASONS } from "./lib/seasons.js";
 import type { EraRun, View, World } from "./store/season.js";
 import {
   findWorld,
@@ -69,6 +69,52 @@ describe("the opening grid", () => {
     expect(html).not.toContain("Qualifying");
     expect(html).not.toContain(FIRST_ROUND.name);
     expect(html).not.toContain("Pts");
+  });
+});
+
+describe("the shortcut to the season next door", () => {
+  const label = (year: number) => `Simulate the ${year} season instead`;
+
+  it("offers both neighbours on the grid of a season with one either side", () => {
+    // Mid-range, off the playable list: a fixture at either end would draw one
+    // button and the test would pass without proving the pair.
+    const middle = PLAYABLE_SEASONS[1];
+    if (middle === undefined) {
+      throw new Error("the fixtures need at least three authored seasons");
+    }
+    const grid = render({ kind: "grid" }, seededWorld(3, undefined, middle));
+    expect(grid).toContain(label(adjacentSeason(middle, -1) ?? 0));
+    expect(grid).toContain(label(adjacentSeason(middle, 1) ?? 0));
+  });
+
+  it("draws only the one that exists at the end of the range", () => {
+    const last = render({ kind: "grid" }, seededWorld(3, undefined, LAST_PLAYABLE));
+    expect(last).toContain(label(adjacentSeason(LAST_PLAYABLE, -1) ?? 0));
+    expect(last).not.toContain(String(LAST_PLAYABLE + 1));
+
+    const first = render({ kind: "grid" }, seededWorld(3, undefined, FIRST_PLAYABLE));
+    expect(first).toContain(label(adjacentSeason(FIRST_PLAYABLE, 1) ?? 0));
+    expect(first).not.toContain(String(FIRST_PLAYABLE - 1));
+  });
+
+  it("stays off every page after the grid", () => {
+    // Switching year past the grid would throw away results already revealed,
+    // exactly as switching the ability model would.
+    for (const view of [
+      { kind: "qualifying", round: 0 },
+      { kind: "race", round: 0 },
+      { kind: "summary" },
+    ] as const) {
+      expect(render(view), view.kind).not.toContain("Another year");
+    }
+  });
+
+  it("is not offered inside an era, whose year belongs to the run", () => {
+    const inEra = renderToStaticMarkup(
+      <SeasonView world={world} view={{ kind: "grid" }} canChooseAbility={false} />,
+    );
+    expect(inEra).not.toContain("Another year");
+    expect(inEra).not.toContain(label(adjacentSeason(world.year, 1) ?? 0));
   });
 });
 

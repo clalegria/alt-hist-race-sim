@@ -183,27 +183,13 @@ version stamp in the footer as part of this item.
 
 ---
 
-*The next five items are the seed-data-shape block.* Each adds an authored field to all
-seventy-seven season files — lineage links, career records, era numbers, wet ratings,
-per-round circuit blocks. **Settle them together and make one authoring pass**, in
-*season fine-tuning* below, rather than five passes over the same files. Liveries were
-the sixth and are done, so their colours can join that pass without holding it up.
+*The next four items are the seed-data-shape block.* Each adds an authored field to all
+seventy-seven season files — career records, era numbers, wet ratings, per-round circuit
+blocks. **Settle them together and make one authoring pass**, in *season fine-tuning*
+below, rather than four passes over the same files. Liveries and team lineage were the
+other two and are done, so their colours can join that pass without holding it up.
 
-**4. Team lineage.** A way to say that a team in one season *is* a team from the
-previous one under another name — a constructor sold and rebadged, a works partnership
-renamed around a new engine supplier. Today team identity is per-season by name, so a
-rename is indistinguishable from a team folding and a new one appearing.
-
-The cheapest of the block — a successor/predecessor link on the team identity records,
-no model change, no re-tune. It heads the block for four reasons: *simulate an era*'s
-champions roll-up should read as one continuous history rather than a list of strangers;
-*historical career records* below cannot attribute a renamed team's wins without it; the
-links have to be added to every authored season, so it belongs with the other file-shape
-items; and the *driver market* cannot be designed without it, which is the author's own
-reason for wanting it. Whether the link is a chain of ids on the identity record or a
-separate lineage table is open.
-
-**5. Historical career records.** When a run starts in 1980, Jones should already have
+**4. Historical career records.** When a run starts in 1980, Jones should already have
 his previous wins and Ferrari its previous titles, so the first screen reads as a career
 in progress rather than everyone's debut — and so the simulated results add onto a real
 total as the era runs.
@@ -223,13 +209,14 @@ and poles accumulated *before* that season**. Four points about the shape:
 - **Only the starting year's balance is ever read** in a normal run — every later year's
   totals come from simulated results. Authoring it in all seventy-seven files is what
   lets any year be a starting year.
-- **Team totals depend on lineage**, which is why *team lineage* comes first: a rebadged
-  team's history has to follow it across the rename or the roll-up lies.
+- **Team totals depend on team lineage**, which is already built
+  (`.claude/rules/team-eras.md`): a rebadged team's history has to follow it across the
+  rename or the roll-up lies.
 
 Consumed by *simulate an era*'s champions screen, and later by anything that wants to
 say who the established names are — including the driver market.
 
-**6. Seasonal factors.** Several numbers that are one global constant today are really
+**5. Seasonal factors.** Several numbers that are one global constant today are really
 per-era, and the season file is where they belong. One item, because it is one change to
 `SeasonSeed` and one authoring pass per year:
 
@@ -247,7 +234,7 @@ Calibrating the first two per year is a measurement job, and the author asking f
 here is the authorisation the no-re-calibration invariant requires — for *these* numbers,
 not for driver or car ratings, which stay fixed.
 
-**7. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**6. Wet racing.** A realistic share of races are declared wet. In the wet: a new
 **1–100 wet-weather rating** per driver carries a large part of the score, driver-error
 retirements rise sharply, and the noise term widens considerably — a wet race should be
 where the field genuinely reorders. The rating is a new authored field on every driver,
@@ -259,7 +246,7 @@ is needed and why, and get agreement, before running the harness. Note that it a
 shipped randomness level both widen the same noise term from different directions; they
 should compose as separate multipliers, not fight over one constant.
 
-**8. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**7. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -273,13 +260,13 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**9. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**8. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
 typing.
 
-- **This is where the single authoring pass for the block above is made** — lineage
-  links, career records, era numbers, wet ratings, per-round circuit blocks — which is
+- **This is where the single authoring pass for the block above is made** — career
+  records, era numbers, wet ratings, per-round circuit blocks — which is
   why those are settled first and paid for once. Liveries are in the same pass but not
   waiting on anything: their format is already settled, so they can be written for any
   year at any time.
@@ -300,19 +287,19 @@ typing.
   the modern seasons first, where a reader is most likely to notice — but it is typing
   against reference photos, not a decision, and nothing depends on it.
 
-**10. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**9. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
-not a coding task — and `adaptability` is authored and unused precisely for this. *Team
-lineage* is a prerequisite for that conversation: a market cannot reason about a team's
-standing across years while a rename looks like a disappearance, and *historical career
-records* give it the reputations to reason about.
+not a coding task — and `adaptability` is authored and unused precisely for this. Team
+lineage was a prerequisite for that conversation — a market cannot reason about a team's
+standing across years while a rename looks like a disappearance — and is now built;
+*historical career records* give it the reputations to reason about.
 
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**11. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**10. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.
