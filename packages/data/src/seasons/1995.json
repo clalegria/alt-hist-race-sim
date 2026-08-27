@@ -31,10 +31,10 @@
     { "engineId": "yamaha",   "racing":  70, "qualifying":  68, "reliability":  68 }
   ],
   "entries": [
-    { "teamId": "benetton", "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  92, "consistency":  90, "reliability":  86 }, "drivers": ["schumacher_m", "herbert"] },
+    { "teamId": "benetton", "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  92, "consistency":  90, "reliability":  86 }, "drivers": ["schumacher_m", "herbert"], "primaryColor": "#00A3E0", "secondaryColor1": "#0032A0", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
     { "teamId": "williams", "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  84, "reliability":  80 }, "drivers": ["hill_d", "coulthard"] },
     { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  82, "qualifying":  80, "consistency":  76, "reliability":  70 }, "drivers": ["alesi", "berger"] },
-    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  66 }, "drivers": ["hakkinen", "blundell"] },
+    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  66 }, "drivers": ["hakkinen", "blundell"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
     { "teamId": "ligier",   "engineId": "mugen",    "chassis": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  72 }, "drivers": ["panis", "suzuki"] },
     { "teamId": "jordan",   "engineId": "peugeot",  "chassis": { "racing":  74, "qualifying":  72, "consistency":  72, "reliability":  68 }, "drivers": ["barrichello", "irvine"] },
     { "teamId": "sauber",   "engineId": "ford",     "chassis": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  68 }, "drivers": ["frentzen", "boullion"] },

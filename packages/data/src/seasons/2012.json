@@ -31,7 +31,7 @@
   ],
   "entries": [
     { "teamId": "red_bull",    "engineId": "renault",  "chassis": { "racing":  92, "qualifying":  92, "consistency":  88, "reliability":  86 }, "drivers": ["vettel", "webber"] },
-    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  94, "qualifying":  94, "consistency":  84, "reliability":  74 }, "drivers": ["hamilton", "button"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  94, "qualifying":  94, "consistency":  84, "reliability":  74 }, "drivers": ["hamilton", "button"], "primaryColor": "#C8CCCF", "secondaryColor1": "#4B5054", "secondaryColor2": "#E60000", "badgeStripes": 2 },
     { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  84, "qualifying":  80, "consistency":  86, "reliability":  88 }, "drivers": ["alonso", "massa"] },
     { "teamId": "renault",     "engineId": "renault",  "chassis": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  82 }, "drivers": ["raikkonen", "grosjean"] },
     { "teamId": "mercedes",    "engineId": "mercedes", "chassis": { "racing":  76, "qualifying":  78, "consistency":  72, "reliability":  72 }, "drivers": ["schumacher_m", "rosberg_n"] },

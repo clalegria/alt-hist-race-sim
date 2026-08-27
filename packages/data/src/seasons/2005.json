@@ -33,8 +33,8 @@
     { "engineId": "ford",     "racing":  76, "qualifying":  74, "reliability":  78 }
   ],
   "entries": [
-    { "teamId": "renault",  "engineId": "renault",  "chassis": { "racing":  92, "qualifying":  90, "consistency":  90, "reliability":  90 }, "drivers": ["alonso", "fisichella"] },
-    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  96, "qualifying":  96, "consistency":  86, "reliability":  66 }, "drivers": ["raikkonen", "montoya"] },
+    { "teamId": "renault",  "engineId": "renault",  "chassis": { "racing":  92, "qualifying":  90, "consistency":  90, "reliability":  90 }, "drivers": ["alonso", "fisichella"], "primaryColor": "#00A3E0", "secondaryColor1": "#0032A0", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  96, "qualifying":  96, "consistency":  86, "reliability":  66 }, "drivers": ["raikkonen", "montoya"], "primaryColor": "#C8CCCF", "secondaryColor1": "#4B5054", "secondaryColor2": "#1A1A1A", "badgeStripes": 2 },
     { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  78, "qualifying":  76, "consistency":  80, "reliability":  84 }, "drivers": ["schumacher_m", "barrichello"] },
     { "teamId": "toyota",   "engineId": "toyota",   "chassis": { "racing":  80, "qualifying":  78, "consistency":  80, "reliability":  82 }, "drivers": ["trulli", "schumacher_r"] },
     { "teamId": "williams", "engineId": "bmw",      "chassis": { "racing":  72, "qualifying":  74, "consistency":  70, "reliability":  70 }, "drivers": ["webber", "heidfeld"] },

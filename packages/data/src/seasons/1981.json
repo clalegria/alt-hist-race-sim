@@ -32,7 +32,7 @@
     { "teamId": "renault",    "engineId": "renault",     "chassis": { "racing": 85, "qualifying": 88, "consistency": 70, "reliability": 59 }, "drivers": ["prost", "arnoux"] },
     { "teamId": "ligier",     "engineId": "matra",       "chassis": { "racing": 90, "qualifying": 90, "consistency": 80, "reliability": 72 }, "drivers": ["laffite", "tambay"] },
     { "teamId": "ferrari",    "engineId": "ferrari",     "chassis": { "racing": 82, "qualifying": 81, "consistency": 63, "reliability": 60 }, "drivers": ["villeneuve_g", "pironi"] },
-    { "teamId": "mclaren",    "engineId": "ford",        "chassis": { "racing": 90, "qualifying": 88, "consistency": 78, "reliability": 66 }, "drivers": ["watson", "decesaris"] },
+    { "teamId": "mclaren",    "engineId": "ford",        "chassis": { "racing": 90, "qualifying": 88, "consistency": 78, "reliability": 66 }, "drivers": ["watson", "decesaris"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
     { "teamId": "alfa_romeo", "engineId": "alfa_romeo",  "chassis": { "racing": 74, "qualifying": 80, "consistency": 60, "reliability": 50 }, "drivers": ["andretti", "giacomelli"] },
     { "teamId": "lotus",      "engineId": "ford",        "chassis": { "racing": 72, "qualifying": 70, "consistency": 70, "reliability": 64 }, "drivers": ["deangelis", "mansell"] },
     { "teamId": "arrows",     "engineId": "ford",        "chassis": { "racing": 70, "qualifying": 69, "consistency": 68, "reliability": 62 }, "drivers": ["patrese", "stohr"] },

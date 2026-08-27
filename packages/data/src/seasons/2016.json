@@ -36,7 +36,7 @@
     { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  86, "qualifying":  84, "consistency":  84, "reliability":  82 }, "drivers": ["vettel", "raikkonen"] },
     { "teamId": "force_india", "engineId": "mercedes", "chassis": { "racing":  78, "qualifying":  76, "consistency":  78, "reliability":  82 }, "drivers": ["perez", "hulkenberg"] },
     { "teamId": "williams",    "engineId": "mercedes", "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  80 }, "drivers": ["bottas", "massa"] },
-    { "teamId": "mclaren",     "engineId": "honda",    "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  64 }, "drivers": ["alonso", "button"] },
+    { "teamId": "mclaren",     "engineId": "honda",    "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  64 }, "drivers": ["alonso", "button"], "primaryColor": "#4B5054", "secondaryColor1": "#1A1A1A", "secondaryColor2": "#C8CCCF", "badgeStripes": 2 },
     { "teamId": "toro_rosso",  "engineId": "ferrari",  "chassis": { "racing":  70, "qualifying":  70, "consistency":  68, "reliability":  70 }, "drivers": ["sainz", "kvyat"] },
     { "teamId": "haas",        "engineId": "ferrari",  "chassis": { "racing":  60, "qualifying":  58, "consistency":  60, "reliability":  62 }, "drivers": ["grosjean", "gutierrez"] },
     { "teamId": "renault",     "engineId": "renault",  "chassis": { "racing":  52, "qualifying":  50, "consistency":  56, "reliability":  62 }, "drivers": ["magnussen_k", "palmer_j"] },

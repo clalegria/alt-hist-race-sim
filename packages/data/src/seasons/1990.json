@@ -31,9 +31,9 @@
     { "engineId": "life",        "racing":  18, "qualifying":  16, "reliability":  12 }
   ],
   "entries": [
-    { "teamId": "mclaren",      "engineId": "honda",       "chassis": { "racing":  94, "qualifying":  94, "consistency":  92, "reliability":  88 }, "drivers": ["senna", "berger"] },
+    { "teamId": "mclaren",      "engineId": "honda",       "chassis": { "racing":  94, "qualifying":  94, "consistency":  92, "reliability":  88 }, "drivers": ["senna", "berger"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
     { "teamId": "ferrari",      "engineId": "ferrari",     "chassis": { "racing":  94, "qualifying":  90, "consistency":  86, "reliability":  76 }, "drivers": ["prost", "mansell"] },
-    { "teamId": "williams",     "engineId": "renault",     "chassis": { "racing":  86, "qualifying":  86, "consistency":  82, "reliability":  78 }, "drivers": ["boutsen", "patrese"] },
+    { "teamId": "williams",     "engineId": "renault",     "chassis": { "racing":  86, "qualifying":  86, "consistency":  82, "reliability":  78 }, "drivers": ["boutsen", "patrese"], "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
     { "teamId": "benetton",     "engineId": "ford",        "chassis": { "racing":  84, "qualifying":  82, "consistency":  80, "reliability":  74 }, "drivers": ["piquet", "nannini"] },
     { "teamId": "tyrrell",      "engineId": "ford",        "chassis": { "racing":  74, "qualifying":  74, "consistency":  74, "reliability":  70 }, "drivers": ["alesi", "nakajima"] },
     { "teamId": "leyton_house", "engineId": "judd",        "chassis": { "racing":  66, "qualifying":  64, "consistency":  64, "reliability":  54 }, "drivers": ["capelli", "gugelmin"] },

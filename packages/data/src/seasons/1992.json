@@ -30,9 +30,9 @@
     { "engineId": "yamaha",      "racing":  72, "qualifying":  70, "reliability":  66 }
   ],
   "entries": [
-    { "teamId": "williams",  "engineId": "renault",     "chassis": { "racing":  98, "qualifying":  98, "consistency":  90, "reliability":  80 }, "drivers": ["mansell", "patrese"] },
-    { "teamId": "mclaren",   "engineId": "honda",       "chassis": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["senna", "berger"] },
-    { "teamId": "benetton",  "engineId": "ford",        "chassis": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  80 }, "drivers": ["schumacher_m", "brundle"] },
+    { "teamId": "williams",  "engineId": "renault",     "chassis": { "racing":  98, "qualifying":  98, "consistency":  90, "reliability":  80 }, "drivers": ["mansell", "patrese"], "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
+    { "teamId": "mclaren",   "engineId": "honda",       "chassis": { "racing":  88, "qualifying":  86, "consistency":  86, "reliability":  84 }, "drivers": ["senna", "berger"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "benetton",  "engineId": "ford",        "chassis": { "racing":  84, "qualifying":  82, "consistency":  82, "reliability":  80 }, "drivers": ["schumacher_m", "brundle"], "primaryColor": "#FFD200", "secondaryColor1": "#00A651", "secondaryColor2": "#0033A0", "badgeStripes": 2 },
     { "teamId": "ferrari",   "engineId": "ferrari",     "chassis": { "racing":  72, "qualifying":  72, "consistency":  68, "reliability":  64 }, "drivers": ["alesi", "capelli"] },
     { "teamId": "lotus",     "engineId": "ford",        "chassis": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  72 }, "drivers": ["hakkinen", "herbert"] },
     { "teamId": "tyrrell",   "engineId": "ilmor",       "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  72 }, "drivers": ["grouillard", "decesaris"] },

@@ -32,8 +32,8 @@
     { "engineId": "motori_moderni", "racing":  50, "qualifying":  50, "reliability":  34 }
   ],
   "entries": [
-    { "teamId": "mclaren",    "engineId": "tag",            "chassis": { "racing":  94, "qualifying":  88, "consistency":  90, "reliability":  84 }, "drivers": ["prost", "lauda"] },
-    { "teamId": "williams",   "engineId": "honda",          "chassis": { "racing":  88, "qualifying":  86, "consistency":  78, "reliability":  68 }, "drivers": ["rosberg", "mansell"] },
+    { "teamId": "mclaren",    "engineId": "tag",            "chassis": { "racing":  94, "qualifying":  88, "consistency":  90, "reliability":  84 }, "drivers": ["prost", "lauda"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "williams",   "engineId": "honda",          "chassis": { "racing":  88, "qualifying":  86, "consistency":  78, "reliability":  68 }, "drivers": ["rosberg", "mansell"], "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
     { "teamId": "lotus",      "engineId": "renault",        "chassis": { "racing":  86, "qualifying":  90, "consistency":  76, "reliability":  64 }, "drivers": ["senna", "deangelis"] },
     { "teamId": "ferrari",    "engineId": "ferrari",        "chassis": { "racing":  84, "qualifying":  84, "consistency":  78, "reliability":  72 }, "drivers": ["alboreto", "johansson"] },
     { "teamId": "brabham",    "engineId": "bmw",            "chassis": { "racing":  80, "qualifying":  84, "consistency":  70, "reliability":  58 }, "drivers": ["piquet", "surer"] },
