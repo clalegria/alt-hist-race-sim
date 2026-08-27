@@ -320,6 +320,25 @@ describe("the compact standings", () => {
     expect(driverHtml).not.toContain(driverName(ninth.driverId));
   });
 
+  /*
+   * The sidebar sits beside a race result and cannot grow, so a long entry
+   * name — "Lola-Coventry Climax", and the sixties are full of them — used to
+   * widen the table until the card scrolled sideways. What is asserted is the
+   * pair that stops it: a name cell capped with `max-w-0 w-full`, and names
+   * inside it that end rather than push. Verified in a real browser at the
+   * time; a DOM-less render can only hold the mechanism in place.
+   */
+  it("caps its name column so a long entry name cannot widen the table", () => {
+    expect(driverHtml).toContain("max-w-0");
+    expect(teamHtml).toContain("max-w-0");
+    // Every name in the column carries its full text as a title, since an
+    // ellipsis is all the row itself has room to say. One per rendered row —
+    // the team's name in one table, the driver's team line in the other — and
+    // an attribute, not the `<title>` a flag draws inside its `<svg>`.
+    expect((teamHtml.match(/title="/g) ?? []).length).toBe(8);
+    expect((driverHtml.match(/title="/g) ?? []).length).toBe(8);
+  });
+
   it("offers a way to see the rest, naming how many there are", () => {
     expect(driverHtml).toContain(`Show all ${SEATS}`);
     expect(teamHtml).toContain(`Show all ${CROWDED_TEAMS}`);

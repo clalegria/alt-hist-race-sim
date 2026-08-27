@@ -1,6 +1,7 @@
 import { driverCountry, driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
+import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { TeamBadge } from "./TeamBadge.js";
 
@@ -16,12 +17,26 @@ export function DriverName({
   className,
   emphasis = false,
   badge = false,
+  tight = false,
 }: {
   driverId: string | null;
   /** Omit to show the name alone, with no team line. */
   teamId?: string | undefined;
   className?: string;
   emphasis?: boolean;
+  /**
+   * Fit the two lines to the width they are given instead of taking the width
+   * the name wants: the driver shortens to initials, the team line ends in an
+   * ellipsis, and both keep the full text as a `title`.
+   *
+   * Opted into per table rather than always on, because it is a trade and the
+   * right side of it depends on the column. In the sidebar the name is beside a
+   * race result and the column cannot grow, so a sixties entry — "Lola-Coventry
+   * Climax" — put a scrollbar under an eight-row table. The full classification
+   * has the opposite deal: the name column takes the slack and **wraps**, which
+   * costs a line of height and loses nothing, so it does not ask for this.
+   */
+  tight?: boolean;
   /**
    * Draw the team's livery badge left of the flag. Off by default and opted
    * into per table — the race classification wears it today. A badge on every
@@ -41,7 +56,7 @@ export function DriverName({
     // nothing has to add a badge's width to it. An arithmetic indent was the
     // first attempt, and it also put a literal "+1em" in the class list, which
     // the classification's own "no gap on a retirement" test reads as a gap.
-    <div className={cn("flex items-center gap-1.5", className)}>
+    <div className={cn("flex items-center gap-1.5", tight && "min-w-0", className)}>
       {badge && teamId !== undefined ? (
         // Centred against the whole two-line block, not against the name: the
         // badge belongs to the entry — driver, team and all — rather than to
@@ -49,13 +64,22 @@ export function DriverName({
         <TeamBadge teamId={teamId} />
       ) : null}
       <div className="flex min-w-0 flex-col leading-tight">
-        <span className="flex items-center gap-1.5">
+        <span className="flex min-w-0 items-center gap-1.5">
           {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
-          <span className={cn(emphasis && "font-semibold")}>{driverName(driverId)}</span>
+          {tight ? (
+            <FittedDriverName driverId={driverId} className={cn(emphasis && "font-semibold")} />
+          ) : (
+            <span className={cn(emphasis && "font-semibold")}>{driverName(driverId)}</span>
+          )}
         </span>
         {teamId === undefined ? null : (
           // Indented to start under the name rather than under the flag.
-          <span className="text-muted-foreground pl-[1.625rem] text-xs">{nameOf(teamId)}</span>
+          <span
+            className={cn("text-muted-foreground pl-[1.625rem] text-xs", tight && "truncate")}
+            {...(tight ? { title: nameOf(teamId) } : {})}
+          >
+            {nameOf(teamId)}
+          </span>
         )}
       </div>
     </div>

@@ -16,20 +16,28 @@ export function TeamName({
   emphasis = false,
   className,
   badge = false,
+  tight = false,
 }: {
   teamId: string;
   emphasis?: boolean;
   className?: string;
   /** Draw the team's livery badge left of the flag. Opted into per table. */
   badge?: boolean;
+  /** End the name in an ellipsis rather than widen the column. See `DriverName`. */
+  tight?: boolean;
 }) {
   const base = teamCountry(teamId);
   const nameOf = useEntryName();
   return (
-    <span className={cn("flex items-center gap-1.5", className)}>
+    <span className={cn("flex items-center gap-1.5", tight && "min-w-0", className)}>
       {badge ? <TeamBadge teamId={teamId} /> : null}
       {base === undefined ? null : <Flag country={base} title={base} />}
-      <span className={cn(emphasis && "font-semibold")}>{nameOf(teamId)}</span>
+      <span
+        className={cn(emphasis && "font-semibold", tight && "truncate")}
+        {...(tight ? { title: nameOf(teamId) } : {})}
+      >
+        {nameOf(teamId)}
+      </span>
     </span>
   );
 }

@@ -102,15 +102,24 @@ export function CompactStandings({
                     </span>
                   </span>
                 </TableCell>
-                <TableCell className="py-1.5">
+                {/*
+                 * `w-full max-w-0` is the only way a cell in an auto-layout
+                 * table lets its contents truncate: the width claims the slack
+                 * the other two columns leave, and the zero maximum stops the
+                 * column being sized by the name inside it. Without the pair,
+                 * "Lola-Coventry Climax" simply makes the table wider than the
+                 * sidebar and the card grows a scrollbar.
+                 */}
+                <TableCell className="w-full max-w-0 py-1.5">
                   {isDriverStanding(standing) ? (
                     <DriverName
                       driverId={standing.driverId}
                       teamId={standing.teamId}
                       emphasis={index === 0}
+                      tight
                     />
                   ) : (
-                    <TeamName teamId={standing.teamId} emphasis={index === 0} />
+                    <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
                   )}
                 </TableCell>
                 <TableCell

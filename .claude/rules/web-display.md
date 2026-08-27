@@ -39,6 +39,18 @@ which loads alongside this file.
   the name. Two drivers collapsing onto one short form — both Schumachers do — is
   accepted; the full name is the element's `title`. With no DOM the effect never runs
   and the full name renders, which is what every static test still sees.
+- **The provisional standings fit their names to the sidebar; the classification does
+  not.** Both draw the same `DriverName` / `TeamName`, and `tight` is what separates
+  them. The sidebar sits beside a race result in a column that cannot grow, so a
+  sixties entry — "Lola-Coventry Climax", and that decade is full of them — sized the
+  name column until the card scrolled sideways. Under `tight` the driver shortens to
+  initials, the team line ends in an ellipsis, and both carry the full text as a
+  `title`. The mechanism is the pair `w-full max-w-0` on the cell: in an auto-layout
+  table that is the only way a cell claims the slack *and* refuses to be sized by what
+  is inside it. The full classification is the opposite deal — its name column takes
+  the slack and **wraps**, which costs a line of height and loses no letters — so it
+  does not opt in, and the two must not be unified without deciding which behaviour
+  wins.
 - **One accent, defined once in `lib/highlight.ts`**: pole on the grid, the winner of
   a race, each champion on the summary, and the champion's row in the race sidebar
   from the round the arithmetic settles it. The banner announcing a title appears on
