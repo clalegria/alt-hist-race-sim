@@ -63,6 +63,31 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
 
   /*
+   * The type scale, shifted one notch up from Tailwind's defaults.
+   *
+   * The default scale put `text-xs` — by a wide margin the most-used size here,
+   * because nearly everything is a table — at 12px, the very bottom of the band
+   * that dense data is allowed to occupy. That is survivable on a retina Mac
+   * and rough on the standard-density Windows displays this actually runs on,
+   * which is why reading a classification meant reaching for browser zoom.
+   * Every step moves up about 1px, so the small end lands at 13/15/17 (tables,
+   * secondary text, body) and the hierarchy between steps is unchanged.
+   *
+   * Overriding the scale rather than editing ~70 call sites keeps one knob, and
+   * keeps it theme-neutral: this block is shared, so dark and light are always
+   * the same size. Tailwind's paired line-heights are unitless ratios, so they
+   * follow the font size on their own and are deliberately not repeated here.
+   */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.5625rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.375rem;
+
+  /*
    * Tighter than Tailwind's defaults. Overriding the scale rather than editing
    * every component keeps one knob for how soft the whole thing looks — and
    * squarer corners read as instrument panel rather than as consumer app.

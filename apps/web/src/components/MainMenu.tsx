@@ -27,7 +27,7 @@ function ModeCard({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => vo
       <span className="flex w-full items-center justify-between gap-3">
         <span className="text-base font-semibold tracking-tight">{mode.title}</span>
         {mode.available ? null : (
-          <span className="border-border text-muted-foreground rounded border px-1.5 py-0.5 text-[0.65rem] font-medium tracking-wider uppercase">
+          <span className="border-border text-muted-foreground rounded border px-1.5 py-0.5 text-[0.6875rem] font-medium tracking-wider uppercase">
             Not yet
           </span>
         )}
