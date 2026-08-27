@@ -17,6 +17,28 @@ which loads alongside this file.
   `entryName` in `lib/names.ts` owns the rule, and everything downstream of a season
   reaches it through `useEntryName()` — see below. Teams are still **sorted on the plain
   team name**, so a team does not move down the page for changing supplier.
+- **A driver's name shortens before it is cut.** Where the room runs out the name
+  becomes "M. Schumacher" and only then "M. Schum…", because an ellipsis eats the
+  surname — the half that identifies the driver — while initials eat the half a reader
+  supplies themselves. `shortName` in `lib/names.ts` is the pure rule (the surname
+  starts at the first lowercase particle, or at the last word; suffixes stay put; every
+  given name is initialised, so "J.M. Fangio"), and `FittedName` measures the fit
+  against an invisible probe carrying the full name — the visible text cannot answer
+  it, since once shortened it fits by definition. **The first measurement is not trusted on its own**: it
+  runs before Archivo has loaded, and the font swap moves every text width without
+  moving the layout, so the probe is observed alongside the box and the fit is taken
+  again on the next frame and on `document.fonts.ready`. The comparison carries no
+  slack, either — a browser draws the ellipsis on half a pixel of overflow, and the
+  ellipsis then eats two or three characters. All three were real: a sweep of column
+  widths in a headless browser left a handful of rows a run showing a name that was
+  then truncated, and it is why "Alessandro Zanardi" would shorten or not depending on
+  the page load. **Its caller must give it the width
+  it may use** (`flex-1`, or a block in a column): the box's own width *is* the room,
+  so a content-sized box would report the short name's width and never widen back.
+  That is why the grid's age chip now sits at the right of the row rather than beside
+  the name. Two drivers collapsing onto one short form — both Schumachers do — is
+  accepted; the full name is the element's `title`. With no DOM the effect never runs
+  and the full name renders, which is what every static test still sees.
 - **One accent, defined once in `lib/highlight.ts`**: pole on the grid, the winner of
   a race, each champion on the summary, and the champion's row in the race sidebar
   from the round the arithmetic settles it. The banner announcing a title appears on

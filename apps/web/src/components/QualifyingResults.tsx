@@ -1,9 +1,10 @@
 import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverCountry, driverName } from "../lib/names.js";
+import { driverCountry } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
+import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { TeamBadge } from "./TeamBadge.js";
 
@@ -12,7 +13,7 @@ import { TeamBadge } from "./TeamBadge.js";
  *
  * Fixed height, because the stagger below depends on every row being the same
  * size — a name that wrapped to two lines would throw the whole column out.
- * Names truncate instead.
+ * Names shorten to initials and then truncate instead.
  */
 function GridSlot({ entry }: { entry: RaceEntryResult }) {
   const nameOf = useEntryName();
@@ -37,9 +38,10 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
       <TeamBadge teamId={entry.teamId} />
       {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
       <span className="flex min-w-0 flex-1 flex-col leading-tight">
-        <span className={cn("truncate text-sm", pole && "font-semibold")}>
-          {driverName(entry.driverId)}
-        </span>
+        <FittedDriverName
+          driverId={entry.driverId}
+          className={cn("text-sm", pole && "font-semibold")}
+        />
         <span className="text-muted-foreground truncate text-xs">{nameOf(entry.teamId)}</span>
       </span>
       <span

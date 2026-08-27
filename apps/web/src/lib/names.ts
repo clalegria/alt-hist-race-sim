@@ -78,3 +78,74 @@ export function entryName(teamId: string, engineId?: string, year?: number): str
   const engine = engineName(engineId);
   return engine.toLowerCase() === team.toLowerCase() ? team : `${team}-${engine}`;
 }
+
+/**
+ * Words that trail a surname rather than being one: "Nelson Piquet Jr." keeps
+ * its "Jr." through the abbreviation, because dropping it would turn a son into
+ * his father.
+ */
+const SUFFIXES = new Set(["jr", "jr.", "sr", "sr.", "i", "ii", "iii", "iv"]);
+
+/** Does this word start lowercase — "de", "van", "di" — and so begin a surname? */
+function isParticle(word: string): boolean {
+  const first = word.charAt(0);
+  return first === first.toLowerCase() && first !== first.toUpperCase();
+}
+
+/** "Jean-Pierre" → "J-P.", "Michael" → "M." — every part of a given name kept. */
+function initials(word: string): string {
+  return `${word
+    .split("-")
+    .map((part) => [...part][0]?.toUpperCase() ?? "")
+    .join("-")}.`;
+}
+
+/**
+ * A name cut down to initials and surname: "Michael Schumacher" →
+ * "M. Schumacher", "Jean-Pierre Jarier" → "J-P. Jarier", "Juan Manuel Fangio" →
+ * "J.M. Fangio".
+ *
+ * **Where the surname starts is the whole problem.** It is not "the last word":
+ * "Emmanuel de Graffenried" and "Giedo van der Garde" carry particles, and a
+ * particle is what marks the boundary — the first word after the first that
+ * begins lowercase. With no particle the last word is the surname, after any
+ * suffix has been set aside. Multi-word *given* names all become initials, so
+ * Fangio reads "J.M." rather than losing a name he had.
+ *
+ * Two drivers can collapse onto the same short form — both Schumachers do — and
+ * that is accepted: this is the fallback for a name that does not fit, and the
+ * full name is a tooltip away. A name of one word is returned unchanged, since
+ * there is nothing to abbreviate.
+ *
+ * Pure string work, on the display name and not on an id, so the rule is
+ * testable without touching the seed data.
+ */
+export function shortName(full: string): string {
+  const words = full
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word !== "");
+  let end = words.length;
+  while (end > 1 && SUFFIXES.has((words[end - 1] ?? "").toLowerCase())) {
+    end -= 1;
+  }
+  const named = words.slice(0, end);
+  if (named.length < 2) {
+    return full;
+  }
+  const particle = named.findIndex((word, index) => index > 0 && isParticle(word));
+  const surnameAt = particle === -1 ? named.length - 1 : particle;
+  return [
+    named
+      .slice(0, surnameAt)
+      .map((word) => initials(word))
+      .join(""),
+    ...named.slice(surnameAt),
+    ...words.slice(end),
+  ].join(" ");
+}
+
+/** A driver's name, abbreviated — see `shortName`. */
+export function shortDriverName(driverId: string): string {
+  return shortName(driverName(driverId));
+}

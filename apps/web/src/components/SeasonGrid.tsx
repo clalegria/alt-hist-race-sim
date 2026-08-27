@@ -7,6 +7,7 @@ import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn } from "../lib/utils.js";
+import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { GridChanges } from "./LineupChanges.js";
 import { SortToggle } from "./SortToggle.js";
@@ -150,7 +151,7 @@ export function DriverLabel({
       {driver === undefined ? null : (
         <Flag country={driver.nationality} title={driver.nationality} />
       )}
-      <span className="truncate">{driverName(driverId)}</span>
+      <FittedDriverName driverId={driverId} className="min-w-0 flex-1" />
       {age === null ? null : (
         <span className="text-muted-foreground shrink-0 text-xs">({age}y)</span>
       )}
