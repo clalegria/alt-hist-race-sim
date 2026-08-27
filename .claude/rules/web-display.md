@@ -74,6 +74,16 @@ which loads alongside this file.
   accent is the champion. A win is marked by weight. Note when asserting this that
   `STANDOUT_TEXT` ("text-primary") is a substring of the `text-primary/80` a retirement's
   status carries, so only the row *fills* can be counted.
+- **The classification wraps rather than scrolls.** It shares its row with the
+  championship sidebar, so it gets about two thirds of the page — and with every column
+  `whitespace-nowrap`, one long engine name ("Williams-Coventry Climax") or one long
+  driver ("Heinz-Harald Frentzen") tipped the whole sheet into a horizontal scrollbar.
+  The two prose columns wrap; the numeric ones must not, because a gap or a points total
+  broken across lines is unreadable. Cell padding is tightened **per cell** rather than
+  by a `[&_td]:px-2` variant on the table: the variant worked, but only by out-specifying
+  the cell's own padding, so the winner was invisible in the markup and to the reader.
+  Passing it through `cn` lets `twMerge` resolve it, which a test checks by asserting no
+  `px-3` survives.
 - **A race shows its result and the championship side by side**, standings cut to
   position/name/points and the top eight. Movement arrows come from running
   `championshipStandings` over one fewer race and comparing, which costs nothing
@@ -92,6 +102,76 @@ which loads alongside this file.
   goes missing — so the whole set is imported and a new country just works.
   `Flag.test.tsx` still checks the seed data against it, which now catches a bad code
   rather than a missing import.
+
+## Team colours
+
+**A livery is four values and a rule about where they come from.** A team carries a
+default `primaryColor` / `secondaryColor1` / `secondaryColor2` / `badgeStripes` in
+`teams.json`; a season's entry may override all four, never some — `validateSeedData`
+rejects a partial override rather than merging one. `lib/livery.ts` is the only place
+that rule is applied, so a badge, a card outline and whatever uses colour next cannot
+disagree about what a team looks like in a given year. It sits beside `names.ts` rather
+than in `@alt-hist/data` because **nothing in the engine reads a livery** — this is
+display, like `entryName` is.
+
+**Which season's colours apply travels by context**, the same way the engine supply
+does and for the same reason: a result row knows a `teamId` and not a year. `SeasonView`
+wraps its body in `Liveries year={world.year}` and components call `useLivery()`. The
+default is "no season", which resolves every team to its default livery — a sensible
+answer outside a season, and what keeps every DOM-less test renderable. `SeasonGrid`
+again does not use the context: it is handed `seasonYear` and calls `liveryFor`
+directly.
+
+**The badge is a CSS gradient on a `span`, never an SVG.** `TeamBadge` draws the
+primary colour as a disc with up to two diagonal stripes across it, and the stripes
+**butt together with no gap** — one sash split in two, not two marks. One stripe spans
+exactly what two would, so a team is not made louder by splitting its sash. The `span`
+matters: several tests count the flags in a table by counting `<svg>`, and a vector
+badge beside every flag would double that count into what looks like a flag bug. It is
+`aria-hidden`, because the team is named in the same row.
+
+**It is scaled and centred to the row, not to the name.** 1.5em and vertically centred
+against the whole two-line block — the badge belongs to the entry, driver and team
+together, rather than to the line of text it starts beside, so it is deliberately larger
+than the flag next to it. The stripes are narrow enough that the primary colour stays
+the dominant one; note when tuning that a 135° axis runs about 1.41x the disc'''s
+diameter, so a sash reads wider than its percentage suggests.
+
+**It is opted into per table**, via `badge` on `DriverName` — the race classification
+wears it today. A badge everywhere is a decision to make after seeing it somewhere. The
+badge sits in a **column of its own** beside the two text lines rather than inside the
+first, so the team line keeps its one fixed inset; an arithmetic indent was tried and
+put a literal `+1em` in the class list, which the classification's "no gap on a
+retirement" test reads as a gap.
+
+**The grid's card is washed, not ringed**, and is still an experiment rather than a
+convention: a diagonal gradient from the team's primary colour back to the plain card
+surface, outlined in the first accent. The first attempt — a thick primary border with a
+thin accent ring — put raw team colours straight onto the page, and a white outline was
+simply invisible on the light theme.
+
+**A team colour never reaches a surface as authored.** Mixing a colour toward a surface
+it already matches produces no wash at all: white teams looked ungradiented on the light
+theme and near-black ones on the dark theme, both reading as a card that had missed its
+background. Every team colour therefore goes through `legible()` — a fixed pull toward
+`--color-foreground` — before it is used for anything, the wash included. That is the
+same one mechanism the outline uses; there is not a second idea here.
+
+**Do not reach for `oklch(from ...)` to do this.** Clamping the lightness into a band is
+more precise, keeps chroma and hue intact, and was tried — but relative colour syntax is
+newer than everything else this app relies on, and where it is missing the whole
+declaration is invalid and the wash silently disappears. That is indistinguishable from
+the bug it was meant to fix, and it shipped that way once. A test asserts the string
+contains no `oklch(from`. `color-mix` is the same baseline as the rest of the app.
+
+**Team colours are mixed against theme tokens, never used raw on a surface.** A livery is
+authored against a racing car, not against this palette, so any colour in it can collide
+with whichever background the reader is on. `cardTint` mixes toward `--color-card` and
+`cardOutline` pulls the accent a fixed distance toward `--color-foreground` — by
+definition the far end of the live theme from its background — so both follow a
+light/dark switch with no JavaScript and no per-theme branch. Keep the mix percentages
+off 100%: at full strength the mix is the raw colour again and the guarantee is gone
+silently, which is why a test asserts it.
 
 ## Naming a team, across every table
 

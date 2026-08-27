@@ -17,6 +17,18 @@ function classify(race: RaceResult): readonly RaceEntryResult[] {
   return [...race.entries].sort(byClassification);
 }
 
+/**
+ * Tighter than the default cell padding, on every cell of this table.
+ *
+ * The classification shares a row with the championship sidebar, so it gets
+ * about two thirds of the page rather than all of it, and the default `px-3`
+ * across six columns was enough to tip it into a horizontal scrollbar. Applied
+ * per cell rather than as a `[&_td]:px-2` variant on the table: that version
+ * worked, but only by out-specifying the cell's own padding, which is invisible
+ * both in the markup and to anyone reading the component.
+ */
+const CELL = "px-2";
+
 function gapOf(entry: RaceEntryResult): string {
   if (entry.finishPosition === 1) {
     return "winner";
@@ -36,12 +48,12 @@ export function RaceClassification({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="w-12 text-right">Pos</TableHead>
-          <TableHead>Driver</TableHead>
-          <TableHead className="text-right">Grid</TableHead>
-          <TableHead className="text-right">Gap</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Pts</TableHead>
+          <TableHead className={cn(CELL, "w-12 text-right")}>Pos</TableHead>
+          <TableHead className={CELL}>Driver</TableHead>
+          <TableHead className={cn(CELL, "text-right")}>Grid</TableHead>
+          <TableHead className={cn(CELL, "text-right")}>Gap</TableHead>
+          <TableHead className={CELL}>Status</TableHead>
+          <TableHead className={cn(CELL, "text-right")}>Pts</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -58,6 +70,7 @@ export function RaceClassification({
             >
               <TableCell
                 className={cn(
+                  CELL,
                   "text-right tabular-nums",
                   won && cn(STANDOUT_TEXT, "font-semibold"),
                   podium && PODIUM_TEXT,
@@ -66,14 +79,21 @@ export function RaceClassification({
               >
                 {entry.finishPosition ?? "—"}
               </TableCell>
-              <TableCell className={cn(finished || "text-muted-foreground")}>
-                <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} />
+              <TableCell
+                className={cn(
+                  CELL,
+                  "w-full whitespace-normal",
+                  finished || "text-muted-foreground",
+                )}
+              >
+                <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} badge />
               </TableCell>
-              <TableCell className="text-muted-foreground text-right tabular-nums">
+              <TableCell className={cn(CELL, "text-muted-foreground text-right tabular-nums")}>
                 {entry.gridPosition}
               </TableCell>
               <TableCell
                 className={cn(
+                  CELL,
                   "text-right tabular-nums",
                   won && cn(STANDOUT_TEXT, "font-semibold"),
                   won || (finished ? "text-muted-foreground" : "text-subtle"),
@@ -82,12 +102,17 @@ export function RaceClassification({
                 {gapOf(entry)}
               </TableCell>
               <TableCell
-                className={cn("text-xs", finished ? "text-muted-foreground" : "text-primary")}
+                className={cn(
+                  CELL,
+                  "whitespace-normal text-xs",
+                  finished ? "text-muted-foreground" : "text-primary",
+                )}
               >
                 {statusOf(entry)}
               </TableCell>
               <TableCell
                 className={cn(
+                  CELL,
                   "text-right font-semibold tabular-nums",
                   won && STANDOUT_TEXT,
                   podium && PODIUM_TEXT,

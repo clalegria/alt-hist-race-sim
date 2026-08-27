@@ -29,6 +29,7 @@ import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
 import { EditedGridBanner } from "./LineupChanges.js";
+import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
@@ -432,16 +433,21 @@ function SeasonBody({
  * every stage can be rendered and tested on its own. `App` is the thin shell
  * that connects it.
  *
- * Its one job of its own is to publish **who is running whose engine**, taken
- * off the field as it was raced. Every table below names teams through that
- * context, so "Williams-Ford" is the same name in the standings, the
- * classification, the qualifying sheet and the summary — rather than six
- * components each being handed a map they only pass along.
+ * Its own jobs are to publish **who is running whose engine**, taken off the
+ * field as it was raced, and **which season's colours apply**, so a livery
+ * overridden for this year is the one drawn everywhere below.
+ *
+ * Every table names teams through the first, so "Williams-Ford" is the same
+ * name in the standings, the classification, the qualifying sheet and the
+ * summary — rather than six components each being handed a map they only pass
+ * along.
  */
 export function SeasonView(props: SeasonViewProps) {
   return (
     <EntryNames field={props.world.field}>
-      <SeasonBody {...props} />
+      <Liveries year={props.world.year}>
+        <SeasonBody {...props} />
+      </Liveries>
     </EntryNames>
   );
 }

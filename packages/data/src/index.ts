@@ -59,6 +59,7 @@ export type {
   DriverPeak,
   DriverStepDown,
   EngineManufacturer,
+  Livery,
   SeasonEngine,
   SeasonEntry,
   SeasonSeed,

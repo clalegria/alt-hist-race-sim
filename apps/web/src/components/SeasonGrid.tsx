@@ -1,6 +1,7 @@
 import type { EngineChange, RatingMode, SeatChange } from "@alt-hist/data";
 import { driversById, teamsById } from "@alt-hist/data";
 import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
+import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
 import { driverName, engineName, entryName, teamName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
@@ -403,8 +404,22 @@ export function SeasonGrid({
         {entries.map((entry) => {
           const team = teams.get(entry.teamId);
           const name = entryName(entry.teamId, entry.engineId);
+          const livery = liveryFor(entry.teamId, seasonYear);
           return (
-            <li key={entry.teamId} className="border-border bg-card rounded-xl border p-4">
+            <li
+              key={entry.teamId}
+              className={cn(
+                "border-border bg-card rounded-xl p-4",
+                // A team without a livery keeps the plain hairline, so the
+                // card is never left with no edge at all.
+                livery === undefined ? "border" : "border-2",
+              )}
+              style={
+                livery === undefined
+                  ? undefined
+                  : { backgroundImage: cardTint(livery), borderColor: cardOutline(livery) }
+              }
+            >
               <div
                 className={cn(
                   "border-border/60 flex items-center gap-2 border-b pb-2",

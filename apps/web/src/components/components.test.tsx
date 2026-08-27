@@ -75,6 +75,34 @@ describe("the race classification", () => {
   }
   const html = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />);
 
+  it("lets the prose columns wrap, so a long name cannot force a scrollbar", () => {
+    // The sheet shares its row with the championship sidebar, so it has about
+    // two thirds of the page. Every column being `whitespace-nowrap` meant one
+    // long engine name or one long driver pushed the whole table into a
+    // horizontal scrollbar. The rule: the two prose columns wrap, the numeric
+    // ones must not — a gap or a points total broken across lines is unreadable.
+    const body = html.slice(html.indexOf("<tbody"));
+    const cells = body
+      .slice(0, body.indexOf("</tr>"))
+      .split("<td")
+      .slice(1)
+      .map((cell) => cell.slice(0, cell.indexOf(">")));
+    expect(cells.filter((cell) => cell.includes("whitespace-normal"))).toHaveLength(2);
+    // Not just "two of them wrap": the ones that wrap are the ones with words
+    // in, and every other column still refuses to.
+    expect(cells.filter((cell) => cell.includes("tabular-nums")).length).toBeGreaterThan(0);
+    for (const cell of cells.filter((cell) => cell.includes("tabular-nums"))) {
+      expect(cell).toContain("whitespace-nowrap");
+    }
+  });
+
+  it("draws its cells tighter than the default table padding", () => {
+    // Applied per cell rather than by out-specifying the default from the
+    // table, so `twMerge` resolves it and the winner is visible in the markup.
+    expect(html).not.toContain("px-3");
+    expect(html).toContain("px-2");
+  });
+
   it("lists every car that entered, not just the finishers", () => {
     expect(race.entries).toHaveLength(SEATS);
     for (const entry of race.entries) {
