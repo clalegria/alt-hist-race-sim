@@ -238,6 +238,7 @@ function Summary({
           points={points}
           description="Final classification."
           badge
+          charts
         />
       </div>
       {/*

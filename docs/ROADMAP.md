@@ -24,28 +24,7 @@ turns on `edit-ratings`, *driver market* turns on `era-advanced`, and *game mode
 on the last one.
 
 
-**1. Standings evolution charts.** On the season summary screen, a line chart of the
-championship as it stood after each round — the **top six drivers**, and a second chart
-for the **top four teams**. A season is a set of tables today, and they say who won;
-this says *when* it was won, which is the part a table cannot show: the run of form that
-turned a season, the round where a lead became unassailable, the two cars that swapped
-places all year.
-
-Points are already derived from result rows, so the data is a cumulative fold over
-rounds the app can compute — no new state and no engine change. Two decisions to make:
-whether the series are the top six *at season end* (simple, and the reader already knows
-who matters) or the top six at any point (honest, but the legend grows); and whether the
-y axis is points or championship position. **Series colours should come from the
-liveries**, which are built: `liveryFor(teamId, year)` in `apps/web/src/lib/livery.ts`
-resolves a team's colours for a season, and `legible()` beside it is how a team colour is
-made safe against either theme — a chart drawing raw authored colours will lose the white
-and near-black teams exactly as the team cards did.
-
-**This is the first chart in the project**, so it cashes in the Recharts decision in
-`docs/DECISIONS.md`, and it lands before the editor's career chart deliberately: the
-same library, axes and theming get settled against simpler data first.
-
-**2. Phone layout.** The app is built for a desktop window; a public site gets most of
+**1. Phone layout.** The app is built for a desktop window; a public site gets most of
 its traffic from a phone held vertically. Several screens do not survive that — the
 grid, the results classification and the standings are wide tables, and the session
 reveal assumes room beside the table.
@@ -57,14 +36,15 @@ deliberately between three moves: **drop columns** that are context rather than 
 (gaps, grid position, engine), with the full row available on tap; **restack the row**
 into a card so the same facts read vertically; or **let the table scroll horizontally**
 inside its own container, which is the honest answer for a classification where every
-column is a result. The charts above need their own answer — a six-series legend does
-not fit beside a narrow plot, so plan for it moving below.
+column is a result. The **standings evolution charts** on the season summary need their
+own answer too: the legend is already below the plot rather than beside it, but a
+six-series legend and twenty-four round labels on a 360px-wide axis are not solved.
 
 Ordered here because it is cheaper before the editor adds more screens, and because
 *publish it* is what makes it matter. Nothing about the model changes; this is styling
 and layout only.
 
-**3. The in-app ratings editor.** Turn on the `edit-ratings` card. **This is a player
+**2. The in-app ratings editor.** Turn on the `edit-ratings` card. **This is a player
 feature first**, not an authoring tool: someone who disagrees that a driver was worth
 what the data says should be able to change it and run their own what-if, in the
 browser, without touching a JSON file. Editing drivers, teams/chassis, engines and
@@ -74,7 +54,9 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   chart.** Not a nice-to-have — it is the screen, because a driver is not a set of
   numbers for one year but a curve, and editing the curve blind is not usable. Age along
   the bottom, the ratings up the side, the authored peak marked. This is `pnpm
-  progression` brought into the UI, on the charting groundwork laid above.
+  progression` brought into the UI, on the charting groundwork the standings evolution
+  charts laid down — Recharts, the theming, and how a series takes a livery colour are
+  all settled in `apps/web/src/components/StandingsEvolution.tsx`.
 - **The hard part is that ratings are not authored per season.** A driver is a `peak`
   block plus a career shape (`peakSeasons`, `developmentSpeed`, `declineSpeed`,
   `stepDown`), and what the app displays for a given year is *derived* from those by
@@ -96,7 +78,7 @@ browser, without touching a JSON file. Editing drivers, teams/chassis, engines a
   and a user's tuning can be sent in as data. Whether it is always on or behind a flag
   is open.
 
-**4. Publish it.** Put the app on the public internet, unfinished, and keep it there.
+**3. Publish it.** Put the app on the public internet, unfinished, and keep it there.
 The author has never shipped anything before, so this item is written as much to say
 what is *not* a problem as what is.
 
@@ -207,7 +189,7 @@ per-round circuit blocks. **Settle them together and make one authoring pass**, 
 *season fine-tuning* below, rather than five passes over the same files. Liveries were
 the sixth and are done, so their colours can join that pass without holding it up.
 
-**5. Team lineage.** A way to say that a team in one season *is* a team from the
+**4. Team lineage.** A way to say that a team in one season *is* a team from the
 previous one under another name — a constructor sold and rebadged, a works partnership
 renamed around a new engine supplier. Today team identity is per-season by name, so a
 rename is indistinguishable from a team folding and a new one appearing.
@@ -221,7 +203,7 @@ items; and the *driver market* cannot be designed without it, which is the autho
 reason for wanting it. Whether the link is a chain of ids on the identity record or a
 separate lineage table is open.
 
-**6. Historical career records.** When a run starts in 1980, Jones should already have
+**5. Historical career records.** When a run starts in 1980, Jones should already have
 his previous wins and Ferrari its previous titles, so the first screen reads as a career
 in progress rather than everyone's debut — and so the simulated results add onto a real
 total as the era runs.
@@ -247,7 +229,7 @@ and poles accumulated *before* that season**. Four points about the shape:
 Consumed by *simulate an era*'s champions screen, and later by anything that wants to
 say who the established names are — including the driver market.
 
-**7. Seasonal factors.** Several numbers that are one global constant today are really
+**6. Seasonal factors.** Several numbers that are one global constant today are really
 per-era, and the season file is where they belong. One item, because it is one change to
 `SeasonSeed` and one authoring pass per year:
 
@@ -265,7 +247,7 @@ Calibrating the first two per year is a measurement job, and the author asking f
 here is the authorisation the no-re-calibration invariant requires — for *these* numbers,
 not for driver or car ratings, which stay fixed.
 
-**8. Wet racing.** A realistic share of races are declared wet. In the wet: a new
+**7. Wet racing.** A realistic share of races are declared wet. In the wet: a new
 **1–100 wet-weather rating** per driver carries a large part of the score, driver-error
 retirements rise sharply, and the noise term widens considerably — a wet race should be
 where the field genuinely reorders. The rating is a new authored field on every driver,
@@ -277,7 +259,7 @@ is needed and why, and get agreement, before running the harness. Note that it a
 shipped randomness level both widen the same noise term from different directions; they
 should compose as separate multipliers, not fight over one constant.
 
-**9. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**8. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
@@ -291,7 +273,7 @@ Also a deep change to the score, with the same re-tune caveat, and it adds a per
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**10. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**9. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
 typing.
@@ -318,7 +300,7 @@ typing.
   the modern seasons first, where a reader is most likely to notice — but it is typing
   against reference photos, not a decision, and nothing depends on it.
 
-**11. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**10. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
@@ -330,7 +312,7 @@ records* give it the reputations to reason about.
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**12. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**11. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.

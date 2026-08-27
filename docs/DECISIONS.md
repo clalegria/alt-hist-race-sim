@@ -150,4 +150,4 @@ until the phase that needs them arrives, and see the phase rule in `CLAUDE.md` f
 - **Local persistence:** Dexie over IndexedDB, plus JSON export/import. The world
   state is already a plain serialisable object specifically so this is a small job.
 - **Backend, only if/when needed (NOT in phase 1):** Hono + SQLite/Postgres + Drizzle.
-- **Charts:** Recharts, when something needs one.
+

@@ -121,8 +121,14 @@ const CONTRAST_PULL = 28;
  * a colour already contrasting is muted slightly for no benefit. That is the
  * price of having no way to ask, in CSS, how close a colour is to the surface
  * it is about to sit on.
+ *
+ * Exported because the standings charts need it too: a line drawn in a raw
+ * livery is the same white-on-white problem the team cards had, and there is
+ * not a second mechanism for it. A chart cannot pass this string to an SVG
+ * `stroke` attribute, though — see `StandingsEvolution.tsx` for why it travels
+ * as a custom property instead.
  */
-function legible(color: string): string {
+export function legible(color: string): string {
   return `color-mix(in oklab, ${color} ${100 - CONTRAST_PULL}%, var(--color-foreground))`;
 }
 

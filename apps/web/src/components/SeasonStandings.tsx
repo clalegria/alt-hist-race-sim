@@ -6,6 +6,7 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo } from "react";
+import { StandingsEvolution } from "./StandingsEvolution.js";
 import { StandingsTable } from "./StandingsTable.js";
 
 /**
@@ -26,6 +27,7 @@ export function SeasonStandings({
   points,
   description,
   badge = false,
+  charts = false,
 }: {
   season: SeasonResult;
   /** Names the rounds inside a row's expansion. From the season's own year. */
@@ -39,6 +41,14 @@ export function SeasonStandings({
    * honour, where this pair *is* an expansion, does not.
    */
   badge?: boolean;
+  /**
+   * Draw each championship's evolution chart under its own table.
+   *
+   * Off by default, like `badge`, so a new call site has to ask: the season
+   * summary wants them, the roll of honour — where this pair is itself the
+   * expansion of a row — does not.
+   */
+  charts?: boolean;
 }) {
   const drivers = useMemo(() => championshipStandings(season, points), [season, points]);
   const constructors = useMemo(() => constructorStandings(season, points), [season, points]);
@@ -55,6 +65,18 @@ export function SeasonStandings({
         calendar={calendar}
         badge={badge}
       />
+      {/*
+        Under the table rather than above it or beside it: the table says who
+        won, and this says when. The pair reads as one answer.
+      */}
+      {charts ? (
+        <StandingsEvolution
+          championship="drivers"
+          season={season}
+          points={points}
+          calendar={calendar}
+        />
+      ) : null}
       <StandingsTable
         title="Constructors&rsquo; Championship"
         description={description}
@@ -65,6 +87,14 @@ export function SeasonStandings({
         calendar={calendar}
         badge={badge}
       />
+      {charts ? (
+        <StandingsEvolution
+          championship="constructors"
+          season={season}
+          points={points}
+          calendar={calendar}
+        />
+      ) : null}
     </>
   );
 }

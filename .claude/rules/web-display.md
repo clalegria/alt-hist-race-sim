@@ -103,6 +103,13 @@ which loads alongside this file.
   `Flag.test.tsx` still checks the seed data against it, which now catches a bad code
   rather than a missing import.
 
+## Charts
+
+The season summary's **standings evolution charts** are `.claude/rules/web-charts.md`,
+which loads on `StandingsEvolution.tsx` and `lib/evolution.ts`. Read it before adding
+any chart: it is where Recharts, the axes, and the awkward business of getting a livery
+colour into an SVG stroke are settled.
+
 ## Team colours
 
 **A livery is four values and a rule about where they come from.** A team carries a
