@@ -21,7 +21,7 @@
   ],
   "engines": [
     { "engineId": "ferrari",    "racing":  92, "qualifying":  91, "reliability":  62 },
-    { "engineId": "renault",    "racing":  91, "qualifying":  94, "reliability":  55 },
+    { "engineId": "renault",    "racing":  91, "qualifying":  94, "reliability":  35 },
     { "engineId": "bmw",        "racing":  90, "qualifying":  92, "reliability":  38 },
     { "engineId": "matra",      "racing":  72, "qualifying":  72, "reliability":  70 },
     { "engineId": "ford",       "racing":  71, "qualifying":  68, "reliability":  80 },
@@ -29,11 +29,11 @@
     { "engineId": "hart",       "racing":  62, "qualifying":  64, "reliability":  30 }
   ],
   "entries": [
-    { "teamId": "ferrari",    "engineId": "ferrari",    "chassis": { "racing":  88, "qualifying":  88, "consistency":  72, "reliability":  62 }, "drivers": ["villeneuve_g", "pironi"] },
+    { "teamId": "ferrari",    "engineId": "ferrari",    "chassis": { "racing":  89, "qualifying":  89, "consistency":  72, "reliability":  62 }, "drivers": ["villeneuve_g", "pironi"] },
     { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  88, "qualifying":  82, "consistency":  82, "reliability":  76 }, "drivers": ["watson", "lauda"] },
-    { "teamId": "renault",    "engineId": "renault",    "chassis": { "racing":  88, "qualifying":  90, "consistency":  72, "reliability":  60 }, "drivers": ["prost", "arnoux"] },
+    { "teamId": "renault",    "engineId": "renault",    "chassis": { "racing":  88, "qualifying":  90, "consistency":  72, "reliability":  50 }, "drivers": ["prost", "arnoux"] },
     { "teamId": "brabham",    "engineId": "bmw",        "chassis": { "racing":  88, "qualifying":  88, "consistency":  74, "reliability":  60 }, "drivers": ["piquet", "patrese"] },
-    { "teamId": "williams",   "engineId": "ford",       "chassis": { "racing":  86, "qualifying":  82, "consistency":  84, "reliability":  80 }, "drivers": ["rosberg", "daly"] },
+    { "teamId": "williams",   "engineId": "ford",       "chassis": { "racing":  92, "qualifying":  87, "consistency":  90, "reliability":  88 }, "drivers": ["rosberg", "daly"] },
     { "teamId": "tyrrell",    "engineId": "ford",       "chassis": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  72 }, "drivers": ["alboreto", "henton"] },
     { "teamId": "ligier",     "engineId": "matra",      "chassis": { "racing":  74, "qualifying":  74, "consistency":  70, "reliability":  66 }, "drivers": ["laffite", "cheever"] },
     { "teamId": "lotus",      "engineId": "ford",       "chassis": { "racing":  72, "qualifying":  70, "consistency":  70, "reliability":  66 }, "drivers": ["deangelis", "mansell"] },
