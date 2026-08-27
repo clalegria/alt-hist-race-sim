@@ -1,18 +1,27 @@
 /**
  * A team's colours, resolved for a season.
  *
- * Every team carries a default livery in `teams.json`; a season's entry may
- * override it, all four fields or none — Benetton is green in 1991 and blue in
- * 1996, and both are the same team. This module is the one place that rule is
- * applied, so a badge, a card outline and whatever uses colour next cannot
- * disagree about what a team looks like in a given year.
+ * Two sources, in order. A team's `liveries` in `teams.json` are a list of eras
+ * — McLaren is Marlboro white from 1974 and silver from 1997 — and that is
+ * where a livery normally comes from. A season's entry may still override the
+ * era for that one year, all four fields or none, for a car that was
+ * deliberately unlike the seasons either side of it. This module is the one
+ * place both are applied, so a badge, a card outline and whatever uses colour
+ * next cannot disagree about what a team looks like in a given year.
  *
  * Display only. Nothing in the engine reads a livery, and nothing here feeds
  * the simulation — which is why this sits beside `names.ts` rather than in
  * `@alt-hist/data`, and why the module-level map is built the same way.
  */
 
-import { hasSeason, type Livery, type SeasonEntry, seasonSeed, teamsById } from "@alt-hist/data";
+import {
+  hasSeason,
+  type Livery,
+  type SeasonEntry,
+  seasonSeed,
+  teamLiveryIn,
+  teamsById,
+} from "@alt-hist/data";
 
 const teams = teamsById();
 
@@ -68,12 +77,13 @@ function wholeLivery(entry: SeasonEntry): Livery | undefined {
 }
 
 /**
- * What a team looks like — that season's livery if it has one, otherwise the
- * team's default.
+ * What a team looks like — that season's override if it declares one, otherwise
+ * the livery era in force.
  *
  * Undefined for a team the seed data does not know, which every caller already
  * treats as "draw nothing", the same contract `Flag` has for an unknown
- * country. Omit `year` outside a season, where only the default applies.
+ * country. Omitting `year` gives the team's most recent livery, which is for a
+ * caller with no season in hand; inside one, pass it.
  */
 export function liveryFor(teamId: string, year?: number): Livery | undefined {
   if (year !== undefined) {
@@ -82,7 +92,8 @@ export function liveryFor(teamId: string, year?: number): Livery | undefined {
       return override;
     }
   }
-  return teams.get(teamId);
+  const team = teams.get(teamId);
+  return team === undefined ? undefined : teamLiveryIn(team, year);
 }
 
 /**

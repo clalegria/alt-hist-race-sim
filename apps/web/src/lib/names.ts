@@ -6,7 +6,7 @@
  * cannot be resolved should show as something traceable, not as blank.
  */
 
-import { driversById, enginesById, teamsById } from "@alt-hist/data";
+import { driversById, enginesById, teamIdentityIn, teamsById } from "@alt-hist/data";
 
 const drivers = driversById();
 const teams = teamsById();
@@ -16,8 +16,18 @@ export function driverName(driverId: string): string {
   return drivers.get(driverId)?.name ?? driverId;
 }
 
-export function teamName(teamId: string): string {
-  return teams.get(teamId)?.name ?? teamId;
+/**
+ * What the team was called in `year` — Toleman in 1983, Benetton in 1991,
+ * Alpine in 2024, all of them the same `teamId`.
+ *
+ * The year is optional and every caller inside a season should pass it. Without
+ * one the team's most recent name is used, which is the right answer for a list
+ * of teams with no season in hand and the wrong one inside a table of 1983
+ * results — so the omission is the exception, not the default.
+ */
+export function teamName(teamId: string, year?: number): string {
+  const team = teams.get(teamId);
+  return team === undefined ? teamId : teamIdentityIn(team, year).name;
 }
 
 export function engineName(engineId: string): string {
@@ -36,8 +46,9 @@ export function driverCountry(driverId: string): string | undefined {
   return drivers.get(driverId)?.nationality;
 }
 
-export function teamCountry(teamId: string): string | undefined {
-  return teams.get(teamId)?.base;
+export function teamCountry(teamId: string, year?: number): string | undefined {
+  const team = teams.get(teamId);
+  return team === undefined ? undefined : teamIdentityIn(team, year).base;
 }
 
 /**
@@ -54,9 +65,13 @@ export function teamCountry(teamId: string): string | undefined {
  *
  * With no engine it is just the team, which is what every table showed before
  * engines existed and what a component rendered outside a season still shows.
+ *
+ * `year` is passed through to `teamName`, and it matters here beyond the label:
+ * the works-team test compares the two names, so the same lineage is
+ * "Renault" in 2019 and "Lotus-Renault" in 2013.
  */
-export function entryName(teamId: string, engineId?: string): string {
-  const team = teamName(teamId);
+export function entryName(teamId: string, engineId?: string, year?: number): string {
+  const team = teamName(teamId, year);
   if (engineId === undefined) {
     return team;
   }

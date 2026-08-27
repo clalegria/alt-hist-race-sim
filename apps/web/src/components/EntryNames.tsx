@@ -22,7 +22,8 @@
 
 import type { RaceEntrant } from "@alt-hist/engine";
 import { createContext, useContext, useMemo } from "react";
-import { entryName } from "../lib/names.js";
+import { entryName, teamName } from "../lib/names.js";
+import { useSeasonYear } from "./Liveries.js";
 
 const NO_ENGINES: ReadonlyMap<string, string> = new Map();
 
@@ -53,8 +54,19 @@ export function EntryNames({
 /**
  * The entry name for a team — "Williams-Ford" inside a season, plain "Williams"
  * outside one.
+ *
+ * The season also decides the *team* half of that name, so it takes the year
+ * from `Liveries` rather than a second context of its own: the same lineage is
+ * "Toleman-Hart" in 1984 and "Alpine-Renault" in 2024.
  */
 export function useEntryName(): (teamId: string) => string {
   const supply = useContext(EngineSupply);
-  return (teamId: string) => entryName(teamId, supply.get(teamId));
+  const year = useSeasonYear();
+  return (teamId: string) => entryName(teamId, supply.get(teamId), year);
+}
+
+/** A team's name alone, for the same season — no engine, no hyphen. */
+export function useTeamName(): (teamId: string) => string {
+  const year = useSeasonYear();
+  return (teamId: string) => teamName(teamId, year);
 }

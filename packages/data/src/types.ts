@@ -106,9 +106,10 @@ export interface SeasonEngine {
  * exists so the UI can colour a team consistently wherever it appears, and draw
  * a circular badge for it.
  *
- * The fields are spread flat across `Team` and `SeasonEntry` rather than nested,
- * so the JSON stays one line per team. This interface is the single declaration
- * of their shape; both sides extend it, and `LIVERY_KEYS` is the runtime echo.
+ * The fields are spread flat across `LiveryEra` and `SeasonEntry` rather than
+ * nested, so an era stays one line of JSON. This interface is the single
+ * declaration of their shape; both sides extend it, and `LIVERY_KEYS` is the
+ * runtime echo.
  */
 export interface Livery {
   /** The team's dominant colour, as `#RRGGBB`. */
@@ -132,12 +133,76 @@ export interface Livery {
   readonly badgeStripes: number;
 }
 
-export interface Team extends Livery {
-  readonly id: string;
+/**
+ * The start of an era. Every era list is sorted by this and read the same way:
+ * the era in force in a year is the last one whose `from` has arrived.
+ *
+ * `from` and no `until`, deliberately. An era runs until the next one starts,
+ * so a boundary is stated once; a closing year as well would be a second place
+ * to say the same thing, and the day the two disagreed the result would be a
+ * silent gap or an overlap rather than an error.
+ */
+export interface Era {
+  /** The first season the era applies to. */
+  readonly from: number;
+}
+
+/**
+ * What a team was called, and where it was registered, over one span of years.
+ *
+ * Teams are renamed far more often than they are replaced: Toleman became
+ * Benetton, then Renault, then Lotus, then Renault again, then Alpine, and
+ * every one of those is the same organisation in the same buildings. The team
+ * `id` is that organisation and never changes; this is what it answered to at
+ * the time, and `base` rides along because the flag moves with the name —
+ * Toleman is GB, Renault is FR.
+ *
+ * The name is therefore **not** part of a team's identity in the sense the
+ * architecture rules mean it. `id` is. Read a name through
+ * `teamIdentityIn(team, year)`, never off a field.
+ */
+export interface TeamIdentity extends Era {
   readonly name: string;
   /** ISO 3166-1 alpha-2 country code. */
   readonly base: string;
+}
+
+/**
+ * A livery, and the season it came in.
+ *
+ * A separate list from `TeamIdentity` because the two timelines genuinely do
+ * not line up. Ferrari has one name and many liveries; McLaren raced in
+ * Marlboro white for eighteen unbroken years under one name and then went
+ * silver; Toleman changed both at once in 1986. Folding them into a single list
+ * would force an invented name era every time a car was repainted, and the
+ * union of two independent timelines has more rows than either.
+ *
+ * The grain is deliberately coarse. Real liveries drift every season — a
+ * sponsor moves, a shade shifts — and reproducing that would make a team look
+ * like a different team every year in a table. An era is a *substantial*
+ * change; the small ones are noise and are not modelled.
+ */
+export interface LiveryEra extends Era, Livery {}
+
+/**
+ * A constructor, as one continuous organisation across every name it ever used.
+ *
+ * Identity here means the `id` and the lineage — not the name, which is a
+ * per-era fact below, and not the colours, which are another. What survives a
+ * rename is what belongs in this record.
+ */
+export interface Team {
+  readonly id: string;
+  /**
+   * When the lineage began, which is the founding of its *first* incarnation —
+   * 1981 for the team that is now Alpine, because that is when Toleman was
+   * founded. Both era lists start at or before this year.
+   */
   readonly foundedYear: number;
+  /** Names and bases, earliest first. Never empty. */
+  readonly identity: readonly TeamIdentity[];
+  /** Liveries, earliest first. Never empty. */
+  readonly liveries: readonly LiveryEra[];
 }
 
 /**
@@ -159,12 +224,17 @@ export interface ChassisSpec {
  * One team's participation in one season: a team, a chassis, an engine, and its
  * drivers.
  *
- * The `Livery` fields are inherited as optional and override the team's default
- * in `teams.json` for this season only — Benetton is green in 1991 and blue in
- * 1996, and both are the same team. They are **all-or-nothing**: an entry
- * carries all four or none, which `validateSeedData` enforces. Partial
- * overrides are banned because the fields that fell back would combine into a
- * livery nobody authored.
+ * The `Livery` fields are inherited as optional and override the team's livery
+ * era for this season only. They are **all-or-nothing**: an entry carries all
+ * four or none, which `validateSeedData` enforces. Partial overrides are banned
+ * because the fields that fell back would combine into a livery nobody authored.
+ *
+ * This is the escape hatch, not the mechanism. A team that looked different for
+ * a span of years has a `LiveryEra` in `teams.json`; an override here says
+ * "this one season was deliberately unlike the years around it", and there
+ * should be very few. They used to carry the era data itself — McLaren declared
+ * the same four values in every season file from 1974 to 2016 — and the cost was
+ * that an override meant nothing, because most of them meant "unchanged".
  */
 export interface SeasonEntry extends Partial<Livery> {
   readonly teamId: string;

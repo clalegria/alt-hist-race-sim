@@ -27,7 +27,7 @@
   ],
   "entries": [
     { "teamId": "ferrari",    "engineId": "ferrari",    "chassis": { "racing":  90, "qualifying":  90, "consistency":  86, "reliability":  82 }, "drivers": ["lauda", "regazzoni"] },
-    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  88, "qualifying":  88, "consistency":  84, "reliability":  80 }, "drivers": ["hunt", "mass"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  88, "qualifying":  88, "consistency":  84, "reliability":  80 }, "drivers": ["hunt", "mass"] },
     { "teamId": "tyrrell",    "engineId": "ford",       "chassis": { "racing":  82, "qualifying":  80, "consistency":  82, "reliability":  80 }, "drivers": ["scheckter", "depailler"] },
     { "teamId": "lotus",      "engineId": "ford",       "chassis": { "racing":  78, "qualifying":  76, "consistency":  78, "reliability":  76 }, "drivers": ["andretti", "nilsson"] },
     { "teamId": "march",      "engineId": "ford",       "chassis": { "racing":  74, "qualifying":  76, "consistency":  70, "reliability":  70 }, "drivers": ["peterson", "brambilla"] },

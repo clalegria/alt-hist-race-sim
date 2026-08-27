@@ -8,8 +8,8 @@
  * the real files checks a *rule* over whatever those files happen to hold.
  */
 
-import type { Livery } from "@alt-hist/data";
-import { seasonSeed, seasons, teamsById } from "@alt-hist/data";
+import type { Livery, Team } from "@alt-hist/data";
+import { seasonSeed, seasons, teamLiveryIn, teamsById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -123,17 +123,17 @@ describe("resolving a livery", () => {
     }
   });
 
-  it("prefers a season's own livery over the team's default, in every season", () => {
-    // Loops every authored year rather than naming the one that carries
-    // overrides today: a livery added to 1976 next week is covered without an
-    // edit here, and years with none still exercise the fallback.
+  it("prefers a season's own override, and otherwise the era, in every season", () => {
+    // Loops every authored year rather than naming one: a livery era added to
+    // 1976 next week is covered without an edit here.
     let overrides = 0;
     for (const season of seasons.values()) {
       for (const entry of seasonSeed(season.year).entries) {
         const where = `${season.year} ${entry.teamId}`;
+        const team = teamsById().get(entry.teamId);
         const resolved = liveryFor(entry.teamId, season.year);
         if (entry.primaryColor === undefined) {
-          expect(resolved, where).toEqual(teamsById().get(entry.teamId));
+          expect(resolved, where).toEqual(teamLiveryIn(team as Team, season.year));
           continue;
         }
         overrides += 1;
@@ -143,14 +143,35 @@ describe("resolving a livery", () => {
         expect(resolved?.badgeStripes, where).toBe(entry.badgeStripes);
       }
     }
-    // Guards the loop itself: with no overrides anywhere, every assertion above
-    // would be the fallback and the override path would go unchecked.
-    expect(overrides).toBeGreaterThan(0);
+    // No season declares an override today — the eras absorbed all 83 of them —
+    // so the branch above is unreached rather than passing vacuously, and this
+    // says so out loud instead of leaving a silent zero.
+    expect(overrides, "a season now declares a livery override; assert it").toBe(0);
   });
 
-  it("falls back to the team default outside a season", () => {
+  it("changes a team's livery at an era boundary and not between", () => {
+    // The guard the override count used to be. Without it every assertion in
+    // the season loop above could be one unchanging colour per team and pass.
+    const changed = [...teamsById().values()].filter((team) => {
+      const drawn = [...seasons.keys()].map((year) => liveryFor(team.id, year)?.primaryColor);
+      return new Set(drawn).size > 1;
+    });
+    expect(changed.length).toBeGreaterThan(0);
+    for (const team of changed) {
+      const boundaries = new Set(team.liveries.map((era) => era.from));
+      for (const year of seasons.keys()) {
+        const before = liveryFor(team.id, year - 1);
+        const now = liveryFor(team.id, year);
+        if (before !== undefined && now !== undefined && before.primaryColor !== now.primaryColor) {
+          expect(boundaries, `${team.id} changed colour in ${year}`).toContain(year);
+        }
+      }
+    }
+  });
+
+  it("falls back to the team's most recent livery outside a season", () => {
     for (const [teamId, team] of teamsById()) {
-      expect(liveryFor(teamId), teamId).toEqual(team);
+      expect(liveryFor(teamId), teamId).toEqual(team.liveries[team.liveries.length - 1]);
     }
   });
 

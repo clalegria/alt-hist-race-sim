@@ -34,7 +34,9 @@ import type {
   DriverPeak,
   DriverStepDown,
   EngineManufacturer,
+  LiveryEra,
   Team,
+  TeamIdentity,
 } from "./types.js";
 
 /**
@@ -60,9 +62,17 @@ export type StepDownsHaveNoExtraKeys = Extends<keyof StepDownJson, keyof DriverS
 export type OffSeasonsMatch = Extends<OffSeasonJson, DriverOffSeason>;
 export type OffSeasonsHaveNoExtraKeys = Extends<keyof OffSeasonJson, keyof DriverOffSeason>;
 
-// teams.json
+// teams.json. The two era lists are checked in both directions as well: they
+// are where every name and colour now lives, and a key the interfaces ignore
+// would be authored data that silently renders as nothing.
+type IdentityJson = TeamJson["identity"][number];
+type LiveryEraJson = TeamJson["liveries"][number];
 export type TeamsAreTeams = Extends<TeamJson, Team>;
 export type TeamsHaveNoExtraKeys = Extends<keyof TeamJson, keyof Team>;
+export type IdentitiesMatch = Extends<IdentityJson, TeamIdentity>;
+export type IdentitiesHaveNoExtraKeys = Extends<keyof IdentityJson, keyof TeamIdentity>;
+export type LiveryErasMatch = Extends<LiveryEraJson, LiveryEra>;
+export type LiveryErasHaveNoExtraKeys = Extends<keyof LiveryEraJson, keyof LiveryEra>;
 
 // engines.json
 export type EnginesAreManufacturers = Extends<EngineJson, EngineManufacturer>;

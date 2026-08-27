@@ -29,6 +29,7 @@
  */
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
+import { teamIdentityIn } from "./eras.js";
 import { drivers as driverPool, engines as enginePool, teams as teamPool } from "./index.js";
 import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
 
@@ -86,10 +87,13 @@ export function buildField(
   makers: readonly EngineManufacturer[] = enginePool,
 ): RaceEntrant[] {
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
-  // Where each team is based, for the engine's home-advantage term. A team the
-  // pool does not know still races — it simply never races at home, which is
-  // the same thing the engine does with a missing code.
-  const baseOf = new Map(teams.map((team) => [team.id, team.base]));
+  // Where each team is based, for the engine's home-advantage term. Read for
+  // the season being built, because a base moves with a rename — the team that
+  // was Toleman is registered in France as Alpine — and racing at home is a
+  // fact about the year, not about the lineage. A team the pool does not know
+  // still races; it simply never races at home, which is the same thing the
+  // engine does with a missing code.
+  const baseOf = new Map(teams.map((team) => [team.id, teamIdentityIn(team, season.year).base]));
   const engineOf = new Map(season.engines.map((engine) => [engine.engineId, engine]));
   // Where each engine was built, for the third share of home advantage. Same
   // treatment as a team the pool does not know: no code, so never at home.

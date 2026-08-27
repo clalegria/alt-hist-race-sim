@@ -11,7 +11,17 @@ import driversJson from "./drivers.json";
 import enginesJson from "./engines.json";
 import { seasons } from "./seasons/index.js";
 import teamsJson from "./teams.json";
-import type { Driver, EngineManufacturer, Livery, SeasonEntry, SeasonSeed, Team } from "./types.js";
+import type {
+  Driver,
+  EngineManufacturer,
+  Era,
+  Livery,
+  LiveryEra,
+  SeasonEntry,
+  SeasonSeed,
+  Team,
+  TeamIdentity,
+} from "./types.js";
 
 export {
   buildField,
@@ -31,6 +41,7 @@ export {
   isAuthoredEngines,
   type SeasonEngines,
 } from "./engines.js";
+export { eraAt, teamIdentityIn, teamLiveryIn } from "./eras.js";
 export {
   applyLineup,
   authoredLineup,
@@ -59,11 +70,14 @@ export type {
   DriverPeak,
   DriverStepDown,
   EngineManufacturer,
+  Era,
   Livery,
+  LiveryEra,
   SeasonEngine,
   SeasonEntry,
   SeasonSeed,
   Team,
+  TeamIdentity,
 } from "./types.js";
 
 /**
@@ -158,7 +172,7 @@ const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
  * the DOM as a silently ignored CSS value, which shows up as a team rendered in
  * the fallback grey rather than as an error.
  */
-function checkLivery(where: string, livery: Livery): void {
+function checkLivery(where: string, livery: Livery | LiveryEra): void {
   for (const key of ["primaryColor", "secondaryColor1", "secondaryColor2"] as const) {
     const value = livery[key];
     if (typeof value !== "string" || !HEX_COLOR.test(value)) {
@@ -170,6 +184,47 @@ function checkLivery(where: string, livery: Livery): void {
     throw new Error(
       `${where} has badgeStripes ${String(badgeStripes)}; a badge wears 0, 1 or 2 stripes`,
     );
+  }
+}
+
+/**
+ * An era list, whichever kind: at least one era, no unread fields, and strictly
+ * ascending `from` years.
+ *
+ * Strictly ascending is the load-bearing rule. `eraAt` returns the last era
+ * whose year has arrived, so two eras sharing a `from` would make one of them
+ * dead data that reads as authored, and an out-of-order list would silently
+ * skip an era for every year after it. Neither shows up as an error anywhere
+ * downstream — the team simply wears the wrong name or the wrong colours.
+ */
+function checkEras(where: string, list: readonly Era[], keys: readonly string[]): void {
+  if (list.length === 0) {
+    throw new Error(`${where} is empty; a team has at least one era`);
+  }
+  let previous: number | undefined;
+  for (const era of list) {
+    if (!Number.isInteger(era.from)) {
+      throw new Error(
+        `${where} has an era starting "${String(era.from)}"; a year is a whole number`,
+      );
+    }
+    if (previous !== undefined && era.from <= previous) {
+      throw new Error(
+        `${where} has an era starting ${era.from} after one starting ${previous}; eras run earliest first and never share a year`,
+      );
+    }
+    previous = era.from;
+    checkNoExtraKeys(`${where} from ${era.from}`, era, keys);
+  }
+}
+
+/** A name and a flag, on one identity era. */
+function checkIdentity(where: string, identity: TeamIdentity): void {
+  if (identity.name.trim() === "") {
+    throw new Error(`${where} has no name`);
+  }
+  if (!/^[A-Z]{2}$/.test(identity.base)) {
+    throw new Error(`${where} has base "${identity.base}", not an ISO alpha-2 code`);
   }
 }
 
@@ -195,7 +250,9 @@ function checkLiveryOverride(where: string, entry: SeasonEntry): void {
 }
 
 const LIVERY_KEYS = ["primaryColor", "secondaryColor1", "secondaryColor2", "badgeStripes"] as const;
-const TEAM_KEYS = ["id", "name", "base", "foundedYear", ...LIVERY_KEYS] as const;
+const IDENTITY_KEYS = ["from", "name", "base"] as const;
+const LIVERY_ERA_KEYS = ["from", ...LIVERY_KEYS] as const;
+const TEAM_KEYS = ["id", "foundedYear", "identity", "liveries"] as const;
 const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
 const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
 const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers", ...LIVERY_KEYS] as const;
@@ -234,8 +291,15 @@ export function validateSeedData(
 
   for (const team of teamPool) {
     const where = `Team "${team.id}"`;
-    checkLivery(where, team);
     checkNoExtraKeys(where, team, TEAM_KEYS);
+    checkEras(`${where} identity`, team.identity, IDENTITY_KEYS);
+    checkEras(`${where} liveries`, team.liveries, LIVERY_ERA_KEYS);
+    for (const identity of team.identity) {
+      checkIdentity(`${where} identity from ${identity.from}`, identity);
+    }
+    for (const era of team.liveries) {
+      checkLivery(`${where} livery from ${era.from}`, era);
+    }
   }
 
   const duplicateEngines = findDuplicates(enginePool.map((maker) => maker.id));

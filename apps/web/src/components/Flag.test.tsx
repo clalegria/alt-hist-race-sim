@@ -34,8 +34,15 @@ describe("flags", () => {
     for (const driver of drivers) {
       expect(hasFlag(driver.nationality), `driver ${driver.id}: ${driver.nationality}`).toBe(true);
     }
+    // Every era, not just the current one: a base moves with a rename, and the
+    // flag beside a 1983 Toleman is drawn from an era nothing else looks at.
     for (const team of teams) {
-      expect(hasFlag(team.base), `team ${team.id}: ${team.base}`).toBe(true);
+      for (const identity of team.identity) {
+        expect(
+          hasFlag(identity.base),
+          `team ${team.id} from ${identity.from}: ${identity.base}`,
+        ).toBe(true);
+      }
     }
     for (const season of seasons.values()) {
       for (const race of season.calendar) {

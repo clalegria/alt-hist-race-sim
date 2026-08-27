@@ -34,6 +34,7 @@ import {
   RATING_MODES,
   type RatingMode,
   seasonSeed,
+  teamIdentityIn,
   teamsById,
 } from "@alt-hist/data";
 import {
@@ -222,6 +223,17 @@ function main(): void {
   const authored = seasonSeed(year);
   const field = buildField(authored, undefined, mode);
   const teams = teamsById();
+
+  /**
+   * What a team was called in the year being run. A lineage carries one name
+   * per era — the team that raced as Toleman is Alpine by 2021 — so anything
+   * printed has to say which year it is printing.
+   */
+  const teamNameOf = (teamId: string): string => {
+    const team = teams.get(teamId);
+    return team === undefined ? teamId : teamIdentityIn(team, year).name;
+  };
+
   const drivers = driversById();
 
   const driverTallies = new Map<string, Tally>();
@@ -236,7 +248,7 @@ function main(): void {
       ),
     );
     if (!teamTallies.has(entrant.teamId)) {
-      const name = teams.get(entrant.teamId)?.name ?? entrant.teamId;
+      const name = teamNameOf(entrant.teamId);
       teamTallies.set(entrant.teamId, emptyTally(entrant.teamId, name, entrant.teamId));
     }
   }
@@ -351,7 +363,7 @@ function main(): void {
     console.log(
       [
         padRight(driver.name, 22),
-        padRight(teams.get(driver.teamId)?.name ?? driver.teamId, 14),
+        padRight(teamNameOf(driver.teamId), 14),
         padLeft(pct(driver.titles, driver.seasons), 8),
         padLeft(pct(driver.seasonsWithAWin, driver.seasons), 7),
         padLeft(pct(driver.seasonsWithAPoint, driver.seasons), 8),

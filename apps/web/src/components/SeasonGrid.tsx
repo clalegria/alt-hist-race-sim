@@ -2,7 +2,7 @@ import type { EngineChange, RatingMode, SeatChange } from "@alt-hist/data";
 import { driversById, teamsById } from "@alt-hist/data";
 import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
 import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
-import { driverName, engineName, entryName, teamName } from "../lib/names.js";
+import { driverName, engineName, entryName, teamCountry, teamName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
@@ -296,6 +296,9 @@ interface TeamEntry {
 export function byTeam(
   field: readonly RaceEntrant[],
   order: SortOrder = DEFAULT_SORT_ORDER,
+  // Alphabetical order is over the names *that season* — the lineage sorted
+  // under T as Toleman and sorts under A as Alpine.
+  seasonYear?: number,
 ): readonly TeamEntry[] {
   const grouped = new Map<string, TeamEntry & { drivers: RaceEntrant[] }>();
   for (const entrant of field) {
@@ -315,7 +318,7 @@ export function byTeam(
   return sortBy(
     [...grouped.values()],
     order,
-    (entry) => teamName(entry.teamId),
+    (entry) => teamName(entry.teamId, seasonYear),
     (entry) => carOverall(entry.chassis, entry.engine),
   );
 }
@@ -355,7 +358,7 @@ export function SeasonGrid({
   /** Absent in tests, where nothing is clicked. The switch still renders. */
   onSortChange?: (order: SortOrder) => void;
 }) {
-  const entries = byTeam(field, sort);
+  const entries = byTeam(field, sort, seasonYear);
   const edited = changes ?? [];
   const resupplied = engineChanges ?? [];
   // Everyone who is not where the season put them, so the grid shows its own
@@ -414,7 +417,8 @@ export function SeasonGrid({
         >
           {entries.map((entry) => {
             const team = teams.get(entry.teamId);
-            const name = entryName(entry.teamId, entry.engineId);
+            const name = entryName(entry.teamId, entry.engineId, seasonYear);
+            const base = teamCountry(entry.teamId, seasonYear);
             const livery = liveryFor(entry.teamId, seasonYear);
             return (
               <li
@@ -442,7 +446,7 @@ export function SeasonGrid({
                 >
                   <Popover>
                     <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
-                      {team === undefined ? null : <Flag country={team.base} title={team.base} />}
+                      {base === undefined ? null : <Flag country={base} title={base} />}
                       <span className="truncate">{name}</span>
                     </NameTrigger>
                     <PopoverContent>

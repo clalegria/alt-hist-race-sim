@@ -391,7 +391,18 @@ function livery() {
 
 /** One team, valid in every respect, for a fixture to break one field of. */
 function team() {
-  return { id: knownTeam, name: "Fixture", base: "GB", foundedYear: 1970, ...livery() };
+  return {
+    id: knownTeam,
+    foundedYear: 1970,
+    identity: [{ from: 1970, name: "Fixture", base: "GB" }],
+    liveries: [{ from: 1970, ...livery() }],
+  };
+}
+
+/** The fixture team with one field of its only livery era replaced. */
+function teamPainted(override: Record<string, unknown>) {
+  const base = team();
+  return { ...base, liveries: [{ ...base.liveries[0], ...override }] };
 }
 
 /**
@@ -497,10 +508,10 @@ describe("engines", () => {
 
   it("rejects a team whose colour is not a hex triplet", () => {
     expect(() => {
-      validateSeedData(drivers, [{ ...team(), primaryColor: "red" }], [noEntries()]);
+      validateSeedData(drivers, [teamPainted({ primaryColor: "red" }) as Team], [noEntries()]);
     }).toThrow(/primaryColor "red", not a #RRGGBB colour/);
     expect(() => {
-      validateSeedData(drivers, [{ ...team(), secondaryColor2: "#ABC" }], [noEntries()]);
+      validateSeedData(drivers, [teamPainted({ secondaryColor2: "#ABC" }) as Team], [noEntries()]);
     }).toThrow(/secondaryColor2 "#ABC", not a #RRGGBB colour/);
   });
 
@@ -508,20 +519,24 @@ describe("engines", () => {
     // The teams file has the same two-direction guard the seasons do: the
     // compile-time half lives in type-checks.ts, this is the runtime half.
     expect(() => {
-      validateSeedData(drivers, [{ ...team(), tyreSupplier: "goodyear" } as Team], [noEntries()]);
+      validateSeedData(
+        drivers,
+        [{ ...team(), tyreSupplier: "goodyear" } as unknown as Team],
+        [noEntries()],
+      );
     }).toThrow(/has fields nothing reads: tyreSupplier/);
   });
 
   it("rejects a badge wearing more stripes than it has accents", () => {
     expect(() => {
-      validateSeedData(drivers, [{ ...team(), badgeStripes: 3 }], [noEntries()]);
+      validateSeedData(drivers, [teamPainted({ badgeStripes: 3 }) as Team], [noEntries()]);
     }).toThrow(/badgeStripes 3; a badge wears 0, 1 or 2 stripes/);
   });
 
   it("accepts a badge with no stripes at all", () => {
     // 0 is a plain disc, not a missing value — the accents stay authored.
     expect(() => {
-      validateSeedData(drivers, [{ ...team(), badgeStripes: 0 }], [noEntries()]);
+      validateSeedData(drivers, [teamPainted({ badgeStripes: 0 }) as Team], [noEntries()]);
     }).not.toThrow();
   });
 

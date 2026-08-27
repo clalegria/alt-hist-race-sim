@@ -30,12 +30,12 @@
     { "engineId": "ford",       "racing":  60, "qualifying":  54, "reliability":  84 }
   ],
   "entries": [
-    { "teamId": "mclaren",    "engineId": "tag",        "chassis": { "racing":  96, "qualifying":  90, "consistency":  92, "reliability":  86 }, "drivers": ["prost", "lauda"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "mclaren",    "engineId": "tag",        "chassis": { "racing":  96, "qualifying":  90, "consistency":  92, "reliability":  86 }, "drivers": ["prost", "lauda"] },
     { "teamId": "brabham",    "engineId": "bmw",        "chassis": { "racing":  86, "qualifying":  90, "consistency":  70, "reliability":  54 }, "drivers": ["piquet", "fabi_t"] },
     { "teamId": "ferrari",    "engineId": "ferrari",    "chassis": { "racing":  82, "qualifying":  84, "consistency":  76, "reliability":  72 }, "drivers": ["alboreto", "arnoux"] },
     { "teamId": "lotus",      "engineId": "renault",    "chassis": { "racing":  82, "qualifying":  82, "consistency":  76, "reliability":  68 }, "drivers": ["deangelis", "mansell"] },
     { "teamId": "renault",    "engineId": "renault",    "chassis": { "racing":  80, "qualifying":  82, "consistency":  72, "reliability":  62 }, "drivers": ["tambay", "warwick"] },
-    { "teamId": "williams",   "engineId": "honda",      "chassis": { "racing":  76, "qualifying":  76, "consistency":  70, "reliability":  58 }, "drivers": ["laffite", "rosberg"], "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
+    { "teamId": "williams",   "engineId": "honda",      "chassis": { "racing":  76, "qualifying":  76, "consistency":  70, "reliability":  58 }, "drivers": ["laffite", "rosberg"] },
     { "teamId": "toleman",    "engineId": "hart",       "chassis": { "racing":  72, "qualifying":  72, "consistency":  66, "reliability":  54 }, "drivers": ["senna", "cecotto"] },
     { "teamId": "alfa_romeo", "engineId": "alfa_romeo", "chassis": { "racing":  70, "qualifying":  72, "consistency":  62, "reliability":  50 }, "drivers": ["patrese", "cheever"] },
     { "teamId": "arrows",     "engineId": "bmw",        "chassis": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  58 }, "drivers": ["surer", "boutsen"] },

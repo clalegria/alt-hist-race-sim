@@ -58,9 +58,9 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 - **No `Math.random()` anywhere in the engine.** All randomness comes from an
   injected seeded PRNG. Reproducibility is a hard requirement (bug reports, tests,
   Monte Carlo calibration).
-- **Identity is separate from state.** `Driver` / `Team` (id, name, nationality,
-  birthYear / foundedYear) are immutable. Ratings and per-season facts live in
-  separate per-season records.
+- **Identity is separate from state.** `Driver` and `Team` (ids, birth/founding years)
+  are immutable; ratings and per-season facts live in per-season records. A team's
+  **name, base and livery are eras**, read via `teamIdentityIn` / `teamLiveryIn`.
 - **Results are the source of truth; statistics are derived.** Store a result row
   per (driver, race). Never keep running win/points counters as primary data —
   compute aggregates from results on read.

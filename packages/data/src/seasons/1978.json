@@ -33,7 +33,7 @@
     { "teamId": "tyrrell",    "engineId": "ford",       "chassis": { "racing":  76, "qualifying":  74, "consistency":  78, "reliability":  80 }, "drivers": ["depailler", "pironi"] },
     { "teamId": "wolf",       "engineId": "ford",       "chassis": { "racing":  78, "qualifying":  76, "consistency":  76, "reliability":  74 }, "drivers": ["scheckter"] },
     { "teamId": "ligier",     "engineId": "matra",      "chassis": { "racing":  76, "qualifying":  74, "consistency":  76, "reliability":  74 }, "drivers": ["laffite", "binder"] },
-    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["hunt", "tambay"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["hunt", "tambay"] },
     { "teamId": "fittipaldi", "engineId": "ford",       "chassis": { "racing":  66, "qualifying":  64, "consistency":  68, "reliability":  70 }, "drivers": ["fittipaldi_e", "ribeiro"] },
     { "teamId": "arrows",     "engineId": "ford",       "chassis": { "racing":  70, "qualifying":  68, "consistency":  68, "reliability":  64 }, "drivers": ["patrese", "stommelen"] },
     { "teamId": "williams",   "engineId": "ford",       "chassis": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  72 }, "drivers": ["jones", "merzario"] },

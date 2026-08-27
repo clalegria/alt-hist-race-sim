@@ -25,8 +25,12 @@ drift apart; the **seasons** are checked the same two ways at runtime by
   - `stepDown: { season, severity }` is an optional persistent step down
     (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
     severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.
-- `teams.json` — every team across every season (113 today), so Shadow (1980, not 1981)
-  and Toleman (1981, not 1980) both live here. `{ id, name, base, foundedYear }`.
+- `teams.json` — every team across every season (98 today), so Shadow (1980, not 1981)
+  and Toleman (1981, not 1980) both live here.
+  `{ id, foundedYear, identity: [{ from, name, base }], liveries: [{ from, ...livery }] }`.
+  **A team is a lineage, not a name.** The `id` is one continuous organisation for its
+  whole life; what it was *called*, where it was registered and what it was painted are
+  facts about a span of years, and each is an era list. See "Eras" below.
 - `engines.json` — every engine manufacturer, across every season. `{ id, name, base }`
   — **identity only**. What a unit is *worth* is a per-season fact and lives in the
   season file, because Ferrari's 1980 flat-12 and its 1981 turbo V6 are the same
@@ -83,19 +87,16 @@ year authored would be the one nobody checked. It covers the pools only, and
 every declared field present and in range, and no field present that the type does not
 declare.
 
-**Liveries are optional per season and required per team.** Every team in `teams.json`
-carries `primaryColor`, `secondaryColor1`, `secondaryColor2` (all `#RRGGBB`) and
-`badgeStripes` (0, 1 or 2) as its default. A season entry may override all four for that
-year — Benetton is green in 1991 and blue in 1996 — and **it is all four or none**:
-`validateSeedData` rejects a partial override rather than merging one, because the fields
-that fell back would combine into a livery nobody authored. Only 1991 carries overrides
-today; every other year draws its teams in the team defaults, which is correct but not
-yet the history. Adding them to a year is pure authoring — no code changes, nothing to
-re-tune, and nothing reads a livery except the UI.
-
 Nothing else has a list of seasons in it. `apps/web/src/lib/seasons.ts` derives
 `PLAYABLE_SEASONS` and the picker's subtitle from `authoredSeasons`; the calibrate
 tools take `--year`, defaulting to `FIRST_AUTHORED_SEASON`.
+
+## Eras
+
+A team's `identity` and `liveries` are **era lists**, not fields: one `id` is Toleman in
+1983 and Alpine in 2024. The resolution rule, the lineage table, what a season entry may
+still override, and why a name is never a key are in `.claude/rules/team-eras.md`, which
+loads on `teams.json`, `eras.ts` and the web modules that read them.
 
 ## Rules and gotchas
 

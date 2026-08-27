@@ -10,6 +10,7 @@ import {
   FIRST_AUTHORED_SEASON,
   seasonSeed,
   seasons,
+  teamIdentityIn,
   teamsById,
   validateSeedData,
 } from "./index.js";
@@ -176,8 +177,9 @@ describe("building a field", () => {
         expect(entrant.driverCountry, `${season.year} ${entrant.driverId}`).toBe(
           driver(entrant.driverId).nationality,
         );
+        const team = teams.get(entrant.teamId);
         expect(entrant.teamCountry, `${season.year} ${entrant.teamId}`).toBe(
-          teams.get(entrant.teamId)?.base,
+          team === undefined ? undefined : teamIdentityIn(team, season.year).base,
         );
       }
     }

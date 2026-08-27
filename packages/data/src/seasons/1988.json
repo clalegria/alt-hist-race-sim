@@ -30,11 +30,11 @@
     { "engineId": "alfa_romeo", "racing":  50, "qualifying":  48, "reliability":  52 }
   ],
   "entries": [
-    { "teamId": "mclaren",   "engineId": "honda",      "chassis": { "racing":  98, "qualifying":  96, "consistency":  94, "reliability":  90 }, "drivers": ["senna", "prost"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "mclaren",   "engineId": "honda",      "chassis": { "racing":  98, "qualifying":  96, "consistency":  94, "reliability":  90 }, "drivers": ["senna", "prost"] },
     { "teamId": "ferrari",   "engineId": "ferrari",    "chassis": { "racing":  86, "qualifying":  86, "consistency":  78, "reliability":  68 }, "drivers": ["berger", "alboreto"] },
-    { "teamId": "benetton",  "engineId": "ford",       "chassis": { "racing":  80, "qualifying":  78, "consistency":  76, "reliability":  70 }, "drivers": ["boutsen", "nannini"] },
+    { "teamId": "toleman",   "engineId": "ford",       "chassis": { "racing":  80, "qualifying":  78, "consistency":  76, "reliability":  70 }, "drivers": ["boutsen", "nannini"] },
     { "teamId": "lotus",     "engineId": "honda",      "chassis": { "racing":  74, "qualifying":  74, "consistency":  72, "reliability":  74 }, "drivers": ["piquet", "nakajima"] },
-    { "teamId": "williams",  "engineId": "judd",       "chassis": { "racing":  74, "qualifying":  72, "consistency":  68, "reliability":  56 }, "drivers": ["mansell", "patrese"], "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
+    { "teamId": "williams",  "engineId": "judd",       "chassis": { "racing":  74, "qualifying":  72, "consistency":  68, "reliability":  56 }, "drivers": ["mansell", "patrese"] },
     { "teamId": "arrows",    "engineId": "megatron",   "chassis": { "racing":  72, "qualifying":  70, "consistency":  74, "reliability":  70 }, "drivers": ["warwick", "cheever"] },
     { "teamId": "march",     "engineId": "judd",       "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  64 }, "drivers": ["capelli", "gugelmin"] },
     { "teamId": "tyrrell",   "engineId": "cosworth",   "chassis": { "racing":  58, "qualifying":  54, "consistency":  64, "reliability":  66 }, "drivers": ["palmer", "bailey"] },

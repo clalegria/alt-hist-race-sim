@@ -1,6 +1,7 @@
 import type { EngineChange, SeatChange } from "@alt-hist/data";
-import { driverName, engineName, teamName } from "../lib/names.js";
+import { driverName, engineName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { useTeamName } from "./EntryNames.js";
 
 /**
  * What a reader did to the grid, said in one place.
@@ -40,6 +41,7 @@ export function GridChanges({
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
 }) {
+  const teamName = useTeamName();
   // One row per team even when both its drivers and its engine moved, so a
   // reader scanning the list finds each team once.
   const teamIds = [

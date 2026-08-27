@@ -30,7 +30,7 @@
   ],
   "entries": [
     { "teamId": "ferrari",    "engineId": "ferrari",    "chassis": { "racing":  89, "qualifying":  89, "consistency":  72, "reliability":  62 }, "drivers": ["villeneuve_g", "pironi"] },
-    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  88, "qualifying":  82, "consistency":  82, "reliability":  76 }, "drivers": ["watson", "lauda"], "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+    { "teamId": "mclaren",    "engineId": "ford",       "chassis": { "racing":  88, "qualifying":  82, "consistency":  82, "reliability":  76 }, "drivers": ["watson", "lauda"] },
     { "teamId": "renault",    "engineId": "renault",    "chassis": { "racing":  88, "qualifying":  90, "consistency":  72, "reliability":  50 }, "drivers": ["prost", "arnoux"] },
     { "teamId": "brabham",    "engineId": "bmw",        "chassis": { "racing":  88, "qualifying":  88, "consistency":  74, "reliability":  60 }, "drivers": ["piquet", "patrese"] },
     { "teamId": "williams",   "engineId": "ford",       "chassis": { "racing":  92, "qualifying":  87, "consistency":  90, "reliability":  88 }, "drivers": ["rosberg", "daly"] },

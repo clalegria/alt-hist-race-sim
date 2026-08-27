@@ -10,7 +10,7 @@
  *   pnpm calibrate 20000      # more races, tighter numbers
  */
 
-import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
+import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
 import { createRng, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
@@ -50,6 +50,17 @@ function main(): void {
   const constants = withRandomness(randomness);
   const field = buildField(seasonSeed(year));
   const teams = teamsById();
+
+  /**
+   * What a team was called in the year being run. A lineage carries one name
+   * per era — the team that raced as Toleman is Alpine by 2021 — so anything
+   * printed has to say which year it is printing.
+   */
+  const teamNameOf = (teamId: string): string => {
+    const team = teams.get(teamId);
+    return team === undefined ? teamId : teamIdentityIn(team, year).name;
+  };
+
   const drivers = driversById();
 
   const teamTallies = new Map<string, TeamTally>();
@@ -59,7 +70,7 @@ function main(): void {
     if (!teamTallies.has(entrant.teamId)) {
       teamTallies.set(entrant.teamId, {
         teamId: entrant.teamId,
-        name: teams.get(entrant.teamId)?.name ?? entrant.teamId,
+        name: teamNameOf(entrant.teamId),
         wins: 0,
         poles: 0,
         retirements: 0,
@@ -193,7 +204,7 @@ function main(): void {
     console.log(
       [
         padRight(driver.name, 22),
-        padRight(teams.get(driver.teamId)?.name ?? driver.teamId, 16),
+        padRight(teamNameOf(driver.teamId), 16),
         padLeft(String(driver.wins), 7),
         padLeft(pct(driver.wins, races), 7),
         padLeft(pct(driver.poles, races), 7),

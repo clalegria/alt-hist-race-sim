@@ -1,115 +1,1063 @@
 [
-  { "id": "williams",        "name": "Williams",               "base": "GB", "foundedYear": 1977, "primaryColor": "#003E7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A3E0", "badgeStripes": 2 },
-  { "id": "ligier",          "name": "Ligier",                 "base": "FR", "foundedYear": 1976, "primaryColor": "#1E4C9A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "brabham",         "name": "Brabham",                "base": "GB", "foundedYear": 1962, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "renault",         "name": "Renault",                "base": "FR", "foundedYear": 1977, "primaryColor": "#FFCD00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "lotus",           "name": "Lotus",                  "base": "GB", "foundedYear": 1958, "primaryColor": "#00563F", "secondaryColor1": "#FFD700", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "tyrrell",         "name": "Tyrrell",                "base": "GB", "foundedYear": 1970, "primaryColor": "#003C7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A6E0", "badgeStripes": 2 },
-  { "id": "arrows",          "name": "Arrows",                 "base": "GB", "foundedYear": 1977, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "fittipaldi",      "name": "Fittipaldi",             "base": "BR", "foundedYear": 1975, "primaryColor": "#F2C500", "secondaryColor1": "#009C3B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "mclaren",         "name": "McLaren",                "base": "GB", "foundedYear": 1966, "primaryColor": "#FF8000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "ferrari",         "name": "Ferrari",                "base": "IT", "foundedYear": 1950, "primaryColor": "#DC0000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 0 },
-  { "id": "alfa_romeo",      "name": "Alfa Romeo",             "base": "IT", "foundedYear": 1950, "primaryColor": "#A6051A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#007A33", "badgeStripes": 1 },
-  { "id": "ats",             "name": "ATS",                    "base": "DE", "foundedYear": 1977, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "ensign",          "name": "Ensign",                 "base": "GB", "foundedYear": 1973, "primaryColor": "#1B3A6B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "osella",          "name": "Osella",                 "base": "IT", "foundedYear": 1980, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "shadow",          "name": "Shadow",                 "base": "GB", "foundedYear": 1973, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "theodore",        "name": "Theodore",               "base": "HK", "foundedYear": 1977, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "march",           "name": "March",                  "base": "GB", "foundedYear": 1969, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "toleman",         "name": "Toleman",                "base": "GB", "foundedYear": 1981, "primaryColor": "#0033A0", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "spirit",          "name": "Spirit",                 "base": "GB", "foundedYear": 1981, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "ram",             "name": "RAM",                    "base": "GB", "foundedYear": 1976, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "zakspeed",        "name": "Zakspeed",               "base": "DE", "foundedYear": 1968, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "minardi",         "name": "Minardi",                "base": "IT", "foundedYear": 1979, "primaryColor": "#000000", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "haas_lola",       "name": "Haas Lola",              "base": "GB", "foundedYear": 1984, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "benetton",        "name": "Benetton",               "base": "GB", "foundedYear": 1986, "primaryColor": "#009A44", "secondaryColor1": "#0033A0", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
-  { "id": "ags",             "name": "AGS",                    "base": "FR", "foundedYear": 1986, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "larrousse",       "name": "Larrousse",              "base": "FR", "foundedYear": 1987, "primaryColor": "#FFCD00", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "coloni",          "name": "Coloni",                 "base": "IT", "foundedYear": 1987, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "rial",            "name": "Rial",                   "base": "DE", "foundedYear": 1988, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "dallara",         "name": "Dallara",                "base": "IT", "foundedYear": 1988, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "eurobrun",        "name": "EuroBrun",               "base": "IT", "foundedYear": 1988, "primaryColor": "#000000", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "onyx",            "name": "Onyx",                   "base": "GB", "foundedYear": 1989, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "leyton_house",    "name": "Leyton House",           "base": "GB", "foundedYear": 1990, "primaryColor": "#33CCCC", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "life",            "name": "Life",                   "base": "IT", "foundedYear": 1990, "primaryColor": "#FFFFFF", "secondaryColor1": "#009246", "secondaryColor2": "#CE2B37", "badgeStripes": 2 },
-  { "id": "jordan",          "name": "Jordan",                 "base": "IE", "foundedYear": 1991, "primaryColor": "#FFD200", "secondaryColor1": "#000000", "secondaryColor2": "#009A44", "badgeStripes": 2 },
-  { "id": "fondmetal",       "name": "Fondmetal",              "base": "IT", "foundedYear": 1991, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "sauber",          "name": "Sauber",                 "base": "CH", "foundedYear": 1993, "primaryColor": "#006EB6", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A650", "badgeStripes": 2 },
-  { "id": "simtek",          "name": "Simtek",                 "base": "GB", "foundedYear": 1994, "primaryColor": "#4B2E83", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "pacific",         "name": "Pacific",                "base": "GB", "foundedYear": 1994, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "forti",           "name": "Forti",                  "base": "IT", "foundedYear": 1995, "primaryColor": "#009A44", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "prost",           "name": "Prost",                  "base": "FR", "foundedYear": 1997, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
-  { "id": "stewart",         "name": "Stewart",                "base": "GB", "foundedYear": 1997, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "bar",             "name": "BAR",                    "base": "GB", "foundedYear": 1999, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "jaguar",          "name": "Jaguar",                 "base": "GB", "foundedYear": 2000, "primaryColor": "#14432A", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
-  { "id": "toyota",          "name": "Toyota",                 "base": "JP", "foundedYear": 2002, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "red_bull",        "name": "Red Bull",               "base": "AT", "foundedYear": 2005, "primaryColor": "#0A1E4A", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
-  { "id": "toro_rosso",      "name": "Toro Rosso",             "base": "IT", "foundedYear": 2006, "primaryColor": "#003DA5", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "honda",           "name": "Honda",                  "base": "JP", "foundedYear": 2006, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "super_aguri",     "name": "Super Aguri",            "base": "JP", "foundedYear": 2006, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "midland",         "name": "Midland",                "base": "NL", "foundedYear": 2006, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "spyker",          "name": "Spyker",                 "base": "NL", "foundedYear": 2007, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "force_india",     "name": "Force India",            "base": "IN", "foundedYear": 2008, "primaryColor": "#FF6A00", "secondaryColor1": "#009A44", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "brawn",           "name": "Brawn",                  "base": "GB", "foundedYear": 2009, "primaryColor": "#FFFFFF", "secondaryColor1": "#DFFF00", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "mercedes",        "name": "Mercedes",               "base": "DE", "foundedYear": 2010, "primaryColor": "#C8CCCE", "secondaryColor1": "#00A19B", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "virgin",          "name": "Virgin",                 "base": "GB", "foundedYear": 2010, "primaryColor": "#E4002B", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "caterham",        "name": "Caterham",               "base": "MY", "foundedYear": 2010, "primaryColor": "#00563F", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "hrt",             "name": "HRT",                    "base": "ES", "foundedYear": 2010, "primaryColor": "#808080", "secondaryColor1": "#E4002B", "secondaryColor2": "#C8A951", "badgeStripes": 2 },
-  { "id": "marussia",        "name": "Marussia",               "base": "RU", "foundedYear": 2012, "primaryColor": "#E4002B", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "manor",           "name": "Manor",                  "base": "GB", "foundedYear": 2016, "primaryColor": "#E4002B", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "haas",            "name": "Haas",                   "base": "US", "foundedYear": 2016, "primaryColor": "#6E6E6E", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "racing_point",    "name": "Racing Point",           "base": "GB", "foundedYear": 2019, "primaryColor": "#FF69B4", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "aston_martin",    "name": "Aston Martin",           "base": "GB", "foundedYear": 2021, "primaryColor": "#00594F", "secondaryColor1": "#CEDC00", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "audi",            "name": "Audi",                   "base": "DE", "foundedYear": 2026, "primaryColor": "#BB0A30", "secondaryColor1": "#C0C0C0", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "cadillac",        "name": "Cadillac",               "base": "US", "foundedYear": 2026, "primaryColor": "#0A1E3F", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "maserati",        "name": "Maserati",               "base": "IT", "foundedYear": 1950, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 0 },
-  { "id": "talbot_lago",     "name": "Talbot-Lago",            "base": "FR", "foundedYear": 1950, "primaryColor": "#1E4C9A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 },
-  { "id": "era",             "name": "ERA",                    "base": "GB", "foundedYear": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 0 },
-  { "id": "gordini",         "name": "Gordini",                "base": "FR", "foundedYear": 1950, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "hwm",             "name": "HWM",                    "base": "GB", "foundedYear": 1951, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "connaught",       "name": "Connaught",              "base": "GB", "foundedYear": 1952, "primaryColor": "#004225", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "cooper",          "name": "Cooper",                 "base": "GB", "foundedYear": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 },
-  { "id": "brm",             "name": "BRM",                    "base": "GB", "foundedYear": 1951, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
-  { "id": "lancia",          "name": "Lancia",                 "base": "IT", "foundedYear": 1954, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
-  { "id": "vanwall",         "name": "Vanwall",                "base": "GB", "foundedYear": 1954, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "porsche",         "name": "Porsche",                "base": "DE", "foundedYear": 1957, "primaryColor": "#C0C0C0", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 0 },
-  { "id": "eagle",           "name": "Eagle",                  "base": "US", "foundedYear": 1966, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "matra",           "name": "Matra",                  "base": "FR", "foundedYear": 1967, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "surtees",         "name": "Surtees",                "base": "GB", "foundedYear": 1970, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00843D", "badgeStripes": 2 },
-  { "id": "hesketh",         "name": "Hesketh",                "base": "GB", "foundedYear": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "penske",          "name": "Penske",                 "base": "US", "foundedYear": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
-  { "id": "embassy_hill",    "name": "Embassy Hill",           "base": "GB", "foundedYear": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 1 },
-  { "id": "wolf",            "name": "Wolf",                   "base": "CA", "foundedYear": 1977, "primaryColor": "#0A1E4A", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
-  { "id": "parnelli",        "name": "Parnelli",               "base": "US", "foundedYear": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "lola",            "name": "Lola",                   "base": "GB", "foundedYear": 1962, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "brp",             "name": "BRP",                    "base": "GB", "foundedYear": 1963, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "scarab",          "name": "Scarab",                 "base": "US", "foundedYear": 1960, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "iso_marlboro",    "name": "Iso-Marlboro",           "base": "GB", "foundedYear": 1973, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
-  { "id": "tecno",           "name": "Tecno",                  "base": "IT", "foundedYear": 1972, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-  { "id": "osca",            "name": "OSCA",                   "base": "IT", "foundedYear": 1951, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 0 },
-  { "id": "centro_sud",      "name": "Scuderia Centro Sud",    "base": "IT", "foundedYear": 1956, "primaryColor": "#001E5A", "secondaryColor1": "#C8102E", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
-  { "id": "rob_walker",      "name": "Rob Walker Racing",      "base": "GB", "foundedYear": 1953, "primaryColor": "#002366", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 },
-  { "id": "ecurie_ecosse",   "name": "Ecurie Ecosse",          "base": "GB", "foundedYear": 1952, "primaryColor": "#005EB8", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#002366", "badgeStripes": 1 },
-  { "id": "enb",             "name": "Ecurie Nationale Belge", "base": "BE", "foundedYear": 1955, "primaryColor": "#FFCD00", "secondaryColor1": "#000000", "secondaryColor2": "#E4002B", "badgeStripes": 0 },
-  { "id": "scuderia_milano", "name": "Scuderia Milano",        "base": "IT", "foundedYear": 1950, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 0 },
-  { "id": "reg_parnell",     "name": "Reg Parnell Racing",     "base": "GB", "foundedYear": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "bowmaker",        "name": "Bowmaker Racing",        "base": "GB", "foundedYear": 1960, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00563F", "badgeStripes": 1 },
-  { "id": "udt_laystall",    "name": "UDT Laystall",           "base": "GB", "foundedYear": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 2 },
-  { "id": "nart",            "name": "NART",                   "base": "US", "foundedYear": 1961, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
-  { "id": "filipinetti",     "name": "Scuderia Filipinetti",   "base": "CH", "foundedYear": 1962, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 1 },
-  { "id": "ecurie_bonnier",  "name": "Ecurie Bonnier",         "base": "CH", "foundedYear": 1966, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "gunston",         "name": "Team Gunston",           "base": "ZW", "foundedYear": 1965, "primaryColor": "#FF6A00", "secondaryColor1": "#6B3F19", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
-  { "id": "alta",            "name": "Alta",                   "base": "GB", "foundedYear": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "frazer_nash",     "name": "Frazer Nash",            "base": "GB", "foundedYear": 1952, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 },
-  { "id": "veritas",         "name": "Veritas",                "base": "DE", "foundedYear": 1952, "primaryColor": "#C0C0C0", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 0 },
-  { "id": "de_tomaso",       "name": "De Tomaso",              "base": "IT", "foundedYear": 1961, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "bellasi",         "name": "Bellasi",                "base": "CH", "foundedYear": 1970, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 },
-  { "id": "connew",          "name": "Connew",                 "base": "GB", "foundedYear": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#4B2E83", "secondaryColor2": "#000000", "badgeStripes": 1 },
-  { "id": "politoys",        "name": "Politoys",               "base": "GB", "foundedYear": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "scirocco",        "name": "Scirocco",               "base": "GB", "foundedYear": 1963, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
-  { "id": "ats_63",          "name": "ATS (Italy)",            "base": "IT", "foundedYear": 1963, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-  { "id": "emeryson",        "name": "Emeryson",               "base": "GB", "foundedYear": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFCD00", "badgeStripes": 1 },
-  { "id": "jbw",             "name": "JBW",                    "base": "GB", "foundedYear": 1959, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 },
-  { "id": "stebro",          "name": "Stebro",                 "base": "CA", "foundedYear": 1963, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 1 },
-  { "id": "anglo_american",  "name": "Anglo American Racers",  "base": "US", "foundedYear": 1966, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#002366", "badgeStripes": 2 }
+  {
+    "id": "williams",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1971, "name": "Williams", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1971, "primaryColor": "#003E7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A3E0", "badgeStripes": 2 },
+      { "from": 1984, "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
+      { "from": 1994, "primaryColor": "#003E7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A3E0", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "ligier",
+    "foundedYear": 1976,
+    "identity": [
+      { "from": 1976, "name": "Ligier", "base": "FR" },
+      { "from": 1997, "name": "Prost", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1976, "primaryColor": "#1E4C9A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#0072CE", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#1E4C9A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1997, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "brabham",
+    "foundedYear": 1962,
+    "identity": [
+      { "from": 1962, "name": "Brabham", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1962, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "renault",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1977, "name": "Renault", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1977, "primaryColor": "#FFCD00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "lotus",
+    "foundedYear": 1958,
+    "identity": [
+      { "from": 1958, "name": "Lotus", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1958, "primaryColor": "#00563F", "secondaryColor1": "#FFD700", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#FFFFFF", "secondaryColor1": "#00563F", "secondaryColor2": "#FFD700", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#00563F", "secondaryColor1": "#FFD700", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "tyrrell",
+    "foundedYear": 1970,
+    "identity": [
+      { "from": 1970, "name": "Tyrrell", "base": "GB" },
+      { "from": 1999, "name": "BAR", "base": "GB" },
+      { "from": 2006, "name": "Honda", "base": "JP" },
+      { "from": 2009, "name": "Brawn", "base": "GB" },
+      { "from": 2010, "name": "Mercedes", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1970, "primaryColor": "#003C7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A6E0", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#040E29", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1992, "primaryColor": "#003C7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A6E0", "badgeStripes": 2 },
+      { "from": 1999, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 2006, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 2009, "primaryColor": "#FFFFFF", "secondaryColor1": "#DFFF00", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 2010, "primaryColor": "#C8CCCE", "secondaryColor1": "#00A19B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "arrows",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1977, "name": "Arrows", "base": "GB" },
+      { "from": 1991, "name": "Footwork", "base": "GB" },
+      { "from": 1997, "name": "Arrows", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1977, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#FFFFFF", "secondaryColor1": "#a31414", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
+      { "from": 1992, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "fittipaldi",
+    "foundedYear": 1975,
+    "identity": [
+      { "from": 1975, "name": "Fittipaldi", "base": "BR" }
+    ],
+    "liveries": [
+      { "from": 1975, "primaryColor": "#F2C500", "secondaryColor1": "#009C3B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "mclaren",
+    "foundedYear": 1966,
+    "identity": [
+      { "from": 1966, "name": "McLaren", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1966, "primaryColor": "#FF8000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1974, "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 },
+      { "from": 1997, "primaryColor": "#C8CCCF", "secondaryColor1": "#4B5054", "secondaryColor2": "#1A1A1A", "badgeStripes": 2 },
+      { "from": 2006, "primaryColor": "#C8CCCF", "secondaryColor1": "#4B5054", "secondaryColor2": "#E60000", "badgeStripes": 2 },
+      { "from": 2014, "primaryColor": "#4B5054", "secondaryColor1": "#1A1A1A", "secondaryColor2": "#C8CCCF", "badgeStripes": 2 },
+      { "from": 2017, "primaryColor": "#FF8000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "ferrari",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Ferrari", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#DC0000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "alfa_romeo",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Alfa Romeo", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#A6051A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#007A33", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "ats",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1977, "name": "ATS", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1977, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "ensign",
+    "foundedYear": 1973,
+    "identity": [
+      { "from": 1973, "name": "Ensign", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1973, "primaryColor": "#1B3A6B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "osella",
+    "foundedYear": 1980,
+    "identity": [
+      { "from": 1980, "name": "Osella", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1980, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "shadow",
+    "foundedYear": 1973,
+    "identity": [
+      { "from": 1973, "name": "Shadow", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1973, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "theodore",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1977, "name": "Theodore", "base": "HK" }
+    ],
+    "liveries": [
+      { "from": 1977, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "march",
+    "foundedYear": 1969,
+    "identity": [
+      { "from": 1969, "name": "March", "base": "GB" },
+      { "from": 1990, "name": "Leyton House", "base": "GB" },
+      { "from": 1992, "name": "March", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1969, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 1990, "primaryColor": "#33CCCC", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#37B6C4", "secondaryColor1": "#068032", "secondaryColor2": "#0A3D62", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "toleman",
+    "foundedYear": 1981,
+    "identity": [
+      { "from": 1981, "name": "Toleman", "base": "GB" },
+      { "from": 1986, "name": "Benetton", "base": "GB" },
+      { "from": 2002, "name": "Renault", "base": "FR" },
+      { "from": 2012, "name": "Lotus", "base": "GB" },
+      { "from": 2016, "name": "Renault", "base": "FR" },
+      { "from": 2021, "name": "Alpine", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1981, "primaryColor": "#0033A0", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1986, "primaryColor": "#009A44", "secondaryColor1": "#0033A0", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#FFD200", "secondaryColor1": "#00A651", "secondaryColor2": "#0033A0", "badgeStripes": 2 },
+      { "from": 1994, "primaryColor": "#00A3E0", "secondaryColor1": "#0032A0", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2007, "primaryColor": "#FFCD00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "spirit",
+    "foundedYear": 1981,
+    "identity": [
+      { "from": 1981, "name": "Spirit", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1981, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "ram",
+    "foundedYear": 1976,
+    "identity": [
+      { "from": 1976, "name": "RAM", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1976, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "zakspeed",
+    "foundedYear": 1968,
+    "identity": [
+      { "from": 1968, "name": "Zakspeed", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1968, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "minardi",
+    "foundedYear": 1979,
+    "identity": [
+      { "from": 1979, "name": "Minardi", "base": "IT" },
+      { "from": 2006, "name": "Toro Rosso", "base": "IT" },
+      { "from": 2020, "name": "AlphaTauri", "base": "IT" },
+      { "from": 2024, "name": "RB", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1979, "primaryColor": "#000000", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#151515", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#000000", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2006, "primaryColor": "#003DA5", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "haas_lola",
+    "foundedYear": 1984,
+    "identity": [
+      { "from": 1984, "name": "Haas Lola", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1984, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "ags",
+    "foundedYear": 1986,
+    "identity": [
+      { "from": 1986, "name": "AGS", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1986, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#070e4a", "secondaryColor1": "#1c64b0", "secondaryColor2": "#b02617", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "larrousse",
+    "foundedYear": 1987,
+    "identity": [
+      { "from": 1987, "name": "Larrousse", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1987, "primaryColor": "#FFCD00", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#003DA5", "secondaryColor1": "#06470c", "secondaryColor2": "#ffec17", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#FFCD00", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "coloni",
+    "foundedYear": 1987,
+    "identity": [
+      { "from": 1987, "name": "Coloni", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1987, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#FFFFFF", "secondaryColor1": "#13243b", "secondaryColor2": "#196ab5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "rial",
+    "foundedYear": 1988,
+    "identity": [
+      { "from": 1988, "name": "Rial", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1988, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "dallara",
+    "foundedYear": 1988,
+    "identity": [
+      { "from": 1988, "name": "Dallara", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1988, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1991, "primaryColor": "#a31414", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 1 },
+      { "from": 1992, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "eurobrun",
+    "foundedYear": 1988,
+    "identity": [
+      { "from": 1988, "name": "EuroBrun", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1988, "primaryColor": "#000000", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "onyx",
+    "foundedYear": 1989,
+    "identity": [
+      { "from": 1989, "name": "Onyx", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1989, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "life",
+    "foundedYear": 1990,
+    "identity": [
+      { "from": 1990, "name": "Life", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1990, "primaryColor": "#FFFFFF", "secondaryColor1": "#009246", "secondaryColor2": "#CE2B37", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "jordan",
+    "foundedYear": 1991,
+    "identity": [
+      { "from": 1991, "name": "Jordan", "base": "IE" },
+      { "from": 2006, "name": "Midland", "base": "RU" },
+      { "from": 2007, "name": "Spyker", "base": "NL" },
+      { "from": 2008, "name": "Force India", "base": "IN" },
+      { "from": 2019, "name": "Racing Point", "base": "GB" },
+      { "from": 2021, "name": "Aston Martin", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1991, "primaryColor": "#009639", "secondaryColor1": "#0047AB", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#FFD200", "secondaryColor1": "#000000", "secondaryColor2": "#009A44", "badgeStripes": 2 },
+      { "from": 2006, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 2007, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2008, "primaryColor": "#FF6A00", "secondaryColor1": "#009A44", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2019, "primaryColor": "#FF69B4", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2021, "primaryColor": "#00594F", "secondaryColor1": "#CEDC00", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "fondmetal",
+    "foundedYear": 1991,
+    "identity": [
+      { "from": 1991, "name": "Fondmetal", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1991, "primaryColor": "#070a30", "secondaryColor1": "#9c0005", "secondaryColor2": "#e6cd10", "badgeStripes": 2 },
+      { "from": 1992, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "sauber",
+    "foundedYear": 1993,
+    "identity": [
+      { "from": 1993, "name": "Sauber", "base": "CH" },
+      { "from": 2006, "name": "BMW Sauber", "base": "CH" },
+      { "from": 2010, "name": "Sauber", "base": "CH" },
+      { "from": 2019, "name": "Alfa Romeo", "base": "CH" },
+      { "from": 2024, "name": "Kick Sauber", "base": "CH" },
+      { "from": 2026, "name": "Audi", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1993, "primaryColor": "#006EB6", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A650", "badgeStripes": 2 },
+      { "from": 2026, "primaryColor": "#BB0A30", "secondaryColor1": "#C0C0C0", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "simtek",
+    "foundedYear": 1994,
+    "identity": [
+      { "from": 1994, "name": "Simtek", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1994, "primaryColor": "#4B2E83", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "pacific",
+    "foundedYear": 1994,
+    "identity": [
+      { "from": 1994, "name": "Pacific", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1994, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "forti",
+    "foundedYear": 1995,
+    "identity": [
+      { "from": 1995, "name": "Forti", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1995, "primaryColor": "#009A44", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "stewart",
+    "foundedYear": 1997,
+    "identity": [
+      { "from": 1997, "name": "Stewart", "base": "GB" },
+      { "from": 2000, "name": "Jaguar", "base": "GB" },
+      { "from": 2005, "name": "Red Bull", "base": "AT" }
+    ],
+    "liveries": [
+      { "from": 1997, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 2000, "primaryColor": "#14432A", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 2005, "primaryColor": "#0A1E4A", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFD200", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "toyota",
+    "foundedYear": 2002,
+    "identity": [
+      { "from": 2002, "name": "Toyota", "base": "JP" }
+    ],
+    "liveries": [
+      { "from": 2002, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "honda",
+    "foundedYear": 1964,
+    "identity": [
+      { "from": 1964, "name": "Honda", "base": "JP" }
+    ],
+    "liveries": [
+      { "from": 1964, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "super_aguri",
+    "foundedYear": 2006,
+    "identity": [
+      { "from": 2006, "name": "Super Aguri", "base": "JP" }
+    ],
+    "liveries": [
+      { "from": 2006, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "mercedes",
+    "foundedYear": 1954,
+    "identity": [
+      { "from": 1954, "name": "Mercedes", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1954, "primaryColor": "#C8CCCE", "secondaryColor1": "#00A19B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "virgin",
+    "foundedYear": 2010,
+    "identity": [
+      { "from": 2010, "name": "Virgin", "base": "GB" },
+      { "from": 2012, "name": "Marussia", "base": "RU" },
+      { "from": 2016, "name": "Manor", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 2010, "primaryColor": "#E4002B", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 2016, "primaryColor": "#E4002B", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "caterham",
+    "foundedYear": 2010,
+    "identity": [
+      { "from": 2010, "name": "Lotus", "base": "MY" },
+      { "from": 2012, "name": "Caterham", "base": "MY" }
+    ],
+    "liveries": [
+      { "from": 2010, "primaryColor": "#00563F", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "hrt",
+    "foundedYear": 2010,
+    "identity": [
+      { "from": 2010, "name": "HRT", "base": "ES" }
+    ],
+    "liveries": [
+      { "from": 2010, "primaryColor": "#808080", "secondaryColor1": "#E4002B", "secondaryColor2": "#C8A951", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "haas",
+    "foundedYear": 2016,
+    "identity": [
+      { "from": 2016, "name": "Haas", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 2016, "primaryColor": "#6E6E6E", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "aston_martin",
+    "foundedYear": 1959,
+    "identity": [
+      { "from": 1959, "name": "Aston Martin", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1959, "primaryColor": "#00594F", "secondaryColor1": "#CEDC00", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "cadillac",
+    "foundedYear": 2026,
+    "identity": [
+      { "from": 2026, "name": "Cadillac", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 2026, "primaryColor": "#0A1E3F", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "maserati",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Maserati", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "talbot_lago",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Talbot-Lago", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#1E4C9A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "era",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "ERA", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "gordini",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Gordini", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "hwm",
+    "foundedYear": 1951,
+    "identity": [
+      { "from": 1951, "name": "HWM", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1951, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "connaught",
+    "foundedYear": 1952,
+    "identity": [
+      { "from": 1952, "name": "Connaught", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1952, "primaryColor": "#004225", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "cooper",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Cooper", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "brm",
+    "foundedYear": 1951,
+    "identity": [
+      { "from": 1951, "name": "BRM", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1951, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "lancia",
+    "foundedYear": 1954,
+    "identity": [
+      { "from": 1954, "name": "Lancia", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1954, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "vanwall",
+    "foundedYear": 1954,
+    "identity": [
+      { "from": 1954, "name": "Vanwall", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1954, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "porsche",
+    "foundedYear": 1957,
+    "identity": [
+      { "from": 1957, "name": "Porsche", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1957, "primaryColor": "#C0C0C0", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "eagle",
+    "foundedYear": 1966,
+    "identity": [
+      { "from": 1966, "name": "Eagle", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1966, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "matra",
+    "foundedYear": 1967,
+    "identity": [
+      { "from": 1967, "name": "Matra", "base": "FR" }
+    ],
+    "liveries": [
+      { "from": 1967, "primaryColor": "#0055A4", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "surtees",
+    "foundedYear": 1970,
+    "identity": [
+      { "from": 1970, "name": "Surtees", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1970, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00843D", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "hesketh",
+    "foundedYear": 1973,
+    "identity": [
+      { "from": 1973, "name": "Hesketh", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "penske",
+    "foundedYear": 1974,
+    "identity": [
+      { "from": 1974, "name": "Penske", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "embassy_hill",
+    "foundedYear": 1973,
+    "identity": [
+      { "from": 1973, "name": "Embassy Hill", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "wolf",
+    "foundedYear": 1977,
+    "identity": [
+      { "from": 1977, "name": "Wolf", "base": "CA" }
+    ],
+    "liveries": [
+      { "from": 1977, "primaryColor": "#0A1E4A", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "parnelli",
+    "foundedYear": 1974,
+    "identity": [
+      { "from": 1974, "name": "Parnelli", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "lola",
+    "foundedYear": 1962,
+    "identity": [
+      { "from": 1962, "name": "Lola", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1962, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "brp",
+    "foundedYear": 1963,
+    "identity": [
+      { "from": 1963, "name": "BRP", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1963, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "scarab",
+    "foundedYear": 1960,
+    "identity": [
+      { "from": 1960, "name": "Scarab", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1960, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "iso_marlboro",
+    "foundedYear": 1973,
+    "identity": [
+      { "from": 1973, "name": "Iso-Marlboro", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1973, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "tecno",
+    "foundedYear": 1972,
+    "identity": [
+      { "from": 1972, "name": "Tecno", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1972, "primaryColor": "#C8102E", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "osca",
+    "foundedYear": 1951,
+    "identity": [
+      { "from": 1951, "name": "OSCA", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1951, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "centro_sud",
+    "foundedYear": 1956,
+    "identity": [
+      { "from": 1953, "name": "Scuderia Centro Sud", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1953, "primaryColor": "#001E5A", "secondaryColor1": "#C8102E", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "rob_walker",
+    "foundedYear": 1953,
+    "identity": [
+      { "from": 1953, "name": "Rob Walker Racing", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1953, "primaryColor": "#002366", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "ecurie_ecosse",
+    "foundedYear": 1952,
+    "identity": [
+      { "from": 1950, "name": "Ecurie Ecosse", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#005EB8", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#002366", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "enb",
+    "foundedYear": 1955,
+    "identity": [
+      { "from": 1955, "name": "Ecurie Nationale Belge", "base": "BE" }
+    ],
+    "liveries": [
+      { "from": 1955, "primaryColor": "#FFCD00", "secondaryColor1": "#000000", "secondaryColor2": "#E4002B", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "scuderia_milano",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Scuderia Milano", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "reg_parnell",
+    "foundedYear": 1961,
+    "identity": [
+      { "from": 1961, "name": "Reg Parnell Racing", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "bowmaker",
+    "foundedYear": 1960,
+    "identity": [
+      { "from": 1960, "name": "Bowmaker Racing", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1960, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00563F", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "udt_laystall",
+    "foundedYear": 1961,
+    "identity": [
+      { "from": 1961, "name": "UDT Laystall", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "nart",
+    "foundedYear": 1961,
+    "identity": [
+      { "from": 1961, "name": "NART", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1961, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "filipinetti",
+    "foundedYear": 1962,
+    "identity": [
+      { "from": 1962, "name": "Scuderia Filipinetti", "base": "CH" }
+    ],
+    "liveries": [
+      { "from": 1962, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "ecurie_bonnier",
+    "foundedYear": 1966,
+    "identity": [
+      { "from": 1966, "name": "Ecurie Bonnier", "base": "CH" }
+    ],
+    "liveries": [
+      { "from": 1966, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "gunston",
+    "foundedYear": 1965,
+    "identity": [
+      { "from": 1965, "name": "Team Gunston", "base": "ZW" }
+    ],
+    "liveries": [
+      { "from": 1965, "primaryColor": "#FF6A00", "secondaryColor1": "#6B3F19", "secondaryColor2": "#FFD200", "badgeStripes": 2 }
+    ]
+  },
+  {
+    "id": "alta",
+    "foundedYear": 1950,
+    "identity": [
+      { "from": 1950, "name": "Alta", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1950, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "frazer_nash",
+    "foundedYear": 1952,
+    "identity": [
+      { "from": 1952, "name": "Frazer Nash", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1952, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "veritas",
+    "foundedYear": 1952,
+    "identity": [
+      { "from": 1952, "name": "Veritas", "base": "DE" }
+    ],
+    "liveries": [
+      { "from": 1952, "primaryColor": "#C0C0C0", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "de_tomaso",
+    "foundedYear": 1961,
+    "identity": [
+      { "from": 1961, "name": "De Tomaso", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1961, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "bellasi",
+    "foundedYear": 1970,
+    "identity": [
+      { "from": 1970, "name": "Bellasi", "base": "CH" }
+    ],
+    "liveries": [
+      { "from": 1970, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8102E", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "connew",
+    "foundedYear": 1972,
+    "identity": [
+      { "from": 1972, "name": "Connew", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#4B2E83", "secondaryColor2": "#000000", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "politoys",
+    "foundedYear": 1972,
+    "identity": [
+      { "from": 1972, "name": "Politoys", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "scirocco",
+    "foundedYear": 1963,
+    "identity": [
+      { "from": 1963, "name": "Scirocco", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1963, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "ats_63",
+    "foundedYear": 1963,
+    "identity": [
+      { "from": 1963, "name": "ATS (Italy)", "base": "IT" }
+    ],
+    "liveries": [
+      { "from": 1963, "primaryColor": "#C8102E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "emeryson",
+    "foundedYear": 1961,
+    "identity": [
+      { "from": 1961, "name": "Emeryson", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1961, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFCD00", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "jbw",
+    "foundedYear": 1959,
+    "identity": [
+      { "from": 1959, "name": "JBW", "base": "GB" }
+    ],
+    "liveries": [
+      { "from": 1959, "primaryColor": "#00563F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C0C0C0", "badgeStripes": 0 }
+    ]
+  },
+  {
+    "id": "stebro",
+    "foundedYear": 1963,
+    "identity": [
+      { "from": 1963, "name": "Stebro", "base": "CA" }
+    ],
+    "liveries": [
+      { "from": 1963, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 1 }
+    ]
+  },
+  {
+    "id": "anglo_american",
+    "foundedYear": 1966,
+    "identity": [
+      { "from": 1966, "name": "Anglo American Racers", "base": "US" }
+    ],
+    "liveries": [
+      { "from": 1966, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#002366", "badgeStripes": 2 }
+    ]
+  }
 ]

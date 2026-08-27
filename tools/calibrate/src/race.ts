@@ -10,7 +10,7 @@
  *   pnpm race 7 --randomness 5   # the same race, with the dice turned up
  */
 
-import { buildField, driversById, seasonSeed, teamsById } from "@alt-hist/data";
+import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
 import { createRng, type RaceGap, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
@@ -49,7 +49,10 @@ function main(): void {
   const drivers = driversById();
   const teams = teamsById();
   const nameOf = (driverId: string): string => drivers.get(driverId)?.name ?? driverId;
-  const teamOf = (teamId: string): string => teams.get(teamId)?.name ?? teamId;
+  const teamOf = (teamId: string): string => {
+    const team = teams.get(teamId);
+    return team === undefined ? teamId : teamIdentityIn(team, year).name;
+  };
 
   console.log("");
   console.log(`${year} grid — race seed ${seed}`);

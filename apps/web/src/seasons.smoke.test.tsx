@@ -30,7 +30,7 @@ describe("each authored season, through the whole reveal", () => {
       it("puts its own grid on the opening page", () => {
         const html = render({ kind: "grid" });
         for (const entry of seed.entries) {
-          expect(html, entry.teamId).toContain(teamName(entry.teamId));
+          expect(html, entry.teamId).toContain(teamName(entry.teamId, year));
           for (const driverId of entry.drivers) {
             expect(html, driverId).toContain(driverName(driverId));
           }
