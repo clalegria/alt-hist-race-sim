@@ -72,6 +72,26 @@ describe("the stylesheet", () => {
     expect(css).toContain("Archivo Variable");
     expect(css).toContain("IBM Plex Mono");
   });
+
+  it("tints the background pattern for both themes", () => {
+    // The texture is white-on-dark and black-on-light, so a light block that
+    // forgot to override it would leave the pattern lightening an already white
+    // page — invisible, and only ever noticed by someone looking for it.
+    // Anchored on the *last* light block, not the first: the palette override
+    // and the pattern override are separate rules, and the pattern's dark
+    // defaults sit between them.
+    const patternLight = css.lastIndexOf(LIGHT_SELECTOR);
+    const tintOf = (token: string, from: number): string | undefined =>
+      css.slice(from).match(new RegExp(`--pattern-${token}-tint: *([^;]+);`))?.[1];
+    for (const token of ["major", "minor"]) {
+      expect(tintOf(token, 0), `--pattern-${token}-tint has no dark value`).toBeDefined();
+      expect(
+        tintOf(token, patternLight),
+        `--pattern-${token}-tint has no light value`,
+      ).toBeDefined();
+      expect(tintOf(token, 0)).not.toBe(tintOf(token, patternLight));
+    }
+  });
 });
 
 describe("choosing a theme", () => {

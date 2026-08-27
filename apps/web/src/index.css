@@ -159,3 +159,54 @@ body {
 th {
   letter-spacing: 0.06em;
 }
+
+/*
+ * The background texture: a checkerboard of large squares, with a second
+ * checkerboard of small ones laid over it.
+ *
+ * Two stacked `repeating-conic-gradient`s, each drawing a checkerboard by
+ * alternating quadrants of a tile. Stacking them gives four tone levels rather
+ * than two — big-off/small-off, big-off/small-on, big-on/small-off,
+ * big-on/small-on — which is what makes the small grid read as sitting *inside*
+ * the large one instead of as a separate texture floating over it. The two
+ * periods are deliberately commensurate (the major tile is six minor squares
+ * across), so the small grid never drifts across a large square's edge.
+ *
+ * The tints are the whole difficulty. They have to survive on the flattest
+ * surface in the app and still never be the thing you notice, so they sit at
+ * 1-3% alpha — below the point where a tone step reads as an edge, above the
+ * point where 8-bit rounding erases it. White on dark, black on light: the
+ * texture always lifts *away* from the background rather than darkening it,
+ * which keeps it from looking like dirt on the light theme.
+ *
+ * It is painted on a fixed pseudo-element at `z-index: -1` rather than on
+ * `body` itself: fixed means the texture stays put while a long classification
+ * scrolls over it (a scrolling backdrop turns a subtle pattern into a
+ * distraction), and the negative index puts it above the page's background
+ * colour and below every scrap of content without touching any component.
+ */
+:root {
+  --pattern-major: 120px;
+  --pattern-minor: 20px;
+  --pattern-major-tint: oklch(100% 0 0 / 0.022);
+  --pattern-minor-tint: oklch(100% 0 0 / 0.013);
+}
+
+:root[data-theme="light"] {
+  --pattern-major-tint: oklch(0% 0 0 / 0.026);
+  --pattern-minor-tint: oklch(0% 0 0 / 0.016);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-conic-gradient(var(--pattern-minor-tint) 0% 25%, transparent 0% 50%),
+    repeating-conic-gradient(var(--pattern-major-tint) 0% 25%, transparent 0% 50%);
+  background-size:
+    calc(var(--pattern-minor) * 2) calc(var(--pattern-minor) * 2),
+    calc(var(--pattern-major) * 2) calc(var(--pattern-major) * 2);
+}

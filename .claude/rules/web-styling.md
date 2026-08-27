@@ -56,3 +56,30 @@ cars, unselected ratings). De-emphasised text uses `--color-subtle` instead, a r
 token with a floor of ~4.8:1 on card in dark and ~4.4:1 in light. Opacity modifiers
 are fine on *fills* — `bg-muted/60`, `bg-primary/10` — where nothing has to be read
 through them.
+
+## The background texture
+
+The page sits on a **checkerboard of 120px squares with a second checkerboard of 20px
+squares over it** — two stacked `repeating-conic-gradient`s on a fixed `body::before`
+at `z-index: -1`, so it stays put while a long classification scrolls over it and no
+component has to know it exists. The periods are commensurate on purpose (six minor
+squares to a major one), so the small grid never drifts across a large square's edge.
+
+**Stacking the two is what makes it read as nested.** Four tone levels come out of two
+layers, and from the base surface they ladder at roughly +1.2, +2.0, +3.1 L\* — small
+alone, large alone, both — so a large square reads as a field that the small grid then
+subdivides, rather than as two textures over each other. Near-symmetric on light
+(−1.2 / −2.0 / −3.1), because the tints are white on dark and black on light: the
+texture always lifts *away* from the background, which stops it looking like dirt on
+the light theme.
+
+The tints are 1.3–2.6% alpha and that band is narrower than it looks. Alpha composites
+in gamma space here as everywhere (see the opacity rule above), so the major tint at
+0.022 does not land at twice the minor at 0.013 — the ladder above is measured, not
+derived from the alphas. Much below 1% and 8-bit rounding eats the step; much above 3%
+and the largest squares start reading as panels with edges. **They are not `--color-`
+tokens** — `--pattern-major-tint` and friends live on plain `:root`, deliberately
+outside `@theme`, because a checkerboard tint is not a colour any component should be
+able to reach for as `bg-*`. `theme.test.ts` still holds them to having both a dark and
+a light value, since a missed light override would leave the pattern lightening an
+already white page.
