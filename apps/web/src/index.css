@@ -10,26 +10,27 @@
  * around hue 60-70 with almost no chroma — enough to read as charcoal and paper
  * instead of as blue — and the accent is a saturated pillarbox red at hue 25.
  *
- * Dark's neutrals sit a deliberate step off the floor: background at 20.5%
- * rather than the near-black 16% it started at. Below about 20% the surfaces
- * stop separating — card, muted and background all collapse into one void
- * (they were 1.08:1 and 1.21:1 apart, which is nothing), so the structure of a
- * table had to be carried by text alone and the whole page read as flat and
- * unlit. Lifting the floor costs a little text contrast and buys back the
- * elevation; `border` was raised further still (1.27:1 → 1.5:1 against card)
+ * Dark is a mid charcoal, not a void: background at 27%, well clear of the
+ * near-black 16% it started at and of the 20.5% it passed through. Below about
+ * 20% the surfaces stop separating — card, muted and background collapse into
+ * one (they were 1.08:1 and 1.21:1 apart, which is nothing), so the structure
+ * of a table had to be carried by text alone and the whole page read as flat
+ * and unlit. The whole ladder moves together, keeping those steps: card 31%,
+ * muted 36%, accent 38%, border 43% — `border` sits furthest above card
  * because on a dark theme the border, not the fill, is what actually draws a
- * panel.
+ * panel. Raising the floor eats text contrast, so the two dim text tokens rise
+ * with it (`subtle` to 70.5%, holding its ~4.8:1 on card).
  *
  * Dark is the default, so it lives here in plain `@theme` and needs no attribute
  * on the document. Light is the override below.
  */
 @theme {
-  --color-background: oklch(20.5% 0.009 60);
+  --color-background: oklch(27% 0.008 60);
   --color-foreground: oklch(96.5% 0.005 75);
-  --color-card: oklch(24.5% 0.011 60);
+  --color-card: oklch(31% 0.01 60);
   --color-card-foreground: oklch(96.5% 0.005 75);
-  --color-muted: oklch(30% 0.013 60);
-  --color-muted-foreground: oklch(76.5% 0.016 70);
+  --color-muted: oklch(36% 0.012 60);
+  --color-muted-foreground: oklch(79% 0.016 70);
 
   /*
    * De-emphasised text: a driver who scored nothing, a rating that is not the
@@ -40,12 +41,12 @@
    * was on a good fraction of every table. A token has a floor: this one holds
    * ~4.8:1 on card, dim enough to recede and still legible.
    */
-  --color-subtle: oklch(65.5% 0.014 70);
-  --color-border: oklch(36.5% 0.014 60);
-  --color-input: oklch(36.5% 0.014 60);
+  --color-subtle: oklch(70.5% 0.014 70);
+  --color-border: oklch(43% 0.013 60);
+  --color-input: oklch(43% 0.013 60);
   --color-primary: oklch(67.5% 0.195 25);
   --color-primary-foreground: oklch(19% 0.01 40);
-  --color-accent: oklch(32% 0.016 60);
+  --color-accent: oklch(38% 0.015 60);
   --color-ring: oklch(67.5% 0.195 25);
 
   /* Places gained and lost. Paired with different glyphs, never colour alone. */
