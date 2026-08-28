@@ -1,6 +1,7 @@
 {
   "year": 1971,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "South African GP", "circuit": "Kyalami",        "country": "ZA" },
     { "round":  2, "name": "Spanish GP",       "circuit": "Montjuïc",       "country": "ES" },

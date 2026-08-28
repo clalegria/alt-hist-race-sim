@@ -1,6 +1,7 @@
 {
   "year": 2002,
   "points": [10, 6, 4, 3, 2, 1],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "Australian GP",    "circuit": "Melbourne",         "country": "AU" },
     { "round":  2, "name": "Malaysian GP",     "circuit": "Sepang",            "country": "MY" },

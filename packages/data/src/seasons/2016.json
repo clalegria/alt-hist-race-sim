@@ -1,6 +1,7 @@
 {
   "year": 2016,
   "points": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+  "retirementFactor": 2,
   "calendar": [
     { "round":  1, "name": "Australian GP",    "circuit": "Melbourne",               "country": "AU" },
     { "round":  2, "name": "Bahrain GP",       "circuit": "Sakhir",                  "country": "BH" },

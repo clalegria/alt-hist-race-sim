@@ -1,6 +1,7 @@
 {
   "year": 1951,
   "points": [8, 6, 4, 3, 2],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "Swiss GP",   "circuit": "Bremgarten",        "country": "CH" },
     { "round":  2, "name": "Belgian GP", "circuit": "Spa-Francorchamps", "country": "BE" },

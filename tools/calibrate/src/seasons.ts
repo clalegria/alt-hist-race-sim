@@ -33,6 +33,7 @@ import {
   driversById,
   RATING_MODES,
   type RatingMode,
+  seasonConstants,
   seasonSeed,
   teamIdentityIn,
   teamsById,
@@ -42,7 +43,6 @@ import {
   constructorStandings,
   createRng,
   simulateSeason,
-  withRandomness,
 } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
@@ -219,8 +219,8 @@ function main(): void {
   const count = parseCount(positionals(process.argv)[0], DEFAULT_SEASONS, "Season count");
   const mode = parseMode(process.argv);
   const randomness = parseRandomness(process.argv);
-  const constants = withRandomness(randomness);
   const authored = seasonSeed(year);
+  const constants = seasonConstants(authored, randomness);
   const field = buildField(authored, undefined, mode);
   const teams = teamsById();
 

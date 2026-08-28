@@ -28,6 +28,7 @@ import {
   type RatingMode,
   type SeasonEngines,
   type SeasonLineup,
+  seasonConstants,
 } from "@alt-hist/data";
 import {
   createRng,
@@ -38,7 +39,6 @@ import {
   type RngState,
   type SeasonResult,
   simulateSeason,
-  withRandomness,
 } from "@alt-hist/engine";
 import { create } from "zustand";
 import {
@@ -166,7 +166,7 @@ export function createWorld(
   // drivers and teams from it their home advantage.
   // The level reaches the model as a derived copy of the calibrated constants,
   // never as an edit to them — at the default it *is* them, untouched.
-  const season = simulateSeason(field, entered.calendar, rng, withRandomness(randomness));
+  const season = simulateSeason(field, entered.calendar, rng, seasonConstants(entered, randomness));
 
   return {
     seed,

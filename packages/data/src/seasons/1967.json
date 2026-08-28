@@ -1,6 +1,7 @@
 {
   "year": 1967,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 7,
   "calendar": [
     { "round":  1, "name": "South African GP", "circuit": "East London",       "country": "ZA" },
     { "round":  2, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },

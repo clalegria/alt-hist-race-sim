@@ -1,6 +1,7 @@
 {
   "year": 1995,
   "points": [10, 6, 4, 3, 2, 1],
+  "retirementFactor": 7,
   "calendar": [
     { "round":  1, "name": "Brazilian GP",  "circuit": "Interlagos",        "country": "BR" },
     { "round":  2, "name": "Argentine GP",  "circuit": "Buenos Aires",      "country": "AR" },

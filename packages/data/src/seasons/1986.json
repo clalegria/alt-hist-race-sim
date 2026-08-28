@@ -1,6 +1,7 @@
 {
   "year": 1986,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 7,
   "calendar": [
     { "round":  1, "name": "Brazilian GP",  "circuit": "Jacarepaguá",       "country": "BR" },
     { "round":  2, "name": "Spanish GP",    "circuit": "Jerez",             "country": "ES" },

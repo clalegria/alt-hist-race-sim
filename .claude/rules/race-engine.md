@@ -27,8 +27,11 @@ rest are what happens to it:
 
 The car is weighted far above the driver on purpose: a great driver in a poor car
 should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
-is the hook for reliability improving across decades — the per-year curve is not
-defined yet and belongs to the progression model.
+is the hook for reliability improving across decades, and **the per-year curve now
+exists**: every season file carries a 1-10 `retirementFactor`, which scales this *and*
+the driver-error endpoints — see `retirement.ts` and
+`.claude/rules/retirement-factor.md`. Nothing in this file reads it; a season's
+constants are derived before they reach the model.
 
 `simulateRace(field, rng, constants?, round?)` takes constants as an optional override,
 which is how the calibration tools sweep values without editing source. `round` is a

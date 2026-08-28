@@ -1,6 +1,7 @@
 {
   "year": 1990,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "United States GP", "circuit": "Phoenix",           "country": "US" },
     { "round":  2, "name": "Brazilian GP",     "circuit": "Interlagos",        "country": "BR" },

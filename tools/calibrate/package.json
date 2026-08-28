@@ -11,6 +11,7 @@
     "race": "tsx src/race.ts",
     "season": "tsx src/season.ts",
     "seasons": "tsx src/seasons.ts",
+    "retirements": "tsx src/retirements.ts",
     "progression": "tsx src/progression.ts"
   },
   "dependencies": {

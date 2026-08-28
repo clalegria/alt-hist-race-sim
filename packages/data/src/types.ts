@@ -293,6 +293,24 @@ export interface SeasonSeed {
   /** The season's rounds, in order. Its length is how many races the year has. */
   readonly calendar: readonly CalendarRace[];
   /**
+   * How hard the year was on its cars: a 1-10 dial over how often a car
+   * retires, 5 being the calibrated default and no change at all.
+   *
+   * A *fine-tuning* multiplier, not the main mechanism. Most of an era is
+   * already in the authored chassis and engine `reliability` ratings, which are
+   * far lower in 1954 than in 2018. What they cannot express is that the
+   * mapping from a rating to a failure probability was itself fitted to 1980,
+   * and that driver-error retirements have no era term at all — see
+   * `retirement.ts` in the engine, which owns the mapping from this number to
+   * the two risks it scales.
+   *
+   * Typed `number` rather than the engine's 1-10 union for the reason
+   * `badgeStripes` is: TypeScript infers `number` for a JSON literal. The range
+   * is enforced at runtime by `validateSeedData`, and narrowed to the union by
+   * `parseRetirementFactor` where the engine is handed it.
+   */
+  readonly retirementFactor: number;
+  /**
    * Every engine available that year, and what it was worth.
    *
    * Per season rather than per manufacturer, because an engine is not one thing

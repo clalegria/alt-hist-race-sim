@@ -1,6 +1,7 @@
 {
   "year": 1978,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 7,
   "calendar": [
     { "round":  1, "name": "Argentine GP",          "circuit": "Buenos Aires",      "country": "AR" },
     { "round":  2, "name": "Brazilian GP",          "circuit": "Jacarepaguá",       "country": "BR" },

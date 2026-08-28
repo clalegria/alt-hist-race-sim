@@ -21,6 +21,7 @@
     "race": "pnpm --filter @alt-hist/calibrate race",
     "season": "pnpm --filter @alt-hist/calibrate season",
     "calibrate-season": "pnpm --filter @alt-hist/calibrate seasons",
+    "retirements": "pnpm --filter @alt-hist/calibrate retirements",
     "progression": "pnpm --filter @alt-hist/calibrate progression",
     "tune": "pnpm --filter @alt-hist/calibrate tune"
   },

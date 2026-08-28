@@ -40,7 +40,7 @@ drift apart; the **seasons** are checked the same two ways at runtime by
 - `seasons/<year>.json` — **one file per season**, and all 77 of 1950–2026 are written.
   They vary widely: 1950 is 6 rounds and 8 entries, 1980 is 14 rounds and 15, 2026 is 23
   rounds and 11. Derive a count, never assume one.
-  `{ year, points: [9, 6, 4, ...], calendar: [{ round, name, circuit, country }],
+  `{ year, points: [9, 6, 4, ...], retirementFactor: 5, calendar: [{ round, name, circuit, country }],
   engines: [{ engineId, racing, qualifying, reliability }], entries: [{ teamId,
   engineId, chassis: { racing, qualifying, consistency, reliability },
   drivers: [driverId, ...] }] }`. The entry key is `chassis`, not `car`: it is the tub
@@ -54,6 +54,12 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     places from 2010. The array is the whole rule — no dropped scores, no fastest-lap
     point, no sprint. `validateSeedData` rejects an empty scale, a negative entry, or
     one that pays a lower place more than a higher one.
+  - `retirementFactor` is a **1-10 whole number**, 5 being the calibrated constants
+    untouched, and it is how hard the year was on its cars — it scales both DNF rolls.
+    Every year's is fitted against the real record; a new season starts at 5 and is
+    fitted with `pnpm retirements --sweep --year <n>`. See
+    `.claude/rules/retirement-factor.md`, and note it is **not** the place to express
+    one *car*'s fragility — that is the chassis and engine `reliability` ratings.
   - **`engines` is the season's menu, not a record of what was used.** An engine
     nobody entered is legal, and is exactly what the grid editor offers as an
     alternative. What is *not* legal is an entry naming a unit the season does not

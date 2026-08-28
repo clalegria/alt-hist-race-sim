@@ -18,9 +18,10 @@ HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
 and that folder's `index.ts` discovers them — there is no registry to update. Each
-carries a calendar, a points scale, an **engine table** and an entry list. All 77 are
-written, but only 1980 and 1981 are calibrated; the rest are first drafts. Nothing else
-keeps a list of seasons — `.claude/rules/seed-data.md` has how discovery works.
+carries a calendar, a points scale, an **engine table**, a **retirement factor** and an
+entry list. All 77 are written; only 1980 and 1981 have calibrated ratings, though every
+year's retirement rate is now fitted. Nothing else keeps a list of seasons —
+`.claude/rules/seed-data.md` has how discovery works.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo calibration harness, and a React web app that
@@ -37,7 +38,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1145 tests (233 engine, 102 data, 810 web)
+pnpm test          # 1158 tests (240 engine, 108 data, 810 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -45,7 +46,8 @@ pnpm race [seed]   # simulate ONE race, print the classification
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
-                   # all four take --year <n> and --randomness <1-5>
+pnpm retirements [n]  # retirement rate per year vs the real one; --sweep re-fits the
+                   # factor. All five take --year <n> and --randomness <1-5>
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm tune          # rating tuner (prints proposals, writes nothing)
 ```
@@ -82,8 +84,7 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   effect of building something else — not to "absorb" a new feature, not because a
   figure drifted a point, not because a Monte Carlo run looks off — and do not run
   the harness to check. The failure mode is expensive and invisible: every feature
-  invites a re-tune, each costs a long measurement loop, and the ratings end up
-  chasing whatever was built last rather than 1980. Two overrides, and only two:
+  invites a re-tune, each costing a long measurement loop. Two overrides, and only two:
   **(a)** the author asks; **(b)** a deep change to how performance is computed — a
   new term in the race score, a new entity between driver and result (the ageing
   curve, engine manufacturers), a different race model — which changes what a rating
@@ -92,8 +93,7 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   it and stop; do not fix it unprompted.
 
 ## Domain glossary
-- **Entry**: one team's participation in one season — a team + a chassis + an engine
-  + its drivers.
+- **Entry**: one team's participation in one season — team + chassis + engine + drivers.
 - **Chassis spec** (`ChassisSpec`): a team's per-season chassis attributes — racing,
   qualifying, consistency, reliability. Authored, and **not** what is scored.
 - **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability.
@@ -101,17 +101,18 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 - **Car spec** (`CarSpec`): the blend of the two, and what the model scores. Same
   shape as `ChassisSpec`; the name marks what has been through `powertrain()`.
 - **Powertrain**: that blend, by **two ratios, not one**. Pace (racing, qualifying) is
-  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`, an engine ending as
-  many races as the chassis around it. Consistency untouched. It lives in the engine
-  package and **the UI's overall calls it too**; `powertrain(chassis)` is the chassis.
+  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`. Consistency untouched.
+  It lives in the engine package and **the UI's overall calls it too**.
 - **Peak vs aged**: the two rating modes a season can be built from — every driver at
   their authored peak (the default, and what the calibration describes), or at their
   ability in that season via the ageing curve.
 - **Score-and-sort**: v1 race model — sample one performance number per driver from
-  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap. Lives
-  behind the `RaceModel` interface so a richer model can replace it.
-- **Round context**: what the engine knows about *where* a round is held. Today one
-  field, `country`; the seam every circuit feature hangs off.
+  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap, and behind
+  the `RaceModel` interface so a richer model can replace it.
+- **Round context**: where a round is held — one field, `country`, and the seam every
+  circuit feature hangs off.
+- **Retirement factor**: 1–10 per season file, how hard the year is on its cars. Scales
+  *both* DNF rolls; 5 leaves the constants unchanged. `.claude/rules/retirement-factor.md`.
 - **Randomness level**: 1–5, how much the dice decide, chosen before a run and fixed for
   it. Scales the two noise sigmas only; `withRandomness(2)` — the default — returns the
   constants **unchanged**, so the calibration still describes them. The rest is taste.
@@ -175,25 +176,24 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 ## Open decisions (confirm with the author before implementing — do not assume)
 Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows a
 question is open without carrying the argument.
-- **Per-run scatter on the ageing curve** — settled as *no scatter for now*: the curve
-  is deterministic. Peak shape and the debut/peak gap matter again only if that reopens.
-- **Driver ratings are still un-tuned**, but no longer un-tunable: the ageing curve
-  landed. This does **not** authorise a re-tune — it waits for the author to ask.
-- **Reliability era curve** — `mechanicalDnfEraScale` has no per-year curve, so 1981
-  retires cars at 1980's rate. Live now that a second season is playable.
-- **Starting limit per era** — `maxStarters` is one engine constant pinned at 26.
-  Real 1981 took 24. Probably belongs in `SeasonSeed`; needs the author's word.
+- **Per-run scatter on the ageing curve** — settled as *no scatter for now*; the curve
+  is deterministic. Peak shape matters again only if that reopens.
+- **Driver ratings are still un-tuned**, but no longer un-tunable now the ageing curve
+  landed. Not an authorisation — it waits for the author to ask.
+- **Should the tuner see a season's retirement factor?** Every year now carries a fitted
+  one, but `pnpm tune` fits cars at the neutral factor against `targets.ts`'s estimated
+  42%, which 1980's measured 48.5% contradicts. Either change is a re-tune.
+- **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs
+  in `SeasonSeed` beside the retirement factor; needs the author's word.
 - **The blend weights moved; the fitted ratings have not caught up.** 1980 and 1981
   were fitted against the old `0.8 / 0.2`, so `.claude/rules/calibration.md` no longer
-  describes the model — the 50/50 reliability split moves every retirement rate.
-  **A re-tune is needed and has not been run**; it needs the author's word. Otherwise:
-  no measured race has a host country, and nothing moves a deal between seasons.
-- **Consistency's spread lever is parked, not gone** — reopening it buys wildcards and
-  costs strict dominance.
-- **Weekend-form share is a first guess** — 0.5, plausible but never fitted.
-- **Circuits have no character** — home advantage opened the door (`RoundContext`);
-  what else a circuit *does* is undecided, as are the two home-advantage numbers.
-- **What moves the driver market** — gates the market, and a design conversation
-  rather than a coding task. `adaptability` is authored and unread precisely for this.
-- **The overall rating weights adaptability at zero** — display heuristic in
-  `apps/web/src/lib/rating.ts`; revisit when the market gives the rating meaning.
+  describes the model. **A re-tune is needed and has not been run**; it needs the
+  author's word. Also: no measured race has a host country.
+- **Consistency's spread lever is parked** — reopening it buys wildcards, costs dominance.
+- **Weekend-form share is a first guess** — 0.5, never fitted.
+- **Circuits have no character** — `RoundContext` opened the door; what else a circuit
+  *does* is undecided, as are the home-advantage numbers.
+- **What moves the driver market** — a design conversation, not a coding task;
+  `adaptability` is authored and unread precisely for this.
+- **The overall rating weights adaptability at zero** — a display heuristic in
+  `apps/web/src/lib/rating.ts`; revisit when the market gives it meaning.

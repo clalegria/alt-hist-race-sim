@@ -59,6 +59,19 @@ It is a reading instrument, not a target set: nothing scores against it, the tun
 not use it, and the rule above — do not run a harness to check something — covers it
 too.
 
+**`pnpm retirements` is the third, and the one exception to that rule** — it has a
+measured target for all 77 years and its output *is* meant to be acted on, but only on
+the season file's `retirementFactor`, which the author asked to have calibrated.
+`.claude/rules/retirement-factor.md` is the write-up.
+
+**It moved 1980 and 1981 to factor 6**, so the retirement figures in the tables below
+now describe the *neutral* constants rather than the season the app runs: the two years
+really retired 48.5% and 48.3% of their starters against the 41.3% reported here.
+Nothing else moved — no rating was touched, the tuner still builds constants from
+`RACE_CONSTANTS` rather than `seasonConstants`, and `retirementRate: 0.42` in
+`targets.ts` was left alone even though the measurement contradicts it by six and a half
+points, because changing it re-fits chassis and engine reliability.
+
 ## The engine pass (both seasons, chassis and engines together)
 
 Engine manufacturers made a car `0.8 · chassis + 0.2 · engine`, which changes what a

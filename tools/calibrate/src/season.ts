@@ -10,13 +10,19 @@
  *   pnpm season 12 --randomness 1  # the same season, with the dice turned down
  */
 
-import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
+import {
+  buildField,
+  driversById,
+  seasonConstants,
+  seasonSeed,
+  teamIdentityIn,
+  teamsById,
+} from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
   createRng,
   simulateSeason,
-  withRandomness,
 } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
@@ -33,7 +39,8 @@ function main(): void {
   // The calendar decides how many rounds the year has, and where each is held —
   // which is what the home-advantage term reads.
   const calendar = authored.calendar;
-  const season = simulateSeason(field, calendar, createRng(seed), withRandomness(randomness));
+  const constants = seasonConstants(authored, randomness);
+  const season = simulateSeason(field, calendar, createRng(seed), constants);
   // The year's own scale, straight off its seed file: 9-6-4-3-2-1 in 1980,
   // 25-18-15-12-10-8-6-4-2-1 in 2010.
   const table = championshipStandings(season, authored.points);

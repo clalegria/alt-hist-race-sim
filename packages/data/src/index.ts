@@ -55,6 +55,7 @@ export {
   swapDrivers,
 } from "./lineup.js";
 export { carOverall, driverOverall } from "./rating.js";
+export { seasonConstants } from "./seasonConstants.js";
 export {
   authoredSeasons,
   FIRST_AUTHORED_SEASON,
@@ -258,7 +259,14 @@ const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
 const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers", ...LIVERY_KEYS] as const;
 const SEASON_ENGINE_KEYS = ["engineId", ...ENGINE_RATING_KEYS] as const;
 const CALENDAR_KEYS = ["round", "name", "circuit", "country"] as const;
-const SEASON_KEYS = ["year", "points", "calendar", "engines", "entries"] as const;
+const SEASON_KEYS = [
+  "year",
+  "points",
+  "retirementFactor",
+  "calendar",
+  "engines",
+  "entries",
+] as const;
 
 /**
  * Checks referential integrity of the seed data, throwing on the first problem
@@ -363,6 +371,19 @@ function validateSeason(
   // simulation bug three tables downstream.
   if (season.points.length === 0) {
     throw new Error(`Season ${season.year} has no points scale`);
+  }
+
+  // The retirement dial, which is authored per year and read by nothing else in
+  // this package. Out of range it would silently fall back to the default and
+  // the season would race at 1980's attrition under whatever number was typed.
+  if (
+    !Number.isInteger(season.retirementFactor) ||
+    season.retirementFactor < 1 ||
+    season.retirementFactor > 10
+  ) {
+    throw new Error(
+      `Season ${season.year} has retirementFactor ${season.retirementFactor}; it must be a whole number from 1 to 10`,
+    );
   }
   season.points.forEach((points, index) => {
     if (!Number.isFinite(points) || points < 0) {

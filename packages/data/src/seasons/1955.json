@@ -1,6 +1,7 @@
 {
   "year": 1955,
   "points": [8, 6, 4, 3, 2],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "Argentine GP", "circuit": "Buenos Aires",      "country": "AR" },
     { "round":  2, "name": "Monaco GP",    "circuit": "Monaco",            "country": "MC" },

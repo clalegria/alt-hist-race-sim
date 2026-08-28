@@ -33,14 +33,25 @@ here. Read this before starting new feature work.
 
 ## Era questions (multiple seasons)
 
-**Both of these are now live rather than hypothetical: 1981 is authored and playable,
-and both constants are still 1980's.**
+- **Reliability era curve — settled, and it came from the era scale rather than the
+  ratings.** Every season file now carries a 1-10 `retirementFactor`, fitted against the
+  real classification of all 77 championships; see `.claude/rules/retirement-factor.md`.
+  The question the fit answered was where the era should come from, and the answer was
+  emphatic: the authored ratings alone move the simulated rate over a fifteen-point
+  band (30%-45%) across the whole of history, while the sport ran 9.0% to 57.1%. So the
+  dial carries it, and it scales driver error as well as mechanical failure — composure
+  is a career attribute with no era term, and driver-error retirements alone are worth
+  more than a modern season's entire rate.
 
-- **Reliability era curve.** `mechanicalDnfEraScale` exists but no per-season curve is
-  defined. 1980 needs ~42% retirements; a 2026 season needs closer to 10%. Decide
-  whether that comes from rising reliability ratings, a falling era scale, or both.
-  1981 currently retires cars at the 1980 rate, which is roughly right for 1981 and
-  will be badly wrong long before 2026.
+  **Two things it opened rather than closed.** 1980 and 1981 fit best at factor 6, so
+  the two calibrated seasons no longer race at the neutral setting: the model gives them
+  ~47% where the fitted figure in `.claude/rules/calibration.md` is 41.3%. And the
+  tuner's `retirementRate: 0.42` target for both years is an estimate the measurement
+  contradicts — 1980 really retired 48.5% of its starters. Neither the target nor a
+  rating was touched; changing either is a re-tune and needs the author's word.
+
+**The rest of this section is now live rather than hypothetical: 1981 is authored and
+playable, and the constant is still 1980's.**
 - **Starting limit per era.** `maxStarters` is a single constant pinned at 26 for
   1980. Real limits moved (and modern grids sit under any of them), so it probably
   belongs to the season data rather than the race constants. 1981's real limit was

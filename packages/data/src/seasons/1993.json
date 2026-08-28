@@ -1,6 +1,7 @@
 {
   "year": 1993,
   "points": [10, 6, 4, 3, 2, 1],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "South African GP", "circuit": "Kyalami",           "country": "ZA" },
     { "round":  2, "name": "Brazilian GP",     "circuit": "Interlagos",        "country": "BR" },

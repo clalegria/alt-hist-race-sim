@@ -84,10 +84,39 @@ describe("validateSeedData", () => {
     }
   });
 
+  it("gives every authored season a retirement factor on the 1-10 scale", () => {
+    // The rule, not the values: which factor a year carries is a calibration
+    // judgement that lives in its own file, but every year must carry one, and
+    // an out-of-range number would be silently narrowed back to the default.
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const season of seasons.values()) {
+      expect(Number.isInteger(season.retirementFactor), `${season.year}`).toBe(true);
+      expect(season.retirementFactor, `${season.year}`).toBeGreaterThanOrEqual(1);
+      expect(season.retirementFactor, `${season.year}`).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it("rejects a retirement factor off the 1-10 scale", () => {
+    for (const retirementFactor of [0, 11, 4.5, Number.NaN]) {
+      const broken: SeasonSeed = {
+        year: 1980,
+        points: pointsScale(),
+        retirementFactor,
+        calendar: [],
+        engines: [engineSpec()],
+        entries: [],
+      };
+      expect(() => {
+        validateSeedData(drivers, teams, [broken]);
+      }).toThrow(/retirementFactor/);
+    }
+  });
+
   it("rejects a season with no points scale", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: [],
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [],
@@ -101,6 +130,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: [9, 6, 4, 5],
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [],
@@ -114,6 +144,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: [9, 6, -1],
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [],
@@ -130,6 +161,7 @@ describe("validateSeedData", () => {
     const seatless: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -166,6 +198,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -181,6 +214,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -203,6 +237,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [
         { round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" },
         { round: 3, name: "Brazilian GP", circuit: "Interlagos", country: "BR" },
@@ -219,6 +254,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "ARG" }],
       engines: [engineSpec()],
       entries: [],
@@ -232,6 +268,7 @@ describe("validateSeedData", () => {
     const withName = (name: string, circuit: string): SeasonSeed => ({
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [{ round: 1, name, circuit, country: "AR" }],
       engines: [engineSpec()],
       entries: [],
@@ -248,6 +285,7 @@ describe("validateSeedData", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec()],
       entries: [
@@ -285,6 +323,7 @@ describe("validateSeedData", () => {
     const withChassis = (chassis: Record<string, unknown>): SeasonSeed => ({
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
       engines: [engineSpec()],
       entries: [
@@ -305,6 +344,7 @@ describe("validateSeedData", () => {
     const badEngine: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
       engines: [{ ...engineSpec(), reliability: -1 }],
       entries: [],
@@ -321,6 +361,7 @@ describe("validateSeedData", () => {
       const season: Record<string, unknown> = {
         year: 1980,
         points: pointsScale(),
+        retirementFactor: 5,
         calendar: [{ round: 1, name: "Argentine GP", circuit: "Buenos Aires", country: "AR" }],
         engines: [engineSpec()],
         entries: [
@@ -376,7 +417,14 @@ describe("validateSeedData", () => {
  * one-team pool does not have, and that error would fire first.
  */
 function noEntries(): SeasonSeed {
-  return { year: 1980, points: pointsScale(), calendar: [], engines: [engineSpec()], entries: [] };
+  return {
+    year: 1980,
+    points: pointsScale(),
+    retirementFactor: 5,
+    calendar: [],
+    engines: [engineSpec()],
+    entries: [],
+  };
 }
 
 /** A valid livery, for fixtures that are about something else in it. */
@@ -413,6 +461,7 @@ function seasonWithLivery(override: Record<string, unknown>): SeasonSeed {
   return {
     year: 1980,
     points: pointsScale(),
+    retirementFactor: 5,
     calendar: [],
     engines: [engineSpec()],
     entries: [
@@ -464,6 +513,7 @@ describe("engines", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [{ engineId: "phlogiston", racing: 50, qualifying: 50, reliability: 50 }],
       entries: [],
@@ -477,6 +527,7 @@ describe("engines", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [],
       entries: [
@@ -497,6 +548,7 @@ describe("engines", () => {
     const broken: SeasonSeed = {
       year: 1980,
       points: pointsScale(),
+      retirementFactor: 5,
       calendar: [],
       engines: [engineSpec(), engineSpec()],
       entries: [],

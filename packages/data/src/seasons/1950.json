@@ -1,6 +1,7 @@
 {
   "year": 1950,
   "points": [8, 6, 4, 3, 2],
+  "retirementFactor": 6,
   "calendar": [
     { "round":  1, "name": "British GP", "circuit": "Silverstone",       "country": "GB" },
     { "round":  2, "name": "Monaco GP",  "circuit": "Monaco",            "country": "MC" },

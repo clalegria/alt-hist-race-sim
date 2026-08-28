@@ -8,6 +8,14 @@ export {
   randomnessNoiseScale,
   withRandomness,
 } from "./randomness.js";
+export {
+  DEFAULT_RETIREMENT_FACTOR,
+  parseRetirementFactor,
+  RETIREMENT_FACTORS,
+  type RetirementFactor,
+  retirementScale,
+  withRetirementFactor,
+} from "./retirement.js";
 export { scoreAndSortRaceModel, simulateRace } from "./simulateRace.js";
 export type {
   DnfCause,

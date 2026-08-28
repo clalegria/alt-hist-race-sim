@@ -1,6 +1,7 @@
 {
   "year": 1964,
   "points": [9, 6, 4, 3, 2, 1],
+  "retirementFactor": 5,
   "calendar": [
     { "round":  1, "name": "Monaco GP",        "circuit": "Monaco",            "country": "MC" },
     { "round":  2, "name": "Dutch GP",         "circuit": "Zandvoort",         "country": "NL" },
