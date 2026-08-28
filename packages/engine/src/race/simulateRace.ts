@@ -19,6 +19,28 @@ function lerpFromRating(rating: number, atZero: number, atHundred: number): numb
 }
 
 /**
+ * The standard normal CDF, to about seven decimal places.
+ *
+ * Abramowitz & Stegun 7.1.26 on `erf`, inlined rather than taken from a
+ * dependency because the engine has none and is not about to acquire one for
+ * six lines of arithmetic. Its only job is to turn a correlated normal draw
+ * back into a uniform, so that a car's mechanical failure can be correlated
+ * with its teammate's without disturbing its own failure *rate* — see
+ * `mechanicalDnfTeamCorrelation`. Accuracy well beyond what a probability
+ * compared against a rating-derived risk needs.
+ */
+function normalCdf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const z = Math.abs(x) / Math.SQRT2;
+  const t = 1 / (1 + 0.3275911 * z);
+  const poly =
+    t *
+    (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+  const erf = 1 - poly * Math.exp(-z * z);
+  return 0.5 * (1 + sign * erf);
+}
+
+/**
  * Whether two country codes are the same place. Case- and padding-insensitive,
  * and an absent code is nowhere: a field with no countries is never at home.
  */
@@ -62,13 +84,26 @@ function compareIds(a: string, b: string): number {
   return a > b ? 1 : 0;
 }
 
+/**
+ * What a team draws once per weekend, shared by every car it enters: its form,
+ * its luck in each session, and how fragile its car is that day.
+ */
+interface TeamDraws {
+  readonly form: number;
+  readonly qualifyingLuck: number;
+  readonly raceLuck: number;
+  readonly fragility: number;
+}
+
 /** Working record for one car as it moves through the race weekend. */
 interface Runner {
   readonly entrant: RaceEntrant;
   /** Chassis and engine blended into one car — what every score below reads. */
   readonly car: CarSpec;
-  /** Standard-normal form for this weekend, shared by both sessions. */
-  readonly weekendForm: number;
+  /** This car's own standard-normal form for the weekend, shared by both sessions. */
+  readonly carForm: number;
+  /** Everything its team drew for the weekend, shared with the other side of the garage. */
+  readonly team: TeamDraws;
   readonly noiseScale: number;
   readonly pacePenalty: number;
   /** Rating points for racing at home, in both sessions. Usually 0. */
@@ -123,12 +158,46 @@ export function simulateRace(
     throw new RangeError("A driver cannot appear twice in the same field");
   }
 
-  // Splitting each session's noise into a shared and an independent part keeps
-  // the per-session sigma unchanged while making the two correlate: the weights
-  // are square roots because variances, not standard deviations, add.
-  const share = Math.min(Math.max(constants.weekendFormShare, 0), 1);
-  const sharedWeight = Math.sqrt(share);
-  const independentWeight = Math.sqrt(1 - share);
+  // Each session's noise is split on two independent axes at once: how much of
+  // it carries from Saturday to Sunday (`weekendFormShare`), and how much of it
+  // belongs to the team rather than to the individual car (`teamFormShare`).
+  // Crossing them gives four draws, weighted by the square roots of the four
+  // products — square roots because variances, not standard deviations, add,
+  // and the four products sum to 1, so the total sigma is exactly what the
+  // constants say however either share moves.
+  //
+  // The team half is much the larger, and that is the point: what swings a
+  // car's level between weekends mostly belongs to the garage, so it moves both
+  // of its cars together and cannot decide which one finishes ahead. Both team
+  // terms cancel out of a teammate comparison, which is what leaves that battle
+  // to the ratings while the spread across the field stays as calibrated.
+  const weekendShare = Math.min(Math.max(constants.weekendFormShare, 0), 1);
+  const teamShare = Math.min(Math.max(constants.teamFormShare, 0), 1);
+  const boost = Math.max(constants.teamFormBoost, 0);
+  const teamWeekendWeight = Math.sqrt(weekendShare * teamShare) * boost;
+  const carWeekendWeight = Math.sqrt(weekendShare * (1 - teamShare));
+  const teamSessionWeight = Math.sqrt((1 - weekendShare) * teamShare) * boost;
+  const carSessionWeight = Math.sqrt((1 - weekendShare) * (1 - teamShare));
+
+  // What a team draws once per weekend and both its cars read: its form, its
+  // luck in each of the two sessions, and how fragile its car is today. Taken
+  // lazily, at the first car of each team in field order, so that appending an
+  // entrant cannot shift anyone already in the field along the RNG stream.
+  const teamDraws = new Map<string, TeamDraws>();
+  const drawsFor = (teamId: string): TeamDraws => {
+    const existing = teamDraws.get(teamId);
+    if (existing !== undefined) {
+      return existing;
+    }
+    const fresh: TeamDraws = {
+      form: rng.gaussian(),
+      qualifyingLuck: rng.gaussian(),
+      raceLuck: rng.gaussian(),
+      fragility: rng.gaussian(),
+    };
+    teamDraws.set(teamId, fresh);
+    return fresh;
+  };
 
   // --- Qualifying -----------------------------------------------------------
   const runners: Runner[] = field.map((entrant) => {
@@ -151,13 +220,18 @@ export function simulateRace(
       constants.consistencyPacePenaltyAtHundred,
     );
 
-    // Drawn once and carried into the race, so a driver who is on it all
-    // weekend qualifies and races well, and one who never gels does neither.
-    const weekendForm = rng.gaussian();
+    // Both form draws are made once and carried into the race, so a team that
+    // brought a working car has it on Saturday and Sunday, and a driver who is
+    // on it all weekend qualifies and races well.
+    const team = drawsFor(entrant.teamId);
+    const carForm = rng.gaussian();
     const qualifyingNoise =
       constants.qualifyingNoise *
       noiseScale *
-      (sharedWeight * weekendForm + independentWeight * rng.gaussian());
+      (teamWeekendWeight * team.form +
+        carWeekendWeight * carForm +
+        teamSessionWeight * team.qualifyingLuck +
+        carSessionWeight * rng.gaussian());
 
     // Where the race is, not who is in it: the same number is added to both
     // sessions, so a home crowd is worth as much on Saturday as on Sunday.
@@ -166,7 +240,8 @@ export function simulateRace(
     return {
       entrant,
       car,
-      weekendForm,
+      carForm,
+      team,
       noiseScale,
       pacePenalty,
       homeBonus,
@@ -210,7 +285,10 @@ export function simulateRace(
     const racingNoise =
       constants.racingNoise *
       runner.noiseScale *
-      (sharedWeight * runner.weekendForm + independentWeight * rng.gaussian());
+      (teamWeekendWeight * runner.team.form +
+        carWeekendWeight * runner.carForm +
+        teamSessionWeight * runner.team.raceLuck +
+        carSessionWeight * rng.gaussian());
 
     // A non-qualifier draws its noise and throws it away. Skipping the draw
     // would make every later car's stream position depend on who made the cut.
@@ -244,10 +322,23 @@ export function simulateRace(
       constants.driverErrorDnfAtFullComposure,
     );
 
+    // The mechanical roll is drawn partly off the team's fragility for the
+    // weekend and partly off this car's own luck, then pushed back through the
+    // normal CDF into a uniform. That last step is what makes the correlation
+    // free: the result is still uniform on [0, 1), so comparing it against the
+    // risk leaves this car's failure *rate* exactly what its reliability says,
+    // and only changes how often it fails on the same afternoon as its
+    // teammate. A correlation of 0 reduces to an independent uniform.
+    const correlation = Math.min(Math.max(constants.mechanicalDnfTeamCorrelation, 0), 1);
+    const fragility =
+      Math.sqrt(correlation) * runner.team.fragility + Math.sqrt(1 - correlation) * rng.gaussian();
+
     // Both rolls always happen, for every car including the ones that did not
     // qualify, so the draw count per car is fixed regardless of outcome — that
     // keeps the stream position independent of results.
-    const mechanicalFailure = rng.next() < Math.min(Math.max(mechanicalRisk, 0), 1);
+    const mechanicalFailure = normalCdf(fragility) < Math.min(Math.max(mechanicalRisk, 0), 1);
+    // Driver error stays independent: it belongs to the driver, not the car,
+    // and two drivers do not spin in sympathy.
     const driverError = rng.next() < Math.min(Math.max(errorRisk, 0), 1);
     if (!runner.started) {
       continue;

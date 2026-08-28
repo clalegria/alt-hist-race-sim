@@ -32,6 +32,7 @@ export {
   RANDOMNESS_LEVELS,
   type RandomnessLevel,
   randomnessNoiseScale,
+  randomnessTeamFormBoost,
   withRandomness,
 } from "./race/randomness.js";
 export {

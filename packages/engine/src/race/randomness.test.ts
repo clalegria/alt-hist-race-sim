@@ -7,6 +7,7 @@ import {
   RANDOMNESS_LEVELS,
   type RandomnessLevel,
   randomnessNoiseScale,
+  randomnessTeamFormBoost,
   withRandomness,
 } from "./randomness.js";
 import { simulateRace } from "./simulateRace.js";
@@ -72,18 +73,35 @@ describe("randomness levels", () => {
     expect(randomnessNoiseScale(DEFAULT_RANDOMNESS_LEVEL)).toBe(1);
   });
 
-  it("scales both sigmas by the same factor and nothing else", () => {
+  it("scales both sigmas by the same factor, and the team weight on top", () => {
+    // Three numbers move and nothing else does. Everything a rating *means* —
+    // the pace weights, the powertrain blend, home advantage, the consistency
+    // penalty, reliability — has to survive the slider untouched.
     for (const level of RANDOMNESS_LEVELS) {
       const scaled = withRandomness(level);
       const scale = randomnessNoiseScale(level);
       expect(scaled.qualifyingNoise).toBeCloseTo(RACE_CONSTANTS.qualifyingNoise * scale, 10);
       expect(scaled.racingNoise).toBeCloseTo(RACE_CONSTANTS.racingNoise * scale, 10);
-      expect({ ...scaled, qualifyingNoise: 0, racingNoise: 0 }).toEqual({
-        ...RACE_CONSTANTS,
-        qualifyingNoise: 0,
-        racingNoise: 0,
-      });
+      expect(scaled.teamFormBoost).toBeCloseTo(
+        RACE_CONSTANTS.teamFormBoost * randomnessTeamFormBoost(level),
+        10,
+      );
+      const neutralised = { qualifyingNoise: 0, racingNoise: 0, teamFormBoost: 0 };
+      expect({ ...scaled, ...neutralised }).toEqual({ ...RACE_CONSTANTS, ...neutralised });
     }
+  });
+
+  it("boosts the team form weight only once a level has left realism behind", () => {
+    // Scaling both sigmas uniformly drowns the driver signal before the car
+    // signal, because the driver signal is the smaller of the two — so turning
+    // the dice up used to buy mostly teammate upsets rather than the thing a
+    // chaotic setting is for, which is not knowing which *car* will be quick.
+    // The boost is what buys the second, and it stays out of the way below.
+    for (const level of [1, 2, 3] as const) {
+      expect(randomnessTeamFormBoost(level)).toBe(1);
+    }
+    expect(randomnessTeamFormBoost(4)).toBeGreaterThan(1);
+    expect(randomnessTeamFormBoost(5)).toBeGreaterThan(randomnessTeamFormBoost(4));
   });
 
   it("orders the levels from tamest to wildest", () => {

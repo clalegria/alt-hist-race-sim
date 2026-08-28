@@ -7,14 +7,25 @@ paths:
 
 # Calibration
 
-> **⚠ THESE TABLES ARE STALE.** Every figure below was measured with the powertrain
-> blended `0.8 · chassis + 0.2 · engine` on all three attributes. The weights have since
-> moved to **`0.7 / 0.3` on pace and an even `0.5 / 0.5` on reliability**, and the
-> chassis and engine ratings have **not** been re-fitted. The win and pole shares below
-> will have drifted; the retirement rates will have moved most, since reliability's
-> blend changed the furthest. A re-tune is needed and **has not been run** — it needs
-> the author's word. Do not treat any number here as current, and do not re-measure to
-> find out how far off it is.
+> **⚠ THESE TABLES ARE STALE, for two reasons now.**
+>
+> **The powertrain blend moved.** Every figure below was measured with the car blended
+> `0.8 · chassis + 0.2 · engine` on all three attributes. The weights have since moved to
+> **`0.7 / 0.3` on pace and an even `0.5 / 0.5` on reliability**, and the chassis and
+> engine ratings have **not** been re-fitted. The retirement rates will have moved most,
+> since reliability's blend changed the furthest.
+>
+> **The race noise was then restructured.** Each session's noise now splits on two axes
+> rather than one — weekend/session as before, crossed with **team/car** — and
+> consistency's spread lever, pinned flat at 1.0 when these tables were measured, is open
+> at **1.3 / 0.75**. Neither touches the total sigma, and the retirement rate was measured
+> unchanged, but the second of them does move the win shares: a spot check over the 1980,
+> 2002 and 2011 calendars put the strongest car up about **two points of win share**, with
+> more pole share, and reshuffled third and fourth in 1980. That drift has not been
+> absorbed into any rating.
+>
+> A re-tune is needed and **has not been run** — it needs the author's word. Do not treat
+> any number here as current, and do not re-measure to find out how far off it is.
 
 **Read the no-re-calibration invariant in `CLAUDE.md` before touching any number in
 these files.** Short version: the values below are settled, and re-tuning happens only

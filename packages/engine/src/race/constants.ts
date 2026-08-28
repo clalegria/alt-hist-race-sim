@@ -67,10 +67,10 @@ export interface RaceConstants {
 
   /**
    * Standard deviation of qualifying noise, in rating points, before
-   * modulation. `weekendFormShare` splits it: `sqrt(share)` of it is the car's
-   * form for the whole weekend and `sqrt(1 - share)` is luck on the day, so
-   * raising this sigma and the share together moves weekend-to-weekend form
-   * without touching session-to-session scatter.
+   * modulation. `weekendFormShare` and `teamFormShare` cross to split it four
+   * ways - team form for the weekend, car form for the weekend, team luck on
+   * the day, car luck on the day - by weights whose squares sum to 1, so this
+   * sigma remains each session's total spread however the split moves.
    */
   readonly qualifyingNoise: number;
   /** Standard deviation of race noise, in rating points, before modulation. */
@@ -81,16 +81,21 @@ export interface RaceConstants {
    * consistency of 0 multiplies the noise by `consistencyNoiseMultiplierAtZero`,
    * 100 by `consistencyNoiseMultiplierAtHundred`, interpolated linearly.
    *
-   * Deliberately flat (both 1.0) as of the pace-penalty model. Any gap between
-   * these two numbers hands a low-consistency car a taller upper tail, and a
-   * taller upper tail means *more* wins for a car that has no business winning
-   * - a win is an upper-tail event, so nothing applied to the mean can fully
-   * offset it. Consistency therefore expresses itself purely through
-   * `consistencyPacePenalty*` below, which shifts the whole distribution and so
-   * makes an erratic pairing worse on every measure at once.
+   * Open (1.3 / 0.75) as of the team-form split. It was previously pinned flat
+   * at 1.0 because a gap here hands a low-consistency car a taller upper tail,
+   * and a win is an upper-tail event, so nothing applied to the mean fully
+   * offsets it - an erratic car wins races it has no business winning.
    *
-   * Kept as a lever rather than deleted: reopening the gap is how you would
-   * trade strict dominance back for streakier, more upset-prone racing.
+   * That cost was accepted deliberately, because the flat setting had a worse
+   * one: it made `consistency` a rating that costs pace and nothing else, so a
+   * 96-consistency driver and a 60-consistency driver had *identically* shaped
+   * distributions. A steady driver should have a tighter one. That is the whole
+   * meaning of the word, and it is a large part of what separates a first
+   * driver from a second in the same car.
+   *
+   * The pair is still the lever for trading dominance against streakiness:
+   * widen the gap for more wildcards, close it back toward 1.0 for stricter
+   * dominance by the best pairing.
    */
   readonly consistencyNoiseMultiplierAtZero: number;
   readonly consistencyNoiseMultiplierAtHundred: number;
@@ -116,27 +121,75 @@ export interface RaceConstants {
    * How much of each session's noise is shared "weekend form" rather than
    * session-specific luck, as a share of variance in [0, 1].
    *
-   * A driver who has found something in the car on Saturday tends to still have
-   * it on Sunday, so the two sessions should not be independent coin flips. One
-   * standard-normal form draw per car per weekend is reused by both sessions,
-   * weighted `sqrt(share)`, with an independent draw per session weighted
-   * `sqrt(1 - share)`. That leaves each session's total sigma exactly as
-   * `qualifyingNoise` / `racingNoise` specify, and makes the correlation between
-   * the two noise terms equal to this value.
+   * A car that has found something on Saturday tends to still have it on
+   * Sunday, so the two sessions should not be independent coin flips. The
+   * weekend part is drawn once and reused by both sessions, weighted
+   * `sqrt(share)`, with a fresh draw per session weighted `sqrt(1 - share)`.
+   * That leaves each session's total sigma exactly as `qualifyingNoise` /
+   * `racingNoise` specify, and makes the correlation between the two noise
+   * terms equal to this value.
    *
    * 0 restores fully independent sessions. 1 makes the race a deterministic
    * function of qualifying - every race processional - so it is a bound to stay
    * well clear of, not a target.
    *
-   * This is the only lever that is *about* weekend-to-weekend form rather than
-   * randomness in general, but on its own it only redistributes a fixed sigma:
-   * raising it alone buys form by taking the same amount out of session luck.
-   * To make a car's level actually swing more between weekends, raise this and
-   * the two sigmas together, holding `sqrt(1 - share) * sigma` roughly constant
-   * - which is how 0.4/3.0/5.0 became 0.5/3.4/5.6, about a quarter more form
-   * for unchanged session scatter.
+   * On its own it only redistributes a fixed sigma: raising it buys form by
+   * taking the same amount out of session luck. To make a car's level actually
+   * swing more between weekends, raise this and the two sigmas together,
+   * holding `sqrt(1 - share) * sigma` roughly constant - which is how
+   * 0.4/3.0/5.0 became 0.5/3.4/5.6, about a quarter more form for unchanged
+   * session scatter.
    */
   readonly weekendFormShare: number;
+
+  /**
+   * How much of each session's noise belongs to the *team* rather than to the
+   * individual car, as a share of variance in [0, 1].
+   *
+   * This is the second and independent axis of the same noise.
+   * `weekendFormShare` decides how much of it carries from Saturday to Sunday;
+   * this decides how much of it both cars of a garage share. Crossing the two
+   * gives four draws per session - team form for the weekend, car form for the
+   * weekend, team luck on the day, car luck on the day - weighted by the square
+   * roots of the four products, which sum to 1. The session sigma is therefore
+   * untouched by either share, and so is the correlation between sessions.
+   *
+   * It is high (0.75) on purpose. Most of what swings a car's level from one
+   * weekend to the next belongs to the team rather than the driver: the circuit
+   * suits the aero, the tyres never switch on, the strategy call is wrong. All
+   * of that moves both cars of a garage together, so it cannot decide which of
+   * them finishes ahead - and before this share existed, every bit of it did,
+   * because there was no team-level draw at all.
+   *
+   * That was why a clearly weaker teammate beat a clearly stronger one far too
+   * often. The full race sigma stood between them at `sqrt(2)` times its
+   * nominal size, against a driver-rating gap worth only `weightDriverRacing`
+   * times itself: even the largest teammate gap on the grid was less than a
+   * standard deviation. What now separates teammates is `sqrt(1 - share)` of
+   * that, so this is the lever that says how much a teammate battle is a
+   * lottery - and, because both team terms cancel out of the comparison, it
+   * says so without touching the spread across the field, which is what the
+   * calibration measured.
+   */
+  readonly teamFormShare: number;
+
+  /**
+   * Multiplier on the two team-form weights alone, above and beyond whatever
+   * the randomness level does to the sigmas. 1 leaves the split as authored.
+   *
+   * This exists because scaling the sigmas uniformly does not scale *upsets*
+   * uniformly. Noise is additive in rating points while the two signals it
+   * competes against are not the same size - a car gap is worth
+   * `weightCarRacing` times itself and a driver gap only `weightDriverRacing`
+   * times itself, so the driver signal is the smaller of the two and a uniform
+   * increase drowns it first. Turning the dice up therefore used to produce
+   * mostly *teammate* upsets, when what "chaotic" should mean is that the
+   * running order between cars stops being predictable. Boosting the team term
+   * specifically buys the second without buying much of the first.
+   *
+   * Set per level in `randomness.ts`, and left at 1 for levels 1-3.
+   */
+  readonly teamFormBoost: number;
 
   /**
    * How many cars the race itself takes. Everyone entered runs qualifying; only
@@ -200,6 +253,34 @@ export interface RaceConstants {
    */
   readonly mechanicalDnfAtZeroReliability: number;
   readonly mechanicalDnfAtFullReliability: number;
+
+  /**
+   * How much of a car's chance of breaking is a property of the *team's* car
+   * that day rather than of the individual chassis, as a latent correlation in
+   * [0, 1). 0 makes two cars of the same team independent coin flips.
+   *
+   * Independence was wrong, and expensively so. A real mechanical failure is
+   * frequently a design or a batch: the gearbox that cannot take the kerbs at
+   * this circuit, an engine spec marginal in the heat, a hydraulics fault both
+   * cars carry to the grid. When one car of a team goes, the other going is
+   * genuinely more likely. Modelled as a shared "how fragile is this car today"
+   * draw that each entry rolls partly off and partly off its own luck.
+   *
+   * The point of it is what it does to a championship rather than to a race.
+   * Teammates run the same car, so they carry the same failure probability;
+   * rolled independently, they still ended a season a couple of retirements
+   * apart on pure luck, and a couple of retirements is worth more points than a
+   * season's honest pace advantage. Correlating the draws makes them lose the
+   * same weekends more often, which lets pace decide the order between them.
+   *
+   * Each car's *marginal* failure rate is untouched - this only changes which
+   * failures land together - so a season's fitted retirement factor still
+   * describes the same total number of retirements.
+   *
+   * Driver error is left independent on purpose: it belongs to the driver, and
+   * two drivers do not spin in sympathy.
+   */
+  readonly mechanicalDnfTeamCorrelation: number;
 
   /**
    * Driver-error retirement probability, interpolated from composure the same
@@ -300,13 +381,15 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   qualifyingNoise: 3.4,
   racingNoise: 5.6,
 
-  consistencyNoiseMultiplierAtZero: 1.0,
-  consistencyNoiseMultiplierAtHundred: 1.0,
+  consistencyNoiseMultiplierAtZero: 1.3,
+  consistencyNoiseMultiplierAtHundred: 0.75,
 
   consistencyPacePenaltyAtZero: 4.0,
   consistencyPacePenaltyAtHundred: 0.0,
 
   weekendFormShare: 0.5,
+  teamFormShare: 0.75,
+  teamFormBoost: 1.0,
 
   maxStarters: 26,
 
@@ -319,6 +402,8 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
 
   mechanicalDnfAtZeroReliability: 0.75,
   mechanicalDnfAtFullReliability: 0.12,
+
+  mechanicalDnfTeamCorrelation: 0.3,
 
   driverErrorDnfAtZeroComposure: 0.3,
   driverErrorDnfAtFullComposure: 0.03,

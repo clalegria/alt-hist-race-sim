@@ -21,9 +21,10 @@ rest are what happens to it:
    limit is unaffected, so this is inert rather than something to switch off.
 3. **Race** — `0.70·car + 0.30·driver + gridBonus + home − consistencyPenalty + noise`,
    sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
-4. **DNFs** — two independent rolls per car: mechanical (from car reliability) and
-   driver error (from composure). Both always rolled; mechanical takes precedence
-   when recording the cause.
+4. **DNFs** — two rolls per car: mechanical (from car reliability) and driver error
+   (from composure). Both always rolled; mechanical takes precedence when recording the
+   cause. Driver error is independent; **the mechanical roll is correlated between two
+   cars of the same team** — see "Noise and retirements are team-shaped" below.
 
 The car is weighted far above the driver on purpose: a great driver in a poor car
 should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
@@ -37,6 +38,33 @@ constants are derived before they reach the model.
 which is how the calibration tools sweep values without editing source. `round` is a
 `RoundContext` — *where* the race is being held — and defaults to `{}`, a neutral race
 scored exactly as it was before home advantage existed.
+
+## Noise and retirements are team-shaped
+
+Both `noise` terms above are split on two independent axes at once: `weekendFormShare`
+(0.5) decides how much carries from Saturday to Sunday, `teamFormShare` (0.75) how much
+belongs to the **team** rather than to the individual car. Crossing them gives four draws
+per session — team form for the weekend, car form for the weekend, team luck on the day,
+car luck on the day — weighted by the square roots of the four products, so each session's
+total sigma is exactly what the constants say and neither share affects the other.
+
+The team share is what stops the dice deciding a teammate battle: both team terms cancel
+out of a comparison between two cars in the same garage, so what separates them is
+`sqrt(1 − share)` of the sigma rather than all of it — while the spread across the *field*,
+which is what the calibration measured, is untouched. `teamFormBoost` (1 by default) is
+the randomness slider's lever on the team half alone.
+
+The mechanical DNF roll is correlated within a team the same way:
+`mechanicalDnfTeamCorrelation` (0.3) mixes a shared per-team fragility draw with the car's
+own, then passes the result through the normal CDF so it is still uniform. Each car's
+failure *rate* is therefore exactly what its reliability says, and only the pairing
+changes — which is what leaves every season's fitted `retirementFactor` describing the
+same total number of retirements. Why these exist and what they were worth is
+`.claude/rules/race-constants.md`.
+
+**Team draws are taken lazily**, at the first car of each team in field order, so
+appending an entrant cannot shift anyone already in the field along the RNG stream. A team
+costs four draws (form, two session lucks, fragility) however many cars it enters.
 
 ## Engines
 
@@ -145,8 +173,8 @@ adding a car to the end of the field cannot change anyone else's weekend.
 
 ## Why the numbers are what they are
 
-The tuning rationale behind the constants — what consistency does and why it is a pace
-penalty rather than a variance one, how weekend form splits each session's noise, and
-why the cosmetic gaps are shaped the way they are — is
-`.claude/rules/race-constants.md`, which loads when you open `constants.ts` or
-`gaps.ts`.
+The tuning rationale behind the constants — what consistency does to both the mean and
+the spread, how the noise splits on its two axes, why teammate retirements are
+correlated, and why the cosmetic gaps are shaped the way they are — is
+`.claude/rules/race-constants.md`, which loads when you open `constants.ts` or `gaps.ts`.
+The randomness slider over those sigmas is `.claude/rules/race-randomness.md`.

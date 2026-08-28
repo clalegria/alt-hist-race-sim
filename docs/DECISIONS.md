@@ -110,14 +110,39 @@ Landed. What they left open:
 
 ## Race model levers
 
-- **Consistency's spread lever is parked, not gone.** Settled for now: consistency
-  is a pure pace stat, so an erratic driver is strictly worse and never luckier.
-  The cost is that consistency no longer changes the *shape* of a driver's results,
-  only their level — it behaves like a second speed rating. If the sim later wants
-  genuine wildcards (a backmarker who occasionally steals a podium), reopen the gap
-  in `consistencyNoiseMultiplier*` and accept that it also hands them extra wins.
-  A middle option exists and is untried: stretch the bad tail *and* compress the
-  good one, which keeps some asymmetry while capping the ceiling.
+- **Consistency's spread lever is now open — 1.3 / 0.75 — and that reverses the entry
+  that used to sit here.** It was parked flat at 1.0 so that an erratic driver was
+  strictly worse and never luckier. The cost of parking it was that consistency changed
+  only the *level* of a driver's results and never their shape, which made it a second
+  speed rating: a 96-consistency driver and a 60-consistency one in the same car had
+  identically shaped weekends. Reopened as part of the teammate-upset work (2026-08-28),
+  because how repeatable a driver is has to be part of what separates a first driver from
+  a second.
+
+  **What was accepted in reopening it.** Winning from behind is an upper-tail event, so a
+  wider spread hands a slow car more wins — an erratic backmarker now wins about a fifth
+  more often, off a base near 2%, while still finishing worse on average. Two tests bound
+  that. The larger cost is at the front: the strongest car gained roughly **two points of
+  win share** across 1980, 2002 and 2011, because its steady pairing now has the tighter
+  distribution. **Nothing has been re-fitted to absorb it.**
+
+  Still open: how wide the gap should be, which is untested taste rather than a
+  measurement. Closing it back toward 1.0 buys stricter dominance and fewer wildcards.
+  A middle option remains untried: stretch the bad tail *and* compress the good one,
+  keeping some asymmetry while capping the ceiling.
+- **Team form and the teammate DNF correlation are reasoned, not fitted.** `teamFormShare`
+  (0.75) and `mechanicalDnfTeamCorrelation` (0.3) were chosen from teammate head-to-head
+  records — Schumacher/Barrichello, Vettel/Webber, Senna/Prost — not from `pnpm calibrate`.
+  Both are constructed to leave the field-wide spread and the retirement rate alone, and
+  measurement confirmed the retirement rate is unmoved, so neither *should* need the
+  harness. That is an argument, not a measurement, and the argument has not been checked
+  against the win-share tables. Whether 0.75 is the right number is taste: it says how
+  much of a season's swing belongs to the garage rather than the driver.
+- **`teamFormBoost` at levels 4-5 (1.2, 1.35) is the least examined of the set.** It was
+  added because chaotic randomness produced more weaker-*teammate* titles than weaker-*car*
+  titles, which is backwards. It works — a weaker car takes the title roughly twice as
+  often at level 5 — but the two multipliers were picked from a single measurement over
+  2002 and 2011, and the upper levels are not calibrated against anything by design.
 - **Weekend-form share is a first guess.** 0.4, then 0.5, was picked for plausibility,
   not fitted — 1980 grid-to-finish correlation was never measured against the real
   season, and the raise to 0.5 pushed pole-to-win from 27.9% to 30.7% on that untested

@@ -38,7 +38,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1158 tests (240 engine, 108 data, 810 web)
+pnpm test          # 1168 tests (250 engine, 108 data, 810 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -53,74 +53,74 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 ```
 
 ## Architecture rules (invariants — do not violate)
-- **The engine is pure.** `packages/engine` imports nothing outside itself and does
-  no I/O — no `fetch`, no file reads, no `Date.now()`. Inputs in, results out.
-  This is what makes it testable and portable (browser now, server later).
-  It currently has **zero dependencies**, runtime or dev. Keep it that way.
-- **No `Math.random()` anywhere in the engine.** All randomness comes from an
-  injected seeded PRNG. Reproducibility is a hard requirement (bug reports, tests,
-  Monte Carlo calibration).
-- **Identity is separate from state.** `Driver` and `Team` (ids, birth/founding years)
-  are immutable; ratings and per-season facts live in per-season records. A team's
-  **name, base and livery are eras**, read via `teamIdentityIn` / `teamLiveryIn`.
-- **Results are the source of truth; statistics are derived.** Store a result row
-  per (driver, race). Never keep running win/points counters as primary data —
-  compute aggregates from results on read.
-- **One serialisable world-state object.** All live simulation state is one
-  plain-data object (no class instances, no embedded functions) held in a single
-  store (Zustand on the UI side). This makes "save game" trivial later. Do not
-  scatter simulation state across React component state.
-  The `Rng` object holds a closure, so it must NOT go in the world state — store
-  its numeric `getState()` snapshot and rebuild with `createRngFromState()`.
-- **Realize-once-and-store for career rolls.** Nothing is rolled today — the ageing
-  curve is deterministic — but if per-run scatter on a driver's debut or peak ever
-  lands, roll it ONCE via the seeded PRNG, store it in that driver's per-sim state,
-  and read the stored value thereafter. Never re-roll on read.
-- **Tunable numbers live in one constants module per subsystem**, never inline in
-  logic. `packages/engine/src/race/constants.ts` is the pattern to follow.
+- **The engine is pure.** `packages/engine` imports nothing outside itself and does no
+  I/O — no `fetch`, no file reads, no `Date.now()`. Inputs in, results out; that is what
+  makes it testable and portable (browser now, server later). It currently has **zero
+  dependencies**, runtime or dev. Keep it that way.
+- **No `Math.random()` anywhere in the engine.** All randomness comes from an injected
+  seeded PRNG. Reproducibility is a hard requirement (bug reports, tests, calibration).
+- **Identity is separate from state.** `Driver` and `Team` (ids, birth/founding years) are
+  immutable; ratings and per-season facts live in per-season records. A team's **name,
+  base and livery are eras**, read via `teamIdentityIn` / `teamLiveryIn`.
+- **Results are the source of truth; statistics are derived.** Store a result row per
+  (driver, race). Never keep running win/points counters as primary data — compute
+  aggregates from results on read.
+- **One serialisable world-state object.** All live simulation state is one plain-data
+  object (no class instances, no embedded functions) held in a single store (Zustand on
+  the UI side), which makes "save game" trivial later. Do not scatter simulation state
+  across React component state. The `Rng` object holds a closure, so it must NOT go in
+  the world state — store its numeric `getState()` snapshot, rebuild with
+  `createRngFromState()`.
+- **Realize-once-and-store for career rolls.** Nothing is rolled today — the ageing curve
+  is deterministic — but if per-run scatter on a driver's debut or peak ever lands, roll
+  it ONCE via the seeded PRNG, store it in that driver's per-sim state, and read the
+  stored value thereafter. Never re-roll on read.
+- **Tunable numbers live in one constants module per subsystem**, never inline in logic.
+  `packages/engine/src/race/constants.ts` is the pattern to follow.
 - **Never re-calibrate or re-tune unless explicitly asked.** Engine constants
-  (`race/constants.ts`, `season/constants.ts`) and the authored driver/team/car
-  ratings in `packages/data/src/*.json` are settled. Do not adjust them as a side
-  effect of building something else — not to "absorb" a new feature, not because a
-  figure drifted a point, not because a Monte Carlo run looks off — and do not run
-  the harness to check. The failure mode is expensive and invisible: every feature
-  invites a re-tune, each costing a long measurement loop. Two overrides, and only two:
-  **(a)** the author asks; **(b)** a deep change to how performance is computed — a
-  new term in the race score, a new entity between driver and result (the ageing
-  curve, engine manufacturers), a different race model — which changes what a rating
-  *means*. Even then, say the re-tune is needed and why, and get agreement before
-  running the harness. If a change makes a calibration figure visibly wrong, report
-  it and stop; do not fix it unprompted.
+  (`race/constants.ts`, `season/constants.ts`) and the authored driver/team/car ratings in
+  `packages/data/src/*.json` are settled. Do not adjust them as a side effect of building
+  something else — not to "absorb" a new feature, not because a figure drifted a point,
+  not because a Monte Carlo run looks off — and do not run the harness to check. The
+  failure mode is expensive and invisible: every feature invites a re-tune, each costing a
+  long measurement loop. Two overrides, and only two: **(a)** the author asks; **(b)** a
+  deep change to how performance is computed — a new term in the race score, a new entity
+  between driver and result (the ageing curve, engine manufacturers), a different race
+  model — which changes what a rating *means*. Even then, say the re-tune is needed and
+  why, and get agreement first. If a change makes a calibration figure visibly wrong,
+  report it and stop; do not fix it unprompted.
 
 ## Domain glossary
 - **Entry**: one team's participation in one season — team + chassis + engine + drivers.
 - **Chassis spec** (`ChassisSpec`): a team's per-season chassis attributes — racing,
   qualifying, consistency, reliability. Authored, and **not** what is scored.
-- **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability.
-  Three, not four: consistency belongs to the chassis. `engines.json` is identity only.
+- **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability;
+  three not four, consistency being the chassis'. `engines.json` is identity only.
 - **Car spec** (`CarSpec`): the blend of the two, and what the model scores. Same
   shape as `ChassisSpec`; the name marks what has been through `powertrain()`.
 - **Powertrain**: that blend, by **two ratios, not one**. Pace (racing, qualifying) is
-  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`. Consistency untouched.
-  It lives in the engine package and **the UI's overall calls it too**.
+  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`, consistency untouched.
+  Lives in the engine package, and **the UI's overall calls it too**.
 - **Peak vs aged**: the two rating modes a season can be built from — every driver at
   their authored peak (the default, and what the calibration describes), or at their
-  ability in that season via the ageing curve.
+  ability that season via the ageing curve.
 - **Score-and-sort**: v1 race model — sample one performance number per driver from
-  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap, and behind
-  the `RaceModel` interface so a richer model can replace it.
-- **Round context**: where a round is held — one field, `country`, and the seam every
-  circuit feature hangs off.
+  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap, behind the
+  `RaceModel` interface so a richer model can replace it.
+- **Round context**: where a round is held — one field, `country`, the seam every circuit
+  feature hangs off.
 - **Retirement factor**: 1–10 per season file, how hard the year is on its cars. Scales
   *both* DNF rolls; 5 leaves the constants unchanged. `.claude/rules/retirement-factor.md`.
-- **Randomness level**: 1–5, how much the dice decide, chosen before a run and fixed for
-  it. Scales the two noise sigmas only; `withRandomness(2)` — the default — returns the
-  constants **unchanged**, so the calibration still describes them. The rest is taste.
-- **Progression model**: the swappable seam between the two planned modes.
-  Interface `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`.
-  Implement `EvolutionaryProgression` (random walk + mean reversion) first;
-  `HistoricalProgression` (real cars/teams per year, drivers still freely allocated
-  by the market) later.
+- **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales the two
+  noise sigmas, plus `teamFormBoost` at levels 4–5; `withRandomness(2)` — the default —
+  returns the constants **unchanged**, so the calibration still describes them.
+- **Team form**: the share of session noise belonging to the *team* not the car (0.75),
+  crossed with **weekend form** (0.5), the share carrying Saturday into Sunday. Two axes,
+  four draws. Team form cancels out of a teammate comparison — which is the point.
+- **Progression model**: the swappable seam between the two planned modes. Interface
+  `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`. Implement
+  `EvolutionaryProgression` (random walk + mean reversion) first; `HistoricalProgression`
+  (real cars/teams per year, drivers still freely allocated by the market) later.
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
@@ -185,12 +185,13 @@ question is open without carrying the argument.
   42%, which 1980's measured 48.5% contradicts. Either change is a re-tune.
 - **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs
   in `SeasonSeed` beside the retirement factor; needs the author's word.
-- **The blend weights moved; the fitted ratings have not caught up.** 1980 and 1981
-  were fitted against the old `0.8 / 0.2`, so `.claude/rules/calibration.md` no longer
-  describes the model. **A re-tune is needed and has not been run**; it needs the
-  author's word. Also: no measured race has a host country.
-- **Consistency's spread lever is parked** — reopening it buys wildcards, costs dominance.
-- **Weekend-form share is a first guess** — 0.5, never fitted.
+- **The model changed under the fitted ratings, and they have not caught up.** 1980 and
+  1981 were fitted against the old `0.8 / 0.2` blend; the noise has since split into team
+  and car form, and consistency's spread lever is open (1.3 / 0.75) — buying wildcards
+  and handing the best pairing ~2 points more win share. So `.claude/rules/calibration.md`
+  no longer describes the model, **a re-tune is needed and has not been run**, and it
+  needs the author's word. Team form (0.75), the DNF correlation (0.3) and weekend-form
+  share (0.5) are reasoned rather than fitted. Also: no measured race has a host country.
 - **Circuits have no character** — `RoundContext` opened the door; what else a circuit
   *does* is undecided, as are the home-advantage numbers.
 - **What moves the driver market** — a design conversation, not a coding task;

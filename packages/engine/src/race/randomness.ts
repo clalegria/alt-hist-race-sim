@@ -67,10 +67,10 @@ export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 2;
  * concentrating the titles is reliability rather than pace — and this setting
  * deliberately does not touch that.
  *
- * Both sigmas take the same factor on purpose. `weekendFormShare` splits each
- * one into form and session luck by variance, so scaling them together moves the
- * two halves in step and leaves the calibrated split intact; scaling one alone
- * would quietly re-weight form against luck, which is a different lever.
+ * Both sigmas take the same factor on purpose. The three-way form split divides
+ * each one by variance, so scaling them together moves all three parts in step
+ * and leaves the calibrated split intact; scaling one alone would quietly
+ * re-weight form against luck, which is a different lever.
  */
 const NOISE_SCALE: Readonly<Record<RandomnessLevel, number>> = Object.freeze({
   1: 0.85,
@@ -80,9 +80,44 @@ const NOISE_SCALE: Readonly<Record<RandomnessLevel, number>> = Object.freeze({
   5: 3.0,
 });
 
+/**
+ * What the top two levels additionally do to the *team* half of the noise.
+ *
+ * Scaling both sigmas uniformly does not scale upsets uniformly, because the
+ * two signals the noise competes against are not the same size. A car gap is
+ * worth `weightCarRacing` times itself and a driver gap only
+ * `weightDriverRacing` times itself, so the driver signal is much the smaller
+ * of the two and a uniform increase drowns it first. Turning the dice up
+ * therefore produced mostly *teammate* upsets — a weaker second driver beating
+ * a stronger first — when what a chaotic setting should mean is that you cannot
+ * tell which car will be quick on Sunday.
+ *
+ * Boosting the team term specifically buys that. Measured over 2002 and 2011 at
+ * level 5, it roughly doubles how often the title goes to a car that is not the
+ * best on the grid while moving teammate upsets by two or three points.
+ *
+ * Left at 1 for levels 1-3, so the shape of the randomness only changes once a
+ * run has already opted out of being realistic. This is a multiplier on the
+ * team *weight*, not a redistribution, so at 4 and 5 the total noise is a
+ * little above the nominal scale — deliberately, since that is the level's
+ * whole purpose.
+ */
+const TEAM_FORM_BOOST: Readonly<Record<RandomnessLevel, number>> = Object.freeze({
+  1: 1.0,
+  2: 1.0,
+  3: 1.0,
+  4: 1.2,
+  5: 1.35,
+});
+
 /** The multiplier a level applies to the race and qualifying sigmas. */
 export function randomnessNoiseScale(level: RandomnessLevel): number {
   return NOISE_SCALE[level] ?? NOISE_SCALE[DEFAULT_RANDOMNESS_LEVEL];
+}
+
+/** The extra multiplier a level applies to the team-form weight alone. */
+export function randomnessTeamFormBoost(level: RandomnessLevel): number {
+  return TEAM_FORM_BOOST[level] ?? TEAM_FORM_BOOST[DEFAULT_RANDOMNESS_LEVEL];
 }
 
 /**
@@ -98,13 +133,15 @@ export function withRandomness(
   constants: RaceConstants = RACE_CONSTANTS,
 ): RaceConstants {
   const scale = randomnessNoiseScale(level);
-  if (scale === 1) {
+  const boost = randomnessTeamFormBoost(level);
+  if (scale === 1 && boost === 1) {
     return constants;
   }
   return Object.freeze({
     ...constants,
     qualifyingNoise: constants.qualifyingNoise * scale,
     racingNoise: constants.racingNoise * scale,
+    teamFormBoost: constants.teamFormBoost * boost,
   });
 }
 

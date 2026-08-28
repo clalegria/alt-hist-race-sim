@@ -2,7 +2,6 @@
 paths:
   - "packages/engine/src/race/constants.ts"
   - "packages/engine/src/race/gaps.ts"
-  - "packages/engine/src/race/randomness.ts"
 ---
 
 # Race constants — why the numbers are what they are
@@ -35,93 +34,99 @@ These are eyeballed for plausibility against 1980, not fitted, and gaps shrank a
 by the 2000s — expect to revisit the constants alongside the era work rather than
 treating the current values as calibrated.
 
-## Consistency is a pace stat, not a variance stat
+## Consistency is a pace stat *and* a variance stat
 
-Combined consistency (50/50 car and driver) subtracts `consistencyPacePenalty`,
-interpolated 4.0 points at 0 down to 0 at 100, from *both* session scores. Across the
-1980 grid (combined consistency runs 46–90) that is a ~1.8 point spread, worth ~6
-driver rating points.
+Combined consistency (50/50 car and driver) does two things. It subtracts
+`consistencyPacePenalty`, interpolated 4.0 points at 0 down to 0 at 100, from *both*
+session scores; and it scales the spread of that session's noise, 1.3× at 0 down to
+0.75× at 100.
 
-This is deliberate and was arrived at by measurement. Consistency originally scaled
-the *spread* of the noise (1.6× at 0 down to 0.5× at 100), which is mean-neutral and
-therefore not a handicap at all — worse, it inverted win rates, because winning from
-behind is an upper-tail event and a wider tail hands a slow car more victories. A
-skewed-noise variant (stretching only the bad half) was built and measured too: it
-fixes average finishing position but *cannot* fix wins, since it leaves the upper
-tail untouched by construction. Only flattening the spread and moving the mean makes
-a less consistent pairing worse on every measure at once — fewer wins, fewer poles,
-worse average finish, no compensating upside.
+**The pace penalty was arrived at by measurement and has not moved.** Consistency
+originally scaled the spread *only*, which is mean-neutral and therefore not a handicap
+at all — worse, it inverted win rates, because winning from behind is an upper-tail
+event and a wider tail hands a slow car more victories. A skewed-noise variant
+(stretching only the bad half) was built and measured too: it fixes average finishing
+position but *cannot* fix wins, since it leaves the upper tail untouched by
+construction. Only moving the mean makes a less consistent pairing worse on every
+measure at once. That argument still stands, and the penalty is what carries it.
 
-`consistencyNoiseMultiplierAtZero/AtHundred` survive as a lever, both pinned at 1.0.
-Reopening a gap between them trades strict dominance back for streakier racing.
+**The spread lever was pinned flat at 1.0 and is now open at 1.3 / 0.75.** The reason
+for reopening it is that flat made `consistency` a rating which costs pace and nothing
+else — a 96-consistency driver and a 60-consistency driver had *identically shaped*
+distributions, which is not what the word means and throws away a large part of what
+separates a first driver from a second in the same car.
 
-## Weekend form ties the two sessions together
+The cost the flat setting was avoiding is real and is now accepted rather than
+abolished. Measured over the 1980, 2002 and 2011 calendars, opening the lever hands the
+strongest car about **two extra points of win share** and rather more pole share,
+because its high-consistency pairing now has the tighter distribution. An erratic
+backmarker also wins slightly more often — about a fifth more, off a base near 2% — while
+still finishing worse on average. Two tests hold that trade in place: the erratic car's
+mean finish must stay worse, and its win rate must stay under twice the steady car's.
 
-`weekendFormShare` (0.5) splits each session's noise into a shared per-car,
-per-weekend draw and an independent per-session draw, weighted `sqrt(share)` and
-`sqrt(1 − share)` so each session's total sigma is unchanged and the correlation
-between the two noise terms equals the share exactly. A driver who has the car under
-him on Saturday tends to still have it on Sunday. 0 restores independent sessions; 1
-makes the race a deterministic function of qualifying (every race processional), so it
-is a bound, not a target.
+Widen the gap for more wildcards and streakier racing; close it back toward 1.0 for
+stricter dominance by the best pairing. **Neither end has been fitted against the
+harness**, and the win-share drift above has not been absorbed into any rating.
 
-The share alone cannot make a car's form swing *wider*, only redistribute a fixed
-sigma — raising it buys weekend form by taking the same variance out of session luck.
-Widening the swing means moving the share and both sigmas together, holding
-`sqrt(1 − share) · sigma` roughly constant, which is how the original 0.4/3.0/5.0
-became **0.5/3.4/5.6**: about a quarter more weekend-to-weekend form for unchanged
-session-to-session scatter. It costs a point of Williams win share and gains one for
-Ligier; poles and the retirement rate are unmoved. Note the form draw is per *seat*,
-not per team — teammates have independent weekends, so this is "the car came to this
-driver" rather than "the team brought an upgrade".
+## The noise splits on two axes: weekend/session, and team/car
 
-The share is a first guess and never fitted — see `docs/DECISIONS.md`.
+Each session's noise is divided twice over, and the two divisions are independent.
 
-## The randomness slider scales the sigmas; it does not re-tune them
+`weekendFormShare` (0.5) says how much of it carries from Saturday to Sunday. A car that
+has found something on Saturday tends to still have it on Sunday, so the weekend part is
+drawn once and reused by both sessions. 0 restores independent sessions; 1 makes the race
+a deterministic function of qualifying (every race processional), so it is a bound, not a
+target.
 
-`race/randomness.ts` is a **scale factor over these constants, never an edit to them**.
-Five levels, chosen once on the setup screen before anything is simulated:
+`teamFormShare` (0.75) says how much of it belongs to the **team** rather than the
+individual car. Crossing the two gives four draws per session — team form for the
+weekend, car form for the weekend, team luck on the day, car luck on the day — weighted
+by the square roots of the four products, which sum to 1. Each session's total sigma is
+therefore untouched by either share, and so is the correlation between the sessions.
 
-| level | label | noise scale |
-| ----- | ----------------- | ----------- |
-| 1 | Realistic | 0.85 |
-| 2 | Balanced (default) | **1.0** |
-| 3 | Exciting | 1.5 |
-| 4 | More exciting | 2.1 |
-| 5 | Chaotic | 3.0 |
+**The team share is why a weaker teammate no longer wins too often.** Before it existed
+the only weekend draw was per car, so every bit of weekend-to-weekend swing stood between
+two drivers in the same machinery — at `sqrt(2)` times the nominal sigma, against a
+driver-rating gap worth only `weightDriverRacing` times itself. Even the largest teammate
+gap on the grid was under one standard deviation. Both team terms cancel out of a
+teammate comparison, so raising this share shrinks what separates them to
+`sqrt(1 − share)` of the sigma **without touching the spread across the field**, which is
+what the calibration measured. That is the whole argument for it: it is a redistribution,
+not an extra dice roll.
 
-**Level 2 returns `RACE_CONSTANTS` itself, by identity** — not a copy, not a copy
-multiplied by 1. That is what keeps everything measured in this file and in
-`calibration.md` a true description of what the app runs by default, and it is asserted
-with `toBe` rather than `toEqual` so no arithmetic can creep in between the calibrated
-numbers and the default season. **The other four levels are not calibrated against
-anything and are not meant to be.** Do not read a figure off a run at level 4 and
-"correct" a constant with it.
+Measured over the real calendars at level 2, moving from no team share to 0.75 (with the
+DNF correlation and the consistency lever alongside) takes the second driver's title odds
+in a dominant car from ~16% to ~4%, and the per-race head-to-head from ~36% to ~21% —
+against roughly 20-25% in reality for the pairs used. Teams whose two drivers are close
+(1988's McLaren) stay near a coin flip, which is correct.
 
-**The upper three are steep on purpose, and the first attempt at them was not.** They
-started at 1.2 / 1.45 / 1.9 and chaotic did not feel chaotic: a season averages its noise
-away over a dozen-odd rounds, so scatter that changes an afternoon barely moves who ends
-the year on top. Measured over 1980 and 2010, the favourite took the title 49% of the
-time at level 2 and still 39% at the old top setting. At 3.0 the favourite takes ~30%,
-twenty different drivers win titles across a run of seasons rather than seven, and every
-car on the grid wins a race sooner or later. Past 3.0 it flattens rather than getting
-wilder, because what is left concentrating the titles is reliability, which this setting
-does not touch. Those figures came from a throwaway script, not from `pnpm calibrate`,
-and nothing authored was changed on the strength of them.
+Neither share is fitted. Weekend form has been 0.5 since it was a guess; the team share
+was reasoned from teammate head-to-heads, not from `pnpm calibrate`. See
+`docs/DECISIONS.md`.
 
-Only `qualifyingNoise` and `racingNoise` move, and by the same factor. Scaling both in
-step is what leaves `weekendFormShare`'s variance split intact — scaling one alone would
-quietly re-weight weekend form against session luck, which is a different lever entirely
-(see the section above). Reliability is deliberately untouched: chaotic means
-unpredictable, not fragile, and a separate reliability setting is the author's plan
-rather than a second thing folded into this one. Grid advantage, home advantage, the
-consistency penalty and the powertrain weights are untouched for the same reason — they
-are what a rating *means*.
+## Teammate retirements are correlated, and the rate is not
 
-The level rides in the world state beside the seed and the rating mode, because it is a
-simulation input: same seed at two levels is two championships, same seed and same level
-reproduces exactly. A standalone season keeps the level it was started on; an era bakes
-in the level its first year was started on and carries it through every year that
-follows. The tools take `--randomness <1-5>` so a bug report can be reproduced under the
-level it was made at.
+`mechanicalDnfTeamCorrelation` (0.3) makes two cars of one team break on the same
+afternoon more often than chance. Each team draws one hidden "how fragile is the car
+today" value per race; each car's roll is `sqrt(rho)` of that plus `sqrt(1 − rho)` of its
+own, pushed back through the normal CDF into a uniform before it meets the risk.
 
+That last step is the point: the result is still uniform, so **each car's own failure
+rate is exactly what its reliability says**, and only the pairing changes. A season's
+fitted `retirementFactor` therefore still describes the same total number of
+retirements — measured unchanged to a tenth of a point across 1980, 2002 and 2011. Two
+tests hold it: the marginal rate must match what the constants imply, not merely match
+itself at another correlation.
+
+At 0.3, a car with an 18.5% failure rate sees its teammate fail 31% of the time it fails
+itself, against 18.5% under independence. Driver error is left independent, because
+composure belongs to the driver and two drivers do not spin in sympathy.
+
+The reason it matters is the championship rather than the race. Teammates share a car and
+so share a failure probability; rolled independently they still ended a 17-round season
+about two retirements apart on luck alone, which is worth more points than a season's
+honest pace advantage. This is the second half of the teammate fix, and much the smaller
+half — on its own it moves the second driver's title odds by about a point and a half.
+
+The randomness slider that scales these sigmas is its own rule,
+`.claude/rules/race-randomness.md`, which loads with `randomness.ts`.

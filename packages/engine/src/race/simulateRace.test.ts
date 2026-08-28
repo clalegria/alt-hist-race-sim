@@ -3,8 +3,54 @@ import type { EngineSpec } from "../model/ratings.js";
 import { createRng } from "../rng/index.js";
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
+import { withRandomness } from "./randomness.js";
 import { scoreAndSortRaceModel, simulateRace } from "./simulateRace.js";
 import type { RaceEntrant, RaceEntryResult, RaceResult } from "./types.js";
+
+/**
+ * Pearson correlation of two equal-length samples. Used to assert what the
+ * noise split ties together — a car's two sessions, and a garage's two cars.
+ */
+function correlate(xs: readonly number[], ys: readonly number[]): number {
+  const mean = (vs: readonly number[]): number => vs.reduce((a, b) => a + b, 0) / vs.length;
+  const mx = mean(xs);
+  const my = mean(ys);
+  let cov = 0;
+  let vx = 0;
+  let vy = 0;
+  for (let i = 0; i < xs.length; i += 1) {
+    const dx = (xs[i] ?? 0) - mx;
+    const dy = (ys[i] ?? 0) - my;
+    cov += dx * dy;
+    vx += dx * dx;
+    vy += dy * dy;
+  }
+  return cov / Math.sqrt(vx * vy);
+}
+
+/**
+ * An `Rng` that counts how many values it has been asked for. Both `next` and
+ * `gaussian` are counted, so the total is every draw a race consumes.
+ */
+function countingRng(seed: number): { rng: Rng; draws: () => number } {
+  const inner = createRng(seed);
+  let draws = 0;
+  const rng: Rng = {
+    next: () => {
+      draws += 1;
+      return inner.next();
+    },
+    getState: () => inner.getState(),
+    nextInt: (min, max) => inner.nextInt(min, max),
+    pick: (items) => inner.pick(items),
+    shuffle: (items) => inner.shuffle(items),
+    gaussian: (mean, sd) => {
+      draws += 1;
+      return inner.gaussian(mean, sd);
+    },
+  };
+  return { rng, draws: () => draws };
+}
 
 function entrant(
   driverId: string,
@@ -757,40 +803,53 @@ describe("consistency", () => {
     expect(erraticPoles).toBeLessThan(steadyPoles);
   });
 
-  it("does not let a slow erratic car steal wins from a field", () => {
-    // The pathology this model exists to kill, and the case a two-car test
-    // cannot see: winning from behind is an upper-tail event, so a lever that
-    // widens the spread lets the SLOWEST car win more the more erratic it is.
-    // Here the subject is the slowest of five and must win strictly less as
-    // its consistency drops.
-    const fieldWith = (consistency: number): RaceEntrant[] => [
-      entrant("ace1", "t1", 84, 86),
-      entrant("ace2", "t2", 82, 85),
-      entrant("ace3", "t3", 81, 84),
-      entrant("ace4", "t4", 80, 83),
-      {
-        ...entrant("subject", "t5", 76, 78),
-        driver: { ...entrant("subject", "t5", 76, 78).driver, consistency },
-      },
-    ];
-    const winRate = (consistency: number): number => {
+  it("prices the erratic car's upper tail without letting it run away", () => {
+    // The cost the spread lever was pinned flat to avoid, now accepted and
+    // bounded instead. Winning from behind is an upper-tail event, so a car
+    // with a wider spread wins *more* the more erratic it is — here the subject
+    // is the slowest of five and does exactly that. What has to stay true is
+    // that the pace penalty still dominates where a season is actually decided:
+    // on where the car finishes week in and week out.
+    const fieldWith = (consistency: number): RaceEntrant[] => {
+      const subject = entrant("subject", "t5", 76, 78);
+      return [
+        entrant("ace1", "t1", 84, 86),
+        entrant("ace2", "t2", 82, 85),
+        entrant("ace3", "t3", 81, 84),
+        entrant("ace4", "t4", 80, 83),
+        { ...subject, driver: { ...subject.driver, consistency } },
+      ];
+    };
+    const races = 12000;
+    const measure = (consistency: number): { winRate: number; meanFinish: number } => {
+      const field = fieldWith(consistency);
       let wins = 0;
-      for (let seed = 1; seed <= 12000; seed += 1) {
-        if (
-          simulateRace(fieldWith(consistency), createRng(seed), NO_DNFS).winnerDriverId ===
-          "subject"
-        ) {
+      let places = 0;
+      for (let seed = 1; seed <= races; seed += 1) {
+        const result = simulateRace(field, createRng(seed), NO_DNFS);
+        if (result.winnerDriverId === "subject") {
           wins += 1;
         }
+        places +=
+          result.entries.find((e) => e.driverId === "subject")?.finishPosition ?? field.length;
       }
-      return wins / 12000;
+      return { winRate: wins / races, meanFinish: places / races };
     };
-    expect(winRate(20)).toBeLessThan(winRate(90));
+    const erratic = measure(20);
+    const steady = measure(90);
+    // A higher number is a worse average finish.
+    expect(erratic.meanFinish).toBeGreaterThan(steady.meanFinish);
+    // The extra wins are real, and have to stay a rounding error rather than a
+    // strategy. Comfortably inside this bound today; the bound is what would
+    // catch a future widening of the multipliers turning erratic into a cheat
+    // code, which is the pathology the flat setting existed to prevent.
+    expect(erratic.winRate).toBeLessThan(steady.winRate * 2);
   });
 
-  it("does not widen the erratic driver's spread", () => {
-    // Consistency is a pace stat now, not a variance stat. Equal spreads are
-    // what stops a wider upper tail handing back the wins the penalty took.
+  it("widens the erratic driver's spread", () => {
+    // Consistency is a variance stat as well as a pace one. Without this a
+    // steady driver and a wild one in the same car have identically shaped
+    // weekends, and the rating means nothing but lost pace.
     const field = consistencyPair(90, 20);
     const spread = (driverId: string): number => {
       const scores: number[] = [];
@@ -803,7 +862,7 @@ describe("consistency", () => {
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
       return Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
     };
-    expect(spread("erratic")).toBeCloseTo(spread("steady"), 0);
+    expect(spread("erratic")).toBeGreaterThan(spread("steady") * 1.15);
   });
 
   it("levels the field when the penalty endpoints are equal", () => {
@@ -839,20 +898,7 @@ describe("weekend form", () => {
         Math.exp(-(entry.gridPosition - 1) / constants.gridAdvantageDecayPlaces);
       rs.push(entry.raceScore - bonus);
     }
-    const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
-    const mq = mean(qs);
-    const mr = mean(rs);
-    let cov = 0;
-    let vq = 0;
-    let vr = 0;
-    for (let i = 0; i < qs.length; i += 1) {
-      const dq = (qs[i] ?? 0) - mq;
-      const dr = (rs[i] ?? 0) - mr;
-      cov += dq * dr;
-      vq += dq * dq;
-      vr += dr * dr;
-    }
-    return cov / Math.sqrt(vq * vr);
+    return correlate(qs, rs);
   }
 
   it("correlates qualifying and race noise by the configured share", () => {
@@ -871,23 +917,251 @@ describe("weekend form", () => {
     expect(correlation).toBeGreaterThan(0.95);
   });
 
-  it("keeps each session's total spread unchanged as the share moves", () => {
-    // The sqrt weighting exists so that correlating the sessions does not
-    // quietly make either of them noisier.
-    const spreadOf = (share: number): number => {
+  it("is unaffected by how the same noise splits between team and car", () => {
+    // The two axes are independent by construction. Moving variance into the
+    // team must not change how much of a car's Saturday carries into Sunday,
+    // or the team split would be silently re-tuning weekend form as well.
+    const allTeam = noiseCorrelation({ ...RACE_CONSTANTS, teamFormShare: 1 });
+    const allCar = noiseCorrelation({ ...RACE_CONSTANTS, teamFormShare: 0 });
+    expect(allTeam).toBeCloseTo(allCar, 1);
+    expect(allTeam).toBeCloseTo(RACE_CONSTANTS.weekendFormShare, 1);
+  });
+
+  it("keeps each session's total spread unchanged as the shares move", () => {
+    // The sqrt weighting exists so that correlating the sessions — or moving
+    // variance between the team and the car — does not quietly make either
+    // session noisier.
+    const spreadOf = (weekendFormShare: number, teamFormShare: number): number => {
       const field = spreadField();
       const scores: number[] = [];
       for (let seed = 1; seed <= 4000; seed += 1) {
         const entry = simulateRace(field, createRng(seed), {
           ...RACE_CONSTANTS,
-          weekendFormShare: share,
+          weekendFormShare,
+          teamFormShare,
         }).entries[5];
         scores.push(entry?.qualifyingScore ?? 0);
       }
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
       return Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
     };
-    expect(spreadOf(0.9)).toBeCloseTo(spreadOf(0.0), 0);
+    const reference = spreadOf(0, 0);
+    expect(spreadOf(0.9, 0.75)).toBeCloseTo(reference, 0);
+    expect(spreadOf(0.5, 1)).toBeCloseTo(reference, 0);
+    expect(spreadOf(0.5, 0)).toBeCloseTo(reference, 0);
+  });
+});
+
+describe("team form", () => {
+  /**
+   * Two teams of two, each pairing a clearly stronger driver with a clearly
+   * weaker one in an identical car. Synthetic ratings throughout: what is being
+   * asserted is the rule, never what an authored driver is worth.
+   */
+  function garageField(): RaceEntrant[] {
+    return [80, 64].flatMap((car, t) => [
+      entrant(`lead-${t}`, `team-${t}`, 85, car),
+      entrant(`number-two-${t}`, `team-${t}`, 65, car),
+    ]);
+  }
+
+  /** How often the weaker driver of the top team finishes ahead of the stronger. */
+  function teammateUpsetRate(constants: RaceConstants, races = 4000): number {
+    let upsets = 0;
+    let counted = 0;
+    for (let seed = 1; seed <= races; seed += 1) {
+      const result = simulateRace(garageField(), createRng(seed), constants);
+      const lead = result.entries.find((e) => e.driverId === "lead-0");
+      const two = result.entries.find((e) => e.driverId === "number-two-0");
+      if (lead?.finishPosition == null || two?.finishPosition == null) {
+        continue;
+      }
+      counted += 1;
+      if (two.finishPosition < lead.finishPosition) {
+        upsets += 1;
+      }
+    }
+    return upsets / counted;
+  }
+
+  it("correlates the race scores of two cars in the same garage", () => {
+    // The whole point of the share: a team that has brought a working car has
+    // brought two of them.
+    const scoresFor = (teamFormShare: number): [number[], number[]] => {
+      const a: number[] = [];
+      const b: number[] = [];
+      for (let seed = 1; seed <= 3000; seed += 1) {
+        const result = simulateRace(garageField(), createRng(seed), {
+          ...RACE_CONSTANTS,
+          teamFormShare,
+        });
+        const lead = result.entries.find((e) => e.driverId === "lead-0");
+        const two = result.entries.find((e) => e.driverId === "number-two-0");
+        if (lead?.raceScore == null || two?.raceScore == null) {
+          continue;
+        }
+        a.push(lead.raceScore);
+        b.push(two.raceScore);
+      }
+      return [a, b];
+    };
+    const [lowA, lowB] = scoresFor(0);
+    const [highA, highB] = scoresFor(0.8);
+    expect(Math.abs(correlate(lowA, lowB))).toBeLessThan(0.15);
+    expect(correlate(highA, highB)).toBeGreaterThan(0.5);
+  });
+
+  it("leaves the order within a garage to the drivers as the share rises", () => {
+    // The behaviour the share exists for. Noise a team shares cannot separate
+    // its two cars, so moving variance into it hands the teammate battle back
+    // to the ratings — while the field-wide spread stays exactly as calibrated.
+    const flat = teammateUpsetRate({ ...RACE_CONSTANTS, teamFormShare: 0 });
+    const shared = teammateUpsetRate({ ...RACE_CONSTANTS, teamFormShare: 0.8 });
+    expect(flat).toBeGreaterThan(shared + 0.05);
+  });
+
+  it("does not make the stronger teammate certain of it", () => {
+    // Upsets must stay possible — a second driver beating a first is a real
+    // thing that happens, and a share of 1 would abolish it rather than price
+    // it. Bounded on both sides so neither extreme passes.
+    const rate = teammateUpsetRate(RACE_CONSTANTS);
+    expect(rate).toBeGreaterThan(0.01);
+    expect(rate).toBeLessThan(0.3);
+  });
+
+  it("draws its form once per team rather than once per car", () => {
+    // Three cars in one garage must cost two teams' worth of draws fewer than
+    // three cars in three, or the team draws are per-car draws wearing a
+    // different name.
+    const drawsFor = (field: readonly RaceEntrant[]): number => {
+      const { rng, draws } = countingRng(1);
+      simulateRace(field, rng);
+      return draws();
+    };
+    const oneTeam = drawsFor([
+      entrant("a", "shared", 80, 80),
+      entrant("b", "shared", 70, 70),
+      entrant("c", "shared", 60, 60),
+    ]);
+    const threeTeams = drawsFor([
+      entrant("a", "team-a", 80, 80),
+      entrant("b", "team-b", 70, 70),
+      entrant("c", "team-c", 60, 60),
+    ]);
+    expect(threeTeams - oneTeam).toBe(8);
+  });
+
+  it("boosts the team share at the chaotic levels only", () => {
+    for (const level of [1, 2, 3] as const) {
+      expect(withRandomness(level).teamFormBoost).toBe(RACE_CONSTANTS.teamFormBoost);
+    }
+    for (const level of [4, 5] as const) {
+      expect(withRandomness(level).teamFormBoost).toBeGreaterThan(RACE_CONSTANTS.teamFormBoost);
+    }
+  });
+});
+
+describe("teammate reliability", () => {
+  /** Two identical cars in one garage, incapable of driver error. */
+  function twoCarTeam(reliability: number): RaceEntrant[] {
+    const make = (id: string): RaceEntrant => {
+      const base = entrant(id, "shared", 70, 70);
+      return {
+        ...base,
+        driver: { ...base.driver, composure: 100 },
+        chassis: { ...base.chassis, reliability },
+      };
+    };
+    return [make("car-a"), make("car-b")];
+  }
+
+  /** One car's own failure rate, and how often both cars fail together. */
+  function failures(correlation: number, races = 20000): { marginal: number; joint: number } {
+    const constants: RaceConstants = {
+      ...RACE_CONSTANTS,
+      mechanicalDnfTeamCorrelation: correlation,
+      driverErrorDnfAtZeroComposure: 0,
+      driverErrorDnfAtFullComposure: 0,
+    };
+    const field = twoCarTeam(60);
+    let first = 0;
+    let both = 0;
+    for (let seed = 1; seed <= races; seed += 1) {
+      const result = simulateRace(field, createRng(seed), constants);
+      const a = result.entries.find((e) => e.driverId === "car-a")?.mechanicalFailure ?? false;
+      const b = result.entries.find((e) => e.driverId === "car-b")?.mechanicalFailure ?? false;
+      if (a) {
+        first += 1;
+      }
+      if (a && b) {
+        both += 1;
+      }
+    }
+    return { marginal: first / races, joint: both / races };
+  }
+
+  it("leaves each car's own failure rate untouched by the correlation", () => {
+    // This is what lets the fitted per-season retirement factors stand: the
+    // correlation changes which failures land together, not how many there are.
+    const independent = failures(0);
+    const correlated = failures(0.6);
+    // Both land near 0.37 over 20,000 races, so the standard error on each is
+    // about 0.0034 — and the correlated estimate is the noisier of the two,
+    // since a shared fragility draw makes its races less independent of one
+    // another. The bounds are a few standard errors, not decimal-place claims.
+    expect(Math.abs(correlated.marginal - independent.marginal)).toBeLessThan(0.02);
+
+    // And both must equal what the car's reliability alone says, rather than
+    // merely equalling each other — an equal bias in the pair would satisfy the
+    // comparison above while quietly moving every season's retirement count.
+    // Derived from the constants, never hard-coded: reliability 60 of 100.
+    const expected =
+      RACE_CONSTANTS.mechanicalDnfAtZeroReliability +
+      (RACE_CONSTANTS.mechanicalDnfAtFullReliability -
+        RACE_CONSTANTS.mechanicalDnfAtZeroReliability) *
+        0.6;
+    expect(Math.abs(independent.marginal - expected)).toBeLessThan(0.02);
+    expect(Math.abs(correlated.marginal - expected)).toBeLessThan(0.02);
+  });
+
+  it("makes a teammate's failure likelier once one car has broken", () => {
+    // A real mechanical failure is often a design or a batch rather than one
+    // unlucky car, so the two sides of a garage should not be independent.
+    const conditional = (f: { marginal: number; joint: number }): number => f.joint / f.marginal;
+    const independent = failures(0);
+    const correlated = failures(0.6);
+    // Independence means the conditional rate is just the marginal one again.
+    expect(conditional(independent)).toBeCloseTo(independent.marginal, 1);
+    expect(conditional(correlated)).toBeGreaterThan(conditional(independent) + 0.1);
+  });
+
+  it("leaves driver error independent between teammates", () => {
+    // Composure belongs to the driver. Two drivers do not spin in sympathy,
+    // however correlated their car's failures are.
+    const constants: RaceConstants = {
+      ...RACE_CONSTANTS,
+      mechanicalDnfTeamCorrelation: 0.9,
+      mechanicalDnfAtZeroReliability: 0,
+      mechanicalDnfAtFullReliability: 0,
+      driverErrorDnfAtZeroComposure: 0.4,
+      driverErrorDnfAtFullComposure: 0.4,
+    };
+    const field = twoCarTeam(60);
+    const races = 20000;
+    let first = 0;
+    let both = 0;
+    for (let seed = 1; seed <= races; seed += 1) {
+      const result = simulateRace(field, createRng(seed), constants);
+      const a = result.entries.find((e) => e.driverId === "car-a")?.driverError ?? false;
+      const b = result.entries.find((e) => e.driverId === "car-b")?.driverError ?? false;
+      if (a) {
+        first += 1;
+      }
+      if (a && b) {
+        both += 1;
+      }
+    }
+    expect(both / first).toBeCloseTo(first / races, 1);
   });
 });
 
@@ -900,25 +1174,6 @@ describe("draw discipline", () => {
    * here, so a counter that only watches `next` sees the two DNF rolls and is
    * blind to the three noise draws.
    */
-  function countingRng(seed: number): { rng: Rng; draws: () => number } {
-    const inner = createRng(seed);
-    let draws = 0;
-    const rng: Rng = {
-      next: () => {
-        draws += 1;
-        return inner.next();
-      },
-      getState: () => inner.getState(),
-      nextInt: (min, max) => inner.nextInt(min, max),
-      pick: (items) => inner.pick(items),
-      shuffle: (items) => inner.shuffle(items),
-      gaussian: (mean, sd) => {
-        draws += 1;
-        return inner.gaussian(mean, sd);
-      },
-    };
-    return { rng, draws: () => draws };
-  }
 
   it("keeps the draw count fixed across seeds", () => {
     // Weekend form adds a draw per car. If any path consumed a different
