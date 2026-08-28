@@ -6,8 +6,9 @@ import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { ThemeToggle } from "./components/ThemeToggle.js";
 import { Button } from "./components/ui/button.js";
+import { YearPicker } from "./components/YearPicker.js";
 import type { ModeId } from "./lib/modes.js";
-import { nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
+import { isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
 import { type EraRun, useSeasonStore, type View, type World } from "./store/season.js";
 
 /**
@@ -73,9 +74,10 @@ export function stageLabel(view: View, rounds: number): string {
  * stranded on with nothing forward.
  *
  * `rest` is null at the end of the range, and also when the next year *is* the
- * end: two buttons that do the same thing is a worse offer than one. Named with
- * the year it stops at, because "the rest" of an era started in 1950 is
- * seventy-six seasons, and the reader should know that before pressing it.
+ * end: two buttons that do the same thing is a worse offer than one. It is both
+ * the far end of the jump the second button opens and the year that jump
+ * defaults to, so where there is nowhere past the next year to jump *to*, there
+ * is no button either.
  */
 export function eraActionsFor(lastCrowned: number | undefined): {
   next: number | null;
@@ -84,6 +86,32 @@ export function eraActionsFor(lastCrowned: number | undefined): {
   const next = lastCrowned === undefined ? null : nextEraYear(lastCrowned);
   const end = PLAYABLE_SEASONS.at(-1);
   return { next, rest: next === null || end === undefined || next === end ? null : end };
+}
+
+/**
+ * Which year a jump forward will actually run to.
+ *
+ * The reader picks a year in a picker that outlives the jump it describes — the
+ * roll of honour re-renders with the era four seasons longer and the same year
+ * still selected — so a chosen year is only honoured while it is still ahead of
+ * the run and still has a season behind it. Anything else falls back to `rest`,
+ * the far end, which is also what an untouched picker means.
+ *
+ * Pure and exported for the same reason the two beside it are: it decides what
+ * a button does, and a stale year here would either do nothing or quietly run
+ * the era to 2026.
+ */
+export function eraJumpTarget(
+  lastCrowned: number | undefined,
+  chosen: number | null,
+): number | null {
+  const { next, rest } = eraActionsFor(lastCrowned);
+  // Where there is no jump to make there is no target, whatever was picked:
+  // `rest` being null is the screen saying it draws no jump button at all.
+  if (rest === null || next === null) {
+    return null;
+  }
+  return chosen !== null && chosen >= next && isPlayable(chosen) ? chosen : rest;
 }
 
 /**
@@ -349,28 +377,96 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
  * The buttons are here rather than inside `EraChampions` for the same reason
  * every other screen's are in the bar — navigation is the right-hand end of the
  * bar on every page — and so the roll-up itself stays a pure render of a run.
+ *
+ * Two of the three ways on ask something first, and both ask it inline, in the
+ * button row itself, exactly as "Start again" does on the season screen: no
+ * dialog primitive, one flag shared by both copies of the row so they never
+ * disagree. **Jumping forward** opens a year picker over the roll of honour —
+ * the same `YearPicker` the setup screens use, restricted to years the era has
+ * not reached — defaulting to the far end, which is what the button used to do
+ * outright. **Main menu** throws the run away and there is no save file yet, so
+ * it confirms rather than going on a single click.
  */
 function EraChampionsScreen({ run }: { run: EraRun }) {
   const nextEraSeason = useSeasonStore((state) => state.nextEraSeason);
   const simulateRestOfEra = useSeasonStore((state) => state.simulateRestOfEra);
   const openMenu = useSeasonStore((state) => state.openMenu);
-  const onward = eraActionsFor(run.seasons.at(-1)?.year);
+  const lastCrowned = run.seasons.at(-1)?.year;
+  const onward = eraActionsFor(lastCrowned);
 
-  const actions = (
-    <div className="flex flex-wrap items-center gap-2">
-      {onward.next === null ? null : (
-        <Button onClick={nextEraSeason}>Simulate {onward.next}</Button>
-      )}
-      {onward.rest === null ? null : (
-        <Button variant="outline" onClick={simulateRestOfEra}>
-          Simulate rest of the era, to {onward.rest}
+  // What the reader is being asked, which is not simulation state and so stays
+  // out of the store — the same split the season screen's `confirming` makes.
+  const [asking, setAsking] = useState<"jump" | "menu" | null>(null);
+  const [chosen, setChosen] = useState<number | null>(null);
+  const target = eraJumpTarget(lastCrowned, chosen);
+  const jumping = asking === "jump" && target !== null;
+
+  const actions =
+    asking === "menu" ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-muted-foreground text-xs">Leave the era? It is not saved.</span>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setAsking(null);
+            openMenu();
+          }}
+        >
+          Main menu
         </Button>
-      )}
-      <Button variant="outline" onClick={openMenu}>
-        Main menu
-      </Button>
-    </div>
-  );
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setAsking(null);
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    ) : jumping ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          onClick={() => {
+            setAsking(null);
+            simulateRestOfEra(target);
+          }}
+        >
+          Simulate through to {target}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setAsking(null);
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    ) : (
+      <div className="flex flex-wrap items-center gap-2">
+        {onward.next === null ? null : (
+          <Button onClick={nextEraSeason}>Simulate {onward.next}</Button>
+        )}
+        {onward.rest === null ? null : (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAsking("jump");
+            }}
+          >
+            Jump forward
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          onClick={() => {
+            setAsking("menu");
+          }}
+        >
+          Main menu
+        </Button>
+      </div>
+    );
 
   return (
     <Shell
@@ -384,6 +480,26 @@ function EraChampionsScreen({ run }: { run: EraRun }) {
         </div>
       }
     >
+      {/*
+        Above the roll of honour rather than below it: the screen is scrolled to
+        the top when it opens, and a picker under twenty crowned seasons is a
+        panel nobody would find.
+      */}
+      {jumping ? (
+        <div className="pt-6">
+          <YearPicker
+            year={target}
+            onSelect={setChosen}
+            title="Jump forward to"
+            lead={`Every season from ${lastCrowned === undefined ? "" : lastCrowned + 1} on is simulated in one go, and the era stops on the year you pick. Nothing after it is run, so you can carry on from there.`}
+            describeYear={(year) => `Simulate the era through to ${year}`}
+            // Only years the era has ahead of it: a year already crowned is
+            // history this run has written, and the store refuses it anyway.
+            playable={(year) => isPlayable(year) && onward.next !== null && year >= onward.next}
+          />
+        </div>
+      ) : null}
+
       <EraChampions run={run} />
       <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">{actions}</div>
     </Shell>

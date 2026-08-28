@@ -47,7 +47,7 @@ import {
   rememberRatingMode,
   rememberSeasonYear,
 } from "../lib/preferences.js";
-import { nextEraYear, seasonSeed } from "../lib/seasons.js";
+import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 
 /** The serializable world. Add to this and it must stay plain data. */
@@ -360,18 +360,25 @@ interface SeasonStore {
    */
   readonly nextEraSeason: () => void;
   /**
-   * Runs every remaining year of the era in one go, straight to the last
-   * authored season.
+   * Runs the era on in one go, up to and including `through` — or, with no year
+   * given, straight to the last authored season.
    *
    * The era's "skip to the end", and it must produce **exactly** the history
    * stepping through would have: each year is built the way `nextEraSeason`
    * builds one, off the year before it, so skipping and playing differ only in
-   * what the reader stopped to read. A test asserts the two are identical.
+   * what the reader stopped to read. A test asserts the two are identical. That
+   * is also why a *partial* jump is the same action with a stop year rather
+   * than its own loop: an era jumped to 1980 and then run on must be the era
+   * that was stepped through, year for year.
+   *
+   * A `through` that is behind the run, or that has no seed data, does nothing:
+   * the screen only offers years ahead of the last one crowned, and a target the
+   * loop could never reach would otherwise run the era to the end instead.
    *
    * None of these years is revealed session by session — they are crowned
    * unread, which is what skipping means everywhere else here too.
    */
-  readonly simulateRestOfEra: () => void;
+  readonly simulateRestOfEra: (through?: number) => void;
   /**
    * Re-runs the season from the same seed with the other ability model.
    *
@@ -555,7 +562,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       };
     });
   },
-  simulateRestOfEra: () => {
+  simulateRestOfEra: (through) => {
     set((state) => {
       if (state.screen.kind !== "era-champions") {
         return state;
@@ -568,11 +575,21 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       if (last === undefined || nextEraYear(last.year) === null) {
         return state;
       }
-      // The same step `nextEraSeason` takes, taken until the data runs out:
-      // that year's own entry list, and dice continuing the year before's
-      // stream. Written as a loop rather than a second rule so the two cannot
-      // produce different histories.
-      for (let year = nextEraYear(last.year); year !== null; year = nextEraYear(last.year)) {
+      // A year already behind the run, or one with no season to play, is not a
+      // place to jump to. Refused rather than clamped: the alternative is a
+      // stray target silently running the whole era to 2026.
+      if (through !== undefined && (through <= last.year || !isPlayable(through))) {
+        return state;
+      }
+      // The same step `nextEraSeason` takes, taken until the data runs out or
+      // the target year has been crowned: that year's own entry list, and dice
+      // continuing the year before's stream. Written as a loop rather than a
+      // second rule so the two cannot produce different histories.
+      for (
+        let year = nextEraYear(last.year);
+        year !== null && (through === undefined || year <= through);
+        year = nextEraYear(last.year)
+      ) {
         last = createWorld(
           nextSeed(last.rngState),
           year,

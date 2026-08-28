@@ -17,7 +17,7 @@ import {
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { actionsFor, eraActionsFor, SeasonScreen } from "./App.js";
+import { actionsFor, eraActionsFor, eraJumpTarget, SeasonScreen } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
@@ -560,6 +560,28 @@ describe("the buttons", () => {
 
   it("offers nothing forward once the era reaches the end of the data", () => {
     expect(eraActionsFor(LAST_PLAYABLE)).toEqual({ next: null, rest: null });
+  });
+
+  it("defaults a jump forward to the far end, which is what the button used to do", () => {
+    expect(eraJumpTarget(FIRST_PLAYABLE, null)).toBe(LAST_PLAYABLE);
+  });
+
+  it("jumps to the year the reader picked, next year included", () => {
+    expect(eraJumpTarget(FIRST_PLAYABLE, FIRST_PLAYABLE + 5)).toBe(FIRST_PLAYABLE + 5);
+    expect(eraJumpTarget(FIRST_PLAYABLE, FIRST_PLAYABLE + 1)).toBe(FIRST_PLAYABLE + 1);
+  });
+
+  it("drops a year the era has since run past, back to the far end", () => {
+    // The picker outlives the jump it describes: crowning four more seasons
+    // leaves the year that was chosen behind the run, and honouring it would
+    // hand the store a target it can only refuse.
+    expect(eraJumpTarget(FIRST_PLAYABLE + 4, FIRST_PLAYABLE + 2)).toBe(LAST_PLAYABLE);
+    expect(eraJumpTarget(FIRST_PLAYABLE, LAST_PLAYABLE + 1)).toBe(LAST_PLAYABLE);
+  });
+
+  it("offers no jump at all once there is nowhere past the next year to jump to", () => {
+    expect(eraJumpTarget(LAST_PLAYABLE - 1, LAST_PLAYABLE)).toBeNull();
+    expect(eraJumpTarget(LAST_PLAYABLE, null)).toBeNull();
   });
 
   it("leaves every other stage of an era exactly as it was", () => {

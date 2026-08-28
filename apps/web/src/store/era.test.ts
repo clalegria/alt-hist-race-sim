@@ -284,6 +284,63 @@ describe("simulating the rest of an era", () => {
     expect(crowned()).toBe(before);
   });
 
+  it("stops on the year it was given, leaving the rest of the era to run", () => {
+    useSeasonStore.getState().simulateEra(5, LAST_YEAR - 4);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 2);
+
+    expect(crowned().seasons.map((world) => world.year)).toEqual([
+      LAST_YEAR - 4,
+      LAST_YEAR - 3,
+      LAST_YEAR - 2,
+    ]);
+    // And the run carries on from there, which is the whole point of stopping.
+    useSeasonStore.getState().nextEraSeason();
+    expect(running().world.year).toBe(LAST_YEAR - 1);
+  });
+
+  it("writes the same history jumped to a year as stepped to it", () => {
+    // A jump is a skip, not a shortcut through a different simulation: where it
+    // stops, the era must be the one the reader would have played by hand.
+    useSeasonStore.getState().simulateEra(17, LAST_YEAR - 4);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 2);
+
+    expect(crowned().seasons).toEqual(playEra(17, LAST_YEAR - 4, 3));
+  });
+
+  it("reaches the end when the year it is given is the end", () => {
+    useSeasonStore.getState().simulateEra(5, LAST_YEAR - 2);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR);
+    expect(crowned().seasons.at(-1)?.year).toBe(LAST_YEAR);
+  });
+
+  it("refuses a year the era has already crowned, rather than running to the end", () => {
+    // The failure this guards against is silent: a stale target from the picker
+    // falling through to "no target" and fast-forwarding the whole era.
+    useSeasonStore.getState().simulateEra(5, LAST_YEAR - 3);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    const before = crowned();
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 3);
+    expect(crowned()).toBe(before);
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 9);
+    expect(crowned()).toBe(before);
+  });
+
+  it("refuses a year with no season behind it", () => {
+    useSeasonStore.getState().simulateEra(5, LAST_YEAR - 3);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    const before = crowned();
+    useSeasonStore.getState().simulateRestOfEra(LAST_YEAR + 10);
+    expect(crowned()).toBe(before);
+  });
+
   it("is a no-op anywhere but the roll of honour", () => {
     // It is wired to a button only that screen draws, but a season half-read is
     // not a run to fast-forward, and the menu has no run at all.

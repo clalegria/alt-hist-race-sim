@@ -58,11 +58,28 @@ end from the seed its first season was drawn on, which is what makes a bug repor
 seasons in usable, and no year repeats another's dice. `Math.random()` here would have
 cost exactly that, and is why the era does not call `randomSeed()` per year.
 
-**`simulateRestOfEra()` is the same step in a loop**, not a second rule — it must
-produce *exactly* the history stepping through would have, and a test asserts the two
-are identical world for world. Skipping gives up the reading, never the seasons. It
+**`simulateRestOfEra(through?)` is the same step in a loop**, not a second rule — it
+must produce *exactly* the history stepping through would have, and a test asserts the
+two are identical world for world, jumped to a mid-era year as well as run to the end.
+Skipping gives up the reading, never the seasons. `through` is the year it stops *on*,
+inclusive, and a partial jump is deliberately this action with a stop year rather than a
+loop of its own — an era jumped to 1980 and then played on must be the era that was
+stepped through. A `through` behind the run or with no seed data is refused outright, not
+clamped: falling through to "no target" would silently run the whole era to the end. It
 returns the state object itself when there is nothing left to run, rather than an equal
 copy, so a press that changes nothing does not re-render seventy-six rows.
+
+**Both of the champions screen's non-forward buttons ask first, inline in the button
+row** — the same pattern as the season screen's "Start again", one flag shared by the
+sticky-bar and page-foot copies, no dialog primitive. *Jump forward* opens a `YearPicker`
+above the roll of honour (where the reader, scrolled to the top, will actually see it),
+restricted by its injected `playable` to years the era has not reached, defaulting to the
+far end — which is what the old "Simulate rest of the era, to 2026" did outright.
+`eraJumpTarget(lastCrowned, chosen)` in `App.tsx` decides what the button runs: pure and
+exported like `eraActionsFor` beside it, because the picker outlives the jump it
+describes — after a jump the same year is still selected with the run four seasons past
+it, and a stale target must fall back to the far end rather than reach the store. *Main
+menu* throws the run away and there is no save file yet, so it confirms.
 
 **The era stops where the data does.** `nextEraYear(year)` in `lib/seasons.ts` returns
 `year + 1` only if it is authored — never a year written down, so the run reaches
