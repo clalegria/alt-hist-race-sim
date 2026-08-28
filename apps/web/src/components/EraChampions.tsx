@@ -4,6 +4,7 @@ import { STANDOUT_ROW } from "../lib/highlight.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import type { EraRun } from "../store/season.js";
+import { CareerStatistics } from "./CareerStatistics.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
@@ -128,12 +129,83 @@ export function ChampionRow({
  * Props-driven like every other screen here, so it renders without a DOM and
  * without a store.
  */
+/**
+ * The record itself: every title of the era, earliest first.
+ *
+ * Its own component rather than markup inside the screen, because the screen
+ * has grown a second half — the career statistics under it — and the two are
+ * separate readings of the same seasons. It owns the open year, which is view
+ * state and only this table's; `ChampionRow` stays **controlled** so both
+ * states of a row render without a DOM and without a click.
+ */
+export function RollOfHonour({ seasons }: { seasons: readonly SeasonChampions[] }) {
+  // One year at a time, because two full championship tables is already a page.
+  const [openYear, setOpenYear] = useState<number | null>(null);
+  const last = seasons.at(-1);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Roll of honour</CardTitle>
+        <CardDescription>
+          Every title of this era, in the order it was won. Select a year for its full championship
+          tables.
+        </CardDescription>
+      </CardHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Season</TableHead>
+            <TableHead>Drivers&rsquo; champion</TableHead>
+            <TableHead className="text-right">Pts</TableHead>
+            <TableHead className="text-right">Wins</TableHead>
+            <TableHead>Constructors&rsquo; champion</TableHead>
+            <TableHead className="text-right">Pts</TableHead>
+            <TableHead className="text-right">Wins</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {seasons.map((season) => (
+            <Fragment key={season.year}>
+              <ChampionRow
+                season={season}
+                latest={season.year === last?.year}
+                open={openYear === season.year}
+                onToggle={() => {
+                  setOpenYear(openYear === season.year ? null : season.year);
+                }}
+              />
+            </Fragment>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
+  );
+}
+
+/**
+ * The screen between two years of an era: every champion crowned so far, and
+ * what the era adds up to underneath.
+ *
+ * The one thing the basic era mode adds to the season flow, and the reason it
+ * is worth building before anything simulates a grid — a season at a time says
+ * nothing about an era, and this is where seventy years of ratings either read
+ * as history or visibly do not.
+ *
+ * Two readings of the same seasons, in that order. The **roll of honour** is
+ * chronological, earliest first, because it is a record rather than a
+ * leaderboard: a reader following an era wants to run their eye down it in the
+ * order they played it. The year just finished is its last row and carries the
+ * winner's accent, which is the same accent the summary just gave the same two
+ * names — it is the champion of the thing on screen, arriving on a page of
+ * champions. The **career statistics** below are the other axis: who won the
+ * era rather than who won each year.
+ *
+ * Props-driven like every other screen here, so it renders without a DOM and
+ * without a store.
+ */
 export function EraChampions({ run }: { run: EraRun }) {
   const seasons = useMemo(() => eraChampions(run.seasons), [run.seasons]);
-  // Which year is opened out, or null for none. View state, and only this
-  // screen's: which year a reader is reading says nothing about the simulation.
-  // One at a time, because two full championship tables is already a page.
-  const [openYear, setOpenYear] = useState<number | null>(null);
   const first = seasons[0];
   const last = seasons.at(-1);
   const nextYear = last === undefined ? null : nextEraYear(last.year);
@@ -164,42 +236,9 @@ export function EraChampions({ run }: { run: EraRun }) {
         )}
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Roll of honour</CardTitle>
-          <CardDescription>
-            Every title of this era, in the order it was won. Select a year for its full
-            championship tables.
-          </CardDescription>
-        </CardHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Season</TableHead>
-              <TableHead>Drivers&rsquo; champion</TableHead>
-              <TableHead className="text-right">Pts</TableHead>
-              <TableHead className="text-right">Wins</TableHead>
-              <TableHead>Constructors&rsquo; champion</TableHead>
-              <TableHead className="text-right">Pts</TableHead>
-              <TableHead className="text-right">Wins</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {seasons.map((season) => (
-              <Fragment key={season.year}>
-                <ChampionRow
-                  season={season}
-                  latest={season.year === last?.year}
-                  open={openYear === season.year}
-                  onToggle={() => {
-                    setOpenYear(openYear === season.year ? null : season.year);
-                  }}
-                />
-              </Fragment>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+      <RollOfHonour seasons={seasons} />
+
+      <CareerStatistics seasons={run.seasons} />
     </div>
   );
 }

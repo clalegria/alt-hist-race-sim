@@ -25,7 +25,7 @@ import {
 } from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
-import { ChampionRow, EraChampions } from "./EraChampions.js";
+import { ChampionRow, EraChampions, RollOfHonour } from "./EraChampions.js";
 import { EraPicker } from "./SeasonPicker.js";
 import { BADGE_SHAPE } from "./TeamBadge.js";
 
@@ -50,6 +50,17 @@ if (opened === undefined) {
   throw new Error("the fixture run crowned nothing");
 }
 const html = renderToStaticMarkup(<EraChampions run={run} />);
+/**
+ * The roll of honour on its own.
+ *
+ * The screen is two readings of the same seasons — the record, then the career
+ * statistics under it — and the tests below are about the record's table. Once
+ * the second half existed, counting rows or flags across the whole screen was
+ * counting the wrong thing.
+ */
+const honour = (seasons: readonly World[]): string =>
+  renderToStaticMarkup(<RollOfHonour seasons={eraChampions(seasons)} />);
+const roll = honour(run.seasons);
 
 /** The years the fixture run covers, as the header writes them. */
 function eraChampionYears(): string {
@@ -104,7 +115,7 @@ function champions(world: World): { driver: string; team: string } {
 
 describe("the roll of honour", () => {
   it("lists every season the era has crowned, in the order they were raced", () => {
-    const years = rows(html)
+    const years = rows(roll)
       .flatMap((row) => [...row.matchAll(/>(\d{4})</g)].map((match) => match[1]))
       .map(Number);
     expect(years).toEqual(run.seasons.map((world) => world.year));
@@ -120,7 +131,7 @@ describe("the roll of honour", () => {
 
   it("flies a flag beside every name, as every other table does", () => {
     // Two per season: the drivers' champion and the constructors' champion.
-    expect((html.match(/<svg/g) ?? []).length).toBe(run.seasons.length * 2);
+    expect((roll.match(/<svg/g) ?? []).length).toBe(run.seasons.length * 2);
   });
 
   it("accents the season just finished, and only that one", () => {
@@ -170,7 +181,7 @@ describe("the roll of honour", () => {
     // So the fixture is *searched for* rather than assumed: a season whose
     // constructors' champion ran somebody else's engine, which is the only kind
     // of row where the two names differ at all.
-    const row = rows(renderToStaticMarkup(<EraChampions run={badged.run} />)).find((candidate) =>
+    const row = rows(honour(badged.run.seasons)).find((candidate) =>
       candidate.includes(`>${badged.world.year}<`),
     );
     expect(row).toBeDefined();

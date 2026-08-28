@@ -6,6 +6,15 @@ import { Flag } from "./Flag.js";
 import { TeamBadge } from "./TeamBadge.js";
 
 /**
+ * The indent that sets the team line under the name rather than under the flag.
+ *
+ * Exported as a marker, the way `BADGE_SHAPE` is: it is how a test asks whether
+ * a table drew the team line at all, and the career records deliberately do not
+ * — a driver's era is not one team's.
+ */
+export const TEAM_LINE = "pl-[1.625rem]";
+
+/**
  * A driver, as every table shows them: flag, name, and their team underneath.
  *
  * One component so the flag cannot end up in some tables and not others, and so
@@ -75,7 +84,7 @@ export function DriverName({
         {teamId === undefined ? null : (
           // Indented to start under the name rather than under the flag.
           <span
-            className={cn("text-muted-foreground pl-[1.625rem] text-xs", tight && "truncate")}
+            className={cn("text-muted-foreground text-xs", TEAM_LINE, tight && "truncate")}
             {...(tight ? { title: nameOf(teamId) } : {})}
           >
             {nameOf(teamId)}

@@ -3,6 +3,7 @@ import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
+import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableRow } from "./ui/table.js";
@@ -138,16 +139,14 @@ export function CompactStandings({
       </Table>
 
       {canExpand ? (
-        <button
-          type="button"
-          aria-expanded={expanded}
-          onClick={() => {
+        <ShowAllButton
+          expanded={expanded}
+          onToggle={() => {
             setExpanded(!expanded);
           }}
-          className="border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 focus-visible:ring-ring w-full cursor-pointer border-t px-3 py-2 text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        >
-          {expanded ? `Show top ${COLLAPSED_ROWS}` : `Show all ${standings.length}`}
-        </button>
+          total={standings.length}
+          collapsed={COLLAPSED_ROWS}
+        />
       ) : null}
     </Card>
   );

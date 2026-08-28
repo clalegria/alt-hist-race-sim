@@ -94,7 +94,7 @@ things. Its calendar comes from `seasonSeed(row.year)`, never a season fixed at 
 time, and each row of it still opens into its own race-by-race — an expansion inside an
 expansion, which is why only one year opens at a time.
 
-`ChampionRow` is therefore **controlled** — the open year lives in `EraChampions` — so
+`ChampionRow` is therefore **controlled** — the open year lives in `RollOfHonour` — so
 both states render without a DOM and without a click, the same split as the grid
 editor's tables. `SeasonChampions` in `lib/era.ts` carries the whole `world` for this:
 the row needs the results, the scale and the grid, not just two names.
@@ -105,3 +105,12 @@ changes. `eraActionsFor(lastCrowned)` in `App.tsx` is the roll-up's button set, 
 tested like `actionsFor`: the next year, and the far end of the range — the latter null
 when it *is* the next year, since two buttons doing one thing is a worse offer than
 one.
+
+## The career statistics
+
+The other half of the champions screen — who won the *era* rather than each year — is
+`.claude/rules/web-records.md`, which loads on `CareerStatistics.tsx` and `lib/records.ts`.
+Two things about it belong here: it reads `run.seasons` and derives everything on render,
+like the roll of honour does; and adding it is why `RollOfHonour` is its own component,
+since the era tests count rows and flags in *the record's table* and a second table of
+names on the same screen made those counts measure the wrong thing.
