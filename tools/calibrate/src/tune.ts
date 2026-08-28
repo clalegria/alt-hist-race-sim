@@ -27,7 +27,7 @@
  * and the car knobs are left to say what separates one chassis from another.
  */
 
-import { driversById, seasonSeed } from "@alt-hist/data";
+import { driverRatingsFor, driversById, seasonSeed } from "@alt-hist/data";
 import {
   createRng,
   type EngineSpec,
@@ -36,6 +36,7 @@ import {
   type RaceEntrant,
   simulateRace,
 } from "@alt-hist/engine";
+import { CALIBRATION_RATING_MODE } from "./mode.js";
 import {
   type ChassisField,
   type EngineField,
@@ -140,7 +141,12 @@ function initialState(): State {
 
   const drivers = new Map<string, { racing: number; qualifying: number }>();
   for (const [id, driver] of driversById()) {
-    drivers.set(id, { racing: driver.peak.racing, qualifying: driver.peak.qualifying });
+    // Seeded from the driver's ability *in the tuned year*, not from his peak —
+    // see `mode.ts`. A tuner seeded at peak starts from a grid that never
+    // existed, and every point of the difference between a driver and his own
+    // prime gets fitted into the car beside him.
+    const rated = driverRatingsFor(driver, YEAR, CALIBRATION_RATING_MODE);
+    drivers.set(id, { racing: rated.racing, qualifying: rated.qualifying });
   }
 
   return {
@@ -191,15 +197,19 @@ function buildFieldFrom(state: State): RaceEntrant[] {
       if (authored === undefined || tuned === undefined) {
         throw new Error(`No driver state for ${driverId}`);
       }
+      const rated = driverRatingsFor(authored, YEAR, CALIBRATION_RATING_MODE);
       field.push({
         driverId,
         teamId: entry.teamId,
         driver: {
           racing: tuned.racing,
           qualifying: tuned.qualifying,
-          consistency: authored.peak.consistency,
-          adaptability: authored.peak.adaptability,
-          composure: authored.peak.composure,
+          // The three the tuner does not move still have to be the ones the sim
+          // would race in this year, or `buildFieldFrom` stops matching
+          // `buildField` and the tuner optimises a model nothing runs.
+          consistency: rated.consistency,
+          adaptability: rated.adaptability,
+          composure: rated.composure,
         },
         chassis,
         engineId: entry.engineId,

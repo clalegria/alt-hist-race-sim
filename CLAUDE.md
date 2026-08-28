@@ -91,26 +91,26 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
   report it and stop; do not fix it unprompted.
 
 ## Domain glossary
-- **Entry**: one team's participation in one season — team + chassis + engine + drivers.
-- **Chassis spec** (`ChassisSpec`): a team's per-season chassis attributes — racing,
-  qualifying, consistency, reliability. Authored, and **not** what is scored.
+- **Entry**: one team's season — team + chassis + engine + drivers.
+- **Chassis spec** (`ChassisSpec`): a team's per-season chassis — racing, qualifying,
+  consistency, reliability. Authored, and **not** what is scored.
 - **Engine spec**: a manufacturer's per-season unit — racing, qualifying, reliability;
-  three not four, consistency being the chassis'. `engines.json` is identity only.
+  three not four, consistency being the chassis'. `engines.json` is identity.
 - **Car spec** (`CarSpec`): the blend of the two, and what the model scores. Same
   shape as `ChassisSpec`; the name marks what has been through `powertrain()`.
 - **Powertrain**: that blend, by **two ratios, not one**. Pace (racing, qualifying) is
   `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`, consistency untouched.
   Lives in the engine package, and **the UI's overall calls it too**.
-- **Peak vs aged**: the two rating modes a season can be built from — every driver at
-  their authored peak (the default, and what the calibration describes), or at their
-  ability that season via the ageing curve.
-- **Score-and-sort**: v1 race model — sample one performance number per driver from
-  attributes + car + home advantage + noise, sort, apply DNFs. No lap-by-lap, behind the
+- **Peak vs aged**: the two rating modes — every driver at their authored peak, or at
+  their ability that season via the ageing curve. The app defaults to peak; **every
+  calibration harness runs `aged` and must never run on `peak`** (`calibrate/src/mode.ts`).
+- **Score-and-sort**: v1 race model — one performance number per driver from attributes
+  + car + home advantage + noise, sorted, then DNFs. No lap-by-lap, behind the
   `RaceModel` interface so a richer model can replace it.
-- **Round context**: where a round is held — one field, `country`, the seam every circuit
-  feature hangs off.
+- **Round context**: where a round is held — one field, `country`; the seam circuit
+  features hang off.
 - **Retirement factor**: 1–10 per season file, how hard the year is on its cars. Scales
-  *both* DNF rolls; 5 leaves the constants unchanged. `.claude/rules/retirement-factor.md`.
+  *both* DNF rolls; 5 is neutral. `.claude/rules/retirement-factor.md`.
 - **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales the two
   noise sigmas, plus `teamFormBoost` at levels 4–5; `withRandomness(2)` — the default —
   returns the constants **unchanged**, so the calibration still describes them.

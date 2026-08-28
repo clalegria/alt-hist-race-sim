@@ -26,6 +26,7 @@ import {
 } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
+import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear, withoutFlags } from "./year.js";
 
@@ -35,7 +36,7 @@ function main(): void {
   const authored = seasonSeed(year);
   const seed = parseSeed(argv);
   const randomness = parseRandomness(process.argv);
-  const field = buildField(authored);
+  const field = buildField(authored, undefined, CALIBRATION_RATING_MODE);
   // The calendar decides how many rounds the year has, and where each is held —
   // which is what the home-advantage term reads.
   const calendar = authored.calendar;

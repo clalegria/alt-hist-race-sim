@@ -29,7 +29,7 @@
   { "id": "supertec",        "name": "Supertec",             "base": "FR" },
   { "id": "toyota",          "name": "Toyota",               "base": "JP" },
   { "id": "asiatech",        "name": "Asiatech",             "base": "FR" },
-  { "id": "rbpt",            "name": "Red Bull Powertrains", "base": "AT" },
+  { "id": "rbpt",            "name": "RBPT",                 "base": "AT" },
   { "id": "audi",            "name": "Audi",                 "base": "DE" },
   { "id": "maserati",        "name": "Maserati",             "base": "IT" },
   { "id": "talbot",          "name": "Talbot",               "base": "FR" },

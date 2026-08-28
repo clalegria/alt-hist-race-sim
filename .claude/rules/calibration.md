@@ -7,7 +7,7 @@ paths:
 
 # Calibration
 
-> **⚠ THESE TABLES ARE STALE, for two reasons now.**
+> **⚠ THESE TABLES ARE STALE, for three reasons now.**
 >
 > **The powertrain blend moved.** Every figure below was measured with the car blended
 > `0.8 · chassis + 0.2 · engine` on all three attributes. The weights have since moved to
@@ -24,6 +24,9 @@ paths:
 > more pole share, and reshuffled third and fourth in 1980. That drift has not been
 > absorbed into any rating.
 >
+> **And they were measured in `peak` mode**, which the section below now forbids for
+> producing any figure.
+>
 > A re-tune is needed and **has not been run** — it needs the author's word. Do not treat
 > any number here as current, and do not re-measure to find out how far off it is.
 
@@ -39,11 +42,29 @@ a question nobody asked, and the numbers it prints are not a pass/fail. Nothing 
 test suite runs it, and nothing should: no test may depend on an authored rating or on
 what a particular seed produced.
 
-**Every figure below describes `buildField`'s default `peak` mode**, where drivers
-race at their authored peaks. The `aged` mode added with the ageing curve produces a
-different 1980 — a rookie Prost, a declining Scheckter — and is deliberately **not** calibrated
-against anything. Do not "fix" the aged grid to match this table; they are answers to
-two different questions.
+## Calibration runs on `aged`. Never on `peak`.
+
+**Every harness in `tools/calibrate` now defaults to `aged`** — drivers at their ability
+*in the year being measured* — from the shared `CALIBRATION_RATING_MODE` in
+`tools/calibrate/src/mode.ts`. The tuner reads it too, so the ratings it proposes are
+fitted against the grid the sim actually races.
+
+The reason is that a `peak` field is a grid that has never existed: a 41-year-old at his
+2018 level, a rookie at a peak he will not reach for a decade. Numbers measured off it
+cannot be compared with a real season, so any rating fitted against them is quietly
+absorbing the gap between a driver and his own prime into the car beside him. Fitting
+2026 in `peak` puts McLaren's win share at 6.5% against a real 16.7%, purely because a
+peak Hamilton outguns a peak Norris; the identical chassis measured in `aged` lands on
+16.4%. Nothing was wrong with the car.
+
+`--mode peak` still exists on the harnesses that take a `--mode`. It is for reading the
+older tables below on their own terms, not for producing a new figure.
+
+**The retirement factors survived the switch** and were not re-fitted: measured across
+all 77 years in `aged`, mean absolute error 1.39 points, worst 3.58.
+
+**Every figure in the tables below predates this and was measured in `peak`**, which is
+the third reason they are stale. Do not compare a fresh `aged` run against them.
 
 **They also describe a race with no host country.** `pnpm calibrate` and the tuner both
 run `simulateRace` with no `RoundContext`, so all three shares of home advantage —

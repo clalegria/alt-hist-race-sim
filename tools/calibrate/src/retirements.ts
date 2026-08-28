@@ -30,7 +30,6 @@
 import {
   authoredSeasons,
   buildField,
-  DEFAULT_RATING_MODE,
   RATING_MODES,
   type RatingMode,
   seasonConstants,
@@ -48,6 +47,7 @@ import {
 } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft } from "./format.js";
+import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { parseRandomness } from "./randomness.js";
 import { realRetirementRate } from "./realRetirements.js";
 import { parseYear } from "./year.js";
@@ -103,7 +103,7 @@ function flagValue(argv: readonly string[], ...names: readonly string[]): string
 function parseMode(argv: readonly string[]): RatingMode {
   const raw = flagValue(argv, "--mode", "-m");
   if (raw === undefined) {
-    return DEFAULT_RATING_MODE;
+    return CALIBRATION_RATING_MODE;
   }
   const mode = RATING_MODES.find((candidate) => candidate === raw);
   if (mode === undefined) {

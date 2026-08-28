@@ -14,6 +14,7 @@ import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "
 import { createRng, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
+import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear, withoutFlags } from "./year.js";
 
@@ -48,7 +49,7 @@ function main(): void {
   const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
   const randomness = parseRandomness(process.argv);
   const constants = withRandomness(randomness);
-  const field = buildField(seasonSeed(year));
+  const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
   const teams = teamsById();
 
   /**

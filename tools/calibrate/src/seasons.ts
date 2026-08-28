@@ -46,6 +46,7 @@ import {
 } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
+import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear } from "./year.js";
 
@@ -58,10 +59,11 @@ import { parseYear } from "./year.js";
 const DEFAULT_SEASONS = 5000;
 
 /**
- * Drivers at their ability *in that season*, not at their authored peak — see
- * `parseMode`. Overridden by `--mode peak`.
+ * Drivers at their ability *in that season*, not at their authored peak. Shared
+ * with every other harness here — see `mode.ts` for why peak is not an option
+ * for producing a figure. Overridden per run by `--mode peak`.
  */
-const SEASON_RATING_MODE: RatingMode = "aged";
+const SEASON_RATING_MODE: RatingMode = CALIBRATION_RATING_MODE;
 
 /** What one competitor — a driver or a team — accumulated over every season run. */
 interface Tally {
