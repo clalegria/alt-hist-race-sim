@@ -9,11 +9,11 @@
  * same reason `lib/rating.test.ts` invents its drivers.
  */
 
-import { seasonSeed } from "@alt-hist/data";
+import { seasonSeed, teamsById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { createWorld, type World } from "../store/season.js";
-import { teamName } from "./names.js";
+import { isSharedTeamName, teamName } from "./names.js";
 import {
   type CareerRecord,
   type CareerSpell,
@@ -365,8 +365,10 @@ describe("the names a career was raced under", () => {
 
 describe("what a card calls a row", () => {
   const ranked = (records: readonly CareerRecord[]) => rankBy(records, "wins");
+  /** An invented collision, so the rule is tested without the seed data. */
+  const shared = (name: string) => name === "Mercedes";
   const label = (records: readonly CareerRecord[], id: string) =>
-    labelsFor(ranked(records), "wins", () => "fallback").get(id);
+    labelsFor(ranked(records), "wins", () => "fallback", shared).get(id);
 
   const modern = career("tyrrell", {
     wins: 90,
@@ -406,6 +408,7 @@ describe("what a card calls a row", () => {
       ),
       "titles",
       () => "fallback",
+      shared,
     );
     expect(titles.get("tyrrell")?.name).toBe("Tyrrell");
   });
@@ -416,17 +419,62 @@ describe("what a card calls a row", () => {
     expect(label([works], "mercedes")?.year).toBe(1955);
   });
 
-  it("adds the years where two teams share a name, and only there", () => {
+  it("adds the years to a name a second lineage ever held", () => {
     const both = [modern, works];
     expect(label(both, "tyrrell")?.span).toBe("2010–2026");
     expect(label(both, "mercedes")?.span).toBe("1954–1955");
-    // Alone on the card, the name is unambiguous and the years are noise.
-    expect(label([modern], "tyrrell")?.span).toBeNull();
-    expect(label([works], "mercedes")?.span).toBeNull();
+  });
+
+  it("adds them even when the other holder is nowhere on the card", () => {
+    // The question is asked of the database, not of the rows on show: the other
+    // Mercedes having won nothing does not make this one identifiable, and a
+    // reader cannot tell which of the two a bare "Mercedes" is.
+    expect(label([modern], "tyrrell")?.span).toBe("2010–2026");
+    expect(label([works], "mercedes")?.span).toBe("1954–1955");
+  });
+
+  it("leaves them off a name nobody else ever held", () => {
+    const ferrari = career("ferrari", {
+      wins: 9,
+      spells: [spell("Ferrari", { wins: 9, firstYear: 1950, lastYear: 2026 })],
+    });
+    expect(label([ferrari, modern], "ferrari")?.span).toBeNull();
   });
 
   it("labels every row of the list it was given", () => {
-    const labels = labelsFor(ranked([modern, works]), "wins", () => "fallback");
+    const labels = labelsFor(ranked([modern, works]), "wins", () => "fallback", shared);
     expect([...labels.keys()].sort()).toEqual(["mercedes", "tyrrell"]);
+  });
+});
+
+describe("the names two lineages share", () => {
+  // Searched in the seed data rather than written down: which lineages collide
+  // is data — `lotus` is Team Lotus while `caterham` and `toleman` both raced
+  // as Lotus — and the rule is what a shared name *means*, not who holds one.
+  const holders = new Map<string, Set<string>>();
+  for (const [id, team] of teamsById()) {
+    for (const era of team.identity) {
+      holders.set(era.name, (holders.get(era.name) ?? new Set<string>()).add(id));
+    }
+  }
+  const collisions = [...holders].filter(([, ids]) => ids.size > 1);
+  const alone = [...holders].filter(([, ids]) => ids.size === 1);
+
+  it("knows every name more than one lineage raced under", () => {
+    expect(collisions.length, "no two lineages in the seed data share a name").toBeGreaterThan(0);
+    for (const [name] of collisions) {
+      expect(isSharedTeamName(name), name).toBe(true);
+    }
+  });
+
+  it("leaves the names only one lineage ever used alone", () => {
+    expect(alone.length).toBeGreaterThan(0);
+    for (const [name] of alone) {
+      expect(isSharedTeamName(name), name).toBe(false);
+    }
+  });
+
+  it("says nothing about a name no team ever had", () => {
+    expect(isSharedTeamName("Not A Team")).toBe(false);
   });
 });

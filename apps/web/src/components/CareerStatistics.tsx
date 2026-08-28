@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from "react";
-import { teamName } from "../lib/names.js";
+import { isSharedTeamName, teamName } from "../lib/names.js";
 import {
   type CareerRecord,
   careerRecords,
@@ -195,12 +195,11 @@ export function RecordCard({
   const [expanded, setExpanded] = useState(false);
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const ranked = useMemo(() => rankBy(records, metric), [records, metric]);
-  // Over the whole ranked list, not the ten on show, so a name does not gain
-  // its years the moment the card is opened out. Drivers are never labelled
-  // this way: two of them sharing a name is a coincidence, not two eras of one
-  // organisation, and neither of them is "the 1954-55 one".
+  // Drivers are never labelled this way: two of them sharing a name is a
+  // coincidence, not two eras of one organisation, and neither of them is "the
+  // 1954-55 one".
   const labels = useMemo(
-    () => (kind === "team" ? labelsFor(ranked, metric, teamName) : null),
+    () => (kind === "team" ? labelsFor(ranked, metric, teamName, isSharedTeamName) : null),
     [ranked, metric, kind],
   );
   const canExpand = ranked.length > COLLAPSED_ROWS;

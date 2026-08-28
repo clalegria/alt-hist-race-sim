@@ -359,7 +359,7 @@ export interface RecordLabel {
   /**
    * The years, or null when the name alone is unambiguous. Only the rows that
    * need it carry it: a card is a list of names, and years on every one of them
-   * is noise around the one collision that matters.
+   * is noise around the collisions that matter.
    */
   readonly span: string | null;
   /**
@@ -372,36 +372,37 @@ export interface RecordLabel {
 /**
  * What each row of a card is called, keyed by career id.
  *
- * **Two teams can hold the same name**, in different eras and occasionally in
- * the same season — there are two Lotuses, two Renaults, two Mercedes — and a
- * card listing both is otherwise a list with the same word twice on it. Where
- * that happens, and only there, the row carries the years as well.
+ * **Two lineages can hold the same name**, in different eras and occasionally
+ * in the same season — there are two Lotuses, two Renaults, two Mercedes — and
+ * a name one of them shares is ambiguous on its own however short the card is.
+ * The question is asked of the **whole database**, through `shared`, rather than
+ * of the rows on show: the other Mercedes not having won anything does not make
+ * this one identifiable, and a reader who knows the seed data has no way to
+ * tell which of the two a bare "Mercedes" is. Where a name is shared, the row
+ * carries the years of the spell it is named for; where it is not, the name
+ * alone is the whole answer and years beside it are noise.
  *
- * Computed over the **whole ranked list** rather than the ten rows on show, so
- * a name does not gain or lose its years when the card is opened out.
+ * Nothing here reads the seed data itself — both `nameOf` and `shared` come in
+ * — so the rule is testable against invented names.
  */
 export function labelsFor(
   ranked: readonly RankedRecord[],
   metric: RecordMetric,
   nameOf: (id: string, year: number) => string,
+  shared: (name: string) => boolean,
 ): ReadonlyMap<string, RecordLabel> {
-  const rows = ranked.map(({ record }) => {
-    const best = bestSpellBy(record, metric);
-    return {
-      id: record.id,
-      name: best?.name ?? nameOf(record.id, record.lastYear),
-      span: best === null ? null : spellRange(best),
-      year: best?.lastYear ?? record.lastYear,
-    };
-  });
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    counts.set(row.name, (counts.get(row.name) ?? 0) + 1);
-  }
   return new Map(
-    rows.map((row) => [
-      row.id,
-      { name: row.name, span: (counts.get(row.name) ?? 0) > 1 ? row.span : null, year: row.year },
-    ]),
+    ranked.map(({ record }) => {
+      const best = bestSpellBy(record, metric);
+      const name = best?.name ?? nameOf(record.id, record.lastYear);
+      return [
+        record.id,
+        {
+          name,
+          span: best === null || !shared(name) ? null : spellRange(best),
+          year: best?.lastYear ?? record.lastYear,
+        },
+      ];
+    }),
   );
 }

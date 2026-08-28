@@ -71,12 +71,17 @@ Four rules, all in `lib/records.ts`:
   painted on the garage today. The component never receives a name string: `labelsFor`
   returns the **year** that spell ended, the row hands it to `Liveries`, and `TeamName`
   resolves the same name and the matching livery off it — one source for both.
-- **Two teams sharing a name get their years, and only they do.** There are two Mercedes,
-  two Renaults and three Lotuses in the seed data, so a card can list the same word
-  twice; where it does, each of those rows carries "(1954–1955)" after the name. Computed
-  over the **whole ranked list** rather than the ten rows on show, so a label does not
-  change when the card is opened out — and not applied to drivers, where two people
-  sharing a name is a coincidence rather than two eras of one organisation.
+- **A name a second lineage ever held carries its years.** There are two Mercedes, two
+  Renaults, two Hondas, two Aston Martins and three Lotuses in the seed data, and a row
+  reading just "Mercedes" is ambiguous **whether or not the other one is on the same
+  card**: the reader cannot tell which lineage it is by looking at it, and the other one
+  existing is what makes the question live. So the test is against the *database* —
+  `isSharedTeamName` in `lib/names.ts`, a set built once at module load from every
+  identity era, so a lineage renaming itself into a collision is caught by authoring the
+  season rather than by anyone remembering this rule. `labelsFor` takes it as a
+  predicate and reads no seed data itself, which is what keeps its own tests synthetic.
+  Not applied to drivers: two people sharing a name is a coincidence, not two eras of one
+  organisation, and neither of them is "the 1954-55 one".
 - **`spellsBy(record, metric)` drops the spells that contributed nothing**, for the same
   reason a card drops a career on zero: "as BAR, 0" is not a record. What is left still
   adds up to the row above it, and a lineage with one scoring name comes back as a single

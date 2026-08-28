@@ -11,10 +11,11 @@
  * many wins anybody actually took, since ratings and seeds both move.
  */
 
+import { teamsById } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDOUT_ROW } from "../lib/highlight.js";
-import { driverName, entryName, teamName } from "../lib/names.js";
+import { driverName, entryName, isSharedTeamName, teamName } from "../lib/names.js";
 import {
   type CareerRecord,
   type CareerSpell,
@@ -155,6 +156,9 @@ describe("a driver on a record card", () => {
   });
 });
 
+/** Arbitrary years for a synthetic career; nothing reads them but the label. */
+const SPAN = { from: 1990, to: 1999 };
+
 /** The 1954-55 works team, and the lineage that races as Mercedes today. */
 const worksMercedes = career("mercedes", {
   wins: 5,
@@ -201,9 +205,31 @@ describe("naming a lineage on a card", () => {
     expect(second).toContain("(1954–1955)");
   });
 
-  it("leaves the years off a name nobody else holds", () => {
-    const drawn = card([modernMercedes], "team");
-    expect(drawn).not.toContain("(2010–2026)");
+  it("shows the years even when the other holder is nowhere on the card", () => {
+    // A card of one Mercedes is still ambiguous: the reader cannot tell which
+    // of the two lineages it is, and the other one is in the same database.
+    expect(card([modernMercedes], "team")).toContain("(2010–2026)");
+  });
+
+  it("leaves the years off a name no second lineage ever held", () => {
+    // Searched for, because which names collide is data: any team whose name
+    // this season belongs to it alone.
+    const soleId = [...teamsById().keys()].find((id) => !isSharedTeamName(teamName(id, SPAN.to)));
+    expect(soleId, "every team in the data shares its name").toBeDefined();
+    const sole = career(soleId ?? "", {
+      wins: 4,
+      lastYear: SPAN.to,
+      spells: [
+        spell(teamName(soleId ?? "", SPAN.to), {
+          wins: 4,
+          firstYear: SPAN.from,
+          lastYear: SPAN.to,
+        }),
+      ],
+    });
+    const drawn = card([sole], "team");
+    expect(drawn).toContain(teamName(soleId ?? "", SPAN.to));
+    expect(drawn).not.toContain(`(${SPAN.from}–${SPAN.to})`);
   });
 });
 

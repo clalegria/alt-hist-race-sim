@@ -30,6 +30,37 @@ export function teamName(teamId: string, year?: number): string {
   return team === undefined ? teamId : teamIdentityIn(team, year).name;
 }
 
+/**
+ * The names more than one lineage ever raced under.
+ *
+ * `lotus` is Team Lotus, `caterham` was called Lotus in 2010-11 and `toleman`
+ * in 2012-15; there are two Renaults, two Mercedes, two Hondas and two Aston
+ * Martins in the same way. A list that names one of them without saying which
+ * years is ambiguous **whether or not the other one is on the same list** — the
+ * reader cannot tell a Mercedes card entry from the other Mercedes by looking
+ * at it, and the other one existing is enough to make the question live.
+ *
+ * Built once at module load off every identity era in the seed data, so a
+ * lineage renaming itself into a collision is caught by authoring the season
+ * rather than by anyone remembering this rule.
+ */
+const sharedNames: ReadonlySet<string> = (() => {
+  const holders = new Map<string, Set<string>>();
+  for (const team of teams.values()) {
+    for (const era of team.identity) {
+      const ids = holders.get(era.name) ?? new Set<string>();
+      ids.add(team.id);
+      holders.set(era.name, ids);
+    }
+  }
+  return new Set([...holders].filter(([, ids]) => ids.size > 1).map(([name]) => name));
+})();
+
+/** Did a second lineage ever race under this name? See `sharedNames`. */
+export function isSharedTeamName(name: string): boolean {
+  return sharedNames.has(name);
+}
+
 export function engineName(engineId: string): string {
   return engines.get(engineId)?.name ?? engineId;
 }
