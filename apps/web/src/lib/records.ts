@@ -58,7 +58,21 @@ export interface CareerSpell extends RecordTotals {
   readonly lastYear: number;
   /** The stretches it covers, earliest first. One, unless the name came back. */
   readonly segments: readonly YearRange[];
+  /**
+   * The last season each figure was actually *scored* in under this name, or
+   * null for one it never scored.
+   *
+   * Which is not the same as the last season under the name, and that gap is
+   * visible on screen: `toleman` raced as Renault from 2002 to 2011 and again
+   * from 2016 to 2020, and won its championship in the middle of the first
+   * stretch. Drawn as of 2020 the row wears the yellow-and-black of a team that
+   * won nothing, and the colours of a record are the colours it was won in.
+   */
+  readonly scored: ScoredYears;
 }
+
+/** The last season a figure was scored in, one per metric. */
+export type ScoredYears = { readonly [M in RecordMetric]: number | null };
 
 /** One competitor's whole era. Never stored — see the module note. */
 export interface CareerRecord extends RecordTotals {
@@ -118,6 +132,7 @@ interface MutableSpell extends MutableTotals {
   firstYear: number;
   lastYear: number;
   segments: { from: number; to: number }[];
+  scored: { -readonly [M in RecordMetric]: number | null };
 }
 
 interface Tally extends MutableTotals {
@@ -139,6 +154,33 @@ interface SeasonRow {
   readonly wins: number;
   readonly podiums: number;
   readonly poles: number;
+}
+
+/**
+ * Notes the season against every figure it actually moved.
+ *
+ * Walked in year order, so the last assignment wins and each metric ends up
+ * holding the most recent season it was scored in. A figure of nothing is not a
+ * record and must not move the year — that is the whole point of it.
+ */
+function markScored(
+  scored: { -readonly [M in RecordMetric]: number | null },
+  row: SeasonRow,
+  champion: boolean,
+  year: number,
+): void {
+  if (champion) {
+    scored.titles = year;
+  }
+  if (row.wins > 0) {
+    scored.wins = year;
+  }
+  if (row.podiums > 0) {
+    scored.podiums = year;
+  }
+  if (row.poles > 0) {
+    scored.poles = year;
+  }
 }
 
 /** Adds one season into a tally or into a spell — the same six figures. */
@@ -188,6 +230,7 @@ function tallyCareers(
           firstYear: world.year,
           lastYear: world.year,
           segments: [],
+          scored: { titles: null, wins: null, podiums: null, poles: null },
           ...zeroed(),
         };
         tally.spells.push(spell);
@@ -203,6 +246,7 @@ function tallyCareers(
       }
       tally.current = name;
       add(spell, row, index === 0);
+      markScored(spell.scored, row, index === 0, world.year);
     });
   }
   return [...tallies.values()];
@@ -363,8 +407,14 @@ export interface RecordLabel {
    */
   readonly span: string | null;
   /**
-   * The season the row is drawn as of — the last one under that name, which is
-   * what resolves both the label and the livery.
+   * The season the row is drawn as of, which resolves both the label and the
+   * livery: **the last one this figure was scored in under that name**, not the
+   * last one the name was used.
+   *
+   * The colours of a record are the colours it was won in. `toleman`'s title as
+   * Renault was taken in the middle of a stretch that ran to 2020, and drawn as
+   * of 2020 the row wears a livery that never won anything; the name is the
+   * same either way, since the year is inside the spell.
    */
   readonly year: number;
 }
@@ -400,7 +450,7 @@ export function labelsFor(
         {
           name,
           span: best === null || !shared(name) ? null : spellRange(best),
-          year: best?.lastYear ?? record.lastYear,
+          year: best?.scored[metric] ?? best?.lastYear ?? record.lastYear,
         },
       ];
     }),

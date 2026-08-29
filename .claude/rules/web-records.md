@@ -69,8 +69,16 @@ Four rules, all in `lib/records.ts`:
   Eighty wins as Mercedes put the row at the top of a wins card as Mercedes; three titles
   taken as Tyrrell put the same lineage on the championships card as Tyrrell, whatever is
   painted on the garage today. The component never receives a name string: `labelsFor`
-  returns the **year** that spell ended, the row hands it to `Liveries`, and `TeamName`
-  resolves the same name and the matching livery off it — one source for both.
+  returns a **year**, the row hands it to `Liveries`, and `TeamName` resolves both the
+  name and the livery off it — one source for both.
+- **That year is the last season the figure was actually *scored* in**, not the last
+  season under the name — `scored` on the spell, one year per metric, set only by a
+  season that moved that figure. The colours of a record are the colours it was won in:
+  `toleman` raced as Renault from 2002 to 2011 and again from 2016 to 2020, and took its
+  title in the middle of the first stretch, so a championships row drawn as of 2020 wears
+  the livery of years it won nothing. The name is unaffected — the year stays inside the
+  spell, so it resolves to the same name either way — and a spell that never scored the
+  metric falls back to its own end, which no card shows anyway.
 - **A name a second lineage ever held carries its years.** There are two Mercedes, two
   Renaults, two Hondas, two Aston Martins and three Lotuses in the seed data, and a row
   reading just "Mercedes" is ambiguous **whether or not the other one is on the same

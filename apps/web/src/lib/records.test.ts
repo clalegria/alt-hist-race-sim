@@ -120,6 +120,9 @@ function spell(name: string, over: Partial<CareerSpell> = {}): CareerSpell {
     // One stretch unless a test says otherwise, which is every case but the
     // name that was taken back.
     segments: over.segments ?? [{ from: years.firstYear, to: years.lastYear }],
+    // Scored on the way out unless a test pins the year down: the fallback is
+    // the spell's own end, which is what a career with nothing to say uses.
+    scored: over.scored ?? { titles: null, wins: null, podiums: null, poles: null },
   };
 }
 
@@ -321,6 +324,34 @@ describe("the names a career was raced under", () => {
     expect(spellSpan(split ?? spell("none"))).toContain(", ");
   });
 
+  it("remembers the last season each figure was actually scored in", () => {
+    // Which is not the last season under the name, and the difference is what
+    // the row is coloured by. Checked against a second walk of the same
+    // results, the way the totals are.
+    for (const record of records.teams) {
+      for (const spell of record.spells) {
+        const won: number[] = [];
+        for (const world of seasons) {
+          const standing = constructorStandings(world.season, world.points).find(
+            (each) => each.teamId === record.id,
+          );
+          if (
+            standing !== undefined &&
+            standing.wins > 0 &&
+            teamName(record.id, world.year) === spell.name
+          ) {
+            won.push(world.year);
+          }
+        }
+        expect(spell.scored.wins, `${record.id} as ${spell.name}`).toBe(won.at(-1) ?? null);
+        // A figure of nothing is not a record and never moves the year.
+        if (spell.wins === 0) {
+          expect(spell.scored.wins, record.id).toBeNull();
+        }
+      }
+    }
+  });
+
   it("orders a breakdown by the figure asked for, and drops the empty spells", () => {
     const record = career("mercedes", {
       wins: 12,
@@ -362,6 +393,9 @@ describe("the names a career was raced under", () => {
     expect(spellRange(march)).toBe("1970–1996");
   });
 });
+
+/** A spell whose wins were all taken in 2006, years before it stopped racing. */
+const SCORED_2006 = { titles: 2006, wins: 2006, podiums: 2006, poles: 2006 };
 
 describe("what a card calls a row", () => {
   const ranked = (records: readonly CareerRecord[]) => rankBy(records, "wins");
@@ -413,8 +447,23 @@ describe("what a card calls a row", () => {
     expect(titles.get("tyrrell")?.name).toBe("Tyrrell");
   });
 
-  it("draws the row as of the last season under that name", () => {
-    // Which is what resolves the livery as well as the label.
+  it("draws the row as of the last season the figure was scored in", () => {
+    // The colours of a record are the colours it was won in: a lineage that
+    // won as Renault in 2006 and went on racing under that name until 2020
+    // must not wear the livery of the years it won nothing. The year resolves
+    // the label as well, and stays inside the spell, so the name is unchanged.
+    const renault = career("toleman", {
+      wins: 20,
+      lastYear: 2026,
+      spells: [
+        spell("Renault", { wins: 20, firstYear: 2002, lastYear: 2020, scored: SCORED_2006 }),
+      ],
+    });
+    expect(label([renault], "toleman")?.year).toBe(2006);
+    expect(label([renault], "toleman")?.name).toBe("Renault");
+  });
+
+  it("falls back to the end of the spell where nothing says otherwise", () => {
     expect(label([modern], "tyrrell")?.year).toBe(2026);
     expect(label([works], "mercedes")?.year).toBe(1955);
   });

@@ -15,6 +15,7 @@ import { teamsById } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDOUT_ROW } from "../lib/highlight.js";
+import { liveryFor } from "../lib/livery.js";
 import { driverName, entryName, isSharedTeamName, teamName } from "../lib/names.js";
 import {
   type CareerRecord,
@@ -27,7 +28,7 @@ import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { createWorld, type World } from "../store/season.js";
 import { CareerStatistics, RecordCard, RecordRow } from "./CareerStatistics.js";
 import { TEAM_LINE } from "./DriverName.js";
-import { BADGE_SHAPE } from "./TeamBadge.js";
+import { BADGE_SHAPE, badgeBackground } from "./TeamBadge.js";
 
 /** A run of a few seasons — the years off the data, the seeds arbitrary. */
 const seasons: readonly World[] = PLAYABLE_SEASONS.slice(0, 3).map((year, index) =>
@@ -73,6 +74,9 @@ function spell(name: string, over: Partial<CareerSpell> = {}): CareerSpell {
     // One stretch unless a test says otherwise, which is every case but the
     // name that was taken back.
     segments: over.segments ?? [{ from: years.firstYear, to: years.lastYear }],
+    // Scored on the way out unless a test pins the year down: the fallback is
+    // the spell's own end, which is what a career with nothing to say uses.
+    scored: over.scored ?? { titles: null, wins: null, podiums: null, poles: null },
   };
 }
 
@@ -172,6 +176,73 @@ const modernMercedes = career("tyrrell", {
     spell("Tyrrell", { wins: 10, firstYear: 1970, lastYear: 1998 }),
     spell("Mercedes", { wins: 80, firstYear: 2010, lastYear: 2026 }),
   ],
+});
+
+/**
+ * A lineage that was repainted without being renamed, and two seasons of it in
+ * different colours.
+ *
+ * Searched rather than named, because which team changed livery when is data.
+ * It is the shape the rule needs: one name, two liveries, so "the colours of
+ * the year it scored" and "the colours of the year it stopped" differ.
+ */
+const repainted = (() => {
+  for (const id of teamsById().keys()) {
+    let earliest: number | null = null;
+    for (const year of PLAYABLE_SEASONS) {
+      if (earliest === null || teamName(id, year) !== teamName(id, earliest)) {
+        earliest = year;
+        continue;
+      }
+      const early = liveryFor(id, earliest);
+      const late = liveryFor(id, year);
+      if (
+        early !== undefined &&
+        late !== undefined &&
+        badgeBackground(early) !== badgeBackground(late)
+      ) {
+        // The backgrounds travel with the years, so the test never has to ask
+        // again whether a livery it has already found exists.
+        return {
+          id,
+          early: earliest,
+          late: year,
+          earlyBackground: badgeBackground(early),
+          lateBackground: badgeBackground(late),
+        };
+      }
+    }
+  }
+  throw new Error("no team in the seed data was repainted without being renamed");
+})();
+
+describe("the colours a record is drawn in", () => {
+  it("uses the livery of the season the figure was scored in", () => {
+    // Not the livery of the last season under the name: `toleman` raced as
+    // Renault until 2020 and won its title in the middle of that, and the row
+    // wearing the later colours is a record shown in a livery that never won
+    // anything.
+    const scored = { titles: repainted.early, wins: repainted.early, podiums: null, poles: null };
+    const drawn = card(
+      [
+        career(repainted.id, {
+          wins: 6,
+          lastYear: repainted.late,
+          spells: [
+            spell(teamName(repainted.id, repainted.early), {
+              wins: 6,
+              firstYear: repainted.early,
+              lastYear: repainted.late,
+              scored,
+            }),
+          ],
+        }),
+      ],
+      "team",
+    );
+    expect(drawn).toContain(repainted.earlyBackground);
+    expect(drawn).not.toContain(repainted.lateBackground);
+  });
 });
 
 describe("naming a lineage on a card", () => {
