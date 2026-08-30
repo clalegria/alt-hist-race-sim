@@ -203,7 +203,7 @@ describe("reporting what was changed", () => {
 
   it("names who arrived and who left, at the team it happened to", () => {
     const changes = lineupChanges(SEED, swapDrivers(authored, seated, reserve));
-    expect(changes).toEqual([{ teamId: seatedTeam, in: [reserve], out: [seated] }]);
+    expect(changes).toEqual([{ teamId: seatedTeam, in: [reserve], out: [seated], open: 0 }]);
   });
 
   it("reports both ends of a swap between two teams", () => {

@@ -400,6 +400,15 @@ interface SeasonViewProps {
   readonly onYearChange?: (year: number) => void;
   /** The same, for the grid editor: it draws without one, it just cannot apply. */
   readonly onGridChange?: (edit: GridEdit) => void;
+  /**
+   * The previous season's grid as this run actually raced it, for the grid
+   * editor's carry-over button.
+   *
+   * Absent on a standalone season, which has no year behind it, and on the
+   * first year of an era: the button then copies the previous season as it was
+   * entered, which is the only version of it there is.
+   */
+  readonly previousLineup?: SeasonLineup | null;
   /** Raised while the grid editor is open, so the page can hide the way forward. */
   readonly onGridEditingChange?: (editing: boolean) => void;
 }
@@ -418,6 +427,7 @@ function SeasonBody({
   onYearChange,
   onGridChange,
   onGridEditingChange,
+  previousLineup = null,
 }: SeasonViewProps) {
   const round =
     view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
@@ -452,6 +462,7 @@ function SeasonBody({
           ratingMode={world.ratingMode}
           lineup={world.lineup}
           engines={world.engines}
+          previousLineup={previousLineup}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           {...(onGridEditingChange === undefined ? {} : { onEditingChange: onGridEditingChange })}
         />

@@ -32,6 +32,11 @@ export {
   type RatingMode,
 } from "./buildField.js";
 export {
+  CARRY_OVER_AGES,
+  type CarryOverOptions,
+  carryOverLineup,
+} from "./carryOver.js";
+export {
   applyEngines,
   authoredEngines,
   availableEngines,
@@ -43,15 +48,25 @@ export {
 } from "./engines.js";
 export { eraAt, teamIdentityIn, teamLiveryIn } from "./eras.js";
 export {
+  applyDraft,
   applyLineup,
   authoredLineup,
+  type DraftSeat,
+  driverAt,
+  emptySeats,
+  exchangePicks,
+  filledLineup,
+  type GridPick,
   isAuthoredLineup,
+  type LineupDraft,
   lineupChanges,
   reserveDrivers,
   type SeasonLineup,
   type SeatChange,
+  type SeatRef,
   seatedDriverIds,
   seatOf,
+  seatRefOf,
   swapDrivers,
 } from "./lineup.js";
 export { carOverall, driverOverall } from "./rating.js";

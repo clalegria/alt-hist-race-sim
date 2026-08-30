@@ -10,11 +10,15 @@
 import {
   authoredLineup,
   type Driver,
+  driverAt,
   driversById,
+  emptySeats,
+  filledLineup,
+  type GridPick,
+  type LineupDraft,
   lineupChanges,
   type RatingMode,
   reserveDrivers,
-  type SeasonLineup,
   seatedDriverIds,
   seatOf,
   swapDrivers,
@@ -34,7 +38,7 @@ import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
-import { GridStage, pickUp, ReserveList } from "./GridStage.js";
+import { GridStage, pickUp, previewField, ReserveList } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
 import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
@@ -73,6 +77,10 @@ if (FIRST_ENTRY === undefined || FREE === undefined || ALSO_FREE === undefined) 
 }
 const RESERVE = FREE.id;
 const SEATED_TEAM = FIRST_ENTRY.teamId;
+const OTHER_TEAM = SECOND_ENTRY?.teamId ?? "";
+
+/** A driver, as the editor holds one. The other kind of pick is a seat. */
+const held = (driverId: string): GridPick => ({ kind: "driver", driverId });
 /** How that team is named on the grid now that the engine is part of it. */
 const ENTRY_NAME = entryName(SEATED_TEAM, FIRST_ENTRY.engineId);
 
@@ -179,7 +187,7 @@ describe("the grid once a lineup is applied", () => {
 
 describe("the grid in edit mode", () => {
   const editing = {
-    selectedDriverId: SEATED,
+    selected: { kind: "driver", driverId: SEATED } as const,
     onSelect: () => {},
     engineIds: SEED.engines.map((engine) => engine.engineId),
     onEngineChange: () => {},
@@ -530,20 +538,26 @@ describe("counting the changes", () => {
 
 describe("selecting drivers to swap", () => {
   it("picks a driver up, and puts them down again on a second press", () => {
-    expect(pickUp(authored, null, SEATED)).toEqual({ lineup: authored, selected: SEATED });
-    expect(pickUp(authored, SEATED, SEATED)).toEqual({ lineup: authored, selected: null });
+    expect(pickUp(authored, null, held(SEATED))).toEqual({
+      lineup: authored,
+      selected: held(SEATED),
+    });
+    expect(pickUp(authored, held(SEATED), held(SEATED))).toEqual({
+      lineup: authored,
+      selected: null,
+    });
   });
 
   it("swaps a held driver with the seat that is chosen next", () => {
-    const result = pickUp(authored, SEATED, ELSEWHERE);
+    const result = pickUp(authored, held(SEATED), held(ELSEWHERE));
     expect(result.selected).toBeNull();
     expect(seatOf(result.lineup, SEATED)).toBe(seatOf(authored, ELSEWHERE));
     expect(seatOf(result.lineup, ELSEWHERE)).toBe(SEATED_TEAM);
   });
 
   it("gives a seat to a driver who had none, whichever end was held first", () => {
-    const fromSeat = pickUp(authored, SEATED, RESERVE);
-    const fromPool = pickUp(authored, RESERVE, SEATED);
+    const fromSeat = pickUp(authored, held(SEATED), held(RESERVE));
+    const fromPool = pickUp(authored, held(RESERVE), held(SEATED));
     expect(fromSeat).toEqual(fromPool);
     expect(seatOf(fromSeat.lineup, RESERVE)).toBe(SEATED_TEAM);
     expect(seatOf(fromSeat.lineup, SEATED)).toBeNull();
@@ -552,13 +566,13 @@ describe("selecting drivers to swap", () => {
   it("moves the selection rather than failing when neither driver has a seat", () => {
     // Two reserves is not a swap, and a press that visibly did nothing would
     // read as a bug.
-    const result = pickUp(authored, RESERVE, ALSO_FREE.id);
-    expect(result).toEqual({ lineup: authored, selected: ALSO_FREE.id });
+    const result = pickUp(authored, held(RESERVE), held(ALSO_FREE.id));
+    expect(result).toEqual({ lineup: authored, selected: held(ALSO_FREE.id) });
   });
 
   it("never changes the size of the field, whatever it is handed", () => {
-    let lineup: SeasonLineup = authored;
-    let selected: string | null = null;
+    let lineup: LineupDraft = authored;
+    let selected: GridPick | null = null;
     for (const driverId of [
       SEATED,
       RESERVE,
@@ -568,12 +582,90 @@ describe("selecting drivers to swap", () => {
       TEAM_MATE,
       SEATED,
     ]) {
-      const result = pickUp(lineup, selected, driverId);
+      const result = pickUp(lineup, selected, held(driverId));
       lineup = result.lineup;
       selected = result.selected;
       expect(seatedDriverIds(lineup)).toHaveLength(SEATS);
       expect(new Set(seatedDriverIds(lineup)).size).toBe(SEATS);
     }
+  });
+});
+
+/**
+ * The car nobody is in.
+ *
+ * It arrives with the carry-over, which pulls drivers back to last year's teams
+ * and leaves whatever they were driving this year empty — swapping cannot make
+ * one, which is why the fixture below is written out rather than clicked into
+ * existence. It is the one state the editor can reach that cannot be applied,
+ * so what is checked here is that it is drawn, that it says so, and that
+ * filling it closes it again.
+ */
+describe("an empty seat", () => {
+  /** The authored grid with the lead car of the first entry left open. */
+  const vacated: LineupDraft = {
+    ...authored,
+    [SEATED_TEAM]: [null, ...(authored[SEATED_TEAM] ?? []).slice(1)],
+  };
+  const seat: GridPick = { kind: "seat", teamId: SEATED_TEAM, seat: 0 };
+
+  it("holds nobody, and leaves its driver without a drive", () => {
+    expect(driverAt(vacated, { teamId: SEATED_TEAM, seat: 0 })).toBeNull();
+    expect(seatOf(vacated, SEATED)).toBeNull();
+    expect(emptySeats(vacated)).toEqual([{ teamId: SEATED_TEAM, seat: 0 }]);
+  });
+
+  it("keeps every team the number of cars it entered", () => {
+    for (const entry of SEED.entries) {
+      expect(vacated[entry.teamId], entry.teamId).toHaveLength(entry.drivers.length);
+    }
+  });
+
+  it("cannot be applied while it is open, and can be once it is filled", () => {
+    expect(filledLineup(vacated)).toBeNull();
+    const filled = pickUp(vacated, seat, held(RESERVE)).lineup;
+    expect(emptySeats(filled)).toHaveLength(0);
+    expect(filledLineup(filled)).not.toBeNull();
+    expect(seatOf(filled, RESERVE)).toBe(SEATED_TEAM);
+  });
+
+  it("takes a driver out of another car, leaving that one open instead", () => {
+    // The seat count never moves: filling one hole by moving a seated driver
+    // opens the hole they came from.
+    const moved = pickUp(vacated, seat, held(ELSEWHERE)).lineup;
+    expect(seatOf(moved, ELSEWHERE)).toBe(SEATED_TEAM);
+    expect(emptySeats(moved)).toEqual([{ teamId: OTHER_TEAM, seat: 0 }]);
+  });
+
+  it("is drawn as a seat to fill, and says how many are left", () => {
+    const html = renderToStaticMarkup(
+      <SeasonGrid
+        field={previewField(SEED, vacated, MODE)}
+        seasonYear={YEAR}
+        ratingMode={MODE}
+        openSeats={emptySeats(vacated).length}
+        edit={{
+          selected: null,
+          onSelect: () => {},
+          engineIds: SEED.engines.map((engine) => engine.engineId),
+          onEngineChange: () => {},
+        }}
+        changes={lineupChanges(SEED, vacated)}
+      />,
+    );
+    expect(html).toContain("Empty seat");
+    expect(html).toContain("1 empty seat");
+    // The team keeps its card, and the driver who left is named in the change
+    // list rather than silently dropped.
+    expect(html).toContain(ENTRY_NAME);
+    expect(html).toContain(escaped(`${driverName(SEATED)} out, seat empty`));
+  });
+
+  it("is not drawn outside the editor, where the world can never hold one", () => {
+    const html = renderToStaticMarkup(
+      <SeasonGrid field={previewField(SEED, vacated, MODE)} seasonYear={YEAR} ratingMode={MODE} />,
+    );
+    expect(html).not.toContain("Empty seat");
   });
 });
 

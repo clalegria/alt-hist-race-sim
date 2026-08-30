@@ -119,7 +119,7 @@ describe("the grid editor", () => {
 
 describe("the supplier picker", () => {
   const editing = {
-    selectedDriverId: null,
+    selected: null,
     onSelect: () => {},
     engineIds: availableEngines(SEED).map((engine) => engine.engineId),
     onEngineChange: () => {},

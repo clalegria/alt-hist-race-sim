@@ -1,25 +1,36 @@
 import {
+  applyDraft,
   applyEngines,
-  applyLineup,
   authoredEngines,
   authoredLineup,
   availableEngines,
   buildField,
+  carryOverLineup,
   type Driver,
   driverRatingsFor,
+  emptySeats,
   engineChanges,
+  exchangePicks,
+  filledLineup,
+  type GridPick,
   isAuthoredEngines,
   isAuthoredLineup,
+  type LineupDraft,
   lineupChanges,
   type RatingMode,
   reserveDrivers,
   type SeasonEngines,
   type SeasonLineup,
-  seatOf,
-  swapDrivers,
+  type SeasonSeed,
+  seatRefOf,
 } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
+import {
+  hasStoredDriverFilters,
+  readDriverFilters,
+  rememberDriverFilters,
+} from "../lib/filter-preference.js";
 import {
   AGE_RANGE,
   type DriverFilters,
@@ -28,11 +39,18 @@ import {
   withAge,
 } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
-import { seasonSeed } from "../lib/seasons.js";
+import { adjacentSeason, isPlayable, seasonSeed } from "../lib/seasons.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
-import { DriverLabel, type GridEditing, NAME_TARGET, Overall, SeasonGrid } from "./SeasonGrid.js";
+import {
+  DriverLabel,
+  EMPTY_SEAT,
+  type GridEditing,
+  NAME_TARGET,
+  Overall,
+  SeasonGrid,
+} from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
 import { Button } from "./ui/button.js";
 import { Input } from "./ui/input.js";
@@ -292,33 +310,118 @@ export function ReserveList({
   );
 }
 
+/** Whether two picks name the same thing. */
+function samePick(a: GridPick, b: GridPick): boolean {
+  if (a.kind === "driver" && b.kind === "driver") {
+    return a.driverId === b.driverId;
+  }
+  if (a.kind === "seat" && b.kind === "seat") {
+    return a.teamId === b.teamId && a.seat === b.seat;
+  }
+  return false;
+}
+
+/** Whether a pick has a seat to write back to — a reserve driver does not. */
+function holdsASeat(lineup: LineupDraft, pick: GridPick): boolean {
+  return pick.kind === "seat" || seatRefOf(lineup, pick.driverId) !== null;
+}
+
 /**
- * What selecting a driver does, given who is already picked up.
+ * What selecting a driver — or an open seat — does, given what is already
+ * picked up.
  *
  * Pure, and exported, because it is the whole of the editing interaction and
  * the only part of it a DOM-less test can reach. Four cases:
  *
- * - nothing held: pick this driver up;
- * - the same driver again: put them down, unchanged;
- * - two drivers with no seat between them: no swap exists, so the second
- *   simply becomes the selection rather than doing nothing visible;
- * - otherwise: swap them, and start again with nothing held.
+ * - nothing held: pick this up;
+ * - the same thing again: put it down, unchanged;
+ * - two picks with no seat between them — two drivers out of the pool — have
+ *   nothing to exchange, so the second simply becomes the selection rather than
+ *   doing nothing visible;
+ * - otherwise: exchange them, and start again with nothing held.
+ *
+ * The seat cases fall out of the same four. A driver held and an open seat
+ * chosen moves them into it, leaving their old car empty if they had one; an
+ * open seat held and a name chosen fills it.
  */
 export function pickUp(
-  lineup: SeasonLineup,
-  selected: string | null,
-  driverId: string,
-): { readonly lineup: SeasonLineup; readonly selected: string | null } {
-  if (selected === driverId) {
+  lineup: LineupDraft,
+  selected: GridPick | null,
+  pick: GridPick,
+): { readonly lineup: LineupDraft; readonly selected: GridPick | null } {
+  if (selected !== null && samePick(selected, pick)) {
     return { lineup, selected: null };
   }
   if (selected === null) {
-    return { lineup, selected: driverId };
+    return { lineup, selected: pick };
   }
-  if (seatOf(lineup, selected) === null && seatOf(lineup, driverId) === null) {
-    return { lineup, selected: driverId };
+  if (!holdsASeat(lineup, selected) && !holdsASeat(lineup, pick)) {
+    return { lineup, selected: pick };
   }
-  return { lineup: swapDrivers(lineup, selected, driverId), selected: null };
+  return { lineup: exchangePicks(lineup, selected, pick), selected: null };
+}
+
+/**
+ * The draft grid as a field the page can draw, open seats included.
+ *
+ * `buildField` cannot make an entrant without a driver, and an all-but-empty
+ * team would otherwise vanish from the page the reader has to fill it in on. So
+ * the season is built without its open seats and they are spliced back in as
+ * placeholder entrants — the team's own chassis and engine, nobody driving —
+ * which is what lets every layer above this stay a plain function of a field.
+ *
+ * Nothing simulated can reach one: this field is drawn and thrown away, and the
+ * draft behind it cannot be applied while an open seat remains.
+ */
+export function previewField(
+  season: SeasonSeed,
+  draft: LineupDraft,
+  ratingMode: RatingMode,
+): readonly RaceEntrant[] {
+  const built = buildField(applyDraft(season, draft), undefined, ratingMode);
+  const seated = new Map<string, RaceEntrant[]>();
+  for (const entrant of built) {
+    const already = seated.get(entrant.teamId);
+    if (already === undefined) {
+      seated.set(entrant.teamId, [entrant]);
+    } else {
+      already.push(entrant);
+    }
+  }
+
+  const field: RaceEntrant[] = [];
+  for (const entry of season.entries) {
+    const taken = seated.get(entry.teamId) ?? [];
+    const engine = season.engines.find((spec) => spec.engineId === entry.engineId);
+    let next = 0;
+    for (const driverId of draft[entry.teamId] ?? entry.drivers) {
+      if (driverId === null) {
+        field.push({
+          driverId: EMPTY_SEAT,
+          teamId: entry.teamId,
+          driver: { racing: 0, qualifying: 0, consistency: 0, adaptability: 0, composure: 0 },
+          chassis: entry.chassis,
+          engineId: entry.engineId,
+          ...(engine === undefined
+            ? {}
+            : {
+                engine: {
+                  racing: engine.racing,
+                  qualifying: engine.qualifying,
+                  reliability: engine.reliability,
+                },
+              }),
+        });
+        continue;
+      }
+      const entrant = taken[next];
+      next += 1;
+      if (entrant !== undefined) {
+        field.push(entrant);
+      }
+    }
+  }
+  return field;
 }
 
 /** Both halves of an edit, applied together because they are one question. */
@@ -333,6 +436,7 @@ export function GridStage({
   ratingMode,
   lineup,
   engines,
+  previousLineup = null,
   onApply,
   onEditingChange,
 }: {
@@ -344,6 +448,15 @@ export function GridStage({
   lineup: SeasonLineup | null;
   /** The applied engine supply, or null for the deals the season was entered with. */
   engines: SeasonEngines | null;
+  /**
+   * The previous season's grid **as it was actually raced**, for the carry-over
+   * button — or null for the one that year was entered with.
+   *
+   * Inside an era the reader may have rewritten last year, and the grid they
+   * watched is what "last season" means to them. A standalone season has no
+   * year behind it, so it passes nothing and the button copies history.
+   */
+  previousLineup?: SeasonLineup | null;
   /** Absent in tests, where nothing is clicked. The controls still render. */
   onApply?: (edit: GridEdit) => void;
   /**
@@ -365,23 +478,35 @@ export function GridStage({
   // Null means "not editing": one flag fewer than a draft plus a boolean, and
   // it cannot get into the state where the editor is open with nothing to edit.
   // The two drafts open and close together, so one null answers for both.
-  const [draft, setDraft] = useState<SeasonLineup | null>(null);
+  const [draft, setDraft] = useState<LineupDraft | null>(null);
   const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  // How the pool is narrowed. View state like the draft, and deliberately *not*
-  // reset when the editor closes: a reader who set it once meant it.
-  const [filters, setFilters] = useState<DriverFilters>(() => defaultDriverFilters(ratingMode));
-  // The mode the filters above were opened for. Changing modes changes what the
-  // age range *means* — season age becomes peak age — and which career filters
-  // make sense, so the defaults are laid down again rather than carried across.
-  // A reader who had narrowed the pool by hand loses that, which is the right
-  // trade: the alternative is an untouched-looking panel filtering on the other
-  // mode's ages. Adjusting state during render is React's own pattern for this.
+  const [selected, setSelected] = useState<GridPick | null>(null);
+  // How the pool is narrowed. Held here so the panel stays controlled, but the
+  // answer is the reader's rather than this component's: `lib/filter-preference`
+  // remembers it, because the editor is re-mounted every time a grid is applied
+  // and setting the same four things again each visit is what this was.
+  const [filters, setFilters] = useState<DriverFilters>(() => readDriverFilters(ratingMode));
+  // The mode the filters above were opened for. It decides what the panel
+  // *opens* on — the two modes disagree about which career filters make sense —
+  // and that is all it decides: a set the reader chose is theirs, and switching
+  // to peak ratings to see the same people at their best must not quietly
+  // rewrite it. So the defaults are only re-laid while nothing has ever been
+  // stored, which is exactly when there is nothing to lose and when a first flip
+  // to `peak` should open on the field of all-time greats that mode is for.
+  // Adjusting state during render is React's own pattern for this.
   const [filtersMode, setFiltersMode] = useState<RatingMode>(ratingMode);
   if (filtersMode !== ratingMode) {
     setFiltersMode(ratingMode);
-    setFilters(defaultDriverFilters(ratingMode));
+    if (!hasStoredDriverFilters()) {
+      setFilters(defaultDriverFilters(ratingMode));
+    }
   }
+
+  /** Narrows the pool, and remembers it against the mode it was set in. */
+  const narrow = (next: DriverFilters): void => {
+    setFilters(next);
+    rememberDriverFilters(next);
+  };
   // How every list on the app is ordered — one shared, session-remembered
   // choice, not one per switch. Both switches stay on screen, because they are
   // still where a reader reaches for the order; what changed is that they are
@@ -406,11 +531,25 @@ export function GridStage({
     if (draft === null && engineDraft === null) {
       return field;
     }
-    const withDrivers = draft === null ? season : applyLineup(season, draft);
-    const entered = engineDraft === null ? withDrivers : applyEngines(withDrivers, engineDraft);
-    return buildField(entered, undefined, ratingMode);
-  }, [draft, engineDraft, field, season, ratingMode]);
+    const entered = engineDraft === null ? season : applyEngines(season, engineDraft);
+    return previewField(entered, draft ?? applied, ratingMode);
+  }, [draft, engineDraft, field, season, applied, ratingMode]);
   const reserve = useMemo(() => reserveDrivers(shown), [shown]);
+  /** The open seats, and therefore whether this grid can be applied at all. */
+  const open = useMemo(() => emptySeats(shown), [shown]);
+
+  /**
+   * The season to copy from: the playable year before this one, or null at the
+   * start of the authored range, where the button is not drawn.
+   *
+   * The *playable* one rather than `year - 1`, so a gap in the seed data is
+   * skipped rather than offering a year `seasonSeed` would throw on.
+   */
+  const previousYear = useMemo(() => adjacentSeason(year, -1), [year]);
+  const previous = useMemo(
+    () => (previousYear === null || !isPlayable(previousYear) ? null : seasonSeed(previousYear)),
+    [previousYear],
+  );
 
   const startEditing = (): void => {
     setDraft(applied);
@@ -426,13 +565,30 @@ export function GridStage({
     onEditingChange?.(false);
   };
 
-  const select = (driverId: string): void => {
+  const select = (pick: GridPick): void => {
     if (draft === null) {
       return;
     }
-    const next = pickUp(draft, selected, driverId);
+    const next = pickUp(draft, selected, pick);
     setDraft(next.lineup);
     setSelected(next.selected);
+  };
+
+  /**
+   * Last season's drivers, over this one.
+   *
+   * Over the *draft* rather than the applied grid, so it composes with whatever
+   * the reader has already changed rather than throwing it away — and so the
+   * button can be pressed twice without meaning something different the second
+   * time. Whatever is held is put down first: a selection pointing at a seat
+   * the copy has just refilled no longer means anything.
+   */
+  const copyPreviousGrid = (): void => {
+    if (draft === null || previous === null) {
+      return;
+    }
+    setDraft(carryOverLineup(season, previous, draft, { previousLineup, mode: ratingMode }));
+    setSelected(null);
   };
 
   const chooseEngine = (teamId: string, engineId: string): void => {
@@ -443,7 +599,7 @@ export function GridStage({
     draft === null
       ? undefined
       : {
-          selectedDriverId: selected,
+          selected,
           onSelect: select,
           engineIds,
           onEngineChange: chooseEngine,
@@ -457,9 +613,19 @@ export function GridStage({
     ) : (
       <>
         <Button
+          // A grid with a car nobody is driving is not a grid, so Apply is shut
+          // until every seat is filled. Disabled rather than hidden, and said
+          // out loud under the header: the reader is one name short of running
+          // the season, and a button that quietly vanished would read as the
+          // editor breaking.
+          disabled={open.length > 0}
           onClick={() => {
+            const filled = filledLineup(draft);
+            if (filled === null) {
+              return;
+            }
             onApply?.({
-              lineup: isAuthoredLineup(season, draft) ? null : draft,
+              lineup: isAuthoredLineup(season, filled) ? null : filled,
               engines:
                 engineDraft === null || isAuthoredEngines(season, engineDraft) ? null : engineDraft,
             });
@@ -468,6 +634,11 @@ export function GridStage({
         >
           Apply grid
         </Button>
+        {previous === null ? null : (
+          <Button variant="outline" onClick={copyPreviousGrid}>
+            Copy {previous.year} grid
+          </Button>
+        )}
         <Button
           variant="outline"
           disabled={untouched}
@@ -497,6 +668,7 @@ export function GridStage({
         seasonYear={year}
         changes={changes}
         engineChanges={supplyChanges}
+        openSeats={open.length}
         action={action}
         ratingMode={ratingMode}
         sort={sort}
@@ -511,10 +683,12 @@ export function GridStage({
             drivers={reserve}
             seasonYear={year}
             ratingMode={ratingMode}
-            selectedDriverId={selected}
-            onSelect={select}
+            selectedDriverId={selected?.kind === "driver" ? selected.driverId : null}
+            onSelect={(driverId) => {
+              select({ kind: "driver", driverId });
+            }}
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={narrow}
             sort={sort}
             onSortChange={setSort}
           />

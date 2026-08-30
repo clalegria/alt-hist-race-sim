@@ -70,6 +70,34 @@ architecture underneath all three, including why the draft lives where it does, 
   can invent a supplier either. A native `select` rather than a styled listbox: it is a
   plain one-of-N from a short list, and the platform control is keyboard- and
   screen-reader-correct for free.
+- **`Copy <year> grid` puts last season's drivers over this one**, and is the reason
+  the editor has an empty-seat state at all. It reads the *previous playable* season —
+  `adjacentSeason(year, -1)`, so a gap in the seed data is skipped — and is not drawn
+  at the start of the authored range. The rules live in `packages/data/src/carryOver.ts`;
+  what belongs here is where it reads from and what it does to the draft:
+  - Inside an **era** it copies the grid the reader actually raced, not the seed file:
+    `App.tsx` finds last year in `run.seasons` and passes its `lineup` down through
+    `SeasonView` as `previousLineup`. A standalone season passes null and gets history,
+    which is the only version of last year it has.
+  - It composes onto the **draft**, not the applied grid, so it can be pressed after
+    other changes and twice in a row without meaning something different the second
+    time. Whatever is held is put down first.
+- **A seat can be empty, but only mid-edit.** Carrying drivers back to last year's
+  teams leaves the cars they were in this year with nobody in them, and there is no
+  sensible automatic answer to "who drives it" — so the reader is asked. An empty seat
+  is a `GridPick` like a driver is: select it, then a name. `Apply grid` is **disabled**
+  while one is open, and a notice at the top of the card counts them; disabled rather
+  than hidden, because a button that vanished would read as the editor breaking.
+  Swapping can never *create* one — both ends of a swap name somebody — which is why
+  the fixture in `grid-editor.test.tsx` writes one out rather than clicking it into
+  existence.
+  - `buildField` cannot make an entrant with no driver, so **`previewField` in
+    `GridStage` splices placeholder entrants in**: the team's own chassis and engine,
+    the `EMPTY_SEAT` sentinel as the driver id, zeroed ratings. That is what keeps
+    `SeasonGrid` a plain function of a field — otherwise a team whose every seat was
+    open would vanish from the page the reader has to fill it in on. Nothing simulated
+    ever sees one: the field is drawn and thrown away, and the draft behind it cannot
+    be applied.
 - **An edited grid says so, in the same muted dashed frame everywhere.** Deliberately
   *not* the `lib/highlight.ts` accent: "the grid was changed" is a caveat on a result,
   not something that was won, and borrowing the accent would also break the test that

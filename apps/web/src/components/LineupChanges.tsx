@@ -21,6 +21,12 @@ import { useTeamName } from "./EntryNames.js";
  * "Nigel Mansell for Alan Jones" instead of two unrelated lists. An engine
  * change pairs the same way by construction: a car has exactly one engine, so
  * fitting one always means removing another.
+ *
+ * The one place the pairing runs out is a grid still being edited, where a
+ * driver can have left a car nobody has been put in yet. That reads as "Alan
+ * Jones out, seat empty" — a departure with nothing opposite it — and it cannot
+ * survive into an applied season, because a grid with an open seat cannot be
+ * applied.
  */
 
 /** "3 changes", or "1 change" — seats and engines counted together. */
@@ -28,7 +34,12 @@ export function changeCount(
   changes: readonly SeatChange[],
   engineChanges: readonly EngineChange[] = [],
 ): string {
-  const seats = changes.reduce((total, change) => total + change.in.length, 0);
+  // The longer of the two sides, so a departure nobody has replaced still
+  // counts as the change it is.
+  const seats = changes.reduce(
+    (total, change) => total + Math.max(change.in.length, change.out.length),
+    0,
+  );
   const total = seats + engineChanges.length;
   return `${total} change${total === 1 ? "" : "s"}`;
 }
@@ -59,10 +70,16 @@ export function GridChanges({
         const said = [
           ...(seats === undefined
             ? []
-            : seats.in.map(
-                (driverId, seat) =>
-                  `${driverName(driverId)} for ${driverName(seats.out[seat] ?? "")}`,
-              )),
+            : Array.from({ length: Math.max(seats.in.length, seats.out.length) }, (_, seat) => {
+                const arrived = seats.in[seat];
+                const left = seats.out[seat];
+                if (arrived === undefined) {
+                  return `${driverName(left ?? "")} out, seat empty`;
+                }
+                return left === undefined
+                  ? `${driverName(arrived)} in`
+                  : `${driverName(arrived)} for ${driverName(left)}`;
+              })),
           ...(engine === undefined
             ? []
             : [`${engineName(engine.to)} engine for ${engineName(engine.from)}`]),

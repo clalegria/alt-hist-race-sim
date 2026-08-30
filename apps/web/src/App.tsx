@@ -8,7 +8,7 @@ import { ThemeToggle } from "./components/ThemeToggle.js";
 import { Button } from "./components/ui/button.js";
 import { YearPicker } from "./components/YearPicker.js";
 import type { ModeId } from "./lib/modes.js";
-import { isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
+import { adjacentSeason, isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
 import { type EraRun, useSeasonStore, type View, type World } from "./store/season.js";
 
 /**
@@ -304,6 +304,15 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
 
   const inEra = run !== undefined;
   const rounds = world.season.races.length;
+  // The grid the reader actually watched last year, for the editor's carry-over
+  // button — the era's own history rather than the seed file's, since inside an
+  // era last season may itself have been rewritten. A standalone season has no
+  // year behind it and gets null, which the editor reads as "copy history".
+  const previousYear = adjacentSeason(world.year, -1);
+  const previousLineup =
+    previousYear === null
+      ? null
+      : (run?.seasons.find((season) => season.year === previousYear)?.lineup ?? null);
   const actionProps: SeasonActions = {
     view,
     rounds,
@@ -354,6 +363,7 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
           // handler is not passed either — the store would refuse it anyway, and
           // wiring a control that cannot fire is how one comes back by accident.
           canChooseAbility={run === undefined}
+          previousLineup={previousLineup}
           {...(run === undefined
             ? { onRatingModeChange: setRatingMode, onYearChange: switchSeasonYear }
             : {})}

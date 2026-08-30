@@ -3,6 +3,7 @@ paths:
   - "apps/web/src/lib/people.ts"
   - "apps/web/src/lib/sort.ts"
   - "apps/web/src/lib/sort-preference.ts"
+  - "apps/web/src/lib/filter-preference.ts"
   - "apps/web/src/components/SortToggle.tsx"
   - "apps/web/src/components/GridStage.tsx"
   - "apps/web/src/components/SeasonGrid.tsx"
@@ -73,20 +74,39 @@ and its editor; both load together in `src/components/`.
   the drivers who were actually around that year, and **off** in `peak` mode, because a
   grid built from authored peaks is already out of time and enforcing a chronology the
   mode has set aside is the app arguing with itself. They stay on the panel and still
-  work, so "the drivers of 1980, at their best" is one click away. Switching mode lays
-  the defaults down again rather than carrying the old ones across: the age range means
-  a different thing on the other side, and an untouched-looking panel filtering on the
-  wrong scale is worse than losing a hand-set range.
+  work, so "the drivers of 1980, at their best" is one click away. **That is all the
+  mode decides**, and only until the reader has answered for themselves: switching mode
+  never touches a set they set by hand. It used to lay the defaults down again on every
+  switch, on the argument that the age range means a different thing on either side —
+  which does not survive contact with a reader who has just narrowed the pool and
+  flipped to peak to see the same people at their best. What is left of that argument is
+  one line: while nothing has ever been stored, a mode switch re-lays the new mode's
+  defaults, so a first flip to `peak` still opens on the field of all-time greats the
+  mode exists for rather than on 1980's entry list.
+  **The set is remembered**, in `lib/filter-preference.ts`, and there is one of it. The
+  editor is re-mounted every time a grid is applied — an applied grid re-simulates the
+  year — so filters that lived only in component state were filters set again on every
+  single visit, and widening the range to reach a driver from another decade is four
+  interactions. `localStorage`, not the session, and that is the split from
+  `sort-preference.ts` beside it — an order is a way of reading one list, but how wide
+  the pool is opened is a standing answer to which drivers someone is playing with,
+  closer in kind to the ability mode. A stored set cannot strand anyone: the panel is on
+  screen with the values in it and the list states both counts. Reading falls back
+  **field by field**, so adding a fourth filter later does not throw away every set
+  already stored, and the ages come back clamped and put the right way round.
   Without the age band, a pool spanning 1950 to 2026 is a list nobody can use. Casting a
   driver in a car they never raced is still the premise of the app; the filters are
   three clicks from off and nothing they hide is barred from a seat.
-  Two rules keep the filters from producing a dead end. **Nobody the season actually
-  entered is ever hidden**, so a driver dropped from the grid can always be put back —
-  without it, swapping out a 43-year-old with the range ending at 42 makes them
-  unreachable. **Neither is whoever is selected.** And the panel always states both
-  counts ("18 of 23 in the pool"), because a list that quietly shrinks reads as an app
-  that lost half its drivers. An empty result says so in words rather than showing a
-  blank panel.
+  One rule keeps the filters from producing a dead end: **whoever is selected is never
+  hidden**, because a driver being held has to stay on screen to be put down again. That
+  is the *only* exemption — `keep` in `filterDrivers` holds the selection and nothing
+  else. A driver the season entered is **not** exempt: losing a seat puts them in the
+  pool on the same terms as everyone else, and a list that quietly excused some of its
+  rows would be a list whose counts lie. Reaching such a driver again is the same move
+  as reaching anyone else the filters hide — widen the filters — which is why the panel
+  always states both counts ("18 of 23 in the pool"): a list that silently shrinks reads
+  as an app that lost half its drivers. An empty result says so in words rather than
+  showing a blank panel.
   The filters are **controlled** — held in `GridStage` beside the lineup draft, passed
   down — for the reason everything in the editor is: a DOM-less test can then render any
   state the list can be narrowed to. The rules themselves are pure functions in

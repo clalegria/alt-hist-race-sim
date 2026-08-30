@@ -2,6 +2,7 @@
 paths:
   - "packages/data/src/buildField.ts"
   - "packages/data/src/lineup.ts"
+  - "packages/data/src/carryOver.ts"
   - "packages/data/src/engines.ts"
   - "packages/data/src/rating.ts"
 ---
@@ -61,13 +62,40 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`
   that `buildField` consumes unchanged. It lives here because it is a transformation
   of seed data, and because the driver market will want the same shape.
-  - **Only swaps are representable.** `swapDrivers(lineup, a, b)` preserves every
-    team's seat count and therefore the size of the field — which is what the
-    starting limit and the DNQ arithmetic are calibrated against. It requires at
-    least one of the two to hold a seat and throws otherwise; a driver swapped with
-    themselves is a no-op. `applyLineup` re-validates rather than trusting, because a
-    lineup can arrive from a save file.
+  - **Seat counts are never representable as changing.** `exchangePicks(lineup, a, b)`
+    is the one primitive: whatever `a` holds goes to `b`'s seat and whatever `b` holds
+    goes to `a`'s, so every operation preserves each team's seat count and therefore
+    the size of the field — which is what the starting limit and the DNQ arithmetic
+    are calibrated against. `swapDrivers(lineup, a, b)` is its driver-only face, kept
+    because most callers only ever move people: it requires one of the two to hold a
+    seat and throws otherwise, and a driver swapped with themselves is a no-op.
+    `applyLineup` re-validates rather than trusting, because a lineup can arrive from
+    a save file.
+  - **Two shapes, and the difference is load-bearing.** A `SeasonLineup` has a driver
+    in every seat and is what a world is run on and saved with; a `LineupDraft` may
+    hold a `null` — a seat nobody is in yet — and only the editor produces one.
+    A `SeasonLineup` *is* a `LineupDraft` structurally, so there is one of each
+    function rather than two. **`filledLineup(draft)` is the single gate**: it returns
+    a `SeasonLineup` or `null`, so a grid with a hole cannot be applied and no caller
+    has to remember to check. `applyDraft` exists only to build a *preview* of a draft
+    (open seats simply not entered) and must never stand in for `applyLineup`, whose
+    exact seat-count check is what catches a save file that shrank.
+  - A seat is addressed by `SeatRef` (`teamId` + zero-based `seat`); a `GridPick` is
+    either a driver or a seat, which is what lets the editor hold an empty one.
+    `emptySeats`, `driverAt` and `seatRefOf` read them back.
   - `authoredLineup`, `isAuthoredLineup`, `reserveDrivers` (alphabetical, everyone in
-    the pool without a seat) and `lineupChanges` round it out. A `SeatChange` always
-    has `in.length === out.length` — seats are preserved, so every arrival displaced
-    someone — and the UI relies on it to print "X for Y".
+    the pool without a seat) and `lineupChanges` round it out. A `SeatChange` has
+    `in.length === out.length` on any *applied* grid — seats are preserved, so every
+    arrival displaced someone — and the UI relies on it to print "X for Y". Mid-edit
+    it can carry an `open` count and a longer `out`, which prints "Y out, seat empty".
+- `carryOver.ts` is the editor's one bulk operation: **last season's drivers over this
+  season's grid**. Teams, seat counts and engines are untouched — it moves people and
+  nothing else — and a rename is invisible by construction, because a team is its id.
+  The rule, per driver, is (1) their seat last season if this season has that team,
+  (2) a car at the team they already drive for, (3) nothing. Nobody holds two seats, so
+  (1) beating (2) is what makes cars fall vacant, and those holes are the point: the
+  reader has to say who drives them before the grid can be applied. A team that lost a
+  car carries over the strongest of last year's drivers by `driverOverall`; one that
+  gained a car fills the rest under (2). `CARRY_OVER_AGES` (16–55, read against real
+  age in the season, never peak age) is the one judgement in the file — a driver
+  outside it is not carried, and is not barred from being placed by hand.
