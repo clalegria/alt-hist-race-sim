@@ -12,22 +12,25 @@ rest are what happens to it:
    `0.5/0.5` on reliability, blended once per entrant by `powertrain()` before anything
    is scored. Consistency is the chassis alone. Everything below reads *that* car,
    never `entrant.chassis`.
-1. **Qualifying** — `0.72·car + 0.28·driver + home − consistencyPenalty + noise`, sorted
+1. **Qualifying** — `0.64·car + 0.36·driver + home − consistencyPenalty + noise`, sorted
    → grid. The whole entry list runs, however big it is.
 2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.
    Anyone slower keeps their grid position but is a **DNQ**: `started: false`,
    `raceScore: null`, and *not* a retirement. `retirements` and `classifiedCount`
    count starters only; `nonQualifiers` counts the rest. A field at or under the
    limit is unaffected, so this is inert rather than something to switch off.
-3. **Race** — `0.70·car + 0.30·driver + gridBonus + home − consistencyPenalty + noise`,
+3. **Race** — `0.62·car + 0.38·driver + gridBonus + home − consistencyPenalty + noise`,
    sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
 4. **DNFs** — two rolls per car: mechanical (from car reliability) and driver error
    (from composure). Both always rolled; mechanical takes precedence when recording the
    cause. Driver error is independent; **the mechanical roll is correlated between two
    cars of the same team** — see "Noise and retirements are team-shaped" below.
 
-The car is weighted far above the driver on purpose: a great driver in a poor car
-should be a points-scorer, not a winner. `mechanicalDnfEraScale` (default 1.0 = 1980)
+The car is weighted above the driver on purpose: a great driver in a poor car should be
+a points-scorer, not a winner. The driver's share **rose from 0.30 to 0.38** (and 0.28 to
+0.36 in qualifying) to stop weak teammates beating strong ones too often — the cost is
+that it changes what a rating means, so the authored chassis ratings it was fitted
+against are now a slightly different claim; see `.claude/rules/calibration.md`. `mechanicalDnfEraScale` (default 1.0 = 1980)
 is the hook for reliability improving across decades, and **the per-year curve now
 exists**: every season file carries a 1-10 `retirementFactor`, which scales this *and*
 the driver-error endpoints — see `retirement.ts` and
@@ -42,7 +45,7 @@ scored exactly as it was before home advantage existed.
 ## Noise and retirements are team-shaped
 
 Both `noise` terms above are split on two independent axes at once: `weekendFormShare`
-(0.5) decides how much carries from Saturday to Sunday, `teamFormShare` (0.75) how much
+(0.5) decides how much carries from Saturday to Sunday, `teamFormShare` (0.85) how much
 belongs to the **team** rather than to the individual car. Crossing them gives four draws
 per session — team form for the weekend, car form for the weekend, team luck on the day,
 car luck on the day — weighted by the square roots of the four products, so each session's
@@ -55,12 +58,19 @@ which is what the calibration measured, is untouched. `teamFormBoost` (1 by defa
 the randomness slider's lever on the team half alone.
 
 The mechanical DNF roll is correlated within a team the same way:
-`mechanicalDnfTeamCorrelation` (0.3) mixes a shared per-team fragility draw with the car's
+`mechanicalDnfTeamCorrelation` (0.5) mixes a shared per-team fragility draw with the car's
 own, then passes the result through the normal CDF so it is still uniform. Each car's
 failure *rate* is therefore exactly what its reliability says, and only the pairing
 changes — which is what leaves every season's fitted `retirementFactor` describing the
 same total number of retirements. Why these exist and what they were worth is
 `.claude/rules/race-constants.md`.
+
+**Consistency modulates each axis from the rating that owns it.** The team's terms are
+scaled by the *car's* consistency, so both sides of a garage get the same number and the
+team half cancels exactly out of a teammate comparison; the entry's own terms are scaled
+by the *driver's*. One blended multiplier over everything — which is what this did at
+first — leaks the driver's consistency into the team's weekend and quietly gives two
+teammates different team form.
 
 **Team draws are taken lazily**, at the first car of each team in field order, so
 appending an entrant cannot shift anyone already in the field along the RNG stream. A team

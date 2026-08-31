@@ -7,7 +7,7 @@ paths:
 
 # Calibration
 
-> **⚠ THESE TABLES ARE STALE, for three reasons now.**
+> **⚠ THESE TABLES ARE STALE, for four reasons now.**
 >
 > **The powertrain blend moved.** Every figure below was measured with the car blended
 > `0.8 · chassis + 0.2 · engine` on all three attributes. The weights have since moved to
@@ -26,6 +26,11 @@ paths:
 >
 > **And they were measured in `peak` mode**, which the section below now forbids for
 > producing any figure.
+>
+> **And the car/driver weights have since moved too** — the driver's share went from 0.30
+> to 0.38 in the race and 0.28 to 0.36 in qualifying, to stop weak teammates beating
+> strong ones too often. That is the plainest "changes what a rating means" case there
+> is: every chassis figure below was fitted when the car carried 0.70.
 >
 > A re-tune is needed and **has not been run** — it needs the author's word. Do not treat
 > any number here as current, and do not re-measure to find out how far off it is.
@@ -64,7 +69,7 @@ older tables below on their own terms, not for producing a new figure.
 all 77 years in `aged`, mean absolute error 1.39 points, worst 3.58.
 
 **Every figure in the tables below predates this and was measured in `peak`**, which is
-the third reason they are stale. Do not compare a fresh `aged` run against them.
+one of the four reasons they are stale. Do not compare a fresh `aged` run against them.
 
 **They also describe a race with no host country.** `pnpm calibrate` and the tuner both
 run `simulateRace` with no `RoundContext`, so all three shares of home advantage —

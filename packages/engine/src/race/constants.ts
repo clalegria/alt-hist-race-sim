@@ -364,10 +364,10 @@ export interface RaceConstants {
  * swamping the car.
  */
 export const RACE_CONSTANTS: RaceConstants = Object.freeze({
-  weightCarQualifying: 0.72,
-  weightDriverQualifying: 0.28,
-  weightCarRacing: 0.7,
-  weightDriverRacing: 0.3,
+  weightCarQualifying: 0.64,
+  weightDriverQualifying: 0.36,
+  weightCarRacing: 0.62,
+  weightDriverRacing: 0.38,
 
   weightChassisPerformance: 0.7,
   weightEnginePerformance: 0.3,
@@ -388,7 +388,7 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   consistencyPacePenaltyAtHundred: 0.0,
 
   weekendFormShare: 0.5,
-  teamFormShare: 0.75,
+  teamFormShare: 0.85,
   teamFormBoost: 1.0,
 
   maxStarters: 26,
@@ -403,7 +403,7 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   mechanicalDnfAtZeroReliability: 0.75,
   mechanicalDnfAtFullReliability: 0.12,
 
-  mechanicalDnfTeamCorrelation: 0.3,
+  mechanicalDnfTeamCorrelation: 0.5,
 
   driverErrorDnfAtZeroComposure: 0.3,
   driverErrorDnfAtFullComposure: 0.03,

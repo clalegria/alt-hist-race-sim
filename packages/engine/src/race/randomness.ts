@@ -75,9 +75,9 @@ export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 2;
 const NOISE_SCALE: Readonly<Record<RandomnessLevel, number>> = Object.freeze({
   1: 0.85,
   2: 1.0,
-  3: 1.5,
-  4: 2.1,
-  5: 3.0,
+  3: 1.25,
+  4: 1.65,
+  5: 2.5,
 });
 
 /**

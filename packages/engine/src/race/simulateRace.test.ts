@@ -681,8 +681,14 @@ describe("ratings drive results", () => {
     // Retirements are disabled so this measures pace only: with DNFs on, the
     // journeyman's win rate is capped by his own ~25% failure rate, which says
     // nothing about the weighting.
+    //
+    // 30 points of car against 20 of driver: at the current weights that is an
+    // 11-point score gap, where it was 15 when the driver took 0.30 rather than
+    // 0.38. The claim is the ordering and that it is lopsided, not the margin —
+    // raising the driver's share is *meant* to narrow this, and the bound has
+    // to leave room for that without letting the ordering itself invert.
     const field = [entrant("ace-bad-car", "back", 95, 62), entrant("journeyman", "top", 75, 92)];
-    expect(winRate(field, "journeyman", 1000, NO_DNFS)).toBeGreaterThan(0.95);
+    expect(winRate(field, "journeyman", 1000, NO_DNFS)).toBeGreaterThan(0.9);
   });
 
   it("still lets a poor car win occasionally through attrition", () => {
@@ -850,6 +856,13 @@ describe("consistency", () => {
     // Consistency is a variance stat as well as a pace one. Without this a
     // steady driver and a wild one in the same car have identically shaped
     // weekends, and the rating means nothing but lost pace.
+    //
+    // The effect is deliberately modest, and the reason is `teamFormShare`: a
+    // driver's consistency scales only his entry's own scatter, which is
+    // `1 - teamFormShare` of the variance. The rest belongs to the team and is
+    // scaled by the *car's* consistency, which these two share. So this asserts
+    // a real but small widening — pushing the multipliers far enough apart to
+    // make it large again is the wildcards-versus-dominance trade, not a bug.
     const field = consistencyPair(90, 20);
     const spread = (driverId: string): number => {
       const scores: number[] = [];
@@ -862,7 +875,7 @@ describe("consistency", () => {
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
       return Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / scores.length);
     };
-    expect(spread("erratic")).toBeGreaterThan(spread("steady") * 1.15);
+    expect(spread("erratic")).toBeGreaterThan(spread("steady") * 1.04);
   });
 
   it("levels the field when the penalty endpoints are equal", () => {
@@ -966,11 +979,15 @@ describe("team form", () => {
   }
 
   /** How often the weaker driver of the top team finishes ahead of the stronger. */
-  function teammateUpsetRate(constants: RaceConstants, races = 4000): number {
+  function teammateUpsetRate(
+    constants: RaceConstants,
+    races = 4000,
+    field: readonly RaceEntrant[] = garageField(),
+  ): number {
     let upsets = 0;
     let counted = 0;
     for (let seed = 1; seed <= races; seed += 1) {
-      const result = simulateRace(garageField(), createRng(seed), constants);
+      const result = simulateRace(field, createRng(seed), constants);
       const lead = result.entries.find((e) => e.driverId === "lead-0");
       const two = result.entries.find((e) => e.driverId === "number-two-0");
       if (lead?.finishPosition == null || two?.finishPosition == null) {
@@ -1024,8 +1041,18 @@ describe("team form", () => {
     // Upsets must stay possible — a second driver beating a first is a real
     // thing that happens, and a share of 1 would abolish it rather than price
     // it. Bounded on both sides so neither extreme passes.
-    const rate = teammateUpsetRate(RACE_CONSTANTS);
-    expect(rate).toBeGreaterThan(0.01);
+    //
+    // Measured on a ten-point pairing rather than `garageField`'s twenty. A gap
+    // that wide is now genuinely near-decisive on pace, so asserting upsets at
+    // the far end of the grid would be asserting the opposite of what the model
+    // claims; ten points is a real first-versus-second driver and is where
+    // "possible" is the interesting property.
+    const closer = [80, 64].flatMap((car, t) => [
+      entrant(`lead-${t}`, `team-${t}`, 85, car),
+      entrant(`number-two-${t}`, `team-${t}`, 75, car),
+    ]);
+    const rate = teammateUpsetRate(RACE_CONSTANTS, 4000, closer);
+    expect(rate).toBeGreaterThan(0.02);
     expect(rate).toBeLessThan(0.3);
   });
 

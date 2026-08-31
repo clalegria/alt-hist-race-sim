@@ -114,7 +114,7 @@ pnpm tune          # rating tuner (prints proposals, writes nothing)
 - **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales the two
   noise sigmas, plus `teamFormBoost` at levels 4–5; `withRandomness(2)` — the default —
   returns the constants **unchanged**, so the calibration still describes them.
-- **Team form**: the share of session noise belonging to the *team* not the car (0.75),
+- **Team form**: the share of session noise belonging to the *team* not the car (0.85),
   crossed with **weekend form** (0.5), the share carrying Saturday into Sunday. Two axes,
   four draws. Team form cancels out of a teammate comparison — which is the point.
 - **Progression model**: the swappable seam between the two planned modes. Interface

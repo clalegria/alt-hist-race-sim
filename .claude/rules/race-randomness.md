@@ -12,9 +12,9 @@ Five levels, chosen once on the setup screen before anything is simulated:
 | ----- | ----------------- | ----------- |
 | 1 | Realistic | 0.85 |
 | 2 | Balanced (default) | **1.0** |
-| 3 | Exciting | 1.5 |
-| 4 | More exciting | 2.1 |
-| 5 | Chaotic | 3.0 |
+| 3 | Exciting | 1.25 |
+| 4 | More exciting | 1.65 |
+| 5 | Chaotic | 2.5 |
 
 **Level 2 returns `RACE_CONSTANTS` itself, by identity** — not a copy, not a copy
 multiplied by 1. That is what keeps everything measured in this file and in
@@ -24,8 +24,8 @@ numbers and the default season. **The other four levels are not calibrated again
 anything and are not meant to be.** Do not read a figure off a run at level 4 and
 "correct" a constant with it.
 
-**The upper three are steep on purpose, and the first attempt at them was not.** They
-started at 1.2 / 1.45 / 1.9 and chaotic did not feel chaotic: a season averages its noise
+**The upper three have been re-set twice.** They started at 1.2 / 1.45 / 1.9, which did
+not feel chaotic: a season averages its noise
 away over a dozen-odd rounds, so scatter that changes an afternoon barely moves who ends
 the year on top. Measured over 1980 and 2010, the favourite took the title 49% of the
 time at level 2 and still 39% at the old top setting. At 3.0 the favourite takes ~30%,

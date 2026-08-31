@@ -104,7 +104,10 @@ interface Runner {
   readonly carForm: number;
   /** Everything its team drew for the weekend, shared with the other side of the garage. */
   readonly team: TeamDraws;
-  readonly noiseScale: number;
+  /** Spread multiplier for the team's shared terms, from the car's consistency. */
+  readonly teamNoiseScale: number;
+  /** Spread multiplier for this entry's own terms, from the driver's consistency. */
+  readonly carNoiseScale: number;
   readonly pacePenalty: number;
   /** Rating points for racing at home, in both sessions. Usually 0. */
   readonly homeBonus: number;
@@ -206,16 +209,29 @@ export function simulateRace(
     // is read: the engine is part of what the car *is* for this weekend.
     const car = powertrain(entrant.chassis, entrant.engine, constants);
 
-    const consistency =
-      constants.weightCarConsistency * car.consistency +
-      constants.weightDriverConsistency * driver.consistency;
-    const noiseScale = lerpFromRating(
-      consistency,
+    // Consistency modulates the spread on both axes, but each half reads the
+    // rating that owns it. The team's form belongs to the car, so the *car's*
+    // consistency scales it and both sides of the garage get the same number —
+    // which is what makes the team terms cancel exactly out of a teammate
+    // comparison. The entry's own scatter belongs to whoever is driving it, so
+    // the *driver's* consistency scales that. Scaling everything by one blended
+    // figure, as this did before, quietly leaked the driver's consistency into
+    // the team's weekend and let two teammates experience different team form.
+    const teamNoiseScale = lerpFromRating(
+      car.consistency,
       constants.consistencyNoiseMultiplierAtZero,
       constants.consistencyNoiseMultiplierAtHundred,
     );
+    const carNoiseScale = lerpFromRating(
+      driver.consistency,
+      constants.consistencyNoiseMultiplierAtZero,
+      constants.consistencyNoiseMultiplierAtHundred,
+    );
+    // The pace penalty stays on the blend: it is a shift in the mean, owed
+    // jointly by an erratic driver and a car that will not repeat itself.
     const pacePenalty = lerpFromRating(
-      consistency,
+      constants.weightCarConsistency * car.consistency +
+        constants.weightDriverConsistency * driver.consistency,
       constants.consistencyPacePenaltyAtZero,
       constants.consistencyPacePenaltyAtHundred,
     );
@@ -227,11 +243,8 @@ export function simulateRace(
     const carForm = rng.gaussian();
     const qualifyingNoise =
       constants.qualifyingNoise *
-      noiseScale *
-      (teamWeekendWeight * team.form +
-        carWeekendWeight * carForm +
-        teamSessionWeight * team.qualifyingLuck +
-        carSessionWeight * rng.gaussian());
+      (teamNoiseScale * (teamWeekendWeight * team.form + teamSessionWeight * team.qualifyingLuck) +
+        carNoiseScale * (carWeekendWeight * carForm + carSessionWeight * rng.gaussian()));
 
     // Where the race is, not who is in it: the same number is added to both
     // sessions, so a home crowd is worth as much on Saturday as on Sunday.
@@ -242,7 +255,8 @@ export function simulateRace(
       car,
       carForm,
       team,
-      noiseScale,
+      teamNoiseScale,
+      carNoiseScale,
       pacePenalty,
       homeBonus,
       qualifyingScore:
@@ -284,11 +298,10 @@ export function simulateRace(
 
     const racingNoise =
       constants.racingNoise *
-      runner.noiseScale *
-      (teamWeekendWeight * runner.team.form +
-        carWeekendWeight * runner.carForm +
-        teamSessionWeight * runner.team.raceLuck +
-        carSessionWeight * rng.gaussian());
+      (runner.teamNoiseScale *
+        (teamWeekendWeight * runner.team.form + teamSessionWeight * runner.team.raceLuck) +
+        runner.carNoiseScale *
+          (carWeekendWeight * runner.carForm + carSessionWeight * rng.gaussian()));
 
     // A non-qualifier draws its noise and throws it away. Skipping the draw
     // would make every later car's stream position depend on who made the cut.

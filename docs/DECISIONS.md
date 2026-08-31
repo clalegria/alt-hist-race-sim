@@ -130,8 +130,22 @@ Landed. What they left open:
   measurement. Closing it back toward 1.0 buys stricter dominance and fewer wildcards.
   A middle option remains untried: stretch the bad tail *and* compress the good one,
   keeping some asymmetry while capping the ceiling.
+- **The driver's share of pace rose from 0.30 to 0.38 (2026-09-03), and the chassis
+  ratings have not been re-fitted.** It was raised to cut teammate upsets: measured across
+  all 77 seasons at the default level, a pairing 8-12 rating points apart went from 16.7%
+  to 11.0% of seasons where the weaker driver outscored the stronger, and 12+ from 6.5% to
+  3.8%. Everything else available had been exhausted first — the team-form share, the DNF
+  correlation — and together they were worth only about a fifth of that.
+
+  **The cost is real and measured.** On the 2026 grid, which is the only season fitted
+  against a real table, the worst points-share error went from 0.9 to 1.7: Red Bull gains
+  most (+1.7) because Verstappen's rating now carries more of the car, and Mercedes' win
+  share drops from 55.9% to 49.5% against a real 66.7%. A chassis re-fit that recovers it
+  exists and is measured (worst error 0.5) but has **not** been applied — it is the
+  author's call, and it would only fix 2026; the other 76 seasons were never fitted
+  against anything.
 - **Team form and the teammate DNF correlation are reasoned, not fitted.** `teamFormShare`
-  (0.75) and `mechanicalDnfTeamCorrelation` (0.3) were chosen from teammate head-to-head
+  (0.85) and `mechanicalDnfTeamCorrelation` (0.5) were chosen from teammate head-to-head
   records — Schumacher/Barrichello, Vettel/Webber, Senna/Prost — not from `pnpm calibrate`.
   Both are constructed to leave the field-wide spread and the retirement rate alone, and
   measurement confirmed the retirement rate is unmoved, so neither *should* need the

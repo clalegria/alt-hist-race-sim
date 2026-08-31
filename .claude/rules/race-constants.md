@@ -36,10 +36,18 @@ treating the current values as calibrated.
 
 ## Consistency is a pace stat *and* a variance stat
 
-Combined consistency (50/50 car and driver) does two things. It subtracts
-`consistencyPacePenalty`, interpolated 4.0 points at 0 down to 0 at 100, from *both*
-session scores; and it scales the spread of that session's noise, 1.3× at 0 down to
-0.75× at 100.
+Consistency does two things. It subtracts `consistencyPacePenalty` from *both* session
+scores, interpolated 4.0 points at 0 down to 0 at 100 off the **blend** (50/50 car and
+driver); and it scales the spread of that session's noise, 1.3× at 0 down to 0.75× at
+100, **each axis off the rating that owns it** — the team's terms off the car's
+consistency, the entry's own off the driver's. See `.claude/rules/race-engine.md`.
+
+**The spread half is worth much less than the endpoints suggest**, and that is a
+consequence of `teamFormShare` rather than of these numbers: a driver's consistency now
+scales only `1 - teamFormShare` of the variance, so at 0.85 a 90-consistency driver and a
+20-consistency one in identical cars differ in spread by about 7%, where the same pair
+differed by ~20% when one blended multiplier scaled everything. Widening these endpoints
+is the way to buy that back, at the usual price in wildcards.
 
 **The pace penalty was arrived at by measurement and has not moved.** Consistency
 originally scaled the spread *only*, which is mean-neutral and therefore not a handicap
@@ -78,7 +86,7 @@ drawn once and reused by both sessions. 0 restores independent sessions; 1 makes
 a deterministic function of qualifying (every race processional), so it is a bound, not a
 target.
 
-`teamFormShare` (0.75) says how much of it belongs to the **team** rather than the
+`teamFormShare` (0.85) says how much of it belongs to the **team** rather than the
 individual car. Crossing the two gives four draws per session — team form for the
 weekend, car form for the weekend, team luck on the day, car luck on the day — weighted
 by the square roots of the four products, which sum to 1. Each session's total sigma is
@@ -106,7 +114,7 @@ was reasoned from teammate head-to-heads, not from `pnpm calibrate`. See
 
 ## Teammate retirements are correlated, and the rate is not
 
-`mechanicalDnfTeamCorrelation` (0.3) makes two cars of one team break on the same
+`mechanicalDnfTeamCorrelation` (0.5) makes two cars of one team break on the same
 afternoon more often than chance. Each team draws one hidden "how fragile is the car
 today" value per race; each car's roll is `sqrt(rho)` of that plus `sqrt(1 − rho)` of its
 own, pushed back through the normal CDF into a uniform before it meets the risk.
@@ -118,9 +126,12 @@ retirements — measured unchanged to a tenth of a point across 1980, 2002 and 2
 tests hold it: the marginal rate must match what the constants imply, not merely match
 itself at another correlation.
 
-At 0.3, a car with an 18.5% failure rate sees its teammate fail 31% of the time it fails
-itself, against 18.5% under independence. Driver error is left independent, because
-composure belongs to the driver and two drivers do not spin in sympathy.
+At 0.5, a car with an 18.5% failure rate sees its teammate fail about 42% of the time it
+fails itself, against 18.5% under independence. **The lever is close to exhausted**: even
+at 0.85 the largest-gap teammate upsets only fall from 6.5% to 4.8%, against a 0.9% floor
+with retirements switched off entirely, because driver error is independent and carries
+the remainder — it is left that way on purpose, since composure belongs to the driver and
+two drivers do not spin in sympathy.
 
 The reason it matters is the championship rather than the race. Teammates share a car and
 so share a failure probability; rolled independently they still ended a 17-round season

@@ -138,7 +138,7 @@ describe("randomness levels", () => {
     // the tamest setting rarely overturns a ten-point gap, the wildest often
     // does, and neither ever favours the slower car outright.
     expect(rates[0] ?? 1).toBeLessThan(0.2);
-    expect(rates.at(-1) ?? 0).toBeGreaterThan(0.3);
+    expect(rates.at(-1) ?? 0).toBeGreaterThan(0.25);
     expect(rates.at(-1) ?? 1).toBeLessThan(0.5);
   });
 });
