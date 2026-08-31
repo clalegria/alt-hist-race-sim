@@ -116,6 +116,12 @@ both states render without a DOM and without a click, the same split as the grid
 editor's tables. `SeasonChampions` in `lib/era.ts` carries the whole `world` for this:
 the row needs the results, the scale and the grid, not just two names.
 
+**Both champions of a row open their own career**, via `DriverHistory` / `TeamHistory`
+— the year's chevron beside them still opens the season. Two controls next to each
+other answering the two questions a champion's row raises;
+`.claude/rules/web-careers.md` owns that panel and the provider above the screen that
+feeds it.
+
 `EraPicker` is `SeasonPicker` with different copy, not a second component — the same
 years, the same disabled rule, so the two cannot drift apart the next time the range
 changes. `eraActionsFor(lastCrowned)` in `App.tsx` is the roll-up's button set, pure and

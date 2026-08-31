@@ -106,5 +106,12 @@ be open at once — a spell list is three short rows, not two championship table
 is why the card holds a set rather than one id. The card's own `Show all` stays
 uncontrolled and is only ever tested shut.
 
+**A row's name now opens the career panel** — every season of that driver or lineage,
+in `.claude/rules/web-careers.md`. On a lineage row that also expands, the chevron and
+the name are therefore **two controls**: a name that opens a panel is already a button,
+and the breakdown by name could not stay inside it. Read that file before touching the
+name cell; `aria-expanded` alone no longer distinguishes the two, since Radix marks its
+popover trigger with it as well.
+
 The cut is at ten, opened by the shared `ShowAllButton` — extracted from
 `CompactStandings`, which had the same footer button down to the class string.

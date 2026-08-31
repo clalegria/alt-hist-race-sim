@@ -9,6 +9,7 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
+import { DriverHistory, SeasonHistoryProvider, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
@@ -58,12 +59,24 @@ export function ChampionRow({
             </DisclosureButton>
           </TableCell>
           <TableCell>
-            <DriverName
-              driverId={season.driver?.driverId ?? null}
-              {...(season.driver === null ? {} : { teamId: season.driver.teamId })}
-              emphasis
-              badge
-            />
+            {/*
+              The champion's name opens their whole career, not this year — the
+              row already *is* this year. The year's chevron beside it opens the
+              season; the two controls are next to each other and answer the two
+              questions a champion's row raises.
+            */}
+            {season.driver === null ? (
+              <DriverName driverId={null} />
+            ) : (
+              <DriverHistory driverId={season.driver.driverId}>
+                <DriverName
+                  driverId={season.driver.driverId}
+                  teamId={season.driver.teamId}
+                  emphasis
+                  badge
+                />
+              </DriverHistory>
+            )}
           </TableCell>
           <TableCell className="text-right font-semibold tabular-nums">
             {season.driver?.points ?? "—"}
@@ -75,7 +88,9 @@ export function ChampionRow({
             {season.team === null ? (
               <span className="text-muted-foreground">—</span>
             ) : (
-              <TeamName teamId={season.team.teamId} emphasis badge />
+              <TeamHistory teamId={season.team.teamId}>
+                <TeamName teamId={season.team.teamId} emphasis badge />
+              </TeamHistory>
             )}
           </TableCell>
           <TableCell className="text-right font-semibold tabular-nums">
@@ -236,9 +251,17 @@ export function EraChampions({ run }: { run: EraRun }) {
         )}
       </header>
 
-      <RollOfHonour seasons={seasons} />
+      {/*
+        One walk of the run for every panel on the screen. It sits around both
+        halves rather than inside either, because the same driver is named on
+        the roll of honour and on four record cards under it, and a panel
+        opened from any of them is the same career.
+      */}
+      <SeasonHistoryProvider seasons={run.seasons}>
+        <RollOfHonour seasons={seasons} />
 
-      <CareerStatistics seasons={run.seasons} />
+        <CareerStatistics seasons={run.seasons} />
+      </SeasonHistoryProvider>
     </div>
   );
 }

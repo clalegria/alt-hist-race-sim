@@ -15,6 +15,7 @@ import type { World } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Liveries } from "./Liveries.js";
+import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
@@ -60,6 +61,35 @@ function SpellRow({ name, span, value }: { name: string; span: string; value: nu
         {value}
       </TableCell>
     </TableRow>
+  );
+}
+
+/**
+ * The career panel behind a row's name — the driver's or the team's.
+ *
+ * A switch rather than two branches at the call site, because everything either
+ * side of it is identical: the card draws one kind or the other and the row is
+ * otherwise the same markup.
+ */
+function Career({
+  kind,
+  id,
+  className,
+  children,
+}: {
+  kind: RecordKind;
+  id: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return kind === "driver" ? (
+    <DriverHistory driverId={id} className={className}>
+      {children}
+    </DriverHistory>
+  ) : (
+    <TeamHistory teamId={id} className={className}>
+      {children}
+    </TeamHistory>
   );
 }
 
@@ -141,16 +171,33 @@ export function RecordRow({
           pushing a scrollbar under a card that is half a page wide.
         */}
         <TableCell className="w-full max-w-0 py-1.5">
-          {many ? (
-            <DisclosureButton open={open} onToggle={onToggle} className="w-full min-w-0">
+          {/*
+            Two controls on a lineage row, and only because a name cannot be
+            both a button and the trigger of another one: the **chevron** keeps
+            the breakdown by name, the **name** opens the career panel. The
+            file-tree split, and the only arrangement that keeps the expansion
+            this table already had once the name started opening a panel of its
+            own. Rows that do not expand keep the single control the rest of the
+            app has, so the second tab stop is paid for only where it buys
+            something.
+          */}
+          <span className="flex min-w-0 items-center gap-1">
+            {many ? (
+              <DisclosureButton
+                open={open}
+                onToggle={onToggle}
+                label={`Names ${label?.name ?? record.id} scored under`}
+              />
+            ) : null}
+            <Career kind={kind} id={record.id} className="min-w-0 flex-1">
               <span className="flex min-w-0 flex-col leading-tight">
                 {name}
-                <span className="text-muted-foreground text-xs">under {spells.length} names</span>
+                {many ? (
+                  <span className="text-muted-foreground text-xs">under {spells.length} names</span>
+                ) : null}
               </span>
-            </DisclosureButton>
-          ) : (
-            name
-          )}
+            </Career>
+          </span>
         </TableCell>
         <TableCell className="w-10 py-1.5 text-right font-semibold tabular-nums">{value}</TableCell>
       </TableRow>
