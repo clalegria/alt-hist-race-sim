@@ -30,22 +30,33 @@ import {
 /**
  * Driver weights.
  *
- * Racing dominates because it is the only rating that feeds the race score
- * directly. Qualifying earns its share through grid position, which is worth up
- * to three points of race pace at pole. Composure is next: it sets the
- * driver-error retirement rate, and in 1980 a retirement costs a whole race.
- * Consistency is real but small — the pace penalty spans roughly 1.8 points
- * across the entire grid.
+ * **Racing dominates, and by more than it used to.** It is the only rating that
+ * feeds the race score directly, and the race score is the whole result — the
+ * earlier 0.5 understated it badly next to what the model actually does with a
+ * rating point. Everything else was toned down to pay for the rise to 0.6.
  *
- * Adaptability is zero because nothing reads it. Giving it weight would make the
- * overall claim a driver is better for something the sim never asks of them.
- * When the transfer market lands, this is the first number to revisit.
+ * Qualifying earns its share through grid position, which is worth up to three
+ * points of race pace at pole. Composure sets the driver-error retirement rate,
+ * and a retirement costs a whole race. Consistency is real but small — the pace
+ * penalty spans roughly 1.8 points across the entire grid.
+ *
+ * Wet weather is the newest and the smallest of the four that count. It is not
+ * small because it does not matter — in a wet race it carries three quarters of
+ * the driver's pace — but because only about one race in seven is wet, and an
+ * overall is an average over a season. 0.05 is roughly "the wet share of a
+ * year, weighted by how much of a wet race it decides", which is the honest
+ * reading of a number that is otherwise invisible for six rounds out of seven.
+ *
+ * Adaptability is still zero because nothing reads it. Giving it weight would
+ * make the overall claim a driver is better for something the sim never asks of
+ * them. When the transfer market lands, this is the first number to revisit.
  */
 const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
-  racing: 0.5,
-  qualifying: 0.25,
-  composure: 0.15,
-  consistency: 0.1,
+  racing: 0.6,
+  qualifying: 0.18,
+  composure: 0.1,
+  consistency: 0.07,
+  wetWeather: 0.05,
   adaptability: 0,
 };
 

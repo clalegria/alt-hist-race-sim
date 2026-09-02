@@ -5,9 +5,16 @@ paths:
 
 # Race model (v1) — score-and-sort
 
-Five stages, all constants in `race/constants.ts` — the first is what a car *is*, the
-rest are what happens to it:
+Six stages, all constants in `race/constants.ts` — the first two are what the afternoon
+and the car *are*, the rest are what happens to them:
 
+-1. **The weather** — rolled before anything else, two draws whether it rains or not.
+   About one round in seven is wet, and a wet one replaces `constants` with a derived
+   copy (wider noise, harsher retirements, the score leaning onto the driver and the
+   chassis) and each driver with a copy blended toward their `wetWeather` rating. **A
+   dry round gets both back by identity**, so most rounds are scored by exactly the model
+   the calibration measured. `.claude/rules/wet-weather.md` has the whole of it; the
+   weights and sigmas quoted below are the *dry* ones.
 0. **The car** — `0.7·chassis + 0.3·engine` on racing and qualifying, and an even
    `0.5/0.5` on reliability, blended once per entrant by `powertrain()` before anything
    is scored. Consistency is the chassis alone. Everything below reads *that* car,

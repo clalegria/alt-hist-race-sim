@@ -183,11 +183,11 @@ version stamp in the footer as part of this item.
 
 ---
 
-*The next four items are the seed-data-shape block.* Each adds an authored field to all
-seventy-seven season files — career records, era numbers, wet ratings, per-round circuit
-blocks. **Settle them together and make one authoring pass**, in *season fine-tuning*
-below, rather than four passes over the same files. Liveries and team lineage were the
-other two and are done, so their colours can join that pass without holding it up.
+*The next three items are the seed-data-shape block.* Each adds an authored field to all
+seventy-seven season files — career records, era numbers, per-round circuit blocks.
+**Settle them together and make one authoring pass**, in *season fine-tuning* below,
+rather than three passes over the same files. Liveries, team lineage and the wet ratings
+were the others and are done, so they can join that pass without holding it up.
 
 **4. Historical career records.** When a run starts in 1980, Jones should already have
 his previous wins and Ferrari its previous titles, so the first screen reads as a career
@@ -238,40 +238,32 @@ the authorisation the no-re-calibration invariant requires — for *these* numbe
 driver or car ratings, which stay fixed. The retirement rate has been through it; the
 gaps and the starting limit have not.
 
-**6. Wet racing.** A realistic share of races are declared wet. In the wet: a new
-**1–100 wet-weather rating** per driver carries a large part of the score, driver-error
-retirements rise sharply, and the noise term widens considerably — a wet race should be
-where the field genuinely reorders. The rating is a new authored field on every driver,
-which is why it is in this block rather than taken alone.
-
-This is a deep change to how performance is computed — a new term in the race score — so
-it is one of the two cases where the no-re-calibration invariant yields. Say the re-tune
-is needed and why, and get agreement, before running the harness. Note that it and the
-shipped randomness level both widen the same noise term from different directions; they
-should compose as separate multipliers, not fight over one constant.
-
-**7. Circuit character.** Today a round reaches the model as a `RoundContext` with one
+**6. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
 
 - **Engine-dependent versus downforce-dependent**, shifting the weight between the
   engine and chassis halves of the powertrain for that round — Monza is not Monaco.
 - **How hard it is to overtake**, which raises how much the qualifying result carries
   into the race result. Somewhere like Monaco, the grid nearly is the classification.
-- **How likely a wet race is here**, modulating the base rate from *wet racing* — which
-  is why that lands first.
+- **How likely a wet race is here**, modulating the base rate from *wet racing*, which
+  has landed: `RoundContext.wetChance` is already the seam, already read by the roll, and
+  set by nothing.
 
 Also a deep change to the score, with the same re-tune caveat, and it adds a per-round
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
-**8. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
+**7. Season fine-tuning.** The writing is done: **every season from 1950 to 2026 is
 authored** — one JSON file each in `packages/data/src/seasons/`, discovered by that
 folder's `index.ts` (see `.claude/rules/seed-data.md`). What is left is judgement, not
 typing.
 
 - **This is where the single authoring pass for the block above is made** — career
-  records, era numbers, wet ratings, per-round circuit blocks — which is
-  why those are settled first and paid for once. Liveries are in the same pass but not
+  records, era numbers, per-round circuit blocks — which is why those are settled first
+  and paid for once. **Wet ratings are already written**, all 450 of them: a formula off
+  `racing` and `qualifying` with a hand-written delta for the drivers the sport remembers
+  one way or the other. They are a first draft like every other rating and belong in the
+  era-by-era pass below. Liveries are in the same pass but not
   waiting on anything: their format is already settled, so they can be written for any
   year at any time.
 - **The ratings are first drafts.** Seventy-seven seasons were written far faster than
@@ -291,7 +283,7 @@ typing.
   the modern seasons first, where a reader is most likely to notice — but it is typing
   against reference photos, not a decision, and nothing depends on it.
 
-**9. Driver market.** Transfers between seasons — what turns *simulate an era* from a
+**8. Driver market.** Transfers between seasons — what turns *simulate an era* from a
 replay into an alternate history, and what turns on the `era-advanced` card. Needs
 ageing (who is declining, who retires) and more than one season to move between, hence
 its place here. What forces move the market is not yet decided — a design conversation,
@@ -303,7 +295,7 @@ standing across years while a rename looks like a disappearance — and is now b
 This is where the substitution point left clean in *simulate an era* gets used: the grid
 for year N+1 stops coming from that year's seed file and starts coming from the market.
 
-**10. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
+**9. Game mode.** The `game` card: take charge of a team, hire and fire drivers, choose
 development directions, negotiate engine deals. Far future, and explicitly after a
 working multi-season simulation — it is *era-advanced* seen from inside one team, so it
 needs everything the market needs and a decision loop besides.
@@ -326,5 +318,4 @@ something this mode chooses is undecided. Nothing should be designed around this
 ```
 packages/engine/src/market/       # driver transfers, for the driver market
 packages/engine/src/progression/  # ageing (done), car development (game mode)
-packages/engine/src/weather/      # wet-race rolls, for wet racing
 ```

@@ -67,6 +67,7 @@ function entrant(
       consistency: ability,
       adaptability: ability,
       composure: ability,
+      wetWeather: ability,
     },
     chassis: {
       racing: carAbility,
@@ -1227,13 +1228,18 @@ describe("draw discipline", () => {
       simulateRace(field.slice(0, size), rng);
       return draws();
     };
-    // Measure the per-car cost on a field that fits inside the limit, where
-    // every car indisputably runs, then hold the over-subscribed field to it.
+    // Measure the per-car cost on fields that fit inside the limit, where every
+    // car indisputably runs, then hold the over-subscribed fields to it.
     // Comparing two over-subscribed fields to each other would not do: skipped
     // draws would cancel out of the difference and the test would pass anyway.
-    const perCar = drawsFor(10) / 10;
-    expect(drawsFor(26)).toBe(perCar * 26);
-    expect(drawsFor(30)).toBe(perCar * 30);
+    //
+    // Differenced rather than divided, because a round costs a fixed number of
+    // draws before any car does — the weather is rolled once, whoever entered —
+    // and dividing would smear that across the field.
+    const perCar = (drawsFor(20) - drawsFor(10)) / 10;
+    const perRound = drawsFor(10) - perCar * 10;
+    expect(drawsFor(26)).toBe(perRound + perCar * 26);
+    expect(drawsFor(30)).toBe(perRound + perCar * 30);
   });
 
   it("gives every car the same qualifying score whoever else entered", () => {

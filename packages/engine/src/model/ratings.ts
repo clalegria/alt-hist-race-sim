@@ -14,6 +14,22 @@ export interface DriverRatings {
   readonly adaptability: number;
   /** Resistance to mistakes under pressure. Low composure = crash-prone. */
   readonly composure: number;
+  /**
+   * How good a driver is when the track is wet.
+   *
+   * A rating in its own right rather than a modifier on the others, because it
+   * is the one attribute the sport routinely finds *uncorrelated* with dry
+   * pace: Senna and Schumacher were better in the rain than anywhere else, and
+   * plenty of quick drivers were visibly worse. Most of the pool is authored
+   * close to `racing` — the correlation is real and high — and the exceptions
+   * are the point of the field existing.
+   *
+   * Read only when a round is wet, and then in proportion to how wet: it
+   * displaces part of `racing` and `qualifying` in the score and part of
+   * `composure` in the driver-error roll. A dry race never consults it. See
+   * `weather/wet.ts`.
+   */
+  readonly wetWeather: number;
 }
 
 /**

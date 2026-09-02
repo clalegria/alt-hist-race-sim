@@ -144,6 +144,52 @@ Landed. What they left open:
   exists and is measured (worst error 0.5) but has **not** been applied — it is the
   author's call, and it would only fix 2026; the other 76 seasons were never fitted
   against anything.
+- **Wet racing landed un-calibrated (2026-09-02), and the drift it causes is measured
+  but not absorbed.** Roughly 15% of rounds are now wet, and a wet one widens both noise
+  sigmas (up to ×1.9), raises driver-error retirements (up to ×2.6) and mechanical ones
+  (×1.25), shifts the score toward the driver and the chassis, and blends each driver
+  toward their new `wetWeather` rating. Every one of those magnitudes is reasoned rather
+  than fitted — see `.claude/rules/wet-weather.md`.
+
+  **What it costs, measured over 2,000 seasons per year at the default settings, aged
+  ratings, against the same seeds run with every round forced dry:**
+
+  | year | retirement rate | favourite's titles | best driver's win share | distinct winners |
+  | ---- | --------------- | ------------------ | ----------------------- | ---------------- |
+  | 1980 | 48.1% → 49.5% | 65.7% → 63.4% | 32.0% → 31.0% | 6.08 → 6.28 |
+  | 1988 | 45.1% → 46.7% | 60.3% → 62.1% | 50.8% → 50.9% | 3.74 → 3.92 |
+  | 2002 | 43.1% → 44.6% | 97.9% → 97.5% | 73.3% → 71.5% | 3.79 → 3.98 |
+  | 2010 | 23.4% → 24.4% | 47.5% → 47.6% | 33.4% → 32.9% | 4.81 → 5.00 |
+  | 2023 | 9.7% → 10.2% | 100% → 100% | 86.8% → 84.5% | 3.19 → 3.55 |
+
+  So the damage is smaller than the feature's description suggests: **+1.0 to +1.6 points
+  of retirement rate**, **1-2 points off the best driver's win share**, and a fifth to a
+  third of an extra distinct winner per season. Titles barely move, because a season
+  averages two or three wet rounds away. Nothing was changed to absorb any of it.
+
+  **The proposal, if the author wants the previous equilibria back**, cheapest first:
+
+  1. **Retirement rate is the only figure that moved outside its own noise, and the dial
+     for it already exists.** One step of a season's `retirementFactor` is worth about
+     five points of retirement rate on the 1980 grid, so a +1.3-point drift is about a
+     quarter of a step — far finer than the authored scale can express. The honest fix is
+     therefore *not* to re-author 77 files but to take it out of the mapping once:
+     scaling `mechanicalDnfEraScale` and both `driverErrorDnf*` endpoints by ≈0.97 would
+     restore every year at once, since the drift is close to proportional across eras
+     (+2.9% at 1980, +5.2% at 2023 in relative terms). Alternatively, drop
+     `driverErrorScaleAtFullWetness` from 2.6 to ≈2.0 and `mechanicalScaleAtFullWetness`
+     to 1.0 — cheaper still, but it spends the feature to protect the figure.
+  2. **Win share needs nothing.** The 1-2 point loss at the front is what "the field
+     genuinely reorders" *means*, and it is the same order of magnitude as the two points
+     the consistency lever already handed the best pairing in the other direction — the
+     two roughly cancel. If it is to be recovered anyway, the lever is
+     `noiseScaleAtFullWetness` (1.9 → ~1.5), not the chassis ratings.
+  3. **The overall rating has already been re-weighted** (racing 0.5 → 0.6, qualifying
+     0.25 → 0.18, composure 0.15 → 0.10, consistency 0.10 → 0.07, wetWeather 0.05) at the
+     author's request. That is display only and touches no result.
+  4. **Do not re-fit chassis or driver ratings for this.** The stale-blend problem below
+     is larger and older, and a re-fit that absorbed the wet drift as well would make the
+     two impossible to tell apart afterwards.
 - **Team form and the teammate DNF correlation are reasoned, not fitted.** `teamFormShare`
   (0.85) and `mechanicalDnfTeamCorrelation` (0.5) were chosen from teammate head-to-head
   records — Schumacher/Barrichello, Vettel/Webber, Senna/Prost — not from `pnpm calibrate`.

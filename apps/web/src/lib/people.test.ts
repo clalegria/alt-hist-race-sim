@@ -39,6 +39,7 @@ function driverOf(over: Partial<Driver> & Pick<Driver, "id">): Driver {
       consistency: 80,
       adaptability: 80,
       composure: 80,
+      wetWeather: 80,
     },
     peakSeasons: 5,
     developmentSpeed: 5,

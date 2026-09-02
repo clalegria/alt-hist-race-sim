@@ -71,9 +71,18 @@ function main(): void {
   console.log("");
 
   console.log(
-    [padLeft("RND", 4), "  ", padRight("GRAND PRIX", 32), padRight("POLE", 34), "WINNER"].join(""),
+    [
+      padLeft("RND", 4),
+      "  ",
+      // Matching the row widths below, which the header did not before the sky
+      // column made the drift visible.
+      padRight("GRAND PRIX", 44),
+      padRight("SKY", 9),
+      padRight("POLE", 33),
+      "WINNER",
+    ].join(""),
   );
-  console.log("-".repeat(106));
+  console.log("-".repeat(115));
   season.races.forEach((race, index) => {
     const round = calendar[index];
     const title = round === undefined ? `Round ${index + 1}` : `${round.name} (${round.circuit})`;
@@ -82,6 +91,9 @@ function main(): void {
         padLeft(String(index + 1), 4),
         "  ",
         padRight(title, 44),
+        // Blank rather than "dry", for the reason the UI draws no dry badge: a
+        // column reading "dry" twenty times down the page says nothing.
+        padRight(race.weather.wet ? `wet ${Math.round(race.weather.wetness * 100)}%` : "", 9),
         padRight(nameAndTeamOf(race.poleDriverId), 33),
         nameAndTeamOf(race.winnerDriverId),
       ].join(""),

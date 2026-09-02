@@ -17,15 +17,14 @@ client-side; saves (a later phase) will go to IndexedDB. Do NOT introduce a serv
 HTTP API, or a database in this phase.
 
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
-and that folder's `index.ts` discovers them — there is no registry to update. Each
-carries a calendar, a points scale, an **engine table**, a **retirement factor** and an
-entry list. All 77 are written; only 1980 and 1981 have calibrated ratings, though every
-year's retirement rate is now fitted. Nothing else keeps a list of seasons —
-`.claude/rules/seed-data.md` has how discovery works.
+discovered by that folder's `index.ts` — no registry to update. Each carries a calendar,
+a points scale, an **engine table**, a **retirement factor** and an entry list. All 77
+are written; only 1980 and 1981 have calibrated ratings, though every year's retirement
+rate is fitted. `.claude/rules/seed-data.md` has how discovery works.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
-derived championships, Monte Carlo calibration harness, and a React web app that
-reveals a season session by session.
+derived championships, Monte Carlo harness, and a React web app revealing a season
+session by session.
 
 ## Where the rest of the documentation lives
 **Read `docs/ROADMAP.md` (what to build next, and why in that order) and
@@ -38,11 +37,11 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1303 tests (271 engine, 123 data, 909 web)
+pnpm test          # 1330 tests (291 engine, 123 data, 916 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm race [seed]   # ONE race (--phase start|end for a car's development trend)
+pnpm race [seed]   # ONE race (--phase start|end; --wet 0-1 forces the weather)
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
@@ -72,9 +71,8 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   the world state — store its numeric `getState()` snapshot, rebuild with
   `createRngFromState()`.
 - **Realize-once-and-store for career rolls.** Nothing is rolled today — the ageing curve
-  is deterministic — but if per-run scatter on a driver's debut or peak ever lands, roll
-  it ONCE via the seeded PRNG, store it in that driver's per-sim state, and read the
-  stored value thereafter. Never re-roll on read.
+  is deterministic — but if per-run scatter on a driver's debut or peak ever lands, roll it
+  ONCE via the seeded PRNG, store it in that driver's per-sim state, never re-roll on read.
 - **Tunable numbers live in one constants module per subsystem**, never inline in logic.
   `packages/engine/src/race/constants.ts` is the pattern to follow.
 - **Never re-calibrate or re-tune unless explicitly asked.** Engine constants
@@ -111,6 +109,10 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   unmoved on average. Pace only, out of the overall. `.claude/rules/car-development.md`.
 - **Retirement factor**: 1–10 per season file, how hard the year is on its cars. Scales
   *both* DNF rolls; 5 is neutral. `.claude/rules/retirement-factor.md`.
+- **Wetness**: ~15% of rounds are wet, and a wet one draws a `0.2–1` wetness — a range,
+  not a switch. It scales the noise, both DNF rolls, the car/driver and engine/chassis
+  splits, and a blend toward each driver's authored `wetWeather` rating; a dry round
+  returns the calibrated constants *by identity*. `.claude/rules/wet-weather.md`.
 - **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales both
   noise sigmas, plus `teamFormBoost` at 4–5; `withRandomness(2)` — the default — returns
   the constants **unchanged**, so the calibration still describes them.
@@ -149,21 +151,19 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
     not a tuning knob. What they are *worth* is not. Where a test needs "a driver with
     a seat" or "one without", pick it out of the data rather than by name.
   - Same rule, same reason, for the calibration harness: **do not run it to check
-    anything.** Its figures are the record of one measurement, not a test, and
-    re-measuring on spec is a long loop that answers a question nobody asked.
+    anything.** Its figures record one measurement, not a test, and re-measuring on spec
+    is a long loop answering a question nobody asked.
 - **Statistical tests must be mutation-checked.** A distribution test that passes against
-  a deliberately broken implementation is worthless. Break it on purpose, confirm it
-  fails, revert. This has repeatedly caught tests that asserted nothing — a counter blind
-  to `gaussian()`, a tie-break case that was not tied, an assertion read off the
-  engine's data rather than the component's output.
+  a deliberately broken implementation is worthless. Break it on purpose, confirm it fails,
+  revert. This has repeatedly caught tests that asserted nothing — a counter blind to
+  `gaussian()`, a tie-break case that was not tied, an assertion read off the engine.
 - **Check `Test Files`, not just `Tests`, when reading a Vitest run.** A file that fails
   to *compile* is not counted in the `Tests` line, so a broken test file leaves a run
   looking green. `Test Files 11 passed (11)` proves everything was collected.
 - **New dependencies are checked against a release-age policy.** pnpm rejects packages
-  published within the last few days and offers to write a `minimumReleaseAgeExclude`
-  entry into `pnpm-workspace.yaml`. Do not take it — pick the previous stable version
-  instead: fresh versions are the window a compromised package lands in. Has happened
-  once here, with a Vite release hours old.
+  published within the last few days and offers a `minimumReleaseAgeExclude` entry in
+  `pnpm-workspace.yaml`. Do not take it — pick the previous stable version instead: fresh
+  versions are the window a compromised package lands in (once here, a hours-old Vite).
 - `tools/*` may use dev dependencies (tsx runs the TS directly); the engine may not, and
   takes no runtime dependency without a strong reason. Secrets live only in a gitignored `.env`.
 - **This file stays under 200 lines.** When documenting a newly implemented subsystem,
@@ -175,25 +175,26 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
 ## Open decisions (confirm with the author before implementing — do not assume)
 Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows a
 question is open without carrying the argument.
-- **Per-run scatter on the ageing curve** — settled as *no scatter for now*; the curve
-  is deterministic. Peak shape matters again only if that reopens.
-- **Driver ratings are still un-tuned**, but no longer un-tunable now the ageing curve
+- **Per-run scatter on the ageing curve** — settled as *no scatter for now*; the curve is
+  deterministic. Peak shape matters again only if that reopens.
+- **Driver ratings are still un-tuned**, but no longer un-tunable now the ageing curve has
   landed. Not an authorisation — it waits for the author to ask.
-- **Should the tuner see a season's retirement factor?** Every year now carries a fitted
-  one, but `pnpm tune` fits cars at the neutral factor against `targets.ts`'s estimated
-  42%, which 1980's measured 48.5% contradicts. Either change is a re-tune.
-- **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs
-  in `SeasonSeed` beside the retirement factor; needs the author's word.
+- **Should the tuner see a season's retirement factor?** Every year carries a fitted one,
+  but `pnpm tune` fits cars at the neutral factor against `targets.ts`'s estimated 42%,
+  which 1980's measured 48.5% contradicts. Either change is a re-tune.
+- **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs in
+  `SeasonSeed` beside the retirement factor; needs the author's word.
 - **The model changed under the fitted ratings, and they have not caught up.** 1980 and
   1981 were fitted against the old `0.8 / 0.2` blend; the noise has since split into team
   and car form, and consistency's spread lever is open (1.3 / 0.75) — buying wildcards
   and handing the best pairing ~2 points more win share. So `.claude/rules/calibration.md`
   no longer describes the model, **a re-tune is needed and has not been run**, and it
-  needs the author's word. Team form (0.75), the DNF correlation (0.3) and weekend-form
-  share (0.5) are reasoned rather than fitted. Also: no measured race has a host country.
-- **Circuits have no character** — `RoundContext` opened the door; what else a circuit
-  *does* is undecided, as are the home-advantage numbers.
-- **What moves the driver market** — a design conversation, not a coding task;
-  `adaptability` is authored and unread precisely for this.
-- **The overall rating weights adaptability at zero** — a display heuristic in
-  `apps/web/src/lib/rating.ts`; revisit when the market gives it meaning.
+  needs the author's word. Team form (0.75), the DNF correlation (0.3), weekend-form share
+  (0.5) and **every wet-racing constant** are reasoned rather than fitted; wet racing's
+  measured drift — ~1.3 points of retirement rate, 1–2 off the best driver's win share —
+  is written up with a recovery proposal in `docs/DECISIONS.md` and is **unabsorbed**.
+- **Circuits have no character** — `RoundContext` opened the door (`wetChance` is already
+  there, unused); what a circuit *does* is undecided, as are the home-advantage numbers.
+- **What moves the driver market** — a design conversation, not a coding task; and it is
+  why `driverOverall` still weights `adaptability` at zero (a display heuristic in
+  `packages/data/src/rating.ts`, re-weighted 2026-09-02 toward racing).

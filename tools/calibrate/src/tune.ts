@@ -204,12 +204,13 @@ function buildFieldFrom(state: State): RaceEntrant[] {
         driver: {
           racing: tuned.racing,
           qualifying: tuned.qualifying,
-          // The three the tuner does not move still have to be the ones the sim
+          // The four the tuner does not move still have to be the ones the sim
           // would race in this year, or `buildFieldFrom` stops matching
           // `buildField` and the tuner optimises a model nothing runs.
           consistency: rated.consistency,
           adaptability: rated.adaptability,
           composure: rated.composure,
+          wetWeather: rated.wetWeather,
         },
         chassis,
         engineId: entry.engineId,

@@ -228,6 +228,11 @@ export const AGEING_CONSTANTS: AgeingConstants = {
     consistency: 1.25,
     adaptability: 1.0,
     composure: 1.25,
+    // Wet-weather pace arrives with raw pace rather than with judgement: the
+    // drivers famous for it were mostly famous for it young. Sensitivity a
+    // shade under `racing` on purpose — a wet lap rewards feel, which is the
+    // part of a rookie that is already finished.
+    wetWeather: 0.8,
   },
   declineSensitivity: {
     racing: 1.0,
@@ -235,6 +240,10 @@ export const AGEING_CONSTANTS: AgeingConstants = {
     consistency: 1.0,
     adaptability: 1.0,
     composure: 0.75,
+    // And leaves at the same rate racecraft does. Not qualifying's 1.3: what
+    // goes first in decline is the last tenth over one lap, and a wet race is
+    // not won on the last tenth.
+    wetWeather: 1.0,
   },
 
   minRating: 1,

@@ -8,6 +8,7 @@ import { Flag } from "./Flag.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import { WeatherBadge } from "./WeatherBadge.js";
 
 export function SeasonCalendar({
   season,
@@ -67,9 +68,19 @@ export function SeasonCalendar({
                           )}
                           {round?.name ?? `Round ${index + 1}`}
                         </span>
-                        {round === undefined ? null : (
-                          <span className="text-muted-foreground text-xs">{round.circuit}</span>
-                        )}
+                        <span className="flex items-center gap-2">
+                          {round === undefined ? null : (
+                            <span className="text-muted-foreground text-xs">{round.circuit}</span>
+                          )}
+                          {/*
+                            Under the circuit rather than beside the name: a wet
+                            round is a fact about the afternoon, and the line
+                            that already says where it was held is where the
+                            rest of the conditions belong. Dry rounds draw
+                            nothing, so the column stays quiet.
+                          */}
+                          <WeatherBadge weather={race.weather} compact />
+                        </span>
                       </span>
                     </DisclosureButton>
                   </TableCell>

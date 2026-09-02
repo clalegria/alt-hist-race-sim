@@ -1,5 +1,6 @@
 import type { ChassisSpec, DriverRatings, EngineSpec } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
+import type { RaceWeather } from "../weather/weather.js";
 import type { RaceConstants } from "./constants.js";
 
 /** One car on the grid: a driver, in a team's chassis, with an engine in it. */
@@ -84,6 +85,25 @@ export interface RoundContext {
    * why the single-race harness has to opt in to an opener or a finale.
    */
   readonly seasonProgress?: number;
+  /**
+   * How likely this round is to be wet, from 0 to 1, overriding the weather
+   * constants' base rate for this round alone.
+   *
+   * The seam *circuit character* will arrive through — Spa and Suzuka are not
+   * Bahrain — and the reason weather is rolled per round rather than per
+   * season. Nothing authored sets it yet, so every round today rains at the
+   * same base rate.
+   */
+  readonly wetChance?: number;
+  /**
+   * The weather, decided by the caller instead of rolled.
+   *
+   * For a tool or a test that wants a particular afternoon — `pnpm race --wet
+   * 0.8` — not for the app, which lets the dice decide. The roll still happens
+   * either way, so supplying this does not move anyone else's position in the
+   * stream.
+   */
+  readonly weather?: RaceWeather;
 }
 
 /** Why a car failed to finish. */
@@ -158,6 +178,15 @@ export interface RaceResult {
   readonly classifiedCount: number;
   /** Cars that qualified outside the starting limit (DNQ). Zero for a field within it. */
   readonly nonQualifiers: number;
+  /**
+   * What the sky did, and how much of the result it owns.
+   *
+   * Part of the result because a classification that does not say it rained
+   * cannot be read — every screen showing a round takes the weather off this
+   * rather than re-rolling anything, and a saved season keeps the weather it
+   * was actually raced in.
+   */
+  readonly weather: RaceWeather;
 }
 
 /**

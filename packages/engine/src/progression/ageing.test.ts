@@ -24,6 +24,7 @@ const PEAK: DriverRatings = {
   consistency: 84,
   adaptability: 80,
   composure: 86,
+  wetWeather: 82,
 };
 
 /**
@@ -375,7 +376,14 @@ describe("young and old are different, not just better and worse", () => {
   // A flat peak, so any gap between two attributes is the sensitivity tables
   // and not the rounding of two different authored numbers. With the tables
   // flat, every attribute here lands on exactly the same value.
-  const FLAT = { racing: 90, qualifying: 90, consistency: 90, adaptability: 90, composure: 90 };
+  const FLAT = {
+    racing: 90,
+    qualifying: 90,
+    consistency: 90,
+    adaptability: 90,
+    composure: 90,
+    wetWeather: 90,
+  };
 
   /**
    * Every pair of attributes, read against the sensitivity that separates them:

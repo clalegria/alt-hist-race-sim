@@ -9,10 +9,15 @@
  *   pnpm race 7        # seed 7 — same seed always gives the same race
  *   pnpm race 7 --randomness 5   # the same race, with the dice turned up
  *   pnpm race 7 --phase end      # the same race, run as the season's finale
+ *   pnpm race 7 --wet 0.8        # the same race, in a soaking
  *
  * Mid-season by default, which is what a race with no year around it is: every
  * car's development trend is worth nothing there, so this prints the same race
  * it printed before trends existed. `--phase start` / `--phase end` opt in.
+ *
+ * The weather is *rolled* by default, exactly as a real round rolls it, so a
+ * given seed is wet or dry as the dice say. `--wet <0-1>` forces an afternoon
+ * without disturbing the stream, which is what makes the two comparable.
  */
 
 import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
@@ -22,6 +27,7 @@ import { padLeft, padRight } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { DEFAULT_SEASON_PHASE, parsePhase, phaseLabel, phaseRound } from "./phase.js";
 import { parseRandomness } from "./randomness.js";
+import { parseWet, wetLabel } from "./wet.js";
 import { parseYear, withoutFlags } from "./year.js";
 
 /** "+5.234s", or "+1:17.230s" once a gap runs past the minute. */
@@ -54,13 +60,14 @@ function main(): void {
   // development trend has to go on. Mid-season by default, where it is worth
   // nothing and the race is exactly the race this tool always printed.
   const phase = parsePhase(process.argv);
+  // Undefined lets the round roll its own sky, which is the default and the
+  // honest one. A forced afternoon still lets the roll happen underneath it.
+  const weather = parseWet(process.argv);
   const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
-  const result = simulateRace(
-    field,
-    createRng(seed),
-    withRandomness(randomness),
-    phaseRound(phase),
-  );
+  const result = simulateRace(field, createRng(seed), withRandomness(randomness), {
+    ...phaseRound(phase),
+    ...(weather === undefined ? {} : { weather }),
+  });
 
   const drivers = driversById();
   const teams = teamsById();
@@ -73,7 +80,10 @@ function main(): void {
   console.log("");
   console.log(
     `${year} grid — race seed ${seed}` +
-      (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`),
+      (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`) +
+      // Always stated, unlike the phase: the sky is rolled rather than chosen,
+      // so "dry" is news here in a way "mid-season" is not.
+      ` — ${wetLabel(result.weather)}`,
   );
   console.log(`Pole: ${nameOf(result.poleDriverId)}`);
   console.log(

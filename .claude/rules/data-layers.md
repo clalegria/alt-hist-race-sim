@@ -50,6 +50,10 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     one engine, so fitting one always removes another. Swapping one changes the car
     without touching the chassis, which is the distinction the two names exist for.
 - `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
+  Driver weights were rebalanced (2026-09-02) toward the one rating the race score reads
+  directly: racing 0.6, qualifying 0.18, composure 0.10, consistency 0.07, wetWeather
+  0.05, adaptability 0. `wetWeather` is small because only ~15% of rounds are wet, not
+  because a wet race cares little about it.
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.

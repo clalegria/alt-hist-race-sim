@@ -1,5 +1,6 @@
-import type { CarSpec } from "../model/ratings.js";
+import type { CarSpec, DriverRatings } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
+import { rollWeather, wetConstants, wetDriver } from "../weather/weather.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { developedCar } from "./development.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
@@ -99,6 +100,12 @@ interface TeamDraws {
 /** Working record for one car as it moves through the race weekend. */
 interface Runner {
   readonly entrant: RaceEntrant;
+  /**
+   * The ratings this driver actually raced on. The entrant's own in the dry;
+   * in the wet, blended toward their `wetWeather` rating in proportion to how
+   * wet it was — see `weather/weather.ts`.
+   */
+  readonly driver: DriverRatings;
   /** Chassis and engine blended into one car — what every score below reads. */
   readonly car: CarSpec;
   /** This car's own standard-normal form for the weekend, shared by both sessions. */
@@ -143,20 +150,30 @@ interface Runner {
  * existed — so nothing that does not know its calendar is affected. It draws no
  * randomness either way, so the RNG stream is identical with and without it.
  *
+ * The first thing the round does is roll its weather. About one race in seven
+ * is declared wet, and a wet one is scored on derived constants — wider noise,
+ * far more driver error, and a score leaning further onto the driver and the
+ * chassis — with each driver blended toward their `wetWeather` rating in
+ * proportion to how wet it was. A `RoundContext` may force a particular
+ * afternoon, and will one day say how likely rain is *here*. The weather is
+ * reported back on the result, because a classification has to say it rained.
+ *
  * Pure and deterministic: the same field, seed, and constants always produce
- * the same result. Randomness is drawn in a fixed order — weekend form and
+ * the same result. Randomness is drawn in a fixed order — the weather, then
+ * weekend form and
  * qualifying noise for the whole field, then race noise, then the two DNF rolls
  * per car, each pass walking the field in the order supplied. Every pass draws a
  * fixed number of values per car *whether or not that car started*, so appending
  * a car to the end of the field, or missing the cut, never disturbs anyone
- * else's draws.
+ * else's draws. The weather pass draws its two values whether it rains or not,
+ * and before everything else, for the same reason.
  *
  * @throws RangeError if the field is empty or contains a duplicate driver.
  */
 export function simulateRace(
   field: readonly RaceEntrant[],
   rng: Rng,
-  constants: RaceConstants = RACE_CONSTANTS,
+  raceConstants: RaceConstants = RACE_CONSTANTS,
   round: RoundContext = {},
 ): RaceResult {
   if (field.length === 0) {
@@ -166,6 +183,17 @@ export function simulateRace(
   if (uniqueDrivers.size !== field.length) {
     throw new RangeError("A driver cannot appear twice in the same field");
   }
+
+  // The first thing that happens, before a single car is scored: the weather.
+  // It is rolled whether or not the round already carries one, so a forced
+  // afternoon costs nobody their place in the stream, and it comes first so
+  // that adding weather to a field cannot reorder the draws inside it.
+  const rolled = rollWeather(rng, undefined, round.wetChance);
+  const weather = round.weather ?? rolled;
+  // Everything below reads `constants`, which on a wet afternoon is a derived
+  // copy: wider noise, harsher retirements, and the score leaning further onto
+  // the driver and the chassis. A dry one is the calibrated object itself.
+  const constants = wetConstants(weather, raceConstants);
 
   // Each session's noise is split on two independent axes at once: how much of
   // it carries from Saturday to Sunday (`weekendFormShare`), and how much of it
@@ -210,7 +238,10 @@ export function simulateRace(
 
   // --- Qualifying -----------------------------------------------------------
   const runners: Runner[] = field.map((entrant) => {
-    const { driver } = entrant;
+    // Who this driver is when it rains. Unchanged in the dry, and unchanged in
+    // the wet for the majority of the pool whose wet rating matches their dry
+    // one — the blend exists for the exceptions.
+    const driver = wetDriver(entrant.driver, weather);
     // Blended once, here, rather than at each of the three places a car rating
     // is read: the engine is part of what the car *is* for this weekend — and
     // so is where in the season the weekend falls, for a car whose year had a
@@ -266,6 +297,7 @@ export function simulateRace(
 
     return {
       entrant,
+      driver,
       car,
       carForm,
       team,
@@ -301,8 +333,7 @@ export function simulateRace(
 
   // --- Race pace ------------------------------------------------------------
   for (const runner of runners) {
-    const { driver } = runner.entrant;
-    const { car } = runner;
+    const { driver, car } = runner;
 
     // Grid advantage decays with distance from pole rather than falling off
     // linearly, so the front row is worth materially more than mid-grid.
@@ -334,8 +365,7 @@ export function simulateRace(
 
   // --- Retirements ----------------------------------------------------------
   for (const runner of runners) {
-    const { driver } = runner.entrant;
-    const { car } = runner;
+    const { driver, car } = runner;
 
     const mechanicalRisk =
       lerpFromRating(
@@ -437,6 +467,7 @@ export function simulateRace(
     retirements: starters - classified.length,
     classifiedCount: classified.length,
     nonQualifiers: runners.length - starters,
+    weather,
   };
 }
 

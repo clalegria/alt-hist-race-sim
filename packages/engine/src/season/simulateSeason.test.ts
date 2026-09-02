@@ -20,6 +20,7 @@ function entrant(driverId: string, teamId: string, ability: number, car: number)
       consistency: ability,
       adaptability: ability,
       composure: ability,
+      wetWeather: ability,
     },
     chassis: { racing: car, qualifying: car, consistency: car, reliability: car },
   };

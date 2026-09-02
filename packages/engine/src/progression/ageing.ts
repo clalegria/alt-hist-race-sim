@@ -260,6 +260,7 @@ const ATTRIBUTES = [
   "consistency",
   "adaptability",
   "composure",
+  "wetWeather",
 ] as const satisfies readonly (keyof DriverRatings)[];
 
 /**

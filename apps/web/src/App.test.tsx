@@ -339,16 +339,25 @@ describe("flags", () => {
     return html.slice(start, end);
   };
 
+  /**
+   * A wet round draws a rain cloud beside its name, which is an `<svg>` like
+   * every flag. Counted rather than assumed away: which seeds rain is exactly
+   * the kind of fact `CLAUDE.md` forbids a test from pinning.
+   */
+  const rainIcons = (round: number): number =>
+    world.season.races[round]?.weather.wet === true ? 1 : 0;
+
   it("flies a flag on every name on the race page", () => {
     const html = render({ kind: "race", round: 0 });
     // One for the round, one per car down the classification, then the
     // collapsed sidebar: eight drivers and eight teams.
-    expect((html.match(/<svg/g) ?? []).length).toBe(1 + SEATS + 8 + 8);
+    expect((html.match(/<svg/g) ?? []).length).toBe(1 + SEATS + 8 + 8 + rainIcons(0));
   });
 
   it("flies a flag beside every driver in qualifying", () => {
     const html = render({ kind: "qualifying", round: 0 });
-    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1); // every car plus the round
+    // Every car plus the round, and the cloud if it rained on it.
+    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1 + rainIcons(0));
   });
 
   it("keeps the non-qualifiers off the starting grid", () => {

@@ -36,7 +36,7 @@ export function parseYear(argv: readonly string[]): number {
 }
 
 /** Every flag these tools take, with the value each one swallows after it. */
-const FLAGS = new Set(["--year", "-y", "--randomness", "-r", "--phase", "-p"]);
+const FLAGS = new Set(["--year", "-y", "--randomness", "-r", "--phase", "-p", "--wet", "-w"]);
 
 /**
  * Positional arguments, with any flag-and-value pair removed.

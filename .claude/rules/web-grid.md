@@ -123,6 +123,10 @@ architecture underneath all three, including why the draft lives where it does, 
   touching no race score, because ~42% of the 1980 field failed to finish and a
   fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
   paying for it would claim a driver is better at something the sim never asks of.
+  **Rebalanced 2026-09-02** toward racing (0.6, from 0.5) with everything else toned down
+  to pay for it, and `wetWeather` added at 0.05 — small because only ~15% of rounds are
+  wet, not because a wet race cares little about it. The driver popover lists it as
+  "Wet weather", between composure and the muted adaptability row.
   The engine is the exception to "the weights live here": `carOverall` folds it in
   through the engine package's `powertrain()` rather than giving it weights of its own,
   because how much an engine is worth is a *model* claim and there must be one answer.

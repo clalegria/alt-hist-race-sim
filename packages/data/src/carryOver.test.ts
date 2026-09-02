@@ -30,6 +30,7 @@ function driver(id: string, age: number, ability: number): Driver {
       consistency: ability,
       adaptability: ability,
       composure: ability,
+      wetWeather: ability,
     },
     peakSeasons: 5,
     developmentSpeed: 5,

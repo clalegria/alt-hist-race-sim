@@ -37,6 +37,9 @@ function closeField(): RaceEntrant[] {
       // Nothing retires: the upsets counted below have to come from pace scatter
       // rather than from the leader's engine letting go.
       composure: 100,
+      // Equal to the dry rating, so a wet round never reorders these two on
+      // anything but the noise this file is measuring.
+      wetWeather: ability as number,
     },
     chassis: {
       racing: ability as number,

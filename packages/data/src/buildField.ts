@@ -61,6 +61,7 @@ export function driverCareer(driver: Driver): DriverCareer {
       consistency: driver.peak.consistency,
       adaptability: driver.peak.adaptability,
       composure: driver.peak.composure,
+      wetWeather: driver.peak.wetWeather,
     },
     ...(driver.stepDown === undefined ? {} : { stepDown: driver.stepDown }),
     ...(driver.offSeasons === undefined ? {} : { offSeasons: driver.offSeasons }),

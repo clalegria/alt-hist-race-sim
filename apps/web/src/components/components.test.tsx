@@ -69,11 +69,26 @@ function syntheticEntry(driverId: string, gridPosition: number): RaceEntryResult
 }
 
 describe("the race classification", () => {
-  const race = world.season.races[0];
+  // Searched rather than pinned: this block checks that every scoring place is
+  // paid and the first place outside them is not, so it needs an opening round
+  // that classified more cars than the era's scale pays. Not every seed does —
+  // wet rounds and a small early field can leave fewer finishers than places —
+  // and which ones do is exactly the kind of fact `CLAUDE.md` forbids pinning.
+  const classification = findWorld((candidate) => {
+    const opener = candidate.season.races[0];
+    return (
+      opener !== undefined &&
+      opener.entries.filter((entry) => entry.finishPosition !== null).length >
+        candidate.points.length
+    );
+  });
+  const race = classification.season.races[0];
   if (race === undefined) {
     throw new Error("seeded world has no races");
   }
-  const html = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />);
+  const html = renderToStaticMarkup(
+    <RaceClassification race={race} points={classification.points} />,
+  );
 
   it("lets the prose columns wrap, so a long name cannot force a scrollbar", () => {
     // The sheet shares its row with the championship sidebar, so it has about
@@ -126,7 +141,7 @@ describe("the race classification", () => {
       .sort((a, b) => (a.finishPosition ?? 0) - (b.finishPosition ?? 0));
 
     // Each scoring place shows its own total, on whatever scale the era pays.
-    const scale = world.points;
+    const scale = classification.points;
     for (const [index, points] of scale.entries()) {
       const entry = classified[index];
       if (entry === undefined) {

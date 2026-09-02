@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RaceEntryResult, RaceResult } from "../race/types.js";
+import { DRY } from "../weather/weather.js";
 import { championshipStandings, constructorStandings, pointsForPosition } from "./standings.js";
 import type { PointsScale, SeasonResult } from "./types.js";
 
@@ -41,6 +42,7 @@ function race(finishers: readonly string[], poleDriverId = finishers[0] ?? "nobo
     retirements: 0,
     classifiedCount: entries.length,
     nonQualifiers: 0,
+    weather: DRY,
   };
 }
 
@@ -61,6 +63,7 @@ function teamRace(finishers: readonly (readonly [string, string])[]): RaceResult
     retirements: 0,
     classifiedCount: entries.length,
     nonQualifiers: 0,
+    weather: DRY,
   };
 }
 

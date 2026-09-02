@@ -12,7 +12,8 @@
       "qualifying": 94,
       "consistency": 88,
       "adaptability": 88,
-      "composure": 88
+      "composure": 88,
+      "wetWeather": 97
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -31,7 +32,8 @@
       "qualifying": 52,
       "consistency": 58,
       "adaptability": 54,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -50,7 +52,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -69,7 +72,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -88,7 +92,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -107,7 +112,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -126,7 +132,8 @@
       "qualifying": 60,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -145,7 +152,8 @@
       "qualifying": 64,
       "consistency": 66,
       "adaptability": 66,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 65
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -164,7 +172,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -183,7 +192,8 @@
       "qualifying": 82,
       "consistency": 76,
       "adaptability": 78,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 83
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -202,7 +212,8 @@
       "qualifying": 96,
       "consistency": 94,
       "adaptability": 94,
-      "composure": 92
+      "composure": 92,
+      "wetWeather": 99
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -221,7 +232,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -240,7 +252,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -259,7 +272,8 @@
       "qualifying": 72,
       "consistency": 72,
       "adaptability": 72,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 73
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -278,7 +292,8 @@
       "qualifying": 78,
       "consistency": 76,
       "adaptability": 76,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 79
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -297,7 +312,8 @@
       "qualifying": 70,
       "consistency": 74,
       "adaptability": 72,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 71
     },
     "peakSeasons": 5,
     "developmentSpeed": 4,
@@ -316,7 +332,8 @@
       "qualifying": 88,
       "consistency": 76,
       "adaptability": 80,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 88
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -335,7 +352,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -354,7 +372,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -373,7 +392,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -392,7 +412,8 @@
       "qualifying": 74,
       "consistency": 76,
       "adaptability": 74,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 77
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -411,7 +432,8 @@
       "qualifying": 62,
       "consistency": 60,
       "adaptability": 62,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 62
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -430,7 +452,8 @@
       "qualifying": 64,
       "consistency": 66,
       "adaptability": 66,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 65
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -449,7 +472,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 63
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -468,7 +492,8 @@
       "qualifying": 48,
       "consistency": 54,
       "adaptability": 50,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -487,7 +512,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -506,7 +532,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -525,7 +552,8 @@
       "qualifying": 52,
       "consistency": 58,
       "adaptability": 54,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -544,7 +572,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -563,7 +592,8 @@
       "qualifying": 72,
       "consistency": 66,
       "adaptability": 70,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 72
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -582,7 +612,8 @@
       "qualifying": 96,
       "consistency": 86,
       "adaptability": 92,
-      "composure": 86
+      "composure": 86,
+      "wetWeather": 99
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -601,7 +632,8 @@
       "qualifying": 50,
       "consistency": 56,
       "adaptability": 52,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -620,7 +652,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -639,7 +672,8 @@
       "qualifying": 78,
       "consistency": 68,
       "adaptability": 74,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 80
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -658,7 +692,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -677,7 +712,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -696,7 +732,8 @@
       "qualifying": 80,
       "consistency": 76,
       "adaptability": 78,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 81
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -715,7 +752,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -734,7 +772,8 @@
       "qualifying": 76,
       "consistency": 74,
       "adaptability": 76,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 77
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -753,7 +792,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 67
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -772,7 +812,8 @@
       "qualifying": 58,
       "consistency": 54,
       "adaptability": 56,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 58
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -791,7 +832,8 @@
       "qualifying": 62,
       "consistency": 66,
       "adaptability": 64,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 63
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -810,7 +852,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 63
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -829,7 +872,8 @@
       "qualifying": 48,
       "consistency": 54,
       "adaptability": 50,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -848,7 +892,8 @@
       "qualifying": 74,
       "consistency": 68,
       "adaptability": 72,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 74
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -867,7 +912,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 63
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -886,7 +932,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -905,7 +952,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -924,7 +972,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -943,7 +992,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -962,7 +1012,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -981,7 +1032,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1000,7 +1052,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 67
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1019,7 +1072,8 @@
       "qualifying": 34,
       "consistency": 40,
       "adaptability": 36,
-      "composure": 40
+      "composure": 40,
+      "wetWeather": 35
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1038,7 +1092,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1057,7 +1112,8 @@
       "qualifying": 36,
       "consistency": 42,
       "adaptability": 38,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 37
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1076,7 +1132,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1095,7 +1152,8 @@
       "qualifying": 76,
       "consistency": 68,
       "adaptability": 74,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 76
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -1114,7 +1172,8 @@
       "qualifying": 48,
       "consistency": 54,
       "adaptability": 50,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1133,7 +1192,8 @@
       "qualifying": 84,
       "consistency": 84,
       "adaptability": 84,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 87
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -1152,7 +1212,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1171,7 +1232,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1190,7 +1252,8 @@
       "qualifying": 58,
       "consistency": 52,
       "adaptability": 56,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 58
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1209,7 +1272,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1228,7 +1292,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1247,7 +1312,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1266,7 +1332,8 @@
       "qualifying": 62,
       "consistency": 66,
       "adaptability": 64,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 63
     },
     "peakSeasons": 5,
     "developmentSpeed": 4,
@@ -1285,7 +1352,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1304,7 +1372,8 @@
       "qualifying": 66,
       "consistency": 70,
       "adaptability": 68,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1323,7 +1392,8 @@
       "qualifying": 82,
       "consistency": 78,
       "adaptability": 80,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 86
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -1342,7 +1412,8 @@
       "qualifying": 80,
       "consistency": 72,
       "adaptability": 76,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 80
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -1361,7 +1432,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1380,7 +1452,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1399,7 +1472,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1418,7 +1492,8 @@
       "qualifying": 64,
       "consistency": 60,
       "adaptability": 62,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 64
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -1437,7 +1512,8 @@
       "qualifying": 72,
       "consistency": 64,
       "adaptability": 68,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 71
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -1456,7 +1532,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1475,7 +1552,8 @@
       "qualifying": 36,
       "consistency": 42,
       "adaptability": 38,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 37
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1494,7 +1572,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1513,7 +1592,8 @@
       "qualifying": 76,
       "consistency": 78,
       "adaptability": 78,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 79
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -1532,7 +1612,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1551,7 +1632,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1570,7 +1652,8 @@
       "qualifying": 82,
       "consistency": 82,
       "adaptability": 82,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 85
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -1589,7 +1672,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1608,7 +1692,8 @@
       "qualifying": 36,
       "consistency": 42,
       "adaptability": 38,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 37
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1627,7 +1712,8 @@
       "qualifying": 34,
       "consistency": 40,
       "adaptability": 36,
-      "composure": 40
+      "composure": 40,
+      "wetWeather": 35
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1646,7 +1732,8 @@
       "qualifying": 78,
       "consistency": 78,
       "adaptability": 78,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 79
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -1665,7 +1752,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1684,7 +1772,8 @@
       "qualifying": 66,
       "consistency": 54,
       "adaptability": 62,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 65
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -1703,7 +1792,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1722,7 +1812,8 @@
       "qualifying": 84,
       "consistency": 76,
       "adaptability": 82,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 86
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -1741,7 +1832,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1760,7 +1852,8 @@
       "qualifying": 66,
       "consistency": 62,
       "adaptability": 64,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 66
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1779,7 +1872,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1798,7 +1892,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1817,7 +1912,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1836,7 +1932,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1855,7 +1952,8 @@
       "qualifying": 98,
       "consistency": 90,
       "adaptability": 94,
-      "composure": 88
+      "composure": 88,
+      "wetWeather": 100
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -1874,7 +1972,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1893,7 +1992,8 @@
       "qualifying": 84,
       "consistency": 80,
       "adaptability": 84,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 88
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -1912,7 +2012,8 @@
       "qualifying": 68,
       "consistency": 72,
       "adaptability": 70,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 69
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -1931,7 +2032,8 @@
       "qualifying": 64,
       "consistency": 56,
       "adaptability": 62,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 64
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -1950,7 +2052,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1969,7 +2072,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -1988,7 +2092,8 @@
       "qualifying": 72,
       "consistency": 72,
       "adaptability": 72,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 73
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -2007,7 +2112,8 @@
       "qualifying": 74,
       "consistency": 62,
       "adaptability": 70,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 73
     },
     "peakSeasons": 2,
     "developmentSpeed": 6,
@@ -2026,7 +2132,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2045,7 +2152,8 @@
       "qualifying": 74,
       "consistency": 68,
       "adaptability": 72,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 76
     },
     "peakSeasons": 5,
     "developmentSpeed": 4,
@@ -2064,7 +2172,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2083,7 +2192,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2102,7 +2212,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2121,7 +2232,8 @@
       "qualifying": 84,
       "consistency": 72,
       "adaptability": 80,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 88
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -2140,7 +2252,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2159,7 +2272,8 @@
       "qualifying": 64,
       "consistency": 66,
       "adaptability": 66,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 65
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2178,7 +2292,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2197,7 +2312,8 @@
       "qualifying": 64,
       "consistency": 66,
       "adaptability": 66,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 65
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2216,7 +2332,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2235,7 +2352,8 @@
       "qualifying": 76,
       "consistency": 72,
       "adaptability": 76,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 84
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -2254,7 +2372,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2273,7 +2392,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2292,7 +2412,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2311,7 +2432,8 @@
       "qualifying": 50,
       "consistency": 56,
       "adaptability": 52,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 51
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2330,7 +2452,8 @@
       "qualifying": 92,
       "consistency": 80,
       "adaptability": 86,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 95
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -2349,7 +2472,8 @@
       "qualifying": 72,
       "consistency": 72,
       "adaptability": 74,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 73
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2368,7 +2492,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2387,7 +2512,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2406,7 +2532,8 @@
       "qualifying": 48,
       "consistency": 54,
       "adaptability": 50,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2425,7 +2552,8 @@
       "qualifying": 76,
       "consistency": 82,
       "adaptability": 80,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 79
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -2444,7 +2572,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2463,7 +2592,8 @@
       "qualifying": 94,
       "consistency": 92,
       "adaptability": 92,
-      "composure": 92
+      "composure": 92,
+      "wetWeather": 100
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -2482,7 +2612,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -2501,7 +2632,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2520,7 +2652,8 @@
       "qualifying": 84,
       "consistency": 78,
       "adaptability": 84,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 93
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -2539,7 +2672,8 @@
       "qualifying": 68,
       "consistency": 70,
       "adaptability": 70,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 74
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -2558,7 +2692,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2577,7 +2712,8 @@
       "qualifying": 68,
       "consistency": 64,
       "adaptability": 66,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 68
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2596,7 +2732,8 @@
       "qualifying": 68,
       "consistency": 64,
       "adaptability": 66,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 68
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -2615,7 +2752,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 61
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -2634,7 +2772,8 @@
       "qualifying": 60,
       "consistency": 56,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 60
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2653,7 +2792,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2672,7 +2812,8 @@
       "qualifying": 52,
       "consistency": 58,
       "adaptability": 54,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2691,7 +2832,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2710,7 +2852,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2729,7 +2872,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2748,7 +2892,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -2767,7 +2912,8 @@
       "qualifying": 90,
       "consistency": 84,
       "adaptability": 88,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 91
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -2790,7 +2936,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2809,7 +2956,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -2828,7 +2976,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -2847,7 +2996,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2866,7 +3016,8 @@
       "qualifying": 80,
       "consistency": 80,
       "adaptability": 78,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 79
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -2885,7 +3036,8 @@
       "qualifying": 88,
       "consistency": 86,
       "adaptability": 86,
-      "composure": 88
+      "composure": 88,
+      "wetWeather": 92
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -2904,7 +3056,8 @@
       "qualifying": 82,
       "consistency": 74,
       "adaptability": 78,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 84
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -2923,7 +3076,8 @@
       "qualifying": 62,
       "consistency": 60,
       "adaptability": 62,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 62
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -2942,7 +3096,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2961,7 +3116,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2980,7 +3136,8 @@
       "qualifying": 58,
       "consistency": 56,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 58
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -2999,7 +3156,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3018,7 +3176,8 @@
       "qualifying": 92,
       "consistency": 74,
       "adaptability": 84,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 94
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -3037,7 +3196,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3056,7 +3216,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3075,7 +3236,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3094,7 +3256,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3113,7 +3276,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3132,7 +3296,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -3151,7 +3316,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3170,7 +3336,8 @@
       "qualifying": 78,
       "consistency": 68,
       "adaptability": 72,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 75
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -3189,7 +3356,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3208,7 +3376,8 @@
       "qualifying": 64,
       "consistency": 66,
       "adaptability": 66,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 65
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3227,7 +3396,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3246,7 +3416,8 @@
       "qualifying": 87,
       "consistency": 91,
       "adaptability": 88,
-      "composure": 92
+      "composure": 92,
+      "wetWeather": 88
     },
     "peakSeasons": 8,
     "developmentSpeed": 6,
@@ -3269,7 +3440,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3288,7 +3460,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 59
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -3307,7 +3480,8 @@
       "qualifying": 76,
       "consistency": 74,
       "adaptability": 76,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 79
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -3326,7 +3500,8 @@
       "qualifying": 89,
       "consistency": 76,
       "adaptability": 80,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 89
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -3345,7 +3520,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3364,7 +3540,8 @@
       "qualifying": 84,
       "consistency": 86,
       "adaptability": 80,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 88
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -3387,7 +3564,8 @@
       "qualifying": 78,
       "consistency": 74,
       "adaptability": 78,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 79
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -3406,7 +3584,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3425,7 +3604,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3444,7 +3624,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3463,7 +3644,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3482,7 +3664,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3501,7 +3684,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3520,7 +3704,8 @@
       "qualifying": 84,
       "consistency": 76,
       "adaptability": 82,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 88
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -3539,7 +3724,8 @@
       "qualifying": 72,
       "consistency": 74,
       "adaptability": 72,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 74
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -3558,7 +3744,8 @@
       "qualifying": 78,
       "consistency": 80,
       "adaptability": 76,
-      "composure": 81
+      "composure": 81,
+      "wetWeather": 83
     },
     "peakSeasons": 5,
     "developmentSpeed": 4,
@@ -3577,7 +3764,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3596,7 +3784,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3615,7 +3804,8 @@
       "qualifying": 62,
       "consistency": 62,
       "adaptability": 64,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 63
     },
     "peakSeasons": 2,
     "developmentSpeed": 6,
@@ -3634,7 +3824,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3653,7 +3844,8 @@
       "qualifying": 70,
       "consistency": 62,
       "adaptability": 66,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 73
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -3672,7 +3864,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3691,7 +3884,8 @@
       "qualifying": 82,
       "consistency": 80,
       "adaptability": 80,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 85
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -3714,7 +3908,8 @@
       "qualifying": 84,
       "consistency": 62,
       "adaptability": 70,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 77
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -3737,7 +3932,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3756,7 +3952,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3775,7 +3972,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 40,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3794,7 +3992,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 44,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3813,7 +4012,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 42,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3832,7 +4032,8 @@
       "qualifying": 78,
       "consistency": 70,
       "adaptability": 74,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 80
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -3851,7 +4052,8 @@
       "qualifying": 70,
       "consistency": 58,
       "adaptability": 62,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 70
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -3874,7 +4076,8 @@
       "qualifying": 87,
       "consistency": 88,
       "adaptability": 82,
-      "composure": 85
+      "composure": 85,
+      "wetWeather": 90
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -3897,7 +4100,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3916,7 +4120,8 @@
       "qualifying": 51,
       "consistency": 55,
       "adaptability": 50,
-      "composure": 55
+      "composure": 55,
+      "wetWeather": 52
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -3935,7 +4140,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 54,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3954,7 +4160,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3973,7 +4180,8 @@
       "qualifying": 44,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -3992,7 +4200,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4011,7 +4220,8 @@
       "qualifying": 70,
       "consistency": 70,
       "adaptability": 72,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 75
     },
     "peakSeasons": 2,
     "developmentSpeed": 6,
@@ -4030,7 +4240,8 @@
       "qualifying": 44,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4049,7 +4260,8 @@
       "qualifying": 80,
       "consistency": 64,
       "adaptability": 70,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 76
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -4068,7 +4280,8 @@
       "qualifying": 93,
       "consistency": 76,
       "adaptability": 88,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 99
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -4087,7 +4300,8 @@
       "qualifying": 51,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 52
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4106,7 +4320,8 @@
       "qualifying": 77,
       "consistency": 75,
       "adaptability": 74,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 80
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -4131,7 +4346,8 @@
       "qualifying": 84,
       "consistency": 80,
       "adaptability": 82,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 86
     },
     "peakSeasons": 8,
     "developmentSpeed": 8,
@@ -4154,7 +4370,8 @@
       "qualifying": 54,
       "consistency": 52,
       "adaptability": 54,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 54
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4173,7 +4390,8 @@
       "qualifying": 40,
       "consistency": 44,
       "adaptability": 44,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4192,7 +4410,8 @@
       "qualifying": 70,
       "consistency": 64,
       "adaptability": 68,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 69
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -4211,7 +4430,8 @@
       "qualifying": 86,
       "consistency": 78,
       "adaptability": 82,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 88
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -4230,7 +4450,8 @@
       "qualifying": 74,
       "consistency": 70,
       "adaptability": 74,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 74
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -4249,7 +4470,8 @@
       "qualifying": 56,
       "consistency": 56,
       "adaptability": 56,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 56
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4268,7 +4490,8 @@
       "qualifying": 84,
       "consistency": 86,
       "adaptability": 84,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 89
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -4291,7 +4514,8 @@
       "qualifying": 86,
       "consistency": 88,
       "adaptability": 90,
-      "composure": 86
+      "composure": 86,
+      "wetWeather": 85
     },
     "peakSeasons": 5,
     "developmentSpeed": 10,
@@ -4324,7 +4548,8 @@
       "qualifying": 88,
       "consistency": 70,
       "adaptability": 76,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 82
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -4353,7 +4578,8 @@
       "qualifying": 86,
       "consistency": 79,
       "adaptability": 82,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 85
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -4372,7 +4598,8 @@
       "qualifying": 70,
       "consistency": 64,
       "adaptability": 68,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -4391,7 +4618,8 @@
       "qualifying": 70,
       "consistency": 72,
       "adaptability": 70,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 70
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -4410,7 +4638,8 @@
       "qualifying": 48,
       "consistency": 45,
       "adaptability": 54,
-      "composure": 55
+      "composure": 55,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4429,7 +4658,8 @@
       "qualifying": 90,
       "consistency": 94,
       "adaptability": 92,
-      "composure": 93
+      "composure": 93,
+      "wetWeather": 86
     },
     "peakSeasons": 7,
     "developmentSpeed": 8,
@@ -4454,7 +4684,8 @@
       "qualifying": 78,
       "consistency": 58,
       "adaptability": 72,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 72
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -4473,7 +4704,8 @@
       "qualifying": 48,
       "consistency": 48,
       "adaptability": 48,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 48
     },
     "peakSeasons": 1,
     "developmentSpeed": 4,
@@ -4492,7 +4724,8 @@
       "qualifying": 52,
       "consistency": 52,
       "adaptability": 52,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 52
     },
     "peakSeasons": 1,
     "developmentSpeed": 4,
@@ -4511,7 +4744,8 @@
       "qualifying": 54,
       "consistency": 52,
       "adaptability": 54,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 54
     },
     "peakSeasons": 1,
     "developmentSpeed": 5,
@@ -4530,7 +4764,8 @@
       "qualifying": 60,
       "consistency": 56,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 59
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -4549,7 +4784,8 @@
       "qualifying": 66,
       "consistency": 62,
       "adaptability": 68,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 66
     },
     "peakSeasons": 2,
     "developmentSpeed": 7,
@@ -4568,7 +4804,8 @@
       "qualifying": 90,
       "consistency": 80,
       "adaptability": 84,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 94
     },
     "peakSeasons": 6,
     "developmentSpeed": 6,
@@ -4597,7 +4834,8 @@
       "qualifying": 74,
       "consistency": 74,
       "adaptability": 76,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 75
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -4616,7 +4854,8 @@
       "qualifying": 52,
       "consistency": 50,
       "adaptability": 52,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 52
     },
     "peakSeasons": 1,
     "developmentSpeed": 4,
@@ -4635,7 +4874,8 @@
       "qualifying": 54,
       "consistency": 54,
       "adaptability": 54,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 54
     },
     "peakSeasons": 1,
     "developmentSpeed": 4,
@@ -4654,7 +4894,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4673,7 +4914,8 @@
       "qualifying": 74,
       "consistency": 74,
       "adaptability": 72,
-      "composure": 75
+      "composure": 75,
+      "wetWeather": 75
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -4692,7 +4934,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4711,7 +4954,8 @@
       "qualifying": 81,
       "consistency": 80,
       "adaptability": 78,
-      "composure": 79
+      "composure": 79,
+      "wetWeather": 83
     },
     "peakSeasons": 4,
     "developmentSpeed": 6,
@@ -4730,7 +4974,8 @@
       "qualifying": 48,
       "consistency": 55,
       "adaptability": 50,
-      "composure": 55
+      "composure": 55,
+      "wetWeather": 49
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -4749,7 +4994,8 @@
       "qualifying": 43,
       "consistency": 47,
       "adaptability": 45,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 44
     },
     "peakSeasons": 1,
     "developmentSpeed": 4,
@@ -4768,7 +5014,8 @@
       "qualifying": 45,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 46
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4787,7 +5034,8 @@
       "qualifying": 60,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 60
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4806,7 +5054,8 @@
       "qualifying": 54,
       "consistency": 56,
       "adaptability": 56,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 54
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4825,7 +5074,8 @@
       "qualifying": 52,
       "consistency": 52,
       "adaptability": 52,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 52
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4844,7 +5094,8 @@
       "qualifying": 58,
       "consistency": 56,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 58
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4863,7 +5114,8 @@
       "qualifying": 78,
       "consistency": 66,
       "adaptability": 70,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 72
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -4882,7 +5134,8 @@
       "qualifying": 56,
       "consistency": 56,
       "adaptability": 56,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 56
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4901,7 +5154,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4920,7 +5174,8 @@
       "qualifying": 50,
       "consistency": 50,
       "adaptability": 50,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 50
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4939,7 +5194,8 @@
       "qualifying": 60,
       "consistency": 56,
       "adaptability": 60,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 60
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -4958,7 +5214,8 @@
       "qualifying": 54,
       "consistency": 66,
       "adaptability": 60,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -4977,7 +5234,8 @@
       "qualifying": 48,
       "consistency": 50,
       "adaptability": 50,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 48
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -4996,7 +5254,8 @@
       "qualifying": 76,
       "consistency": 82,
       "adaptability": 78,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 84
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5015,7 +5274,8 @@
       "qualifying": 99,
       "consistency": 88,
       "adaptability": 95,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 100
     },
     "peakSeasons": 5,
     "developmentSpeed": 7,
@@ -5034,7 +5294,8 @@
       "qualifying": 50,
       "consistency": 50,
       "adaptability": 50,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 50
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5053,7 +5314,8 @@
       "qualifying": 85,
       "consistency": 83,
       "adaptability": 80,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 85
     },
     "peakSeasons": 7,
     "developmentSpeed": 5,
@@ -5078,7 +5340,8 @@
       "qualifying": 44,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 44
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5097,7 +5360,8 @@
       "qualifying": 50,
       "consistency": 52,
       "adaptability": 52,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 50
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5116,7 +5380,8 @@
       "qualifying": 70,
       "consistency": 78,
       "adaptability": 76,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 76
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5135,7 +5400,8 @@
       "qualifying": 62,
       "consistency": 60,
       "adaptability": 62,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 62
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5154,7 +5420,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5173,7 +5440,8 @@
       "qualifying": 66,
       "consistency": 70,
       "adaptability": 68,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5192,7 +5460,8 @@
       "qualifying": 82,
       "consistency": 66,
       "adaptability": 78,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 89
     },
     "peakSeasons": 3,
     "developmentSpeed": 7,
@@ -5211,7 +5480,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 56
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5230,7 +5500,8 @@
       "qualifying": 72,
       "consistency": 66,
       "adaptability": 70,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 74
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5249,7 +5520,8 @@
       "qualifying": 76,
       "consistency": 76,
       "adaptability": 78,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 81
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5268,7 +5540,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 63
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5287,7 +5560,8 @@
       "qualifying": 42,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 42
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5306,7 +5580,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5325,7 +5600,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5344,7 +5620,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5363,7 +5640,8 @@
       "qualifying": 68,
       "consistency": 66,
       "adaptability": 68,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 68
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5382,7 +5660,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5401,7 +5680,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5420,7 +5700,8 @@
       "qualifying": 58,
       "consistency": 66,
       "adaptability": 62,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5439,7 +5720,8 @@
       "qualifying": 74,
       "consistency": 64,
       "adaptability": 70,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 73
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5458,7 +5740,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5477,7 +5760,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5496,7 +5780,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 54,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5515,7 +5800,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5534,7 +5820,8 @@
       "qualifying": 48,
       "consistency": 54,
       "adaptability": 50,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5553,7 +5840,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5572,7 +5860,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5591,7 +5880,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5610,7 +5900,8 @@
       "qualifying": 54,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5629,7 +5920,8 @@
       "qualifying": 32,
       "consistency": 38,
       "adaptability": 36,
-      "composure": 38
+      "composure": 38,
+      "wetWeather": 33
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5648,7 +5940,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5667,7 +5960,8 @@
       "qualifying": 40,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5686,7 +5980,8 @@
       "qualifying": 85,
       "consistency": 74,
       "adaptability": 82,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 90
     },
     "peakSeasons": 6,
     "developmentSpeed": 10,
@@ -5705,7 +6000,8 @@
       "qualifying": 66,
       "consistency": 62,
       "adaptability": 64,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 68
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5724,7 +6020,8 @@
       "qualifying": 72,
       "consistency": 76,
       "adaptability": 76,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 78
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -5743,7 +6040,8 @@
       "qualifying": 68,
       "consistency": 64,
       "adaptability": 66,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 68
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -5762,7 +6060,8 @@
       "qualifying": 50,
       "consistency": 50,
       "adaptability": 50,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 50
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5781,7 +6080,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5800,7 +6100,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5819,7 +6120,8 @@
       "qualifying": 32,
       "consistency": 38,
       "adaptability": 36,
-      "composure": 38
+      "composure": 38,
+      "wetWeather": 33
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5838,7 +6140,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5857,7 +6160,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5876,7 +6180,8 @@
       "qualifying": 70,
       "consistency": 66,
       "adaptability": 70,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 70
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5895,7 +6200,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -5914,7 +6220,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 63
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -5933,7 +6240,8 @@
       "qualifying": 68,
       "consistency": 70,
       "adaptability": 70,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 69
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5952,7 +6260,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 69
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -5971,7 +6280,8 @@
       "qualifying": 97,
       "consistency": 94,
       "adaptability": 96,
-      "composure": 88
+      "composure": 88,
+      "wetWeather": 99
     },
     "peakSeasons": 10,
     "developmentSpeed": 7,
@@ -6000,7 +6310,8 @@
       "qualifying": 94,
       "consistency": 85,
       "adaptability": 88,
-      "composure": 86
+      "composure": 86,
+      "wetWeather": 95
     },
     "peakSeasons": 4,
     "developmentSpeed": 6,
@@ -6033,7 +6344,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6052,7 +6364,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 67
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -6071,7 +6384,8 @@
       "qualifying": 84,
       "consistency": 84,
       "adaptability": 82,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 89
     },
     "peakSeasons": 7,
     "developmentSpeed": 5,
@@ -6094,7 +6408,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6113,7 +6428,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6132,7 +6448,8 @@
       "qualifying": 64,
       "consistency": 58,
       "adaptability": 62,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 64
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -6151,7 +6468,8 @@
       "qualifying": 77,
       "consistency": 77,
       "adaptability": 76,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 79
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -6176,7 +6494,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6195,7 +6514,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6214,7 +6534,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6233,7 +6554,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6252,7 +6574,8 @@
       "qualifying": 68,
       "consistency": 68,
       "adaptability": 66,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 69
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6271,7 +6594,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6290,7 +6614,8 @@
       "qualifying": 84,
       "consistency": 82,
       "adaptability": 82,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 88
     },
     "peakSeasons": 11,
     "developmentSpeed": 8,
@@ -6309,7 +6634,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6328,7 +6654,8 @@
       "qualifying": 83,
       "consistency": 80,
       "adaptability": 82,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 87
     },
     "peakSeasons": 7,
     "developmentSpeed": 8,
@@ -6347,7 +6674,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6366,7 +6694,8 @@
       "qualifying": 87,
       "consistency": 74,
       "adaptability": 80,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 88
     },
     "peakSeasons": 1,
     "developmentSpeed": 10,
@@ -6391,7 +6720,8 @@
       "qualifying": 70,
       "consistency": 64,
       "adaptability": 68,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 72
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -6410,7 +6740,8 @@
       "qualifying": 70,
       "consistency": 72,
       "adaptability": 72,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 73
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -6429,7 +6760,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6448,7 +6780,8 @@
       "qualifying": 81,
       "consistency": 76,
       "adaptability": 76,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 84
     },
     "peakSeasons": 4,
     "developmentSpeed": 9,
@@ -6471,7 +6804,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6490,7 +6824,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6509,7 +6844,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6528,7 +6864,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6547,7 +6884,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6566,7 +6904,8 @@
       "qualifying": 80,
       "consistency": 76,
       "adaptability": 78,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 84
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -6585,7 +6924,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6604,7 +6944,8 @@
       "qualifying": 86,
       "consistency": 78,
       "adaptability": 84,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 88
     },
     "peakSeasons": 4,
     "developmentSpeed": 9,
@@ -6627,7 +6968,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6646,7 +6988,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6665,7 +7008,8 @@
       "qualifying": 68,
       "consistency": 70,
       "adaptability": 72,
-      "composure": 72
+      "composure": 72,
+      "wetWeather": 71
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -6684,7 +7028,8 @@
       "qualifying": 92,
       "consistency": 72,
       "adaptability": 76,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 82
     },
     "peakSeasons": 4,
     "developmentSpeed": 9,
@@ -6703,7 +7048,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6722,7 +7068,8 @@
       "qualifying": 86,
       "consistency": 74,
       "adaptability": 78,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 86
     },
     "peakSeasons": 4,
     "developmentSpeed": 7,
@@ -6741,7 +7088,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6760,7 +7108,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6779,7 +7128,8 @@
       "qualifying": 52,
       "consistency": 52,
       "adaptability": 52,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 52
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6798,7 +7148,8 @@
       "qualifying": 60,
       "consistency": 66,
       "adaptability": 64,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -6817,7 +7168,8 @@
       "qualifying": 62,
       "consistency": 66,
       "adaptability": 64,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 63
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -6836,7 +7188,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -6855,7 +7208,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6874,7 +7228,8 @@
       "qualifying": 82,
       "consistency": 83,
       "adaptability": 80,
-      "composure": 93
+      "composure": 93,
+      "wetWeather": 90
     },
     "peakSeasons": 8,
     "developmentSpeed": 8,
@@ -6907,7 +7262,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6926,7 +7282,8 @@
       "qualifying": 78,
       "consistency": 83,
       "adaptability": 76,
-      "composure": 86
+      "composure": 86,
+      "wetWeather": 84
     },
     "peakSeasons": 6,
     "developmentSpeed": 8,
@@ -6945,7 +7302,8 @@
       "qualifying": 36,
       "consistency": 42,
       "adaptability": 40,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 37
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6964,7 +7322,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -6983,7 +7342,8 @@
       "qualifying": 92,
       "consistency": 92,
       "adaptability": 94,
-      "composure": 88
+      "composure": 88,
+      "wetWeather": 98
     },
     "peakSeasons": 11,
     "developmentSpeed": 5,
@@ -7012,7 +7372,8 @@
       "qualifying": 89,
       "consistency": 74,
       "adaptability": 80,
-      "composure": 77
+      "composure": 77,
+      "wetWeather": 90
     },
     "peakSeasons": 4,
     "developmentSpeed": 9,
@@ -7035,7 +7396,8 @@
       "qualifying": 90,
       "consistency": 86,
       "adaptability": 80,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 96
     },
     "peakSeasons": 5,
     "developmentSpeed": 4,
@@ -7068,7 +7430,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7087,7 +7450,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 58
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7106,7 +7470,8 @@
       "qualifying": 87,
       "consistency": 82,
       "adaptability": 80,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 87
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -7139,7 +7504,8 @@
       "qualifying": 86,
       "consistency": 78,
       "adaptability": 80,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 88
     },
     "peakSeasons": 6,
     "developmentSpeed": 7,
@@ -7168,7 +7534,8 @@
       "qualifying": 66,
       "consistency": 54,
       "adaptability": 62,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 67
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -7187,7 +7554,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7206,7 +7574,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 59
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7225,7 +7594,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7244,7 +7614,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7263,7 +7634,8 @@
       "qualifying": 40,
       "consistency": 46,
       "adaptability": 44,
-      "composure": 46
+      "composure": 46,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7282,7 +7654,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -7301,7 +7674,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7320,7 +7694,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7339,7 +7714,8 @@
       "qualifying": 66,
       "consistency": 68,
       "adaptability": 68,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 69
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -7358,7 +7734,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7377,7 +7754,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7396,7 +7774,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7415,7 +7794,8 @@
       "qualifying": 52,
       "consistency": 58,
       "adaptability": 54,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7434,7 +7814,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 57
     },
     "peakSeasons": 4,
     "developmentSpeed": 4,
@@ -7453,7 +7834,8 @@
       "qualifying": 88,
       "consistency": 82,
       "adaptability": 84,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 87
     },
     "peakSeasons": 8,
     "developmentSpeed": 6,
@@ -7472,7 +7854,8 @@
       "qualifying": 89,
       "consistency": 85,
       "adaptability": 82,
-      "composure": 78
+      "composure": 78,
+      "wetWeather": 91
     },
     "peakSeasons": 7,
     "developmentSpeed": 5,
@@ -7501,7 +7884,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7520,7 +7904,8 @@
       "qualifying": 30,
       "consistency": 36,
       "adaptability": 34,
-      "composure": 36
+      "composure": 36,
+      "wetWeather": 31
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7539,7 +7924,8 @@
       "qualifying": 66,
       "consistency": 62,
       "adaptability": 66,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 68
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -7558,7 +7944,8 @@
       "qualifying": 70,
       "consistency": 68,
       "adaptability": 70,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 70
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -7577,7 +7964,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7596,7 +7984,8 @@
       "qualifying": 92,
       "consistency": 92,
       "adaptability": 94,
-      "composure": 91
+      "composure": 91,
+      "wetWeather": 100
     },
     "peakSeasons": 10,
     "developmentSpeed": 10,
@@ -7645,7 +8034,8 @@
       "qualifying": 95,
       "consistency": 88,
       "adaptability": 88,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 98
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -7682,7 +8072,8 @@
       "qualifying": 52,
       "consistency": 54,
       "adaptability": 54,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7701,7 +8092,8 @@
       "qualifying": 60,
       "consistency": 62,
       "adaptability": 62,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 63
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7720,7 +8112,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -7739,7 +8132,8 @@
       "qualifying": 66,
       "consistency": 64,
       "adaptability": 68,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 69
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -7758,7 +8152,8 @@
       "qualifying": 76,
       "consistency": 68,
       "adaptability": 74,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 76
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -7777,7 +8172,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -7796,7 +8192,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7815,7 +8212,8 @@
       "qualifying": 44,
       "consistency": 50,
       "adaptability": 46,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 45
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7834,7 +8232,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7853,7 +8252,8 @@
       "qualifying": 84,
       "consistency": 78,
       "adaptability": 78,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 88
     },
     "peakSeasons": 7,
     "developmentSpeed": 5,
@@ -7872,7 +8272,8 @@
       "qualifying": 54,
       "consistency": 56,
       "adaptability": 56,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 55
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -7891,7 +8292,8 @@
       "qualifying": 87,
       "consistency": 87,
       "adaptability": 84,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 90
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -7920,7 +8322,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -7939,7 +8342,8 @@
       "qualifying": 64,
       "consistency": 52,
       "adaptability": 60,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 60
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -7958,7 +8362,8 @@
       "qualifying": 64,
       "consistency": 68,
       "adaptability": 66,
-      "composure": 68
+      "composure": 68,
+      "wetWeather": 65
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -7977,7 +8382,8 @@
       "qualifying": 76,
       "consistency": 80,
       "adaptability": 80,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 84
     },
     "peakSeasons": 12,
     "developmentSpeed": 6,
@@ -8002,7 +8408,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8021,7 +8428,8 @@
       "qualifying": 86,
       "consistency": 75,
       "adaptability": 75,
-      "composure": 75
+      "composure": 75,
+      "wetWeather": 82
     },
     "peakSeasons": 8,
     "developmentSpeed": 8,
@@ -8040,7 +8448,8 @@
       "qualifying": 50,
       "consistency": 54,
       "adaptability": 52,
-      "composure": 54
+      "composure": 54,
+      "wetWeather": 51
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -8059,7 +8468,8 @@
       "qualifying": 46,
       "consistency": 50,
       "adaptability": 48,
-      "composure": 50
+      "composure": 50,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8078,7 +8488,8 @@
       "qualifying": 76,
       "consistency": 70,
       "adaptability": 74,
-      "composure": 70
+      "composure": 70,
+      "wetWeather": 79
     },
     "peakSeasons": 3,
     "developmentSpeed": 6,
@@ -8097,7 +8508,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8116,7 +8528,8 @@
       "qualifying": 84,
       "consistency": 80,
       "adaptability": 80,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 83
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -8135,7 +8548,8 @@
       "qualifying": 79,
       "consistency": 70,
       "adaptability": 62,
-      "composure": 65
+      "composure": 65,
+      "wetWeather": 84
     },
     "peakSeasons": 3,
     "developmentSpeed": 9,
@@ -8158,7 +8572,8 @@
       "qualifying": 70,
       "consistency": 66,
       "adaptability": 68,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 70
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -8177,7 +8592,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -8196,7 +8612,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8215,7 +8632,8 @@
       "qualifying": 82,
       "consistency": 82,
       "adaptability": 91,
-      "composure": 90
+      "composure": 90,
+      "wetWeather": 85
     },
     "peakSeasons": 10,
     "developmentSpeed": 9,
@@ -8240,7 +8658,8 @@
       "qualifying": 52,
       "consistency": 56,
       "adaptability": 54,
-      "composure": 56
+      "composure": 56,
+      "wetWeather": 53
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8259,7 +8678,8 @@
       "qualifying": 98,
       "consistency": 92,
       "adaptability": 96,
-      "composure": 86
+      "composure": 86,
+      "wetWeather": 100
     },
     "peakSeasons": 9,
     "developmentSpeed": 5,
@@ -8284,7 +8704,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 43
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8303,7 +8724,8 @@
       "qualifying": 78,
       "consistency": 77,
       "adaptability": 74,
-      "composure": 75
+      "composure": 75,
+      "wetWeather": 83
     },
     "peakSeasons": 6,
     "developmentSpeed": 5,
@@ -8322,7 +8744,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8341,7 +8764,8 @@
       "qualifying": 60,
       "consistency": 58,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 60
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -8360,7 +8784,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 44
+      "composure": 44,
+      "wetWeather": 39
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8379,7 +8804,8 @@
       "qualifying": 60,
       "consistency": 64,
       "adaptability": 62,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 61
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8398,7 +8824,8 @@
       "qualifying": 58,
       "consistency": 62,
       "adaptability": 60,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -8417,7 +8844,8 @@
       "qualifying": 54,
       "consistency": 58,
       "adaptability": 56,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8436,7 +8864,8 @@
       "qualifying": 62,
       "consistency": 64,
       "adaptability": 64,
-      "composure": 62
+      "composure": 62,
+      "wetWeather": 71
     },
     "peakSeasons": 6,
     "developmentSpeed": 4,
@@ -8455,7 +8884,8 @@
       "qualifying": 83,
       "consistency": 74,
       "adaptability": 76,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 84
     },
     "peakSeasons": 8,
     "developmentSpeed": 5,
@@ -8474,7 +8904,8 @@
       "qualifying": 92,
       "consistency": 84,
       "adaptability": 88,
-      "composure": 84
+      "composure": 84,
+      "wetWeather": 90
     },
     "peakSeasons": 8,
     "developmentSpeed": 8,
@@ -8499,7 +8930,8 @@
       "qualifying": 48,
       "consistency": 52,
       "adaptability": 50,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 49
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8518,7 +8950,8 @@
       "qualifying": 77,
       "consistency": 83,
       "adaptability": 76,
-      "composure": 82
+      "composure": 82,
+      "wetWeather": 81
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
@@ -8537,7 +8970,8 @@
       "qualifying": 89,
       "consistency": 82,
       "adaptability": 86,
-      "composure": 89
+      "composure": 89,
+      "wetWeather": 89
     },
     "peakSeasons": 9,
     "developmentSpeed": 7,
@@ -8562,7 +8996,8 @@
       "qualifying": 86,
       "consistency": 85,
       "adaptability": 90,
-      "composure": 80
+      "composure": 80,
+      "wetWeather": 90
     },
     "peakSeasons": 11,
     "developmentSpeed": 7,
@@ -8581,7 +9016,8 @@
       "qualifying": 46,
       "consistency": 52,
       "adaptability": 48,
-      "composure": 52
+      "composure": 52,
+      "wetWeather": 47
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8600,7 +9036,8 @@
       "qualifying": 56,
       "consistency": 58,
       "adaptability": 58,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 57
     },
     "peakSeasons": 2,
     "developmentSpeed": 5,
@@ -8619,7 +9056,8 @@
       "qualifying": 38,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 42
+      "composure": 42,
+      "wetWeather": 37
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8638,7 +9076,8 @@
       "qualifying": 66,
       "consistency": 62,
       "adaptability": 66,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 68
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -8657,7 +9096,8 @@
       "qualifying": 56,
       "consistency": 60,
       "adaptability": 58,
-      "composure": 60
+      "composure": 60,
+      "wetWeather": 57
     },
     "peakSeasons": 3,
     "developmentSpeed": 4,
@@ -8676,7 +9116,8 @@
       "qualifying": 72,
       "consistency": 66,
       "adaptability": 68,
-      "composure": 64
+      "composure": 64,
+      "wetWeather": 74
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -8701,7 +9142,8 @@
       "qualifying": 42,
       "consistency": 48,
       "adaptability": 46,
-      "composure": 48
+      "composure": 48,
+      "wetWeather": 41
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -8720,7 +9162,8 @@
       "qualifying": 85,
       "consistency": 79,
       "adaptability": 88,
-      "composure": 89
+      "composure": 89,
+      "wetWeather": 84
     },
     "peakSeasons": 8,
     "developmentSpeed": 9,
@@ -8745,7 +9188,8 @@
       "qualifying": 68,
       "consistency": 68,
       "adaptability": 70,
-      "composure": 66
+      "composure": 66,
+      "wetWeather": 69
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
@@ -8764,7 +9208,8 @@
       "qualifying": 58,
       "consistency": 60,
       "adaptability": 60,
-      "composure": 58
+      "composure": 58,
+      "wetWeather": 59
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
@@ -8783,7 +9228,8 @@
       "qualifying": 85,
       "consistency": 78,
       "adaptability": 80,
-      "composure": 76
+      "composure": 76,
+      "wetWeather": 84
     },
     "peakSeasons": 9,
     "developmentSpeed": 6,
@@ -8802,7 +9248,8 @@
       "qualifying": 94,
       "consistency": 89,
       "adaptability": 90,
-      "composure": 87
+      "composure": 87,
+      "wetWeather": 97
     },
     "peakSeasons": 13,
     "developmentSpeed": 4,
@@ -8827,7 +9274,8 @@
       "qualifying": 74,
       "consistency": 74,
       "adaptability": 76,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 75
     },
     "peakSeasons": 5,
     "developmentSpeed": 6,
@@ -8846,7 +9294,8 @@
       "qualifying": 80,
       "consistency": 76,
       "adaptability": 78,
-      "composure": 74
+      "composure": 74,
+      "wetWeather": 80
     },
     "peakSeasons": 6,
     "developmentSpeed": 7,
@@ -8865,7 +9314,8 @@
       "qualifying": 85,
       "consistency": 70,
       "adaptability": 74,
-      "composure": 83
+      "composure": 83,
+      "wetWeather": 85
     },
     "peakSeasons": 8,
     "developmentSpeed": 5,

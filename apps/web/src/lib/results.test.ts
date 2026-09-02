@@ -11,6 +11,7 @@
 import {
   championshipStandings,
   constructorStandings,
+  DRY,
   type RaceEntryResult,
   type RaceResult,
   type SeasonResult,
@@ -52,6 +53,7 @@ function raceOf(entries: readonly RaceEntryResult[]): RaceResult {
     retirements: entries.filter((entry) => entry.retired).length,
     classifiedCount: classified.length,
     nonQualifiers: entries.filter((entry) => !entry.started).length,
+    weather: DRY,
   };
 }
 

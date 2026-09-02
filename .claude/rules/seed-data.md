@@ -14,9 +14,11 @@ drift apart; the **seasons** are checked the same two ways at runtime by
 - `drivers.json` — every driver across every authored season (450 today). `{ id, name,
   nationality, birthYear, debutSeason,
   finalSeason, peak: { season, racing, qualifying, consistency, adaptability,
-  composure }, peakSeasons, developmentSpeed, declineSpeed, stepDown?,
-  offSeasons? }`. The career fields feed the ageing curve — see
-  `.claude/rules/progression.md` for what each one does to it:
+  composure, wetWeather }, peakSeasons, developmentSpeed, declineSpeed, stepDown?,
+  offSeasons? }`. `wetWeather` is read only on a wet round, and then in proportion to how
+  wet it was — `.claude/rules/wet-weather.md` has how it was authored and why most of the
+  pool sits exactly on a formula off `racing` and `qualifying`. The career fields feed
+  the ageing curve — see `.claude/rules/progression.md` for what each one does to it:
   - `debutSeason` is the rookie season; `finalSeason` is the last season raced in
     real life and is **informational only** — nothing withdraws a driver because
     of it.
@@ -129,7 +131,7 @@ loads on `teams.json`, `eras.ts` and the web modules that read them.
   (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a step down")
   so the author can retune freely and add entries without going red. Tuning these files
   must never be a reason to edit a test.
-- All five driver attributes share polarity: higher = better. `composure` replaced
+- All six driver attributes share polarity: higher = better. `composure` replaced
   "mistakes" for this reason (low composure = crash-prone).
 - The driver pool spans every season, so plenty of drivers hold no seat in the year
   being run — they are available to the grid editor and, later, the market. Intended,

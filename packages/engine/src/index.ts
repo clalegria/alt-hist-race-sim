@@ -80,3 +80,12 @@ export type {
   PointsScale,
   SeasonResult,
 } from "./season/types.js";
+export {
+  DRY,
+  type RaceWeather,
+  rollWeather,
+  WEATHER_CONSTANTS,
+  type WeatherConstants,
+  wetConstants,
+  wetDriver,
+} from "./weather/index.js";

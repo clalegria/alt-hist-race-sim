@@ -17,6 +17,16 @@ export interface DriverPeak {
   readonly adaptability: number;
   /** Low composure = crash-prone. */
   readonly composure: number;
+  /**
+   * How good they are when it rains.
+   *
+   * Authored close to `racing` for most of the pool — wet pace and dry pace
+   * really are highly correlated — and deliberately away from it for the
+   * drivers the sport remembers one way or the other: Senna and Schumacher
+   * above their dry ratings, Prost a little below his, Stroll well above his.
+   * Read only on a wet round, and then in proportion to how wet it was.
+   */
+  readonly wetWeather: number;
 }
 
 /**

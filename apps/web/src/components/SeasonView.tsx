@@ -14,6 +14,7 @@ import {
   type PointsScale,
   type RaceEntrant,
   type RaceResult,
+  type RaceWeather,
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo } from "react";
@@ -42,6 +43,7 @@ import { type Setting, SimulationSettings, settingsOf } from "./SimulationSettin
 import { TeamBadge } from "./TeamBadge.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { WeatherBadge } from "./WeatherBadge.js";
 
 /** The name of a round, falling back to a bare number if the calendar is short. */
 function roundLabel(
@@ -74,21 +76,28 @@ function Section({
   title,
   subtitle,
   country,
+  weather,
   children,
 }: {
   title: string;
   subtitle: string;
   country?: string;
+  /**
+   * What the sky did. Drawn beside the round's name, and only when it rained —
+   * `WeatherBadge` renders nothing for a dry afternoon, which is most of them.
+   */
+  weather?: RaceWeather;
   children: React.ReactNode;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex flex-wrap items-center gap-2">
           {country === undefined || country === "" ? null : (
             <Flag country={country} title={country} className="h-4 w-6" />
           )}
           {title}
+          {weather === undefined ? null : <WeatherBadge weather={weather} />}
         </CardTitle>
         <CardDescription>{subtitle}</CardDescription>
       </CardHeader>
@@ -348,7 +357,12 @@ function RaceStage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <Section title={`${label.name} — Race`} subtitle={label.circuit} country={label.country}>
+        <Section
+          title={`${label.name} — Race`}
+          subtitle={label.circuit}
+          country={label.country}
+          weather={race.weather}
+        >
           <RaceClassification race={race} points={points} badge />
         </Section>
 
@@ -477,6 +491,10 @@ function SeasonBody({
         title={`${label.name} — Qualifying`}
         subtitle={label.circuit}
         country={label.country}
+        // The weather belongs to the whole weekend, not to Sunday: it widens
+        // qualifying's noise and shifts its weights exactly as it does the
+        // race's, so a wet round has to say so here too.
+        weather={round.weather}
       >
         <QualifyingResults race={round} />
       </Section>

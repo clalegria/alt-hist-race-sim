@@ -399,7 +399,14 @@ export function previewField(
         field.push({
           driverId: EMPTY_SEAT,
           teamId: entry.teamId,
-          driver: { racing: 0, qualifying: 0, consistency: 0, adaptability: 0, composure: 0 },
+          driver: {
+            racing: 0,
+            qualifying: 0,
+            consistency: 0,
+            adaptability: 0,
+            composure: 0,
+            wetWeather: 0,
+          },
           chassis: entry.chassis,
           engineId: entry.engineId,
           ...(engine === undefined

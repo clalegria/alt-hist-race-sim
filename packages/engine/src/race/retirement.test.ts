@@ -27,7 +27,14 @@ function fragileField(size = 12): RaceEntrant[] {
   return Array.from({ length: size }, (_, index) => ({
     driverId: `driver-${index}`,
     teamId: `team-${index}`,
-    driver: { racing: 60, qualifying: 60, consistency: 60, adaptability: 50, composure: 60 },
+    driver: {
+      racing: 60,
+      qualifying: 60,
+      consistency: 60,
+      adaptability: 50,
+      composure: 60,
+      wetWeather: 60,
+    },
     chassis: { racing: 60, qualifying: 60, consistency: 60, reliability: 60 },
   }));
 }

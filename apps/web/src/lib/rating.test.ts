@@ -10,6 +10,7 @@ function driver(overrides: Partial<DriverRatings> = {}): DriverRatings {
     consistency: 50,
     composure: 50,
     adaptability: 50,
+    wetWeather: 50,
     ...overrides,
   };
 }
@@ -21,27 +22,42 @@ function chassis(overrides: Partial<ChassisSpec> = {}): ChassisSpec {
 describe("driverOverall", () => {
   it("stays on the same 0-100 scale as the ratings", () => {
     expect(driverOverall(driver())).toBe(50);
-    expect(driverOverall(driver({ racing: 0, qualifying: 0, consistency: 0, composure: 0 }))).toBe(
-      0,
-    );
     expect(
-      driverOverall(driver({ racing: 100, qualifying: 100, consistency: 100, composure: 100 })),
+      driverOverall(
+        driver({ racing: 0, qualifying: 0, consistency: 0, composure: 0, wetWeather: 0 }),
+      ),
+    ).toBe(0);
+    expect(
+      driverOverall(
+        driver({
+          racing: 100,
+          qualifying: 100,
+          consistency: 100,
+          composure: 100,
+          wetWeather: 100,
+        }),
+      ),
     ).toBe(100);
   });
 
   it("weighs racing above everything else", () => {
     const base = driverOverall(driver());
     const racier = driverOverall(driver({ racing: 70 })) - base;
-    for (const key of ["qualifying", "consistency", "composure"] as const) {
+    for (const key of ["qualifying", "consistency", "composure", "wetWeather"] as const) {
       expect(driverOverall(driver({ [key]: 70 })) - base).toBeLessThan(racier);
     }
   });
 
-  it("ranks qualifying, composure and consistency in that order below it", () => {
+  it("ranks qualifying, composure, consistency and wet weather in that order below it", () => {
     const base = driverOverall(driver());
     const bump = (key: keyof DriverRatings): number => driverOverall(driver({ [key]: 90 })) - base;
     expect(bump("qualifying")).toBeGreaterThan(bump("composure"));
     expect(bump("composure")).toBeGreaterThan(bump("consistency"));
+    // Last of the four that count, because only about one race in seven is wet
+    // — not because a wet race cares least about it. It still has to be above
+    // zero, which is what separates it from `adaptability` below.
+    expect(bump("consistency")).toBeGreaterThan(bump("wetWeather"));
+    expect(bump("wetWeather")).toBeGreaterThan(0);
   });
 
   it("ignores adaptability, because the sim does", () => {
@@ -53,7 +69,7 @@ describe("driverOverall", () => {
   });
 
   it("never goes backwards when a rating improves", () => {
-    for (const key of ["racing", "qualifying", "consistency", "composure"] as const) {
+    for (const key of ["racing", "qualifying", "consistency", "composure", "wetWeather"] as const) {
       let previous = -1;
       for (let value = 0; value <= 100; value += 10) {
         const overall = driverOverall(driver({ [key]: value }));

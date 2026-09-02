@@ -110,6 +110,7 @@ function pair(trend: number): RaceEntrant[] {
     consistency: 70,
     adaptability: 70,
     composure: 70,
+    wetWeather: 70,
   };
   return [
     { driverId: "developing", teamId: "a", driver, chassis: car, developmentTrend: trend },
