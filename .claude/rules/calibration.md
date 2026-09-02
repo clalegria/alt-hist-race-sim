@@ -96,7 +96,53 @@ It is a reading instrument, not a target set: nothing scores against it, the tun
 not use it, and the rule above — do not run a harness to check something — covers it
 too.
 
-**`pnpm retirements` is the third, and the one exception to that rule** — it has a
+## `pnpm fit <year>` — the season fitter
+
+The fourth harness, and the second exception to "do not run a harness to check
+something": like `pnpm retirements` it has real targets and its output *is* meant to be
+acted on. It proposes the chassis and engine ratings that reproduce a real season.
+
+Targets live in `tools/calibrate/targets/<year>.json`, authored by hand from the real
+results — per team: points, wins, podiums, retirements. **Keyed by `teamId`, never by
+display name**, because a name is an era and changes when a livery or identity is
+edited. A year with no targets file throws rather than borrowing another year's.
+
+**It fits points share, not wins.** Over a dozen-odd real races the standard error on a
+win count is enormous — ±14 points of share on 8 wins from 12 — so wins and podiums are
+printed as a sanity check and never scored against. Points share is the only statistic
+in a part-season with enough information in it.
+
+**Reliability is fitted first, then pace with reliability pinned.** Reliability inverts
+almost closed-form from a retirement count; fitting it second would let pace quietly
+absorb reliability error.
+
+Three things it deliberately will not do, each learned from watching it do the wrong
+thing first:
+
+- **It clips unreachable targets before fitting.** Real retirement spreads are far wider
+  than the model can express — 2026 ran 4.2% to 45.8%, a factor of eleven, against about
+  four at a fixed `retirementFactor`. Fitted raw, the unreachable extremes dominate the
+  residual and drag the shared engine with them: Cadillac's 41.7% pulled the Ferrari unit
+  from 82 to 40 and made Ferrari, Haas and Cadillac all worse. Clipping says the honest
+  thing — get the retirement *order* right, give up on the magnitude — and the raw figure
+  is still reported as a rail.
+- **Ties break toward what is already authored.** An engine with one customer is not
+  separately identifiable from that customer's chassis, so every split with the same
+  blended reliability fits equally; a first-past-the-post scan would walk it to whichever
+  end it started from. When the data cannot tell two answers apart, do not move.
+- **Engine reliability is drift-capped** (10 by default). The chassis floor means a car
+  cannot be more fragile than `(60 + engine) / 2`, so a single fragile customer's only
+  available scapegoat is the engine — McLaren's 25% walked the Mercedes unit down 18
+  points and took Mercedes and Alpine with it.
+
+Reliability proposals are bounded to 60-94 for a chassis and 35-94 for an engine, well
+inside the 12-94 the seed files actually contain. Values at 0 or 100 are not realism,
+they are a cornered fit, and they would poison the progression and game modes later.
+
+It writes nothing without `--write`, and when it does it substitutes digits in place
+rather than re-serialising, so the hand-aligned columns survive.
+
+**`pnpm retirements` also has real targets** — it has a
 measured target for all 77 years and its output *is* meant to be acted on, but only on
 the season file's `retirementFactor`, which the author asked to have calibrated.
 `.claude/rules/retirement-factor.md` is the write-up.

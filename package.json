@@ -23,7 +23,8 @@
     "calibrate-season": "pnpm --filter @alt-hist/calibrate seasons",
     "retirements": "pnpm --filter @alt-hist/calibrate retirements",
     "progression": "pnpm --filter @alt-hist/calibrate progression",
-    "tune": "pnpm --filter @alt-hist/calibrate tune"
+    "tune": "pnpm --filter @alt-hist/calibrate tune",
+    "fit": "pnpm --filter @alt-hist/calibrate fit"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",

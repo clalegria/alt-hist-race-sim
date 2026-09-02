@@ -46,10 +46,10 @@ pnpm race [seed]   # simulate ONE race, print the classification
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
-pnpm retirements [n]  # retirement rate per year vs the real one; --sweep re-fits the
-                   # factor. All five take --year <n> and --randomness <1-5>
+pnpm retirements [n]  # retirement rate per year vs real; --sweep re-fits the factor
 pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
 pnpm tune          # rating tuner (prints proposals, writes nothing)
+pnpm fit <year>    # fit a season's chassis/engines to its real results; --write applies
 ```
 
 ## Architecture rules (invariants — do not violate)
