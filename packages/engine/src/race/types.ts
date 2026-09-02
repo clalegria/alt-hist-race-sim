@@ -42,6 +42,21 @@ export interface RaceEntrant {
    * know — either way it simply never races at home.
    */
   readonly engineCountry?: string;
+  /**
+   * Which way this car's season ran: an integer from `-10` to `+10`, or absent
+   * for a car that was the same all year.
+   *
+   * A positive trend starts the season that many rating points *below* the
+   * chassis-and-engine blend above and finishes that many above it; a negative
+   * one does the reverse. It rotates about the middle of the calendar, so the
+   * authored ratings stay what the car is worth at mid-season — see
+   * `development.ts`, which owns the arithmetic, and `RoundContext.seasonProgress`,
+   * which says where in the year a race is being run.
+   *
+   * Pace only: `racing` and `qualifying` move with it, `reliability` and
+   * `consistency` do not.
+   */
+  readonly developmentTrend?: number;
 }
 
 /**
@@ -55,6 +70,20 @@ export interface RaceEntrant {
 export interface RoundContext {
   /** ISO 3166-1 alpha-2 code for the host country. */
   readonly country?: string;
+  /**
+   * How far through the season this round sits: 0 at the opener, 1 at the
+   * finale, and anything in between for the rounds between them.
+   *
+   * The only thing that reads it is an entrant's `developmentTrend`, which needs
+   * to know *when* it is being asked how good a car is. `simulateSeason` fills
+   * it in from the calendar, so a season never has to be told twice.
+   *
+   * Absent means "no particular time of year", which is treated as mid-season:
+   * every trend is worth exactly nothing, and the race is scored precisely as it
+   * was before development existed. That is what a lone `simulateRace` is, and
+   * why the single-race harness has to opt in to an opener or a finale.
+   */
+  readonly seasonProgress?: number;
 }
 
 /** Why a car failed to finish. */

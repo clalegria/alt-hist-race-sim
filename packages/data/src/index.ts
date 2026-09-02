@@ -7,6 +7,7 @@
  * this package stays pure.
  */
 
+import { DEVELOPMENT_TREND_LIMIT } from "@alt-hist/engine";
 import driversJson from "./drivers.json";
 import enginesJson from "./engines.json";
 import { seasons } from "./seasons/index.js";
@@ -271,7 +272,14 @@ const LIVERY_ERA_KEYS = ["from", ...LIVERY_KEYS] as const;
 const TEAM_KEYS = ["id", "foundedYear", "identity", "liveries"] as const;
 const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
 const ENGINE_RATING_KEYS = ["racing", "qualifying", "reliability"] as const;
-const ENTRY_KEYS = ["teamId", "engineId", "chassis", "drivers", ...LIVERY_KEYS] as const;
+const ENTRY_KEYS = [
+  "teamId",
+  "engineId",
+  "chassis",
+  "developmentTrend",
+  "drivers",
+  ...LIVERY_KEYS,
+] as const;
 const SEASON_ENGINE_KEYS = ["engineId", ...ENGINE_RATING_KEYS] as const;
 const CALENDAR_KEYS = ["round", "name", "circuit", "country"] as const;
 const SEASON_KEYS = [
@@ -443,6 +451,21 @@ function validateSeason(
     checkLiveryOverride(where, entry);
     checkRatings(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
     checkNoExtraKeys(`${where} chassis`, entry.chassis, CHASSIS_KEYS);
+    // Which way the team's year ran. Optional, and out of range it would be
+    // silently absorbed by the race model as a very large or fractional swing
+    // — the same failure mode as `retirementFactor`, and caught the same way.
+    if (entry.developmentTrend !== undefined) {
+      const trend = entry.developmentTrend;
+      if (
+        !Number.isInteger(trend) ||
+        trend < -DEVELOPMENT_TREND_LIMIT ||
+        trend > DEVELOPMENT_TREND_LIMIT
+      ) {
+        throw new Error(
+          `${where} has developmentTrend ${String(trend)}; it must be a whole number from -${DEVELOPMENT_TREND_LIMIT} to ${DEVELOPMENT_TREND_LIMIT}`,
+        );
+      }
+    }
 
     if (!available.has(entry.engineId)) {
       throw new Error(

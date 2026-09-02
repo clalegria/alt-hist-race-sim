@@ -185,6 +185,24 @@ describe("building a field", () => {
     }
   });
 
+  it("carries a car's development trend onto both its entrants, and nothing else's", () => {
+    // The trend is a fact about the car, so both sides of the garage get it —
+    // and a team without one carries no key at all, which is what keeps a
+    // trend-free field byte-identical to the field this built before trends
+    // existed.
+    for (const season of seasons.values()) {
+      const authored = new Map(
+        season.entries.map((entry) => [entry.teamId, entry.developmentTrend]),
+      );
+      for (const entrant of buildField(season)) {
+        const trend = authored.get(entrant.teamId);
+        expect(entrant.developmentTrend, `${season.year} ${entrant.teamId}`).toBe(
+          trend === undefined || trend === 0 ? undefined : trend,
+        );
+      }
+    }
+  });
+
   it("enters a team it has never heard of as a permanent visitor", () => {
     // A team missing from the pool is a data problem `validateSeedData` catches;
     // the field builder still has to produce something, and "never at home" is

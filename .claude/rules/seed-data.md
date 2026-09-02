@@ -54,6 +54,11 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     places from 2010. The array is the whole rule — no dropped scores, no fastest-lap
     point, no sprint. `validateSeedData` rejects an empty scale, a negative entry, or
     one that pays a lower place more than a higher one.
+  - `developmentTrend` is an **optional** whole number from `-10` to `+10` on an entry,
+    which way that car's year ran: `+n` starts the season n rating points slower than the
+    authored chassis and ends n quicker, rotating about mid-season so the chassis stays
+    what the car was worth in the middle of the year. Pace only. Almost every entry omits
+    it. See `.claude/rules/car-development.md`.
   - `retirementFactor` is a **1-10 whole number**, 5 being the calibrated constants
     untouched, and it is how hard the year was on its cars — it scales both DNF rolls.
     Every year's is fitted against the real record; a new season starts at 5 and is

@@ -246,6 +246,28 @@ export interface SeasonEntry extends Partial<Livery> {
   readonly engineId: string;
   /** The chassis the team built. The engine above is blended into it later. */
   readonly chassis: ChassisSpec;
+  /**
+   * Which way the car's season ran: an integer from `-10` to `+10`, omitted
+   * entirely for a car that was much the same all year — which is most of them.
+   *
+   * `+10` starts the season ten rating points slower than the `chassis` above
+   * and finishes ten points quicker, moving linearly in between; `-10` is the
+   * mirror, arriving strong and falling away. It **rotates about mid-season**,
+   * so the authored chassis stays exactly what the car was worth in the middle
+   * of the year and a trend is a claim about *shape*, not a way to make a car
+   * faster on average. Pace only — reliability and consistency are unmoved.
+   *
+   * 1979 is the case it exists for: Ligier turned up with the quickest car on
+   * the grid and had lost it by July, while Williams turned up nowhere and won
+   * five of the last seven. One chassis rating for either team describes a car
+   * that never raced.
+   *
+   * Only a *season* feels it. `simulateSeason` stamps each round with how far
+   * through the calendar it sits, and that is what the engine reads; a lone
+   * race is mid-season and every trend is worth nothing there. See
+   * `development.ts` in the engine package.
+   */
+  readonly developmentTrend?: number;
   /** Driver ids. Length varies — some teams field a single car. */
   readonly drivers: readonly string[];
 }

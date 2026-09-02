@@ -24,6 +24,13 @@ export {
   seasonDeficits,
 } from "./progression/index.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
+export {
+  DEVELOPMENT_TREND_LIMIT,
+  developedCar,
+  developmentSwing,
+  MID_SEASON_PROGRESS,
+  seasonProgress,
+} from "./race/development.js";
 export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
 export { powertrain } from "./race/powertrain.js";
 export {

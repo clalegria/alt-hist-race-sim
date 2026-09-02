@@ -11,7 +11,10 @@ rest are what happens to it:
 0. **The car** — `0.7·chassis + 0.3·engine` on racing and qualifying, and an even
    `0.5/0.5` on reliability, blended once per entrant by `powertrain()` before anything
    is scored. Consistency is the chassis alone. Everything below reads *that* car,
-   never `entrant.chassis`.
+   never `entrant.chassis`. A car with a `developmentTrend` then has its two pace
+   ratings rotated by where in the season the round sits (`round.seasonProgress`) —
+   `.claude/rules/car-development.md`. A lone race says nothing about when it is, so
+   it is mid-season and every trend is worth zero.
 1. **Qualifying** — `0.64·car + 0.36·driver + home − consistencyPenalty + noise`, sorted
    → grid. The whole entry list runs, however big it is.
 2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.

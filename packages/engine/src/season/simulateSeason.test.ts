@@ -136,7 +136,73 @@ describe("running a season", () => {
       },
     };
     simulateSeason(field(), calendar, createRng(1), RACE_CONSTANTS, spy);
-    expect(seen).toEqual(calendar);
+    // Each round as authored, plus where in the year the loop found it.
+    expect(seen).toEqual([
+      { country: "BR", seasonProgress: 0 },
+      { country: "ZA", seasonProgress: 0.5 },
+      { seasonProgress: 1 },
+    ]);
+  });
+
+  it("stamps each round with how far through the season it is", () => {
+    // What makes a car's development trend mean anything: the calendar position
+    // is the only place the answer exists, so the loop is the only thing that
+    // can supply it.
+    const seen: (number | undefined)[] = [];
+    const spy: RaceModel = {
+      name: "spy",
+      simulate: (entrants, rng, constants, round) => {
+        seen.push(round?.seasonProgress);
+        return simulateRace(entrants, rng, constants, round);
+      },
+    };
+    const calendar = rounds(5);
+    simulateSeason(field(), calendar, createRng(1), RACE_CONSTANTS, spy);
+    expect(seen).toEqual([0, 0.25, 0.5, 0.75, 1]);
+  });
+
+  it("writes its own progress over anything the caller put there", () => {
+    // A round is at the point of the season the season puts it at. A calendar
+    // that claimed otherwise would be a second answer to a question the array
+    // index already settles.
+    const seen: (number | undefined)[] = [];
+    const spy: RaceModel = {
+      name: "spy",
+      simulate: (entrants, rng, constants, round) => {
+        seen.push(round?.seasonProgress);
+        return simulateRace(entrants, rng, constants, round);
+      },
+    };
+    const calendar: RoundContext[] = [{ seasonProgress: 0.9 }, { seasonProgress: 0.9 }];
+    simulateSeason(field(), calendar, createRng(1), RACE_CONSTANTS, spy);
+    expect(seen).toEqual([0, 1]);
+  });
+
+  it("runs a developing car slow early and quick late", () => {
+    // The season is what turns a trend on, and this is the whole point of it:
+    // the same car, the same grid, a different half of the year. Averaged over
+    // many seasons rather than read off one, because a single year is noise —
+    // and no seed is pinned, so nothing here depends on what one produced.
+    const grid = field().map((entrant, index) =>
+      index === 10 ? { ...entrant, developmentTrend: 10 } : entrant,
+    );
+    const calendar = rounds(14);
+    const window = 4;
+    let early = 0;
+    let late = 0;
+    const runs = 40;
+    for (let seed = 1; seed <= runs; seed += 1) {
+      const places = simulateSeason(grid, calendar, createRng(seed), NO_DNFS).races.map(
+        (race) => race.entries.find((entry) => entry.driverId === "driver-10")?.finishPosition ?? 0,
+      );
+      const mean = (of: readonly number[]): number =>
+        of.reduce((sum, place) => sum + place, 0) / of.length;
+      early += mean(places.slice(0, window));
+      late += mean(places.slice(-window));
+    }
+    // A whole point of average finishing position is a low bar for 20 rating
+    // points of swing, and deliberately: the assertion is the direction.
+    expect(late / runs).toBeLessThan(early / runs - 1);
   });
 });
 

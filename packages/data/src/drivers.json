@@ -3360,9 +3360,9 @@
     "finalSeason": 1980,
     "peak": {
       "season": 1979,
-      "racing": 88,
+      "racing": 89,
       "qualifying": 84,
-      "consistency": 82,
+      "consistency": 86,
       "adaptability": 80,
       "composure": 82
     },
@@ -4064,14 +4064,14 @@
     "finalSeason": 1982,
     "peak": {
       "season": 1981,
-      "racing": 95,
+      "racing": 94,
       "qualifying": 93,
-      "consistency": 70,
+      "consistency": 76,
       "adaptability": 88,
-      "composure": 62
+      "composure": 68
     },
     "peakSeasons": 4,
-    "developmentSpeed": 7,
+    "developmentSpeed": 5,
     "declineSpeed": 4
   },
   {

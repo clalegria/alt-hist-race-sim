@@ -194,6 +194,56 @@ describe("validateSeedData", () => {
     expect(returning.length, "no driver appears in two seasons").toBeGreaterThan(0);
   });
 
+  it("accepts a development trend, and only a whole one on the -10..10 scale", () => {
+    // The rule, not any authored value: a trend is optional, and out of range
+    // it would be silently absorbed by the race model as a huge or fractional
+    // swing rather than surfacing as an error.
+    const withTrend = (developmentTrend: number): SeasonSeed => ({
+      year: 1980,
+      points: pointsScale(),
+      retirementFactor: 5,
+      calendar: [],
+      engines: [engineSpec()],
+      entries: [
+        {
+          teamId: knownTeam,
+          engineId: knownEngine,
+          chassis: chassisSpec(),
+          developmentTrend,
+          drivers: [knownDriver],
+        },
+      ],
+    });
+
+    for (const trend of [-10, -3, 0, 4, 10]) {
+      expect(() => {
+        validateSeedData(drivers, teams, [withTrend(trend)]);
+      }, String(trend)).not.toThrow();
+    }
+    for (const trend of [-11, 11, 2.5, Number.NaN]) {
+      expect(() => {
+        validateSeedData(drivers, teams, [withTrend(trend)]);
+      }, String(trend)).toThrow(/developmentTrend/);
+    }
+  });
+
+  it("gives every authored trend a whole number on the -10..10 scale", () => {
+    // Again the rule, not the values — which teams carry one, and how big, is
+    // an authoring judgement that belongs in the season files.
+    expect(seasons.size).toBeGreaterThan(0);
+    for (const season of seasons.values()) {
+      for (const entry of season.entries) {
+        if (entry.developmentTrend === undefined) {
+          continue;
+        }
+        const where = `${season.year} ${entry.teamId}`;
+        expect(Number.isInteger(entry.developmentTrend), where).toBe(true);
+        expect(entry.developmentTrend, where).toBeGreaterThanOrEqual(-10);
+        expect(entry.developmentTrend, where).toBeLessThanOrEqual(10);
+      }
+    }
+  });
+
   it("rejects an entry referencing an unknown driver", () => {
     const broken: SeasonSeed = {
       year: 1980,

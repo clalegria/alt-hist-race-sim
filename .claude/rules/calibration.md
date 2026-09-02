@@ -79,6 +79,19 @@ blend weights, and the warning at the top of this file is about those. Rotating 
 calendar would fold home advantage into every number here; that is a change to what the
 harness measures, and it needs the author's word before anyone runs it.
 
+## Development trends do not move these numbers
+
+`pnpm calibrate` and the tuner run a race with no `seasonProgress`, which is mid-season —
+where every car's `developmentTrend` is worth exactly zero. The default run therefore
+measures what it always measured, and adding trends to a season file needed no
+re-measurement, for the same reason home advantage did not. `--phase start` / `--phase
+end` ask the other question and print their phase in the heading.
+
+`pnpm calibrate-season` *does* see them, because a season runs its own calendar. Note the
+second-order effect there: points are convex in pace, so any non-zero trend is worth
+slightly more points than a flat car of the same rating —
+`.claude/rules/car-development.md`.
+
 ## The two harnesses
 
 `pnpm calibrate` runs one race N times; **`pnpm calibrate-season` runs a whole season N

@@ -340,6 +340,21 @@ export interface RaceConstants {
    * progression model, and picking it is an open decision.
    */
   readonly mechanicalDnfEraScale: number;
+
+  /**
+   * Rating points of pace one point of a car's development trend is worth at
+   * each end of the calendar.
+   *
+   * At 1.0 the tag reads directly: a `+6` car is 6 rating points down at the
+   * opener and 6 up at the finale, rotating linearly about its authored rating
+   * at mid-season. It is the whole magnitude lever for the feature, and it is 1
+   * so that the authored number means what it says — the place to make
+   * development matter more or less is here, not by inflating every tag.
+   *
+   * Not scaled by the randomness level: a car's development arc is a fact about
+   * the season being run, not a share of the dice.
+   */
+  readonly developmentSwingPerPoint: number;
 }
 
 /**
@@ -415,4 +430,6 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   nominalLapSeconds: 90,
 
   mechanicalDnfEraScale: 1.0,
+
+  developmentSwingPerPoint: 1.0,
 });

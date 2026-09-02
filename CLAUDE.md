@@ -38,11 +38,11 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1278 tests (250 engine, 120 data, 908 web)
+pnpm test          # 1303 tests (271 engine, 123 data, 909 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm race [seed]   # simulate ONE race, print the classification
+pnpm race [seed]   # ONE race (--phase start|end for a car's development trend)
 pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
@@ -98,29 +98,28 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   three not four, consistency being the chassis'. `engines.json` is identity.
 - **Car spec** (`CarSpec`): the blend of the two, and what the model scores. Same
   shape as `ChassisSpec`; the name marks what has been through `powertrain()`.
-- **Powertrain**: that blend, by **two ratios, not one**. Pace (racing, qualifying) is
-  `0.7 · chassis + 0.3 · engine`; reliability an even `0.5 / 0.5`, consistency untouched.
-  Lives in the engine package, and **the UI's overall calls it too**.
-- **Peak vs aged**: the two rating modes — every driver at their authored peak, or at
-  their ability that season via the ageing curve. The app defaults to peak; **every
-  calibration harness runs `aged` and must never run on `peak`** (`calibrate/src/mode.ts`).
-- **Score-and-sort**: v1 race model — one performance number per driver from attributes
-  + car + home advantage + noise, sorted, then DNFs. No lap-by-lap, behind the
-  `RaceModel` interface so a richer model can replace it.
-- **Round context**: where a round is held — one field, `country`; the seam circuit
-  features hang off.
+- **Powertrain**: that blend, by **two ratios, not one**. Pace is `0.7 · chassis +
+  0.3 · engine`, reliability an even `0.5 / 0.5`; **the UI's overall calls it too**.
+- **Peak vs aged**: the two rating modes — authored peak, or ability that season via the
+  ageing curve. App defaults to peak; **harnesses run `aged`, never `peak`** (`mode.ts`).
+- **Score-and-sort**: v1 race model — one number per driver from attributes + car + home
+  advantage + noise, sorted, then DNFs. Behind `RaceModel`, so it can be replaced.
+- **Round context**: where a round is held (`country`) and how far through the year it
+  is (`seasonProgress`, 0→1); the seam circuit features hang off.
+- **Development trend**: optional `-10..10` per car per season — `+n` starts the year n
+  points slow and ends n quick, rotating about mid-season so the authored rating is
+  unmoved on average. Pace only, out of the overall. `.claude/rules/car-development.md`.
 - **Retirement factor**: 1–10 per season file, how hard the year is on its cars. Scales
   *both* DNF rolls; 5 is neutral. `.claude/rules/retirement-factor.md`.
-- **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales the two
-  noise sigmas, plus `teamFormBoost` at levels 4–5; `withRandomness(2)` — the default —
-  returns the constants **unchanged**, so the calibration still describes them.
+- **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales both
+  noise sigmas, plus `teamFormBoost` at 4–5; `withRandomness(2)` — the default — returns
+  the constants **unchanged**, so the calibration still describes them.
 - **Team form**: the share of session noise belonging to the *team* not the car (0.85),
-  crossed with **weekend form** (0.5), the share carrying Saturday into Sunday. Two axes,
-  four draws. Team form cancels out of a teammate comparison — which is the point.
-- **Progression model**: the swappable seam between the two planned modes. Interface
-  `SeasonProgressionModel` with `nextSeasonEntries()` and `nextSeasonCars()`. Implement
-  `EvolutionaryProgression` (random walk + mean reversion) first; `HistoricalProgression`
-  (real cars/teams per year, drivers still freely allocated by the market) later.
+  crossed with **weekend form** (0.5), carrying Saturday into Sunday. Two axes, four
+  draws; team form cancels out of a teammate comparison — which is the point.
+- **Progression model**: the swappable seam between the two planned modes —
+  `SeasonProgressionModel` with `nextSeasonEntries()` / `nextSeasonCars()`. Build
+  `EvolutionaryProgression` (random walk + mean reversion) first, `Historical` later.
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.

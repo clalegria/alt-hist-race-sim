@@ -1,6 +1,7 @@
 import type { CarSpec } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
+import { developedCar } from "./development.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
 import { powertrain } from "./powertrain.js";
 import type {
@@ -131,6 +132,11 @@ interface Runner {
  * `powertrain()` — so a team that changed supplier is a different car. An
  * entrant with no engine is scored on its chassis alone.
  *
+ * A car with a `developmentTrend` is then scored at the pace it held *at this
+ * point in its season*, which `round.seasonProgress` supplies — see
+ * `development.ts`. A round that does not say when it is, which is every lone
+ * race, is mid-season: every trend is worth nothing there.
+ *
  * `round` says where the race is being held, which is what turns home advantage
  * on for the drivers and teams from that country. It defaults to a round with no
  * host country — a neutral race, scored exactly as it was before the term
@@ -206,8 +212,16 @@ export function simulateRace(
   const runners: Runner[] = field.map((entrant) => {
     const { driver } = entrant;
     // Blended once, here, rather than at each of the three places a car rating
-    // is read: the engine is part of what the car *is* for this weekend.
-    const car = powertrain(entrant.chassis, entrant.engine, constants);
+    // is read: the engine is part of what the car *is* for this weekend — and
+    // so is where in the season the weekend falls, for a car whose year had a
+    // shape to it. A field with no development trends, or a round that does not
+    // say when it is, gets the blend back unchanged.
+    const car = developedCar(
+      powertrain(entrant.chassis, entrant.engine, constants),
+      entrant.developmentTrend,
+      round.seasonProgress,
+      constants,
+    );
 
     // Consistency modulates the spread on both axes, but each half reads the
     // rating that owns it. The team's form belongs to the car, so the *car's*

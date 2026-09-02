@@ -58,7 +58,13 @@ architecture underneath all three, including why the draft lives where it does, 
   chassis would be a number nothing races on. The popover behind it shows the parts instead:
   the four chassis ratings, then the engine's three under its own heading — an engine
   has no consistency, so that panel is one row shorter, which is the point rather than
-  an omission.
+  an omission. A car with an authored `developmentTrend` gets a third panel under those,
+  drawn as a bar filling from the **middle** rather than the left — zero is a real value
+  there, not the bottom of a scale — plus a sentence saying what it means. It is
+  deliberately **not** in `carOverall`: a trend rotates a car's pace about mid-season, so
+  the overall already *is* the average of its year. A test renders the same grid with a
+  trend on every car and asserts the markup is unchanged.
+  `.claude/rules/car-development.md`.
 - **The grid can be rearranged: drivers by swapping, engines by picking.** `Edit grid`
   turns every driver row into a select button, puts a supplier `select` on every team
   card, and opens `ReserveList` — everyone in the pool without a seat — as a sticky

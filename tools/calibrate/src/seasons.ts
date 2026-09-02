@@ -17,6 +17,12 @@
  * a season is where sixth places add up. That is what the scoring columns here
  * are for: how often a car scores at all, and the points it ends the year on.
  *
+ * **A season is also where car development lives.** This harness runs the year's own
+ * calendar, so every entry's `developmentTrend` is on throughout — quick early and slow
+ * late, or the reverse — while `pnpm calibrate` is mid-season by default and feels none
+ * of it. Worth knowing when reading the points columns: points are convex in pace, so a
+ * car with a trend scores slightly more on average than the same car flat.
+ *
  * **These numbers are not comparable with `pnpm calibrate`'s.** That harness runs
  * `simulateRace` with no `RoundContext`, so home advantage never pays; a season
  * runs the year's real calendar, so it pays at every round that has a host

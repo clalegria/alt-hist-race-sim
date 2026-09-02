@@ -9,11 +9,16 @@ paths:
 per entry in `calendar` and returns `{ races }` — nothing else. A race's index in that
 array is its round number.
 
-**The calendar, not a round count.** Each entry is a `RoundContext` — today just the
-host country, which is what turns home advantage on — and its length is how many races
-the year has, so a season of `n` featureless rounds is `n` empty objects. This is the
-seam every later circuit feature hangs off, rather than each one growing a parameter of
-its own; an empty calendar is a `RangeError`.
+**The calendar, not a round count.** Each entry is a `RoundContext` — the host country,
+which turns home advantage on — and its length is how many races the year has, so a
+season of `n` featureless rounds is `n` empty objects. This is the seam every later
+circuit feature hangs off, rather than each one growing a parameter of its own; an empty
+calendar is a `RangeError`.
+
+**The loop stamps `seasonProgress` on every round** — 0 at the opener, 1 at the finale,
+from the array index, written over anything the caller supplied. That is what makes a
+car's `developmentTrend` mean anything, and it is why a season feels development and a
+lone `simulateRace` does not. See `.claude/rules/car-development.md`.
 
 **One RNG threaded through the whole year**, not re-seeded per race, so a season is
 a single continuous stream and round 7 depends on everything drawn before it.

@@ -278,6 +278,21 @@ describe("the season grid", () => {
     expect(html).not.toContain("Reliability");
     expect(html).not.toContain("Adaptability");
     expect(html).not.toContain("Composure");
+    // A car's development trend lives in the same panel, and stays behind it.
+    expect(html).not.toContain("In-season development");
+  });
+
+  it("leaves a car's development trend out of its overall", () => {
+    // The headline number says how good a car is; a trend rotates its pace
+    // about mid-season and so says nothing about the average of the year.
+    // Rendering the same grid with a trend on every car must change nothing at
+    // all — same overalls, same order, same page.
+    const trended = world.field.map((entrant) => ({ ...entrant, developmentTrend: 9 }));
+    expect(
+      renderToStaticMarkup(
+        <SeasonGrid field={trended} seasonYear={YEAR} ratingMode={world.ratingMode} />,
+      ),
+    ).toBe(html);
   });
 
   it("orders teams alphabetically, not by pace", () => {

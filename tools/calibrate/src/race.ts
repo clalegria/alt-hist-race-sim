@@ -8,6 +8,11 @@
  *   pnpm race          # seed 1
  *   pnpm race 7        # seed 7 — same seed always gives the same race
  *   pnpm race 7 --randomness 5   # the same race, with the dice turned up
+ *   pnpm race 7 --phase end      # the same race, run as the season's finale
+ *
+ * Mid-season by default, which is what a race with no year around it is: every
+ * car's development trend is worth nothing there, so this prints the same race
+ * it printed before trends existed. `--phase start` / `--phase end` opt in.
  */
 
 import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
@@ -15,6 +20,7 @@ import { createRng, type RaceGap, simulateRace, withRandomness } from "@alt-hist
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
+import { DEFAULT_SEASON_PHASE, parsePhase, phaseLabel, phaseRound } from "./phase.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear, withoutFlags } from "./year.js";
 
@@ -44,8 +50,17 @@ function main(): void {
   const year = parseYear(process.argv);
   const seed = parseSeed(argv);
   const randomness = parseRandomness(process.argv);
+  // Where in the year this one afternoon is being run, which is all a car's
+  // development trend has to go on. Mid-season by default, where it is worth
+  // nothing and the race is exactly the race this tool always printed.
+  const phase = parsePhase(process.argv);
   const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
-  const result = simulateRace(field, createRng(seed), withRandomness(randomness));
+  const result = simulateRace(
+    field,
+    createRng(seed),
+    withRandomness(randomness),
+    phaseRound(phase),
+  );
 
   const drivers = driversById();
   const teams = teamsById();
@@ -56,7 +71,10 @@ function main(): void {
   };
 
   console.log("");
-  console.log(`${year} grid — race seed ${seed}`);
+  console.log(
+    `${year} grid — race seed ${seed}` +
+      (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`),
+  );
   console.log(`Pole: ${nameOf(result.poleDriverId)}`);
   console.log(
     `Winner: ${result.winnerDriverId === null ? "none — every car retired" : nameOf(result.winnerDriverId)}`,

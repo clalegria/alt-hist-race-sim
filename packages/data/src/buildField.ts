@@ -115,6 +115,12 @@ export function buildField(
         teamId: entry.teamId,
         driver: driverRatingsFor(driver, season.year, mode),
         chassis: entry.chassis,
+        // Which way the team's year ran, carried across as authored. Only a
+        // season feels it — a lone race is mid-season, where every trend is
+        // worth nothing — so a field is the right place for it either way.
+        ...(entry.developmentTrend === undefined || entry.developmentTrend === 0
+          ? {}
+          : { developmentTrend: entry.developmentTrend }),
         engineId: entry.engineId,
         ...(engine === undefined
           ? {}

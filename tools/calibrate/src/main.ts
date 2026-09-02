@@ -8,6 +8,14 @@
  *
  *   pnpm calibrate            # 5000 races
  *   pnpm calibrate 20000      # more races, tighter numbers
+ *   pnpm calibrate 20000 --phase end   # 20000 season finales
+ *
+ * **Mid-season unless told otherwise.** A race with no year around it is
+ * mid-season, where every car's `developmentTrend` is worth exactly nothing —
+ * so the default run measures the same thing it measured before trends existed,
+ * and the tables in `.claude/rules/calibration.md` still describe it. `--phase
+ * start` and `--phase end` ask the other question: what this grid is worth in
+ * April, and what it is worth in October.
  */
 
 import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
@@ -15,6 +23,7 @@ import { createRng, simulateRace, withRandomness } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
+import { DEFAULT_SEASON_PHASE, parsePhase, phaseLabel, phaseRound } from "./phase.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear, withoutFlags } from "./year.js";
 
@@ -48,6 +57,12 @@ function main(): void {
   const year = parseYear(process.argv);
   const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
   const randomness = parseRandomness(process.argv);
+  // Which part of the season these N afternoons are. Mid-season by default,
+  // where every development trend is worth nothing — which is what every figure
+  // in `.claude/rules/calibration.md` was measured under, and why the default
+  // run still means what it always meant.
+  const phase = parsePhase(process.argv);
+  const round = phaseRound(phase);
   const constants = withRandomness(randomness);
   const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
   const teams = teamsById();
@@ -98,7 +113,7 @@ function main(): void {
   const startedAt = performance.now();
 
   for (let seed = 1; seed <= races; seed += 1) {
-    const result = simulateRace(field, createRng(seed), constants);
+    const result = simulateRace(field, createRng(seed), constants, round);
     totalRetirements += result.retirements;
     totalStarters += field.length - result.nonQualifiers;
 
@@ -146,7 +161,10 @@ function main(): void {
   const elapsed = performance.now() - startedAt;
 
   console.log("");
-  console.log(`${year} grid — ${races} races, seeds 1..${races}`);
+  console.log(
+    `${year} grid — ${races} races, seeds 1..${races}` +
+      (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`),
+  );
   console.log(
     `${field.length} cars, ${teamTallies.size} teams, randomness ${randomness}, ${elapsed.toFixed(0)}ms`,
   );
