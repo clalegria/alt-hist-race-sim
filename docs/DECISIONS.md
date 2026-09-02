@@ -165,20 +165,26 @@ Landed. What they left open:
   So the damage is smaller than the feature's description suggests: **+1.0 to +1.6 points
   of retirement rate**, **1-2 points off the best driver's win share**, and a fifth to a
   third of an extra distinct winner per season. Titles barely move, because a season
-  averages two or three wet rounds away. Nothing was changed to absorb any of it.
+  averages two or three wet rounds away. **The retirement half has since been corrected
+  at the source** (item 1 below); the rest stands unabsorbed, deliberately.
 
-  **The proposal, if the author wants the previous equilibria back**, cheapest first:
+  **The proposal, cheapest first — item 1 is now DONE, the rest stand:**
 
-  1. **Retirement rate is the only figure that moved outside its own noise, and the dial
-     for it already exists.** One step of a season's `retirementFactor` is worth about
-     five points of retirement rate on the 1980 grid, so a +1.3-point drift is about a
-     quarter of a step — far finer than the authored scale can express. The honest fix is
-     therefore *not* to re-author 77 files but to take it out of the mapping once:
-     scaling `mechanicalDnfEraScale` and both `driverErrorDnf*` endpoints by ≈0.97 would
-     restore every year at once, since the drift is close to proportional across eras
-     (+2.9% at 1980, +5.2% at 2023 in relative terms). Alternatively, drop
-     `driverErrorScaleAtFullWetness` from 2.6 to ≈2.0 and `mechanicalScaleAtFullWetness`
-     to 1.0 — cheaper still, but it spends the feature to protect the figure.
+  1. ~~**Retirement rate is the only figure that moved outside its own noise.**~~
+     **Applied 2026-09-02 at the author's request**, and fitted rather than estimated.
+     The proposal here was a blanket ≈0.97 on both risks; measurement rejected that in
+     favour of a **per-roll pair — x0.985 mechanical, x0.90 driver error** — because the
+     two rolls are inflated by very different amounts (~2% and ~12%) and eras differ in
+     which of them retires more cars, so one number left about three times the residual
+     at the high-attrition end. Re-authoring 77 `retirementFactor` values was never the
+     option: one step of that dial is ~5 points of retirement rate and the drift was 1.3,
+     a quarter of a step.
+
+     Checked against the real record with `pnpm retirements 200` over all 77 years — mean
+     absolute error **1.41** with no weather, **1.93** with weather uncorrected, **1.42**
+     corrected. The fit the 77 factors represent is therefore intact. Details and the
+     derivation are in `.claude/rules/race-constants.md`; the constants themselves are no
+     longer the fitted values and say so.
   2. **Win share needs nothing.** The 1-2 point loss at the front is what "the field
      genuinely reorders" *means*, and it is the same order of magnitude as the two points
      the consistency lever already handed the best pairing in the other direction — the

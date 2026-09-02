@@ -89,18 +89,46 @@ and weights exactly as it does the race's) and under each round of the summary's
 status column makes: a column reading "Dry" fourteen times says nothing, and what a reader
 scans for is the round where the sky changed the result.
 
+**A white-on-blue pill** — `bg-wet text-wet-foreground rounded-full` — and both halves are
+deliberate. It was the accent red first, and red was wrong twice over: `--color-primary`
+already means "won the thing on screen" (`lib/highlight.ts`), so a red wet round competed
+with the winner for one meaning, and red reads as a warning rather than as weather. Blue
+means rain with no legend. The `rounded-full` is a departure from a house style that runs
+the radius scale tight on purpose, and the departure is the point: everything else on
+these pages is a table cell or a card, so the one fully round thing is unmistakably a tag
+*on* a round rather than part of the furniture. The tokens are per-theme and were picked
+by measuring contrast — see `index.css` and `.claude/rules/web-styling.md`.
+
 The cloud is **inline SVG in `currentColor`**, drawn rather than fetched — an emoji ☔ is a
 different picture on every platform and a grey box on Windows, and a remote image is a
 network dependency in an app that has none. One icon rather than a scale of them: the
 wetness is stated in words beside it, and a drizzle icon and a downpour icon would be two
-ways of saying the same thing. Note that **it is an `<svg>`**, so the tests that count
-flags that way have to account for it — `App.test.tsx` derives the count off
-`race.weather.wet` rather than assuming a dry fixture.
+ways of saying the same thing. **16px at stroke 2 with two drops**, arrived at by rendering
+the candidates at real size: three finer drops at 14px merged into a smudge under the
+cloud. Note that **it is an `<svg>`**, so the tests that count flags that way have to
+account for it — `App.test.tsx` derives the count off `race.weather.wet` rather than
+assuming a dry fixture.
 
-## What has *not* been done
+## What was corrected, and what was not
 
-**Nothing was re-calibrated.** The constants above are reasoned, not fitted, and the
-measured consequences for the existing calibration are written up in `docs/DECISIONS.md`
-under "Race model levers". Do not adjust a race constant, a chassis rating or a season's
-retirement factor to absorb this without the author asking — the invariant in `CLAUDE.md`
-covers it, and the measurements exist precisely so the decision can be made on numbers.
+**The constants in the table above are reasoned, not fitted**, and were shipped that way.
+One consequence *was* then fitted and taken back out, at the author's request:
+
+**Retirements — corrected.** Raising both DNF risks on ~15% of rounds inflated a season's
+expected driver-error risk by ~12% and its mechanical risk by ~2%, which pushed every
+year's retirement rate up ~1.3 points and broke the fit behind all 77 `retirementFactor`
+values. The four DNF endpoints in `race/constants.ts` now carry a **x0.985 / x0.90**
+correction that undoes exactly that; measured against the real record over all 77 years,
+mean absolute error is 1.42 against 1.41 before wet racing existed. The derivation and
+the table are in `.claude/rules/race-constants.md`. **Note that this makes a dry race
+retire marginally fewer cars than it used to** — unavoidable, and the author's call.
+
+**Win shares — not corrected, deliberately.** The best driver loses 1-2 points of win
+share to the rain, which is what "the field genuinely reorders" means, and it is the same
+order as the two points consistency's spread lever already handed the best pairing in the
+other direction. If it is ever to be recovered the lever is `noiseScaleAtFullWetness`,
+not a chassis rating.
+
+Beyond that: do not adjust a race constant, a chassis rating or a season's retirement
+factor to absorb this without the author asking — the invariant in `CLAUDE.md` covers it,
+and the measurements exist precisely so the decision can be made on numbers.

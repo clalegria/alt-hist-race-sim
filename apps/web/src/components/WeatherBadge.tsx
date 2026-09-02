@@ -27,6 +27,12 @@ export function wetnessPercent(weather: RaceWeather): number {
  * stated in words next to it; a drizzle icon and a downpour icon would be two
  * ways of saying the same thing, and the reader would have to learn which was
  * which.
+ *
+ * **Two drops rather than three, at 16px and stroke 2.** It was drawn with three
+ * finer ones at 14px and they merged into a smudge under the cloud at the size
+ * it actually renders — compared side by side at real size, this is the version
+ * that still reads as rain. The rule generalises: an icon this small has room
+ * for a shape and a gesture, not for detail.
  */
 export function RainIcon({ className, title }: { className?: string; title?: string }) {
   return (
@@ -34,20 +40,19 @@ export function RainIcon({ className, title }: { className?: string; title?: str
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={cn("inline-block h-3.5 w-3.5 shrink-0 align-[-0.15em]", className)}
+      className={cn("inline-block h-4 w-4 shrink-0 align-[-0.15em]", className)}
       role="img"
       aria-label={title ?? "Wet race"}
     >
       {title === undefined ? null : <title>{title}</title>}
       {/* The cloud, as one path: a flat base with three lobes over it. */}
       <path d="M6.5 14.5a3.6 3.6 0 0 1 .5-7.16 4.8 4.8 0 0 1 9.1 1.03 3.3 3.3 0 0 1-.6 6.13" />
-      {/* Three falling drops, staggered, so the icon reads as rain at 14px. */}
-      <path d="M8.5 17.5 7.5 20" />
-      <path d="M12 17.5 11 20" />
-      <path d="M15.5 17.5 14.5 20" />
+      {/* Two falling drops, offset from each other so they read as rain. */}
+      <path d="M9.5 17.5 8.5 20.2" />
+      <path d="M14.5 17.5 13.5 20.2" />
     </svg>
   );
 }
@@ -63,6 +68,26 @@ export function RainIcon({ className, title }: { className?: string; title?: str
  *
  * `compact` drops the word and keeps the icon and the number, for a table cell
  * where the round's name is already using the width.
+ *
+ * **A filled blue pill, and both halves of that are deliberate.**
+ *
+ * *Blue*, because blue means rain. It was the accent red first, and red is the
+ * wrong signal twice over: this app already spends `--color-primary` on "won the
+ * thing on screen" (`lib/highlight.ts`), so a red wet round competed with the
+ * winner for the same meaning, and red reads as a warning rather than as
+ * weather. `--color-wet` is the one hue outside the warm-grey-and-red palette,
+ * and it earns the exception by describing the world rather than emphasising a
+ * result. Both tokens are per-theme and were picked by measuring contrast — see
+ * the note in `index.css`.
+ *
+ * *A pill*, at `rounded-full`, against a house style that deliberately runs the
+ * radius scale tight so corners read as instrument panel. The departure is the
+ * point: everything else on these pages is a table cell or a card, so the one
+ * fully round thing on the page is unmistakably a tag on a round rather than
+ * part of the furniture.
+ *
+ * It stays paired with the icon, never colour alone — the same rule the gain and
+ * loss arrows follow.
  */
 export function WeatherBadge({
   weather,
@@ -81,7 +106,10 @@ export function WeatherBadge({
   return (
     <span
       className={cn(
-        "text-primary inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap",
+        "bg-wet text-wet-foreground inline-flex items-center gap-1 rounded-full",
+        // Tighter vertical padding than horizontal, so the pill stays the height
+        // of the line it sits on rather than growing the row it is in.
+        "px-2 py-0.5 text-xs font-medium whitespace-nowrap",
         className,
       )}
       title={label}

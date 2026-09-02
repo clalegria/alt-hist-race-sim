@@ -57,6 +57,25 @@ token with a floor of ~4.8:1 on card in dark and ~4.4:1 in light. Opacity modifi
 are fine on *fills* — `bg-muted/60`, `bg-primary/10` — where nothing has to be read
 through them.
 
+## The one hue outside the palette
+
+`--color-wet` / `--color-wet-foreground` is a blue, in a palette that is otherwise warm
+greys and a red. It earns the exception by naming a fact about the world rather than an
+emphasis: `--color-primary` is spent on "won the thing on screen", and a wet round is not
+a winner, so reusing the red made two different meanings share one colour. Blue means rain
+with no legend needed.
+
+**Both values were picked by measuring contrast, not by eye**, and the dark one is darker
+than the instinct for a dark theme. The badge is a *filled pill with white text*, so it is
+the text that has to clear 4.5:1, not the fill against the card — and a blue light enough
+to pop off the card cannot carry white text. Dark `oklch(54% 0.17 250)` gives 4.7:1 under
+its foreground and 2.6:1 against the card; light `oklch(50% 0.18 250)` gives 5.6:1 and
+5.9:1. The foreground is the same near-white in both. Like gain and loss, it is always
+paired with a glyph — never colour alone.
+
+The existing "every dark token has a light value" assertion in `theme.test.ts` covers
+these two without needing a case of their own.
+
 ## The background texture
 
 The page sits on a **checkerboard of 120px squares with a second checkerboard of 20px

@@ -54,6 +54,24 @@
   --color-loss: oklch(70% 0.185 25);
 
   /*
+   * A wet race. Blue because blue means rain — the one place the app spends a
+   * hue outside its warm-grey-and-red palette, and it earns it by being a fact
+   * about the world rather than an emphasis: the primary red already means
+   * "won the thing on screen", and a wet round is not a winner.
+   *
+   * Chosen by measurement, not by eye. `--color-wet-foreground` on this fill is
+   * 4.7:1 on dark and 5.6:1 on light, both clear of the 4.5:1 that 12px text
+   * needs. Darker than the obvious "bright blue on a dark theme" for exactly
+   * that reason: a lighter blue reads better against the card but cannot carry
+   * white text, and the badge is a filled pill, so it is the text that has to
+   * be legible — the fill only has to be identifiably blue.
+   *
+   * Paired with a rain-cloud icon, never colour alone, like gain and loss.
+   */
+  --color-wet: oklch(54% 0.17 250);
+  --color-wet-foreground: oklch(98% 0.01 250);
+
+  /*
    * Archivo is a grotesque with a signage/industrial cast — close enough to a
    * neutral UI face to stay legible in dense tables, far enough from the
    * default system stack to not read as unstyled. IBM Plex Mono carries every
@@ -122,6 +140,11 @@
   --color-ring: oklch(47% 0.2 25);
   --color-gain: oklch(54% 0.15 148);
   --color-loss: oklch(54% 0.19 25);
+  /* Deeper than dark's, because it sits on a white card rather than a grey one:
+   * 5.9:1 against the card, so the pill is unmistakable, and 5.6:1 under its
+   * own white text. The foreground is the same near-white in both themes. */
+  --color-wet: oklch(50% 0.18 250);
+  --color-wet-foreground: oklch(98% 0.01 250);
 }
 
 /* Keeps scrollbars and form controls in step with the chosen theme. */

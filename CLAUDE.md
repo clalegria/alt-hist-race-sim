@@ -190,9 +190,9 @@ question is open without carrying the argument.
   and handing the best pairing ~2 points more win share. So `.claude/rules/calibration.md`
   no longer describes the model, **a re-tune is needed and has not been run**, and it
   needs the author's word. Team form (0.75), the DNF correlation (0.3), weekend-form share
-  (0.5) and **every wet-racing constant** are reasoned rather than fitted; wet racing's
-  measured drift — ~1.3 points of retirement rate, 1–2 off the best driver's win share —
-  is written up with a recovery proposal in `docs/DECISIONS.md` and is **unabsorbed**.
+  (0.5) and **every wet-racing constant** are reasoned rather than fitted. Wet racing's
+  retirement drift **is corrected** — the four DNF endpoints carry x0.985 / x0.90
+  (`.claude/rules/race-constants.md`) — its win-share drift deliberately is not.
 - **Circuits have no character** — `RoundContext` opened the door (`wetChance` is already
   there, unused); what a circuit *does* is undecided, as are the home-advantage numbers.
 - **What moves the driver market** — a design conversation, not a coding task; and it is

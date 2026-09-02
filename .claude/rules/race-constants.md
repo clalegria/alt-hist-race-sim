@@ -112,6 +112,43 @@ Neither share is fitted. Weekend form has been 0.5 since it was a guess; the tea
 was reasoned from teammate head-to-heads, not from `pnpm calibrate`. See
 `docs/DECISIONS.md`.
 
+## The DNF endpoints carry a wet correction
+
+The four probabilities are **not** the fitted values any more. Wet racing raises both
+risks — up to 2.6x driver error, 1.25x mechanical — and with ~15% of rounds wet at a mean
+wetness near 0.51, that inflates a season's expected driver-error risk by ~12% and its
+mechanical risk by ~2%. Every season's `retirementFactor` was fitted against a model with
+no weather in it, so the drift landed on all 77 years at once.
+
+| constant | fitted | correction | authored |
+| --- | --- | --- | --- |
+| `mechanicalDnfAtZeroReliability` | 0.75 | x0.985 | 0.739 |
+| `mechanicalDnfAtFullReliability` | 0.12 | x0.985 | 0.118 |
+| `driverErrorDnfAtZeroComposure` | 0.3 | x0.90 | 0.27 |
+| `driverErrorDnfAtFullComposure` | 0.03 | x0.90 | 0.027 |
+
+**Two numbers, not one.** The rolls are inflated by very different amounts and eras
+differ in which retires more cars, so a blanket scale left about three times the residual
+at the high-attrition end. Derived analytically — `1 / (1 + 0.15 · 1.6 · 0.51)` and
+`1 / (1 + 0.15 · 0.25 · 0.51)` — then softened a shade by measurement, since reducing
+both risks together lowers the *rate* slightly more than proportionally where retirements
+overlap.
+
+**Checked end to end against the real record**, which is what makes this a fit rather
+than an argument. `pnpm retirements 200` over all 77 years:
+
+| model | mean abs error | worst |
+| --- | --- | --- |
+| no weather (what the factors were fitted on) | 1.41 | 3.61 |
+| weather, uncorrected | 1.93 | 5.10 |
+| **weather, corrected (shipped)** | **1.42** | **3.78** |
+
+**It applies to dry races too, and that is deliberate.** A season is ~85% dry rounds, so
+restoring a season's total puts most of the correction on them — a dry race retires
+marginally fewer cars than before, a wet one far more. Holding the dry race *and* the
+season total fixed is impossible while wet races retire more, and the author chose the
+season total: it is what 77 files were fitted against. Authorised 2026-09-02.
+
 ## Teammate retirements are correlated, and the rate is not
 
 `mechanicalDnfTeamCorrelation` (0.5) makes two cars of one team break on the same

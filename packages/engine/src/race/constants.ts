@@ -250,6 +250,10 @@ export interface RaceConstants {
    * Mechanical failure probability, interpolated from a car's reliability
    * rating: a 0-rated car fails with probability `mechanicalDnfAtZeroReliability`,
    * a 100-rated one with `mechanicalDnfAtFullReliability`.
+   *
+   * **Both endpoints carry a 0.985 wet correction** — see the note on the
+   * driver-error pair below, which carries the other half of it. The fitted
+   * values were 0.75 and 0.12.
    */
   readonly mechanicalDnfAtZeroReliability: number;
   readonly mechanicalDnfAtFullReliability: number;
@@ -285,6 +289,40 @@ export interface RaceConstants {
   /**
    * Driver-error retirement probability, interpolated from composure the same
    * way. This is what makes a fast but wild driver expensive to run.
+   *
+   * **Both endpoints carry a 0.90 wet correction**, and the mechanical pair
+   * above a 0.985 one. Wet racing raises both risks — up to 2.6x on driver
+   * error and 1.25x on mechanical failure — so with about 15% of rounds wet at
+   * a mean wetness near 0.51, a season's *expected* driver-error risk rose by
+   * roughly 12% and its mechanical risk by 2%. Every season's
+   * `retirementFactor` was fitted against a model with no weather in it, so
+   * left alone that drift landed on all 77 of them at once: measured over
+   * 1952-2026 the retirement rate rose 1.3 points on average and 1.8 at worst.
+   *
+   * The corrections are those two inflations, undone at the source. **Two
+   * numbers rather than one, because one cannot do it**: the two rolls are
+   * inflated by very different amounts, and eras differ in which of them
+   * retires more cars — a single blanket scale left three times the residual at
+   * the high-attrition end. Derived analytically (`1 / (1 + 0.15 · 1.6 · 0.51)`
+   * and `1 / (1 + 0.15 · 0.25 · 0.51)`) and then softened a shade by
+   * measurement, because reducing both risks together lowers the *rate* by
+   * slightly more than proportionally where retirements overlap.
+   *
+   * Measured over 13 seasons from 1952 to 2026 at 1,200 seasons each, this
+   * leaves the retirement rate within **0.21 points** of what it was before wet
+   * racing existed, everywhere, against 1.8 uncorrected. So each year's fitted
+   * factor still describes the number of retirements it was fitted to produce.
+   *
+   * **It applies to dry races too, and that is not a mistake.** A season is
+   * ~85% dry rounds, so restoring a season's total means most of the correction
+   * lands on them: a dry race now retires marginally fewer cars than it did,
+   * and a wet one far more. Holding both the dry race and the season total
+   * fixed is not possible while wet races retire more, and the author chose the
+   * season total — it is the thing 77 files were fitted against.
+   *
+   * Authorised by the author (2026-09-02) as the recovery half of wet racing.
+   * The alternative, cutting the wet multipliers themselves, was rejected as
+   * spending the feature to protect the figure.
    */
   readonly driverErrorDnfAtZeroComposure: number;
   readonly driverErrorDnfAtFullComposure: number;
@@ -415,13 +453,15 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   homeAdvantageTeam: 0.5,
   homeAdvantageEngine: 0.25,
 
-  mechanicalDnfAtZeroReliability: 0.75,
-  mechanicalDnfAtFullReliability: 0.12,
+  // 0.75 and 0.12 as fitted, x0.985 for wet racing. See the note on the type.
+  mechanicalDnfAtZeroReliability: 0.739,
+  mechanicalDnfAtFullReliability: 0.118,
 
   mechanicalDnfTeamCorrelation: 0.5,
 
-  driverErrorDnfAtZeroComposure: 0.3,
-  driverErrorDnfAtFullComposure: 0.03,
+  // 0.3 and 0.03 as fitted, x0.9 for wet racing. See the note on the type.
+  driverErrorDnfAtZeroComposure: 0.27,
+  driverErrorDnfAtFullComposure: 0.027,
 
   qualifyingGapSecondsPerPoint: 0.15,
 

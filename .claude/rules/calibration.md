@@ -24,6 +24,13 @@ paths:
 > more pole share, and reshuffled third and fourth in 1980. That drift has not been
 > absorbed into any rating.
 >
+> **And the four DNF endpoints have moved.** Wet racing landed, and the endpoints now
+> carry a correction (x0.985 mechanical, x0.90 driver error) that takes its retirement
+> drift back out — see `.claude/rules/race-constants.md`. Every retirement figure below
+> was measured before both, so it describes neither. The *net* is close to a wash by
+> design: measured against the real record over all 77 years, the corrected model with
+> weather sits at 1.42 mean absolute error against 1.41 without weather at all.
+>
 > **And they were measured in `peak` mode**, which the section below now forbids for
 > producing any figure.
 >
