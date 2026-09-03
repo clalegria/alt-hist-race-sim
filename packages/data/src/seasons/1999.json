@@ -22,8 +22,8 @@
   ],
   "engines": [
     { "engineId": "ferrari",  "racing":  94, "qualifying":  92, "reliability":  88 },
-    { "engineId": "mercedes", "racing":  94, "qualifying":  92, "reliability":  80 },
-    { "engineId": "mugen",    "racing":  86, "qualifying":  84, "reliability":  84 },
+    { "engineId": "mercedes", "racing":  95, "qualifying":  93, "reliability":  80 },
+    { "engineId": "mugen",    "racing":  87, "qualifying":  85, "reliability":  84 },
     { "engineId": "ford",     "racing":  86, "qualifying":  84, "reliability":  82 },
     { "engineId": "supertec", "racing":  84, "qualifying":  82, "reliability":  80 },
     { "engineId": "playlife", "racing":  82, "qualifying":  80, "reliability":  78 },
@@ -33,9 +33,8 @@
   ],
   "entries": [
     { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  96, "qualifying":  96, "consistency":  86, "reliability":  74 }, "drivers": ["hakkinen", "coulthard"] },
-    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  90, "qualifying":  88, "consistency":  88, "reliability":  86 }, "drivers": ["schumacher_m", "irvine"] },
-    { "teamId": "jordan",   "engineId": "mugen",    "chassis": { "racing":  82, "qualifying":  80, "consistency":  80, "reliability":  80 }, "drivers": ["frentzen", "hill_d"] },
-    { "teamId": "stewart",  "engineId": "ford",     "chassis": { "racing":  80, "qualifying":  78, "consistency":  78, "reliability":  74 }, "drivers": ["barrichello", "herbert"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  88, "qualifying":  86, "consistency":  88, "reliability":  86 }, "drivers": ["schumacher_m", "irvine"] },
+    { "teamId": "jordan",   "engineId": "mugen",    "chassis": { "racing":  87, "qualifying":  85, "consistency":  84, "reliability":  80 }, "drivers": ["frentzen", "hill_d"] },    { "teamId": "stewart",  "engineId": "ford",     "chassis": { "racing":  80, "qualifying":  78, "consistency":  78, "reliability":  74 }, "drivers": ["barrichello", "herbert"] },
     { "teamId": "williams", "engineId": "supertec", "chassis": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  78 }, "drivers": ["schumacher_r", "zanardi"] },
     { "teamId": "toleman",  "engineId": "playlife", "chassis": { "racing":  72, "qualifying":  70, "consistency":  72, "reliability":  74 }, "drivers": ["fisichella", "wurz"] },
     { "teamId": "ligier",   "engineId": "peugeot",  "chassis": { "racing":  68, "qualifying":  66, "consistency":  68, "reliability":  64 }, "drivers": ["trulli", "panis"] },

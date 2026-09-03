@@ -33,7 +33,7 @@
   ],
   "entries": [
     { "teamId": "toleman",     "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  92, "consistency":  90, "reliability":  88 }, "drivers": ["alonso", "fisichella"] },
-    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  84 }, "drivers": ["schumacher_m", "massa"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  92, "qualifying":  92, "consistency":  82, "reliability":  84 }, "drivers": ["schumacher_m", "massa"] },
     { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  80, "qualifying":  80, "consistency":  78, "reliability":  74 }, "drivers": ["raikkonen", "montoya"] },
     { "teamId": "tyrrell",     "engineId": "honda",    "chassis": { "racing":  78, "qualifying":  76, "consistency":  76, "reliability":  70 }, "drivers": ["button", "barrichello"] },
     { "teamId": "sauber",      "engineId": "bmw",      "chassis": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  78 }, "drivers": ["heidfeld", "villeneuve_jq"] },

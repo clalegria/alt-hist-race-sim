@@ -22,7 +22,7 @@
     { "round": 17, "name": "Malaysian GP",     "circuit": "Sepang",            "country": "MY" }
   ],
   "engines": [
-    { "engineId": "ferrari",  "racing":  96, "qualifying":  94, "reliability":  90 },
+    { "engineId": "ferrari",  "racing":  94, "qualifying":  94, "reliability":  90 },
     { "engineId": "mercedes", "racing":  94, "qualifying":  94, "reliability":  84 },
     { "engineId": "bmw",      "racing":  86, "qualifying":  84, "reliability":  76 },
     { "engineId": "ford",     "racing":  84, "qualifying":  82, "reliability":  80 },
@@ -34,7 +34,7 @@
     { "engineId": "petronas", "racing":  78, "qualifying":  76, "reliability":  80 }
   ],
   "entries": [
-    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  94, "qualifying":  92, "consistency":  92, "reliability":  90 }, "drivers": ["schumacher_m", "barrichello"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  90, "qualifying":  88, "consistency":  90, "reliability":  90 }, "drivers": ["schumacher_m", "barrichello"] },
     { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  78 }, "drivers": ["hakkinen", "coulthard"] },
     { "teamId": "williams", "engineId": "bmw",      "chassis": { "racing":  78, "qualifying":  76, "consistency":  80, "reliability":  76 }, "drivers": ["schumacher_r", "button"] },
     { "teamId": "toleman",  "engineId": "playlife", "chassis": { "racing":  74, "qualifying":  72, "consistency":  74, "reliability":  76 }, "drivers": ["fisichella", "wurz"] },

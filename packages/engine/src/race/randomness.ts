@@ -44,7 +44,7 @@ export const RANDOMNESS_LEVELS: readonly RandomnessLevel[] = Object.freeze([1, 2
  * The level a run uses when nobody has chosen: the calibrated model exactly as
  * it was measured.
  */
-export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 2;
+export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 1;
 
 /**
  * What each level multiplies both noise sigmas by.

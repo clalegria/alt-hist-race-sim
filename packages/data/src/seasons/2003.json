@@ -21,9 +21,9 @@
     { "round": 16, "name": "Japanese GP",      "circuit": "Suzuka",         "country": "JP" }
   ],
   "engines": [
-    { "engineId": "ferrari",  "racing":  94, "qualifying":  92, "reliability":  90 },
+    { "engineId": "ferrari",  "racing":  93, "qualifying":  92, "reliability":  90 },
     { "engineId": "bmw",      "racing":  94, "qualifying":  94, "reliability":  84 },
-    { "engineId": "mercedes", "racing":  86, "qualifying":  86, "reliability":  76 },
+    { "engineId": "mercedes", "racing":  92, "qualifying":  92, "reliability":  76 },
     { "engineId": "renault",  "racing":  84, "qualifying":  82, "reliability":  84 },
     { "engineId": "honda",    "racing":  80, "qualifying":  78, "reliability":  78 },
     { "engineId": "petronas", "racing":  82, "qualifying":  80, "reliability":  84 },
@@ -31,9 +31,9 @@
     { "engineId": "toyota",   "racing":  78, "qualifying":  76, "reliability":  78 }
   ],
   "entries": [
-    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  92, "qualifying":  90, "consistency":  90, "reliability":  88 }, "drivers": ["schumacher_m", "barrichello"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  88, "qualifying":  88, "consistency":  82, "reliability":  88 }, "drivers": ["schumacher_m", "barrichello"] },
     { "teamId": "williams", "engineId": "bmw",      "chassis": { "racing":  90, "qualifying":  92, "consistency":  82, "reliability":  78 }, "drivers": ["schumacher_r", "montoya"] },
-    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  86, "qualifying":  84, "consistency":  82, "reliability":  74 }, "drivers": ["raikkonen", "coulthard"] },
+    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  90, "qualifying":  86, "consistency":  98, "reliability":  74 }, "drivers": ["raikkonen", "coulthard"] },
     { "teamId": "toleman",  "engineId": "renault",  "chassis": { "racing":  82, "qualifying":  84, "consistency":  80, "reliability":  80 }, "drivers": ["alonso", "trulli"] },
     { "teamId": "tyrrell",  "engineId": "honda",    "chassis": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  66 }, "drivers": ["button", "villeneuve_jq"] },
     { "teamId": "sauber",   "engineId": "petronas", "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  74 }, "drivers": ["frentzen", "heidfeld"] },

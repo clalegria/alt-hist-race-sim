@@ -22,7 +22,7 @@
     { "round": 17, "name": "Japanese GP",      "circuit": "Suzuka",            "country": "JP" }
   ],
   "engines": [
-    { "engineId": "ferrari",  "racing":  94, "qualifying":  92, "reliability":  90 },
+    { "engineId": "ferrari",  "racing":  92, "qualifying":  92, "reliability":  90 },
     { "engineId": "mercedes", "racing":  92, "qualifying":  92, "reliability":  80 },
     { "engineId": "bmw",      "racing":  90, "qualifying":  92, "reliability":  74 },
     { "engineId": "honda",    "racing":  84, "qualifying":  82, "reliability":  78 },
@@ -32,8 +32,8 @@
     { "engineId": "asiatech", "racing":  68, "qualifying":  66, "reliability":  62 }
   ],
   "entries": [
-    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  96, "qualifying":  94, "consistency":  92, "reliability":  88 }, "drivers": ["schumacher_m", "barrichello"] },
-    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  88, "qualifying":  88, "consistency":  82, "reliability":  74 }, "drivers": ["hakkinen", "coulthard"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  88, "qualifying":  88, "consistency":  92, "reliability":  88 }, "drivers": ["schumacher_m", "barrichello"] },
+    { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  88, "qualifying":  88, "consistency":  91, "reliability":  74 }, "drivers": ["hakkinen", "coulthard"] },
     { "teamId": "williams", "engineId": "bmw",      "chassis": { "racing":  84, "qualifying":  88, "consistency":  74, "reliability":  68 }, "drivers": ["schumacher_r", "montoya"] },
     { "teamId": "sauber",   "engineId": "petronas", "chassis": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  80 }, "drivers": ["heidfeld", "raikkonen"] },
     { "teamId": "jordan",   "engineId": "honda",    "chassis": { "racing":  70, "qualifying":  68, "consistency":  70, "reliability":  70 }, "drivers": ["frentzen", "trulli"] },

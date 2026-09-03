@@ -31,8 +31,8 @@
     { "engineId": "honda",    "racing":  76, "qualifying":  74, "reliability":  78 }
   ],
   "entries": [
-    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  88, "reliability":  82 }, "drivers": ["massa", "raikkonen"] },
-    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  94, "qualifying":  92, "consistency":  88, "reliability":  86 }, "drivers": ["hamilton", "kovalainen"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  96, "qualifying":  95, "consistency":  93, "reliability":  82 }, "drivers": ["massa", "raikkonen"] },
+    { "teamId": "mclaren",     "engineId": "mercedes", "chassis": { "racing":  91, "qualifying":  90, "consistency":  88, "reliability":  86 }, "drivers": ["hamilton", "kovalainen"] },
     { "teamId": "sauber",      "engineId": "bmw",      "chassis": { "racing":  88, "qualifying":  86, "consistency":  88, "reliability":  88 }, "drivers": ["kubica", "heidfeld"] },
     { "teamId": "toleman",     "engineId": "renault",  "chassis": { "racing":  76, "qualifying":  74, "consistency":  78, "reliability":  80 }, "drivers": ["alonso", "piquet_jr"] },
     { "teamId": "toyota",      "engineId": "toyota",   "chassis": { "racing":  74, "qualifying":  72, "consistency":  76, "reliability":  80 }, "drivers": ["trulli", "glock"] },

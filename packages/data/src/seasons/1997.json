@@ -34,7 +34,7 @@
   ],
   "entries": [
     { "teamId": "williams", "engineId": "renault",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  86, "reliability":  82 }, "drivers": ["villeneuve_jq", "frentzen"] },
-    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  88, "qualifying":  86, "consistency":  82, "reliability":  76 }, "drivers": ["schumacher_m", "irvine"] },
+    { "teamId": "ferrari",  "engineId": "ferrari",  "chassis": { "racing":  83, "qualifying":  81, "consistency":  82, "reliability":  76 }, "drivers": ["schumacher_m", "irvine"] },
     { "teamId": "toleman",  "engineId": "renault",  "chassis": { "racing":  80, "qualifying":  78, "consistency":  78, "reliability":  78 }, "drivers": ["berger", "alesi"] },
     { "teamId": "mclaren",  "engineId": "mercedes", "chassis": { "racing":  82, "qualifying":  80, "consistency":  78, "reliability":  68 }, "drivers": ["hakkinen", "coulthard"] },
     { "teamId": "jordan",   "engineId": "peugeot",  "chassis": { "racing":  76, "qualifying":  74, "consistency":  74, "reliability":  72 }, "drivers": ["fisichella", "schumacher_r"] },
