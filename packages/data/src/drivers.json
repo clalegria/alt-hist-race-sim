@@ -7441,7 +7441,7 @@
     },
     "peakSeasons": 11,
     "developmentSpeed": 5,
-    "declineSpeed": 3,
+    "declineSpeed": 4,
     "offSeasons": [
       {
         "season": 2004,
@@ -8788,6 +8788,10 @@
       {
         "season": 2018,
         "severity": 0.5
+      },
+      {
+        "season": 2025,
+        "severity": 0.5
       }
     ]
   },
@@ -8870,7 +8874,7 @@
     "finalSeason": 2026,
     "peak": {
       "season": 2021,
-      "racing": 81,
+      "racing": 80,
       "qualifying": 78,
       "consistency": 77,
       "adaptability": 74,
@@ -8879,7 +8883,7 @@
     },
     "peakSeasons": 6,
     "developmentSpeed": 8,
-    "declineSpeed": 4
+    "declineSpeed": 7
   },
   {
     "id": "palmer_j",
@@ -9016,8 +9020,8 @@
     "finalSeason": 2026,
     "peak": {
       "season": 2020,
-      "racing": 64,
-      "qualifying": 62,
+      "racing": 71,
+      "qualifying": 73,
       "consistency": 64,
       "adaptability": 64,
       "composure": 62,
@@ -9234,8 +9238,8 @@
     "finalSeason": 2025,
     "peak": {
       "season": 2023,
-      "racing": 66,
-      "qualifying": 66,
+      "racing": 74,
+      "qualifying": 73,
       "consistency": 62,
       "adaptability": 66,
       "composure": 60,
@@ -9243,7 +9247,13 @@
     },
     "peakSeasons": 4,
     "developmentSpeed": 5,
-    "declineSpeed": 4
+    "declineSpeed": 4,
+    "offSeasons": [
+      {
+        "season": 2025,
+        "severity": 0.9
+      }
+    ]
   },
   {
     "id": "zhou",
@@ -9287,7 +9297,7 @@
     "offSeasons": [
       {
         "season": 2025,
-        "severity": 0.5
+        "severity": 0.3
       }
     ]
   },
@@ -9440,7 +9450,7 @@
       "wetWeather": 75
     },
     "peakSeasons": 5,
-    "developmentSpeed": 7,
+    "developmentSpeed": 5,
     "declineSpeed": 4
   },
   {
