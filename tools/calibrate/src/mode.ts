@@ -8,14 +8,13 @@
  * cannot be compared with a real season, so any rating fitted against them is
  * absorbing the difference between a driver and his own prime into the car.
  *
- * That is not a hypothetical. Fitting 2026 in `peak` puts McLaren's win share at
- * 6.5% against a real 16.7%, purely because a peak Hamilton outguns a peak
- * Norris; the same chassis in `aged` lands on 16.4%. The car was never the thing
- * that was wrong.
+ * That is not a hypothetical. Fitting a modern season in `peak` can put a team
+ * at a third of its real win share, purely because a rival's peak driver — from
+ * a decade the season never saw — outguns its own; the identical chassis in
+ * `aged` lands where the record says it should. The car was never the thing that
+ * was wrong.
  *
- * `--mode peak` remains available on the harnesses that take it, for comparing
- * against the older race-level tables in `.claude/rules/calibration.md`, which
- * were all measured that way. It is a way to read a historical figure, not a way
- * to produce a new one.
+ * `--mode peak` remains available on the harnesses that take it, for reading a
+ * grid on its own terms. It is not a way to produce a figure.
  */
 export const CALIBRATION_RATING_MODE = "aged" as const;

@@ -23,7 +23,7 @@
  *
  * Unlike the other harnesses here, this one is *for* a calibration the author
  * asked for: roadmap item 5, the per-season retirement rate. The general
- * no-re-calibration rule still covers everything else it touches — nothing in
+ * tuning rule still covers everything else it touches — nothing in
  * this run is a reason to move a chassis, an engine or a driver rating.
  */
 

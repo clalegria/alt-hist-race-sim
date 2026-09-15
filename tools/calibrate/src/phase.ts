@@ -4,9 +4,8 @@
  * The race harnesses simulate one afternoon with no year around it, so a car's
  * `developmentTrend` has nothing to read: `simulateRace` with no
  * `seasonProgress` is mid-season, where every trend is worth exactly nothing.
- * That is the right default — it is what every figure in
- * `.claude/rules/calibration.md` was measured under, and a harness that silently
- * ran the opener would answer a different question under the same heading.
+ * That is the right default — a harness that silently ran the opener would
+ * answer a different question under the same heading.
  *
  * But "what is this grid worth in April, and in October?" is precisely the
  * question development exists to raise, and a season harness answers it only in
@@ -56,11 +55,11 @@ export function parsePhase(argv: readonly string[]): SeasonPhase {
  * Mid-season is an *empty* round rather than one carrying
  * `MID_SEASON_PROGRESS`, even though the two score identically. The empty object
  * is what every caller passed before development existed, and keeping the
- * default byte-for-byte what it was is what lets the old figures still describe
- * the default run.
+ * default byte-for-byte what it was is what stops the feature moving a run that
+ * did not ask for it.
  *
- * No `country` either way: no measured race has a host country, so home
- * advantage still pays nothing here — see `.claude/rules/calibration.md`.
+ * No `country` either way: no race a harness runs has a host country, so home
+ * advantage pays nothing here — see `.claude/rules/calibration.md`.
  */
 export function phaseRound(phase: SeasonPhase): RoundContext {
   switch (phase) {

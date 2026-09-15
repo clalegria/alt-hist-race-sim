@@ -33,7 +33,7 @@ import {
   matchesFilters,
   ratedAge,
 } from "../lib/people.js";
-import { carOverall } from "../lib/rating.js";
+import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
@@ -728,6 +728,32 @@ describe("ordering the grid and the pool", () => {
         html.indexOf(`>${entryName(entry.teamId, entry.engineId)}<`),
       );
       expect(alphabetical).not.toEqual([...alphabetical].sort((a, b) => a - b));
+    });
+
+    it("lists a team's own drivers best first, whatever order the cards are in", () => {
+      // The pecking order *inside* a card is not the sort switch's business:
+      // which of a team's drivers is its first driver is the comparison the
+      // card exists to make, so it holds in the alphabetical default too.
+      const html = renderToStaticMarkup(
+        <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} />,
+      );
+      const at = (driverId: string) => html.indexOf(`>${driverName(driverId)}<`);
+
+      let reordered = 0;
+      for (const entry of byTeam(world.field, "name")) {
+        const drawn = [...entry.drivers].sort((a, b) => at(a.driverId) - at(b.driverId));
+        expect(drawn.map((entrant) => at(entrant.driverId)).every((index) => index >= 0)).toBe(
+          true,
+        );
+        expect(descending(drawn.map((entrant) => driverOverall(entrant.driver)))).toBe(true);
+        if (drawn.some((entrant, seat) => entrant !== entry.drivers[seat])) {
+          reordered += 1;
+        }
+      }
+      // Somewhere on the grid a team entered its drivers in an order this
+      // undoes — otherwise every assertion above is satisfied by a card that
+      // draws them exactly as the season lists them, and orders nothing.
+      expect(reordered).toBeGreaterThan(0);
     });
 
     it("offers the switch, with the order it is in already chosen", () => {

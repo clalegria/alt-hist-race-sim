@@ -9,7 +9,7 @@
  * **Seat counts never change.** Every operation here preserves each team's seat
  * count and therefore the size of the field. That is not a UI nicety: a team
  * with three cars is not an alternate history, and the field size is what the
- * starting limit and the DNQ arithmetic are calibrated against.
+ * starting limit and the DNQ arithmetic depend on.
  *
  * There are two shapes of the same thing, and the difference is load-bearing:
  *
@@ -263,8 +263,8 @@ export function isAuthoredLineup(season: SeasonSeed, lineup: LineupDraft): boole
  * The season with its seats reallocated.
  *
  * Validates rather than trusts: a lineup can arrive from a save file, and a
- * team quietly gaining a third car would show up much later as a field size the
- * calibration never saw.
+ * team quietly gaining a third car would show up much later as a field size
+ * nothing else expects.
  */
 export function applyLineup(season: SeasonSeed, lineup: SeasonLineup): SeasonSeed {
   const known = new Set(season.entries.map((entry) => entry.teamId));

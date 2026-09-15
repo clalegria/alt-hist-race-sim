@@ -85,9 +85,9 @@ describe("validateSeedData", () => {
   });
 
   it("gives every authored season a retirement factor on the 1-10 scale", () => {
-    // The rule, not the values: which factor a year carries is a calibration
+    // The rule, not the values: which factor a year carries is an authoring
     // judgement that lives in its own file, but every year must carry one, and
-    // an out-of-range number would be silently narrowed back to the default.
+    // an out-of-range number would be silently narrowed back to the neutral one.
     expect(seasons.size).toBeGreaterThan(0);
     for (const season of seasons.values()) {
       expect(Number.isInteger(season.retirementFactor), `${season.year}`).toBe(true);

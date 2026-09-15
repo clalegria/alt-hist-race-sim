@@ -1,7 +1,7 @@
 /**
  * The race constants one authored season is run on.
  *
- * Two things bend the calibrated defaults, and they arrive from opposite
+ * Two things bend the constants, and they arrive from opposite
  * directions: the **randomness level** is a taste setting the player chooses
  * before a run, and the **retirement factor** is an authored property of the
  * year itself, sitting in the season file next to its points scale. Composing
@@ -31,10 +31,16 @@ import type { SeasonSeed } from "./types.js";
 /**
  * The constants for a season at a randomness level.
  *
- * A season authored at the default factor of 5 and run at the default
- * randomness of 2 gets `RACE_CONSTANTS` itself, by identity — both helpers
- * return their input unchanged at their neutral setting, which is what keeps
- * the 1980 calibration a true description of the untouched model.
+ * A season authored at the neutral factor of 5 and run at
+ * `UNSCALED_RANDOMNESS_LEVEL` gets `RACE_CONSTANTS` itself, by identity — both
+ * helpers return their input unchanged at their neutral setting, and composing
+ * them must not lose that. It is the cheap path and the guarantee: no arithmetic
+ * between `constants.ts` and the season that runs.
+ *
+ * **That is not the default level.** `DEFAULT_RANDOMNESS_LEVEL` is `Realistic`,
+ * which scales both sigmas, so an unconfigured season is a little quieter than
+ * the constants as written. The identity above is a statement about the
+ * composition, not about where the slider rests.
  *
  * `parseRetirementFactor` narrows rather than trusting: the JSON's field is
  * typed `number`, and a season whose factor is out of range is caught by

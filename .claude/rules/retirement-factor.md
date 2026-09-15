@@ -9,10 +9,10 @@ paths:
 
 # Retirement factor — how hard a season is on its cars
 
-One authored number per season file, `retirementFactor`, 1–10, **5 = the calibrated
-constants untouched**. It is the first of roadmap item 5's *seasonal factors*, and the
-first thing in the project fitted against a target measured for all 77 years rather
-than for two.
+One authored number per season file, `retirementFactor`, 1–10, **5 = the constants
+untouched**. It is the first of roadmap item 5's *seasonal factors*, and the one number
+in the project with a real target behind every single year — `pnpm retirements --sweep`
+answers it against the actual record.
 
 ```
 season JSON  →  seasonConstants(seed, randomness)  →  withRetirementFactor(...)  →  RaceConstants
@@ -48,35 +48,27 @@ seasons the model produces **30%–45%**, top to bottom of history. The real spo
 **9.0% (2024) to 57.1% (1968)**. Everything outside that fifteen-point band is the
 factor's work, which is why the scale has to reach 0.3 at the bottom.
 
-That is not a complaint about the ratings. It is that both mappings *below* them were
-fitted to 1980 and neither has an era term: `mechanicalDnfAtZeroReliability` /
-`AtFullReliability` turn a rating into a probability on 1980's terms, and driver error
-never sees the year at all. **Do not "fix" this by re-authoring reliability ratings** —
-that is a re-tune, it needs the author's word, and the dial is the cheaper answer.
+That is not a complaint about the ratings. It is that both mappings *below* them turn a
+rating into a probability on one era's terms and neither has a year in it:
+`mechanicalDnfAtZeroReliability` / `AtFullReliability` know nothing about the decade, and
+driver error never sees the year at all. **Do not "fix" this by re-authoring reliability
+ratings** — that needs the author's word, and the dial is the cheaper answer.
 
-## The fit
+## Reading the sweep
 
-77 of 77 years have a measured target and every one lands within **2.9 points**, mean
-absolute error **1.30**. Factors used run 1–8; nothing is pinned to an end of the
-scale, and 9 and 10 are headroom. Roughly: 1950s **6**, 1960s **4–8**, 1970s–80s
-**6–8**, 1990s **6–7**, falling through the 2000s **5→2**, 2010s–20s **1–3**.
+Factors in use run across most of the 1–10 scale, and their shape is the sport's own:
+higher through the fifties to the eighties, falling through the 2000s, low in the 2010s
+and 20s. Nothing sits at an end of the scale, which leaves headroom for a season harder
+on its cars than any real one.
 
-Measured at `peak` ratings, 400 seasons a year. The `aged` grid gives mean 1.39 / worst
-3.71 against the *same* authored factors, so the fit does not depend on which rating
-mode a run uses — worth knowing, because the two harnesses disagree about the default.
+**The rating mode barely moves it.** A `peak` grid and an `aged` one land on the same
+factors to within a fraction of a point, which is worth knowing: a sweep is not quietly
+measuring the ageing curve. 200–400 seasons a year is plenty of sample either way.
 
-**1980 and 1981 moved off 5, to 6.** They are the two fitted seasons, so this is the
-one place the new dial touches settled work: their real rates are 48.5% and 48.3%, and
-at factor 5 the model gives 41.0% / 40.4% — which is the 41.3% figure in
-`.claude/rules/calibration.md`. Two things follow, and neither has been acted on:
-
-- **`retirementRate: 0.42` in `tools/calibrate/src/targets.ts` is an estimate that the
-  measurement contradicts** by six and a half points. It was not changed. Changing it
-  would re-fit chassis and engine reliability ratings, which needs the author's word.
-- **The tuner still runs at the neutral factor**, deliberately: `pnpm tune` builds
-  constants from `RACE_CONSTANTS`, not from `seasonConstants`, so a season's dial
-  cannot drift the ratings it fits. Whether it *should* see the factor — fitting cars
-  against the real rate instead of 42% — is an open question for the author.
+**The tuner runs at the neutral factor**, deliberately: `pnpm tune` builds constants from
+`RACE_CONSTANTS`, not from `seasonConstants`, so a season's dial cannot drift the ratings
+it proposes. Whether it *should* see the factor is an open question for the author
+(`docs/DECISIONS.md`).
 
 ## Counting rules — the part to get right
 
@@ -96,9 +88,8 @@ The definition is checkable: it reproduces the published figures for the seasons
 have written about — 53.9% for 1984 against ~54%, 51.6% for 1989 against ~51%, 44.3%
 for 1999 against ~45%, 33.3% for 2003 against ~32%.
 
-**2026 is a partial season** (12 rounds fetched, a regulations year running hot at
-17.9%). Its factor is fitted to that partial record and should be revisited when the
-year finishes.
+**2026 is a partial season** (12 rounds fetched, a regulations year running hot). Its
+factor answers that partial record and should be revisited when the year finishes.
 
 ## Working here
 
@@ -106,7 +97,7 @@ year finishes.
   `--year`, `--mode`, `--randomness` narrow it. 200–400 seasons a year is plenty — a
   season is already ~400 coin flips.
 - **This harness is the one exception to "do not run a harness to check something"**,
-  and only for this number: the author asked for the per-season retirement calibration
+  and only for this number: the author asked for the per-season retirement dial
   (roadmap item 5). Nothing it prints is a reason to move a chassis, an engine or a
   driver rating.
 - Adding a season means authoring its factor too. Start at 5, run

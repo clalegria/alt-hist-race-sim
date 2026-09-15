@@ -11,11 +11,10 @@
  *   pnpm calibrate 20000 --phase end   # 20000 season finales
  *
  * **Mid-season unless told otherwise.** A race with no year around it is
- * mid-season, where every car's `developmentTrend` is worth exactly nothing —
- * so the default run measures the same thing it measured before trends existed,
- * and the tables in `.claude/rules/calibration.md` still describe it. `--phase
- * start` and `--phase end` ask the other question: what this grid is worth in
- * April, and what it is worth in October.
+ * mid-season, where every car's `developmentTrend` is worth exactly nothing — so
+ * the default run measures the same thing it measured before trends existed.
+ * `--phase start` and `--phase end` ask the other question: what this grid is
+ * worth in April, and what it is worth in October.
  */
 
 import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
@@ -58,9 +57,8 @@ function main(): void {
   const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
   const randomness = parseRandomness(process.argv);
   // Which part of the season these N afternoons are. Mid-season by default,
-  // where every development trend is worth nothing — which is what every figure
-  // in `.claude/rules/calibration.md` was measured under, and why the default
-  // run still means what it always meant.
+  // where every development trend is worth nothing, so the default run means
+  // what it meant before trends existed.
   const phase = parsePhase(process.argv);
   const round = phaseRound(phase);
   const constants = withRandomness(randomness);

@@ -8,7 +8,7 @@
  *
  *  - **The mapping from a rating to a failure probability is itself era-bound.**
  *    `mechanicalDnfAtZeroReliability` / `mechanicalDnfAtFullReliability` were
- *    fitted to 1980, where even a 95-rated car broke regularly. Under those
+ *    shaped by an era where even a 95-rated car broke regularly. Under those
  *    endpoints a modern grid of 90-rated cars still retires around a fifth of
  *    its starters, which is roughly twice what the 2010s actually did.
  *  - **Driver error has no era term at all.** Composure is an authored career
@@ -25,7 +25,7 @@
  * rather than each getting its own.
  *
  * **Level 5 is exactly 1 and load-bearing.** It returns the constants object
- * itself, by identity, so the 1980 calibration still describes the model that
+ * itself, by identity, so `constants.ts` still describes the model that
  * runs when a season has not been tuned away from the default — the same
  * guarantee `withRandomness` makes at level 2, and for the same reason.
  *
@@ -38,7 +38,7 @@ import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 
 /**
  * How hard a season is on its cars: 1 is the kindest year imaginable, 10 the
- * cruellest, 5 the calibrated default.
+ * cruellest, 5 the constants untouched.
  *
  * A 1-10 integer rather than the multiplier itself, for the reason the points
  * scale is an array of numbers and not a formula: it is an *authored* field,
@@ -54,13 +54,13 @@ export const RETIREMENT_FACTORS: readonly RetirementFactor[] = Object.freeze([
 ]);
 
 /**
- * What a season uses when it does not say: the calibrated constants, untouched.
+ * What a season uses when it does not say: the constants, untouched.
  */
 export const DEFAULT_RETIREMENT_FACTOR: RetirementFactor = 5;
 
 /**
  * What each factor multiplies both retirement risks by: one step is 0.175 of
- * the calibrated rates, so the scale runs from 0.30 at the kindest year to
+ * the constants' own rates, so the scale runs from 0.30 at the kindest year to
  * 1.875 at the cruellest, with 5 sitting exactly on 1.
  *
  * **Evenly spaced, and that is not the obvious choice.** A multiplier over a
@@ -84,7 +84,7 @@ export const DEFAULT_RETIREMENT_FACTOR: RetirementFactor = 5;
  * why the bottom of the scale is as low as 0.3: a modern season needs less than
  * a third of 1980's failure rates on top of ratings that are already the
  * highest on the grid. That is a statement about the two mappings the ratings
- * feed — both fitted to 1980, neither with an era term — rather than about the
+ * feed — both shaped by one era, neither with a year in it — rather than about the
  * ratings, and it is the reason this dial does more work than "fine tuning"
  * suggests at the ends of the timeline.
  */

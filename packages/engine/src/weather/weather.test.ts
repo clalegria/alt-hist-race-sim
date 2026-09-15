@@ -116,9 +116,9 @@ describe("rolling the weather", () => {
 });
 
 describe("the constants a wet race is run on", () => {
-  it("hands a dry round the calibrated constants themselves", () => {
+  it("hands a dry round the constants themselves", () => {
     // By identity, like the balanced randomness level: six rounds in seven are
-    // scored by exactly the model the calibration measured.
+    // scored by exactly the constants as written.
     expect(wetConstants(DRY, RACE_CONSTANTS)).toBe(RACE_CONSTANTS);
     expect(wetConstants({ wet: true, wetness: 0 }, RACE_CONSTANTS)).toBe(RACE_CONSTANTS);
   });

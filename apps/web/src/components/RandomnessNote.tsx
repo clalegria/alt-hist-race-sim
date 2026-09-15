@@ -6,8 +6,8 @@ import { RANDOMNESS_OPTIONS, randomnessLabel } from "./RandomnessSlider.js";
  *
  * The setting is chosen on the setup screen and fixed from then on, so what the
  * grid needs is a record rather than a control — the reader should be able to
- * see, without leaving the page, whether the season in front of them is the
- * calibrated one or a wild one. It is also one of the facts a bug report has to
+ * see, without leaving the page, whether the season in front of them is a
+ * realistic one or a wild one. It is also one of the facts a bug report has to
  * carry, alongside the seed and the ability mode, and a fact nobody can read
  * off the screen is a fact nobody will report.
  *

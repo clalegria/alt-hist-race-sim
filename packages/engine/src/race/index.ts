@@ -6,6 +6,7 @@ export {
   RANDOMNESS_LEVELS,
   type RandomnessLevel,
   randomnessNoiseScale,
+  UNSCALED_RANDOMNESS_LEVEL,
   withRandomness,
 } from "./randomness.js";
 export {

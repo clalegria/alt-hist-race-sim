@@ -50,7 +50,7 @@ export interface AbilityAnchor {
  * are joined by straight lines and held flat beyond both ends, which is what
  * stops a swept table bottoming out at the rating floor.
  *
- * The shape is authored, not fitted, and it encodes four claims:
+ * The shape is authored by hand, and it encodes four claims:
  *
  * - Improvement peaks in the mid-teens and eases from there into the plateau,
  *   ramping *in* below it rather than starting at its steepest: a 16-year-old

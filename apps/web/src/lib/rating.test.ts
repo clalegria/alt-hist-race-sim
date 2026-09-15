@@ -88,12 +88,16 @@ describe("carOverall", () => {
     ).toBe(100);
   });
 
-  it("weighs racing first and reliability second", () => {
+  it("weighs racing first, and by more than the other three together", () => {
     const base = carOverall(chassis());
     const bump = (key: keyof ChassisSpec): number => carOverall(chassis({ [key]: 90 })) - base;
-    expect(bump("racing")).toBeGreaterThan(bump("reliability"));
-    expect(bump("reliability")).toBeGreaterThan(bump("qualifying"));
-    expect(bump("qualifying")).toBeGreaterThan(bump("consistency"));
+    // Racing is the only rating the race score reads directly, so it must not
+    // merely lead: the supporting three must not be able to outvote it.
+    expect(bump("racing")).toBeGreaterThan(
+      bump("qualifying") + bump("reliability") + bump("consistency"),
+    );
+    expect(bump("qualifying")).toBeGreaterThan(bump("reliability"));
+    expect(bump("reliability")).toBeGreaterThan(bump("consistency"));
   });
 });
 

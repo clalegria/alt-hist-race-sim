@@ -1,4 +1,9 @@
-import { RACE_CONSTANTS, withRandomness, withRetirementFactor } from "@alt-hist/engine";
+import {
+  RACE_CONSTANTS,
+  UNSCALED_RANDOMNESS_LEVEL,
+  withRandomness,
+  withRetirementFactor,
+} from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { seasonConstants } from "./seasonConstants.js";
 import type { SeasonSeed } from "./types.js";
@@ -16,16 +21,19 @@ function season(retirementFactor: number): SeasonSeed {
 }
 
 describe("seasonConstants", () => {
-  it("is the calibrated constants themselves for a default season at the default level", () => {
+  it("is the constants themselves at the neutral factor and the unscaled level", () => {
     // By identity. Both halves return their input unchanged at their neutral
-    // setting, and composing them must not lose that — it is what keeps the
-    // calibration a description of the model an untouched season runs.
-    expect(seasonConstants(season(5))).toBe(RACE_CONSTANTS);
+    // setting, and composing them must not lose that. The level is named rather
+    // than left to default: the default is `Realistic`, which scales the sigmas
+    // and so cannot return the object itself.
+    expect(seasonConstants(season(5), UNSCALED_RANDOMNESS_LEVEL)).toBe(RACE_CONSTANTS);
   });
 
   it("applies the season's own retirement factor", () => {
     for (const factor of [1, 3, 7, 10]) {
-      expect(seasonConstants(season(factor))).toEqual(withRetirementFactor(factor as 1));
+      expect(seasonConstants(season(factor), UNSCALED_RANDOMNESS_LEVEL)).toEqual(
+        withRetirementFactor(factor as 1),
+      );
     }
   });
 
@@ -41,10 +49,10 @@ describe("seasonConstants", () => {
 
   it("falls back to the default factor rather than trusting an out-of-range number", () => {
     // `validateSeedData` is what actually rejects these; this is the second
-    // line, so a season that slipped through races at the calibrated default
+    // line, so a season that slipped through races on the constants themselves
     // instead of at some arithmetic on a nonsense number.
     for (const factor of [0, 11, 4.5, Number.NaN]) {
-      expect(seasonConstants(season(factor))).toBe(RACE_CONSTANTS);
+      expect(seasonConstants(season(factor), UNSCALED_RANDOMNESS_LEVEL)).toBe(RACE_CONSTANTS);
     }
   });
 });

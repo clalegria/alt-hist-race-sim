@@ -1032,7 +1032,7 @@ describe("team form", () => {
   it("leaves the order within a garage to the drivers as the share rises", () => {
     // The behaviour the share exists for. Noise a team shares cannot separate
     // its two cars, so moving variance into it hands the teammate battle back
-    // to the ratings — while the field-wide spread stays exactly as calibrated.
+    // to the ratings — while the field-wide spread is left exactly alone.
     const flat = teammateUpsetRate({ ...RACE_CONSTANTS, teamFormShare: 0 });
     const shared = teammateUpsetRate({ ...RACE_CONSTANTS, teamFormShare: 0.8 });
     expect(flat).toBeGreaterThan(shared + 0.05);
@@ -1129,7 +1129,7 @@ describe("teammate reliability", () => {
   }
 
   it("leaves each car's own failure rate untouched by the correlation", () => {
-    // This is what lets the fitted per-season retirement factors stand: the
+    // This is what lets the per-season retirement factors stand: the
     // correlation changes which failures land together, not how many there are.
     const independent = failures(0);
     const correlated = failures(0.6);

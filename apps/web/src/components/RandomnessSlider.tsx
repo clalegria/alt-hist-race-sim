@@ -1,4 +1,5 @@
 import { parseRandomnessLevel, RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
+import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { cn } from "../lib/utils.js";
 
 /**
@@ -28,9 +29,16 @@ interface Level {
 /**
  * The words on the slider.
  *
- * Level 2 is marked as the default rather than named "Default", because what it
- * *is* is the calibrated model — the one the season was measured against — and
- * every other stop is a departure from it in one direction or the other.
+ * The opening stop is *marked* as the default rather than named "Default",
+ * because what each stop is is a description of the racing, and which one the
+ * screen opens on is a fact about the control. The marker reads
+ * `STARTING_RANDOMNESS_LEVEL` rather than naming a level here, so moving that
+ * offer is one line in `preferences.ts` and not a copy edit that can be
+ * forgotten — which is exactly what happened the last time it moved.
+ *
+ * Every detail line describes the racing and nothing else. None of them is the
+ * place to explain how the model was arrived at: a reader choosing a season
+ * wants to know what it will feel like.
  */
 export const RANDOMNESS_OPTIONS: readonly Level[] = [
   {
@@ -41,7 +49,7 @@ export const RANDOMNESS_OPTIONS: readonly Level[] = [
   {
     level: 2,
     label: "Balanced",
-    detail: "The calibrated model: the season as it was measured against real history.",
+    detail: "The order holds, but a good day and a bad one can still swap two cars over.",
   },
   {
     level: 3,
@@ -94,7 +102,7 @@ export function RandomnessSlider({
         <span className="text-sm font-semibold tracking-tight">Randomness</span>
         <span className="text-muted-foreground text-xs">
           {active?.label}
-          {active?.level === 2 ? " (default)" : ""}
+          {active?.level === STARTING_RANDOMNESS_LEVEL ? " (default)" : ""}
         </span>
       </div>
 

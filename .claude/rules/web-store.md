@@ -13,7 +13,7 @@ reveal cursor and how any of it is tested are in `.claude/rules/web-app.md`, whi
 loads alongside this file.
 
 **Driver ability is a simulation input, not a display filter.** `world.ratingMode` is
-`"peak"` (authored peaks, the default and the calibrated one) or `"aged"` (each
+`"peak"` (authored peaks, and the default) or `"aged"` (each
 driver's ability in that season, via the engine's curve). `RatingModeToggle` renders
 **only on the grid stage** — past it the reader has seen results the other field would
 never have produced — and `setRatingMode` re-runs the year *from the same seed*, so
@@ -69,12 +69,14 @@ chose, like the ability mode. Unlike the ability mode it is **not** remembered i
 localStorage: a lineup and a set of engine deals belong to the year they were drawn
 for, so starting a season from the menu gets the real grid back.
 
-**Randomness is chosen once and never again.** `world.randomness` is a level 1–5 (2 is
-the calibrated default), picked on the setup screen of *both* modes — `SeasonPicker`
+**Randomness is chosen once and never again.** `world.randomness` is a level 1–5 —
+the setup screen opens on `STARTING_RANDOMNESS_LEVEL` (2), which is the app's opening
+offer and deliberately not the engine's `DEFAULT_RANDOMNESS_LEVEL` (1, the level the
+harnesses measure at) — picked on the setup screen of *both* modes — `SeasonPicker`
 holds it in component state seeded from `readRandomness()` and hands it to `onStart`,
 which is why `startSeason`/`startEra` take it as an argument rather than reading storage
 themselves. It reaches the model as `withRandomness(level)`, a derived copy of the
-constants; at level 2 it *is* `RACE_CONSTANTS`, untouched. Nothing on a season screen
+constants; at `UNSCALED_RANDOMNESS_LEVEL` it *is* `RACE_CONSTANTS`, untouched. Nothing on a season screen
 changes it — `setRatingMode`, `setGrid` and `restartSeason` all carry it forward, and an
 era carries `last.randomness` into every following year, so a run is one championship
 under one set of rules. The grid stage states it (`RandomnessNote`) and offers no

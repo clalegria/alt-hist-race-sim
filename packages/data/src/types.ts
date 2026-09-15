@@ -47,7 +47,12 @@ export interface DriverStepDown {
  */
 export interface DriverOffSeason {
   readonly season: number;
-  /** 0-1. Scaled by the engine's `offSeasonMaxDrop`. */
+  /**
+   * Scaled by the engine's `offSeasonMaxDrop`. **No upper bound** — 1 is a full
+   * off-season, 2 is twice as bad, and there is no ceiling short of the rating
+   * floor the engine clamps to. Unlike `DriverStepDown`, which stays 0-1
+   * because it persists for the rest of a career.
+   */
   readonly severity: number;
 }
 
@@ -326,13 +331,13 @@ export interface SeasonSeed {
   readonly calendar: readonly CalendarRace[];
   /**
    * How hard the year was on its cars: a 1-10 dial over how often a car
-   * retires, 5 being the calibrated default and no change at all.
+   * retires, 5 being the constants untouched and no change at all.
    *
    * A *fine-tuning* multiplier, not the main mechanism. Most of an era is
    * already in the authored chassis and engine `reliability` ratings, which are
    * far lower in 1954 than in 2018. What they cannot express is that the
-   * mapping from a rating to a failure probability was itself fitted to 1980,
-   * and that driver-error retirements have no era term at all — see
+   * mapping from a rating to a failure probability has no year in it, and that
+   * driver-error retirements have no era term at all — see
    * `retirement.ts` in the engine, which owns the mapping from this number to
    * the two risks it scales.
    *

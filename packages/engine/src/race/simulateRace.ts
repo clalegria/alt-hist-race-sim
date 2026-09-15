@@ -192,7 +192,7 @@ export function simulateRace(
   const weather = round.weather ?? rolled;
   // Everything below reads `constants`, which on a wet afternoon is a derived
   // copy: wider noise, harsher retirements, and the score leaning further onto
-  // the driver and the chassis. A dry one is the calibrated object itself.
+  // the driver and the chassis. A dry one is the constants object itself.
   const constants = wetConstants(weather, raceConstants);
 
   // Each session's noise is split on two independent axes at once: how much of
@@ -207,7 +207,7 @@ export function simulateRace(
   // car's level between weekends mostly belongs to the garage, so it moves both
   // of its cars together and cannot decide which one finishes ahead. Both team
   // terms cancel out of a teammate comparison, which is what leaves that battle
-  // to the ratings while the spread across the field stays as calibrated.
+  // to the ratings while the spread across the field is untouched.
   const weekendShare = Math.min(Math.max(constants.weekendFormShare, 0), 1);
   const teamShare = Math.min(Math.max(constants.teamFormShare, 0), 1);
   const boost = Math.max(constants.teamFormBoost, 0);

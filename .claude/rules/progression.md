@@ -26,7 +26,7 @@ against age — what an average career looks like. Improvement peaking in the mi
 and easing from there into the plateau (it ramps *in* below that, so the very bottom of
 the table is not its steepest part), flat from 28 to 33, a *gentle* nine percent between
 35 and 42, then a fall that never eases and keeps steepening all the way down — one
-point a year at 35, seven a year at 53. It is authored, not fitted, and it is the only
+point a year at 35, seven a year at 53. It is authored by hand, and it is the only
 thing that decides how much a year off peak costs.
 
 **The table ends *on* its floor (0.1 at 55) rather than easing onto one, and that is
@@ -154,7 +154,7 @@ stopped making.
   shape tests measure over three seasons, not one.
 - The curve is anchored to the authored peak: `ratingsForSeason(career, peakSeason)`
   returns the authored ratings exactly, and tests pin it in both packages. Any change
-  that shifts the peak season's output is a bug, not a re-tune.
+  that shifts the peak season's output is a bug, not a matter of taste.
 - **The `Curve` column in `pnpm progression` is the canonical age.** It is the column to
   read when a career looks wrong: a 44-year-old who is still quick reads as 38, and one
   who is finished reads as 52.

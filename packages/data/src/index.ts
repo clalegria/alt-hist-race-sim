@@ -356,14 +356,22 @@ export function validateSeedData(
         `Driver "${driver.id}" peaks in ${driver.peak.season}, before debuting in ${driver.debutSeason}`,
       );
     }
-    const severities = [
-      ...(driver.stepDown === undefined ? [] : [driver.stepDown]),
-      ...(driver.offSeasons ?? []),
-    ];
-    for (const event of severities) {
-      if (event.severity < 0 || event.severity > 1) {
+    // A step down persists for the rest of a career, so it stays on the 0-1
+    // scale its constant sizes. An off-season is one year and is deliberately
+    // uncapped — see `DriverOffSeason` — so all that is rejected there is a
+    // number that means nothing: negative, or not a number at all.
+    if (driver.stepDown !== undefined) {
+      const { season, severity } = driver.stepDown;
+      if (!(severity >= 0 && severity <= 1)) {
         throw new Error(
-          `Driver "${driver.id}" has a career event in ${event.season} with severity ${event.severity}; it must be between 0 and 1`,
+          `Driver "${driver.id}" steps down in ${season} with severity ${severity}; it must be between 0 and 1`,
+        );
+      }
+    }
+    for (const off of driver.offSeasons ?? []) {
+      if (!(off.severity >= 0) || !Number.isFinite(off.severity)) {
+        throw new Error(
+          `Driver "${driver.id}" has an off season in ${off.season} with severity ${off.severity}; it must be 0 or more`,
         );
       }
     }

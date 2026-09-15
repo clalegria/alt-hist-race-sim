@@ -391,7 +391,7 @@ describe("young and old are different, not just better and worse", () => {
    * land on the same number.
    *
    * Derived from the table rather than naming one pair, so it covers all five
-   * attributes and cannot go stale when a sensitivity is retuned — `racing` and
+   * attributes and cannot go stale when a sensitivity is changed — `racing` and
    * `consistency` are both 1.0 in decline today, and a test that hard-coded
    * `racing < consistency` was asserting a gap the table had stopped claiming.
    */
@@ -542,6 +542,37 @@ describe("authored career events", () => {
     const mild = career({ stepDown: { season: 1993, severity: 0.2 } });
     const severe = career({ stepDown: { season: 1993, severity: 0.9 } });
     expect(total(ratingsForSeason(severe, 1993))).toBeLessThan(total(ratingsForSeason(mild, 1993)));
+  });
+
+  it("keeps punishing past a severity of 1, in proportion", () => {
+    // Uncapped on purpose, so an author can say "the worst year of his life"
+    // and be believed. What is asserted is the proportionality rather than any
+    // one drop: at the plateau the whole deficit is the off season, so twice
+    // the severity is twice the distance below peak, for every attribute.
+    const plain = career({ peakSeasons: 7 });
+    const once = career({ peakSeasons: 7, offSeasons: [{ season: 1989, severity: 1 }] });
+    const twice = career({ peakSeasons: 7, offSeasons: [{ season: 1989, severity: 2 }] });
+    for (const attribute of ATTRIBUTES) {
+      const base = ratingsForSeason(plain, 1989)[attribute];
+      const one = base - ratingsForSeason(once, 1989)[attribute];
+      const two = base - ratingsForSeason(twice, 1989)[attribute];
+      expect(one, attribute).toBeGreaterThan(0);
+      // Within a point, since every rating is rounded on the way out.
+      expect(two, attribute).toBeGreaterThanOrEqual(2 * one - 1);
+      expect(two, attribute).toBeLessThanOrEqual(2 * one + 1);
+    }
+  });
+
+  it("floors an absurd off season at the minimum rather than running away", () => {
+    const ruined = career({ peakSeasons: 7, offSeasons: [{ season: 1989, severity: 40 }] });
+    for (const attribute of ATTRIBUTES) {
+      expect(ratingsForSeason(ruined, 1989)[attribute], attribute).toBe(AGEING_CONSTANTS.minRating);
+    }
+    // And a negative severity is a typo, not a good year.
+    const typo = career({ peakSeasons: 7, offSeasons: [{ season: 1989, severity: -3 }] });
+    expect(total(ratingsForSeason(typo, 1989))).toBe(
+      total(ratingsForSeason(career({ peakSeasons: 7 }), 1989)),
+    );
   });
 
   it("dips an off season and leaves the seasons around it alone", () => {

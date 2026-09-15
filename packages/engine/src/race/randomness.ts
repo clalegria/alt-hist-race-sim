@@ -7,14 +7,10 @@
  * seed under two different levels is a different championship; the same seed and
  * the same level reproduce exactly.
  *
- * **It is a scale factor over the calibrated constants, never a replacement for
- * them.** `withRandomness` derives a copy of whatever it is handed; nothing here
- * edits `constants.ts`, and the balanced level returns the constants object
- * *itself*, unchanged and by identity. That is what keeps the calibration a true
- * description of the default: the measured season is still the season the model
- * runs when nobody has touched the slider. The other four levels are not
- * calibrated against anything and are not meant to be — they are a taste
- * setting, not a fit.
+ * **It is a scale factor over the constants, never a replacement for them.**
+ * `withRandomness` derives a copy of whatever it is handed; nothing here edits
+ * `constants.ts`, and `UNSCALED_RANDOMNESS_LEVEL` hands back the constants
+ * object *itself* — no arithmetic at all between `constants.ts` and the race.
  *
  * **Only pace scatter moves.** The factor scales the two noise sigmas and
  * nothing else. Reliability is deliberately left alone — a chaotic season is an
@@ -41,17 +37,39 @@ export type RandomnessLevel = 1 | 2 | 3 | 4 | 5;
 export const RANDOMNESS_LEVELS: readonly RandomnessLevel[] = Object.freeze([1, 2, 3, 4, 5]);
 
 /**
- * The level a run uses when nobody has chosen: the calibrated model exactly as
- * it was measured.
+ * The level anything that has not been told otherwise runs at: `Realistic`.
+ *
+ * **This is the reference level.** Every measurement worth making about the
+ * model — a harness run, a sweep, a driver's season, a figure quoted in a rule
+ * file — is made here unless it says otherwise, because it is the setting that
+ * asks the model to be a plausible history rather than a good story. The tools
+ * take it as their default for exactly that reason.
+ *
+ * **The web app deliberately opens one stop higher.** A reader arriving at the
+ * setup screen is offered `STARTING_RANDOMNESS_LEVEL` (`apps/web/src/lib/
+ * preferences.ts`), which is a claim about what makes a good first season and
+ * not about what the model is worth. Nothing outside that screen reads it, and
+ * nothing inside the engine knows it exists.
  */
 export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 1;
 
 /**
+ * The one stop whose scale is exactly 1, and where `withRandomness` therefore
+ * hands back the constants object itself rather than a copy of it.
+ *
+ * A fact about the arithmetic, and worth a name because it is the level to reach
+ * for when something needs the constants *as written* — a test asserting the
+ * identity, or a comparison that wants the slider taken out of the picture.
+ */
+export const UNSCALED_RANDOMNESS_LEVEL: RandomnessLevel = 2;
+
+/**
  * What each level multiplies both noise sigmas by.
  *
- * Level 2 is exactly 1 and load-bearing — see the note above. Level 1 is a
- * gentle tightening rather than a different model: the field as authored is
- * closer to a replay, so the tamest setting only needs to take the edge off.
+ * Level 2 is exactly 1 and load-bearing — see the note above. Level 1, the
+ * reference level, is a gentle tightening rather than a different model: the
+ * field as authored is already close to a replay, so the tamest setting only
+ * needs to take the edge off.
  *
  * The three above it climb steeply, and the first attempt at them (1.2 / 1.45 /
  * 1.9) did not: a *season* averages its noise away over a dozen-odd rounds, so
@@ -69,7 +87,7 @@ export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 1;
  *
  * Both sigmas take the same factor on purpose. The three-way form split divides
  * each one by variance, so scaling them together moves all three parts in step
- * and leaves the calibrated split intact; scaling one alone would quietly
+ * and leaves the variance split intact; scaling one alone would quietly
  * re-weight form against luck, which is a different lever.
  */
 const NOISE_SCALE: Readonly<Record<RandomnessLevel, number>> = Object.freeze({
@@ -123,10 +141,10 @@ export function randomnessTeamFormBoost(level: RandomnessLevel): number {
 /**
  * The constants a run at this level races on.
  *
- * Returns `constants` itself at the balanced level, which is both the cheap path
- * and the guarantee: there is no arithmetic between the calibrated numbers and
- * the default season, so no rounding, no drift, and a test can assert identity
- * rather than approximate equality.
+ * Returns `constants` itself at `UNSCALED_RANDOMNESS_LEVEL`, which is both the
+ * cheap path and the guarantee: there is no arithmetic between `constants.ts`
+ * and the season that runs, so no rounding, no drift, and a test can assert
+ * identity rather than approximate equality.
  */
 export function withRandomness(
   level: RandomnessLevel,

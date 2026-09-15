@@ -22,11 +22,7 @@
  */
 
 import { DEFAULT_RATING_MODE, RATING_MODES, type RatingMode } from "@alt-hist/data";
-import {
-  DEFAULT_RANDOMNESS_LEVEL,
-  parseRandomnessLevel,
-  type RandomnessLevel,
-} from "@alt-hist/engine";
+import { parseRandomnessLevel, RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
 import { DEFAULT_SEASON_YEAR, isPlayable } from "./seasons.js";
 
 /** Where the choice is remembered between visits. */
@@ -34,6 +30,21 @@ const STORAGE_KEY = "alt-hist-rating-mode";
 
 /** The same, for how much the dice decide. */
 const RANDOMNESS_KEY = "alt-hist-randomness";
+
+/**
+ * The level the setup screen opens on, for a reader who has never chosen one.
+ *
+ * **Deliberately not the engine's `DEFAULT_RANDOMNESS_LEVEL`.** That one is the
+ * reference level, the setting every measurement of the model is made at; this
+ * one answers a different question — what makes a good first season for someone
+ * who has not yet met the slider — and the answer is one stop up, where the
+ * order still holds but is not a foregone conclusion. A reader who moves the
+ * slider is remembered and never sees this again.
+ *
+ * It lives here rather than in the engine because it is a claim about the app.
+ * The engine has no opinion about what is fun.
+ */
+export const STARTING_RANDOMNESS_LEVEL: RandomnessLevel = RANDOMNESS_LEVELS[1] ?? 2;
 
 /** And for the year a picker opens on — shared by both pickers, see below. */
 const YEAR_KEY = "alt-hist-season-year";
@@ -86,16 +97,22 @@ export function rememberRatingMode(mode: RatingMode): void {
  *
  * Stored as its digit, so a level survives any renaming of the words drawn above
  * the slider. Anything else in the slot — a level that no longer exists, a value
- * from another version — falls back to the default rather than throwing.
+ * from another version — falls back to `STARTING_RANDOMNESS_LEVEL` rather than
+ * throwing. That fallback is the app's opening offer and not the engine's
+ * default, which is why `parseRandomnessLevel` is asked for a level and then
+ * checked rather than trusted with the fallback itself: it answers with the
+ * engine's, which is a different question.
  */
 export function readRandomness(): RandomnessLevel {
   if (typeof localStorage === "undefined") {
-    return DEFAULT_RANDOMNESS_LEVEL;
+    return STARTING_RANDOMNESS_LEVEL;
   }
   try {
-    return parseRandomnessLevel(Number(localStorage.getItem(RANDOMNESS_KEY)));
+    const stored = Number(localStorage.getItem(RANDOMNESS_KEY));
+    const level = parseRandomnessLevel(stored);
+    return level === stored ? level : STARTING_RANDOMNESS_LEVEL;
   } catch {
-    return DEFAULT_RANDOMNESS_LEVEL;
+    return STARTING_RANDOMNESS_LEVEL;
   }
 }
 

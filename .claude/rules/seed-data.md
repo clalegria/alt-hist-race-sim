@@ -61,10 +61,10 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     authored chassis and ends n quicker, rotating about mid-season so the chassis stays
     what the car was worth in the middle of the year. Pace only. Almost every entry omits
     it. See `.claude/rules/car-development.md`.
-  - `retirementFactor` is a **1-10 whole number**, 5 being the calibrated constants
-    untouched, and it is how hard the year was on its cars — it scales both DNF rolls.
-    Every year's is fitted against the real record; a new season starts at 5 and is
-    fitted with `pnpm retirements --sweep --year <n>`. See
+  - `retirementFactor` is a **1-10 whole number**, 5 being the constants untouched, and
+    it is how hard the year was on its cars — it scales both DNF rolls. Every year's
+    answers the real record; a new season starts at 5 and is swept with
+    `pnpm retirements --sweep --year <n>`. See
     `.claude/rules/retirement-factor.md`, and note it is **not** the place to express
     one *car*'s fragility — that is the chassis and engine `reliability` ratings.
   - **`engines` is the season's menu, not a record of what was used.** An engine
@@ -119,13 +119,9 @@ loads on `teams.json`, `eras.ts` and the web modules that read them.
   line, because a driver record is long and is read and edited by hand; the season files
   and the other pools keep their compact one-record-per-line layout. Match whichever
   file you are in — do not reformat either way.
-- **Do not re-tune authored ratings.** See the invariant in `CLAUDE.md`. Seed ratings
-  are tuned via the Monte Carlo harness, never guessed in code. **Chassis and engine
-  ratings for both 1980 and 1981 were fitted** in the engine pass that tuned the two
-  together (`.claude/rules/calibration.md`) — but against the old `0.8 / 0.2` blend,
-  which has since moved to `0.7 / 0.3` on pace and `0.5 / 0.5` on reliability. They
-  are therefore **fitted-but-stale**, and re-fitting them needs the author's word.
-  Driver ratings deliberately are not fitted at all (`docs/DECISIONS.md`).
+- **Do not tune authored ratings.** See the invariant in `CLAUDE.md`. They belong to the
+  author, who moves them by hand and with the harnesses; a session does not adjust one as
+  a side effect of building something, and does not annotate one with where it came from.
 - **No test reads a value out of this JSON and asserts on it** — not a rating, not a
   peak season, not a count of drivers or entries. The tests here derive what they need
   (`drivers[0]`, `season1980.entries.flatMap(...)`, "a driver with a step down")
@@ -149,18 +145,14 @@ loads on `teams.json`, `eras.ts` and the web modules that read them.
 - `validateSeedData()` is called on demand, not as a module-load side effect, so
   importing the package stays pure. Drivers without a seat and single-car teams are
   legal; duplicate ids, unknown references and double-seated drivers are not.
-- **Engine ratings are fitted (at the old weights), and were fitted jointly with the
-  chassis.** They were authored by hand first — the Renault turbo quickest and most fragile, the Cosworth DFV
-  near the mean of the cars using it, the Ferrari flat-12 strong on power in a chassis
-  that was not — and then tuned against both seasons' win, pole and retirement records.
-  The shape survived the fit; the numbers moved. The tuner is allowed to move a car
-  ±12 and an engine ±15 from its authored value, which is what keeps a fitted rating
-  recognisable as the judgement it started from. The tuner's knobs are labelled
+- **An engine rating and its customers' chassis ratings are one judgement.** Neither is
+  separately observable — what a season records is the package — so the two are authored
+  and moved together, which is why `pnpm fit` proposes them as a pair. The character is
+  written by hand first (a turbo quick and fragile, a long-serving V8 near the mean of the
+  cars using it, a strong engine in a chassis that was not), and the harness only ever
+  moves the numbers within a band around it — a car ±12, an engine ±15 — so a proposal
+  stays recognisable as the judgement it started from. The tuner's knobs are labelled
   `chassis <team>.<field>` and its targets key is `tunedChassis`.
-- **1981 driver ratings are still a first authored pass**, as are 1980's. The chassis
-  and engine ratings for the year went through the harness in the engine pass, and are
-  now stale against the current blend weights. The no-re-calibration invariant still
-  holds for all of it: do not tune anything here unless the author asks.
 
 ## The layer over the seed
 

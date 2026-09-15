@@ -8,9 +8,10 @@
  */
 
 import { FIRST_AUTHORED_SEASON } from "@alt-hist/data";
-import { DEFAULT_RANDOMNESS_LEVEL, RANDOMNESS_LEVELS } from "@alt-hist/engine";
+import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { createWorld } from "../store/season.js";
 import { EraChampions } from "./EraChampions.js";
 import { RandomnessNote } from "./RandomnessNote.js";
@@ -33,7 +34,7 @@ describe("the randomness slider", () => {
   });
 
   it("spans the whole range as one step-per-level slider", () => {
-    const html = renderToStaticMarkup(<RandomnessSlider level={DEFAULT_RANDOMNESS_LEVEL} />);
+    const html = renderToStaticMarkup(<RandomnessSlider level={STARTING_RANDOMNESS_LEVEL} />);
     expect(html).toContain('type="range"');
     expect(html).toContain(`min="${RANDOMNESS_LEVELS[0] ?? ""}"`);
     expect(html).toContain(`max="${RANDOMNESS_LEVELS.at(-1) ?? ""}"`);
@@ -45,7 +46,7 @@ describe("the randomness slider", () => {
     // half a thumb at each end — rather than spread across the full width,
     // which is what put every label but the middle one off its mark. Their
     // percentages have to run 0..100 across the stops, evenly.
-    const html = renderToStaticMarkup(<RandomnessSlider level={DEFAULT_RANDOMNESS_LEVEL} />);
+    const html = renderToStaticMarkup(<RandomnessSlider level={STARTING_RANDOMNESS_LEVEL} />);
     const positions = [...html.matchAll(/left:\s*([0-9.]+)%/g)].map((match) =>
       Number(match[1] ?? Number.NaN),
     );
@@ -69,10 +70,10 @@ describe("the randomness slider", () => {
     }
   });
 
-  it("marks the calibrated level as the default and no other", () => {
-    const defaulted = renderToStaticMarkup(<RandomnessSlider level={DEFAULT_RANDOMNESS_LEVEL} />);
-    expect(defaulted).toContain("(default)");
-    for (const level of RANDOMNESS_LEVELS.filter((one) => one !== DEFAULT_RANDOMNESS_LEVEL)) {
+  it("marks the level the screen opens on as the default, and no other", () => {
+    const opening = renderToStaticMarkup(<RandomnessSlider level={STARTING_RANDOMNESS_LEVEL} />);
+    expect(opening).toContain("(default)");
+    for (const level of RANDOMNESS_LEVELS.filter((one) => one !== STARTING_RANDOMNESS_LEVEL)) {
       expect(renderToStaticMarkup(<RandomnessSlider level={level} />)).not.toContain("(default)");
     }
   });

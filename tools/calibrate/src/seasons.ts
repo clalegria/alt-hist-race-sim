@@ -29,7 +29,7 @@
  * country. A win share here and a win share there are two different quantities,
  * and the gap between them is exactly what home advantage is worth.
  *
- * The same no-re-calibration rules apply to what is done with this output as to
+ * The same rules apply to what is done with this output as to
  * `pnpm calibrate` — see `.claude/rules/calibration.md`. It is an instrument the
  * author reads, not a test, and nothing in the suite runs it.
  */

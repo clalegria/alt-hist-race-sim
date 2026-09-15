@@ -43,8 +43,8 @@ chassis/engine split — an engine drowns as readily as a gearbox.
 
 1. **A dry round returns its inputs by identity.** `wetConstants(DRY, c) === c` and
    `wetDriver(d, DRY) === d`, asserted with `toBe`. Six rounds in seven are therefore
-   scored by *precisely* the model the calibration measured, with no arithmetic in
-   between — the same guarantee `withRandomness` makes at level 2 and
+   scored by *precisely* the constants as written, with no arithmetic in between — the
+   same guarantee `withRandomness` makes at its unscaled level and
    `withRetirementFactor` at 5.
 2. **It composes as a separate multiplier**, never as a share of one constant. The
    randomness slider says how much the dice decide across a run; this says how much
@@ -111,16 +111,16 @@ assuming a dry fixture.
 
 ## What was corrected, and what was not
 
-**The constants in the table above are reasoned, not fitted**, and were shipped that way.
-One consequence *was* then fitted and taken back out, at the author's request:
+**The constants in the table above are judgements**, chosen for plausibility. One
+consequence of them was measured and taken back out, at the author's request:
 
 **Retirements — corrected.** Raising both DNF risks on ~15% of rounds inflated a season's
 expected driver-error risk by ~12% and its mechanical risk by ~2%, which pushed every
 year's retirement rate up ~1.3 points and broke the fit behind all 77 `retirementFactor`
 values. The four DNF endpoints in `race/constants.ts` now carry a **x0.985 / x0.90**
-correction that undoes exactly that; measured against the real record over all 77 years,
-mean absolute error is 1.42 against 1.41 before wet racing existed. The derivation and
-the table are in `.claude/rules/race-constants.md`. **Note that this makes a dry race
+correction that undoes exactly that, which puts the whole 77-year set back where it sat
+before wet racing existed. The derivation and the table are in
+`.claude/rules/race-constants.md`. **Note that this makes a dry race
 retire marginally fewer cars than it used to** — unavoidable, and the author's call.
 
 **Win shares — not corrected, deliberately.** The best driver loses 1-2 points of win

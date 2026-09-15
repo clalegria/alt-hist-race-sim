@@ -67,17 +67,36 @@ const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
  * them — never to a bare chassis, so the headline number describes the thing
  * that races.
  *
- * Reliability carries a quarter of the number, which looks high next to the race
- * model — where it touches no score at all — and is not. Roughly 42% of the 1980
- * field failed to finish, so a fragile car forfeits points it had the pace to
- * take. Renault is the case in point: quickest car on the grid, fourth in the
- * championship.
+ * **Racing carries nearly two thirds, because that is what the model does with
+ * it.** A racing point goes into the race score at `weightCarRacing` (0.62) and
+ * the race score is the finishing order; nothing else on this list comes close.
+ * The earlier split let the other three outvote it — a fragile quick car and a
+ * durable slow one landed on the same overall, when only one of them wins
+ * races.
+ *
+ * Qualifying is worth about a third of racing, not a quarter of the number.
+ * Its rating points buy grid position, and grid position is only worth up to
+ * `gridAdvantagePole` (3.0 points) at the front, decaying down the order — real,
+ * and an order of magnitude smaller than pace itself.
+ *
+ * Reliability is the one that used to be overweight. It touches no score at
+ * all: it decides whether the car finishes. A ten-point gain buys roughly six
+ * per cent more finishes, where ten points of racing is six points of race pace
+ * — the difference between a midfielder and a winner. It keeps a real share
+ * because ~42% of the 1980 field failed to finish and a retirement forfeits a
+ * whole race, but it is a points-over-a-season term, not a wins term, and 0.25
+ * priced it as though it were both.
+ *
+ * Consistency is the smallest by a distance. It costs pace through the
+ * `consistencyPacePenalty` spread — under two points across the entire grid —
+ * and what it buys back in a narrower spread is upside a slower car actually
+ * wants. It is a texture rating, not a performance one.
  */
 const CAR_WEIGHTS: Readonly<Record<keyof CarSpec, number>> = {
-  racing: 0.45,
-  qualifying: 0.2,
-  reliability: 0.25,
-  consistency: 0.1,
+  racing: 0.62,
+  qualifying: 0.19,
+  reliability: 0.14,
+  consistency: 0.05,
 };
 
 function weighted<T>(ratings: T, weights: Readonly<Record<keyof T, number>>): number {

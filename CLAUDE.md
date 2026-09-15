@@ -19,8 +19,7 @@ HTTP API, or a database in this phase.
 **Seasons are authored one file at a time** in `packages/data/src/seasons/<year>.json`,
 discovered by that folder's `index.ts` — no registry to update. Each carries a calendar,
 a points scale, an **engine table**, a **retirement factor** and an entry list. All 77
-are written; only 1980 and 1981 have calibrated ratings, though every year's retirement
-rate is fitted. `.claude/rules/seed-data.md` has how discovery works.
+are written. `.claude/rules/seed-data.md` has how discovery works.
 
 **The foundation is complete**: seeded PRNG, score-and-sort race model, season loop,
 derived championships, Monte Carlo harness, and a React web app revealing a season
@@ -37,7 +36,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1330 tests (291 engine, 123 data, 916 web)
+pnpm test          # 1336 tests (294 engine, 124 data, 918 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -75,18 +74,20 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   ONCE via the seeded PRNG, store it in that driver's per-sim state, never re-roll on read.
 - **Tunable numbers live in one constants module per subsystem**, never inline in logic.
   `packages/engine/src/race/constants.ts` is the pattern to follow.
-- **Never re-calibrate or re-tune unless explicitly asked.** Engine constants
+- **Never tune a number unless explicitly asked.** Engine constants
   (`race/constants.ts`, `season/constants.ts`) and the authored driver/team/car ratings in
-  `packages/data/src/*.json` are settled. Do not adjust them as a side effect of building
-  something else — not to "absorb" a new feature, not because a figure drifted a point,
-  not because a Monte Carlo run looks off — and do not run the harness to check. The
-  failure mode is expensive and invisible: every feature invites a re-tune, each costing a
-  long measurement loop. Two overrides, and only two: **(a)** the author asks; **(b)** a
-  deep change to how performance is computed — a new term in the race score, a new entity
-  between driver and result (the ageing curve, engine manufacturers), a different race
-  model — which changes what a rating *means*. Even then, say the re-tune is needed and
-  why, and get agreement first. If a change makes a calibration figure visibly wrong,
-  report it and stop; do not fix it unprompted.
+  `packages/data/src/*.json` belong to the author, who moves them by hand and with the
+  harness. Do not adjust them as a side effect of building something else — not to
+  "absorb" a new feature, not because a figure drifted a point, not because a Monte Carlo
+  run looks off — and do not run the harness to check. The failure mode is expensive and
+  invisible: every feature invites a re-tune, each costing a long measurement loop. Two
+  overrides, and only two: **(a)** the author asks; **(b)** a deep change to how
+  performance is computed — a new term in the race score, a new entity between driver and
+  result (the ageing curve, engine manufacturers), a different race model — which changes
+  what a rating *means*. Even then, say so and get agreement first, rather than tuning.
+  **Do not describe a number as fitted, calibrated, measured or stale**, here or anywhere
+  else: the values move by hand between sessions, so any such claim is out of date the
+  moment it is written, and a stale provenance note is worse than none.
 
 ## Domain glossary
 - **Entry**: one team's season — team + chassis + engine + drivers.
@@ -112,10 +113,10 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
 - **Wetness**: ~15% of rounds are wet, and a wet one draws a `0.2–1` wetness — a range,
   not a switch. It scales the noise, both DNF rolls, the car/driver and engine/chassis
   splits, and a blend toward each driver's authored `wetWeather` rating; a dry round
-  returns the calibrated constants *by identity*. `.claude/rules/wet-weather.md`.
+  returns the dry constants *by identity*. `.claude/rules/wet-weather.md`.
 - **Randomness level**: 1–5, how much the dice decide, fixed before a run. Scales both
-  noise sigmas, plus `teamFormBoost` at 4–5; `withRandomness(2)` — the default — returns
-  the constants **unchanged**, so the calibration still describes them.
+  noise sigmas, plus `teamFormBoost` at 4–5. Only level 2 leaves them **unchanged**
+  (`CALIBRATED_RANDOMNESS_LEVEL`); the **default is 1**, so a default run is 0.85 of it.
 - **Team form**: the share of session noise belonging to the *team* not the car (0.85),
   crossed with **weekend form** (0.5), carrying Saturday into Sunday. Two axes, four
   draws; team form cancels out of a teammate comparison — which is the point.
@@ -132,7 +133,7 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   smoke-render level rather than component by component. Favour property-style checks:
   finish order is a valid permutation, nobody finishes twice, DNFs remove cars.
 - **No test may depend on an authored number or on what a particular seed produced.**
-  The driver, team and car ratings and the season seeds are tuned continuously, so a
+  The driver, team and car ratings and the season seeds move continuously, so a
   test that reads one fails for a reason that is not a bug. Concretely:
   - Never assert a rating, or a comparison between two authored ratings — "Williams is
     faster than Renault", "Piquet is above 80", "Prost peaks in 1987". Assert the
@@ -151,8 +152,8 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
     not a tuning knob. What they are *worth* is not. Where a test needs "a driver with
     a seat" or "one without", pick it out of the data rather than by name.
   - Same rule, same reason, for the calibration harness: **do not run it to check
-    anything.** Its figures record one measurement, not a test, and re-measuring on spec
-    is a long loop answering a question nobody asked.
+    anything.** Its figures are one measurement of a model that keeps moving, not a test,
+    and re-measuring on spec is a long loop answering a question nobody asked.
 - **Statistical tests must be mutation-checked.** A distribution test that passes against
   a deliberately broken implementation is worthless. Break it on purpose, confirm it fails,
   revert. This has repeatedly caught tests that asserted nothing — a counter blind to
@@ -177,21 +178,15 @@ Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows
 question is open without carrying the argument.
 - **Per-run scatter on the ageing curve** — settled as *no scatter for now*; the curve is
   deterministic. Peak shape matters again only if that reopens.
-- **Driver ratings are still un-tuned**, but no longer un-tunable now the ageing curve has
-  landed. Not an authorisation — it waits for the author to ask.
-- **Should the tuner see a season's retirement factor?** Every year carries a fitted one,
-  but `pnpm tune` fits cars at the neutral factor against `targets.ts`'s estimated 42%,
-  which 1980's measured 48.5% contradicts. Either change is a re-tune.
+- **Should the tuner see a season's retirement factor?** `pnpm tune` works at the neutral
+  factor against `targets.ts`, while every season carries its own — so the tuner is
+  answering a slightly different question from the one the season asks. Either change is a
+  tuning decision, and the author's.
 - **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs in
   `SeasonSeed` beside the retirement factor; needs the author's word.
-- **The model changed under the fitted ratings, and they have not caught up.** 1980 and
-  1981 were fitted against the old `0.8 / 0.2` blend; the noise has since split into team
-  and car form, and consistency's spread lever is open (1.3 / 0.75) — buying wildcards
-  and handing the best pairing ~2 points more win share. So `.claude/rules/calibration.md`
-  no longer describes the model, **a re-tune is needed and has not been run**, and it
-  needs the author's word. Team form (0.75), the DNF correlation (0.3), weekend-form share
-  (0.5) and **every wet-racing constant** are reasoned rather than fitted. Wet racing's
-  retirement drift **is corrected** — the four DNF endpoints carry x0.985 / x0.90
+- **Consistency's spread lever is open** (1.3 / 0.75): it buys wildcards, and hands the
+  best pairing a little more win share than a flat 1.0 would. Wet racing's retirement
+  drift is corrected — the four DNF endpoints carry x0.985 / x0.90
   (`.claude/rules/race-constants.md`) — its win-share drift deliberately is not.
 - **Circuits have no character** — `RoundContext` opened the door (`wetChance` is already
   there, unused); what a circuit *does* is undecided, as are the home-advantage numbers.

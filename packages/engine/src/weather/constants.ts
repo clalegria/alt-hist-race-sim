@@ -2,11 +2,10 @@
  * Every tunable number in the weather model, in one place.
  *
  * The same rule the race constants follow: no literal magic numbers in the
- * logic, one module per subsystem. These are *not* calibrated — the wet model
- * landed after the 1980 fit and deliberately without a re-tune (see
- * `.claude/rules/wet-weather.md`), so they are reasoned starting points, chosen
- * to make a wet race feel like a wet race, and the first thing to move when the
- * author authorises a re-measurement.
+ * logic, one module per subsystem. These are judgements (see
+ * `.claude/rules/wet-weather.md`): reasoned starting points chosen to make a wet
+ * race feel like a wet race, and the first thing to move if the author wants the
+ * rain to behave differently.
  *
  * Everything here is expressed against **wetness**, a 0-1 number saying how wet
  * the race actually was. Nothing is a step change: a 20%-wet race is a dry race

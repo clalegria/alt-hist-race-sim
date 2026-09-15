@@ -1,9 +1,10 @@
 /**
  * Every tunable number in the race model, in one place.
  *
- * These are calibration targets, not truths. They are meant to be swept by
- * `tools/calibrate` and adjusted from the resulting distributions — never
- * guessed at the call site. No literal magic numbers belong in the race logic.
+ * These are the author's numbers. They are moved by hand and with the harnesses
+ * in `tools/calibrate` — never guessed at a call site, and never adjusted as a
+ * side effect of building something else. No literal magic number belongs in the
+ * race logic.
  *
  * Scores are kept on the same 0-100 scale as the ratings that feed them, so a
  * constant expressed in "points" is directly comparable to a rating difference.
@@ -169,7 +170,7 @@ export interface RaceConstants {
    * that, so this is the lever that says how much a teammate battle is a
    * lottery - and, because both team terms cancel out of the comparison, it
    * says so without touching the spread across the field, which is what the
-   * calibration measured.
+   * constants describe.
    */
   readonly teamFormShare: number;
 
@@ -252,8 +253,8 @@ export interface RaceConstants {
    * a 100-rated one with `mechanicalDnfAtFullReliability`.
    *
    * **Both endpoints carry a 0.985 wet correction** — see the note on the
-   * driver-error pair below, which carries the other half of it. The fitted
-   * values were 0.75 and 0.12.
+   * driver-error pair below, which carries the other half of it. Before that
+   * factor they are 0.75 and 0.12.
    */
   readonly mechanicalDnfAtZeroReliability: number;
   readonly mechanicalDnfAtFullReliability: number;
@@ -278,7 +279,7 @@ export interface RaceConstants {
    * same weekends more often, which lets pace decide the order between them.
    *
    * Each car's *marginal* failure rate is untouched - this only changes which
-   * failures land together - so a season's fitted retirement factor still
+   * failures land together - so a season's retirement factor still
    * describes the same total number of retirements.
    *
    * Driver error is left independent on purpose: it belongs to the driver, and
@@ -295,30 +296,29 @@ export interface RaceConstants {
    * error and 1.25x on mechanical failure — so with about 15% of rounds wet at
    * a mean wetness near 0.51, a season's *expected* driver-error risk rose by
    * roughly 12% and its mechanical risk by 2%. Every season's
-   * `retirementFactor` was fitted against a model with no weather in it, so
-   * left alone that drift landed on all 77 of them at once: measured over
-   * 1952-2026 the retirement rate rose 1.3 points on average and 1.8 at worst.
+   * `retirementFactor` answers a model with no weather in it, so left alone
+   * that drift would land on all 77 of them at once — a rate a point or so high
+   * everywhere, and rather more than that in the high-attrition years.
    *
    * The corrections are those two inflations, undone at the source. **Two
    * numbers rather than one, because one cannot do it**: the two rolls are
    * inflated by very different amounts, and eras differ in which of them
    * retires more cars — a single blanket scale left three times the residual at
    * the high-attrition end. Derived analytically (`1 / (1 + 0.15 · 1.6 · 0.51)`
-   * and `1 / (1 + 0.15 · 0.25 · 0.51)`) and then softened a shade by
-   * measurement, because reducing both risks together lowers the *rate* by
-   * slightly more than proportionally where retirements overlap.
+   * and `1 / (1 + 0.15 · 0.25 · 0.51)`) and then softened a shade, because
+   * reducing both risks together lowers the *rate* by slightly more than
+   * proportionally where retirements overlap.
    *
-   * Measured over 13 seasons from 1952 to 2026 at 1,200 seasons each, this
-   * leaves the retirement rate within **0.21 points** of what it was before wet
-   * racing existed, everywhere, against 1.8 uncorrected. So each year's fitted
-   * factor still describes the number of retirements it was fitted to produce.
+   * Checked across the eras end to end, this leaves the retirement rate where it
+   * sat before wet racing existed — so each year's factor still describes the
+   * number of retirements it was written to produce.
    *
    * **It applies to dry races too, and that is not a mistake.** A season is
    * ~85% dry rounds, so restoring a season's total means most of the correction
    * lands on them: a dry race now retires marginally fewer cars than it did,
    * and a wet one far more. Holding both the dry race and the season total
    * fixed is not possible while wet races retire more, and the author chose the
-   * season total — it is the thing 77 files were fitted against.
+   * season total — it is the quantity every season file answers.
    *
    * Authorised by the author (2026-09-02) as the recovery half of wet racing.
    * The alternative, cutting the wet multipliers themselves, was rejected as
@@ -396,7 +396,7 @@ export interface RaceConstants {
 }
 
 /**
- * Default constants, calibrated for the 1980 season.
+ * The constants a race runs on.
  *
  * Race pace weighting puts the 1980 top five inside a ~3.2 point band against a
  * race noise sigma of 5.6, so they trade wins rather than one car running away
@@ -453,13 +453,13 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   homeAdvantageTeam: 0.5,
   homeAdvantageEngine: 0.25,
 
-  // 0.75 and 0.12 as fitted, x0.985 for wet racing. See the note on the type.
+  // 0.75 and 0.12 before the x0.985 wet correction. See the note on the type.
   mechanicalDnfAtZeroReliability: 0.739,
   mechanicalDnfAtFullReliability: 0.118,
 
   mechanicalDnfTeamCorrelation: 0.5,
 
-  // 0.3 and 0.03 as fitted, x0.9 for wet racing. See the note on the type.
+  // 0.3 and 0.03 before the x0.9 wet correction. See the note on the type.
   driverErrorDnfAtZeroComposure: 0.27,
   driverErrorDnfAtFullComposure: 0.027,
 

@@ -55,9 +55,9 @@ function retirementRate(factor: RetirementFactor, races = 400): number {
 }
 
 describe("retirementScale", () => {
-  it("leaves the calibrated constants alone at the default factor", () => {
+  it("leaves the constants alone at the neutral factor", () => {
     // By identity, not by value: the whole point of the neutral setting is that
-    // no arithmetic happens between the calibrated numbers and an untuned
+    // no arithmetic happens between `constants.ts` and an untouched
     // season, so there is nothing to round or drift.
     expect(retirementScale(DEFAULT_RETIREMENT_FACTOR)).toBe(1);
     expect(withRetirementFactor(DEFAULT_RETIREMENT_FACTOR)).toBe(RACE_CONSTANTS);

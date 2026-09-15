@@ -11,29 +11,39 @@ Five levels, chosen once on the setup screen before anything is simulated:
 | level | label | noise scale |
 | ----- | ----------------- | ----------- |
 | 1 | Realistic | 0.85 |
-| 2 | Balanced (default) | **1.0** |
+| 2 | Balanced | **1.0** |
 | 3 | Exciting | 1.25 |
 | 4 | More exciting | 1.65 |
 | 5 | Chaotic | 2.5 |
 
-**Level 2 returns `RACE_CONSTANTS` itself, by identity** — not a copy, not a copy
-multiplied by 1. That is what keeps everything measured in this file and in
-`calibration.md` a true description of what the app runs by default, and it is asserted
-with `toBe` rather than `toEqual` so no arithmetic can creep in between the calibrated
-numbers and the default season. **The other four levels are not calibrated against
-anything and are not meant to be.** Do not read a figure off a run at level 4 and
-"correct" a constant with it.
+**Two levels have names in code, and they are not the same one.**
+
+- **`DEFAULT_RANDOMNESS_LEVEL` (1, `Realistic`) is the reference level.** Anything not
+  told otherwise runs here — every harness, every tool, every measurement worth making —
+  because it is the setting that asks the model to be a plausible history rather than a
+  good story. It is the level to state, or assume, when talking about what the model
+  does.
+- **`UNSCALED_RANDOMNESS_LEVEL` (2) is the arithmetic one**: the single stop whose factor
+  is 1, where `withRandomness` returns `RACE_CONSTANTS` *itself*, by identity — not a
+  copy, not a copy multiplied by 1. Asserted with `toBe` rather than `toEqual`, so no
+  rounding can creep in between `constants.ts` and the race.
+
+**The web app opens on level 2 and neither of these is why.** `STARTING_RANDOMNESS_LEVEL`
+in `apps/web/src/lib/preferences.ts` is a claim about what makes a good first season for
+a reader who has not met the slider; it lives in the app because the engine has no
+opinion about what is fun. Do not collapse the three into one number — a test in
+`preferences.test.ts` pins that the app's opening offer is not the reference level.
+
+**Only the reference level means anything about the model.** Do not read a figure off a
+run at level 4 and "correct" a constant with it.
 
 **The upper three have been re-set twice.** They started at 1.2 / 1.45 / 1.9, which did
-not feel chaotic: a season averages its noise
-away over a dozen-odd rounds, so scatter that changes an afternoon barely moves who ends
-the year on top. Measured over 1980 and 2010, the favourite took the title 49% of the
-time at level 2 and still 39% at the old top setting. At 3.0 the favourite takes ~30%,
-twenty different drivers win titles across a run of seasons rather than seven, and every
-car on the grid wins a race sooner or later. Past 3.0 it flattens rather than getting
-wilder, because what is left concentrating the titles is reliability, which this setting
-does not touch. Those figures came from a throwaway script, not from `pnpm calibrate`,
-and nothing authored was changed on the strength of them.
+not feel chaotic: a season averages its noise away over a dozen-odd rounds, so scatter
+that visibly changes an afternoon barely moves who ends the year on top. It takes a
+factor around 3 before the favourite stops being the favourite, before a run of seasons
+produces twenty different champions rather than seven, and before every car on the grid
+wins a race sooner or later. Past that it flattens rather than getting wilder, because
+what is left concentrating the titles is reliability, which this setting does not touch.
 
 Three numbers move and nothing else does. `qualifyingNoise` and `racingNoise` take the
 same factor: scaling both in step leaves the variance split intact, where scaling one
@@ -49,8 +59,8 @@ uniform increase drowns it first. Turning the dice up therefore bought mostly *t
 upsets: at level 5 the second driver in a dominant car took the title far more often than
 the title went to a car that was not the best on the grid, which is the reverse of what
 "chaotic" should mean. Boosting the team term specifically buys the second without buying
-much of the first — measured over 2002 and 2011 it roughly doubles how often a weaker car
-takes the title, while moving teammate upsets two or three points.
+much of the first: it roughly doubles how often a weaker car takes the title, while
+barely moving teammate upsets.
 
 It is a multiplier on the team *weight*, not a redistribution, so at 4 and 5 the total
 noise sits a little above the nominal scale. That is deliberate; it is also why the boost

@@ -124,16 +124,26 @@ describe("validating career shape", () => {
     }).toThrow(`peaks in ${before}`);
   });
 
-  it("rejects a career event severity outside 0-1", () => {
+  const check = (overrides: Partial<Driver>) => () => {
+    validateSeedData(broken(overrides), undefined, [{ ...SEED, entries: [] }]);
+  };
+
+  it("rejects a step down outside 0-1, which is the scale it persists on", () => {
     for (const severity of [-0.1, 1.4]) {
-      expect(() => {
-        validateSeedData(broken({ stepDown: { season: 1990, severity } }), undefined, [
-          {
-            ...SEED,
-            entries: [],
-          },
-        ]);
-      }, `${severity}`).toThrow("severity");
+      expect(check({ stepDown: { season: 1990, severity } }), `${severity}`).toThrow("severity");
+    }
+  });
+
+  it("lets an off season go past 1, and rejects only what means nothing", () => {
+    // Uncapped on purpose: an off season lasts one year, so how bad the worst
+    // year anyone ever had was is a judgement the seed data is allowed to make.
+    for (const severity of [0, 1, 2.5, 40]) {
+      expect(check({ offSeasons: [{ season: 1990, severity }] }), `${severity}`).not.toThrow();
+    }
+    for (const severity of [-0.1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(check({ offSeasons: [{ season: 1990, severity }] }), `${severity}`).toThrow(
+        "severity",
+      );
     }
   });
 
@@ -145,7 +155,7 @@ describe("validating career shape", () => {
 });
 
 describe("building a field", () => {
-  it("defaults to peak, which is what the calibration was measured against", () => {
+  it("defaults to peak, the simplest claim a grid can make about a driver", () => {
     expect(DEFAULT_RATING_MODE).toBe("peak");
     expect(buildField(SEED)).toEqual(buildField(SEED, drivers, "peak"));
   });

@@ -19,7 +19,12 @@ export interface StepDown {
 /** A single season below the driver's own standard. Does not persist. */
 export interface OffSeason {
   readonly season: number;
-  /** 0–1, scaled by `offSeasonMaxDrop`. */
+  /**
+   * Scaled by `offSeasonMaxDrop`, and **not capped at 1**: 1 is one full
+   * off-season's worth of drop, 2 is twice that, and an author who wants a
+   * driver unrecognisable for a year can say so. Negative is meaningless and
+   * treated as 0.
+   */
   readonly severity: number;
 }
 

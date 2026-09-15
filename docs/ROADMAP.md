@@ -221,11 +221,10 @@ per-era, and the season file is where they belong. One item, because it is one c
 `SeasonSeed` and one authoring pass per year:
 
 - ~~**Retirement rate per season.**~~ **Done.** Every season file carries a 1-10
-  `retirementFactor` (5 = the calibrated constants untouched), scaling both DNF rolls,
-  fitted per year against the real classification of all 77 championships — every year
-  within 2.9 points of its real rate, mean 1.30. `pnpm retirements --sweep` is the
-  harness; `.claude/rules/retirement-factor.md` is the write-up, including the finding
-  that the authored reliability ratings carry far less of the era than expected.
+  `retirementFactor` (5 = the constants untouched), scaling both DNF rolls, answered per
+  year against the real classification of that championship. `pnpm retirements --sweep`
+  is the harness; `.claude/rules/retirement-factor.md` is the write-up, including the
+  finding that the authored reliability ratings carry far less of the era than expected.
 - **The cosmetic qualifying and race gaps** shown in the UI, per season. A 1955 field, a
   1994 field and a 2015 field spread out very differently, and today one scale serves
   all of them. Display-only — nothing in the model reads it.
@@ -233,10 +232,10 @@ per-era, and the season file is where they belong. One item, because it is one c
   number moves across eras. Folding it in here means one decision about where era
   numbers live rather than three.
 
-Calibrating these per year is a measurement job, and the author asking for it here is
-the authorisation the no-re-calibration invariant requires — for *these* numbers, not for
-driver or car ratings, which stay fixed. The retirement rate has been through it; the
-gaps and the starting limit have not.
+Setting these per year is a measurement job, and the author asking for it here is the
+authorisation the tuning invariant requires — for *these* numbers, not for driver or car
+ratings, which a session leaves alone. The retirement rate has been through it; the gaps
+and the starting limit have not.
 
 **6. Circuit character.** Today a round reaches the model as a `RoundContext` with one
 field, `country`, read only by home advantage. Give circuits attributes and feed them in:
@@ -249,7 +248,7 @@ field, `country`, read only by home advantage. Give circuits attributes and feed
   has landed: `RoundContext.wetChance` is already the seam, already read by the roll, and
   set by nothing.
 
-Also a deep change to the score, with the same re-tune caveat, and it adds a per-round
+Also a deep change to the score, with the same "changes what a rating means" caveat, and it adds a per-round
 authored block to every round of every season file — the largest of the re-authoring
 passes, and the last piece the single pass below is waiting on.
 
@@ -267,14 +266,13 @@ typing.
   waiting on anything: their format is already settled, so they can be written for any
   year at any time.
 - **The ratings are first drafts.** Seventy-seven seasons were written far faster than
-  they can be measured, and only 1980 and 1981 have ever been calibrated. Going back
-  over them era by era — against `pnpm calibrate-season`, in the editor — is the
-  author's own job, and the no-re-calibration invariant means a session touches these
-  numbers only when asked for that era by name.
-- **The far ends are the least trustworthy**, because they are the least like what the
-  model was built and calibrated against: tiny fields, wild attrition, privateers and
-  shared drives in the 1950s and 1960s; and at the modern end, the reliability and
-  overtaking assumptions baked into a model tuned on 1980.
+  they can be checked. Going back over them era by era — against `pnpm calibrate-season`,
+  in the editor — is the author's own job, and the tuning invariant means a session
+  touches these numbers only when asked for that era by name.
+- **The far ends are the least trustworthy**, because they are the least like the racing
+  the model was built around: tiny fields, wild attrition, privateers and shared drives
+  in the 1950s and 1960s; and at the modern end, reliability and overtaking assumptions
+  that suit an early-eighties season better than a recent one.
 - **Liveries are authored for almost no season yet.** The feature itself is built — every
   team carries a default in `teams.json`, any season may override it per entry, and the
   UI draws both (`.claude/rules/web-display.md`). What is missing is the *writing*: only

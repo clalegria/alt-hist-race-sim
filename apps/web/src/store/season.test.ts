@@ -378,7 +378,7 @@ describe("driver ability mode", () => {
     useSeasonStore.getState().simulate(3, YEAR);
   });
 
-  it("starts on peak, which is the mode the calibration describes", () => {
+  it("starts on peak, the mode the app is built around", () => {
     expect(running().world.ratingMode).toBe("peak");
   });
 
@@ -461,7 +461,7 @@ describe("the randomness level", () => {
     useSeasonStore.getState().simulate(3, YEAR);
   });
 
-  it("starts on the level the calibration describes", () => {
+  it("starts a world on the engine's default level when none is given", () => {
     expect(running().world.randomness).toBe(DEFAULT_RANDOMNESS_LEVEL);
   });
 
@@ -486,7 +486,7 @@ describe("the randomness level", () => {
   it("leaves the default season byte for byte what it always was", () => {
     // The guarantee the whole feature rests on: passing the default explicitly
     // must be indistinguishable from a build that had never heard of the
-    // slider, so the calibration still describes what the app runs.
+    // slider.
     expect(createWorld(3, YEAR, "peak", null, null, DEFAULT_RANDOMNESS_LEVEL)).toEqual(
       createWorld(3, YEAR, "peak"),
     );

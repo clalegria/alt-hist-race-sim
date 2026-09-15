@@ -6,7 +6,7 @@
  * browser does.
  */
 
-import { DEFAULT_RANDOMNESS_LEVEL } from "@alt-hist/engine";
+import { DEFAULT_RANDOMNESS_LEVEL, RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   parseRatingMode,
@@ -16,6 +16,7 @@ import {
   rememberRandomness,
   rememberRatingMode,
   rememberSeasonYear,
+  STARTING_RANDOMNESS_LEVEL,
 } from "./preferences.js";
 import { DEFAULT_SEASON_YEAR, isPlayable, LAST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
@@ -67,8 +68,8 @@ describe("parsing a stored mode", () => {
   });
 
   it("falls back to peak for anything else", () => {
-    // Peak is the calibrated default, so a corrupted value must land there
-    // rather than on whichever mode happens to sort first.
+    // Peak is the default, so a corrupted value must land there rather than on
+    // whichever mode happens to sort first.
     for (const raw of [null, "", "PEAK", "young", "[]"]) {
       expect(parseRatingMode(raw), JSON.stringify(raw)).toBe("peak");
     }
@@ -112,9 +113,17 @@ describe("remembering the choice", () => {
 });
 
 describe("remembering the randomness level", () => {
+  it("opens on a level of the app's choosing, not the engine's reference level", () => {
+    // The two answer different questions — what the model is measured at, and
+    // what makes a good first season — and this is the line that says so. If
+    // they are ever meant to be the same number, deleting this is the decision.
+    expect(STARTING_RANDOMNESS_LEVEL).not.toBe(DEFAULT_RANDOMNESS_LEVEL);
+    expect(RANDOMNESS_LEVELS).toContain(STARTING_RANDOMNESS_LEVEL);
+  });
+
   it("survives without any storage at all", () => {
     expect(typeof localStorage).toBe("undefined");
-    expect(readRandomness()).toBe(DEFAULT_RANDOMNESS_LEVEL);
+    expect(readRandomness()).toBe(STARTING_RANDOMNESS_LEVEL);
     expect(() => {
       rememberRandomness(5);
     }).not.toThrow();
@@ -135,18 +144,18 @@ describe("remembering the randomness level", () => {
     expect(readRandomness()).toBe(5);
   });
 
-  it("falls back to the calibrated default for anything else", () => {
+  it("falls back to the level the setup screen opens on for anything else", () => {
     // Not "whichever level sorts first": an unreadable value has to land on the
-    // one setting the model was actually measured against.
+    // stop a reader who has never chosen would have been offered.
     for (const raw of ["", "0", "6", "2.5", "chaotic", "[]"]) {
       stubStorage({ key: RANDOMNESS_KEY, initial: raw });
-      expect(readRandomness(), JSON.stringify(raw)).toBe(DEFAULT_RANDOMNESS_LEVEL);
+      expect(readRandomness(), JSON.stringify(raw)).toBe(STARTING_RANDOMNESS_LEVEL);
     }
   });
 
   it("shrugs off storage that throws", () => {
     stubStorage({ throws: true });
-    expect(readRandomness()).toBe(DEFAULT_RANDOMNESS_LEVEL);
+    expect(readRandomness()).toBe(STARTING_RANDOMNESS_LEVEL);
     expect(() => {
       rememberRandomness(3);
     }).not.toThrow();

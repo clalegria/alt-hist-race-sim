@@ -30,9 +30,9 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     race is run on and the number the grid page shows come from one place. The entrant
     therefore carries `chassis`, not `car`: the blend has not happened yet.
   - `mode` is `"peak"` (default) or `"aged"`. **Peak is the default and must stay
-    that way** — it feeds authored peaks straight in, which is what the 1980
-    calibration was measured against. `"aged"` calls the engine's ageing curve for
-    the season's year.
+    that way** — it feeds authored peaks straight in, which is the simplest claim a
+    grid can make about a driver. `"aged"` calls the engine's ageing curve for the
+    season's year, and is what the harnesses run.
   - This package now calls **into** the engine at runtime (`ratingsForSeason`), so
     the dependency is no longer type-only. Still one-directional: the engine imports
     nothing from here, and that is the invariant that matters.
@@ -57,6 +57,12 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.
+  - Car weights were rebalanced the same way (2026-09-03), toward the rating the race
+    score reads directly: racing 0.62, qualifying 0.19, reliability 0.14, consistency
+    0.05 — previously 0.45 / 0.2 / 0.25 / 0.1, which let the three supporting ratings
+    outvote pace and put a durable slow car level with a fragile quick one. Reliability
+    keeps a real share (a DNF forfeits a whole race) but it is a season-points term, not
+    a win-chance one.
   - `carOverall(chassis, engine)` takes a **chassis** and runs it through the engine's
     own `powertrain()` before weighting, so the headline number describes the car that
     gets raced. Omit the engine and it is the bare chassis. It never weights the engine
@@ -70,7 +76,7 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     is the one primitive: whatever `a` holds goes to `b`'s seat and whatever `b` holds
     goes to `a`'s, so every operation preserves each team's seat count and therefore
     the size of the field — which is what the starting limit and the DNQ arithmetic
-    are calibrated against. `swapDrivers(lineup, a, b)` is its driver-only face, kept
+    depend on. `swapDrivers(lineup, a, b)` is its driver-only face, kept
     because most callers only ever move people: it requires one of the two to hold a
     seat and throws otherwise, and a driver swapped with themselves is a no-op.
     `applyLineup` re-validates rather than trusting, because a lineup can arrive from

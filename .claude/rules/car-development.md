@@ -39,7 +39,7 @@ chassis rating for either team describes a car that never raced.
    with a strong phase in it *is* worth more than unbroken mediocrity — but it means a
    trend is not free, and handing every car one would inflate the whole grid.
 3. **Pace only.** `racing` and `qualifying` move; `reliability` and `consistency` do
-   not, so retirements are untouched and every season's fitted `retirementFactor` still
+   not, so retirements are untouched and every season's `retirementFactor` still
    describes the same number of them. A team that solved its reliability over a year is
    a different story, told by the authored rating.
 
@@ -69,10 +69,10 @@ this existed.
 
 ## The harnesses
 
-- **`pnpm calibrate` and `pnpm race` are mid-season by default**, and therefore measure
-  what they always measured — which is why the tables in `.claude/rules/calibration.md`
-  still describe them and why nothing needed re-tuning. `--phase start` / `--phase end`
-  opt in to the two ends (`tools/calibrate/src/phase.ts`).
+- **`pnpm calibrate` and `pnpm race` are mid-season by default**, where a trend is worth
+  exactly zero — so adding trends to a season file changed nothing either of them prints.
+  `--phase start` / `--phase end` opt in to the two ends
+  (`tools/calibrate/src/phase.ts`).
 - **`pnpm calibrate-season`, `pnpm season`, `pnpm fit` and `pnpm retirements` all run a
   real calendar**, so development is on throughout. The season harness is the honest
   measure of what a trend is worth; `retirements` is unaffected either way, since
@@ -99,5 +99,5 @@ on every car and asserts the markup is byte-identical.
 and before `drivers`, which is also where `writeSeason.ts` (the `pnpm fit --write`
 substituter) expects not to find it. Authored so far: 1979 Williams `+6` and Ligier `-7`,
 2026 McLaren `+4`. **Adding one is an authoring judgement about a real season, not a
-tuning knob** — the no-re-calibration invariant in `CLAUDE.md` covers it exactly as it
-covers a chassis rating.
+tuning knob** — the tuning invariant in `CLAUDE.md` covers it exactly as it covers a
+chassis rating.

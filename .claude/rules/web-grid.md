@@ -39,6 +39,16 @@ architecture underneath all three, including why the draft lives where it does, 
   driver's age at their peak and not their age in the year loaded. `SeasonGrid` takes
   `ratingMode` for that one purpose: the ratings arrive already resolved on the
   entrants, and the age does not.
+- **Inside a card, drivers are ordered by rating and then alphabetically**, in
+  `seatsInOrder` — the same `sortBy("overall")` the team list uses, ties and all.
+  Which of a team's drivers is its *first* driver is the one comparison a card exists to
+  make, so unlike the team order it does not follow the sort switch: it holds in the
+  alphabetical default too, because a card is a pairing and not a league table.
+  **It returns `{ entrant, seat }` pairs rather than reordered entrants.** The seat
+  index is a `SeatRef` to the editor — what an empty seat is selected and filled by, and
+  what the React key is — so it has to keep meaning the seat the season entered rather
+  than the row this ordering produced. An empty seat carries all-zero ratings and so
+  falls to the bottom of the card with no case of its own.
 - **A clickable name is marked by a fill, never an underline.** `NAME_TARGET` in
   `SeasonGrid.tsx` is the one definition — nothing at rest, `bg-accent` under the
   cursor or the keyboard focus, and the same fill held while a panel is open — and it

@@ -164,8 +164,8 @@ export function createWorld(
   const field = buildField(entered, undefined, ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
   // drivers and teams from it their home advantage.
-  // The level reaches the model as a derived copy of the calibrated constants,
-  // never as an edit to them — at the default it *is* them, untouched.
+  // The level reaches the model as a derived copy of the constants, never as an
+  // edit to them — and at the unscaled level it *is* them, untouched.
   const season = simulateSeason(field, entered.calendar, rng, seasonConstants(entered, randomness));
 
   return {

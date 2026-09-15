@@ -6,13 +6,15 @@ paths:
 
 # Race constants — why the numbers are what they are
 
-Three levers that were arrived at by measurement rather than guessed, and one set that
-is decoration. What the model *does* with them is `.claude/rules/race-engine.md`; what
-the harness measured is `.claude/rules/calibration.md`.
+Three levers that carry an argument, and one set that is decoration — why each is shaped
+the way it is, so the next person does not undo the reasoning by accident. What the model
+*does* with them is `.claude/rules/race-engine.md`; the instruments are
+`.claude/rules/calibration.md`.
 
-**Nothing here authorises changing a number.** The no-re-calibration invariant in
-`CLAUDE.md` covers this file: these are the record of a fit, not a starting point for
-another one.
+**Nothing here authorises changing a number.** The tuning invariant in `CLAUDE.md` covers
+this file. The values belong to the author and move by hand; this file explains their
+shape, and deliberately records no measurement, because a figure written down here would
+be out of date by the next session.
 
 ## Gaps are decoration
 
@@ -30,9 +32,9 @@ back. The exponent keeps the lead battle tight while the tail stretches into who
 laps, converted at a nominal 90-second lap (`nominalLapSeconds`, one value for every
 circuit, since there is no track data). Set `raceGapExponent` to 1 for a linear map.
 
-These are eyeballed for plausibility against 1980, not fitted, and gaps shrank a lot
-by the 2000s — expect to revisit the constants alongside the era work rather than
-treating the current values as calibrated.
+These are eyeballed for plausibility against an early-eighties race, and gaps shrank a
+lot by the 2000s — expect to revisit them alongside the era work rather than treating
+them as settled.
 
 ## Consistency is a pace stat *and* a variance stat
 
@@ -49,14 +51,13 @@ scales only `1 - teamFormShare` of the variance, so at 0.85 a 90-consistency dri
 differed by ~20% when one blended multiplier scaled everything. Widening these endpoints
 is the way to buy that back, at the usual price in wildcards.
 
-**The pace penalty was arrived at by measurement and has not moved.** Consistency
-originally scaled the spread *only*, which is mean-neutral and therefore not a handicap
-at all — worse, it inverted win rates, because winning from behind is an upper-tail
-event and a wider tail hands a slow car more victories. A skewed-noise variant
-(stretching only the bad half) was built and measured too: it fixes average finishing
-position but *cannot* fix wins, since it leaves the upper tail untouched by
-construction. Only moving the mean makes a less consistent pairing worse on every
-measure at once. That argument still stands, and the penalty is what carries it.
+**The pace penalty exists because spread alone does not work.** Consistency originally
+scaled the spread *only*, which is mean-neutral and therefore not a handicap at all —
+worse, it inverted win rates, because winning from behind is an upper-tail event and a
+wider tail hands a slow car more victories. A skewed-noise variant (stretching only the
+bad half) was tried too: it fixes average finishing position but *cannot* fix wins, since
+it leaves the upper tail untouched by construction. Only moving the mean makes a less
+consistent pairing worse on every measure at once, and the penalty is what carries that.
 
 **The spread lever was pinned flat at 1.0 and is now open at 1.3 / 0.75.** The reason
 for reopening it is that flat made `consistency` a rating which costs pace and nothing
@@ -65,16 +66,14 @@ distributions, which is not what the word means and throws away a large part of 
 separates a first driver from a second in the same car.
 
 The cost the flat setting was avoiding is real and is now accepted rather than
-abolished. Measured over the 1980, 2002 and 2011 calendars, opening the lever hands the
-strongest car about **two extra points of win share** and rather more pole share,
-because its high-consistency pairing now has the tighter distribution. An erratic
-backmarker also wins slightly more often — about a fifth more, off a base near 2% — while
-still finishing worse on average. Two tests hold that trade in place: the erratic car's
-mean finish must stay worse, and its win rate must stay under twice the steady car's.
+abolished. Opening the lever hands the strongest car a little more win share and rather
+more pole share, because its high-consistency pairing now has the tighter distribution;
+an erratic backmarker also wins slightly more often while still finishing worse on
+average. Two tests hold that trade in place: the erratic car's mean finish must stay
+worse, and its win rate must stay under twice the steady car's.
 
 Widen the gap for more wildcards and streakier racing; close it back toward 1.0 for
-stricter dominance by the best pairing. **Neither end has been fitted against the
-harness**, and the win-share drift above has not been absorbed into any rating.
+stricter dominance by the best pairing.
 
 ## The noise splits on two axes: weekend/session, and team/car
 
@@ -98,29 +97,24 @@ two drivers in the same machinery — at `sqrt(2)` times the nominal sigma, agai
 driver-rating gap worth only `weightDriverRacing` times itself. Even the largest teammate
 gap on the grid was under one standard deviation. Both team terms cancel out of a
 teammate comparison, so raising this share shrinks what separates them to
-`sqrt(1 − share)` of the sigma **without touching the spread across the field**, which is
-what the calibration measured. That is the whole argument for it: it is a redistribution,
-not an extra dice roll.
+`sqrt(1 − share)` of the sigma **without touching the spread across the field**. That is
+the whole argument for it: it is a redistribution, not an extra dice roll.
 
-Measured over the real calendars at level 2, moving from no team share to 0.75 (with the
-DNF correlation and the consistency lever alongside) takes the second driver's title odds
-in a dominant car from ~16% to ~4%, and the per-race head-to-head from ~36% to ~21% —
-against roughly 20-25% in reality for the pairs used. Teams whose two drivers are close
-(1988's McLaren) stay near a coin flip, which is correct.
-
-Neither share is fitted. Weekend form has been 0.5 since it was a guess; the team share
-was reasoned from teammate head-to-heads, not from `pnpm calibrate`. See
+What it was reasoned against is real teammate head-to-heads, which for a strong pairing
+in a dominant car sit around a fifth to a quarter of races — where the model, before the
+share existed, was closer to a third. Teams whose two drivers are close stay near a coin
+flip, which is correct. Both shares are judgements rather than answers to a harness; see
 `docs/DECISIONS.md`.
 
 ## The DNF endpoints carry a wet correction
 
-The four probabilities are **not** the fitted values any more. Wet racing raises both
+None of the four is a round number, and the factor below is why. Wet racing raises both
 risks — up to 2.6x driver error, 1.25x mechanical — and with ~15% of rounds wet at a mean
 wetness near 0.51, that inflates a season's expected driver-error risk by ~12% and its
-mechanical risk by ~2%. Every season's `retirementFactor` was fitted against a model with
-no weather in it, so the drift landed on all 77 years at once.
+mechanical risk by ~2%. Every season's `retirementFactor` answers a model with no weather
+in it, so without a correction the drift would land on all 77 years at once.
 
-| constant | fitted | correction | authored |
+| constant | base | correction | value |
 | --- | --- | --- | --- |
 | `mechanicalDnfAtZeroReliability` | 0.75 | x0.985 | 0.739 |
 | `mechanicalDnfAtFullReliability` | 0.12 | x0.985 | 0.118 |
@@ -134,20 +128,16 @@ at the high-attrition end. Derived analytically — `1 / (1 + 0.15 · 1.6 · 0.5
 both risks together lowers the *rate* slightly more than proportionally where retirements
 overlap.
 
-**Checked end to end against the real record**, which is what makes this a fit rather
-than an argument. `pnpm retirements 200` over all 77 years:
-
-| model | mean abs error | worst |
-| --- | --- | --- |
-| no weather (what the factors were fitted on) | 1.41 | 3.61 |
-| weather, uncorrected | 1.93 | 5.10 |
-| **weather, corrected (shipped)** | **1.42** | **3.78** |
+**Checked end to end against the real record** with `pnpm retirements` over all 77
+years: weather without the correction drifts the whole set noticeably wide, and weather
+with it lands back where the seasons sat before weather existed.
 
 **It applies to dry races too, and that is deliberate.** A season is ~85% dry rounds, so
 restoring a season's total puts most of the correction on them — a dry race retires
 marginally fewer cars than before, a wet one far more. Holding the dry race *and* the
 season total fixed is impossible while wet races retire more, and the author chose the
-season total: it is what 77 files were fitted against. Authorised 2026-09-02.
+season total, because that is the quantity every season file answers. Authorised
+2026-09-02.
 
 ## Teammate retirements are correlated, and the rate is not
 
@@ -158,8 +148,7 @@ own, pushed back through the normal CDF into a uniform before it meets the risk.
 
 That last step is the point: the result is still uniform, so **each car's own failure
 rate is exactly what its reliability says**, and only the pairing changes. A season's
-fitted `retirementFactor` therefore still describes the same total number of
-retirements — measured unchanged to a tenth of a point across 1980, 2002 and 2011. Two
+`retirementFactor` therefore still describes the same total number of retirements. Two
 tests hold it: the marginal rate must match what the constants imply, not merely match
 itself at another correlation.
 

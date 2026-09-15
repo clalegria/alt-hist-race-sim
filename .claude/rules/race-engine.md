@@ -12,8 +12,8 @@ and the car *are*, the rest are what happens to them:
    About one round in seven is wet, and a wet one replaces `constants` with a derived
    copy (wider noise, harsher retirements, the score leaning onto the driver and the
    chassis) and each driver with a copy blended toward their `wetWeather` rating. **A
-   dry round gets both back by identity**, so most rounds are scored by exactly the model
-   the calibration measured. `.claude/rules/wet-weather.md` has the whole of it; the
+   dry round gets both back by identity**, so most rounds are scored by exactly the
+   constants as written. `.claude/rules/wet-weather.md` has the whole of it; the
    weights and sigmas quoted below are the *dry* ones.
 0. **The car** — `0.7·chassis + 0.3·engine` on racing and qualifying, and an even
    `0.5/0.5` on reliability, blended once per entrant by `powertrain()` before anything
@@ -37,10 +37,9 @@ and the car *are*, the rest are what happens to them:
    cars of the same team** — see "Noise and retirements are team-shaped" below.
 
 The car is weighted above the driver on purpose: a great driver in a poor car should be
-a points-scorer, not a winner. The driver's share **rose from 0.30 to 0.38** (and 0.28 to
-0.36 in qualifying) to stop weak teammates beating strong ones too often — the cost is
-that it changes what a rating means, so the authored chassis ratings it was fitted
-against are now a slightly different claim; see `.claude/rules/calibration.md`. `mechanicalDnfEraScale` (default 1.0 = 1980)
+a points-scorer, not a winner. The driver's share is 0.38 in the race
+and 0.36 in qualifying; it was raised from 0.30 and 0.28 to stop weak teammates beating
+strong ones too often. `mechanicalDnfEraScale` (default 1.0 = 1980)
 is the hook for reliability improving across decades, and **the per-year curve now
 exists**: every season file carries a 1-10 `retirementFactor`, which scales this *and*
 the driver-error endpoints — see `retirement.ts` and
@@ -48,7 +47,7 @@ the driver-error endpoints — see `retirement.ts` and
 constants are derived before they reach the model.
 
 `simulateRace(field, rng, constants?, round?)` takes constants as an optional override,
-which is how the calibration tools sweep values without editing source. `round` is a
+which is how the harnesses sweep values without editing source. `round` is a
 `RoundContext` — *where* the race is being held — and defaults to `{}`, a neutral race
 scored exactly as it was before home advantage existed.
 
@@ -63,15 +62,15 @@ total sigma is exactly what the constants say and neither share affects the othe
 
 The team share is what stops the dice deciding a teammate battle: both team terms cancel
 out of a comparison between two cars in the same garage, so what separates them is
-`sqrt(1 − share)` of the sigma rather than all of it — while the spread across the *field*,
-which is what the calibration measured, is untouched. `teamFormBoost` (1 by default) is
+`sqrt(1 − share)` of the sigma rather than all of it — while the spread across the *field*
+is untouched. `teamFormBoost` (1 by default) is
 the randomness slider's lever on the team half alone.
 
 The mechanical DNF roll is correlated within a team the same way:
 `mechanicalDnfTeamCorrelation` (0.5) mixes a shared per-team fragility draw with the car's
 own, then passes the result through the normal CDF so it is still uniform. Each car's
 failure *rate* is therefore exactly what its reliability says, and only the pairing
-changes — which is what leaves every season's fitted `retirementFactor` describing the
+changes — which is what leaves every season's `retirementFactor` describing the
 same total number of retirements. Why these exist and what they were worth is
 `.claude/rules/race-constants.md`.
 
@@ -133,12 +132,10 @@ already inside it; 0.3 is the part that moves when a team changes supplier. A la
 share would flatten the grid, because one engine is shared across a very wide range of
 chassis — the 1980 Cosworth DFV ran in chassis rated from 42 to 91.
 
-**The chassis and engine ratings were fitted together, against both seasons — but at
-the old `0.8 / 0.2` on all three attributes.** The weights have since moved to
-`0.7 / 0.3` on pace and `0.5 / 0.5` on reliability, and **the ratings have not been
-re-fitted**; the tables in `.claude/rules/calibration.md` therefore no longer describe
-the model. That is a re-tune waiting on the author's word, not something to run
-unprompted. Driver ratings were held fixed throughout, and remain the author's.
+**A chassis rating and its engine's rating are one judgement in two halves.** Neither
+is separately observable — what a season records is the package — so moving one without
+the other says something about the car nobody knows to be true. They belong to the
+author, together; `pnpm fit <year>` proposes them as a pair for exactly that reason.
 
 ## Home advantage
 
@@ -171,12 +168,10 @@ Three properties hold it in place, each with a test:
   races everywhere as a visitor.
 
 The three numbers are a first guess, chosen for plausibility — a home race is worth a
-tenth or two, not a car upgrade — and have never been fitted. **The calibration figures
-cannot see them**: `pnpm calibrate` and the tuner both run with no `RoundContext`, so
-home advantage pays nothing in any measured race. That is why adding the engine's share
-did not require re-tuning anything, and why fitting these would mean first deciding
-whether the harness should rotate through a real calendar. See
-`.claude/rules/calibration.md`.
+tenth or two, not a car upgrade. **The harnesses cannot see them**: `pnpm calibrate` and
+the tuner both run with no `RoundContext`, so home advantage pays nothing in any race
+they run. Putting a real number on these would mean first deciding whether the harness
+should rotate through a real calendar. See `.claude/rules/calibration.md`.
 
 The engine's share is worth even less than 0.25 suggests, for the reason the other two
 are worth less than they look: a bonus most of the field collects is invisible. Ten of

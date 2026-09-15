@@ -247,7 +247,15 @@ export function seasonDeficits(
 
   for (const off of career.offSeasons ?? []) {
     if (off.season === season) {
-      form += clamp(off.severity, 0, 1) * constants.offSeasonMaxDrop;
+      // **No upper bound.** 1 is a full off-season as the constant sizes one,
+      // and an author who writes 3 gets three times that — the point being that
+      // "the worst year anyone ever had" is a judgement the seed data is allowed
+      // to make, and a cap here would silently turn every number above it into
+      // the same number. The floor stays, because a negative severity is not a
+      // good season, it is a typo. What stops this running away is the rating
+      // clamp in `ratingsForSeason`: a large enough deficit lands the driver on
+      // `minRating` and no lower.
+      form += Math.max(off.severity, 0) * constants.offSeasonMaxDrop;
     }
   }
 

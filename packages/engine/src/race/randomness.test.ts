@@ -8,6 +8,7 @@ import {
   type RandomnessLevel,
   randomnessNoiseScale,
   randomnessTeamFormBoost,
+  UNSCALED_RANDOMNESS_LEVEL,
   withRandomness,
 } from "./randomness.js";
 import { simulateRace } from "./simulateRace.js";
@@ -69,11 +70,22 @@ function upsetRate(level: RandomnessLevel, races = 3000): number {
 }
 
 describe("randomness levels", () => {
-  it("leaves the calibrated constants untouched at the default level", () => {
-    // Identity, not equality: the measured season must be the season the model
-    // runs when nobody has moved the slider, with no arithmetic in between.
-    expect(withRandomness(DEFAULT_RANDOMNESS_LEVEL)).toBe(RACE_CONSTANTS);
-    expect(randomnessNoiseScale(DEFAULT_RANDOMNESS_LEVEL)).toBe(1);
+  it("hands back the constants themselves at the unscaled level, and only there", () => {
+    // Identity, not equality: at this one stop there is no arithmetic between
+    // `constants.ts` and the race, so nothing can round or drift.
+    expect(withRandomness(UNSCALED_RANDOMNESS_LEVEL)).toBe(RACE_CONSTANTS);
+    // Exactly one stop is a no-op. Two would make "the constants as written" an
+    // ambiguous thing to ask for, and none would mean it is unreachable.
+    expect(RANDOMNESS_LEVELS.filter((level) => randomnessNoiseScale(level) === 1)).toEqual([
+      UNSCALED_RANDOMNESS_LEVEL,
+    ]);
+  });
+
+  it("runs quieter than the constants at the reference level", () => {
+    // The level every measurement is made at is deliberately not the unscaled
+    // one, so a copy is derived rather than the object returned.
+    expect(randomnessNoiseScale(DEFAULT_RANDOMNESS_LEVEL)).toBeLessThan(1);
+    expect(withRandomness(DEFAULT_RANDOMNESS_LEVEL)).not.toBe(RACE_CONSTANTS);
   });
 
   it("scales both sigmas by the same factor, and the team weight on top", () => {
@@ -137,7 +149,7 @@ describe("randomness levels", () => {
     for (let i = 1; i < rates.length; i += 1) {
       expect(rates[i] ?? 0).toBeGreaterThan(rates[i - 1] ?? 0);
     }
-    // Sanity on the ends, as orders of magnitude rather than fitted numbers:
+    // Sanity on the ends, as orders of magnitude rather than exact numbers:
     // the tamest setting rarely overturns a ten-point gap, the wildest often
     // does, and neither ever favours the slower car outright.
     expect(rates[0] ?? 1).toBeLessThan(0.2);

@@ -5,7 +5,7 @@
  *
  * 1. `rollWeather` decides a round's weather from the seeded stream.
  * 2. `wetConstants` derives the constants that round is raced on — the same
- *    "scale factor over the calibrated numbers, never an edit to them" pattern
+ *    "scale factor over the constants, never an edit to them" pattern
  *    `withRandomness` and `withRetirementFactor` already follow, and it
  *    composes with both by construction.
  * 3. `wetDriver` derives the ratings a driver races it on, which is the one
@@ -13,7 +13,7 @@
  *
  * A dry race returns its inputs *by identity* from both derivations, which is
  * the same guarantee level 2 of the randomness slider makes: 85% of rounds are
- * scored by precisely the model the calibration measured, with no arithmetic
+ * scored by precisely the constants as written, with no arithmetic
  * between it and them.
  */
 
