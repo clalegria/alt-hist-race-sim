@@ -1,0 +1,18 @@
+{
+  "year": 2020,
+  "races": 17,
+  "startsPerTeam": 34,
+  "note": "Real 2020, the full 17-round season. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
+  "teams": {
+    "tyrrell": { "points": 573, "wins": 13, "podiums": 25, "dnfs": 1 },
+    "stewart": { "points": 319, "wins": 2, "podiums": 13, "dnfs": 7 },
+    "mclaren": { "points": 202, "wins": 0, "podiums": 2, "dnfs": 3 },
+    "jordan": { "points": 195, "wins": 1, "podiums": 4, "dnfs": 7 },
+    "toleman": { "points": 181, "wins": 0, "podiums": 3, "dnfs": 5 },
+    "ferrari": { "points": 131, "wins": 0, "podiums": 3, "dnfs": 6 },
+    "minardi": { "points": 107, "wins": 1, "podiums": 1, "dnfs": 5 },
+    "sauber": { "points": 8, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "haas": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "williams": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 7 }
+  }
+}

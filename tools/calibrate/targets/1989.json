@@ -1,0 +1,28 @@
+{
+  "year": 1989,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1989, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "mclaren": { "points": 141, "wins": 10, "podiums": 18, "dnfs": 9 },
+    "williams": { "points": 77, "wins": 2, "podiums": 11, "dnfs": 12 },
+    "ferrari": { "points": 59, "wins": 3, "podiums": 9, "dnfs": 20 },
+    "toleman": { "points": 37, "wins": 1, "podiums": 4, "dnfs": 9 },
+    "lotus": { "points": 15, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "arrows": { "points": 13, "wins": 0, "podiums": 1, "dnfs": 15 },
+    "brabham": { "points": 8, "wins": 0, "podiums": 1, "dnfs": 18 },
+    "dallara": { "points": 8, "wins": 0, "podiums": 1, "dnfs": 15 },
+    "tyrrell": { "points": 8, "wins": 0, "podiums": 1, "dnfs": 14 },
+    "minardi": { "points": 6, "wins": 0, "podiums": 0, "dnfs": 20 },
+    "onyx": { "points": 6, "wins": 0, "podiums": 1, "dnfs": 20 },
+    "march": { "points": 4, "wins": 0, "podiums": 1, "dnfs": 25 },
+    "ligier": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 14 },
+    "rial": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 0 },
+    "ags": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 23 },
+    "larrousse": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 26 },
+    "coloni": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 32 },
+    "eurobrun": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 28 },
+    "osella": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 32 },
+    "zakspeed": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 32 }
+  }
+}

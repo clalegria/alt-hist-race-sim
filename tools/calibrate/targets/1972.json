@@ -1,0 +1,22 @@
+{
+  "year": 1972,
+  "races": 12,
+  "startsPerTeam": 24,
+  "note": "Real 1972, the full 12-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "mclaren": { "points": 62, "wins": 1, "podiums": 11, "dnfs": 5 },
+    "lotus": { "points": 61, "wins": 5, "podiums": 8, "dnfs": 9 },
+    "tyrrell": { "points": 60, "wins": 4, "podiums": 7, "dnfs": 10 },
+    "ferrari": { "points": 42, "wins": 1, "podiums": 6, "dnfs": 9 },
+    "surtees": { "points": 15, "wins": 0, "podiums": 1, "dnfs": 13 },
+    "brm": { "points": 13, "wins": 1, "podiums": 1, "dnfs": 10 },
+    "march": { "points": 12, "wins": 0, "podiums": 1, "dnfs": 7 },
+    "brabham": { "points": 7, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "connew": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 15 },
+    "politoys": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 12 },
+    "ecurie_bonnier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 24 },
+    "gunston": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 24 },
+    "tecno": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "williams": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 14 }
+  }
+}

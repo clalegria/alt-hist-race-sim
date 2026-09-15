@@ -1,0 +1,26 @@
+{
+  "year": 1988,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1988, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "mclaren": { "points": 199, "wins": 15, "podiums": 25, "dnfs": 4 },
+    "ferrari": { "points": 65, "wins": 1, "podiums": 8, "dnfs": 13 },
+    "toleman": { "points": 39, "wins": 0, "podiums": 7, "dnfs": 9 },
+    "arrows": { "points": 23, "wins": 0, "podiums": 1, "dnfs": 14 },
+    "lotus": { "points": 23, "wins": 0, "podiums": 3, "dnfs": 14 },
+    "march": { "points": 22, "wins": 0, "podiums": 2, "dnfs": 14 },
+    "williams": { "points": 20, "wins": 0, "podiums": 2, "dnfs": 21 },
+    "tyrrell": { "points": 5, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "rial": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 26 },
+    "minardi": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 15 },
+    "ags": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 22 },
+    "coloni": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 16 },
+    "dallara": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 16 },
+    "eurobrun": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 21 },
+    "larrousse": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "ligier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 23 },
+    "osella": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 26 },
+    "zakspeed": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 26 }
+  }
+}

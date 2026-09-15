@@ -1,0 +1,18 @@
+{
+  "year": 1966,
+  "races": 9,
+  "startsPerTeam": 18,
+  "note": "Real 1966, the full 9-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. gunston took no start all year and is omitted rather than shown as flawless. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "brabham": { "points": 63, "wins": 4, "podiums": 9, "dnfs": 7 },
+    "brm": { "points": 31, "wins": 1, "podiums": 4, "dnfs": 11 },
+    "ferrari": { "points": 28, "wins": 2, "podiums": 4, "dnfs": 10 },
+    "cooper": { "points": 27, "wins": 0, "podiums": 3, "dnfs": 9 },
+    "lotus": { "points": 7, "wins": 0, "podiums": 1, "dnfs": 11 },
+    "eagle": { "points": 4, "wins": 0, "podiums": 0, "dnfs": 12 },
+    "rob_walker": { "points": 4, "wins": 0, "podiums": 0, "dnfs": 14 },
+    "mclaren": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 12 },
+    "reg_parnell": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "ecurie_bonnier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 11 }
+  }
+}

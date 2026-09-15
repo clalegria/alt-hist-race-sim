@@ -9157,7 +9157,13 @@
     },
     "peakSeasons": 11,
     "developmentSpeed": 7,
-    "declineSpeed": 4
+    "declineSpeed": 4,
+    "offSeasons": [
+      {
+        "season": 2025,
+        "severity": 0.3
+      }
+    ]
   },
   {
     "id": "latifi",
@@ -9314,8 +9320,8 @@
     "finalSeason": 2026,
     "peak": {
       "season": 2027,
-      "racing": 81,
-      "qualifying": 85,
+      "racing": 83,
+      "qualifying": 87,
       "consistency": 79,
       "adaptability": 88,
       "composure": 89,
@@ -9327,7 +9333,7 @@
     "offSeasons": [
       {
         "season": 2026,
-        "severity": 0.3
+        "severity": 0.4
       }
     ]
   },

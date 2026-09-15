@@ -1,0 +1,18 @@
+{
+  "year": 2023,
+  "races": 22,
+  "startsPerTeam": 44,
+  "note": "Real 2023, the full 22-round season. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
+  "teams": {
+    "stewart": { "points": 860, "wins": 21, "podiums": 30, "dnfs": 2 },
+    "tyrrell": { "points": 409, "wins": 0, "podiums": 8, "dnfs": 5 },
+    "ferrari": { "points": 406, "wins": 1, "podiums": 9, "dnfs": 5 },
+    "mclaren": { "points": 302, "wins": 0, "podiums": 9, "dnfs": 4 },
+    "jordan": { "points": 280, "wins": 0, "podiums": 8, "dnfs": 5 },
+    "toleman": { "points": 120, "wins": 0, "podiums": 2, "dnfs": 10 },
+    "williams": { "points": 28, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "minardi": { "points": 25, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "sauber": { "points": 16, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "haas": { "points": 12, "wins": 0, "podiums": 0, "dnfs": 7 }
+  }
+}

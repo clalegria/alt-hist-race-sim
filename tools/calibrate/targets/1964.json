@@ -1,0 +1,19 @@
+{
+  "year": 1964,
+  "races": 10,
+  "startsPerTeam": 20,
+  "note": "Real 1964, the full 10-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "brm": { "points": 64, "wins": 2, "podiums": 7, "dnfs": 3 },
+    "ferrari": { "points": 63, "wins": 3, "podiums": 10, "dnfs": 8 },
+    "lotus": { "points": 43, "wins": 3, "podiums": 5, "dnfs": 12 },
+    "brabham": { "points": 30, "wins": 2, "podiums": 4, "dnfs": 11 },
+    "cooper": { "points": 14, "wins": 0, "podiums": 2, "dnfs": 12 },
+    "brp": { "points": 9, "wins": 0, "podiums": 1, "dnfs": 6 },
+    "rob_walker": { "points": 8, "wins": 0, "podiums": 1, "dnfs": 9 },
+    "reg_parnell": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 13 },
+    "centro_sud": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 0 },
+    "filipinetti": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 20 },
+    "honda": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 20 }
+  }
+}

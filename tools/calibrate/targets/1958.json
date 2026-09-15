@@ -1,0 +1,18 @@
+{
+  "year": 1958,
+  "races": 10,
+  "startsPerTeam": 20,
+  "note": "Real 1958, the full 10-round season; the Indianapolis 500 is excluded, as it is from the season's calendar. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. 1 shared-drive row collapsed, the record giving both drivers of a shared car the same finishing position. Entries run 2/3 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "ferrari": { "points": 70, "wins": 2, "podiums": 11, "dnfs": 7 },
+    "vanwall": { "points": 65, "wins": 6, "podiums": 9, "dnfs": 12 },
+    "brm": { "points": 21, "wins": 0, "podiums": 2, "dnfs": 11 },
+    "cooper": { "points": 18, "wins": 0, "podiums": 2, "dnfs": 4 },
+    "rob_walker": { "points": 12, "wins": 1, "podiums": 2, "dnfs": 8 },
+    "lotus": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "centro_sud": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 13 },
+    "ecurie_ecosse": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 0 },
+    "enb": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 15 },
+    "maserati": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 10 }
+  }
+}

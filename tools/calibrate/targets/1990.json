@@ -1,0 +1,24 @@
+{
+  "year": 1990,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1990, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. coloni, life, onyx took no start all year and are omitted rather than shown as flawless. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "mclaren": { "points": 121, "wins": 6, "podiums": 18, "dnfs": 10 },
+    "ferrari": { "points": 110, "wins": 6, "podiums": 14, "dnfs": 13 },
+    "toleman": { "points": 65, "wins": 2, "podiums": 7, "dnfs": 9 },
+    "williams": { "points": 57, "wins": 2, "podiums": 4, "dnfs": 11 },
+    "tyrrell": { "points": 16, "wins": 0, "podiums": 2, "dnfs": 17 },
+    "larrousse": { "points": 11, "wins": 0, "podiums": 1, "dnfs": 20 },
+    "march": { "points": 7, "wins": 0, "podiums": 1, "dnfs": 20 },
+    "lotus": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 19 },
+    "arrows": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 12 },
+    "brabham": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 21 },
+    "ags": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 21 },
+    "dallara": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 25 },
+    "eurobrun": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "ligier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 7 },
+    "minardi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "osella": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 18 }
+  }
+}

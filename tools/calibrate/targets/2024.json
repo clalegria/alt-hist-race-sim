@@ -1,0 +1,18 @@
+{
+  "year": 2024,
+  "races": 24,
+  "startsPerTeam": 48,
+  "note": "Real 2024, the full 24-round season. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
+  "teams": {
+    "mclaren": { "points": 666, "wins": 6, "podiums": 21, "dnfs": 0 },
+    "ferrari": { "points": 652, "wins": 5, "podiums": 22, "dnfs": 4 },
+    "stewart": { "points": 589, "wins": 9, "podiums": 18, "dnfs": 6 },
+    "tyrrell": { "points": 468, "wins": 4, "podiums": 9, "dnfs": 4 },
+    "jordan": { "points": 94, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "toleman": { "points": 65, "wins": 0, "podiums": 2, "dnfs": 5 },
+    "haas": { "points": 58, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "minardi": { "points": 46, "wins": 0, "podiums": 0, "dnfs": 7 },
+    "williams": { "points": 17, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "sauber": { "points": 4, "wins": 0, "podiums": 0, "dnfs": 4 }
+  }
+}

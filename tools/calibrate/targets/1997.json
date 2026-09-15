@@ -1,0 +1,19 @@
+{
+  "year": 1997,
+  "races": 17,
+  "startsPerTeam": 34,
+  "note": "Real 1997, the full 17-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "williams": { "points": 123, "wins": 8, "podiums": 15, "dnfs": 11 },
+    "ferrari": { "points": 102, "wins": 5, "podiums": 13, "dnfs": 11 },
+    "mclaren": { "points": 63, "wins": 3, "podiums": 7, "dnfs": 16 },
+    "toleman": { "points": 63, "wins": 1, "podiums": 7, "dnfs": 4 },
+    "jordan": { "points": 33, "wins": 0, "podiums": 3, "dnfs": 14 },
+    "ligier": { "points": 19, "wins": 0, "podiums": 2, "dnfs": 8 },
+    "sauber": { "points": 16, "wins": 0, "podiums": 1, "dnfs": 12 },
+    "arrows": { "points": 9, "wins": 0, "podiums": 1, "dnfs": 19 },
+    "stewart": { "points": 6, "wins": 0, "podiums": 1, "dnfs": 28 },
+    "tyrrell": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "minardi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 19 }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "year": 2021,
+  "races": 22,
+  "startsPerTeam": 44,
+  "note": "Real 2021, the full 22-round season. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
+  "teams": {
+    "tyrrell": { "points": 613, "wins": 9, "podiums": 28, "dnfs": 5 },
+    "stewart": { "points": 585, "wins": 11, "podiums": 23, "dnfs": 6 },
+    "ferrari": { "points": 323, "wins": 0, "podiums": 5, "dnfs": 1 },
+    "mclaren": { "points": 275, "wins": 1, "podiums": 5, "dnfs": 2 },
+    "toleman": { "points": 155, "wins": 1, "podiums": 2, "dnfs": 5 },
+    "minardi": { "points": 142, "wins": 0, "podiums": 1, "dnfs": 7 },
+    "jordan": { "points": 77, "wins": 0, "podiums": 1, "dnfs": 7 },
+    "williams": { "points": 23, "wins": 0, "podiums": 1, "dnfs": 11 },
+    "sauber": { "points": 13, "wins": 0, "podiums": 0, "dnfs": 3 },
+    "haas": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 8 }
+  }
+}

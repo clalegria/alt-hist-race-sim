@@ -1,19 +1,19 @@
 {
   "year": 2026,
-  "races": 12,
-  "startsPerTeam": 24,
-  "note": "Real 2026 after 12 rounds. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals.",
+  "races": 14,
+  "startsPerTeam": 28,
+  "note": "Real 2026 after 14 rounds. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
   "teams": {
-    "tyrrell": { "points": 425, "wins": 8, "podiums": 16, "dnfs": 2 },
-    "ferrari": { "points": 338, "wins": 2, "podiums": 9, "dnfs": 1 },
-    "mclaren": { "points": 263, "wins": 2, "podiums": 6, "dnfs": 6 },
-    "stewart": { "points": 186, "wins": 0, "podiums": 4, "dnfs": 5 },
-    "minardi": { "points": 66, "wins": 0, "podiums": 0, "dnfs": 1 },
-    "toleman": { "points": 63, "wins": 0, "podiums": 1, "dnfs": 1 },
-    "haas": { "points": 21, "wins": 0, "podiums": 0, "dnfs": 4 },
-    "sauber": { "points": 16, "wins": 0, "podiums": 0, "dnfs": 5 },
-    "williams": { "points": 11, "wins": 0, "podiums": 0, "dnfs": 4 },
-    "jordan": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 11 },
-    "cadillac": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 10 }
+    "tyrrell": { "points": 503, "wins": 10, "podiums": 19, "dnfs": 3 },
+    "ferrari": { "points": 358, "wins": 2, "podiums": 9, "dnfs": 4 },
+    "mclaren": { "points": 306, "wins": 2, "podiums": 7, "dnfs": 3 },
+    "stewart": { "points": 230, "wins": 0, "podiums": 7, "dnfs": 6 },
+    "minardi": { "points": 77, "wins": 0, "podiums": 0, "dnfs": 1 },
+    "toleman": { "points": 68, "wins": 0, "podiums": 0, "dnfs": 1 },
+    "haas": { "points": 21, "wins": 0, "podiums": 0, "dnfs": 5 },
+    "sauber": { "points": 17, "wins": 0, "podiums": 0, "dnfs": 3 },
+    "williams": { "points": 11, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "jordan": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 14 },
+    "cadillac": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 11 }
   }
 }

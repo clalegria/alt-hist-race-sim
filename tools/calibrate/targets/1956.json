@@ -1,0 +1,17 @@
+{
+  "year": 1956,
+  "races": 7,
+  "startsPerTeam": 14,
+  "note": "Real 1956, the full 7-round season; the Indianapolis 500 is excluded, as it is from the season's calendar. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. 13 shared-drive rows collapsed, the record giving both drivers of a shared car the same finishing position. Entries run 2/3 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "ferrari": { "points": 70, "wins": 5, "podiums": 9, "dnfs": 6 },
+    "maserati": { "points": 50, "wins": 2, "podiums": 9, "dnfs": 4 },
+    "ecurie_ecosse": { "points": 6, "wins": 0, "podiums": 0, "dnfs": 5 },
+    "connaught": { "points": 5, "wins": 0, "podiums": 0, "dnfs": 0 },
+    "centro_sud": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "vanwall": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 12 },
+    "gordini": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 8 },
+    "brm": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 14 },
+    "rob_walker": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 9 }
+  }
+}

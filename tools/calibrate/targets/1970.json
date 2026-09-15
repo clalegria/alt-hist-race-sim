@@ -1,0 +1,21 @@
+{
+  "year": 1970,
+  "races": 13,
+  "startsPerTeam": 26,
+  "note": "Real 1970, the full 13-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "ferrari": { "points": 73, "wins": 4, "podiums": 9, "dnfs": 9 },
+    "lotus": { "points": 57, "wins": 6, "podiums": 6, "dnfs": 9 },
+    "march": { "points": 48, "wins": 1, "podiums": 7, "dnfs": 11 },
+    "brabham": { "points": 35, "wins": 1, "podiums": 5, "dnfs": 11 },
+    "mclaren": { "points": 28, "wins": 0, "podiums": 4, "dnfs": 10 },
+    "brm": { "points": 25, "wins": 1, "podiums": 2, "dnfs": 16 },
+    "matra": { "points": 24, "wins": 0, "podiums": 3, "dnfs": 11 },
+    "surtees": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 19 },
+    "de_tomaso": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 0 },
+    "bellasi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 16 },
+    "ecurie_bonnier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 26 },
+    "gunston": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 13 },
+    "rob_walker": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 21 }
+  }
+}

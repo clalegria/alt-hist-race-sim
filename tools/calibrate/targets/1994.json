@@ -1,0 +1,22 @@
+{
+  "year": 1994,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1994, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "williams": { "points": 105, "wins": 6, "podiums": 12, "dnfs": 9 },
+    "toleman": { "points": 102, "wins": 8, "podiums": 12, "dnfs": 11 },
+    "ferrari": { "points": 65, "wins": 1, "podiums": 10, "dnfs": 15 },
+    "mclaren": { "points": 42, "wins": 0, "podiums": 8, "dnfs": 20 },
+    "jordan": { "points": 25, "wins": 0, "podiums": 1, "dnfs": 19 },
+    "ligier": { "points": 13, "wins": 0, "podiums": 2, "dnfs": 4 },
+    "tyrrell": { "points": 13, "wins": 0, "podiums": 1, "dnfs": 22 },
+    "arrows": { "points": 9, "wins": 0, "podiums": 0, "dnfs": 19 },
+    "minardi": { "points": 5, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "sauber": { "points": 4, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "larrousse": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "lotus": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 14 },
+    "pacific": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 32 },
+    "simtek": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 19 }
+  }
+}

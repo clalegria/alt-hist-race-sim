@@ -1,0 +1,23 @@
+{
+  "year": 1978,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1978, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "lotus": { "points": 115, "wins": 8, "podiums": 14, "dnfs": 10 },
+    "brabham": { "points": 69, "wins": 2, "podiums": 10, "dnfs": 15 },
+    "ferrari": { "points": 65, "wins": 5, "podiums": 9, "dnfs": 9 },
+    "tyrrell": { "points": 41, "wins": 1, "podiums": 5, "dnfs": 14 },
+    "wolf": { "points": 24, "wins": 0, "podiums": 4, "dnfs": 14 },
+    "ligier": { "points": 19, "wins": 0, "podiums": 2, "dnfs": 8 },
+    "fittipaldi": { "points": 17, "wins": 0, "podiums": 1, "dnfs": 12 },
+    "mclaren": { "points": 16, "wins": 0, "podiums": 1, "dnfs": 15 },
+    "arrows": { "points": 11, "wins": 0, "podiums": 1, "dnfs": 13 },
+    "williams": { "points": 11, "wins": 0, "podiums": 1, "dnfs": 19 },
+    "shadow": { "points": 6, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "renault": { "points": 3, "wins": 0, "podiums": 0, "dnfs": 23 },
+    "ensign": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 13 },
+    "surtees": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "ats": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 7 }
+  }
+}

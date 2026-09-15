@@ -1,0 +1,20 @@
+{
+  "year": 2010,
+  "races": 19,
+  "startsPerTeam": 38,
+  "note": "Real 2010, the full 19-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "stewart": { "points": 498, "wins": 9, "podiums": 20, "dnfs": 5 },
+    "mclaren": { "points": 454, "wins": 5, "podiums": 16, "dnfs": 6 },
+    "ferrari": { "points": 396, "wins": 5, "podiums": 15, "dnfs": 3 },
+    "tyrrell": { "points": 214, "wins": 0, "podiums": 3, "dnfs": 5 },
+    "toleman": { "points": 163, "wins": 0, "podiums": 3, "dnfs": 9 },
+    "williams": { "points": 69, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "jordan": { "points": 68, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "sauber": { "points": 38, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "minardi": { "points": 13, "wins": 0, "podiums": 0, "dnfs": 8 },
+    "caterham": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 16 },
+    "hrt": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "virgin": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 16 }
+  }
+}

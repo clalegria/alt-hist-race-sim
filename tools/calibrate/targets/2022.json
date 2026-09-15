@@ -1,0 +1,18 @@
+{
+  "year": 2022,
+  "races": 22,
+  "startsPerTeam": 44,
+  "note": "Real 2022, the full 22-round season. Points include sprint races, which the sim does not model — harmless, because the fit scores points SHARE rather than totals. DNFs are retirements from the grand prix only; a car classified after retiring counts, a non-starter does not.",
+  "teams": {
+    "stewart": { "points": 759, "wins": 17, "podiums": 28, "dnfs": 5 },
+    "ferrari": { "points": 554, "wins": 4, "podiums": 20, "dnfs": 9 },
+    "tyrrell": { "points": 515, "wins": 1, "podiums": 17, "dnfs": 3 },
+    "toleman": { "points": 173, "wins": 0, "podiums": 0, "dnfs": 8 },
+    "mclaren": { "points": 159, "wins": 0, "podiums": 1, "dnfs": 5 },
+    "jordan": { "points": 55, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "sauber": { "points": 55, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "haas": { "points": 37, "wins": 0, "podiums": 0, "dnfs": 7 },
+    "minardi": { "points": 35, "wins": 0, "podiums": 0, "dnfs": 9 },
+    "williams": { "points": 8, "wins": 0, "podiums": 0, "dnfs": 10 }
+  }
+}

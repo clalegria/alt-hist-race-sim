@@ -1,0 +1,21 @@
+{
+  "year": 1971,
+  "races": 11,
+  "startsPerTeam": 22,
+  "note": "Real 1971, the full 11-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "tyrrell": { "points": 88, "wins": 7, "podiums": 11, "dnfs": 6 },
+    "march": { "points": 37, "wins": 0, "podiums": 5, "dnfs": 8 },
+    "ferrari": { "points": 32, "wins": 1, "podiums": 6, "dnfs": 13 },
+    "lotus": { "points": 25, "wins": 0, "podiums": 3, "dnfs": 9 },
+    "brm": { "points": 19, "wins": 1, "podiums": 2, "dnfs": 10 },
+    "matra": { "points": 10, "wins": 0, "podiums": 1, "dnfs": 8 },
+    "mclaren": { "points": 9, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "brabham": { "points": 7, "wins": 0, "podiums": 1, "dnfs": 13 },
+    "surtees": { "points": 6, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "bellasi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "ecurie_bonnier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "gunston": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 22 },
+    "williams": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 4 }
+  }
+}

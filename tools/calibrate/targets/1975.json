@@ -1,0 +1,21 @@
+{
+  "year": 1975,
+  "races": 14,
+  "startsPerTeam": 28,
+  "note": "Real 1975, the full 14-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "ferrari": { "points": 90, "wins": 6, "podiums": 11, "dnfs": 6 },
+    "mclaren": { "points": 71, "wins": 3, "podiums": 10, "dnfs": 9 },
+    "brabham": { "points": 63, "wins": 2, "podiums": 9, "dnfs": 11 },
+    "hesketh": { "points": 36, "wins": 1, "podiums": 4, "dnfs": 14 },
+    "tyrrell": { "points": 32, "wins": 1, "podiums": 4, "dnfs": 9 },
+    "march": { "points": 13, "wins": 1, "podiums": 1, "dnfs": 16 },
+    "lotus": { "points": 13, "wins": 0, "podiums": 1, "dnfs": 12 },
+    "shadow": { "points": 13, "wins": 0, "podiums": 1, "dnfs": 19 },
+    "williams": { "points": 6, "wins": 0, "podiums": 1, "dnfs": 22 },
+    "parnelli": { "points": 5, "wins": 0, "podiums": 0, "dnfs": 19 },
+    "penske": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 11 },
+    "embassy_hill": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 6 },
+    "fittipaldi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 12 }
+  }
+}

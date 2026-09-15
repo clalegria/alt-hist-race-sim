@@ -1,0 +1,18 @@
+{
+  "year": 2019,
+  "races": 21,
+  "startsPerTeam": 42,
+  "note": "Real 2019, the full 21-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "tyrrell": { "points": 731, "wins": 15, "podiums": 32, "dnfs": 2 },
+    "ferrari": { "points": 498, "wins": 3, "podiums": 19, "dnfs": 6 },
+    "stewart": { "points": 336, "wins": 3, "podiums": 9, "dnfs": 5 },
+    "mclaren": { "points": 145, "wins": 0, "podiums": 1, "dnfs": 9 },
+    "toleman": { "points": 91, "wins": 0, "podiums": 0, "dnfs": 8 },
+    "jordan": { "points": 73, "wins": 0, "podiums": 0, "dnfs": 5 },
+    "sauber": { "points": 57, "wins": 0, "podiums": 0, "dnfs": 4 },
+    "minardi": { "points": 53, "wins": 0, "podiums": 1, "dnfs": 5 },
+    "haas": { "points": 28, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "williams": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 4 }
+  }
+}

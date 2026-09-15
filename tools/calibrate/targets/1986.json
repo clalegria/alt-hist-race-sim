@@ -1,0 +1,22 @@
+{
+  "year": 1986,
+  "races": 16,
+  "startsPerTeam": 32,
+  "note": "Real 1986, the full 16-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "williams": { "points": 141, "wins": 9, "podiums": 19, "dnfs": 8 },
+    "mclaren": { "points": 96, "wins": 4, "podiums": 12, "dnfs": 14 },
+    "lotus": { "points": 58, "wins": 2, "podiums": 8, "dnfs": 17 },
+    "ferrari": { "points": 37, "wins": 0, "podiums": 5, "dnfs": 18 },
+    "ligier": { "points": 28, "wins": 0, "podiums": 2, "dnfs": 13 },
+    "toleman": { "points": 19, "wins": 1, "podiums": 2, "dnfs": 19 },
+    "tyrrell": { "points": 11, "wins": 0, "podiums": 0, "dnfs": 15 },
+    "haas_lola": { "points": 6, "wins": 0, "podiums": 0, "dnfs": 24 },
+    "brabham": { "points": 2, "wins": 0, "podiums": 0, "dnfs": 23 },
+    "arrows": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 18 },
+    "ags": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 32 },
+    "minardi": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 30 },
+    "osella": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 27 },
+    "zakspeed": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 22 }
+  }
+}

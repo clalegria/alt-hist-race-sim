@@ -1,0 +1,24 @@
+{
+  "year": 1983,
+  "races": 15,
+  "startsPerTeam": 30,
+  "note": "Real 1983, the full 15-round season. Points are recomputed from real finishing positions on this season's own points scale, counting every car and every round — not copied from the record book, which before 1980 scored only a constructor's best-placed car and in several eras dropped results. That keeps the target on the same rule the sim scores by, which is what the fit compares. Results are attributed by driver, so a team's figures cover exactly the cars this season's entry list authors, counting each driver only for the constructor they principally drove for that year. Entries run 1/2 cars, so DNFs are a rate, not a raw count. DNFs are retirements from a started race, all causes, rescaled to startsPerTeam so that dnfs / startsPerTeam is the real per-start retirement rate.",
+  "teams": {
+    "ferrari": { "points": 90, "wins": 4, "podiums": 12, "dnfs": 10 },
+    "renault": { "points": 80, "wins": 4, "podiums": 11, "dnfs": 11 },
+    "brabham": { "points": 72, "wins": 4, "podiums": 10, "dnfs": 16 },
+    "williams": { "points": 39, "wins": 1, "podiums": 3, "dnfs": 9 },
+    "mclaren": { "points": 36, "wins": 1, "podiums": 5, "dnfs": 15 },
+    "alfa_romeo": { "points": 18, "wins": 0, "podiums": 2, "dnfs": 20 },
+    "tyrrell": { "points": 12, "wins": 1, "podiums": 1, "dnfs": 15 },
+    "lotus": { "points": 12, "wins": 0, "podiums": 1, "dnfs": 20 },
+    "toleman": { "points": 10, "wins": 0, "podiums": 0, "dnfs": 20 },
+    "arrows": { "points": 5, "wins": 0, "podiums": 0, "dnfs": 8 },
+    "theodore": { "points": 1, "wins": 0, "podiums": 0, "dnfs": 16 },
+    "ats": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 19 },
+    "ligier": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 17 },
+    "osella": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 26 },
+    "ram": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 10 },
+    "spirit": { "points": 0, "wins": 0, "podiums": 0, "dnfs": 15 }
+  }
+}
