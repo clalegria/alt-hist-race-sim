@@ -2,6 +2,7 @@ import {
   authoredEngines,
   authoredLineup,
   FIRST_AUTHORED_SEASON,
+  type GridArrangement,
   reserveDrivers,
   seasonSeed,
   seasons,
@@ -634,6 +635,130 @@ describe("the chosen grid", () => {
     expect(() => createWorld(3, YEAR, "peak", { ...authored, [SEATED_TEAM]: crowded })).toThrow(
       `${crowded.length} drivers`,
     );
+  });
+});
+
+describe("the grid arranged by rule", () => {
+  /** One of the editor's bulk rules, as the grid stage hands one over. */
+  const ranked: GridArrangement = {
+    kind: "fastest-in-fastest",
+    includeUnemployed: false,
+    retain: false,
+  };
+  const shuffled: GridArrangement = { ...ranked, kind: "random" };
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("starts on no rule at all", () => {
+    expect(running().world.arrangement).toBeNull();
+  });
+
+  it("records the rule beside the lineup it produced", () => {
+    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null, ranked);
+    expect(running().world.arrangement).toEqual(ranked);
+  });
+
+  it("records nothing for a grid the reader assembled by hand", () => {
+    // The default, and the case every caller that predates the rules is in.
+    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
+    expect(running().world.arrangement).toBeNull();
+  });
+
+  it("keeps the rule recorded even when it lands on the entered grid", () => {
+    // A shuffle can come back with everybody where the season put them. The
+    // lineup is then null, like any unedited grid, but the reader pressed a
+    // button and the screen still has to say which.
+    useSeasonStore.getState().setGrid(null, null, shuffled);
+    expect(running().world.lineup).toBeNull();
+    expect(running().world.arrangement).toEqual(shuffled);
+  });
+
+  it("is part of the save file, and stays plain data", () => {
+    useSeasonStore.getState().setGrid(null, null, ranked);
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+
+  it("re-runs a ranked rule through Start again, on fresh dice and the same grid", () => {
+    // Applied, then restarted twice: the first restart is what materialises the
+    // rule into a lineup, and the second is the claim — a rule that ranks by
+    // rating does not depend on the dice, so a new seed must hand back the same
+    // grid. A store that carried the *seats* instead of the rule would also come
+    // back identical, which is why the rule itself is asserted beside them.
+    useSeasonStore.getState().setGrid(null, null, ranked);
+    useSeasonStore.getState().restartSeason();
+    const arranged = running().world.lineup;
+    const seed = running().world.seed;
+    useSeasonStore.getState().restartSeason();
+
+    expect(arranged).not.toBeNull();
+    expect(running().world.arrangement).toEqual(ranked);
+    expect(running().world.lineup).toEqual(arranged);
+    expect(running().world.seed).not.toBe(seed);
+  });
+
+  it("re-rolls a shuffled grid on Start again, given enough goes", () => {
+    // Not an assertion about one restart: two shuffles of the same field can
+    // agree. What must not happen is the grid being frozen for the rest of the
+    // run, which is what carrying the lineup instead of the rule would do.
+    useSeasonStore.getState().setGrid(null, null, shuffled);
+    const first = JSON.stringify(running().world.lineup);
+    const grids = new Set([first]);
+    for (let go = 0; go < 8; go += 1) {
+      useSeasonStore.getState().restartSeason();
+      grids.add(JSON.stringify(running().world.lineup));
+    }
+    expect(grids.size).toBeGreaterThan(1);
+  });
+
+  it("arranges again when the ability mode changes, since that is who is fastest", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak");
+    useSeasonStore.getState().setGrid(null, null, ranked);
+    useSeasonStore.getState().setRatingMode("aged");
+    const aged = running().world.lineup;
+    useSeasonStore.getState().setRatingMode("peak");
+
+    expect(aged).not.toBeNull();
+    expect(running().world.arrangement).toEqual(ranked);
+    // The two modes rank the field differently, so the same rule seats them
+    // differently. Carrying the lineup instead of re-running the rule would
+    // leave "the fastest drivers" meaning the other mode's fastest.
+    expect(running().world.lineup).not.toEqual(aged);
+  });
+
+  it("gives the same answer flipping back, so the switch is not a slot machine", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak");
+    useSeasonStore.getState().setGrid(null, null, shuffled);
+    useSeasonStore.getState().setRatingMode("aged");
+    const first = running().world.lineup;
+    useSeasonStore.getState().setRatingMode("peak");
+    useSeasonStore.getState().setRatingMode("aged");
+
+    expect(first).not.toBeNull();
+    // Re-rolled from the same seed over the same entry list, which is why the
+    // rule is never re-run over the grid it last produced: a shuffle of a
+    // shuffle would make a toggle into a dice cup.
+    expect(running().world.lineup).toEqual(first);
+  });
+
+  it("drops the rule with the grid when stepping to the season next door", () => {
+    const next = adjacentSeason(YEAR, 1);
+    if (next === null) {
+      throw new Error("the range needs a season after the first");
+    }
+    useSeasonStore.getState().setGrid(null, null, ranked);
+    useSeasonStore.getState().switchSeasonYear(next);
+    expect(running().world.arrangement).toBeNull();
+    expect(running().world.lineup).toBeNull();
+  });
+
+  it("refuses a rule once the season has started revealing", () => {
+    useSeasonStore.getState().nextSession();
+    const before = running().world;
+    useSeasonStore.getState().setGrid(null, null, ranked);
+    expect(running().world).toBe(before);
   });
 });
 

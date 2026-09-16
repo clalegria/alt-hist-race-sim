@@ -63,6 +63,12 @@ action, though**: `setGrid(lineup, engines)` applies both, because the editor ap
 one draft and a reader who moved a driver *and* changed a supplier asked a single
 question. Simulating a season in between would answer one nobody asked.
 
+A third field rides with them: `world.arrangement`, the bulk rule the grid was arranged
+by, which `setGrid` takes as its optional third argument. It is a record of *how* the
+lineup came to be rather than a second copy of it, and it is the one part of an edited
+grid that is re-derived rather than carried — see `.claude/rules/grid-arrangements.md`,
+which loads on this file.
+
 `setGrid` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year *from
 the same seed*, and `restartSeason` carries it — an edited grid is something the reader
 chose, like the ability mode. Unlike the ability mode it is **not** remembered in
@@ -86,7 +92,8 @@ control; the season summary and the roll of honour carry it as one small line
 *next* run is simulated against rather than ways of reading a table.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, points, ratingMode, randomness, rngState, field, lineup, engines, season }`) — one
+(`{ seed, year, points, ratingMode, randomness, rngState, field, lineup, engines,
+arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines`, and their ratings on `ratingMode`. `points` is the year's

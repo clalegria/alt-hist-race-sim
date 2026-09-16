@@ -25,6 +25,15 @@ import type {
 } from "./types.js";
 
 export {
+  ARRANGEMENT_KINDS,
+  type ArrangementKind,
+  type ArrangeOptions,
+  arrangeable,
+  arrangeLineup,
+  type GridArrangement,
+  isArrangementKind,
+} from "./arrange.js";
+export {
   buildField,
   DEFAULT_RATING_MODE,
   driverCareer,

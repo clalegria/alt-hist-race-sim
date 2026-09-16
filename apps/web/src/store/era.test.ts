@@ -7,7 +7,12 @@
  * champion, a points total or an authored rating.
  */
 
-import { DEFAULT_RATING_MODE, FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
+import {
+  DEFAULT_RATING_MODE,
+  FIRST_AUTHORED_SEASON,
+  type GridArrangement,
+  seasonSeed,
+} from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
@@ -352,6 +357,100 @@ describe("simulating the rest of an era", () => {
     useSeasonStore.getState().openMenu();
     useSeasonStore.getState().simulateRestOfEra();
     expect(screen()).toEqual({ kind: "menu" });
+  });
+});
+
+describe("a bulk rule kept across an era", () => {
+  /** One of the editor's rules, with the era's own checkbox ticked. */
+  const kept: GridArrangement = {
+    kind: "fastest-in-fastest",
+    includeUnemployed: false,
+    retain: true,
+  };
+  const once: GridArrangement = { ...kept, retain: false };
+
+  /** Applies a rule to the year on screen, then crowns it and runs the next. */
+  function applyAndRunOn(arrangement: GridArrangement): void {
+    useSeasonStore.getState().setGrid(null, null, arrangement);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().nextEraSeason();
+  }
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulateEra(5, YEAR);
+  });
+
+  it("arranges the next year the same way, on that year's own entry list", () => {
+    applyAndRunOn(kept);
+    const next = running().world;
+
+    expect(next.year).toBe(YEAR + 1);
+    expect(next.arrangement).toEqual(kept);
+    expect(next.lineup).not.toBeNull();
+    // Still that year's teams and that year's seats: the rule moves drivers
+    // and the entry list is history's.
+    const entered = seasonSeed(YEAR + 1);
+    expect(Object.keys(next.lineup ?? {}).sort()).toEqual(
+      entered.entries.map((entry) => entry.teamId).sort(),
+    );
+    expect(next.field).toHaveLength(entered.entries.flatMap((entry) => entry.drivers).length);
+  });
+
+  it("does not arrange the next year when the box was left unticked", () => {
+    applyAndRunOn(once);
+    expect(running().world.arrangement).toBeNull();
+    expect(running().world.lineup).toBeNull();
+  });
+
+  it("keeps arranging for every year that follows, not just the next one", () => {
+    applyAndRunOn(kept);
+    for (let year = 0; year < 2; year += 1) {
+      useSeasonStore.getState().skipToEnd();
+      useSeasonStore.getState().showEraChampions();
+      useSeasonStore.getState().nextEraSeason();
+      expect(running().world.arrangement, String(running().world.year)).toEqual(kept);
+      expect(running().world.lineup, String(running().world.year)).not.toBeNull();
+    }
+  });
+
+  it("keeps arranging through a jump to the end as well as stepping", () => {
+    // The rule every skip is under: jumping must produce exactly the history
+    // stepping through would have.
+    useSeasonStore.getState().setGrid(null, null, kept);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra(YEAR + 3);
+    const seasons = crowned().seasons;
+
+    expect(seasons).toHaveLength(4);
+    expect(seasons.map((world) => world.arrangement)).toEqual(seasons.map(() => kept));
+    expect(seasons.slice(1).every((world) => world.lineup !== null)).toBe(true);
+  });
+
+  it("gives the same history stepped through as jumped", () => {
+    useSeasonStore.getState().setGrid(null, null, kept);
+    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().simulateRestOfEra(YEAR + 2);
+    const jumped = crowned().seasons;
+
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    useSeasonStore.getState().setGrid(null, null, kept);
+    for (let year = 0; year < 3; year += 1) {
+      useSeasonStore.getState().skipToEnd();
+      useSeasonStore.getState().showEraChampions();
+      if (year < 2) {
+        useSeasonStore.getState().nextEraSeason();
+      }
+    }
+    expect(crowned().seasons).toEqual(jumped);
+  });
+
+  it("is a save file like the rest of a run", () => {
+    applyAndRunOn(kept);
+    const run = running().run;
+    expect(JSON.parse(JSON.stringify(run))).toEqual(run);
   });
 });
 

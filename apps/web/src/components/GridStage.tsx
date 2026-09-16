@@ -1,6 +1,9 @@
 import {
+  ARRANGEMENT_KINDS,
+  type ArrangementKind,
   applyDraft,
   applyEngines,
+  arrangeLineup,
   authoredEngines,
   authoredLineup,
   availableEngines,
@@ -12,6 +15,7 @@ import {
   engineChanges,
   exchangePicks,
   filledLineup,
+  type GridArrangement,
   type GridPick,
   isAuthoredEngines,
   isAuthoredLineup,
@@ -24,7 +28,7 @@ import {
   type SeasonSeed,
   seatRefOf,
 } from "@alt-hist/data";
-import type { RaceEntrant } from "@alt-hist/engine";
+import { createRng, type RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
 import {
   hasStoredDriverFilters,
@@ -40,9 +44,11 @@ import {
 } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { adjacentSeason, isPlayable, seasonSeed } from "../lib/seasons.js";
+import { randomSeed } from "../lib/seed.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
+import { ARRANGEMENT_LABELS } from "./LineupChanges.js";
 import {
   DriverLabel,
   EMPTY_SEAT,
@@ -78,14 +84,15 @@ import { Input } from "./ui/input.js";
  */
 
 /**
- * One filter the pool can be narrowed by.
+ * One yes-or-no answer in the editor — a filter on the pool, or a setting on the
+ * bulk rules.
  *
  * A native checkbox rather than a styled control, for the reason the engine
  * picker is a native `select`: the platform one is keyboard- and
  * screen-reader-correct for free, and a DOM-less test can read `checked=""`
  * back out of the markup.
  */
-function FilterToggle({
+function Toggle({
   label,
   checked,
   onChange,
@@ -130,14 +137,14 @@ function ReserveFilters({
   return (
     <fieldset className="border-border text-muted-foreground flex flex-col gap-1.5 rounded-lg border p-2 text-xs">
       <legend className="px-1">Hide</legend>
-      <FilterToggle
+      <Toggle
         label={`Retired before ${seasonYear}`}
         checked={filters.hideRetired}
         onChange={(hideRetired) => {
           onChange({ ...filters, hideRetired });
         }}
       />
-      <FilterToggle
+      <Toggle
         label={`Debuting after ${seasonYear}`}
         checked={filters.hideFuture}
         onChange={(hideFuture) => {
@@ -178,6 +185,93 @@ function ReserveFilters({
         />
       </div>
     </fieldset>
+  );
+}
+
+/**
+ * The bulk rules, as a panel of their own above the grid.
+ *
+ * Its own section rather than three more buttons in the grid's header, because
+ * these are a different kind of act: everything else in the editor moves one
+ * driver and leaves the rest of the grid alone, and each of these reseats the
+ * whole field in one press. Mixing them into the same row as Apply and Cancel
+ * would put "throw the field in the air" next to "keep what I did".
+ *
+ * **Controlled**, like every other part of the editor: which rule is chosen and
+ * both settings are held in `GridStage`, so a DOM-less test can render each
+ * state without a click. The chosen rule is marked by `aria-pressed` and a solid
+ * button, which is also the only part of it a static render can read back.
+ *
+ * Exported for that reason, the way `ReserveList` is.
+ */
+export function GridArrangements({
+  chosen,
+  includeUnemployed,
+  retain,
+  inEra = false,
+  onChoose,
+  onIncludeUnemployedChange,
+  onRetainChange,
+}: {
+  /** The rule in force on the draft, or null once the reader has edited a seat. */
+  chosen: ArrangementKind | null;
+  /** Whether the rules may give a seat to somebody who has none. */
+  includeUnemployed: boolean;
+  /** Whether every following season of the era is arranged the same way. */
+  retain: boolean;
+  /**
+   * Whether this season is one year of an era, which is the only case where
+   * there *is* a next season to keep a rule for. The checkbox is not drawn
+   * otherwise — a control that cannot mean anything is worse than no control.
+   */
+  inEra?: boolean;
+  /** Absent in tests, where nothing is clicked. The controls still render. */
+  onChoose?: (kind: ArrangementKind) => void;
+  onIncludeUnemployedChange?: (include: boolean) => void;
+  onRetainChange?: (retain: boolean) => void;
+}) {
+  return (
+    // `ReserveList`'s panel, minus the header: the same border, padding and
+    // elevation, because the two are the editor's two side panels and sitting
+    // them at different heights would read as one of them being a dialog.
+    <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-sm">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-semibold tracking-tight">Rearrange the whole grid</h3>
+        <p className="text-muted-foreground text-xs">
+          One press instead of forty swaps. Each of these reseats every car, and the grid says which
+          one is in force until you move a driver by hand — an edit of your own is the end of the
+          rule.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {ARRANGEMENT_KINDS.map((kind) => (
+          <Button
+            key={kind}
+            variant={kind === chosen ? "primary" : "outline"}
+            aria-pressed={kind === chosen}
+            onClick={() => {
+              onChoose?.(kind);
+            }}
+          >
+            {ARRANGEMENT_LABELS[kind]}
+          </Button>
+        ))}
+      </div>
+      <div className="text-muted-foreground flex flex-col gap-1.5 text-xs">
+        <Toggle
+          label="Include unemployed drivers"
+          checked={includeUnemployed}
+          onChange={onIncludeUnemployedChange ?? (() => {})}
+        />
+        {inEra ? (
+          <Toggle
+            label="Keep this for every season of the era"
+            checked={retain}
+            onChange={onRetainChange ?? (() => {})}
+          />
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -435,6 +529,14 @@ export function previewField(
 export interface GridEdit {
   readonly lineup: SeasonLineup | null;
   readonly engines: SeasonEngines | null;
+  /**
+   * The bulk rule the lineup came out of, or null for a grid assembled by hand.
+   *
+   * Beside the lineup rather than instead of it: the lineup is the grid that
+   * races, and this is only the record of how it was arrived at — what the grid
+   * screen reports afterwards, and what an era re-applies next year.
+   */
+  readonly arrangement: GridArrangement | null;
 }
 
 export function GridStage({
@@ -443,6 +545,8 @@ export function GridStage({
   ratingMode,
   lineup,
   engines,
+  arrangement = null,
+  inEra = false,
   previousLineup = null,
   onApply,
   onEditingChange,
@@ -455,6 +559,20 @@ export function GridStage({
   lineup: SeasonLineup | null;
   /** The applied engine supply, or null for the deals the season was entered with. */
   engines: SeasonEngines | null;
+  /**
+   * The bulk rule the applied grid was arranged by, or null for one nobody
+   * rearranged.
+   *
+   * Read twice: the grid states it while the editor is shut, and re-opening the
+   * editor opens on the rule and the settings that are already in force rather
+   * than on a blank panel.
+   */
+  arrangement?: GridArrangement | null;
+  /**
+   * Whether this season is one year of an era. Only the bulk rules read it — a
+   * rule can be kept for the following years, and a standalone season has none.
+   */
+  inEra?: boolean;
   /**
    * The previous season's grid **as it was actually raced**, for the carry-over
    * button — or null for the one that year was entered with.
@@ -488,6 +606,15 @@ export function GridStage({
   const [draft, setDraft] = useState<LineupDraft | null>(null);
   const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
   const [selected, setSelected] = useState<GridPick | null>(null);
+  // Which bulk rule the draft is currently the product of, and the two settings
+  // the rules are applied under. Three pieces rather than one `GridArrangement`
+  // because the settings outlive the rule: clearing the rule after a hand edit
+  // must not also forget that the reader had asked for the pool to be included.
+  const [chosen, setChosen] = useState<ArrangementKind | null>(arrangement?.kind ?? null);
+  const [includeUnemployed, setIncludeUnemployed] = useState(
+    arrangement?.includeUnemployed ?? false,
+  );
+  const [retain, setRetain] = useState(arrangement?.retain ?? false);
   // How the pool is narrowed. Held here so the panel stays controlled, but the
   // answer is the reader's rather than this component's: `lib/filter-preference`
   // remembers it, because the editor is re-mounted every time a grid is applied
@@ -527,8 +654,12 @@ export function GridStage({
   const untouched = useMemo(
     () =>
       (draft === null || isAuthoredLineup(season, draft)) &&
-      (engineDraft === null || isAuthoredEngines(season, engineDraft)),
-    [draft, engineDraft, season],
+      (engineDraft === null || isAuthoredEngines(season, engineDraft)) &&
+      // A rule that happened to land back on the authored grid is still a rule
+      // in force, and Restore is the way to put it down — so it counts as a
+      // change even when no seat did.
+      chosen === null,
+    [draft, engineDraft, season, chosen],
   );
 
   // Draft grids are rebuilt rather than raced: the ratings are the same
@@ -541,6 +672,15 @@ export function GridStage({
     const entered = engineDraft === null ? season : applyEngines(season, engineDraft);
     return previewField(entered, draft ?? applied, ratingMode);
   }, [draft, engineDraft, field, season, applied, ratingMode]);
+  // What the grid reports: the rule on the draft while the editor is open, the
+  // rule the season was run under once it is shut. One value rather than a
+  // branch at the call site, so the notice cannot say two different things.
+  const shownArrangement = useMemo<GridArrangement | null>(() => {
+    if (draft === null) {
+      return arrangement;
+    }
+    return chosen === null ? null : { kind: chosen, includeUnemployed, retain };
+  }, [draft, arrangement, chosen, includeUnemployed, retain]);
   const reserve = useMemo(() => reserveDrivers(shown), [shown]);
   /** The open seats, and therefore whether this grid can be applied at all. */
   const open = useMemo(() => emptySeats(shown), [shown]);
@@ -562,6 +702,11 @@ export function GridStage({
     setDraft(applied);
     setEngineDraft(appliedEngines);
     setSelected(null);
+    // Opened on whatever is in force, so a reader coming back to a season
+    // arranged by rule sees which rule, and does not have to re-tick the pool.
+    setChosen(arrangement?.kind ?? null);
+    setIncludeUnemployed(arrangement?.includeUnemployed ?? false);
+    setRetain(arrangement?.retain ?? false);
     onEditingChange?.(true);
   };
 
@@ -579,6 +724,15 @@ export function GridStage({
     const next = pickUp(draft, selected, pick);
     setDraft(next.lineup);
     setSelected(next.selected);
+    // A hand edit ends the rule. Not out of caution: the grid *says* which rule
+    // it is arranged by, and one swap later that sentence is no longer true —
+    // and inside an era a rule left in force would arrange next year too, off
+    // the back of a change the reader made to this one. Only an edit, though:
+    // `pickUp` hands back the draft it was given for picking a name up and for
+    // putting it down again, and neither has changed the grid.
+    if (next.lineup !== draft) {
+      setChosen(null);
+    }
   };
 
   /**
@@ -596,10 +750,63 @@ export function GridStage({
     }
     setDraft(carryOverLineup(season, previous, draft, { previousLineup, mode: ratingMode }));
     setSelected(null);
+    // Last season's drivers are their own arrangement of the grid, and not one
+    // of the three rules. Whatever was in force is no longer what is on screen.
+    setChosen(null);
+  };
+
+  /**
+   * One of the bulk rules, over the draft on screen.
+   *
+   * Over the *draft* rather than the applied grid, for the reason the carry-over
+   * button is: it composes with whatever the reader has already changed, and the
+   * engines they have already chosen are what the cars are ranked on — a team
+   * handed a better engine is a better car, and the rule has to agree with the
+   * numbers the grid is printing beside each one.
+   *
+   * `include` is passed rather than read off the state because the pool checkbox
+   * re-runs the rule as it changes, and the state has not settled by then.
+   *
+   * The dice are a fresh seed each press, so pressing `Randomize grid` twice
+   * gives two grids — the seeded stream is what makes the *season* reproducible,
+   * and choosing which stream to draw from is a reader's action like choosing a
+   * seed is. The seed the season is eventually run on re-rolls it for the years
+   * that follow in an era.
+   */
+  const rearrange = (kind: ArrangementKind, include: boolean): void => {
+    if (draft === null) {
+      return;
+    }
+    const entered = engineDraft === null ? season : applyEngines(season, engineDraft);
+    const rules: GridArrangement = { kind, includeUnemployed: include, retain };
+    setDraft(
+      arrangeLineup(entered, draft, rules, { mode: ratingMode, rng: createRng(randomSeed()) }),
+    );
+    setChosen(kind);
+    setSelected(null);
+  };
+
+  /**
+   * Widening or narrowing the cast, which re-runs the rule in force.
+   *
+   * A setting on the rules rather than an edit of the grid, so it does not put
+   * the rule down — and it applies at once, because a checkbox that only
+   * affected the *next* press would leave the panel saying one thing and the
+   * grid showing another.
+   */
+  const includeThePool = (include: boolean): void => {
+    setIncludeUnemployed(include);
+    if (chosen !== null) {
+      rearrange(chosen, include);
+    }
   };
 
   const chooseEngine = (teamId: string, engineId: string): void => {
     setEngineDraft((current) => (current === null ? current : { ...current, [teamId]: engineId }));
+    // A hand edit like any other, and this one in particular: the rules rank the
+    // cars with the engine folded in, so changing a supplier is changing the
+    // pecking order the grid on screen was arranged against.
+    setChosen(null);
   };
 
   const editing: GridEditing | undefined =
@@ -635,6 +842,7 @@ export function GridStage({
               lineup: isAuthoredLineup(season, filled) ? null : filled,
               engines:
                 engineDraft === null || isAuthoredEngines(season, engineDraft) ? null : engineDraft,
+              arrangement: shownArrangement,
             });
             stopEditing();
           }}
@@ -653,6 +861,10 @@ export function GridStage({
             setDraft(authoredLineup(season));
             setEngineDraft(authoredEngines(season));
             setSelected(null);
+            // The season's own grid is no rule's output, so the rule goes with
+            // the seats. The two settings stay: they are how the reader plays,
+            // not part of what was restored.
+            setChosen(null);
           }}
         >
           Restore {year} grid
@@ -670,18 +882,39 @@ export function GridStage({
         draft === null ? "" : "lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start",
       )}
     >
-      <SeasonGrid
-        field={preview}
-        seasonYear={year}
-        changes={changes}
-        engineChanges={supplyChanges}
-        openSeats={open.length}
-        action={action}
-        ratingMode={ratingMode}
-        sort={sort}
-        onSortChange={setSort}
-        {...(editing === undefined ? {} : { edit: editing })}
-      />
+      {/*
+        The rules panel and the grid share the left-hand column, so the panel
+        sits above the cards it rearranges rather than beside the reserve list —
+        which is a pick-list for one seat, and a different job.
+      */}
+      <div className="flex flex-col gap-4">
+        {draft === null ? null : (
+          <GridArrangements
+            chosen={chosen}
+            includeUnemployed={includeUnemployed}
+            retain={retain}
+            inEra={inEra}
+            onChoose={(kind) => {
+              rearrange(kind, includeUnemployed);
+            }}
+            onIncludeUnemployedChange={includeThePool}
+            onRetainChange={setRetain}
+          />
+        )}
+        <SeasonGrid
+          field={preview}
+          seasonYear={year}
+          changes={changes}
+          engineChanges={supplyChanges}
+          arrangement={shownArrangement}
+          openSeats={open.length}
+          action={action}
+          ratingMode={ratingMode}
+          sort={sort}
+          onSortChange={setSort}
+          {...(editing === undefined ? {} : { edit: editing })}
+        />
+      </div>
       {draft === null ? null : (
         // Sticky, because the seat being filled is usually somewhere else on a
         // page fifteen cards long.

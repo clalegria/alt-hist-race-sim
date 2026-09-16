@@ -1,6 +1,7 @@
 import {
   type CalendarRace,
   engineChanges,
+  type GridArrangement,
   lineupChanges,
   type RatingMode,
   type SeasonEngines,
@@ -151,6 +152,7 @@ function Summary({
   points,
   lineup,
   engines,
+  arrangement,
   settings,
 }: {
   season: SeasonResult;
@@ -161,6 +163,8 @@ function Summary({
   points: PointsScale;
   lineup: SeasonLineup | null;
   engines: SeasonEngines | null;
+  /** The bulk rule the grid was arranged by, said on the banner and the grid. */
+  arrangement: GridArrangement | null;
   /** What the year was run under, from `settingsOf`. */
   settings: readonly Setting[];
 }) {
@@ -194,8 +198,12 @@ function Summary({
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
-      {changes.length === 0 && supplyChanges.length === 0 ? null : (
-        <EditedGridBanner changes={changes} engineChanges={supplyChanges} />
+      {changes.length === 0 && supplyChanges.length === 0 && arrangement === null ? null : (
+        <EditedGridBanner
+          changes={changes}
+          engineChanges={supplyChanges}
+          arrangement={arrangement}
+        />
       )}
       <div className="flex flex-col gap-4 sm:flex-row">
         <Champion
@@ -267,6 +275,7 @@ function Summary({
           ratingMode={ratingMode}
           changes={changes}
           engineChanges={supplyChanges}
+          arrangement={arrangement}
           sort={teamSort}
           onSortChange={setTeamSort}
         />
@@ -403,6 +412,16 @@ interface SeasonViewProps {
    * so a bare render is the standalone case.
    */
   readonly canChooseAbility?: boolean;
+  /**
+   * Whether this season is one year of an era.
+   *
+   * Only the grid editor's bulk rules read it, and only to offer keeping a rule
+   * for the years that follow — a standalone season has none. Deliberately not
+   * folded into `canChooseAbility`: that one is about a control an era takes
+   * *away*, and this is about one it adds, so a single flag would be two
+   * opposite claims sharing a name.
+   */
+  readonly inEra?: boolean;
   /** Absent in tests, where nothing is clicked. The toggle still renders. */
   readonly onRatingModeChange?: (mode: RatingMode) => void;
   /**
@@ -438,6 +457,7 @@ function SeasonBody({
   world,
   view,
   canChooseAbility = true,
+  inEra = false,
   onRatingModeChange,
   onYearChange,
   onGridChange,
@@ -477,6 +497,8 @@ function SeasonBody({
           ratingMode={world.ratingMode}
           lineup={world.lineup}
           engines={world.engines}
+          arrangement={world.arrangement}
+          inEra={inEra}
           previousLineup={previousLineup}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           {...(onGridEditingChange === undefined ? {} : { onEditingChange: onGridEditingChange })}
@@ -515,6 +537,7 @@ function SeasonBody({
       points={world.points}
       lineup={world.lineup}
       engines={world.engines}
+      arrangement={world.arrangement}
       settings={settingsOf(world)}
     />
   );

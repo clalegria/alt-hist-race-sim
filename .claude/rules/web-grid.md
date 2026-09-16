@@ -86,6 +86,11 @@ architecture underneath all three, including why the draft lives where it does, 
   can invent a supplier either. A native `select` rather than a styled listbox: it is a
   plain one-of-N from a short list, and the platform control is keyboard- and
   screen-reader-correct for free.
+- **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
+  fastest in slowest, shuffled — in their own panel above the cards, because every other
+  control in here moves one driver. The rules, the cast they draw on, what the world
+  keeps about one and why a hand edit ends it are
+  `.claude/rules/grid-arrangements.md`, which loads here too.
 - **`Copy <year> grid` puts last season's drivers over this one**, and is the reason
   the editor has an empty-seat state at all. It reads the *previous playable* season —
   `adjacentSeason(year, -1)`, so a gap in the seed data is skipped — and is not drawn

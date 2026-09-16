@@ -21,8 +21,12 @@
 import {
   applyEngines,
   applyLineup,
+  arrangeLineup,
+  authoredLineup,
   buildField,
   DEFAULT_RATING_MODE,
+  filledLineup,
+  type GridArrangement,
   isAuthoredEngines,
   isAuthoredLineup,
   type RatingMode,
@@ -119,6 +123,21 @@ export interface World {
    * touching the other.
    */
   readonly engines: SeasonEngines | null;
+  /**
+   * The rule the grid was arranged by, or null for a grid nobody rearranged in
+   * one press — the reader's own swaps included, since those are seats and not a
+   * rule.
+   *
+   * A record of *how* `lineup` came to be rather than a second copy of it: the
+   * lineup is still what raced and still what every table reads. It is kept
+   * because two things need it after the fact — the grid screen says which rule
+   * is in force, and an era re-applies it to the next year when the reader asked
+   * for that (`retain`). Plain data, like everything else in here.
+   *
+   * A hand edit in the editor clears it, because a grid that has been rearranged
+   * and then meddled with is no longer the thing the rule describes.
+   */
+  readonly arrangement: GridArrangement | null;
   readonly season: SeasonResult;
 }
 
@@ -140,10 +159,115 @@ export interface World {
 export const ERA_RATING_MODE: RatingMode = "aged";
 
 /**
+ * The grid one of the editor's bulk rules produces for a year, rolled from that
+ * year's own seed.
+ *
+ * The rule is re-run rather than the lineup copied, because a lineup belongs to
+ * the entry list it was drawn for: "the best drivers in the best cars" is a
+ * sentence about any season, and 1981's answer to it is not 1980's. Three
+ * places need exactly that — the next year of an era that retained the rule,
+ * "start again", and a switch of ability mode, which changes who counts as best.
+ *
+ * **Always over the season's own entry list**, never over the grid already on
+ * screen. It makes the rule a function of the year, the seed and the mode and
+ * nothing else, which is what keeps re-running it *stable*: flipping the ability
+ * mode and back hands the reader the grid they had rather than a fresh shuffle
+ * of a shuffle. Nothing is lost by it, because a rule cannot survive a hand
+ * edit — the only grid a rule can be in force over is one the same rule made,
+ * and arranging an arrangement draws on the same cast as arranging the entry
+ * list did.
+ *
+ * The engines are the exception, and they are not a grid: a team handed a better
+ * unit is a better car, and the rules rank cars with the engine folded in. So
+ * the supply the season is *being run on* is applied first, or a re-run would
+ * rank the field differently from the way the reader saw it ranked.
+ *
+ * **The dice come from the season's own seed**, so a randomised grid is
+ * reproducible from the number the season is reproducible from: the same seed
+ * gives the same shuffle, a fresh one gives a fresh grid, and an era's years
+ * are as reproducible as their results. The generator is a separate one from
+ * the season's — discarded here, with `createWorld` starting the stream the
+ * races are run on — so re-rolling a grid cannot change what a race did with
+ * it.
+ *
+ * Falls back to the authored grid if the rule somehow leaves a seat open, since
+ * only a filled grid can be raced.
+ */
+function arrangedLineup(
+  year: number,
+  seed: number,
+  arrangement: GridArrangement,
+  ratingMode: RatingMode,
+  engines: SeasonEngines | null,
+): SeasonLineup {
+  const season = seasonSeed(year);
+  const authored = authoredLineup(season);
+  const entered = engines === null ? season : applyEngines(season, engines);
+  const arranged = arrangeLineup(entered, authored, arrangement, {
+    mode: ratingMode,
+    rng: createRng(seed),
+  });
+  return filledLineup(arranged) ?? authored;
+}
+
+/**
+ * The grid a world's own season should be re-run on: the rule re-applied, or the
+ * lineup exactly as it stands.
+ *
+ * Both actions that re-run a season in place — "start again", and a switch of
+ * ability mode — want this, and want it to be one decision rather than two
+ * copies of the same `if`.
+ */
+function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonLineup | null {
+  if (world.arrangement === null) {
+    return world.lineup;
+  }
+  return arrangedLineup(world.year, seed, world.arrangement, ratingMode, world.engines);
+}
+
+/**
+ * What the next year of an era starts from: the grid its own entry list gives
+ * it, arranged by the rule the reader asked to keep — or nothing at all.
+ *
+ * **The rule crosses a year boundary and a grid does not.** That is the same
+ * split the era already makes about the ability mode: what the reader chose
+ * about *how to play* carries, and what they chose about one grid does not. A
+ * rearranged lineup is a grid for a year now behind them; "the best drivers in
+ * the best cars" is a way of playing, and a reader who ticked the box asked for
+ * it every year rather than once.
+ *
+ * Returns the arrangement beside the lineup, because a rule the reader did not
+ * ask to keep must not be recorded on a year it did not arrange.
+ */
+function nextEraGrid(
+  last: World,
+  year: number,
+  seed: number,
+): { lineup: SeasonLineup | null; arrangement: GridArrangement | null } {
+  const { arrangement } = last;
+  if (arrangement === null || !arrangement.retain) {
+    return { lineup: null, arrangement: null };
+  }
+  return {
+    // No engines: an era does not carry a supply deal across a year either.
+    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null),
+    arrangement,
+  };
+}
+
+/**
  * Runs a season from a seed and returns the world it produced.
  *
  * Pure: same seed and year in, same world out, no store involved. The store is
  * a place to keep this, not the thing that computes it.
+ *
+ * `arrangement` is **recorded, not obeyed**: the lineup handed in is the grid
+ * that races, whatever rule is named beside it. The editor computes what the
+ * reader is looking at before they apply it — over the draft they had already
+ * changed, and with the engines they had already chosen — and a world that
+ * quietly re-derived the grid from the rule would show them a season they never
+ * agreed to. Re-running a rule is `arrangedLineup`, and every caller that wants
+ * it does so before calling this.
  */
 export function createWorld(
   seed: number,
@@ -152,6 +276,7 @@ export function createWorld(
   lineup: SeasonLineup | null = null,
   engines: SeasonEngines | null = null,
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
+  arrangement: GridArrangement | null = null,
 ): World {
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
@@ -178,6 +303,7 @@ export function createWorld(
     field,
     lineup: edited,
     engines: resupplied,
+    arrangement,
     season,
   };
 }
@@ -406,7 +532,16 @@ interface SeasonStore {
    * an alternate grid is the same dice thrown at different people — which is
    * the comparison the feature is for.
    */
-  readonly setGrid: (lineup: SeasonLineup | null, engines: SeasonEngines | null) => void;
+  readonly setGrid: (
+    lineup: SeasonLineup | null,
+    engines: SeasonEngines | null,
+    /**
+     * The bulk rule the grid was arranged by, for the world to record. Null —
+     * the default — for a grid the reader assembled by hand, which is every
+     * caller that predates the rules.
+     */
+    arrangement?: GridArrangement | null,
+  ) => void;
   /** Reveals the next session. */
   readonly nextSession: () => void;
   /** Jumps straight to the finished season. */
@@ -539,23 +674,27 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       if (last === undefined || year === null) {
         return state;
       }
+      const seed = nextSeed(last.rngState);
+      // The next year's dice continue the last year's stream, and its grid is
+      // that year's own entry list. What the reader chose about *how to play* —
+      // the ability mode, and a bulk rule they asked to keep — carries; what
+      // they chose about one grid does not, because it was a grid for a year now
+      // behind them.
+      const grid = nextEraGrid(last, year, seed);
       return {
         screen: {
           kind: "era",
           run: state.screen.run,
-          // The next year's dice continue the last year's stream, and its grid
-          // is that year's own entry list. What the reader chose about *how to
-          // play* — the ability mode — carries; what they chose about one grid
-          // does not, because it was a grid for a year now behind them.
           world: createWorld(
-            nextSeed(last.rngState),
+            seed,
             year,
             last.ratingMode,
-            null,
+            grid.lineup,
             null,
             // Baked in at the era's setup screen: every year of a run is raced
             // under the level its first year was started on.
             last.randomness,
+            grid.arrangement,
           ),
           view: { kind: "grid" },
         },
@@ -590,13 +729,16 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
         year !== null && (through === undefined || year <= through);
         year = nextEraYear(last.year)
       ) {
+        const seed = nextSeed(last.rngState);
+        const grid = nextEraGrid(last, year, seed);
         last = createWorld(
-          nextSeed(last.rngState),
+          seed,
           year,
           last.ratingMode,
-          null,
+          grid.lineup,
           null,
           last.randomness,
+          grid.arrangement,
         );
         seasons.push(last);
       }
@@ -627,16 +769,22 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.screen.world.seed,
                 state.screen.world.year,
                 mode,
-                state.screen.world.lineup,
+                // Who is "fastest" is exactly what the ability mode decides, so
+                // an arranged grid is arranged again on the new ratings rather
+                // than carried over as the seats the old ones produced. The seed
+                // is the same, so a randomised grid is the same shuffle and
+                // flipping back and forth is not a slot machine.
+                nextLineup(state.screen.world, state.screen.world.seed, mode),
                 state.screen.world.engines,
                 state.screen.world.randomness,
+                state.screen.world.arrangement,
               ),
             ),
           }
         : state,
     );
   },
-  setGrid: (lineup, engines) => {
+  setGrid: (lineup, engines, arrangement = null) => {
     set((state) =>
       isPlaying(state.screen) && state.screen.view.kind === "grid"
         ? {
@@ -649,6 +797,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 lineup,
                 engines,
                 state.screen.world.randomness,
+                arrangement,
               ),
             ),
           }
@@ -685,7 +834,11 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             year,
             state.screen.world.ratingMode,
             // A grid the reader assembled was assembled for another year's
-            // entry list; nothing about it transfers.
+            // entry list; nothing about it transfers. The bulk rule behind it
+            // goes too: it *could* be re-run on the new year, but retaining a
+            // rule across years is the era's feature and the era's checkbox, and
+            // a shortcut that quietly did it as well would be a second answer to
+            // when a rule stops applying.
             null,
             null,
             state.screen.world.randomness,
@@ -695,22 +848,30 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
     });
   },
   restartSeason: () => {
-    set((state) =>
-      isPlaying(state.screen)
-        ? {
-            screen: replaceWorld(
-              state.screen,
-              createWorld(
-                randomSeed(),
-                state.screen.world.year,
-                state.screen.world.ratingMode,
-                state.screen.world.lineup,
-                state.screen.world.engines,
-                state.screen.world.randomness,
-              ),
-            ),
-          }
-        : state,
-    );
+    set((state) => {
+      if (!isPlaying(state.screen)) {
+        return state;
+      }
+      const { world } = state.screen;
+      const seed = randomSeed();
+      return {
+        screen: replaceWorld(
+          state.screen,
+          createWorld(
+            seed,
+            world.year,
+            world.ratingMode,
+            // A rule the reader chose is re-run on the new dice, which is what
+            // makes "start again" under `random` another throw of the field
+            // rather than the same shuffle again. The two ranked rules are their
+            // own fixed point, so they hand back the grid that was on screen.
+            nextLineup(world, seed, world.ratingMode),
+            world.engines,
+            world.randomness,
+            world.arrangement,
+          ),
+        ),
+      };
+    });
   },
 }));

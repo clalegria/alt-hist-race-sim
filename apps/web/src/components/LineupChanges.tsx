@@ -1,4 +1,4 @@
-import type { EngineChange, SeatChange } from "@alt-hist/data";
+import type { ArrangementKind, EngineChange, GridArrangement, SeatChange } from "@alt-hist/data";
 import { driverName, engineName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
@@ -28,6 +28,45 @@ import { useTeamName } from "./EntryNames.js";
  * survive into an applied season, because a grid with an open seat cannot be
  * applied.
  */
+
+/**
+ * What each bulk rule is called, in one place.
+ *
+ * The buttons that apply a rule and the notice that says one is in force read
+ * the same map, so the grid cannot end up reporting a rule by a different name
+ * from the one the reader pressed.
+ */
+export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
+  "fastest-in-fastest": "Fastest drivers in fastest teams",
+  "fastest-in-slowest": "Fastest drivers in slowest teams",
+  random: "Randomize grid",
+};
+
+/** What a rule did, in a sentence: the cast it drew on, and whether it repeats. */
+export function arrangementNote(arrangement: GridArrangement): string {
+  const cast = arrangement.includeUnemployed
+    ? "Drivers without a drive were in the running."
+    : "Only the drivers the season entered.";
+  return arrangement.retain ? `${cast} Kept for every season of the era.` : cast;
+}
+
+/**
+ * The rule a grid was arranged by, said on the grid it arranged.
+ *
+ * Its own line rather than a row of `GridChanges`, because it is not a change to
+ * a team: it is the answer to "why does this grid look like that", and the seat
+ * swaps underneath it are the working. It also has to be able to stand alone —
+ * a shuffle can land on the grid the season was entered with, and the reader who
+ * pressed the button is still owed a word about what happened.
+ */
+export function ArrangementNote({ arrangement }: { arrangement: GridArrangement }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2">
+      <span className="text-xs font-medium">{ARRANGEMENT_LABELS[arrangement.kind]}</span>
+      <span className="text-muted-foreground text-xs">{arrangementNote(arrangement)}</span>
+    </div>
+  );
+}
 
 /** "3 changes", or "1 change" — seats and engines counted together. */
 export function changeCount(
@@ -105,10 +144,13 @@ export function GridChanges({
 export function EditedGridBanner({
   changes,
   engineChanges = [],
+  arrangement = null,
   className,
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
+  /** The bulk rule the grid was arranged by, if it was one rather than swaps. */
+  arrangement?: GridArrangement | null;
   className?: string;
 }) {
   return (
@@ -125,6 +167,7 @@ export function EditedGridBanner({
           season as it was entered.
         </span>
       </div>
+      {arrangement === null ? null : <ArrangementNote arrangement={arrangement} />}
       <GridChanges changes={changes} engineChanges={engineChanges} />
     </div>
   );

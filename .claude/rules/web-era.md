@@ -52,6 +52,13 @@ loop changes. Keep it a single call. An edited lineup or engine supply is delibe
 but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
 switch; see `.claude/rules/web-store.md` for why.
 
+**A bulk rule does, if the reader ticked the box.** The grid editor's three
+rearrange-everything buttons carry a `retain` flag, and an era that has one re-runs the
+*rule* on each following year's own entry list — never the lineup, which was a grid for a
+year now behind them. Same split as the ability mode: how to play carries, one grid does
+not. `nextEraGrid` in the store is where it happens, for stepping and for jumping alike;
+`.claude/rules/grid-arrangements.md` owns the rest.
+
 **The dice do.** The next year's seed is `nextSeed(world.rngState)` — drawn from where
 the last season's generator stopped, in `lib/seed.ts`. So an era is reproducible end to
 end from the seed its first season was drawn on, which is what makes a bug report four

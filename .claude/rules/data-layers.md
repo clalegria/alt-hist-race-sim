@@ -3,6 +3,7 @@ paths:
   - "packages/data/src/buildField.ts"
   - "packages/data/src/lineup.ts"
   - "packages/data/src/carryOver.ts"
+  - "packages/data/src/arrange.ts"
   - "packages/data/src/engines.ts"
   - "packages/data/src/rating.ts"
 ---
@@ -104,6 +105,11 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     `in.length === out.length` on any *applied* grid — seats are preserved, so every
     arrival displaced someone — and the UI relies on it to print "X for Y". Mid-edit
     it can carry an `open` count and a longer `out`, which prints "Y out, seat empty".
+- `arrange.ts` is the editor's other bulk operation, and the fun one: the whole grid
+  reseated by **rule** rather than by hand — fastest drivers in fastest cars, fastest in
+  slowest, or shuffled. Like the carry-over it moves drivers and nothing else, and like
+  the carry-over it carries its own eligibility rule (`arrangeable`) rather than reading
+  the UI's pool filters. `.claude/rules/grid-arrangements.md` has all of it.
 - `carryOver.ts` is the editor's one bulk operation: **last season's drivers over this
   season's grid**. Teams, seat counts and engines are untouched — it moves people and
   nothing else — and a rename is invisible by construction, because a team is its id.

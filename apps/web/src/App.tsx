@@ -363,12 +363,13 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
           // handler is not passed either — the store would refuse it anyway, and
           // wiring a control that cannot fire is how one comes back by accident.
           canChooseAbility={run === undefined}
+          inEra={inEra}
           previousLineup={previousLineup}
           {...(run === undefined
             ? { onRatingModeChange: setRatingMode, onYearChange: switchSeasonYear }
             : {})}
           onGridChange={(edit) => {
-            setGrid(edit.lineup, edit.engines);
+            setGrid(edit.lineup, edit.engines, edit.arrangement);
           }}
           onGridEditingChange={setEditingGrid}
         />

@@ -1,0 +1,262 @@
+/**
+ * Rearranging the whole grid by rule.
+ *
+ * Rendered statically, like everything else here, so what these reach is the
+ * markup each state produces. The split is the same one the rest of the editor
+ * is under: **the rules themselves are unit-tested in `@alt-hist/data`**, where
+ * an arrangement is a pure function of a season and a cast; **where an applied
+ * rule ends up is tested in the store**, which is also where "the next year of
+ * an era is arranged the same way" lives; and what is left for this level is
+ * what the reader is *told* — which rule the panel says is chosen, and what the
+ * grid says about the season afterwards.
+ *
+ * The one thing no level here reaches is the click that puts a rule down again:
+ * clearing it on a hand edit is a handler on component state, and `web-app.md`
+ * lists that layer as out of reach without jsdom. What *is* covered is the
+ * consequence — a world carrying no arrangement says nothing about one.
+ */
+
+import {
+  ARRANGEMENT_KINDS,
+  type ArrangementKind,
+  authoredLineup,
+  type GridArrangement,
+  type RatingMode,
+  reserveDrivers,
+  swapDrivers,
+} from "@alt-hist/data";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { createWorld } from "../store/season.js";
+import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { GridArrangements, GridStage } from "./GridStage.js";
+import { ARRANGEMENT_LABELS, ArrangementNote, arrangementNote } from "./LineupChanges.js";
+import { SeasonGrid } from "./SeasonGrid.js";
+import { SeasonView } from "./SeasonView.js";
+
+/** The mode every fixture here is built and drawn in. */
+const MODE: RatingMode = "peak";
+
+const authored = authoredLineup(SEED);
+const SEATED = SEED.entries[0]?.drivers[0] ?? "";
+const RESERVE = reserveDrivers(authored)[0]?.id ?? "";
+if (SEATED === "" || RESERVE === "") {
+  throw new Error("the season needs a seated driver and a driver without a drive");
+}
+
+/** A rule as the editor hands one over. */
+const rules = (
+  kind: ArrangementKind,
+  { includeUnemployed = false, retain = false } = {},
+): GridArrangement => ({ kind, includeUnemployed, retain });
+
+const RANKED = rules("fastest-in-fastest");
+const RANKED_LABEL = ARRANGEMENT_LABELS["fastest-in-fastest"];
+
+/** A season run under a rule, with a swap so the change list is non-empty too. */
+const arrangedWorld = createWorld(
+  3,
+  YEAR,
+  MODE,
+  swapDrivers(authored, SEATED, RESERVE),
+  null,
+  undefined,
+  RANKED,
+);
+/** The same season under a rule that happened to land on the entered grid. */
+const unchangedWorld = createWorld(3, YEAR, MODE, null, null, undefined, RANKED);
+const plainWorld = seededWorld(3, MODE);
+
+/** Whether a button in the markup is pressed, by the label inside it. */
+function pressed(html: string, label: string): boolean {
+  const at = html.indexOf(label);
+  if (at === -1) {
+    throw new Error(`no button labelled "${label}"`);
+  }
+  // Back to the opening tag of the button this label sits in, then read the
+  // attribute off it. React writes `aria-pressed="true"` or `"false"`, so the
+  // absent case is a missing attribute and not a silent pass.
+  const tag = html.slice(html.lastIndexOf("<button", at), at);
+  return tag.includes('aria-pressed="true"');
+}
+
+/** The `checked` state of a checkbox, by the label text beside it. */
+function ticked(html: string, label: string): boolean {
+  const at = html.indexOf(label);
+  if (at === -1) {
+    throw new Error(`no checkbox labelled "${label}"`);
+  }
+  const input = html.slice(html.lastIndexOf("<input", at), at);
+  return input.includes('checked=""');
+}
+
+describe("what the rules are called", () => {
+  it("names every rule there is", () => {
+    // A fourth rule added to the data package without a label here would render
+    // an empty button, which is why this counts the map against the list.
+    for (const kind of ARRANGEMENT_KINDS) {
+      expect(ARRANGEMENT_LABELS[kind], kind).not.toBe("");
+    }
+    expect(Object.keys(ARRANGEMENT_LABELS).sort()).toEqual([...ARRANGEMENT_KINDS].sort());
+  });
+
+  it("says which cast a rule drew on", () => {
+    expect(arrangementNote(rules("random"))).toContain("the season entered");
+    expect(arrangementNote(rules("random", { includeUnemployed: true }))).toContain(
+      "without a drive",
+    );
+  });
+
+  it("says so when the rule is being kept for the rest of an era", () => {
+    expect(arrangementNote(rules("random"))).not.toContain("era");
+    expect(arrangementNote(rules("random", { retain: true }))).toContain("every season of the era");
+  });
+});
+
+describe("the panel of rules", () => {
+  const html = renderToStaticMarkup(
+    <GridArrangements chosen={null} includeUnemployed={false} retain={false} />,
+  );
+
+  it("offers all three, and says what pressing one costs", () => {
+    for (const kind of ARRANGEMENT_KINDS) {
+      expect(html, kind).toContain(ARRANGEMENT_LABELS[kind]);
+    }
+    expect(html).toContain("Rearrange the whole grid");
+    expect(html).toContain("by hand");
+  });
+
+  it("presses none of them until one is chosen", () => {
+    for (const kind of ARRANGEMENT_KINDS) {
+      expect(pressed(html, ARRANGEMENT_LABELS[kind]), kind).toBe(false);
+    }
+  });
+
+  it("marks exactly the chosen rule, whichever it is", () => {
+    for (const chosen of ARRANGEMENT_KINDS) {
+      const drawn = renderToStaticMarkup(
+        <GridArrangements chosen={chosen} includeUnemployed={false} retain={false} />,
+      );
+      for (const kind of ARRANGEMENT_KINDS) {
+        expect(pressed(drawn, ARRANGEMENT_LABELS[kind]), `${chosen}/${kind}`).toBe(kind === chosen);
+      }
+    }
+  });
+
+  it("offers the pool, unticked by default", () => {
+    expect(html).toContain("Include unemployed drivers");
+    expect(ticked(html, "Include unemployed drivers")).toBe(false);
+    const wide = renderToStaticMarkup(
+      <GridArrangements chosen={null} includeUnemployed retain={false} />,
+    );
+    expect(ticked(wide, "Include unemployed drivers")).toBe(true);
+  });
+
+  it("offers to keep the rule only inside an era, where there is a next year", () => {
+    expect(html).not.toContain("every season of the era");
+    const inEra = renderToStaticMarkup(
+      <GridArrangements chosen={null} includeUnemployed={false} retain inEra />,
+    );
+    expect(inEra).toContain("Keep this for every season of the era");
+    expect(ticked(inEra, "Keep this for every season of the era")).toBe(true);
+  });
+});
+
+describe("what the grid says about a rule in force", () => {
+  const html = renderToStaticMarkup(
+    <SeasonView world={arrangedWorld} view={{ kind: "grid" }} canChooseAbility={false} />,
+  );
+  const plain = renderToStaticMarkup(
+    <SeasonView world={plainWorld} view={{ kind: "grid" }} canChooseAbility={false} />,
+  );
+
+  it("names the rule on the grid the reader comes back to", () => {
+    expect(html).toContain("This grid was edited");
+    expect(html).toContain(RANKED_LABEL);
+  });
+
+  it("says nothing about a rule when nobody pressed one", () => {
+    expect(plain).not.toContain(RANKED_LABEL);
+    expect(plain).not.toContain("This grid was edited");
+  });
+
+  it("keeps the panel of rules out of the way until the editor is opened", () => {
+    // The rules are part of the editor, not of the page: the grid opens as
+    // something to read.
+    expect(html).not.toContain("Rearrange the whole grid");
+    expect(html).toContain("Edit grid");
+  });
+
+  it("says it even when the rule changed nobody", () => {
+    // A shuffle can land on the grid the season was entered with. There is then
+    // no swap to list, and the reader who pressed the button is still owed the
+    // word — which is why the notice does not hang off the change list.
+    const landed = renderToStaticMarkup(
+      <GridStage
+        field={unchangedWorld.field}
+        year={YEAR}
+        ratingMode={MODE}
+        lineup={unchangedWorld.lineup}
+        engines={null}
+        arrangement={unchangedWorld.arrangement}
+      />,
+    );
+    expect(unchangedWorld.lineup).toBeNull();
+    expect(landed).toContain(RANKED_LABEL);
+  });
+
+  it("draws the note on its own, with no change list beside it", () => {
+    const note = renderToStaticMarkup(<ArrangementNote arrangement={RANKED} />);
+    expect(note).toContain(RANKED_LABEL);
+    expect(note).toContain(arrangementNote(RANKED));
+  });
+});
+
+describe("what the season summary says about a rule", () => {
+  const html = renderToStaticMarkup(
+    <SeasonView world={arrangedWorld} view={{ kind: "summary" }} canChooseAbility={false} />,
+  );
+  const plain = renderToStaticMarkup(
+    <SeasonView world={plainWorld} view={{ kind: "summary" }} canChooseAbility={false} />,
+  );
+
+  it("declares it twice, like every other thing done to the grid", () => {
+    // Once in the banner above the champions, once on the grid at the foot: a
+    // championship won on a rearranged grid is a different claim from one won
+    // on the entry list, and the foot of the page is too late to find out.
+    expect(html.split(RANKED_LABEL)).toHaveLength(3);
+    expect(html.indexOf(RANKED_LABEL)).toBeLessThan(html.indexOf("champion"));
+  });
+
+  it("says nothing of it on a season nobody rearranged", () => {
+    expect(plain).not.toContain(RANKED_LABEL);
+  });
+
+  it("still does not borrow the accent the champions wear", () => {
+    expect(html.split("bg-primary/5")).toHaveLength(plain.split("bg-primary/5").length);
+  });
+});
+
+describe("the grid card on its own", () => {
+  it("draws the notice for a rule with no other changes at all", () => {
+    const html = renderToStaticMarkup(
+      <SeasonGrid
+        field={plainWorld.field}
+        seasonYear={YEAR}
+        ratingMode={MODE}
+        arrangement={RANKED}
+      />,
+    );
+    expect(html).toContain(RANKED_LABEL);
+  });
+
+  it("draws no notice without one", () => {
+    const html = renderToStaticMarkup(
+      <SeasonGrid field={plainWorld.field} seasonYear={YEAR} ratingMode={MODE} />,
+    );
+    expect(html).not.toContain("This grid was edited");
+    for (const kind of ARRANGEMENT_KINDS) {
+      expect(html, kind).not.toContain(ARRANGEMENT_LABELS[kind]);
+    }
+  });
+});
