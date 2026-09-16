@@ -7528,6 +7528,10 @@
       {
         "season": 2015,
         "severity": 0.3
+      },
+      {
+        "season": 2017,
+        "severity": 0.2
       }
     ]
   },
@@ -7593,7 +7597,17 @@
     "stepDown": {
       "season": 2010,
       "severity": 0.15
-    }
+    },
+    "offSeasons": [
+      {
+        "season": 2014,
+        "severity": 0.15
+      },
+      {
+        "season": 2017,
+        "severity": 0.8
+      }
+    ]
   },
   {
     "id": "webber",
@@ -8174,16 +8188,12 @@
         "severity": 1.0
       },
       {
-        "season": 2016,
-        "severity": 0.5
-      },
-      {
         "season": 2021,
         "severity": 0.5
       }
     ],
     "stepDown": {
-      "season": 2018,
+      "season": 2016,
       "severity": 0.2
     }
   },
@@ -8375,7 +8385,7 @@
     "debutSeason": 2010,
     "finalSeason": 2026,
     "peak": {
-      "season": 2015,
+      "season": 2014,
       "racing": 81,
       "qualifying": 84,
       "consistency": 78,
@@ -8387,6 +8397,10 @@
     "developmentSpeed": 5,
     "declineSpeed": 3,
     "offSeasons": [
+      {
+        "season": 2015,
+        "severity": 0.2
+      },
       {
         "season": 2016,
         "severity": 0.2
@@ -8553,16 +8567,16 @@
     "debutSeason": 2012,
     "finalSeason": 2013,
     "peak": {
-      "season": 2013,
-      "racing": 48,
-      "qualifying": 46,
+      "season": 2016,
+      "racing": 55,
+      "qualifying": 53,
       "consistency": 50,
       "adaptability": 48,
       "composure": 50,
-      "wetWeather": 47
+      "wetWeather": 52
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 6,
     "declineSpeed": 5
   },
   {
@@ -8619,16 +8633,16 @@
     "debutSeason": 2013,
     "finalSeason": 2013,
     "peak": {
-      "season": 2013,
-      "racing": 48,
-      "qualifying": 46,
+      "season": 2015,
+      "racing": 55,
+      "qualifying": 53,
       "consistency": 50,
       "adaptability": 48,
       "composure": 50,
-      "wetWeather": 47
+      "wetWeather": 53
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -8659,16 +8673,16 @@
     "debutSeason": 2013,
     "finalSeason": 2014,
     "peak": {
-      "season": 2014,
-      "racing": 44,
-      "qualifying": 42,
+      "season": 2015,
+      "racing": 49,
+      "qualifying": 47,
       "consistency": 48,
       "adaptability": 46,
       "composure": 48,
-      "wetWeather": 43
+      "wetWeather": 46
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 5,
+    "developmentSpeed": 8,
     "declineSpeed": 5
   },
   {
@@ -8789,15 +8803,15 @@
     "debutSeason": 2014,
     "finalSeason": 2015,
     "peak": {
-      "season": 2015,
-      "racing": 44,
-      "qualifying": 42,
+      "season": 2017,
+      "racing": 54,
+      "qualifying": 53,
       "consistency": 48,
       "adaptability": 46,
       "composure": 48,
-      "wetWeather": 43
+      "wetWeather": 53
     },
-    "peakSeasons": 2,
+    "peakSeasons": 4,
     "developmentSpeed": 4,
     "declineSpeed": 5
   },
@@ -8889,16 +8903,16 @@
     "debutSeason": 2015,
     "finalSeason": 2015,
     "peak": {
-      "season": 2015,
-      "racing": 44,
-      "qualifying": 42,
+      "season": 2017,
+      "racing": 57,
+      "qualifying": 53,
       "consistency": 48,
       "adaptability": 46,
       "composure": 48,
-      "wetWeather": 43
+      "wetWeather": 53
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 5,
     "declineSpeed": 5
   },
   {
@@ -8969,16 +8983,16 @@
     "debutSeason": 2016,
     "finalSeason": 2016,
     "peak": {
-      "season": 2016,
-      "racing": 40,
-      "qualifying": 38,
+      "season": 2018,
+      "racing": 52,
+      "qualifying": 50,
       "consistency": 44,
       "adaptability": 42,
-      "composure": 44,
-      "wetWeather": 39
+      "composure": 45,
+      "wetWeather": 46
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -9064,7 +9078,7 @@
       "wetWeather": 71
     },
     "peakSeasons": 6,
-    "developmentSpeed": 4,
+    "developmentSpeed": 6,
     "declineSpeed": 5
   },
   {
