@@ -72,6 +72,23 @@
   --color-wet-foreground: oklch(98% 0.01 250);
 
   /*
+   * Racing at home — the star a classification puts on an entry whose driver,
+   * team or engine supplier is from the country the round is held in.
+   *
+   * Pale gold, and a hue nothing else in the app uses: the primary red means
+   * "won the thing on screen" and the wet blue means "it rained", so a third
+   * mark had to be readable as neither. Gold because a home crowd is a small
+   * honour, not a result.
+   *
+   * Two tokens because the star is a *filled* shape: the pale fill alone
+   * disappears against the light theme's white card, so the darker edge draws
+   * it. Only ever decoration — the meaning is in the tooltip beside it, never
+   * in the colour alone.
+   */
+  --color-home: oklch(85% 0.11 88);
+  --color-home-edge: oklch(72% 0.125 80);
+
+  /*
    * Archivo is a grotesque with a signage/industrial cast — close enough to a
    * neutral UI face to stay legible in dense tables, far enough from the
    * default system stack to not read as unstyled. IBM Plex Mono carries every
@@ -145,6 +162,10 @@
    * own white text. The foreground is the same near-white in both themes. */
   --color-wet: oklch(50% 0.18 250);
   --color-wet-foreground: oklch(98% 0.01 250);
+  /* A touch deeper than dark's on both counts: a pale gold that reads as gold
+   * on a grey card washes out entirely on a white one. */
+  --color-home: oklch(82% 0.13 88);
+  --color-home-edge: oklch(62% 0.12 75);
 }
 
 /* Keeps scrollbars and form controls in step with the chosen theme. */

@@ -153,6 +153,15 @@ a truck, not a factory that slept in its own beds. Codes are ISO alpha-2, compar
 and whitespace-insensitively; anything absent — no round country, no entrant country, no
 engine — is simply no match. Set the constants to 0 to switch any share off.
 
+**The rule lives in `race/home.ts`, not in `simulateRace`.** `homeAllegiances(entrant,
+round)` returns the three booleans, `homeAdvantage(allegiances, constants)` prices them,
+and both are exported from the package — because the *flags* have a second reader. The
+web app stars an entry racing at home (`.claude/rules/web-display.md`), and a
+classification marking a different set of cars from the ones the race actually paid
+would be worse than marking none: two spellings of "is this driver at home" would drift
+the first time a country code was written with a stray space. Anything that needs to
+know who was at home calls this rather than comparing codes itself.
+
 Three properties hold it in place, each with a test:
 
 - **It draws no randomness.** The RNG stream after a race is identical with and

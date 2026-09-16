@@ -105,7 +105,11 @@ export function SeasonCalendar({
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={4} className="p-0">
                       <div className="bg-muted/40 border-border border-y px-3 py-3">
-                        <RaceClassification race={race} points={points} />
+                        {/*
+                          The round's own country, so an entry racing at home
+                          is starred here exactly as it is on the race screen.
+                        */}
+                        <RaceClassification race={race} points={points} country={round?.country} />
                       </div>
                     </TableCell>
                   </TableRow>

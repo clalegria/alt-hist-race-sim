@@ -29,6 +29,7 @@ import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
+import { HomeAdvantage } from "./HomeAdvantage.js";
 import { EditedGridBanner } from "./LineupChanges.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
@@ -363,7 +364,7 @@ function RaceStage({
           country={label.country}
           weather={race.weather}
         >
-          <RaceClassification race={race} points={points} badge />
+          <RaceClassification race={race} points={points} country={label.country} badge />
         </Section>
 
         <aside className="flex flex-col gap-4">
@@ -496,7 +497,7 @@ function SeasonBody({
         // race's, so a wet round has to say so here too.
         weather={round.weather}
       >
-        <QualifyingResults race={round} />
+        <QualifyingResults race={round} country={label.country} />
       </Section>
     );
   }
@@ -526,9 +527,10 @@ function SeasonBody({
  * every stage can be rendered and tested on its own. `App` is the thin shell
  * that connects it.
  *
- * Its own jobs are to publish **who is running whose engine**, taken off the
- * field as it was raced, and **which season's colours apply**, so a livery
- * overridden for this year is the one drawn everywhere below.
+ * Its own jobs are to publish **who is running whose engine**, **where everyone
+ * on the grid is from** — both taken off the field as it was raced — and
+ * **which season's colours apply**, so a livery overridden for this year is the
+ * one drawn everywhere below.
  *
  * Every table names teams through the first, so "Williams-Ford" is the same
  * name in the standings, the classification, the qualifying sheet and the
@@ -538,9 +540,11 @@ function SeasonBody({
 export function SeasonView(props: SeasonViewProps) {
   return (
     <EntryNames field={props.world.field}>
-      <Liveries year={props.world.year}>
-        <SeasonBody {...props} />
-      </Liveries>
+      <HomeAdvantage field={props.world.field}>
+        <Liveries year={props.world.year}>
+          <SeasonBody {...props} />
+        </Liveries>
+      </HomeAdvantage>
     </EntryNames>
   );
 }

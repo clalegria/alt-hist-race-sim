@@ -4,6 +4,7 @@ import { PODIUM_ROW, PODIUM_TEXT, STANDOUT_ROW, STANDOUT_TEXT } from "../lib/hig
 import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
+import { HomeStar } from "./HomeAdvantage.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -39,11 +40,17 @@ function gapOf(entry: RaceEntryResult): string {
 export function RaceClassification({
   race,
   points,
+  country,
   badge = false,
 }: {
   race: RaceResult;
   /** The season's points scale. What a finish is worth depends on the year. */
   points: PointsScale;
+  /**
+   * Where the round was held, so an entry racing at home can be starred. Absent
+   * for a sheet shown outside a round, which simply stars nobody.
+   */
+  country?: string | undefined;
   /**
    * Draw a livery badge on every row. On for the race screen, off where this
    * sheet is the *expansion* of a calendar row — nothing that only appears
@@ -94,12 +101,21 @@ export function RaceClassification({
                   finished || "text-muted-foreground",
                 )}
               >
-                <DriverName
-                  driverId={entry.driverId}
-                  teamId={entry.teamId}
-                  emphasis={won}
-                  badge={badge}
-                />
+                {/*
+                  The star trails the name block, aligned to its foot rather
+                  than its middle: the name is two lines, and a mark hung off
+                  the first of them would read as part of the driver's name
+                  rather than as a note on the entry.
+                */}
+                <span className="flex items-end gap-1.5">
+                  <DriverName
+                    driverId={entry.driverId}
+                    teamId={entry.teamId}
+                    emphasis={won}
+                    badge={badge}
+                  />
+                  <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
+                </span>
               </TableCell>
               <TableCell className={cn(CELL, "text-muted-foreground text-right tabular-nums")}>
                 {entry.gridPosition}

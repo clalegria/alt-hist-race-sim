@@ -13,6 +13,8 @@ import {
   constructorStandings,
   constructorsTitleClinchedBy,
   driversTitleClinchedBy,
+  homeAllegiances,
+  isAtHome,
   type SeasonResult,
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -347,17 +349,34 @@ describe("flags", () => {
   const rainIcons = (round: number): number =>
     world.season.races[round]?.weather.wet === true ? 1 : 0;
 
+  /**
+   * An entry racing at home wears a star, which is an `<svg>` like the rest.
+   * Counted off the grid and the calendar rather than written down: who is at
+   * home depends on where the round is and who the season entered, and both of
+   * those move whenever a season is authored.
+   */
+  const homeStars = (round: number): number => {
+    const country = SEED.calendar[round]?.country;
+    if (country === undefined) {
+      return 0;
+    }
+    return world.field.filter((entrant) => isAtHome(homeAllegiances(entrant, { country }))).length;
+  };
+
   it("flies a flag on every name on the race page", () => {
     const html = render({ kind: "race", round: 0 });
     // One for the round, one per car down the classification, then the
-    // collapsed sidebar: eight drivers and eight teams.
-    expect((html.match(/<svg/g) ?? []).length).toBe(1 + SEATS + 8 + 8 + rainIcons(0));
+    // collapsed sidebar: eight drivers and eight teams — plus a star on each
+    // car racing at home, and the cloud if it rained.
+    expect((html.match(/<svg/g) ?? []).length).toBe(
+      1 + SEATS + 8 + 8 + rainIcons(0) + homeStars(0),
+    );
   });
 
   it("flies a flag beside every driver in qualifying", () => {
     const html = render({ kind: "qualifying", round: 0 });
-    // Every car plus the round, and the cloud if it rained on it.
-    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1 + rainIcons(0));
+    // Every car plus the round, the home stars, and the cloud if it rained.
+    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1 + rainIcons(0) + homeStars(0));
   });
 
   it("keeps the non-qualifiers off the starting grid", () => {

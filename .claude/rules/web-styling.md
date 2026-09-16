@@ -57,7 +57,7 @@ token with a floor of ~4.8:1 on card in dark and ~4.4:1 in light. Opacity modifi
 are fine on *fills* — `bg-muted/60`, `bg-primary/10` — where nothing has to be read
 through them.
 
-## The one hue outside the palette
+## The hues outside the palette
 
 `--color-wet` / `--color-wet-foreground` is a blue, in a palette that is otherwise warm
 greys and a red. It earns the exception by naming a fact about the world rather than an
@@ -73,8 +73,16 @@ its foreground and 2.6:1 against the card; light `oklch(50% 0.18 250)` gives 5.6
 5.9:1. The foreground is the same near-white in both. Like gain and loss, it is always
 paired with a glyph — never colour alone.
 
+`--color-home` / `--color-home-edge` is the second such exception and earns it the same
+way: a pale gold for an entry racing at home, which is neither "won the thing on screen"
+nor "it rained", and a third mark in either of those hues would have read as one of them.
+**Two tokens because the star is a filled shape rather than a pill**: the pale fill
+carries it against the dark theme's grey card and vanishes against the light theme's
+white one, so the darker edge is what actually draws it there — which is also why the
+light values are deeper on both counts rather than the same gold twice.
+
 The existing "every dark token has a light value" assertion in `theme.test.ts` covers
-these two without needing a case of their own.
+all four without needing a case of their own.
 
 ## The background texture
 

@@ -127,6 +127,29 @@ which loads alongside this file.
 - **Actions live in a sticky header, repeated at the foot**, and every stage change
   scrolls to the top — otherwise stepping on from a race means scrolling past two
   28-row tables, then landing mid-page in the next session.
+- **An entry racing at home wears a star** — pale gold, trailing the entry's name in both
+  sessions: beside the team line under the driver on the grid, and at the foot of the same
+  two-line block in the classification. The two sheets deliberately put the same mark in
+  the same place relative to the same words; the grid slot's own corner was tried first
+  and read as a different mark on a different sheet. Who is at home is **not decided
+  here**: `HomeStar` asks the engine's `homeAllegiances` about the entrant off the field
+  as it was raced, so the sheet marks exactly the cars the race paid a bonus to. A driver
+  at home, a team at home and an engine supplier at home are three separate facts that
+  stack, and the tooltip names the ones that actually counted — `homeAdvantageLabel` in
+  `lib/home.ts` owns that sentence, and is where the wording is tested without rendering
+  anything. **Nothing at all is drawn for an entry with nobody at home**, for the reason
+  the weather badge draws nothing on a dry round: most of the field is away at most
+  rounds, and a column of faint stars says nothing. The meaning is in the tooltip, never
+  in the star alone, like the gain and loss arrows.
+  **The grid travels by context, the round's country by prop.** Where everyone is from is
+  a fact about the season, so `SeasonView` publishes it through `HomeAdvantage` exactly as
+  it publishes the engine supply; where a round was held is a fact about *one* round, and
+  the same classification component is rendered for Monza and for Interlagos. No country
+  means no stars, which is what keeps every DOM-less render outside a season working.
+  It is an `<svg>`, unlike the livery badge and the disclosure chevron — so **a test
+  counting flags by counting `<svg>` on a race or qualifying screen has to count the
+  stars too**, off the field and the calendar rather than by writing a number down.
+  `App.test.tsx` does this next to its rain-cloud count.
 - **Flags** go beside every driver and team everywhere they are named, via the shared
   `DriverName` / `TeamName` pair so they cannot end up in some tables and not others.
   SVGs from `country-flag-icons`, **all of them**, via `import * as` in

@@ -4,6 +4,7 @@ import { rollWeather, wetConstants, wetDriver } from "../weather/weather.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { developedCar } from "./development.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
+import { homeAdvantage, homeAllegiances } from "./home.js";
 import { powertrain } from "./powertrain.js";
 import type {
   DnfCause,
@@ -40,42 +41,6 @@ function normalCdf(x: number): number {
     (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
   const erf = 1 - poly * Math.exp(-z * z);
   return 0.5 * (1 + sign * erf);
-}
-
-/**
- * Whether two country codes are the same place. Case- and padding-insensitive,
- * and an absent code is nowhere: a field with no countries is never at home.
- */
-function sameCountry(a: string | undefined, b: string | undefined): boolean {
-  if (a === undefined || b === undefined) {
-    return false;
-  }
-  const left = a.trim().toUpperCase();
-  return left !== "" && left === b.trim().toUpperCase();
-}
-
-/**
- * Rating points a car collects for racing at home, added to both sessions.
- *
- * An entry has three allegiances — its driver, its team and its engine supplier
- * — and each is counted separately and stacks. A Frenchman in a Ligier-Matra at
- * Paul Ricard collects all three; a Brazilian in the same car collects two; an
- * Italian in a Cosworth-engined British car collects nothing at Monza but its
- * driver's share. A round with no host country hands out nothing at all.
- */
-function homeAdvantage(
-  entrant: RaceEntrant,
-  round: RoundContext,
-  constants: RaceConstants,
-): number {
-  const driverAtHome = sameCountry(entrant.driverCountry, round.country);
-  const teamAtHome = sameCountry(entrant.teamCountry, round.country);
-  const engineAtHome = sameCountry(entrant.engineCountry, round.country);
-  return (
-    (driverAtHome ? constants.homeAdvantageDriver : 0) +
-    (teamAtHome ? constants.homeAdvantageTeam : 0) +
-    (engineAtHome ? constants.homeAdvantageEngine : 0)
-  );
 }
 
 /** Deterministic tie-break, so equal scores never depend on sort implementation. */
@@ -293,7 +258,7 @@ export function simulateRace(
 
     // Where the race is, not who is in it: the same number is added to both
     // sessions, so a home crowd is worth as much on Saturday as on Sunday.
-    const homeBonus = homeAdvantage(entrant, round, constants);
+    const homeBonus = homeAdvantage(homeAllegiances(entrant, round), constants);
 
     return {
       entrant,

@@ -32,6 +32,13 @@ export {
   seasonProgress,
 } from "./race/development.js";
 export { qualifyingGapSeconds, raceGap } from "./race/gaps.js";
+export {
+  AWAY,
+  type HomeAllegiances,
+  homeAdvantage,
+  homeAllegiances,
+  isAtHome,
+} from "./race/home.js";
 export { powertrain } from "./race/powertrain.js";
 export {
   DEFAULT_RANDOMNESS_LEVEL,

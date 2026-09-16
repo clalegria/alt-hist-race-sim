@@ -6,6 +6,7 @@ import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
+import { HomeStar } from "./HomeAdvantage.js";
 import { TeamBadge } from "./TeamBadge.js";
 
 /**
@@ -15,7 +16,7 @@ import { TeamBadge } from "./TeamBadge.js";
  * size — a name that wrapped to two lines would throw the whole column out.
  * Names shorten to initials and then truncate instead.
  */
-function GridSlot({ entry }: { entry: RaceEntryResult }) {
+function GridSlot({ entry, country }: { entry: RaceEntryResult; country?: string | undefined }) {
   const nameOf = useEntryName();
   const nationality = driverCountry(entry.driverId);
   const pole = entry.gridPosition === 1;
@@ -42,7 +43,18 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
           driverId={entry.driverId}
           className={cn("text-sm", pole && "font-semibold")}
         />
-        <span className="text-muted-foreground truncate text-xs">{nameOf(entry.teamId)}</span>
+        {/*
+          The star trails the entry name, exactly as it does in the
+          classification — the two sheets show the same mark in the same place
+          relative to the same words, rather than one of them putting it in the
+          corner of the slot. `min-w-0` on the name and `shrink-0` on the star
+          keep the truncation on the name where it belongs: it is the team that
+          has to give way when the column is tight, never the mark.
+        */}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="text-muted-foreground truncate text-xs">{nameOf(entry.teamId)}</span>
+          <HomeStar driverId={entry.driverId} country={country} className="shrink-0" />
+        </span>
       </span>
       <span
         className={cn(
@@ -74,19 +86,35 @@ function GridSlot({ entry }: { entry: RaceEntryResult }) {
  * exactly half of it. Below `sm` the stagger is dropped entirely and the grid
  * becomes a single column, since two columns of names do not fit on a phone.
  */
-function StartingGrid({ starters }: { starters: readonly RaceEntryResult[] }) {
+function StartingGrid({
+  starters,
+  country,
+}: {
+  starters: readonly RaceEntryResult[];
+  country?: string | undefined;
+}) {
   return (
     <ol className="grid grid-cols-1 gap-2 sm:auto-rows-[3.75rem] sm:grid-cols-2 sm:gap-x-6 sm:gap-y-0 sm:pb-8">
       {starters.map((entry) => (
         <li key={entry.driverId} className="sm:even:translate-y-[1.875rem]">
-          <GridSlot entry={entry} />
+          <GridSlot entry={entry} country={country} />
         </li>
       ))}
     </ol>
   );
 }
 
-export function QualifyingResults({ race }: { race: RaceResult }) {
+export function QualifyingResults({
+  race,
+  country,
+}: {
+  race: RaceResult;
+  /**
+   * Where the round was held, so an entry racing at home can be starred. Absent
+   * for a grid shown outside a round, which simply stars nobody.
+   */
+  country?: string | undefined;
+}) {
   const order = [...race.entries].sort((a, b) => a.gridPosition - b.gridPosition);
   // Cars outside the cut never form up, so they do not belong on the grid.
   const starters = order.filter((entry) => entry.started);
@@ -94,7 +122,7 @@ export function QualifyingResults({ race }: { race: RaceResult }) {
 
   return (
     <div className="px-5 py-4">
-      <StartingGrid starters={starters} />
+      <StartingGrid starters={starters} country={country} />
 
       {nonQualifiers.length === 0 ? null : (
         <div className="border-border mt-2 border-t pt-4">
@@ -104,7 +132,7 @@ export function QualifyingResults({ race }: { race: RaceResult }) {
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-6">
             {nonQualifiers.map((entry) => (
               <li key={entry.driverId} className="opacity-60">
-                <GridSlot entry={entry} />
+                <GridSlot entry={entry} country={country} />
               </li>
             ))}
           </ul>
