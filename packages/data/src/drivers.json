@@ -7258,14 +7258,14 @@
     "finalSeason": 2012,
     "peak": {
       "season": 2002,
-      "racing": 64,
-      "qualifying": 62,
+      "racing": 73,
+      "qualifying": 72,
       "consistency": 66,
       "adaptability": 64,
       "composure": 66,
-      "wetWeather": 63
+      "wetWeather": 72
     },
-    "peakSeasons": 4,
+    "peakSeasons": 6,
     "developmentSpeed": 4,
     "declineSpeed": 4
   },
@@ -7596,9 +7596,13 @@
     "declineSpeed": 2,
     "stepDown": {
       "season": 2010,
-      "severity": 0.15
+      "severity": 0.1
     },
     "offSeasons": [
+      {
+        "season": 2013,
+        "severity": 0.1
+      },
       {
         "season": 2014,
         "severity": 0.15
@@ -7867,15 +7871,15 @@
     "debutSeason": 2005,
     "finalSeason": 2012,
     "peak": {
-      "season": 2005,
-      "racing": 46,
-      "qualifying": 44,
+      "season": 2009,
+      "racing": 48,
+      "qualifying": 47,
       "consistency": 50,
       "adaptability": 46,
       "composure": 50,
       "wetWeather": 45
     },
-    "peakSeasons": 3,
+    "peakSeasons": 7,
     "developmentSpeed": 4,
     "declineSpeed": 5
   },
@@ -8062,8 +8066,8 @@
     "finalSeason": 2013,
     "peak": {
       "season": 2008,
-      "racing": 83,
-      "qualifying": 85,
+      "racing": 81,
+      "qualifying": 84,
       "consistency": 80,
       "adaptability": 70,
       "composure": 77,
@@ -8071,7 +8075,11 @@
     },
     "peakSeasons": 3,
     "developmentSpeed": 5,
-    "declineSpeed": 6
+    "declineSpeed": 4,
+    "stepDown": {
+      "season": 2012,
+      "severity": 0.5
+    }
   },
   {
     "id": "nakajima_k",
@@ -8119,7 +8127,7 @@
       },
       {
         "season": 2012,
-        "severity": 0.4
+        "severity": 0.5
       },
       {
         "season": 2013,
@@ -8295,7 +8303,13 @@
     },
     "peakSeasons": 5,
     "developmentSpeed": 5,
-    "declineSpeed": 3
+    "declineSpeed": 3,
+    "offSeasons": [
+      {
+        "season": 2012,
+        "severity": 0.2
+      }
+    ]
   },
   {
     "id": "buemi",
@@ -8415,9 +8429,9 @@
     "debutSeason": 2010,
     "finalSeason": 2012,
     "peak": {
-      "season": 2011,
-      "racing": 64,
-      "qualifying": 63,
+      "season": 2012,
+      "racing": 67,
+      "qualifying": 64,
       "consistency": 67,
       "adaptability": 65,
       "composure": 68,
@@ -8451,6 +8465,10 @@
       "severity": 0.25
     },
     "offSeasons": [
+      {
+        "season": 2012,
+        "severity": 0.3
+      },
       {
         "season": 2015,
         "severity": 0.3
@@ -8521,8 +8539,8 @@
       "composure": 76,
       "wetWeather": 72
     },
-    "peakSeasons": 3,
-    "developmentSpeed": 5,
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 4
   },
   {
