@@ -50,19 +50,25 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     one engine, so fitting one always removes another. Swapping one changes the car
     without touching the chassis, which is the distinction the two names exist for.
 - `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
-  Driver weights were rebalanced (2026-09-02) toward the one rating the race score reads
-  directly: racing 0.6, qualifying 0.18, composure 0.10, consistency 0.07, wetWeather
-  0.05, adaptability 0. `wetWeather` is small because only ~15% of rounds are wet, not
-  because a wet race cares little about it.
+  Both weightings put most of the number on `racing`, the one rating the race score
+  reads directly: drivers 0.70 / qualifying 0.10 / composure 0.09 / consistency 0.06 /
+  wetWeather 0.05 / adaptability 0; cars 0.76 / qualifying 0.10 / reliability 0.11 /
+  consistency 0.03. `wetWeather` is small because only ~15% of rounds are wet, not
+  because a wet race cares little about it; `qualifying` is small on both because it
+  reaches a result only through grid position.
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.
-  - Car weights were rebalanced the same way (2026-09-03), toward the rating the race
-    score reads directly: racing 0.62, qualifying 0.19, reliability 0.14, consistency
-    0.05 — previously 0.45 / 0.2 / 0.25 / 0.1, which let the three supporting ratings
-    outvote pace and put a durable slow car level with a fragile quick one. Reliability
-    keeps a real share (a DNF forfeits a whole race) but it is a season-points term, not
-    a win-chance one.
+  - **The car's reliability weight is a compromise no era agrees with, and knowingly
+    errs low.** Reliability touches no score — it decides whether the car finishes — so
+    what a reliability point is worth tracks the season's `retirementFactor`, and that
+    spans a wide range across 1950-2026 while this formula does not vary by season. It
+    is pitched under the middle of that range because a grid page is read as "how quick
+    is this car", and because the error is far more visible in a low-attrition season,
+    where results track pace closely, than in a high-attrition one, where they are
+    scattered anyway. In the attrition eras reliability is worth more than 0.11 and the
+    overall does not say so. Reliability sits *above* qualifying, which is the ordering
+    `rating.test.ts` asserts.
   - `carOverall(chassis, engine)` takes a **chassis** and runs it through the engine's
     own `powertrain()` before weighting, so the headline number describes the car that
     gets raced. Omit the engine and it is the bare chassis. It never weights the engine

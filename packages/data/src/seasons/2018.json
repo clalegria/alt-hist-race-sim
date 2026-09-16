@@ -26,21 +26,21 @@
     { "round": 21, "name": "Abu Dhabi GP",     "circuit": "Yas Marina",              "country": "AE" }
   ],
   "engines": [
-    { "engineId": "mercedes", "racing":  96, "qualifying":  96, "reliability":  88 },
-    { "engineId": "ferrari",  "racing":  96, "qualifying":  94, "reliability":  88 },
-    { "engineId": "renault",  "racing":  82, "qualifying":  80, "reliability":  74 },
-    { "engineId": "honda",    "racing":  70, "qualifying":  68, "reliability":  66 }
+    { "engineId": "mercedes", "racing":  96, "qualifying":  96, "reliability":  91 },
+    { "engineId": "ferrari",  "racing":  96, "qualifying":  94, "reliability":  68 },
+    { "engineId": "renault",  "racing":  82, "qualifying":  80, "reliability":  54 },
+    { "engineId": "honda",    "racing":  70, "qualifying":  68, "reliability":  46 }
   ],
   "entries": [
-    { "teamId": "tyrrell",     "engineId": "mercedes", "chassis": { "racing":  94, "qualifying":  96, "consistency":  90, "reliability":  86 }, "drivers": ["hamilton", "bottas"] },
-    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  94, "qualifying":  94, "consistency":  86, "reliability":  82 }, "drivers": ["vettel", "raikkonen"] },
-    { "teamId": "stewart",     "engineId": "renault",  "chassis": { "racing":  88, "qualifying":  84, "consistency":  82, "reliability":  68 }, "drivers": ["ricciardo", "verstappen_m"] },
-    { "teamId": "toleman",     "engineId": "renault",  "chassis": { "racing":  70, "qualifying":  68, "consistency":  72, "reliability":  76 }, "drivers": ["hulkenberg", "sainz"] },
-    { "teamId": "haas",        "engineId": "ferrari",  "chassis": { "racing":  74, "qualifying":  72, "consistency":  68, "reliability":  68 }, "drivers": ["grosjean", "magnussen_k"] },
-    { "teamId": "mclaren",     "engineId": "renault",  "chassis": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  66 }, "drivers": ["alonso", "vandoorne"] },
-    { "teamId": "jordan",      "engineId": "mercedes", "chassis": { "racing":  68, "qualifying":  66, "consistency":  70, "reliability":  76 }, "drivers": ["perez", "ocon"] },
-    { "teamId": "sauber",      "engineId": "ferrari",  "chassis": { "racing":  64, "qualifying":  62, "consistency":  66, "reliability":  74 }, "drivers": ["ericsson", "leclerc"] },
-    { "teamId": "minardi",     "engineId": "honda",    "chassis": { "racing":  58, "qualifying":  56, "consistency":  60, "reliability":  64 }, "drivers": ["gasly", "hartley"] },
-    { "teamId": "williams",    "engineId": "mercedes", "chassis": { "racing":  44, "qualifying":  42, "consistency":  50, "reliability":  70 }, "drivers": ["stroll", "sirotkin"] }
+    { "teamId": "tyrrell",     "engineId": "mercedes", "chassis": { "racing":  92, "qualifying":  94, "consistency":  90, "reliability":  94 }, "developmentTrend":  2, "drivers": ["hamilton", "bottas"] },
+    { "teamId": "ferrari",     "engineId": "ferrari",  "chassis": { "racing":  98, "qualifying":  98, "consistency":  86, "reliability":  94 }, "developmentTrend":  -1, "drivers": ["vettel", "raikkonen"] },
+    { "teamId": "stewart",     "engineId": "renault",  "chassis": { "racing":  87, "qualifying":  83, "consistency":  82, "reliability":  60 }, "drivers": ["ricciardo", "verstappen_m"] },
+    { "teamId": "toleman",     "engineId": "renault",  "chassis": { "racing":  75, "qualifying":  73, "consistency":  72, "reliability":  60 }, "developmentTrend":  -1, "drivers": ["hulkenberg", "sainz"] },
+    { "teamId": "haas",        "engineId": "ferrari",  "chassis": { "racing":  68, "qualifying":  66, "consistency":  68, "reliability":  90 }, "developmentTrend":  -1, "drivers": ["grosjean", "magnussen_k"] },
+    { "teamId": "mclaren",     "engineId": "renault",  "chassis": { "racing":  62, "qualifying":  60, "consistency":  64, "reliability":  60 }, "developmentTrend":  -4, "drivers": ["alonso", "vandoorne"] },
+    { "teamId": "jordan",      "engineId": "mercedes", "chassis": { "racing":  65, "qualifying":  63, "consistency":  70, "reliability":  60 }, "drivers": ["perez", "ocon"] },
+    { "teamId": "sauber",      "engineId": "ferrari",  "chassis": { "racing":  65, "qualifying":  63, "consistency":  66, "reliability":  60 }, "developmentTrend":  2, "drivers": ["ericsson", "leclerc"] },
+    { "teamId": "minardi",     "engineId": "honda",    "chassis": { "racing":  75, "qualifying":  73, "consistency":  60, "reliability":  60 }, "drivers": ["gasly", "hartley"] },
+    { "teamId": "williams",    "engineId": "mercedes", "chassis": { "racing":  59, "qualifying":  57, "consistency":  50, "reliability":  92 }, "drivers": ["stroll", "sirotkin"] }
   ]
 }

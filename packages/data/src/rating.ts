@@ -30,32 +30,42 @@ import {
 /**
  * Driver weights.
  *
- * **Racing dominates, and by more than it used to.** It is the only rating that
- * feeds the race score directly, and the race score is the whole result — the
- * earlier 0.5 understated it badly next to what the model actually does with a
- * rating point. Everything else was toned down to pay for the rise to 0.6.
+ * **Racing is most of the number, because it is most of the result.** It is the
+ * only driver rating the race score reads directly, and the race score *is* the
+ * finishing order; everything else on this list reaches a result through some
+ * narrower channel. Anything much below 0.7 lets the supporting four speak over
+ * it — which is how a driver who is plainly quicker than the man beside him
+ * ends up with the lower headline number.
  *
- * Qualifying earns its share through grid position, which is worth up to three
- * points of race pace at pole. Composure sets the driver-error retirement rate,
- * and a retirement costs a whole race. Consistency is real but small — the pace
- * penalty spans roughly 1.8 points across the entire grid.
+ * Qualifying reaches the result only through grid position, and grid position
+ * is worth at most `gridAdvantagePole` (3.0 points of race pace) at the very
+ * front, decaying down the order. That is a real effect and a small one: it was
+ * priced here as though a qualifying point were a third of a racing point, when
+ * the channel it travels through is an order of magnitude narrower than that.
  *
- * Wet weather is the newest and the smallest of the four that count. It is not
- * small because it does not matter — in a wet race it carries three quarters of
- * the driver's pace — but because only about one race in seven is wet, and an
- * overall is an average over a season. 0.05 is roughly "the wet share of a
- * year, weighted by how much of a wet race it decides", which is the honest
- * reading of a number that is otherwise invisible for six rounds out of seven.
+ * Composure sets the driver-error retirement rate, and a retirement forfeits a
+ * whole race. Its true worth swings hard with the era — see the note on
+ * reliability below, which has the same problem in a sharper form — so like
+ * reliability it sits a little under what the high-attrition seasons alone
+ * would ask for.
+ *
+ * Consistency is real but small: the pace penalty spans roughly 1.8 points
+ * across the entire grid.
+ *
+ * Wet weather is the smallest of the five that count. Not because it does not
+ * matter — in a wet race it carries three quarters of the driver's pace — but
+ * because only about one race in seven is wet, and an overall is an average
+ * over a season.
  *
  * Adaptability is still zero because nothing reads it. Giving it weight would
  * make the overall claim a driver is better for something the sim never asks of
  * them. When the transfer market lands, this is the first number to revisit.
  */
 const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
-  racing: 0.6,
-  qualifying: 0.18,
-  composure: 0.1,
-  consistency: 0.07,
+  racing: 0.7,
+  qualifying: 0.1,
+  composure: 0.09,
+  consistency: 0.06,
   wetWeather: 0.05,
   adaptability: 0,
 };
@@ -67,25 +77,36 @@ const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
  * them — never to a bare chassis, so the headline number describes the thing
  * that races.
  *
- * **Racing carries nearly two thirds, because that is what the model does with
- * it.** A racing point goes into the race score at `weightCarRacing` (0.62) and
- * the race score is the finishing order; nothing else on this list comes close.
- * The earlier split let the other three outvote it — a fragile quick car and a
- * durable slow one landed on the same overall, when only one of them wins
- * races.
+ * **Racing is three quarters of the number, because pace is what a car is.** A
+ * racing point goes into the race score at `weightCarRacing` and the race score
+ * is the finishing order; nothing else on this list reaches a result so
+ * directly. The supporting three must not be able to outvote it — a quick,
+ * fragile car and a slow, durable one are not the same car, and a reader
+ * scanning the grid is asking which one is quick.
  *
- * Qualifying is worth about a third of racing, not a quarter of the number.
- * Its rating points buy grid position, and grid position is only worth up to
- * `gridAdvantagePole` (3.0 points) at the front, decaying down the order — real,
- * and an order of magnitude smaller than pace itself.
+ * Qualifying reaches the result only through grid position, worth at most
+ * `gridAdvantagePole` at the very front and decaying down the order. Real, and
+ * far narrower a channel than pace itself. It used to carry a fifth of the
+ * number, which priced a qualifying point at nearly a third of a racing point.
  *
- * Reliability is the one that used to be overweight. It touches no score at
- * all: it decides whether the car finishes. A ten-point gain buys roughly six
- * per cent more finishes, where ten points of racing is six points of race pace
- * — the difference between a midfielder and a winner. It keeps a real share
- * because ~42% of the 1980 field failed to finish and a retirement forfeits a
- * whole race, but it is a points-over-a-season term, not a wins term, and 0.25
- * priced it as though it were both.
+ * **Reliability is the hard one, and this weight is a compromise the eras
+ * cannot agree on.** It touches no score at all: it decides whether the car
+ * finishes. What that is worth depends entirely on how often cars break, and
+ * that is exactly what each season's `retirementFactor` sets — so a reliability
+ * point is worth several times more in 1966 than in 2019, while this formula is
+ * the same for both. One weight has to serve a run where roughly half the field
+ * once failed to see the flag and one where almost nobody does.
+ *
+ * It sits below the middle of that range on purpose, for two reasons. The first
+ * is what the number is for: a grid page is read as "how quick is this car", and
+ * a car that breaks is still a quick car. The second is where the error shows.
+ * In a high-attrition season results are scattered anyway, so a car ranked a
+ * place or two off reads as ordinary bad luck; in a low-attrition season results
+ * track pace closely, and the same error is glaring — a durable midfielder
+ * outranking a quick one that plainly beat it all year. Under-pricing
+ * reliability is therefore the cheaper mistake, and this is deliberately that
+ * mistake: in the attrition eras reliability is worth rather more than 0.11, and
+ * the overall knowingly does not say so.
  *
  * Consistency is the smallest by a distance. It costs pace through the
  * `consistencyPacePenalty` spread — under two points across the entire grid —
@@ -93,10 +114,10 @@ const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
  * wants. It is a texture rating, not a performance one.
  */
 const CAR_WEIGHTS: Readonly<Record<keyof CarSpec, number>> = {
-  racing: 0.62,
-  qualifying: 0.19,
-  reliability: 0.14,
-  consistency: 0.05,
+  racing: 0.76,
+  qualifying: 0.1,
+  reliability: 0.11,
+  consistency: 0.03,
 };
 
 function weighted<T>(ratings: T, weights: Readonly<Record<keyof T, number>>): number {

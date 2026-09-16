@@ -8183,7 +8183,7 @@
       }
     ],
     "stepDown": {
-      "season": 2019,
+      "season": 2018,
       "severity": 0.2
     }
   },
@@ -8769,16 +8769,16 @@
     "debutSeason": 2014,
     "finalSeason": 2018,
     "peak": {
-      "season": 2018,
-      "racing": 58,
-      "qualifying": 56,
+      "season": 2017,
+      "racing": 63,
+      "qualifying": 62,
       "consistency": 60,
       "adaptability": 58,
       "composure": 60,
-      "wetWeather": 57
+      "wetWeather": 60
     },
-    "peakSeasons": 3,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -9035,15 +9035,15 @@
     "debutSeason": 2017,
     "finalSeason": 2018,
     "peak": {
-      "season": 2018,
-      "racing": 56,
-      "qualifying": 54,
+      "season": 2020,
+      "racing": 66,
+      "qualifying": 64,
       "consistency": 58,
       "adaptability": 56,
       "composure": 58,
-      "wetWeather": 55
+      "wetWeather": 62
     },
-    "peakSeasons": 2,
+    "peakSeasons": 7,
     "developmentSpeed": 4,
     "declineSpeed": 5
   },
@@ -9135,16 +9135,16 @@
     "debutSeason": 2018,
     "finalSeason": 2018,
     "peak": {
-      "season": 2018,
-      "racing": 50,
-      "qualifying": 48,
+      "season": 2022,
+      "racing": 65,
+      "qualifying": 63,
       "consistency": 52,
       "adaptability": 50,
       "composure": 52,
-      "wetWeather": 49
+      "wetWeather": 63
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 6,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {

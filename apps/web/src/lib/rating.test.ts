@@ -49,8 +49,11 @@ describe("driverOverall", () => {
   });
 
   it("ranks qualifying, composure, consistency and wet weather in that order below it", () => {
-    const base = driverOverall(driver());
-    const bump = (key: keyof DriverRatings): number => driverOverall(driver({ [key]: 90 })) - base;
+    // Across the whole scale rather than a nudge off the middle: the overall is
+    // rounded to a whole number, so two weights a hundredth apart are
+    // indistinguishable over a short span and this would compare 4 against 4.
+    const bump = (key: keyof DriverRatings): number =>
+      driverOverall(driver({ [key]: 100 })) - driverOverall(driver({ [key]: 0 }));
     expect(bump("qualifying")).toBeGreaterThan(bump("composure"));
     expect(bump("composure")).toBeGreaterThan(bump("consistency"));
     // Last of the four that count, because only about one race in seven is wet
@@ -89,15 +92,20 @@ describe("carOverall", () => {
   });
 
   it("weighs racing first, and by more than the other three together", () => {
-    const base = carOverall(chassis());
-    const bump = (key: keyof ChassisSpec): number => carOverall(chassis({ [key]: 90 })) - base;
+    // Full scale, for the reason `driverOverall`'s ordering test spans it too.
+    const bump = (key: keyof ChassisSpec): number =>
+      carOverall(chassis({ [key]: 100 })) - carOverall(chassis({ [key]: 0 }));
     // Racing is the only rating the race score reads directly, so it must not
     // merely lead: the supporting three must not be able to outvote it.
     expect(bump("racing")).toBeGreaterThan(
       bump("qualifying") + bump("reliability") + bump("consistency"),
     );
-    expect(bump("qualifying")).toBeGreaterThan(bump("reliability"));
-    expect(bump("reliability")).toBeGreaterThan(bump("consistency"));
+    // Reliability above qualifying, and not the other way round: a car that
+    // does not finish scores nothing, while a qualifying point only buys grid
+    // position, which is worth a few points of race pace at the very front and
+    // less than that everywhere else.
+    expect(bump("reliability")).toBeGreaterThan(bump("qualifying"));
+    expect(bump("qualifying")).toBeGreaterThan(bump("consistency"));
   });
 });
 
