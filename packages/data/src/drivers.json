@@ -8120,6 +8120,10 @@
         "severity": 0.4
       },
       {
+        "season": 2019,
+        "severity": 0.2
+      },
+      {
         "season": 2022,
         "severity": 0.7
       },
@@ -8179,7 +8183,7 @@
       }
     ],
     "stepDown": {
-      "season": 2020,
+      "season": 2019,
       "severity": 0.2
     }
   },
@@ -8438,6 +8442,10 @@
         "severity": 0.3
       },
       {
+        "season": 2019,
+        "severity": 0.3
+      },
+      {
         "season": 2023,
         "severity": 0.2
       }
@@ -8526,6 +8534,10 @@
       {
         "season": 2014,
         "severity": 0.3
+      },
+      {
+        "season": 2019,
+        "severity": 0.2
       },
       {
         "season": 2024,
@@ -9073,7 +9085,13 @@
     },
     "peakSeasons": 8,
     "developmentSpeed": 5,
-    "declineSpeed": 3
+    "declineSpeed": 3,
+    "offSeasons": [
+      {
+        "season": 2019,
+        "severity": 0.8
+      }
+    ]
   },
   {
     "id": "leclerc",
@@ -9146,7 +9164,7 @@
       "wetWeather": 81
     },
     "peakSeasons": 5,
-    "developmentSpeed": 5,
+    "developmentSpeed": 7,
     "declineSpeed": 4
   },
   {
