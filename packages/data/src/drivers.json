@@ -7458,6 +7458,14 @@
       {
         "season": 2017,
         "severity": 0.4
+      },
+      {
+        "season": 2021,
+        "severity": 0.15
+      },
+      {
+        "season": 2022,
+        "severity": 0.25
       }
     ]
   },
@@ -8113,7 +8121,7 @@
       },
       {
         "season": 2022,
-        "severity": 0.6
+        "severity": 0.7
       },
       {
         "season": 2023,
@@ -8164,11 +8172,15 @@
       {
         "season": 2016,
         "severity": 0.5
+      },
+      {
+        "season": 2021,
+        "severity": 0.5
       }
     ],
     "stepDown": {
       "season": 2020,
-      "severity": 0.1
+      "severity": 0.2
     }
   },
   {
@@ -8424,6 +8436,10 @@
       {
         "season": 2015,
         "severity": 0.3
+      },
+      {
+        "season": 2023,
+        "severity": 0.2
       }
     ]
   },
@@ -8667,7 +8683,11 @@
         "season": 2015,
         "severity": 0.2
       }
-    ]
+    ],
+    "stepDown": {
+      "season": 2024,
+      "severity": 0.4
+    }
   },
   {
     "id": "kvyat",
@@ -8722,6 +8742,10 @@
       {
         "season": 2017,
         "severity": 0.4
+      },
+      {
+        "season": 2024,
+        "severity": 0.3
       }
     ]
   },
@@ -8980,15 +9004,15 @@
     "finalSeason": 2021,
     "peak": {
       "season": 2020,
-      "racing": 60,
-      "qualifying": 58,
+      "racing": 66,
+      "qualifying": 64,
       "consistency": 62,
       "adaptability": 60,
       "composure": 62,
-      "wetWeather": 59
+      "wetWeather": 65
     },
     "peakSeasons": 3,
-    "developmentSpeed": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -9060,8 +9084,8 @@
     "finalSeason": 2026,
     "peak": {
       "season": 2025,
-      "racing": 89,
-      "qualifying": 92,
+      "racing": 88,
+      "qualifying": 91,
       "consistency": 84,
       "adaptability": 88,
       "composure": 84,
@@ -9071,6 +9095,14 @@
     "developmentSpeed": 8,
     "declineSpeed": 5,
     "offSeasons": [
+      {
+        "season": 2021,
+        "severity": 0.2
+      },
+      {
+        "season": 2023,
+        "severity": 0.2
+      },
       {
         "season": 2026,
         "severity": 0.35
@@ -9138,6 +9170,10 @@
     "declineSpeed": 5,
     "offSeasons": [
       {
+        "season": 2021,
+        "severity": 0.4
+      },
+      {
         "season": 2026,
         "severity": 0.3
       }
@@ -9160,7 +9196,7 @@
       "wetWeather": 90
     },
     "peakSeasons": 11,
-    "developmentSpeed": 7,
+    "developmentSpeed": 6,
     "declineSpeed": 4,
     "offSeasons": [
       {
@@ -9178,12 +9214,12 @@
     "finalSeason": 2022,
     "peak": {
       "season": 2021,
-      "racing": 48,
-      "qualifying": 46,
+      "racing": 60,
+      "qualifying": 58,
       "consistency": 52,
       "adaptability": 48,
       "composure": 52,
-      "wetWeather": 47
+      "wetWeather": 55
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
@@ -9197,17 +9233,17 @@
     "debutSeason": 2021,
     "finalSeason": 2022,
     "peak": {
-      "season": 2022,
-      "racing": 58,
-      "qualifying": 56,
-      "consistency": 58,
+      "season": 2025,
+      "racing": 73,
+      "qualifying": 72,
+      "consistency": 63,
       "adaptability": 58,
       "composure": 58,
-      "wetWeather": 57
+      "wetWeather": 65
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 5,
-    "declineSpeed": 5
+    "peakSeasons": 6,
+    "developmentSpeed": 7,
+    "declineSpeed": 4
   },
   {
     "id": "mazepin",
@@ -9218,8 +9254,8 @@
     "finalSeason": 2021,
     "peak": {
       "season": 2021,
-      "racing": 40,
-      "qualifying": 38,
+      "racing": 45,
+      "qualifying": 42,
       "consistency": 44,
       "adaptability": 42,
       "composure": 42,
@@ -9246,7 +9282,7 @@
       "wetWeather": 68
     },
     "peakSeasons": 4,
-    "developmentSpeed": 5,
+    "developmentSpeed": 9,
     "declineSpeed": 4,
     "offSeasons": [
       {
@@ -9264,8 +9300,8 @@
     "finalSeason": 2024,
     "peak": {
       "season": 2023,
-      "racing": 58,
-      "qualifying": 56,
+      "racing": 66,
+      "qualifying": 65,
       "consistency": 60,
       "adaptability": 58,
       "composure": 60,
@@ -9310,12 +9346,12 @@
     "finalSeason": 2024,
     "peak": {
       "season": 2024,
-      "racing": 44,
-      "qualifying": 42,
+      "racing": 58,
+      "qualifying": 57,
       "consistency": 48,
       "adaptability": 46,
       "composure": 48,
-      "wetWeather": 41
+      "wetWeather": 56
     },
     "peakSeasons": 2,
     "developmentSpeed": 4,
