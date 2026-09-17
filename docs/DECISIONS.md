@@ -48,17 +48,11 @@ here. Read this before starting new feature work.
   changed on the strength of that; whether the tuner should see a season's own factor is
   the author's call.
 
-**The rest of this section is now live rather than hypothetical: 1981 is authored and
-playable, and the constant is still 1980's.**
-- **Starting limit per era.** `maxStarters` is a single constant pinned at 26 for
-  1980. Real limits moved (and modern grids sit under any of them), so it probably
-  belongs to the season data rather than the race constants. 1981's real limit was
-  24; the authored 32-car grid against a limit of 26 gives 6 DNQs a weekend, which
-  matches the real 1981 count by coincidence — 30 entries for 24 places — rather than
-  by modelling. Moving the limit into `SeasonSeed` is a change to the race model's
-  inputs, so it needs the author's word. Related and unmodelled: real DNQs were
-  decided by pre-qualifying and by teams entering different cars at different rounds,
-  whereas here the same entry list contests every race.
+- **The starting limit stays one constant — decided, and the author's decision is not
+  to model it.** `maxStarters` is pinned at 26; real limits moved across the eras, and
+  moving it into `SeasonSeed` was considered and dropped. Related and likewise
+  unmodelled: real DNQs were decided by pre-qualifying and by teams entering different
+  cars at different rounds, whereas here the same entry list contests every race.
 
 ## Engine manufacturers
 

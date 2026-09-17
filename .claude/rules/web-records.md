@@ -7,9 +7,10 @@ paths:
 # Web app — the career statistics
 
 The bottom half of the era's champions screen. The screen itself, the run it reads and
-the roll of honour above it are `.claude/rules/web-era.md`; the display conventions every
-table here follows — the accent, the badges, how a name is fitted to a column — are
-`.claude/rules/web-display.md`.
+the roll of honour above it are `.claude/rules/web-era.md`. The display conventions every
+table here follows are next door: the accent in `.claude/rules/web-display.md`, the badges
+in `.claude/rules/web-liveries.md`, and how a name is fitted to a column in
+`.claude/rules/web-names.md`.
 
 Under the roll of honour, the same seasons read down the other axis: the roll says who
 won each year, this says **who won the era**. Eight cards — championships, race wins,

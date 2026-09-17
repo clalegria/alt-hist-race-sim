@@ -58,7 +58,7 @@ its position**: a driver does not change colour for finishing second.
 `legible()` returns a `color-mix(…, var(--color-foreground))`, and **`var()` does not
 work in an SVG presentation attribute** — `stroke="var(--x)"` is silently ignored, and
 an ignored stroke is an invisible line, which is the same failure mode
-`.claude/rules/web-display.md` records for `oklch(from …)`. So:
+`.claude/rules/web-liveries.md` records for `oklch(from …)`. So:
 
 - each series colour is set as a `--series-N` custom property on the card, and
 - the stroke is applied by a **CSS rule** — `SERIES_STROKE`, a list of literal class

@@ -74,7 +74,7 @@ drift apart; the **seasons** are checked the same two ways at runtime by
   - An engine has **three ratings, not four**: consistency belongs to the chassis. The
     engine package blends the two in `powertrain()` by two ratios — 0.3 of a car's pace
     against the chassis's 0.7, and an even half of its reliability — see
-    `.claude/rules/race-engine.md`.
+    `.claude/rules/race-powertrain.md`.
 
 ## Adding a season
 

@@ -12,7 +12,8 @@ paths:
 The opening screen of a season and the only screen that changes what gets simulated.
 Split out of `.claude/rules/web-display.md`, which still owns everything downstream of
 the grid — the sessions, the tables and the accent — and which loads alongside this one
-whenever you are in `src/components/`. How either list is *ordered* and how the pool is
+whenever you are in `src/components/`; naming is `.claude/rules/web-names.md` and the
+team colours this screen washes its cards with are `.claude/rules/web-liveries.md`. How either list is *ordered* and how the pool is
 *narrowed* moved out again, to `.claude/rules/web-lists.md`, which loads here too. The
 architecture underneath all three, including why the draft lives where it does, is in
 `.claude/rules/web-app.md`.

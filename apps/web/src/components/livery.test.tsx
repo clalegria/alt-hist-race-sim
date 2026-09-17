@@ -18,7 +18,7 @@ import { SEED, seededWorld, teamCount, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { SeasonGrid } from "./SeasonGrid.js";
+import { NAME_TARGET, SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
 import { BADGE_SHAPE, badgeBackground, TeamBadge } from "./TeamBadge.js";
@@ -216,6 +216,31 @@ describe("where liveries appear", () => {
     <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={world.ratingMode} />,
   );
 
+  /** Grid cards whose team has colours to draw — the rest wear no badge. */
+  const badgedCards = [...new Set(world.field.map((entrant) => entrant.teamId))].filter(
+    (teamId) => liveryFor(teamId, YEAR) !== undefined,
+  ).length;
+
+  it("puts a badge on every grid card beside the team's flag", () => {
+    // Counted off the field rather than a written-down number of teams, and
+    // against the flags in the same headers: one badge per card, no more.
+    expect(badgeCount(grid)).toBe(badgedCards);
+  });
+
+  it("draws the grid card's badge after its flag and before the team name", () => {
+    // Scoped to one card header rather than to the whole page: a bare
+    // "an svg appears before a badge somewhere in this markup" would pass on
+    // any icon anywhere above the grid, and assert nothing.
+    const badgeAt = grid.indexOf(BADGE_SHAPE);
+    const beforeTheBadge = grid.slice(grid.lastIndexOf(NAME_TARGET, badgeAt), badgeAt);
+    expect(beforeTheBadge).toContain("<svg");
+    // The name is the truncating span, and it has not been drawn yet.
+    expect(beforeTheBadge).not.toContain("truncate");
+    // As in the classification: order in the markup is only half of it if the
+    // row is then flipped visually.
+    expect(grid).not.toContain("row-reverse");
+  });
+
   it("washes every grid card toward its team's primary colour", () => {
     const cards = teamCount(world);
     expect(grid.split("background-image:").length - 1).toBe(cards);
@@ -251,7 +276,8 @@ describe("where liveries appear", () => {
     const drivers = championshipStandings(world.season, world.points).length;
     const teams = constructorStandings(world.season, world.points).length;
     const rounds = world.season.races.length;
-    expect(badgeCount(summary)).toBe(2 + drivers + teams + 2 * rounds);
+    // Plus the grid panel below the tables, which badges its cards too.
+    expect(badgeCount(summary)).toBe(2 + drivers + teams + 2 * rounds + badgedCards);
   });
 
   it("outlines every grid card in its team's first accent", () => {

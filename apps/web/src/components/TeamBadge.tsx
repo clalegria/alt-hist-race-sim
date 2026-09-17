@@ -82,12 +82,49 @@ export function badgeBackground(livery: Livery): string {
  * `NAME_TARGET` in `SeasonGrid`, the whole string is the marker.
  *
  * The hairline keeps a white or near-black primary from dissolving into the
- * page in one theme or the other. The size is against the row rather than the
- * text beside it: this is a mark for a whole entry, not a glyph in a sentence,
- * so it is deliberately larger than the flag next to it.
+ * page in one theme or the other.
+ *
+ * **The size is deliberately not part of it.** `DEFAULT_SIZE` is applied
+ * alongside, so a call site that overrides it through `className` —
+ * tailwind-merge dropping the default as a conflict — still renders this whole
+ * string and is still counted. Folding the two together made a resized badge
+ * invisible to every test that counts them, which is a silent failure.
  */
-export const BADGE_SHAPE =
-  "border-border/60 inline-block size-[1.5em] shrink-0 rounded-full border";
+export const BADGE_SHAPE = "border-border/60 inline-block shrink-0 rounded-full border";
+
+/**
+ * The size against the row rather than the text beside it: this is a mark for a
+ * whole entry, not a glyph in a sentence, so by default it is deliberately
+ * larger than the flag next to it.
+ */
+const DEFAULT_SIZE = "size-[1.5em]";
+
+/**
+ * The disc itself, drawn from colours the caller already has.
+ *
+ * `SeasonGrid` resolves liveries from the year it is handed rather than from
+ * the `Liveries` context — that is what lets the grid editor preview a draft
+ * the world has never seen — so it cannot use `TeamBadge`, which reads the
+ * context. It gets this instead, and both draw the same shape so a test
+ * counting `BADGE_SHAPE` finds badges wherever they are.
+ */
+export function LiveryBadge({
+  livery,
+  className,
+}: {
+  livery: Livery;
+  className?: string | undefined;
+}) {
+  return (
+    <span
+      // Decorative: the team is named in the same row, so a screen reader
+      // reading a colour here would only add noise.
+      aria-hidden="true"
+      className={cn(BADGE_SHAPE, DEFAULT_SIZE, className)}
+      style={{ background: badgeBackground(livery) }}
+    />
+  );
+}
 
 export function TeamBadge({ teamId, className }: { teamId: string; className?: string }) {
   const liveryOf = useLivery();
@@ -97,13 +134,5 @@ export function TeamBadge({ teamId, className }: { teamId: string; className?: s
   if (livery === undefined) {
     return null;
   }
-  return (
-    <span
-      // Decorative: the team is named in the same row, so a screen reader
-      // reading a colour here would only add noise.
-      aria-hidden="true"
-      className={cn(BADGE_SHAPE, className)}
-      style={{ background: badgeBackground(livery) }}
-    />
-  );
+  return <LiveryBadge livery={livery} className={className} />;
 }

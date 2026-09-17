@@ -64,7 +64,7 @@ heading naming whose career it is stays put while the years scroll under it.
 
 **It must not repeat the row it opened from** — inside the list. No badges, no
 liveries, nothing that only restates the row the reader just left, which is the rule
-from `web-display.md`. A zero is left out of a season's figures for the same reason a
+from `web-liveries.md`. A zero is left out of a season's figures for the same reason a
 career on zero is left off a record card: "12 pts · 0 wins · 0 podiums · 0 poles" forty
 times over buries the four lines the panel was opened for.
 

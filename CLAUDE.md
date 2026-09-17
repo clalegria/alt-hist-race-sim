@@ -182,8 +182,6 @@ question is open without carrying the argument.
   factor against `targets.ts`, while every season carries its own — so the tuner is
   answering a slightly different question from the one the season asks. Either change is a
   tuning decision, and the author's.
-- **Starting limit per era** — `maxStarters` is pinned at 26; real 1981 took 24. Belongs in
-  `SeasonSeed` beside the retirement factor; needs the author's word.
 - **Consistency's spread lever is open** (1.3 / 0.75): it buys wildcards, and hands the
   best pairing a little more win share than a flat 1.0 would. Wet racing's retirement
   drift is corrected — the four DNF endpoints carry x0.985 / x0.90

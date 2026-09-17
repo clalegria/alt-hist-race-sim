@@ -10,7 +10,7 @@ paths:
 # Retirement factor — how hard a season is on its cars
 
 One authored number per season file, `retirementFactor`, 1–10, **5 = the constants
-untouched**. It is the first of roadmap item 5's *seasonal factors*, and the one number
+untouched**. It is the first of the roadmap's *seasonal factors*, and the one number
 in the project with a real target behind every single year — `pnpm retirements --sweep`
 answers it against the actual record.
 
@@ -98,10 +98,10 @@ factor answers that partial record and should be revisited when the year finishe
   season is already ~400 coin flips.
 - **This harness is the one exception to "do not run a harness to check something"**,
   and only for this number: the author asked for the per-season retirement dial
-  (roadmap item 5). Nothing it prints is a reason to move a chassis, an engine or a
-  driver rating.
+  (*seasonal factors* in the roadmap). Nothing it prints is a reason to move a chassis,
+  an engine or a driver rating.
 - Adding a season means authoring its factor too. Start at 5, run
   `pnpm retirements --sweep --year <n>`, take the best. `validateSeedData` rejects
   anything that is not a whole 1–10.
-- The remaining two thirds of roadmap item 5 — per-season cosmetic gaps and
-  `maxStarters` — are untouched. Both are still one global constant.
+- What is left of *seasonal factors* is the per-season cosmetic gaps, still one global
+  constant.
