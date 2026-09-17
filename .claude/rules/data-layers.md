@@ -75,6 +75,17 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     own `powertrain()` before weighting, so the headline number describes the car that
     gets raced. Omit the engine and it is the bare chassis. It never weights the engine
     itself — with two blend ratios in play, a second copy would be twice as wrong.
+  - **`compareByRating` is how drivers and teams are put in order, everywhere: overall
+    first, racing second, best first.** An overall is a *rounded* weighted average, so two
+    rows on 84 is ordinary rather than exotic, and racing is most of that weight and the
+    one rating the race score reads directly — the racier of the two is the one the season
+    will treat as quicker, and answering the tie alphabetically answers a question nobody
+    reading a rating column is asking. It deliberately stops there, returning 0 for two
+    rows level on both, so the caller composes its own last word: the name in a list, the
+    team id or driver id in `arrange.ts`, last season's seat order in `carryOver.ts`.
+    `carRacing(chassis, engine)` is the car half, the blend and **unrounded** — nothing
+    prints it, and rounding is the thing that made the tie. `apps/web/src/lib/sort.ts`
+    applies it to both lists on screen; see `.claude/rules/web-lists.md`.
 - `lineup.ts` is the seat-allocation layer over a season seed: a `SeasonLineup` is
   `Record<teamId, driverIds>` with the same keys and the same seat counts as the
   season it overrides, and `applyLineup(season, lineup)` hands back a `SeasonSeed`
@@ -129,7 +140,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   (2) a car at the team they already drive for, (3) nothing. Nobody holds two seats, so
   (1) beating (2) is what makes cars fall vacant, and those holes are the point: the
   reader has to say who drives them before the grid can be applied. A team that lost a
-  car carries over the strongest of last year's drivers by `driverOverall`; one that
+  car carries over the strongest of last year's drivers by `compareByRating`, last
+  season's seat order settling a dead heat; one that
   gained a car fills the rest under (2). `CARRY_OVER_AGES` (16–55, read against real
   age in the season, never peak age) is the one judgement in the file — a driver
   outside it is not carried, and is not barred from being placed by hand.

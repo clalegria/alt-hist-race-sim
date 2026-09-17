@@ -12,23 +12,25 @@ import { DEFAULT_SORT_ORDER, sortBy } from "./sort.js";
 interface Row {
   readonly name: string;
   readonly overall: number;
+  readonly racing: number;
 }
 
 const ROWS: readonly Row[] = [
-  { name: "Charlie", overall: 70 },
-  { name: "Alpha", overall: 55 },
-  { name: "Delta", overall: 91 },
-  { name: "Bravo", overall: 70 },
+  { name: "Charlie", overall: 70, racing: 80 },
+  { name: "Alpha", overall: 55, racing: 99 },
+  { name: "Delta", overall: 91, racing: 60 },
+  { name: "Bravo", overall: 70, racing: 90 },
 ];
 
 const order = (rows: readonly Row[]) => rows.map((row) => row.name);
 
-const sorted = (mode: Parameters<typeof sortBy>[1]) =>
+const sorted = (mode: Parameters<typeof sortBy>[1], rows: readonly Row[] = ROWS) =>
   sortBy(
-    ROWS,
+    rows,
     mode,
     (row) => row.name,
     (row) => row.overall,
+    (row) => row.racing,
   );
 
 describe("ordering a list", () => {
@@ -41,11 +43,32 @@ describe("ordering a list", () => {
     expect(order(sorted("overall"))).toEqual(["Delta", "Bravo", "Charlie", "Alpha"]);
   });
 
-  it("breaks a tie on the name, so equal ratings hold still", () => {
-    // Charlie and Bravo are both on 70, and Bravo comes first — the tie is
-    // broken alphabetically rather than by whatever order they arrived in.
+  it("leaves the overall in charge, whatever the racing rating says", () => {
+    // Alpha has the highest racing rating on the list and the lowest overall,
+    // and comes last: racing settles a tie, it does not outvote the headline.
+    expect(order(sorted("overall")).at(-1)).toBe("Alpha");
+  });
+
+  it("breaks a tie on the racing rating, not on the name", () => {
+    // Bravo and Charlie are both on 70 — Bravo is the quicker of the two and
+    // comes first, which alphabetical order happens to agree with, so here is
+    // a pair where the two answers differ.
+    const rows: readonly Row[] = [
+      { name: "Zulu", overall: 70, racing: 90 },
+      { name: "Alpha", overall: 70, racing: 80 },
+    ];
+    expect(order(sorted("overall", rows))).toEqual(["Zulu", "Alpha"]);
     const names = order(sorted("overall"));
     expect(names.indexOf("Bravo")).toBeLessThan(names.indexOf("Charlie"));
+  });
+
+  it("falls back to the name when both ratings are level, so equals hold still", () => {
+    const rows: readonly Row[] = [
+      { name: "Zulu", overall: 70, racing: 80 },
+      { name: "Mike", overall: 70, racing: 80 },
+      { name: "Alpha", overall: 70, racing: 80 },
+    ];
+    expect(order(sorted("overall", rows))).toEqual(["Alpha", "Mike", "Zulu"]);
   });
 
   it("leaves the list it was handed alone", () => {

@@ -91,7 +91,7 @@ export {
   ratedAge,
   withAge,
 } from "./people.js";
-export { carOverall, driverOverall } from "./rating.js";
+export { carOverall, carRacing, compareByRating, driverOverall, type Rated } from "./rating.js";
 export { seasonConstants } from "./seasonConstants.js";
 export {
   authoredSeasons,

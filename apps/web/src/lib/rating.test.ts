@@ -1,7 +1,7 @@
 import { buildField, FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
-import type { ChassisSpec, DriverRatings } from "@alt-hist/engine";
+import type { ChassisSpec, DriverRatings, EngineSpec } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
-import { carOverall, driverOverall } from "./rating.js";
+import { carOverall, carRacing, compareByRating, driverOverall } from "./rating.js";
 
 function driver(overrides: Partial<DriverRatings> = {}): DriverRatings {
   return {
@@ -17,6 +17,10 @@ function driver(overrides: Partial<DriverRatings> = {}): DriverRatings {
 
 function chassis(overrides: Partial<ChassisSpec> = {}): ChassisSpec {
   return { racing: 50, qualifying: 50, consistency: 50, reliability: 50, ...overrides };
+}
+
+function engine(overrides: Partial<EngineSpec> = {}): EngineSpec {
+  return { racing: 50, qualifying: 50, reliability: 50, ...overrides };
 }
 
 describe("driverOverall", () => {
@@ -140,5 +144,64 @@ describe("against the authored grid", () => {
     // weighting bug that returned a constant would pass every scale check above.
     expect(new Set(field.map((entrant) => driverOverall(entrant.driver))).size).toBeGreaterThan(1);
     expect(new Set(field.map((entrant) => carOverall(entrant.chassis))).size).toBeGreaterThan(1);
+  });
+});
+
+describe("carRacing", () => {
+  it("is the bare chassis when there is no engine", () => {
+    expect(carRacing(chassis({ racing: 63 }))).toBe(63);
+  });
+
+  it("reads the blend, so the engine moves it and the other ratings do not", () => {
+    const base = carRacing(chassis(), engine());
+    expect(carRacing(chassis(), engine({ racing: 90 }))).toBeGreaterThan(base);
+    expect(carRacing(chassis({ racing: 90 }), engine())).toBeGreaterThan(base);
+    for (const key of ["qualifying", "consistency", "reliability"] as const) {
+      expect(carRacing(chassis({ [key]: 100 }), engine())).toBe(base);
+    }
+  });
+
+  it("sits between the two it blends, never outside them", () => {
+    const blended = carRacing(chassis({ racing: 80 }), engine({ racing: 40 }));
+    expect(blended).toBeGreaterThan(40);
+    expect(blended).toBeLessThan(80);
+  });
+
+  it("separates two cars an overall cannot, which is what it is for", () => {
+    // Searched rather than hand-picked, so this does not become an assertion
+    // about the weights: somewhere on the scale two engines must land the same
+    // rounded overall in the same chassis, and there the pace still differs.
+    // Rounding an overall throws that difference away; the tie-break exists to
+    // keep it.
+    const cars = Array.from({ length: 101 }, (_, racing) => engine({ racing }));
+    const tied = cars.flatMap((a, index) =>
+      cars
+        .slice(index + 1)
+        .filter((b) => carOverall(chassis(), a) === carOverall(chassis(), b))
+        .map((b) => [a, b] as const),
+    );
+    expect(tied.length).toBeGreaterThan(0);
+    for (const [a, b] of tied) {
+      expect(carRacing(chassis(), a)).not.toBe(carRacing(chassis(), b));
+    }
+  });
+});
+
+describe("compareByRating", () => {
+  // The one ranking rule: every list of drivers or teams, and the editor's bulk
+  // rearrangements, order by this.
+  const ahead = (a: { overall: number; racing: number }, b: typeof a) => compareByRating(a, b) < 0;
+
+  it("puts the higher overall first", () => {
+    expect(ahead({ overall: 84, racing: 70 }, { overall: 83, racing: 99 })).toBe(true);
+  });
+
+  it("settles a tied overall on racing", () => {
+    expect(ahead({ overall: 84, racing: 88 }, { overall: 84, racing: 87 })).toBe(true);
+    expect(ahead({ overall: 84, racing: 87 }, { overall: 84, racing: 88 })).toBe(false);
+  });
+
+  it("calls two rows level when both agree, leaving the last word to the caller", () => {
+    expect(compareByRating({ overall: 84, racing: 88 }, { overall: 84, racing: 88 })).toBe(0);
   });
 });

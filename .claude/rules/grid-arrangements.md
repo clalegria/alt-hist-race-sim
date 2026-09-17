@@ -16,7 +16,8 @@ hand edit ends it — is `.claude/rules/grid-arrangements-app.md`.
 ## The rule
 
 **Two orderings, paired index for index**: the seats ranked by the car in them, the
-drivers by the overall the grid prints — or shuffled. Whoever the pairing runs out of
+drivers the way the grid on screen ranks them — the overall it prints, racing settling a
+tie — or shuffled. Whoever the pairing runs out of
 goes without, which is why it returns a `LineupDraft`; only a grid that *already* had a
 hole in it can come back with one.
 
@@ -27,9 +28,12 @@ hole in it can come back with one.
   somebody else's engine is ranked on what it will actually race. That is why an engine
   change counts as a hand edit (below) and why the store re-applies the world's supply
   before re-running a rule.
-- **Ties break on team id, and on driver name then id.** Ratings are integers on a
-  1–100 scale, so ties are ordinary, and two presses returning different grids would be
-  inexplicable.
+- **A tie on the overall breaks on racing**, then on team id, or on driver name then id.
+  Ratings are integers on a 1–100 scale and an overall is a rounded average of several of
+  them, so ties are ordinary; `compareByRating` is the app's one ranking rule and the
+  lists on screen order by it too, so the car the reader can see at the front is the car
+  the rule fills first. The last-resort id keeps two presses from returning different
+  grids.
 - **The cast comes from the grid on screen**, not from the season, so pressing a rule
   twice means the same thing the second time and the two ranked rules are their own
   fixed point.

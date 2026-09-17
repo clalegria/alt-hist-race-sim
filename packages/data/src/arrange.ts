@@ -17,8 +17,8 @@
  * - the **seats**, ranked by the car that sits in them — every seat of the
  *   quickest team before every seat of the second quickest — quickest first, or
  *   slowest first for `fastest-in-slowest`;
- * - the **drivers**, ranked by the same overall the grid prints, best first — or
- *   shuffled, for `random`.
+ * - the **drivers**, ranked the way the grid on screen ranks them — the overall
+ *   it prints, with racing settling a tie — best first, or shuffled for `random`.
  *
  * The cast is whoever holds a seat on the grid being rearranged, plus — if the
  * reader ticked the box — the drivers without a drive, narrowed by the very
@@ -41,7 +41,7 @@ import { engineSpecOf } from "./engines.js";
 import { drivers as driverPool } from "./index.js";
 import type { DraftSeat, LineupDraft, SeatRef } from "./lineup.js";
 import { type DriverFilters, matchesFilters } from "./people.js";
-import { carOverall, driverOverall } from "./rating.js";
+import { carOverall, carRacing, compareByRating, driverOverall } from "./rating.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 /** Which of the three rules to apply. */
@@ -161,8 +161,10 @@ function seatCount(season: SeasonSeed, current: LineupDraft, teamId: string): nu
  * which means a team given somebody else's engine in the editor is ranked on the
  * car it will actually race.
  *
- * Team id breaks a tie, so two cars on the same overall cannot trade places
- * between two presses of the same button.
+ * Which car is ahead is `compareByRating` — overall first, racing second — the
+ * one rule the grid on screen is ordered by, so the car the reader can see at the
+ * front is the car the rule fills first. Team id has the last word, so two cars
+ * equal on both cannot trade places between two presses of the same button.
  */
 function seatsToFill(
   season: SeasonSeed,
@@ -170,11 +172,15 @@ function seatsToFill(
   kind: ArrangementKind,
 ): readonly SeatRef[] {
   const ranked = season.entries
-    .map((entry) => ({
-      teamId: entry.teamId,
-      overall: carOverall(entry.chassis, engineSpecOf(season, entry.engineId)),
-    }))
-    .sort((a, b) => b.overall - a.overall || a.teamId.localeCompare(b.teamId));
+    .map((entry) => {
+      const engine = engineSpecOf(season, entry.engineId);
+      return {
+        teamId: entry.teamId,
+        overall: carOverall(entry.chassis, engine),
+        racing: carRacing(entry.chassis, engine),
+      };
+    })
+    .sort((a, b) => compareByRating(a, b) || a.teamId.localeCompare(b.teamId));
   if (kind === "fastest-in-slowest") {
     ranked.reverse();
   }
@@ -227,11 +233,13 @@ function candidates(
 }
 
 /**
- * Best first, and the same "best" the grid prints beside each name.
+ * Best first, and the same "best" the grid prints beside each name — the shared
+ * `compareByRating`, so overall decides and racing settles it.
  *
- * Name then id breaks a tie, for the reason the sort switch on the grid does it:
- * ratings are integers on a 1-100 scale, so two drivers on 78 is ordinary, and a
- * pairing that changed between two identical presses would be inexplicable.
+ * Racing has to settle it, for the reason the sort switch on the grid gives:
+ * ratings are integers on a 1-100 scale, so two drivers on 78 is ordinary, and
+ * an overall is a rounded average of five of them. Name then id has the last
+ * word, so a pairing cannot change between two identical presses.
  */
 function byOverall(
   drivers: readonly Driver[],
@@ -239,13 +247,13 @@ function byOverall(
   mode: RatingMode,
 ): readonly Driver[] {
   return drivers
-    .map((driver) => ({
-      driver,
-      overall: driverOverall(driverRatingsFor(driver, seasonYear, mode)),
-    }))
+    .map((driver) => {
+      const ratings = driverRatingsFor(driver, seasonYear, mode);
+      return { driver, overall: driverOverall(ratings), racing: ratings.racing };
+    })
     .sort(
       (a, b) =>
-        b.overall - a.overall ||
+        compareByRating(a, b) ||
         a.driver.name.localeCompare(b.driver.name) ||
         a.driver.id.localeCompare(b.driver.id),
     )

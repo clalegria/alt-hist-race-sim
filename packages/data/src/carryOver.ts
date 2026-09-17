@@ -37,7 +37,7 @@
 import { driverRatingsFor, type RatingMode } from "./buildField.js";
 import { drivers as driverPool } from "./index.js";
 import { authoredLineup, type DraftSeat, type LineupDraft, type SeasonLineup } from "./lineup.js";
-import { driverOverall } from "./rating.js";
+import { compareByRating, driverOverall } from "./rating.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 /**
@@ -67,6 +67,12 @@ function eligible(driver: Driver, year: number): boolean {
  * Strongest first when there are too many, then back into last season's seat
  * order — so a team that dropped a car keeps its lead driver, and one that kept
  * both keeps them the way round they were.
+ *
+ * Strongest is `compareByRating`, the app's one ranking rule: the overall the
+ * grid prints, with racing settling a tie, because two team-mates on the same
+ * rounded overall is exactly the case a team losing a car is decided by. Last
+ * season's seat order has the final word, so an otherwise dead heat keeps the
+ * driver the team itself had first.
  */
 function carriedInto(
   previous: readonly string[],
@@ -84,14 +90,16 @@ function carriedInto(
   }
   const rated = available.map((driverId, seat) => {
     const driver = byId.get(driverId);
+    const ratings = driver === undefined ? null : driverRatingsFor(driver, year, mode);
     return {
       driverId,
       seat,
-      overall: driver === undefined ? 0 : driverOverall(driverRatingsFor(driver, year, mode)),
+      overall: ratings === null ? 0 : driverOverall(ratings),
+      racing: ratings === null ? 0 : ratings.racing,
     };
   });
   return rated
-    .sort((a, b) => b.overall - a.overall || a.seat - b.seat)
+    .sort((a, b) => compareByRating(a, b) || a.seat - b.seat)
     .slice(0, seats)
     .sort((a, b) => a.seat - b.seat)
     .map((entry) => entry.driverId);

@@ -23,10 +23,20 @@ and its editor; both load together in `src/components/`.
   closed for a reason, and a page that opened on the pecking order would give it away
   unasked. By
   rating it is *descending* — "sorted by rating" means "show me the front of the grid" —
-  and **name is always the tie-break**, which comes free from sorting by name first and
-  then by rating, since `Array.prototype.sort` is stable. Ratings are integers on a
-  1-100 scale, so ties are ordinary rather than exotic, and two cars on 84 trading
-  places between renders is flicker nobody can explain.
+  and it is **the app's one ranking rule, `compareByRating` in `@alt-hist/data`: overall
+  first, racing second.** Ratings are integers on a 1-100 scale and an overall is a
+  *rounded* weighted average of five of them, so two cars on 84 is ordinary rather than
+  exotic; racing carries most of that weight and is the only rating the race score reads
+  directly, so the racier of the two is the one the season will treat as quicker, and
+  answering such a tie alphabetically answers a question nobody reading a rating column
+  is asking. **Name is the last word**, and it comes free from sorting by name first and
+  then by rating, since `Array.prototype.sort` is stable — two rows level on both hold
+  still instead of trading places between renders.
+  The same rule orders a team card's own two cars, ranks the seats and the drivers in the
+  editor's bulk rearrangements (`arrange.ts`), and picks who a team losing a car carries
+  over (`carryOver.ts`), so a list and a rule applied to it cannot disagree about who is
+  quicker. `carRacing(chassis, engine)` is the car half of it — the blend, unrounded,
+  because the rounding is the thing that made the tie.
   Each list gets the switch it needs where it needs it: the grid has one on all three
   places it is drawn — the opening grid, the editor, and the season summary, where the
   pecking order is the point rather than a spoiler — and the pool has one of its own.

@@ -337,6 +337,7 @@ export function ReserveList({
         sort,
         (driver) => driver.name,
         (driver) => driverOverall(driverRatingsFor(driver, seasonYear, ratingMode)),
+        (driver) => driverRatingsFor(driver, seasonYear, ratingMode).racing,
       ),
     [shown, sort, seasonYear, ratingMode],
   );

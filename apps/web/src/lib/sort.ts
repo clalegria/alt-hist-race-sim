@@ -12,26 +12,44 @@
  * and a test that reads a real rating fails the day the data is tuned.
  */
 
+import { compareByRating } from "./rating.js";
+
 export type SortOrder = "name" | "overall";
 
 /** What every list opens on. Alphabetical — see the note above. */
 export const DEFAULT_SORT_ORDER: SortOrder = "name";
 
 /**
- * Ordered: by name ascending, or by overall rating descending — best first,
- * because "sorted by rating" means "show me the front of the grid".
+ * Ordered: by name ascending, or by rating descending — best first, because
+ * "sorted by rating" means "show me the front of the grid".
  *
- * Name is always the tie-break. Ratings are integers on a 1-100 scale, so ties
- * are common rather than exotic, and two cars on 84 that trade places between
- * renders is the kind of flicker nobody can explain. Sorting by name first and
- * then by rating gets that for free: `Array.prototype.sort` is stable.
+ * By rating is `compareByRating`, the app's one ranking rule: **overall first,
+ * racing second**. The same rule the editor's bulk rearrangements reseat a grid
+ * by, so a list and a rearrangement of it cannot disagree about who is quicker.
+ * Racing breaks the tie because an overall is a rounded weighted average and
+ * racing is most of its weight — ratings are integers on a 1-100 scale, so two
+ * cars on 84 are ordinary rather than exotic, and the one with the racing rating
+ * is the one the season will treat as the quicker.
+ *
+ * Name is the last word, and it comes free from sorting by name first and then
+ * by rating, since `Array.prototype.sort` is stable. Two rows equal on both
+ * ratings then hold still instead of trading places between renders.
  */
 export function sortBy<T>(
   items: readonly T[],
   order: SortOrder,
   name: (item: T) => string,
   overall: (item: T) => number,
+  racing: (item: T) => number,
 ): readonly T[] {
   const byName = [...items].sort((a, b) => name(a).localeCompare(name(b)));
-  return order === "name" ? byName : byName.sort((a, b) => overall(b) - overall(a));
+  if (order === "name") {
+    return byName;
+  }
+  return byName.sort((a, b) =>
+    compareByRating(
+      { overall: overall(a), racing: racing(a) },
+      { overall: overall(b), racing: racing(b) },
+    ),
+  );
 }

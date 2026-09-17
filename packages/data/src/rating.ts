@@ -148,3 +148,50 @@ export function driverOverall(ratings: DriverRatings): number {
 export function carOverall(chassis: ChassisSpec, engine?: EngineSpec): number {
   return weighted(powertrain(chassis, engine), CAR_WEIGHTS);
 }
+
+/**
+ * A car's pace on its own, engine folded in.
+ *
+ * The blend, not the bare chassis, for the reason `carOverall` is: the number
+ * has to describe the car that will actually be raced. It exists so the tie-break
+ * below can read a car's racing rating without every caller reaching for
+ * `powertrain()` itself.
+ *
+ * Unrounded, unlike the overalls. Nothing prints it — it exists to separate two
+ * cars an overall could not — and 0.7 of a chassis plus 0.3 of an engine lands
+ * between the integers often enough that rounding it would throw away the very
+ * difference it was asked for.
+ */
+export function carRacing(chassis: ChassisSpec, engine?: EngineSpec): number {
+  return powertrain(chassis, engine).racing;
+}
+
+/** What the app ranks a driver or a car on, in the order it reads them. */
+export interface Rated {
+  readonly overall: number;
+  readonly racing: number;
+}
+
+/**
+ * **The app's ranking rule: overall first, racing second, best first.**
+ *
+ * One rule, wherever drivers or teams are put in order of how good they are —
+ * the sort switch on the grid, a team card's own two cars, the pool of drivers
+ * without a drive, the editor's bulk rearrangements. A list ordered some other
+ * way would be the app disagreeing with itself about who is quicker.
+ *
+ * Racing breaks the tie because overall is a *rounded* weighted average of five
+ * ratings (four, for a car) and racing is most of that weight — so two drivers
+ * on 84 are two drivers whose difference the rounding swallowed, and the one
+ * with the racing rating is the one the season will treat as quicker. The
+ * alternative, alphabetical, answers a question nobody looking at a rating
+ * column is asking.
+ *
+ * It deliberately does **not** break the remaining tie itself. Two rows equal on
+ * both are equal as far as a rating can say, and what separates them then is the
+ * caller's business — a name at the grid, a seat index where last season's order
+ * is the thing being preserved. Compose it: `compareByRating(a, b) || …`.
+ */
+export function compareByRating(a: Rated, b: Rated): number {
+  return b.overall - a.overall || b.racing - a.racing;
+}

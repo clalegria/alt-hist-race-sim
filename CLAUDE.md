@@ -36,7 +36,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1412 tests (303 engine, 144 data, 965 web)
+pnpm test          # 1427 tests (303 engine, 148 data, 976 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -101,6 +101,9 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   0.3 · engine`, reliability an even `0.5 / 0.5`; **the UI's overall calls it too**.
 - **Peak vs aged**: the two rating modes — authored peak, or ability that season via the
   ageing curve. App defaults to peak; **harnesses run `aged`, never `peak`** (`mode.ts`).
+- **Ranking rule**: how drivers or teams are put in order of how good they are —
+  **overall, then racing, then a name or id** (`compareByRating` in `rating.ts`). One
+  rule for every list on screen and every bulk rule that reseats a grid.
 - **Score-and-sort**: v1 race model — one number per driver from attributes + car + home
   advantage + noise, sorted, then DNFs. Behind `RaceModel`, so it can be replaced.
 - **Round context**: where a round is held (`country`) and how far through the year it

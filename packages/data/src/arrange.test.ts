@@ -19,6 +19,7 @@ import {
 } from "./arrange.js";
 import type { LineupDraft } from "./lineup.js";
 import { type DriverFilters, defaultDriverFilters } from "./people.js";
+import { carOverall, driverOverall } from "./rating.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 const YEAR = 2000;
@@ -352,5 +353,106 @@ describe("a randomised grid", () => {
       arrange(grid, current, rules("random"), index + 1),
     ).filter((arranged) => arranged.back?.includes("ace"));
     expect(inSlowCar.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * What separates two drivers, or two cars, the overall cannot tell apart.
+ *
+ * An overall is a rounded weighted average, so a tie is ordinary rather than
+ * exotic, and the rule is the app's one ranking rule: racing settles it, name
+ * only after that. The fixtures below are built to tie on the overall on
+ * purpose — the ratings are checked here rather than assumed, so a case that
+ * stops being a tie says so instead of quietly asserting nothing.
+ */
+describe("a tie on the overall", () => {
+  /** Same overall as an even driver on `ability`, more racing, less of the rest. */
+  function racier(id: string, ability: number): Driver {
+    const base = driver(id, ability);
+    return {
+      ...base,
+      peak: {
+        ...base.peak,
+        racing: ability + 1,
+        qualifying: ability - 1,
+        consistency: ability - 1,
+        adaptability: ability - 1,
+        composure: ability - 1,
+        wetWeather: ability - 1,
+      },
+    };
+  }
+
+  /** The same, for a car: a point of pace bought out of the other three. */
+  function racierCar(grid: SeasonSeed, teamId: string): SeasonSeed {
+    return {
+      ...grid,
+      entries: grid.entries.map((entry) =>
+        entry.teamId !== teamId
+          ? entry
+          : {
+              ...entry,
+              chassis: {
+                racing: entry.chassis.racing + 1,
+                qualifying: entry.chassis.qualifying - 1,
+                consistency: entry.chassis.consistency - 1,
+                reliability: entry.chassis.reliability - 1,
+              },
+            },
+      ),
+    };
+  }
+
+  const engine = { racing: 50, qualifying: 50, reliability: 50 };
+
+  /** What a team's car is worth on the grid, as the ranking reads it. */
+  function worth(grid: SeasonSeed, teamId: string): number {
+    const entry = grid.entries.find((candidate) => candidate.teamId === teamId);
+    if (entry === undefined) {
+      throw new Error(`no entry for ${teamId}`);
+    }
+    return carOverall(entry.chassis, engine);
+  }
+
+  it("promotes the driver with the racing rating, not the one with the name", () => {
+    // "aaa" would win alphabetically and loses on pace, so the two answers
+    // cannot be confused for one another.
+    const even = driver("aaa", 80);
+    const quick = racier("zzz", 80);
+    expect(driverOverall(even.peak)).toBe(driverOverall(quick.peak));
+    const grid = season({
+      back: { pace: 50, drivers: ["aaa"] },
+      front: { pace: 90, drivers: ["zzz"] },
+    });
+    const arranged = arrangeLineup(
+      grid,
+      { back: ["aaa"], front: ["zzz"] },
+      rules("fastest-in-fastest"),
+      { pool: [even, quick], mode: "peak" },
+    );
+    expect(arranged).toEqual({ front: ["zzz"], back: ["aaa"] });
+  });
+
+  it("fills the car with the racing rating first", () => {
+    const grid = racierCar(
+      season({ alpha: { pace: 70, drivers: ["ace"] }, zulu: { pace: 70, drivers: ["slow"] } }),
+      "zulu",
+    );
+    expect(worth(grid, "alpha")).toBe(worth(grid, "zulu"));
+    expect(arrange(grid, { alpha: ["ace"], zulu: ["slow"] }, rules("fastest-in-fastest"))).toEqual({
+      alpha: ["slow"],
+      zulu: ["ace"],
+    });
+  });
+
+  it("hands the slowest car to the best driver the other way about", () => {
+    const grid = racierCar(
+      season({ alpha: { pace: 70, drivers: ["ace"] }, zulu: { pace: 70, drivers: ["slow"] } }),
+      "zulu",
+    );
+    expect(arrange(grid, { alpha: ["ace"], zulu: ["slow"] }, rules("fastest-in-slowest"))).toEqual({
+      alpha: ["ace"],
+      zulu: ["slow"],
+    });
   });
 });

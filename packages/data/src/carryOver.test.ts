@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 import { CARRY_OVER_AGES, carryOverLineup } from "./carryOver.js";
 import type { LineupDraft } from "./lineup.js";
+import { driverOverall } from "./rating.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 const YEAR = 2000;
@@ -65,6 +66,23 @@ const POOL: readonly Driver[] = [
   driver("ancient", CARRY_OVER_AGES.max + 1, 90),
   driver("veteran", CARRY_OVER_AGES.max, 90),
 ];
+
+/** Same overall as an even driver on `ability`, more racing, less of the rest. */
+function racier(id: string, age: number, ability: number): Driver {
+  const base = driver(id, age, ability);
+  return {
+    ...base,
+    peak: {
+      ...base.peak,
+      racing: ability + 1,
+      qualifying: ability - 1,
+      consistency: ability - 1,
+      adaptability: ability - 1,
+      composure: ability - 1,
+      wetWeather: ability - 1,
+    },
+  };
+}
 
 /** The carry-over, always against the same pool and in one rating mode. */
 function carry(now: SeasonSeed, before: SeasonSeed, current: LineupDraft = {}): LineupDraft {
@@ -132,6 +150,21 @@ describe("copying the previous season's drivers", () => {
     const before = season(YEAR - 1, { red: ["c", "a", "b"] });
     const now = season(YEAR, { red: ["e"] });
     expect(carry(now, before, { red: ["e"] })).toEqual({ red: ["a"] });
+  });
+
+  it("keeps the racier of two the overall cannot separate", () => {
+    // `racier` ties `b` on the overall — an overall is a rounded average, so
+    // that is ordinary — and is the quicker of the two. Listed second, so the
+    // seat order that breaks a genuine dead heat cannot be what decides it.
+    const even = driver("b", 30, 80);
+    const quick = racier("racier", 30, 80);
+    expect(driverOverall(even.peak)).toBe(driverOverall(quick.peak));
+    const before = season(YEAR - 1, { red: ["b", "racier"] });
+    const now = season(YEAR, { red: ["e"] });
+    const pool = [...POOL, quick];
+    expect(carryOverLineup(now, before, { red: ["e"] }, { pool, mode: "peak" })).toEqual({
+      red: ["racier"],
+    });
   });
 
   it("keeps the previous seat order among the drivers it carries", () => {
