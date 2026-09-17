@@ -20,6 +20,8 @@ import {
   ARRANGEMENT_KINDS,
   type ArrangementKind,
   authoredLineup,
+  DEFAULT_DRIVER_FILTERS,
+  type DriverFilters,
   type GridArrangement,
   type RatingMode,
   reserveDrivers,
@@ -44,11 +46,15 @@ if (SEATED === "" || RESERVE === "") {
   throw new Error("the season needs a seated driver and a driver without a drive");
 }
 
-/** A rule as the editor hands one over. */
+/** A rule as the editor hands one over, with the pool it was allowed to draw on. */
 const rules = (
   kind: ArrangementKind,
-  { includeUnemployed = false, retain = false } = {},
-): GridArrangement => ({ kind, includeUnemployed, retain });
+  {
+    includeUnemployed = false,
+    retain = false,
+    filters = DEFAULT_DRIVER_FILTERS,
+  }: { includeUnemployed?: boolean; retain?: boolean; filters?: DriverFilters } = {},
+): GridArrangement => ({ kind, includeUnemployed, filters, retain });
 
 const RANKED = rules("fastest-in-fastest");
 const RANKED_LABEL = ARRANGEMENT_LABELS["fastest-in-fastest"];
@@ -101,15 +107,47 @@ describe("what the rules are called", () => {
   });
 
   it("says which cast a rule drew on", () => {
-    expect(arrangementNote(rules("random"))).toContain("the season entered");
-    expect(arrangementNote(rules("random", { includeUnemployed: true }))).toContain(
+    expect(arrangementNote(rules("random"), MODE)).toContain("the season entered");
+    expect(arrangementNote(rules("random", { includeUnemployed: true }), MODE)).toContain(
       "without a drive",
     );
   });
 
+  it("names the pool it was allowed to draw on, since the reader chose it", () => {
+    // The filters travel inside the arrangement, so a rule kept across an era
+    // draws on a set that is no longer on screen anywhere.
+    const wide: DriverFilters = { ...DEFAULT_DRIVER_FILTERS, maxAge: 45 };
+    const note = arrangementNote(rules("random", { includeUnemployed: true, filters: wide }), MODE);
+    expect(note).toContain(`to ${wide.maxAge}`);
+    expect(note).toContain("racing that season");
+  });
+
+  it("names the age band with the word the filter panel uses", () => {
+    // The band is read against `ratedAge`, which is peak age in `peak` mode:
+    // "aged 18 to 42" beside a 1980 season would be read as 1980 ages.
+    const open = rules("random", { includeUnemployed: true });
+    expect(arrangementNote(open, "peak")).toContain("peak age");
+    expect(arrangementNote(open, "aged")).not.toContain("peak age");
+  });
+
+  it("drops the career clause when the reader has widened past it", () => {
+    const anyEra: DriverFilters = {
+      ...DEFAULT_DRIVER_FILTERS,
+      hideRetired: false,
+      hideFuture: false,
+    };
+    const note = arrangementNote(
+      rules("random", { includeUnemployed: true, filters: anyEra }),
+      MODE,
+    );
+    expect(note).not.toContain("racing that season");
+  });
+
   it("says so when the rule is being kept for the rest of an era", () => {
-    expect(arrangementNote(rules("random"))).not.toContain("era");
-    expect(arrangementNote(rules("random", { retain: true }))).toContain("every season of the era");
+    expect(arrangementNote(rules("random"), MODE)).not.toContain("era");
+    expect(arrangementNote(rules("random", { retain: true }), MODE)).toContain(
+      "every season of the era",
+    );
   });
 });
 
@@ -206,9 +244,9 @@ describe("what the grid says about a rule in force", () => {
   });
 
   it("draws the note on its own, with no change list beside it", () => {
-    const note = renderToStaticMarkup(<ArrangementNote arrangement={RANKED} />);
+    const note = renderToStaticMarkup(<ArrangementNote arrangement={RANKED} ratingMode={MODE} />);
     expect(note).toContain(RANKED_LABEL);
-    expect(note).toContain(arrangementNote(RANKED));
+    expect(note).toContain(arrangementNote(RANKED, MODE));
   });
 });
 

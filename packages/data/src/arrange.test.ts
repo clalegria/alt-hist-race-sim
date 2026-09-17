@@ -13,12 +13,12 @@ import { describe, expect, it } from "vitest";
 import {
   ARRANGEMENT_KINDS,
   type ArrangementKind,
-  arrangeable,
   arrangeLineup,
   type GridArrangement,
   isArrangementKind,
 } from "./arrange.js";
 import type { LineupDraft } from "./lineup.js";
+import { type DriverFilters, defaultDriverFilters } from "./people.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
 const YEAR = 2000;
@@ -87,11 +87,21 @@ const POOL: readonly Driver[] = [
   driver("prodigy", 99, { from: YEAR + 20, to: YEAR + 40 }),
 ];
 
-const rules = (kind: ArrangementKind, includeUnemployed = false): GridArrangement => ({
-  kind,
-  includeUnemployed,
-  retain: false,
-});
+/**
+ * The pool as the editor's filter panel opens it in each mode — which is the
+ * only thing that decides who may be promoted out of it. `aged` hides the
+ * careers that missed the season; `peak` does not, deliberately.
+ */
+const NARROWED: Readonly<Record<"aged" | "peak", DriverFilters>> = {
+  aged: defaultDriverFilters("aged"),
+  peak: defaultDriverFilters("peak"),
+};
+
+const rules = (
+  kind: ArrangementKind,
+  includeUnemployed = false,
+  filters: DriverFilters = NARROWED.peak,
+): GridArrangement => ({ kind, includeUnemployed, filters, retain: false });
 
 /** The rearrangement, always against the same pool and in one rating mode. */
 function arrange(
@@ -194,38 +204,63 @@ describe("who is in the running", () => {
   });
 
   it("promotes a quicker driver from the pool when asked", () => {
-    // In aged mode, so the two out-of-era 99s are not in the running: the best
-    // two left in the pool are "ace" and "spare", and they take the two seats.
-    const arranged = arrangeLineup(grid, current, rules("fastest-in-fastest", true), {
-      pool: POOL,
-      mode: "aged",
-    });
+    // Under the career filters, so the two out-of-era 99s are not in the
+    // running: the best two left are "ace" and "spare", and they take the seats.
+    const arranged = arrangeLineup(
+      grid,
+      current,
+      rules("fastest-in-fastest", true, NARROWED.aged),
+      { pool: POOL, mode: "aged" },
+    );
     expect(arranged).toEqual({ front: ["ace"], back: ["spare"] });
   });
 
-  it("leaves out drivers whose careers missed the season, in aged mode", () => {
-    const arranged = arrangeLineup(grid, current, rules("fastest-in-fastest", true), {
-      pool: POOL,
-      mode: "aged",
-    });
+  it("leaves out whoever the filters hide", () => {
+    const arranged = arrangeLineup(
+      grid,
+      current,
+      rules("fastest-in-fastest", true, NARROWED.aged),
+      { pool: POOL, mode: "aged" },
+    );
     expect(seated(arranged)).not.toContain("oldtimer");
     expect(seated(arranged)).not.toContain("prodigy");
   });
 
-  it("includes them in peak mode, which is deliberately out of time", () => {
-    const arranged = arrange(grid, current, rules("fastest-in-fastest", true));
+  it("includes them once the filters are widened to let them in", () => {
+    // The whole point of reading the panel rather than a rule of its own: what
+    // the reader can see in the pool is what the rule may draw on.
+    const arranged = arrange(grid, current, rules("fastest-in-fastest", true, NARROWED.peak));
     expect(seated(arranged).sort()).toEqual(["oldtimer", "prodigy"]);
   });
 
-  it("agrees with the eligibility rule on its own", () => {
-    const [retired] = POOL.filter((candidate) => candidate.id === "oldtimer");
-    const [current2] = POOL.filter((candidate) => candidate.id === "ace");
-    if (retired === undefined || current2 === undefined) {
-      throw new Error("the pool needs a retired driver and a current one");
-    }
-    expect(arrangeable(retired, YEAR, "aged")).toBe(false);
-    expect(arrangeable(retired, YEAR, "peak")).toBe(true);
-    expect(arrangeable(current2, YEAR, "aged")).toBe(true);
+  it("follows the age band the reader set, one year at a time", () => {
+    // A driver at exactly the top of the band is in; one year narrower and the
+    // same driver is out. This is the case that was broken before the filters
+    // travelled with the rule: widening the range added names to the pool list
+    // and none to the grid.
+    const veteran = driver("veteran", 99);
+    const pool = [...POOL, { ...veteran, birthYear: YEAR - 44 }];
+    const band = (maxAge: number): DriverFilters => ({ ...NARROWED.aged, maxAge });
+    const seatFor = (maxAge: number) =>
+      seated(
+        arrangeLineup(grid, current, rules("fastest-in-fastest", true, band(maxAge)), {
+          pool,
+          mode: "aged",
+        }),
+      );
+    expect(seatFor(44)).toContain("veteran");
+    expect(seatFor(43)).not.toContain("veteran");
+  });
+
+  it("never filters the drivers already on the grid", () => {
+    // Otherwise "include the pool" would be a way of *emptying* seats: the
+    // seated half is on the grid, whatever the panel beside it is hiding.
+    const narrow: DriverFilters = { ...NARROWED.aged, minAge: 40, maxAge: 41 };
+    const arranged = arrangeLineup(grid, current, rules("fastest-in-fastest", true, narrow), {
+      pool: POOL,
+      mode: "aged",
+    });
+    expect(seated(arranged).sort()).toEqual(["slow", "steady"]);
   });
 
   it("drops a driver the pool does not know, leaving the seat open", () => {

@@ -1,6 +1,7 @@
 import {
   authoredEngines,
   authoredLineup,
+  DEFAULT_DRIVER_FILTERS,
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
   reserveDrivers,
@@ -643,6 +644,9 @@ describe("the grid arranged by rule", () => {
   const ranked: GridArrangement = {
     kind: "fastest-in-fastest",
     includeUnemployed: false,
+    // The pool the rule may draw on, which only matters when it is allowed to:
+    // the panel's own defaults, since nothing here is about filtering.
+    filters: DEFAULT_DRIVER_FILTERS,
     retain: false,
   };
   const shuffled: GridArrangement = { ...ranked, kind: "random" };

@@ -8,6 +8,7 @@
  */
 
 import {
+  DEFAULT_DRIVER_FILTERS,
   DEFAULT_RATING_MODE,
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
@@ -365,6 +366,7 @@ describe("a bulk rule kept across an era", () => {
   const kept: GridArrangement = {
     kind: "fastest-in-fastest",
     includeUnemployed: false,
+    filters: DEFAULT_DRIVER_FILTERS,
     retain: true,
   };
   const once: GridArrangement = { ...kept, retain: false };

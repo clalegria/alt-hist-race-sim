@@ -1,4 +1,10 @@
-import type { ArrangementKind, EngineChange, GridArrangement, SeatChange } from "@alt-hist/data";
+import type {
+  ArrangementKind,
+  EngineChange,
+  GridArrangement,
+  RatingMode,
+  SeatChange,
+} from "@alt-hist/data";
 import { driverName, engineName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
@@ -42,10 +48,22 @@ export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
   random: "Randomize grid",
 };
 
-/** What a rule did, in a sentence: the cast it drew on, and whether it repeats. */
-export function arrangementNote(arrangement: GridArrangement): string {
+/**
+ * What a rule did, in a sentence: the cast it drew on, and whether it repeats.
+ *
+ * The cast is worth spelling out because it is the reader's own — the pool
+ * filters travel inside the arrangement, so a rule kept across an era is drawing
+ * on a set that is no longer on screen anywhere. The age band is named with the
+ * same word the filter panel uses, which is not the same word in both modes:
+ * `ratedAge` reads the band against a driver's peak age under `peak`, and
+ * "aged 18 to 42" beside a 1980 season would be read as 1980 ages.
+ */
+export function arrangementNote(arrangement: GridArrangement, mode: RatingMode): string {
+  const { filters } = arrangement;
+  const band = `${mode === "peak" ? "peak age" : "aged"} ${filters.minAge} to ${filters.maxAge}`;
+  const era = filters.hideRetired && filters.hideFuture ? ", racing that season" : "";
   const cast = arrangement.includeUnemployed
-    ? "Drivers without a drive were in the running."
+    ? `Drivers without a drive were in the running — ${band}${era}.`
     : "Only the drivers the season entered.";
   return arrangement.retain ? `${cast} Kept for every season of the era.` : cast;
 }
@@ -59,11 +77,20 @@ export function arrangementNote(arrangement: GridArrangement): string {
  * a shuffle can land on the grid the season was entered with, and the reader who
  * pressed the button is still owed a word about what happened.
  */
-export function ArrangementNote({ arrangement }: { arrangement: GridArrangement }) {
+export function ArrangementNote({
+  arrangement,
+  ratingMode,
+}: {
+  arrangement: GridArrangement;
+  /** Which age the pool was filtered on — see `arrangementNote`. */
+  ratingMode: RatingMode;
+}) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2">
       <span className="text-xs font-medium">{ARRANGEMENT_LABELS[arrangement.kind]}</span>
-      <span className="text-muted-foreground text-xs">{arrangementNote(arrangement)}</span>
+      <span className="text-muted-foreground text-xs">
+        {arrangementNote(arrangement, ratingMode)}
+      </span>
     </div>
   );
 }
@@ -145,12 +172,15 @@ export function EditedGridBanner({
   changes,
   engineChanges = [],
   arrangement = null,
+  ratingMode,
   className,
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   /** The bulk rule the grid was arranged by, if it was one rather than swaps. */
   arrangement?: GridArrangement | null;
+  /** Read only by the rule's note, and only to name the age band it filtered on. */
+  ratingMode: RatingMode;
   className?: string;
 }) {
   return (
@@ -167,7 +197,9 @@ export function EditedGridBanner({
           season as it was entered.
         </span>
       </div>
-      {arrangement === null ? null : <ArrangementNote arrangement={arrangement} />}
+      {arrangement === null ? null : (
+        <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
+      )}
       <GridChanges changes={changes} engineChanges={engineChanges} />
     </div>
   );

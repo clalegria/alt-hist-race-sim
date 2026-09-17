@@ -524,7 +524,7 @@ describe("counting the changes", () => {
     let lineup = swapDrivers(authored, SEATED, RESERVE);
     lineup = swapDrivers(lineup, ELSEWHERE, ALSO_FREE.id);
     const changed = lineupChanges(SEED, lineup);
-    const html = renderToStaticMarkup(<EditedGridBanner changes={changed} />);
+    const html = renderToStaticMarkup(<EditedGridBanner changes={changed} ratingMode={MODE} />);
 
     const names = changed.map((change) => teamName(change.teamId));
     const drawn = [...names].sort((a, b) => html.indexOf(a) - html.indexOf(b));

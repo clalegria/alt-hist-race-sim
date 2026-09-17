@@ -4,6 +4,7 @@ paths:
   - "packages/data/src/lineup.ts"
   - "packages/data/src/carryOver.ts"
   - "packages/data/src/arrange.ts"
+  - "packages/data/src/people.ts"
   - "packages/data/src/engines.ts"
   - "packages/data/src/rating.ts"
 ---
@@ -108,8 +109,19 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
 - `arrange.ts` is the editor's other bulk operation, and the fun one: the whole grid
   reseated by **rule** rather than by hand — fastest drivers in fastest cars, fastest in
   slowest, or shuffled. Like the carry-over it moves drivers and nothing else, and like
-  the carry-over it carries its own eligibility rule (`arrangeable`) rather than reading
-  the UI's pool filters. `.claude/rules/grid-arrangements.md` has all of it.
+  the carry-over it has **no eligibility rule of its own**: who may be promoted out of
+  the pool is `matchesFilters` against the filters the reader set on the grid editor's
+  own "Without a drive" panel, which travel inside the `GridArrangement`.
+  `.claude/rules/grid-arrangements.md` has all of it.
+- `people.ts` is what makes that possible, and the reason it is here rather than in the
+  web app: ages (`ratedAge`, a driver's *peak* age under `peak` mode and their season age
+  under `aged`) and the pool filters (`DriverFilters`, `defaultDriverFilters`,
+  `matchesFilters`, `filterDrivers`). Nothing in it is a rating and nothing reaches the
+  simulation — a filtered driver is hidden from a list, not barred from a seat — but
+  `arrange.ts` reads the same filters that list is narrowed by, and two copies would be
+  two answers. `apps/web/src/lib/people.ts` re-exports it, exactly as `lib/rating.ts`
+  re-exports the overall, so the app keeps one import path. What a filter *means* on
+  screen, and what each one opens on, is `.claude/rules/web-lists.md`.
 - `carryOver.ts` is the editor's one bulk operation: **last season's drivers over this
   season's grid**. Teams, seat counts and engines are untouched — it moves people and
   nothing else — and a rename is invisible by construction, because a team is its id.

@@ -28,7 +28,6 @@ export {
   ARRANGEMENT_KINDS,
   type ArrangementKind,
   type ArrangeOptions,
-  arrangeable,
   arrangeLineup,
   type GridArrangement,
   isArrangementKind,
@@ -79,6 +78,19 @@ export {
   seatRefOf,
   swapDrivers,
 } from "./lineup.js";
+export {
+  AGE_RANGE,
+  ageInSeason,
+  clampAge,
+  DEFAULT_DRIVER_FILTERS,
+  type DriverFilters,
+  defaultDriverFilters,
+  filterDrivers,
+  matchesFilters,
+  peakAge,
+  ratedAge,
+  withAge,
+} from "./people.js";
 export { carOverall, driverOverall } from "./rating.js";
 export { seasonConstants } from "./seasonConstants.js";
 export {

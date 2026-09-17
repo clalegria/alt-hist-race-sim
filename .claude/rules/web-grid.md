@@ -88,9 +88,11 @@ architecture underneath all three, including why the draft lives where it does, 
   screen-reader-correct for free.
 - **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
   fastest in slowest, shuffled — in their own panel above the cards, because every other
-  control in here moves one driver. The rules, the cast they draw on, what the world
-  keeps about one and why a hand edit ends it are
-  `.claude/rules/grid-arrangements.md`, which loads here too.
+  control in here moves one driver. **The cast they draw on is this editor's own pool
+  filters**, so whoever the "Without a drive" panel is showing is whoever may be
+  promoted. `.claude/rules/grid-arrangements-app.md` (which loads here too) has the
+  panel, the world and why a hand edit ends a rule;
+  `.claude/rules/grid-arrangements.md` has the rules themselves.
 - **`Copy <year> grid` puts last season's drivers over this one**, and is the reason
   the editor has an empty-seat state at all. It reads the *previous playable* season —
   `adjacentSeason(year, -1)`, so a gap in the seed data is skipped — and is not drawn

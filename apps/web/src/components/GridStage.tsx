@@ -636,11 +636,6 @@ export function GridStage({
     }
   }
 
-  /** Narrows the pool, and remembers it against the mode it was set in. */
-  const narrow = (next: DriverFilters): void => {
-    setFilters(next);
-    rememberDriverFilters(next);
-  };
   // How every list on the app is ordered — one shared, session-remembered
   // choice, not one per switch. Both switches stay on screen, because they are
   // still where a reader reaches for the order; what changed is that they are
@@ -679,8 +674,8 @@ export function GridStage({
     if (draft === null) {
       return arrangement;
     }
-    return chosen === null ? null : { kind: chosen, includeUnemployed, retain };
-  }, [draft, arrangement, chosen, includeUnemployed, retain]);
+    return chosen === null ? null : { kind: chosen, includeUnemployed, filters, retain };
+  }, [draft, arrangement, chosen, includeUnemployed, filters, retain]);
   const reserve = useMemo(() => reserveDrivers(shown), [shown]);
   /** The open seats, and therefore whether this grid can be applied at all. */
   const open = useMemo(() => emptySeats(shown), [shown]);
@@ -764,8 +759,9 @@ export function GridStage({
    * handed a better engine is a better car, and the rule has to agree with the
    * numbers the grid is printing beside each one.
    *
-   * `include` is passed rather than read off the state because the pool checkbox
-   * re-runs the rule as it changes, and the state has not settled by then.
+   * `include` and `narrowedTo` are passed rather than read off the state, because
+   * both controls that hold them re-run the rule as they change and the state
+   * has not settled by then.
    *
    * The dice are a fresh seed each press, so pressing `Randomize grid` twice
    * gives two grids — the seeded stream is what makes the *season* reproducible,
@@ -773,12 +769,17 @@ export function GridStage({
    * seed is. The seed the season is eventually run on re-rolls it for the years
    * that follow in an era.
    */
-  const rearrange = (kind: ArrangementKind, include: boolean): void => {
+  const rearrange = (kind: ArrangementKind, include: boolean, narrowedTo: DriverFilters): void => {
     if (draft === null) {
       return;
     }
     const entered = engineDraft === null ? season : applyEngines(season, engineDraft);
-    const rules: GridArrangement = { kind, includeUnemployed: include, retain };
+    const rules: GridArrangement = {
+      kind,
+      includeUnemployed: include,
+      filters: narrowedTo,
+      retain,
+    };
     setDraft(
       arrangeLineup(entered, draft, rules, { mode: ratingMode, rng: createRng(randomSeed()) }),
     );
@@ -789,15 +790,38 @@ export function GridStage({
   /**
    * Widening or narrowing the cast, which re-runs the rule in force.
    *
-   * A setting on the rules rather than an edit of the grid, so it does not put
-   * the rule down — and it applies at once, because a checkbox that only
-   * affected the *next* press would leave the panel saying one thing and the
-   * grid showing another.
+   * Both of these are settings on the rules rather than edits of the grid, so
+   * neither puts the rule down — and both apply at once, because a control that
+   * only affected the *next* press would leave the panel saying one thing and
+   * the grid showing another. Opening the age range to 45 adds three names to
+   * the pool beside the grid, and it has to add them to the grid too.
    */
   const includeThePool = (include: boolean): void => {
     setIncludeUnemployed(include);
     if (chosen !== null) {
-      rearrange(chosen, include);
+      rearrange(chosen, include, filters);
+    }
+  };
+
+  /**
+   * Narrows the pool, remembers it against the mode it was set in, and re-runs
+   * whichever rule is in force over the pool it now describes.
+   *
+   * The filter panel belongs to the list of drivers without a drive, and that
+   * list is precisely what "include unemployed drivers" means — so a rule drawn
+   * from a pool the reader has just widened has to be drawn again, or the panel
+   * and the grid disagree about who was available. Nothing to re-run when the
+   * pool is not being drawn on: the filters then narrow a list and no more.
+   *
+   * It sits here, beside the checkbox, rather than up with the state it sets,
+   * because the two are one behaviour — and because `rearrange` has to be
+   * declared above whatever calls it.
+   */
+  const narrow = (next: DriverFilters): void => {
+    setFilters(next);
+    rememberDriverFilters(next);
+    if (chosen !== null && includeUnemployed) {
+      rearrange(chosen, includeUnemployed, next);
     }
   };
 
@@ -895,7 +919,7 @@ export function GridStage({
             retain={retain}
             inEra={inEra}
             onChoose={(kind) => {
-              rearrange(kind, includeUnemployed);
+              rearrange(kind, includeUnemployed, filters);
             }}
             onIncludeUnemployedChange={includeThePool}
             onRetainChange={setRetain}

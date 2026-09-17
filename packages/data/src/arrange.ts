@@ -20,6 +20,10 @@
  * - the **drivers**, ranked by the same overall the grid prints, best first — or
  *   shuffled, for `random`.
  *
+ * The cast is whoever holds a seat on the grid being rearranged, plus — if the
+ * reader ticked the box — the drivers without a drive, narrowed by the very
+ * filters the panel beside the grid is narrowed by. See `arrangeable`.
+ *
  * Whoever the pairing runs out of goes without: more drivers than seats and the
  * remainder are unemployed, more seats than drivers and the rest stay open. Only
  * the second can happen from an applied grid, since a full one has exactly as
@@ -36,6 +40,7 @@ import { driverRatingsFor, type RatingMode } from "./buildField.js";
 import { engineSpecOf } from "./engines.js";
 import { drivers as driverPool } from "./index.js";
 import type { DraftSeat, LineupDraft, SeatRef } from "./lineup.js";
+import { type DriverFilters, matchesFilters } from "./people.js";
 import { carOverall, driverOverall } from "./rating.js";
 import type { Driver, SeasonSeed } from "./types.js";
 
@@ -60,8 +65,20 @@ export const ARRANGEMENT_KINDS: readonly ArrangementKind[] = [
  */
 export interface GridArrangement {
   readonly kind: ArrangementKind;
-  /** Whether drivers without a seat may take one. See `arrangeable`. */
+  /** Whether drivers without a seat may take one at all. */
   readonly includeUnemployed: boolean;
+  /**
+   * Which of them, when they may: the pool exactly as the reader has narrowed
+   * it in the editor's "Without a drive" panel.
+   *
+   * A snapshot rather than a reference to that panel, because a rule outlives
+   * the screen it was pressed on — an era re-applies it to every following
+   * year, and "the drivers who were around, aged 18 to 42" has to mean the same
+   * thing in 1983 as it did in 1980 without depending on where a slider is
+   * sitting three seasons later. It is plain data, so it saves and reloads with
+   * the world like the rest of the arrangement.
+   */
+  readonly filters: DriverFilters;
   /**
    * Whether every following season of an era is arranged the same way.
    *
@@ -78,31 +95,35 @@ export function isArrangementKind(value: unknown): value is ArrangementKind {
 }
 
 /**
- * Whether a driver with no seat may be given one.
+ * Whether a driver with no seat may be given one: **the pool filters, and only
+ * them.**
  *
- * The same judgement `defaultDriverFilters` makes in the web app, and made here
- * for the same reason `CARRY_OVER_AGES` lives in `carryOver.ts`: a bulk
- * operation needs one documented rule of its own rather than whatever the pool
- * list happens to be narrowed to, or an era that re-applies it every year would
- * depend on a panel nobody was looking at.
+ * Deliberately not a rule of this file's own. The reader is already looking at
+ * the list of drivers without a drive, already narrowed the way they want it,
+ * with both counts printed at the top of it — so "include unemployed drivers"
+ * can only sensibly mean *those* drivers. A separate eligibility rule here would
+ * be the app quietly disagreeing with the panel next to it: widening the age
+ * range to 45 would add three names to the list and none to the grid.
  *
- * In **`aged`** mode it is the drivers whose real careers covered the season.
- * They are the only ones the mode has anything to say about anyway — the ageing
- * curve clamps a driver evaluated thirty years before their debut to the bottom
- * of the scale — and without the rule a randomised grid would be twenty-eight
- * names nobody has heard of, rated 1.
+ * That is why the filters travel *inside* the arrangement rather than being read
+ * off the screen when a rule is re-run — see `GridArrangement.filters`. It also
+ * makes the two rating modes fall out for free, since `defaultDriverFilters`
+ * already opens the career filters off in `peak` mode (a grid of authored peaks
+ * is out of time on purpose) and on in `aged` mode, and `matchesFilters` reads
+ * the age band against `ratedAge`, which is the age the ratings on the row
+ * describe in either mode.
  *
- * In **`peak`** mode it is everybody. A grid built from authored peaks is
- * already out of time, and the field of all-time greats is the thing that mode
- * exists for; enforcing a chronology it has set aside would be the app arguing
- * with itself.
- *
- * Nothing here *bars* anyone from a seat — a driver this leaves out can still be
- * put in a car by hand, one name at a time, which is what the rest of the editor
- * is for.
+ * Nothing here *bars* anyone from a seat — a driver the filters hide can still
+ * be put in a car by hand, one name at a time, which is what the rest of the
+ * editor is for.
  */
-export function arrangeable(driver: Driver, seasonYear: number, mode: RatingMode): boolean {
-  return mode === "peak" || (driver.debutSeason <= seasonYear && driver.finalSeason >= seasonYear);
+function arrangeable(
+  driver: Driver,
+  seasonYear: number,
+  filters: DriverFilters,
+  mode: RatingMode,
+): boolean {
+  return matchesFilters(driver, seasonYear, filters, mode);
 }
 
 /** Everything the rearrangement reads besides the season and the grid on screen. */
@@ -174,7 +195,7 @@ function seatsToFill(
 function candidates(
   season: SeasonSeed,
   current: LineupDraft,
-  includeUnemployed: boolean,
+  arrangement: GridArrangement,
   byId: ReadonlyMap<string, Driver>,
   mode: RatingMode,
 ): readonly Driver[] {
@@ -192,11 +213,15 @@ function candidates(
       }
     }
   }
-  if (!includeUnemployed) {
+  if (!arrangement.includeUnemployed) {
     return seated;
   }
+  // The seated half is never filtered: they are on the grid, and a filter that
+  // could empty a seat would make "include the pool" a way of *shrinking* the
+  // field. Only the drivers being brought in are narrowed — which is exactly
+  // what the panel beside the grid is showing.
   const free = [...byId.values()].filter(
-    (driver) => !held.has(driver.id) && arrangeable(driver, season.year, mode),
+    (driver) => !held.has(driver.id) && arrangeable(driver, season.year, arrangement.filters, mode),
   );
   return [...seated, ...free];
 }
@@ -254,7 +279,7 @@ export function arrangeLineup(
   }
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
   const seats = seatsToFill(season, current, arrangement.kind);
-  const cast = candidates(season, current, arrangement.includeUnemployed, byId, mode);
+  const cast = candidates(season, current, arrangement, byId, mode);
   const ordered =
     arrangement.kind === "random" && rng !== undefined
       ? rng.shuffle(cast)

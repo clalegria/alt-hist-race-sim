@@ -203,6 +203,7 @@ function Summary({
           changes={changes}
           engineChanges={supplyChanges}
           arrangement={arrangement}
+          ratingMode={ratingMode}
         />
       )}
       <div className="flex flex-col gap-4 sm:flex-row">

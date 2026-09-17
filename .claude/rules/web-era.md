@@ -57,7 +57,7 @@ rearrange-everything buttons carry a `retain` flag, and an era that has one re-r
 *rule* on each following year's own entry list — never the lineup, which was a grid for a
 year now behind them. Same split as the ability mode: how to play carries, one grid does
 not. `nextEraGrid` in the store is where it happens, for stepping and for jumping alike;
-`.claude/rules/grid-arrangements.md` owns the rest.
+`.claude/rules/grid-arrangements-app.md` owns the rest.
 
 **The dice do.** The next year's seed is `nextSeed(world.rngState)` — drawn from where
 the last season's generator stopped, in `lib/seed.ts`. So an era is reproducible end to

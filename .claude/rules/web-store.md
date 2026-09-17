@@ -66,8 +66,8 @@ question. Simulating a season in between would answer one nobody asked.
 A third field rides with them: `world.arrangement`, the bulk rule the grid was arranged
 by, which `setGrid` takes as its optional third argument. It is a record of *how* the
 lineup came to be rather than a second copy of it, and it is the one part of an edited
-grid that is re-derived rather than carried — see `.claude/rules/grid-arrangements.md`,
-which loads on this file.
+grid that is re-derived rather than carried — see
+`.claude/rules/grid-arrangements-app.md`, which loads on this file.
 
 `setGrid` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year *from
 the same seed*, and `restartSeason` carries it — an edited grid is something the reader

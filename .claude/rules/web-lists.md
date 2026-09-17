@@ -109,8 +109,19 @@ and its editor; both load together in `src/components/`.
   showing a blank panel.
   The filters are **controlled** — held in `GridStage` beside the lineup draft, passed
   down — for the reason everything in the editor is: a DOM-less test can then render any
-  state the list can be narrowed to. The rules themselves are pure functions in
-  `lib/people.ts`, unit-tested against synthetic careers, because what a filter does is
-  a rule and a test reading a real career fails the day the data is corrected. The
-  controls are a native checkbox and a native number input, for the reason the engine
-  picker is a native `select`.
+  state the list can be narrowed to. The rules themselves are pure functions, unit-tested
+  against synthetic careers in `lib/people.test.ts`, because what a filter does is a rule
+  and a test reading a real career fails the day the data is corrected. The controls are
+  a native checkbox and a native number input, for the reason the engine picker is a
+  native `select`.
+  **They live in `@alt-hist/data` now, and `lib/people.ts` is a re-export** — the
+  arrangement `lib/rating.ts` has, and for the same reason. The grid editor's bulk rules
+  promote drivers *out of this pool*, so `arrange.ts` reads the very same
+  `matchesFilters` against the very same set: widening the age band to 45 has to add
+  those names to the grid and not only to the list. A filter stopped being purely a way
+  of reading a list at that point and became an input to a rule a season is run on, which
+  is a thing the data package must be able to see. `.claude/rules/data-layers.md` owns
+  the module; everything above still describes what the panel *means*. A snapshot of the
+  set travels inside each `GridArrangement`, so a rule kept across an era does not depend
+  on where the slider sits three seasons later —
+  `.claude/rules/grid-arrangements.md`.
