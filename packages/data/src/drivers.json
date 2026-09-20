@@ -6753,7 +6753,7 @@
     },
     "peakSeasons": 7,
     "developmentSpeed": 8,
-    "declineSpeed": 6
+    "declineSpeed": 5
   },
   {
     "id": "schiattarella",
@@ -7127,7 +7127,13 @@
     },
     "peakSeasons": 4,
     "developmentSpeed": 9,
-    "declineSpeed": 4
+    "declineSpeed": 4,
+    "offSeasons": [
+      {
+        "season": 2008,
+        "severity": 0.25
+      }
+    ]
   },
   {
     "id": "fontana",
@@ -7335,7 +7341,7 @@
       },
       {
         "season": 2008,
-        "severity": 0.35
+        "severity": 0.6
       }
     ]
   },
@@ -7452,6 +7458,10 @@
         "severity": 0.65
       },
       {
+        "season": 2008,
+        "severity": 0.35
+      },
+      {
         "season": 2015,
         "severity": 0.6
       },
@@ -7519,7 +7529,7 @@
     "offSeasons": [
       {
         "season": 2008,
-        "severity": 0.35
+        "severity": 0.45
       },
       {
         "season": 2014,
@@ -7564,15 +7574,15 @@
     "finalSeason": 2008,
     "peak": {
       "season": 2007,
-      "racing": 58,
-      "qualifying": 58,
-      "consistency": 60,
-      "adaptability": 58,
-      "composure": 60,
-      "wetWeather": 58
+      "racing": 68,
+      "qualifying": 67,
+      "consistency": 66,
+      "adaptability": 65,
+      "composure": 67,
+      "wetWeather": 64
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -7622,8 +7632,8 @@
     "finalSeason": 2013,
     "peak": {
       "season": 2008,
-      "racing": 84,
-      "qualifying": 86,
+      "racing": 83,
+      "qualifying": 85,
       "consistency": 78,
       "adaptability": 80,
       "composure": 78,
@@ -7651,15 +7661,15 @@
     "debutSeason": 2002,
     "finalSeason": 2008,
     "peak": {
-      "season": 2004,
-      "racing": 64,
-      "qualifying": 66,
-      "consistency": 54,
-      "adaptability": 62,
-      "composure": 52,
+      "season": 2007,
+      "racing": 71,
+      "qualifying": 69,
+      "consistency": 60,
+      "adaptability": 64,
+      "composure": 59,
       "wetWeather": 67
     },
-    "peakSeasons": 4,
+    "peakSeasons": 5,
     "developmentSpeed": 5,
     "declineSpeed": 4
   },
@@ -7965,7 +7975,13 @@
     },
     "peakSeasons": 11,
     "developmentSpeed": 6,
-    "declineSpeed": 8
+    "declineSpeed": 8,
+    "offSeasons": [
+      {
+        "season": 2008,
+        "severity": 0.7
+      }
+    ]
   },
   {
     "id": "kubica",
@@ -8070,7 +8086,7 @@
     "finalSeason": 2013,
     "peak": {
       "season": 2008,
-      "racing": 81,
+      "racing": 82,
       "qualifying": 84,
       "consistency": 80,
       "adaptability": 70,
@@ -8080,6 +8096,12 @@
     "peakSeasons": 3,
     "developmentSpeed": 5,
     "declineSpeed": 4,
+    "offSeasons": [
+      {
+        "season": 2008,
+        "severity": 0.2
+      }
+    ],
     "stepDown": {
       "season": 2012,
       "severity": 0.5
@@ -8093,17 +8115,23 @@
     "debutSeason": 2007,
     "finalSeason": 2009,
     "peak": {
-      "season": 2008,
-      "racing": 56,
-      "qualifying": 54,
-      "consistency": 58,
-      "adaptability": 56,
-      "composure": 58,
-      "wetWeather": 55
+      "season": 2014,
+      "racing": 71,
+      "qualifying": 70,
+      "consistency": 69,
+      "adaptability": 65,
+      "composure": 62,
+      "wetWeather": 60
     },
-    "peakSeasons": 3,
-    "developmentSpeed": 4,
-    "declineSpeed": 5
+    "peakSeasons": 7,
+    "developmentSpeed": 8,
+    "declineSpeed": 5,
+    "offSeasons": [
+      {
+        "season": 2009,
+        "severity": 0.7
+      }
+    ]
   },
   {
     "id": "hamilton",
@@ -8221,17 +8249,17 @@
     "debutSeason": 2008,
     "finalSeason": 2009,
     "peak": {
-      "season": 2008,
-      "racing": 54,
-      "qualifying": 52,
-      "consistency": 54,
-      "adaptability": 54,
-      "composure": 52,
-      "wetWeather": 53
+      "season": 2009,
+      "racing": 73,
+      "qualifying": 74,
+      "consistency": 65,
+      "adaptability": 65,
+      "composure": 63,
+      "wetWeather": 65
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
-    "declineSpeed": 5
+    "peakSeasons": 5,
+    "developmentSpeed": 7,
+    "declineSpeed": 7
   },
   {
     "id": "bourdais",
@@ -8241,17 +8269,21 @@
     "debutSeason": 2008,
     "finalSeason": 2009,
     "peak": {
-      "season": 2008,
-      "racing": 62,
-      "qualifying": 60,
-      "consistency": 62,
-      "adaptability": 62,
-      "composure": 60,
-      "wetWeather": 63
+      "season": 2006,
+      "racing": 75,
+      "qualifying": 73,
+      "consistency": 73,
+      "adaptability": 72,
+      "composure": 71,
+      "wetWeather": 70
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
-    "declineSpeed": 5
+    "peakSeasons": 4,
+    "developmentSpeed": 7,
+    "declineSpeed": 7,
+    "stepDown": {
+      "season": 2008,
+      "severity": 0.4
+    }
   },
   {
     "id": "alguersuari",
