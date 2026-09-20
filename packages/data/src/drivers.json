@@ -6383,7 +6383,7 @@
     "offSeasons": [
       {
         "season": 2010,
-        "severity": 0.7
+        "severity": 0.85
       },
       {
         "season": 2011,
@@ -6713,7 +6713,7 @@
     },
     "peakSeasons": 11,
     "developmentSpeed": 8,
-    "declineSpeed": 4
+    "declineSpeed": 7
   },
   {
     "id": "montermini",
@@ -7267,7 +7267,7 @@
     },
     "peakSeasons": 6,
     "developmentSpeed": 4,
-    "declineSpeed": 4
+    "declineSpeed": 6
   },
   {
     "id": "zonta",
@@ -7932,16 +7932,20 @@
     "finalSeason": 2011,
     "peak": {
       "season": 2007,
-      "racing": 58,
-      "qualifying": 56,
-      "consistency": 58,
-      "adaptability": 58,
-      "composure": 56,
-      "wetWeather": 57
+      "racing": 71,
+      "qualifying": 72,
+      "consistency": 70,
+      "adaptability": 66,
+      "composure": 69,
+      "wetWeather": 68
     },
     "peakSeasons": 4,
-    "developmentSpeed": 4,
-    "declineSpeed": 5
+    "developmentSpeed": 7,
+    "declineSpeed": 4,
+    "stepDown": {
+      "season": 2010,
+      "severity": 0.2
+    }
   },
   {
     "id": "rosberg_n",
@@ -7971,7 +7975,7 @@
     "debutSeason": 2006,
     "finalSeason": 2021,
     "peak": {
-      "season": 2009,
+      "season": 2010,
       "racing": 89,
       "qualifying": 89,
       "consistency": 85,
@@ -7979,7 +7983,7 @@
       "composure": 78,
       "wetWeather": 91
     },
-    "peakSeasons": 7,
+    "peakSeasons": 8,
     "developmentSpeed": 4,
     "declineSpeed": 4,
     "stepDown": {
@@ -8121,6 +8125,10 @@
     "developmentSpeed": 10,
     "declineSpeed": 5,
     "offSeasons": [
+      {
+        "season": 2010,
+        "severity": 0.25
+      },
       {
         "season": 2011,
         "severity": 0.8
@@ -8282,7 +8290,7 @@
       "wetWeather": 71
     },
     "peakSeasons": 4,
-    "developmentSpeed": 5,
+    "developmentSpeed": 9,
     "declineSpeed": 4
   },
   {
@@ -8328,7 +8336,7 @@
       "wetWeather": 71
     },
     "peakSeasons": 5,
-    "developmentSpeed": 5,
+    "developmentSpeed": 6,
     "declineSpeed": 4
   },
   {
@@ -8359,16 +8367,16 @@
     "debutSeason": 2010,
     "finalSeason": 2011,
     "peak": {
-      "season": 2010,
-      "racing": 46,
-      "qualifying": 44,
-      "consistency": 50,
-      "adaptability": 46,
-      "composure": 50,
-      "wetWeather": 45
+      "season": 2011,
+      "racing": 60,
+      "qualifying": 58,
+      "consistency": 56,
+      "adaptability": 60,
+      "composure": 60,
+      "wetWeather": 58
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 3,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -8379,16 +8387,16 @@
     "debutSeason": 2010,
     "finalSeason": 2010,
     "peak": {
-      "season": 2011,
-      "racing": 54,
-      "qualifying": 52,
-      "consistency": 56,
-      "adaptability": 54,
-      "composure": 56,
-      "wetWeather": 53
+      "season": 2012,
+      "racing": 65,
+      "qualifying": 62,
+      "consistency": 66,
+      "adaptability": 64,
+      "composure": 66,
+      "wetWeather": 60
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
+    "peakSeasons": 7,
+    "developmentSpeed": 6,
     "declineSpeed": 5
   },
   {
@@ -8430,15 +8438,15 @@
     "finalSeason": 2012,
     "peak": {
       "season": 2012,
-      "racing": 67,
-      "qualifying": 64,
+      "racing": 68,
+      "qualifying": 65,
       "consistency": 67,
       "adaptability": 65,
       "composure": 68,
       "wetWeather": 64
     },
     "peakSeasons": 3,
-    "developmentSpeed": 4,
+    "developmentSpeed": 7,
     "declineSpeed": 5
   },
   {
@@ -8491,17 +8499,17 @@
     "debutSeason": 2011,
     "finalSeason": 2012,
     "peak": {
-      "season": 2012,
-      "racing": 48,
-      "qualifying": 46,
-      "consistency": 50,
-      "adaptability": 48,
-      "composure": 50,
-      "wetWeather": 47
+      "season": 2011,
+      "racing": 66,
+      "qualifying": 64,
+      "consistency": 66,
+      "adaptability": 66,
+      "composure": 60,
+      "wetWeather": 63
     },
-    "peakSeasons": 2,
-    "developmentSpeed": 4,
-    "declineSpeed": 5
+    "peakSeasons": 4,
+    "developmentSpeed": 9,
+    "declineSpeed": 6
   },
   {
     "id": "maldonado",
