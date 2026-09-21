@@ -18,7 +18,7 @@ import {
   type RaceWeather,
   type SeasonResult,
 } from "@alt-hist/engine";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
@@ -465,6 +465,10 @@ function SeasonBody({
   onGridEditingChange,
   previousLineup = null,
 }: SeasonViewProps) {
+  // Whether the grid editor is open. The page is told too — it puts the way
+  // forward away — but the year switcher below is drawn from this copy, so the
+  // state has to be readable here rather than only raised.
+  const [editingGrid, setEditingGrid] = useState(false);
   const round =
     view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
 
@@ -484,8 +488,14 @@ function SeasonBody({
             Beside the randomness note rather than under the buttons: both are
             facts about *which season this is*, and the row reads as one line —
             what is being raced, and the years next to it.
+
+            Gone entirely while the grid editor is open, rather than disabled: a
+            draft is a set of seats in *this* year's entry list, and switching
+            year rebuilds the world underneath a half-finished one — which the
+            editor's own preview then throws on. The way forward off this stage
+            is put away while editing for the same reason.
           */}
-          {canChooseAbility ? (
+          {canChooseAbility && !editingGrid ? (
             <SeasonSwitcher
               year={world.year}
               {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
@@ -502,7 +512,10 @@ function SeasonBody({
           inEra={inEra}
           previousLineup={previousLineup}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
-          {...(onGridEditingChange === undefined ? {} : { onEditingChange: onGridEditingChange })}
+          onEditingChange={(editing) => {
+            setEditingGrid(editing);
+            onGridEditingChange?.(editing);
+          }}
         />
       </div>
     );

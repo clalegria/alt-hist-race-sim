@@ -24,6 +24,10 @@ drift apart; the **seasons** are checked the same two ways at runtime by
     of it.
   - `peakSeasons` is how many seasons the plateau spans, centred on `peak.season`.
     Prost's 7 runs 1984-1990.
+  - `peak.season` **may precede `debutSeason`**, and is only checked against
+    `birthYear`: a driver who was at his best elsewhere and arrived here past it
+    (Bourdais) is a career shape, not a typo. The curve starts him down the far
+    side of the plateau while experience still counts from the debut.
   - `stepDown: { season, severity }` is an optional persistent step down
     (Rosberg 1986, Mansell 1995, Scheckter 1980). `offSeasons: [{ season,
     severity }]` are optional one-season dips (Prost 1989). Severities are 0-1.

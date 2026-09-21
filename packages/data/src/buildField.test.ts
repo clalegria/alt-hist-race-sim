@@ -50,7 +50,9 @@ describe("the authored careers", () => {
     for (const record of drivers) {
       expect(record.peakSeasons, record.id).toBeGreaterThanOrEqual(1);
       expect(record.finalSeason, record.id).toBeGreaterThanOrEqual(record.debutSeason);
-      expect(record.peak.season, record.id).toBeGreaterThanOrEqual(record.debutSeason);
+      // Against the birth year, not the debut: a driver may arrive here already
+      // past a peak he reached elsewhere. See `DriverPeak.season`.
+      expect(record.peak.season, record.id).toBeGreaterThanOrEqual(record.birthYear);
     }
   });
 
@@ -112,8 +114,8 @@ describe("validating career shape", () => {
     }).toThrow(`retires in ${before}`);
   });
 
-  it("rejects a driver who peaks before they debut", () => {
-    const before = base.debutSeason - 1;
+  it("rejects a driver who peaks before they are born", () => {
+    const before = base.birthYear - 1;
     expect(() => {
       validateSeedData(broken({ peak: { ...base.peak, season: before } }), undefined, [
         {
@@ -122,6 +124,21 @@ describe("validating career shape", () => {
         },
       ]);
     }).toThrow(`peaks in ${before}`);
+  });
+
+  it("accepts a driver who peaks before they debut, which is a career and not a typo", () => {
+    // Someone at his best in another series who arrives here past it. The rule
+    // this replaced rejected that shape; the curve has never needed it to.
+    const before = base.debutSeason - 1;
+    expect(before).toBeGreaterThan(base.birthYear);
+    expect(() => {
+      validateSeedData(broken({ peak: { ...base.peak, season: before } }), undefined, [
+        {
+          ...SEED,
+          entries: [],
+        },
+      ]);
+    }).not.toThrow();
   });
 
   const check = (overrides: Partial<Driver>) => () => {

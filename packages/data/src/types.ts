@@ -9,7 +9,15 @@
 
 /** A driver's ratings at their peak. Higher is better on all five. */
 export interface DriverPeak {
-  /** The single season the driver is at 100% of the ratings below. */
+  /**
+   * The single season the driver is at 100% of the ratings below.
+   *
+   * **May fall before `debutSeason`**, and is not validated against it: a driver
+   * can have been at his best in another series and reached this one already on
+   * the way down. The curve handles it without special-casing — he simply starts
+   * past the plateau — while the experience axis still counts his rookie season
+   * from the debut, so he is both new and past it, which is the point.
+   */
   readonly season: number;
   readonly racing: number;
   readonly qualifying: number;

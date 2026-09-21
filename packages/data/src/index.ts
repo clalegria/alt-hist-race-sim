@@ -372,9 +372,17 @@ export function validateSeedData(
         `Driver "${driver.id}" retires in ${driver.finalSeason}, before debuting in ${driver.debutSeason}`,
       );
     }
-    if (driver.peak.season < driver.debutSeason) {
+    // Deliberately measured against the *birth* year and not the debut season.
+    // A peak before the debut is a real career shape, not a typo: a driver who
+    // was at his best in another series and arrived here already past it —
+    // Bourdais, peaking in Champ Car and reaching F1 in 2008. The curve reads
+    // that correctly on its own, starting him down the far side of the plateau,
+    // and the experience axis still counts his rookie year from the debut. What
+    // is left to catch is a year that is not a year at all, which a mistyped
+    // digit — 1896 for 1996 — always is.
+    if (driver.peak.season < driver.birthYear) {
       throw new Error(
-        `Driver "${driver.id}" peaks in ${driver.peak.season}, before debuting in ${driver.debutSeason}`,
+        `Driver "${driver.id}" peaks in ${driver.peak.season}, before being born in ${driver.birthYear}`,
       );
     }
     // A step down persists for the rest of a career, so it stays on the 0-1
