@@ -1,21 +1,22 @@
 ---
 paths:
-  - "apps/web/src/components/**"
+  - "apps/web/src/lib/highlight.ts"
+  - "apps/web/src/lib/results.ts"
+  - "apps/web/src/components/QualifyingResults.tsx"
+  - "apps/web/src/components/RaceClassification.tsx"
+  - "apps/web/src/components/SeasonView.tsx"
+  - "apps/web/src/components/SeasonStandings.tsx"
+  - "apps/web/src/components/StandingsTable.tsx"
+  - "apps/web/src/components/RaceByRace.tsx"
+  - "apps/web/src/components/DisclosureButton.tsx"
+  - "apps/web/src/components/CompactStandings.tsx"
+  - "apps/web/src/components/TitleBanner.tsx"
 ---
 
 # Web app — display rules
 
 How the reveal is drawn: the sessions, their tables and the accent that runs through
-them. Four neighbours, each loading on its own files:
-
-- **Naming** a driver, a team or an entry — shortening, fitting, flags —
-  `.claude/rules/web-names.md`.
-- **Team colours**, the badge and the wash — `.claude/rules/web-liveries.md`.
-- **The home star** and the bonus behind it — `.claude/rules/home-advantage.md`.
-- **The grid and its editor** — `.claude/rules/web-grid.md`.
-
-The architecture they all sit on — screens, the one store, the reveal cursor, and how any
-of this is tested — is `.claude/rules/web-app.md`, which loads alongside this file.
+them.
 
 ## The accent
 
@@ -104,10 +105,3 @@ screen", and a season with five wins in it would put five of them on a page whos
 is the champion. A win is marked by weight. Note when asserting this that `STANDOUT_TEXT`
 ("text-primary") is a substring of the `text-primary/80` a retirement's status carries, so
 only the row *fills* can be counted.
-
-## Charts
-
-The season summary's **standings evolution charts** are `.claude/rules/web-charts.md`,
-which loads on `StandingsEvolution.tsx` and `lib/evolution.ts`. Read it before adding
-any chart: it is where Recharts, the axes, and the awkward business of getting a livery
-colour into an SVG stroke are settled.
