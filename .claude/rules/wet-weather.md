@@ -75,7 +75,7 @@ The ageing curve reads it like any other attribute — development sensitivity 0
 pace arrives early; the drivers famous for it were mostly famous for it young), decline
 1.0 (it goes at the same rate racecraft does, not at qualifying's 1.3).
 
-It carries **0.05 of `driverOverall`** — the smallest of the four weights that count, not
+It carries **0.04 of `driverOverall`** — the smallest of the four weights that count, not
 because a wet race cares least about it but because only one race in seven is wet and an
 overall is an average over a season.
 

@@ -30,11 +30,16 @@ and the car *are*, the rest are what happens to them:
    count starters only; `nonQualifiers` counts the rest. A field at or under the
    limit is unaffected, so this is inert rather than something to switch off.
 3. **Race** — `0.62·car + 0.38·driver + gridBonus + home − consistencyPenalty + noise`,
-   sorted → finishing order. Grid bonus decays exponentially from 3.0 points at pole.
+   sorted → finishing order. Grid bonus decays exponentially from `gridAdvantagePole`
+   at pole — the only channel a *qualifying* rating has into a race result, and a wider
+   one than it looks, since it is what makes track position worth anything.
 4. **DNFs** — two rolls per car: mechanical (from car reliability) and driver error
-   (from composure). Both always rolled; mechanical takes precedence when recording the
-   cause. Driver error is independent; **the mechanical roll is correlated between two
-   cars of the same team** — see "Noise and retirements are team-shaped" below.
+   (from composure, through `driverErrorRisk` in `race/composure.ts`, which rotates the
+   two endpoints about a pivot rather than reading them flat —
+   `.claude/rules/driver-error.md`). Both always rolled; mechanical takes precedence when
+   recording the cause. Driver error is independent; **the mechanical roll is correlated
+   between two cars of the same team** — see "Noise and retirements are team-shaped"
+   below.
 
 The car is weighted above the driver on purpose: a great driver in a poor car should be
 a points-scorer, not a winner. The driver's share is 0.38 in the race

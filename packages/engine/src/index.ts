@@ -23,6 +23,7 @@ export {
   type StepDown,
   seasonDeficits,
 } from "./progression/index.js";
+export { driverErrorRisk } from "./race/composure.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
 export {
   DEVELOPMENT_TREND_LIMIT,

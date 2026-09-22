@@ -53,11 +53,18 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     without touching the chassis, which is the distinction the two names exist for.
 - `rating.ts` holds the display-only overall rating (`driverOverall`, `carOverall`).
   Both weightings put most of the number on `racing`, the one rating the race score
-  reads directly: drivers 0.70 / qualifying 0.10 / composure 0.09 / consistency 0.06 /
-  wetWeather 0.05 / adaptability 0; cars 0.76 / qualifying 0.10 / reliability 0.11 /
+  reads directly: drivers 0.70 / qualifying 0.14 / composure 0.07 / consistency 0.05 /
+  wetWeather 0.04 / adaptability 0; cars 0.76 / qualifying 0.10 / reliability 0.11 /
   consistency 0.03. `wetWeather` is small because only ~15% of rounds are wet, not
-  because a wet race cares little about it; `qualifying` is small on both because it
-  reaches a result only through grid position.
+  because a wet race cares little about it; `qualifying` reaches a result only through
+  grid position, which is a narrow channel but much the widest of the supporting four,
+  and the whole of it is the grid bonus — so `gridAdvantagePole` moves what a
+  qualifying point is worth in direct proportion.
+  - **`racing` is pitched for the field, not for the front.** What it is worth depends
+    on where on the grid you stand: it is most of a backmarker's worth, where nothing
+    else has room to matter, and much less of a title contender's, where the supporting
+    four decide championships between drivers whose pace is level. One weight serves
+    both, and it is weighted by headcount — a grid is mostly midfield and back.
   It sits here, not in the web app, because the progression tool needs the same
   number and two copies of those weights would be two answers to "how good is this
   driver". `apps/web/src/lib/rating.ts` re-exports it.

@@ -38,11 +38,24 @@ them as settled.
 
 ## Consistency is a pace stat *and* a variance stat
 
-Consistency does two things. It subtracts `consistencyPacePenalty` from *both* session
-scores, interpolated 4.0 points at 0 down to 0 at 100 off the **blend** (50/50 car and
-driver); and it scales the spread of that session's noise, 1.3× at 0 down to 0.75× at
-100, **each axis off the rating that owns it** — the team's terms off the car's
-consistency, the entry's own off the driver's. See `.claude/rules/race-engine.md`.
+Consistency does two things. It subtracts a pace penalty from *both* session scores; and
+it scales the spread of that session's noise, 1.3× at 0 down to 0.75× at 100, **each axis
+off the rating that owns it** — the team's terms off the car's consistency, the entry's
+own off the driver's. See `.claude/rules/race-engine.md`.
+
+**The penalty runs off two spans, not one.** The car's consistency is interpolated from
+`carConsistencyPacePenaltyAtZero` down to a shared floor of 0, the driver's from
+`driverConsistencyPacePenaltyAtZero` down to the same floor, and the two are added under
+the same 50/50 weights as before. Set the spans equal and this is *identical* to
+interpolating once off the blended rating, which is what it did before the pair existed —
+a test holds that, because it is what makes the split safe to have made.
+
+They are apart because the two sides are not in the same position. Driver consistency
+reaches a result through this penalty and almost nowhere else, its other channel being all
+but closed (see below); the car keeps both. So the driver's span is the steeper, and
+**raising it does not touch what a chassis's consistency is worth** — which is the
+property that matters when every season has been fitted against the car's half. Another
+test holds that one.
 
 **The spread half is worth much less than the endpoints suggest**, and that is a
 consequence of `teamFormShare` rather than of these numbers: a driver's consistency now
@@ -164,6 +177,16 @@ so share a failure probability; rolled independently they still ended a 17-round
 about two retirements apart on luck alone, which is worth more points than a season's
 honest pace advantage. This is the second half of the teammate fix, and much the smaller
 half — on its own it moves the second driver's title odds by about a point and a half.
+
+## Composure is rotated before it becomes a risk
+
+The driver-error endpoints are not read straight: `composureSpreadGain` rotates the line
+between them about `composureSpreadPivot`, because the band a real field occupies is far
+narrower than 0-100 and the raw endpoints therefore price a calm driver and a wild one
+much closer together than their ratio suggests. The rotation holds the risk at the pivot
+fixed, so a season's `retirementFactor` still means what it meant, and a gain of 1 is the
+identity. `.claude/rules/driver-error.md` has the whole argument, including what raising
+it cannot do.
 
 The randomness slider that scales these sigmas is its own rule,
 `.claude/rules/race-randomness.md`, which loads with `randomness.ts`.

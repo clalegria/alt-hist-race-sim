@@ -34,7 +34,13 @@ import {
   teamIdentityIn,
   teamsById,
 } from "@alt-hist/data";
-import { constructorStandings, createRng, powertrain, simulateSeason } from "@alt-hist/engine";
+import {
+  constructorStandings,
+  createRng,
+  driverErrorRisk,
+  powertrain,
+  simulateSeason,
+} from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { type FitTargets, fitTargets, pointsShare } from "./fitTargets.js";
 import { padLeft, padRight } from "./format.js";
@@ -78,10 +84,6 @@ const DEFAULT_DRIFT = 12;
 const DEFAULT_RELIABILITY_DRIFT = 10;
 const DEFAULT_SEASONS = 500;
 
-const lerp = (rating: number, atZero: number, atHundred: number): number => {
-  const t = Math.min(Math.max(rating, 0), 100) / 100;
-  return atZero + (atHundred - atZero) * t;
-};
 const clamp = (value: number, lo: number, hi: number): number => Math.min(Math.max(value, lo), hi);
 
 function flagValue(argv: readonly string[], ...names: readonly string[]): string | undefined {
@@ -314,16 +316,8 @@ function fitReliability(
   for (const entry of base.entries) {
     const cars = field.filter((runner) => runner.teamId === entry.teamId);
     const risk =
-      cars.reduce(
-        (sum, runner) =>
-          sum +
-          lerp(
-            runner.driver.composure,
-            constants.driverErrorDnfAtZeroComposure,
-            constants.driverErrorDnfAtFullComposure,
-          ),
-        0,
-      ) / Math.max(cars.length, 1);
+      cars.reduce((sum, runner) => sum + driverErrorRisk(runner.driver.composure, constants), 0) /
+      Math.max(cars.length, 1);
     errorRiskOf.set(entry.teamId, risk);
   }
 

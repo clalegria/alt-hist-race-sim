@@ -103,9 +103,23 @@ export interface RaceConstants {
 
   /**
    * Pace lost to inconsistency, in rating points, subtracted from both the
-   * qualifying and the race score. Interpolated from combined consistency: 0
-   * costs `consistencyPacePenaltyAtZero`, 100 costs
-   * `consistencyPacePenaltyAtHundred`.
+   * qualifying and the race score.
+   *
+   * **Two spans, one for each side of the entry**, weighted by
+   * `weightCarConsistency` and `weightDriverConsistency` and added. The car's
+   * consistency is interpolated from `carConsistencyPacePenaltyAtZero` down to
+   * `consistencyPacePenaltyAtHundred`, the driver's from
+   * `driverConsistencyPacePenaltyAtZero` down to the same shared floor - both
+   * ends of the grid meet at nothing, so only the slopes differ.
+   *
+   * Set the two spans equal and this is *identical* to interpolating once off
+   * the blended rating, which is what it did before the pair existed. Nothing
+   * about the car's half changes when they are pulled apart; what moves is how
+   * steeply the driver's own consistency is priced, which is the point of
+   * splitting them. Driver consistency reaches a result through this penalty
+   * and almost nowhere else - its other channel, the spread multiplier, scales
+   * only `1 - teamFormShare` of the variance and is nearly inert at the share
+   * the model runs - so this slope is effectively the whole rating.
    *
    * This is what makes consistency a genuine handicap rather than a lottery
    * ticket. Because it moves the mean and leaves the spread alone, a less
@@ -115,7 +129,8 @@ export interface RaceConstants {
    * matter - so what these endpoints really set is the spread of penalties
    * across the grid.
    */
-  readonly consistencyPacePenaltyAtZero: number;
+  readonly carConsistencyPacePenaltyAtZero: number;
+  readonly driverConsistencyPacePenaltyAtZero: number;
   readonly consistencyPacePenaltyAtHundred: number;
 
   /**
@@ -328,6 +343,50 @@ export interface RaceConstants {
   readonly driverErrorDnfAtFullComposure: number;
 
   /**
+   * How steeply composure is priced *within* a real field, and the rating it
+   * pivots about.
+   *
+   * The two endpoints above anchor a line across the whole 0-100 rating scale,
+   * but no grid occupies that scale: a field's composure sits in a band roughly
+   * 40 points wide, and the aged pool's mean has sat near `composureSpreadPivot`
+   * in every era the seed data covers. Read straight off the endpoints, the band
+   * only spans a small part of the line, so the gap between a calm driver and a
+   * wild one comes out far narrower than the 10:1 the endpoints suggest — the
+   * mapping spends most of its range on composure nobody is authored with.
+   *
+   * The gain fixes that by rotating the line about the pivot rather than
+   * moving it: a driver `n` points above the pivot is priced as though they
+   * were `n * gain` above it. The risk *at* the pivot is untouched by
+   * construction, so a field whose mean composure sits near it keeps very close
+   * to the same total number of driver errors, and each season's
+   * `retirementFactor` still describes the year it was written for. What moves
+   * is the spread inside the field, which is the whole point.
+   *
+   * **A gain of 1 is the identity**: the line is exactly the one the two
+   * endpoints draw, and nothing about the model changes. That is the guarantee
+   * to keep — every other value is a statement about how much of a driver's
+   * retirements should be theirs rather than the dice.
+   *
+   * **The line extrapolates past both anchors**, and must. Rotating it while
+   * clamping the *rating* into 0-100 would flatten every driver above the point
+   * where the clamp bites — which is precisely the composed end this exists to
+   * separate. So the rating axis is left unclamped and the resulting
+   * probability is clamped into [0, 1] instead: a sufficiently composed driver
+   * can be priced below `driverErrorDnfAtFullComposure`, and at a high enough
+   * gain, down to never erring at all. That floor is the bound to stay clear
+   * of, not a target — a driver who cannot make a mistake is not a driver.
+   *
+   * Raising the gain cannot make composure *legible* in a single season, and it
+   * is worth being clear about why: a driver-error retirement is a handful of
+   * rare independent rolls over a calendar, so the count carries a spread of
+   * about its own square root whatever the rate. Steepening the line moves the
+   * long-run ordering, not the year-to-year noise around it, and a composed
+   * driver will still have the occasional dreadful season.
+   */
+  readonly composureSpreadPivot: number;
+  readonly composureSpreadGain: number;
+
+  /**
    * Seconds per rating point of qualifying deficit. Purely cosmetic: it turns
    * an abstract score gap into a readable "+0.213s" and changes nothing about
    * the order, which is already fixed by the scores themselves.
@@ -409,12 +468,17 @@ export interface RaceConstants {
  * the same for Ligier (15.1% to 16.2%, against 14.3%); poles and the 41.1%
  * retirement rate are unmoved.
  *
- * Combined consistency across the 1980 grid runs roughly 46-90, so the penalty
- * endpoints at 0 and 100 are extrapolation anchors rather than values anyone
- * actually sits on. Over that real range they cost between ~2.2 and ~0.4 points,
- * a ~1.8 point spread - worth about six driver rating points at the 0.3 race
- * weighting, and enough to separate a metronome from a wildcard without
- * swamping the car.
+ * Consistency across a real grid runs nowhere near 0-100 at either end, so both
+ * pace-penalty spans are extrapolation anchors rather than values anyone sits
+ * on: what they set is the spread of penalties across the field, not its level,
+ * since a penalty the whole grid shares is invisible. The driver's span is the
+ * steeper of the two because the driver's *other* channel into a result is all
+ * but closed - the spread multiplier scales only `1 - teamFormShare` of the
+ * variance - while the car keeps both.
+ *
+ * The same argument, one level up, is why `composureSpreadGain` exists: a
+ * two-point line across 0-100 prices the band a real field occupies far more
+ * narrowly than its endpoints suggest.
  */
 export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   weightCarQualifying: 0.64,
@@ -437,7 +501,8 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   consistencyNoiseMultiplierAtZero: 1.3,
   consistencyNoiseMultiplierAtHundred: 0.75,
 
-  consistencyPacePenaltyAtZero: 4.0,
+  carConsistencyPacePenaltyAtZero: 4.0,
+  driverConsistencyPacePenaltyAtZero: 5.5,
   consistencyPacePenaltyAtHundred: 0.0,
 
   weekendFormShare: 0.5,
@@ -446,7 +511,7 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
 
   maxStarters: 26,
 
-  gridAdvantagePole: 3.0,
+  gridAdvantagePole: 4.0,
   gridAdvantageDecayPlaces: 6.0,
 
   homeAdvantageDriver: 1.0,
@@ -462,6 +527,9 @@ export const RACE_CONSTANTS: RaceConstants = Object.freeze({
   // 0.3 and 0.03 before the x0.9 wet correction. See the note on the type.
   driverErrorDnfAtZeroComposure: 0.27,
   driverErrorDnfAtFullComposure: 0.027,
+
+  composureSpreadPivot: 68,
+  composureSpreadGain: 1.5,
 
   qualifyingGapSecondsPerPoint: 0.15,
 

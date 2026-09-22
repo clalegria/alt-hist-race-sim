@@ -36,7 +36,7 @@ stays under ~150 lines, splitting by narrower path scope past that.
 ```
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
-pnpm test          # 1427 tests (303 engine, 148 data, 976 web)
+pnpm test          # 1438 tests (313 engine, 149 data, 976 web)
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
@@ -193,4 +193,4 @@ question is open without carrying the argument.
   there, unused); what a circuit *does* is undecided, as are the home-advantage numbers.
 - **What moves the driver market** — a design conversation, not a coding task; and it is
   why `driverOverall` still weights `adaptability` at zero (a display heuristic in
-  `packages/data/src/rating.ts`, re-weighted 2026-09-02 toward racing).
+  `packages/data/src/rating.ts`, whose other four weights move by hand).

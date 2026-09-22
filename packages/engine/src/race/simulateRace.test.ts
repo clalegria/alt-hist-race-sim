@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { EngineSpec } from "../model/ratings.js";
 import { createRng } from "../rng/index.js";
 import type { Rng } from "../rng/types.js";
+import { driverErrorRisk } from "./composure.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { withRandomness } from "./randomness.js";
 import { scoreAndSortRaceModel, simulateRace } from "./simulateRace.js";
@@ -879,10 +880,101 @@ describe("consistency", () => {
     expect(spread("erratic")).toBeGreaterThan(spread("steady") * 1.04);
   });
 
+  /**
+   * The consistency penalty one entry actually paid, read straight off its race
+   * score with the noise switched off.
+   *
+   * Everything else in that score is known exactly — the two pace terms, and a
+   * grid bonus that follows from a deterministic grid — so what is left over is
+   * the penalty. Backing it out this way rather than averaging noisy scores is
+   * what lets these assert the arithmetic instead of a tendency.
+   */
+  function penaltyPaid(
+    field: readonly RaceEntrant[],
+    driverId: string,
+    constants: RaceConstants,
+  ): number {
+    const silent: RaceConstants = { ...constants, qualifyingNoise: 0, racingNoise: 0 };
+    const entry = simulateRace(field, createRng(1), silent, { wetChance: 0 }).entries.find(
+      (e) => e.driverId === driverId,
+    );
+    if (entry === undefined || entry.raceScore === null) {
+      throw new Error(`no race score for ${driverId}`);
+    }
+    const gridBonus =
+      silent.gridAdvantagePole *
+      Math.exp(-(entry.gridPosition - 1) / silent.gridAdvantageDecayPlaces);
+    const runner = field.find((e) => e.driverId === driverId);
+    if (runner === undefined) {
+      throw new Error(`no entrant for ${driverId}`);
+    }
+    const pace =
+      silent.weightCarRacing * runner.chassis.racing +
+      silent.weightDriverRacing * runner.driver.racing;
+    return pace + gridBonus - entry.raceScore;
+  }
+
+  /** Two cars alike but for one side's consistency. */
+  function differingIn(side: "car" | "driver", high: number, low: number): RaceEntrant[] {
+    const base = entrant("high", "a", 70, 70);
+    const set = (e: RaceEntrant, value: number): RaceEntrant =>
+      side === "driver"
+        ? { ...e, driver: { ...e.driver, consistency: value } }
+        : { ...e, chassis: { ...e.chassis, consistency: value } };
+    return [set(base, high), set({ ...base, driverId: "low", teamId: "b" }, low)];
+  }
+
+  it("prices the driver's consistency and the car's off separate spans", () => {
+    // The property that makes the split real rather than cosmetic: raising the
+    // driver's span must not move what a *car's* consistency is worth. Without
+    // it, a change aimed at drivers quietly reprices every chassis on the grid —
+    // and every season fitted against the old pricing.
+    const steeper: RaceConstants = {
+      ...NO_DNFS,
+      driverConsistencyPacePenaltyAtZero: NO_DNFS.driverConsistencyPacePenaltyAtZero * 2,
+    };
+    const spread = (field: readonly RaceEntrant[], constants: RaceConstants): number =>
+      penaltyPaid(field, "low", constants) - penaltyPaid(field, "high", constants);
+
+    // Differing only in the car: the driver's span cannot touch this.
+    const carPair = differingIn("car", 90, 30);
+    expect(spread(carPair, steeper)).toBeCloseTo(spread(carPair, NO_DNFS), 10);
+
+    // Differing only in the driver: doubling the span doubles the gap, because
+    // the penalty is linear in the rating.
+    const driverPair = differingIn("driver", 90, 30);
+    expect(spread(driverPair, steeper)).toBeCloseTo(spread(driverPair, NO_DNFS) * 2, 10);
+  });
+
+  it("is the single blended interpolation again when the two spans are equal", () => {
+    // The compatibility guarantee. Two spans set to one number must score
+    // exactly as a single line through the blended rating did, so that pulling
+    // them apart is the only thing that changes anything.
+    const shared = 4.0;
+    const equalSpans: RaceConstants = {
+      ...NO_DNFS,
+      carConsistencyPacePenaltyAtZero: shared,
+      driverConsistencyPacePenaltyAtZero: shared,
+    };
+    const base = entrant("subject", "a", 70, 70);
+    const field: RaceEntrant[] = [
+      {
+        ...base,
+        driver: { ...base.driver, consistency: 84 },
+        chassis: { ...base.chassis, consistency: 52 },
+      },
+      { ...base, driverId: "other", teamId: "b" },
+    ];
+    const blended = NO_DNFS.weightCarConsistency * 52 + NO_DNFS.weightDriverConsistency * 84;
+    const expected = shared + (NO_DNFS.consistencyPacePenaltyAtHundred - shared) * (blended / 100);
+    expect(penaltyPaid(field, "subject", equalSpans)).toBeCloseTo(expected, 10);
+  });
+
   it("levels the field when the penalty endpoints are equal", () => {
     const noPenalty: RaceConstants = {
       ...NO_DNFS,
-      consistencyPacePenaltyAtZero: 0,
+      carConsistencyPacePenaltyAtZero: 0,
+      driverConsistencyPacePenaltyAtZero: 0,
       consistencyPacePenaltyAtHundred: 0,
     };
     const field = consistencyPair(90, 20);
@@ -1161,6 +1253,53 @@ describe("teammate reliability", () => {
     // Independence means the conditional rate is just the marginal one again.
     expect(conditional(independent)).toBeCloseTo(independent.marginal, 1);
     expect(conditional(correlated)).toBeGreaterThan(conditional(independent) + 0.1);
+  });
+
+  it("retires a driver at the rate the composure spread says, not the raw endpoints", () => {
+    // The model has to read `driverErrorRisk`, not interpolate the endpoints
+    // itself. A composed driver sits above the pivot, where the rotated line is
+    // materially below the raw one — so if the two ever drift apart, this is
+    // where it shows, and every season's retirement count moves with it.
+    //
+    // Dry rounds only (`wetChance: 0`): rain scales the risk and blends
+    // composure toward the wet rating, and neither belongs in this reading.
+    const constants: RaceConstants = {
+      ...RACE_CONSTANTS,
+      mechanicalDnfAtZeroReliability: 0,
+      mechanicalDnfAtFullReliability: 0,
+    };
+    const composure = 88;
+    const base = entrant("subject", "a", 70, 70);
+    const field: RaceEntrant[] = [
+      // wetWeather equal to composure keeps the entrant honest even if a round
+      // ever did arrive wet; racing/qualifying are irrelevant to the roll.
+      { ...base, driver: { ...base.driver, composure, wetWeather: composure } },
+      { ...base, driverId: "other", teamId: "b" },
+    ];
+    const races = 30000;
+    let errors = 0;
+    for (let seed = 1; seed <= races; seed += 1) {
+      const entry = simulateRace(field, createRng(seed), constants, { wetChance: 0 }).entries.find(
+        (e) => e.driverId === "subject",
+      );
+      if (entry?.driverError === true) {
+        errors += 1;
+      }
+    }
+    const observed = errors / races;
+    const expected = driverErrorRisk(composure, constants);
+    // Derived from the constants, never hard-coded. Over 30,000 races the
+    // standard error on a rate this size is under 0.002, so this bound is a few
+    // of them — not a decimal-place claim about an authored number.
+    expect(Math.abs(observed - expected)).toBeLessThan(0.006);
+
+    // And it must be the *rotated* line, not the one the two endpoints draw on
+    // their own. Above the pivot those disagree, which is the whole point.
+    const raw =
+      constants.driverErrorDnfAtZeroComposure +
+      (constants.driverErrorDnfAtFullComposure - constants.driverErrorDnfAtZeroComposure) *
+        (composure / 100);
+    expect(Math.abs(observed - raw)).toBeGreaterThan(0.006);
   });
 
   it("leaves driver error independent between teammates", () => {

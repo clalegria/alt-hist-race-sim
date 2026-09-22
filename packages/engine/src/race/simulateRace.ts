@@ -1,6 +1,7 @@
 import type { CarSpec, DriverRatings } from "../model/ratings.js";
 import type { Rng } from "../rng/types.js";
 import { rollWeather, wetConstants, wetDriver } from "../weather/weather.js";
+import { driverErrorRisk } from "./composure.js";
 import { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 import { developedCar } from "./development.js";
 import { qualifyingGapSeconds, raceGap } from "./gaps.js";
@@ -237,14 +238,27 @@ export function simulateRace(
       constants.consistencyNoiseMultiplierAtZero,
       constants.consistencyNoiseMultiplierAtHundred,
     );
-    // The pace penalty stays on the blend: it is a shift in the mean, owed
-    // jointly by an erratic driver and a car that will not repeat itself.
-    const pacePenalty = lerpFromRating(
-      constants.weightCarConsistency * car.consistency +
-        constants.weightDriverConsistency * driver.consistency,
-      constants.consistencyPacePenaltyAtZero,
-      constants.consistencyPacePenaltyAtHundred,
-    );
+    // The pace penalty is a shift in the mean, owed jointly by an erratic
+    // driver and a car that will not repeat itself — so it is the sum of what
+    // each side owes, weighted by the same two shares as before. Each side is
+    // interpolated down its *own* span to the shared floor, rather than both
+    // being read off one line through the blended rating: that lets the driver's
+    // consistency be priced more steeply than the car's without touching the
+    // car's half at all. Set the two spans equal and this is exactly the single
+    // blended interpolation it replaced.
+    const pacePenalty =
+      constants.weightCarConsistency *
+        lerpFromRating(
+          car.consistency,
+          constants.carConsistencyPacePenaltyAtZero,
+          constants.consistencyPacePenaltyAtHundred,
+        ) +
+      constants.weightDriverConsistency *
+        lerpFromRating(
+          driver.consistency,
+          constants.driverConsistencyPacePenaltyAtZero,
+          constants.consistencyPacePenaltyAtHundred,
+        );
 
     // Both form draws are made once and carried into the race, so a team that
     // brought a working car has it on Saturday and Sunday, and a driver who is
@@ -338,11 +352,12 @@ export function simulateRace(
         constants.mechanicalDnfAtZeroReliability,
         constants.mechanicalDnfAtFullReliability,
       ) * constants.mechanicalDnfEraScale;
-    const errorRisk = lerpFromRating(
-      driver.composure,
-      constants.driverErrorDnfAtZeroComposure,
-      constants.driverErrorDnfAtFullComposure,
-    );
+    // Not a plain interpolation across the rating scale: the line is rotated
+    // about `composureSpreadPivot` so that composure separates drivers by more
+    // than a field's narrow band of it would otherwise allow. See
+    // `composure.ts` — and note it returns an already-clamped probability,
+    // because the rotation is allowed to run past both anchors.
+    const errorRisk = driverErrorRisk(driver.composure, constants);
 
     // The mechanical roll is drawn partly off the team's fragility for the
     // weekend and partly off this car's own luck, then pushed back through the
@@ -361,7 +376,7 @@ export function simulateRace(
     const mechanicalFailure = normalCdf(fragility) < Math.min(Math.max(mechanicalRisk, 0), 1);
     // Driver error stays independent: it belongs to the driver, not the car,
     // and two drivers do not spin in sympathy.
-    const driverError = rng.next() < Math.min(Math.max(errorRisk, 0), 1);
+    const driverError = rng.next() < errorRisk;
     if (!runner.started) {
       continue;
     }

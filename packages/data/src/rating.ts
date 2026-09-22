@@ -37,20 +37,34 @@ import {
  * it — which is how a driver who is plainly quicker than the man beside him
  * ends up with the lower headline number.
  *
+ * **What racing is worth depends on where on the grid you stand**, and that is
+ * the argument behind the share it keeps here. It is a far larger part of a
+ * backmarker's worth than of a title contender's: at the back nothing else has
+ * room to matter, while at the front the supporting four decide championships
+ * between drivers whose pace is level. One weight has to serve both, and it is
+ * pitched for the *field* rather than for the front — a grid is mostly midfield
+ * and back, and that is who most of the rows on the page are.
+ *
  * Qualifying reaches the result only through grid position, and grid position
- * is worth at most `gridAdvantagePole` (3.0 points of race pace) at the very
- * front, decaying down the order. That is a real effect and a small one: it was
- * priced here as though a qualifying point were a third of a racing point, when
- * the channel it travels through is an order of magnitude narrower than that.
+ * is worth at most `gridAdvantagePole` points of race pace at the very front,
+ * decaying down the order. **That channel is much the widest of the four**, and
+ * wider than this list used to say: the grid bonus is the whole of it, so a
+ * change there moves what a qualifying point buys in direct proportion. It is
+ * narrower at the back, where the decay has flattened and a place gained on
+ * Saturday is worth almost nothing on Sunday.
  *
  * Composure sets the driver-error retirement rate, and a retirement forfeits a
  * whole race. Its true worth swings hard with the era — see the note on
  * reliability below, which has the same problem in a sharper form — so like
  * reliability it sits a little under what the high-attrition seasons alone
- * would ask for.
+ * would ask for, and a little above what the modern ones would. It is above the
+ * other two supporting ratings for that reason and no other: in the attrition
+ * eras it is worth several times either of them.
  *
- * Consistency is real but small: the pace penalty spans roughly 1.8 points
- * across the entire grid.
+ * Consistency is real but small, and smaller than it looks. It reaches a result
+ * mainly through the driver's half of the consistency pace penalty; its other
+ * channel, the spread multiplier, scales only `1 - teamFormShare` of the
+ * variance and is close to inert at the share the model runs.
  *
  * Wet weather is the smallest of the five that count. Not because it does not
  * matter — in a wet race it carries three quarters of the driver's pace — but
@@ -63,10 +77,10 @@ import {
  */
 const DRIVER_WEIGHTS: Readonly<Record<keyof DriverRatings, number>> = {
   racing: 0.7,
-  qualifying: 0.1,
-  composure: 0.09,
-  consistency: 0.06,
-  wetWeather: 0.05,
+  qualifying: 0.14,
+  composure: 0.07,
+  consistency: 0.05,
+  wetWeather: 0.04,
   adaptability: 0,
 };
 

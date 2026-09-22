@@ -137,13 +137,15 @@ architecture underneath all three, including why the draft lives where it does, 
   would make a season that changed one of each look like two unrelated caveats.
 - `lib/rating.ts` computes the overall: a **display heuristic, not model truth** —
   nothing in the engine reads it — whose weights approximate how much each rating
-  actually moves results. Reliability takes a quarter of the car number despite
-  touching no race score, because ~42% of the 1980 field failed to finish and a
-  fragile car forfeits points it had the pace to take. Adaptability is weighted zero:
+  actually moves results. Reliability carries a real share of the car number despite
+  touching no race score, because a fragile car forfeits points it had the pace to
+  take — knowingly under what the attrition eras would ask for, since a grid page is
+  read as "how quick is this car". Adaptability is weighted zero:
   paying for it would claim a driver is better at something the sim never asks of.
-  **Rebalanced 2026-09-02** toward racing (0.6, from 0.5) with everything else toned down
-  to pay for it, and `wetWeather` added at 0.05 — small because only ~15% of rounds are
-  wet, not because a wet race cares little about it. The driver popover lists it as
+  `racing` is most of both numbers and `wetWeather` the least of the driver's — small
+  because only ~15% of rounds are wet, not because a wet race cares little about it.
+  The exact weights are in `.claude/rules/data-layers.md`, and they move by hand; do
+  not copy them here. The driver popover lists wet weather as
   "Wet weather", between composure and the muted adaptability row.
   The engine is the exception to "the weights live here": `carOverall` folds it in
   through the engine package's `powertrain()` rather than giving it weights of its own,
