@@ -26,6 +26,10 @@ Seasons are authored one JSON file per year in `packages/data/src/seasons/`
 ## Documentation, and keeping it current
 - `docs/ROADMAP.md` is what to build next, in order; `docs/DECISIONS.md` is what is still
   open. **Read both before starting new feature work.**
+- `docs/design/*.md` design a large subsystem before it is built, marking each point
+  DECIDED, PROPOSED (confirm first) or OPEN, and own that subsystem's open questions.
+  As parts are built they move to `.claude/rules/` and leave the design doc; when
+  nothing is left, delete it.
 - `.claude/rules/*.md` hold subsystem detail, path-scoped by YAML `paths:` so each loads
   when matching files are opened. Document a new subsystem there, not here: this file is
   re-injected after `/compact` and holds only project-wide invariants, commands, glossary
@@ -103,7 +107,8 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   reference every harness uses; only level 2 is unscaled; the app opens on 2.
   `race-randomness.md`.
 - **Team form**: the share of session noise that belongs to the team rather than the car,
-  so it cancels out of a teammate comparison. `race-engine.md`.
+  so it cancels out of a teammate comparison. `race-engine.md`. To be renamed: *form*
+  belongs to the planned driver market (`docs/design/era-advanced.md`).
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
@@ -130,8 +135,7 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
 
 ## Open decisions (confirm with the author — do not assume)
 In full in `docs/DECISIONS.md`.
-- **What moves the driver market**: also why `adaptability` weighs zero in the overall,
-  and how engine deals move.
+- **The advanced era and game mode**: open questions in `docs/design/era-advanced.md`.
 - **Should the fitter and tuner ever move driver ratings?**
 - **Which router** (TanStack Router is the leaning).
 - **What a saved or shared run replays against**, when both the author and the reader

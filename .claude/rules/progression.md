@@ -9,7 +9,8 @@ paths:
 ratings a driver held in a given season.
 
 **It is deterministic. There is no `Rng` parameter and none is coming without a
-decision from the author** (per-run scatter is settled as *none* — see `CLAUDE.md`).
+decision from the author**: per-run scatter is *none*, and the *random careers* run
+setting planned in `docs/design/era-advanced.md` would be a separate path beside this one.
 Same career in, same ratings out, in every seed, so a driver's curve can be reasoned
 about from the authored numbers alone.
 

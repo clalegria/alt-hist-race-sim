@@ -271,31 +271,25 @@ re-authoring passes.
 ## 9. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
-what turns on the `era-advanced` card. Needs ageing (who is declining, who retires) and
-more than one season to move between, hence its place here. **What forces move it is not
-decided** — a design conversation, not a coding task — and `adaptability` is authored and
-unused precisely for it. Team lineage was a prerequisite and is built; *historical career
-records* give the market the reputations to reason about.
+what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
+the market, its in-season timeline, the run settings (careers, retirement, grid
+evolution, car development), pre-season testing, and its own build order. Its open
+questions live there, not in `docs/DECISIONS.md`.
 
-This is where the substitution point left clean in the era loop gets used: the grid for
-year N+1 stops coming from that year's seed file and starts coming from the market.
+Needs ageing and more than one season to move between, hence its place here. Leans on
+*historical career records* for reputations and on *routing and the app shell* for the
+next-season grid and the event feed. This is where the substitution point left clean in
+the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
+starts coming from the market.
 
 ## 10. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
 multi-season simulation — it is *era-advanced* seen from inside one team, so it needs
-everything the market needs and a decision loop besides.
-
-Car progression lives here rather than as a mode of its own. A `SeasonProgressionModel`
-seam (not built) will have two implementations: `HistoricalProgression`, which is just
-"read the next season file", and `EvolutionaryProgression` (random walk + mean
-reversion), which is what makes cars drift from real history. Only the second is real
-work, and it is a **submode inside this mode and `era-advanced`**, not a card on the
-menu. Build the interface when that second implementation lands, not before.
-
-Engines make this bigger: a career needs engine *deals* to move as well as cars to
-develop. How they move is open (`docs/DECISIONS.md`); design nothing around it yet.
+everything the market needs and a decision loop besides. Its notes — mini-games, what
+the player may see, why its seasons simulate round by round — are in
+`docs/design/era-advanced.md`.
 
 ## Stack for later phases
 
@@ -310,5 +304,5 @@ the phase rule in `CLAUDE.md` first.
 
 ```
 packages/engine/src/market/       # driver transfers, for the driver market
-packages/engine/src/progression/  # ageing (done), car development (game mode)
+packages/engine/src/progression/  # ageing (done), car development (advanced era)
 ```

@@ -11,7 +11,8 @@ Status: early development (phase 1, browser-only). Built with TypeScript, React,
 and Vite.
 
 `CLAUDE.md` has the architecture and conventions; `docs/ROADMAP.md` is what is
-left to build, and `docs/DECISIONS.md` the questions still open.
+left to build, `docs/DECISIONS.md` the questions still open, and `docs/design/` the
+design of large subsystems not yet built.
 
 ## License
 MIT — see `LICENSE`.
