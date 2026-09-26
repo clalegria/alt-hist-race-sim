@@ -64,6 +64,9 @@ would force an invented name era every time a car was repainted.
 *substantial* change, and the small ones are not modelled — a team that looks like a
 different team every year is unreadable in a table.
 
+Liveries are researched from period photos with the `livery-research` skill
+(`.claude/skills/livery-research/`), which also checks each grid for clashing colours.
+
 `validateSeedData` requires each list non-empty, its `from` years whole and **strictly
 ascending** (a shared or out-of-order year would make an era dead data that reads as
 authored), a non-empty name and an alpha-2 `base`.

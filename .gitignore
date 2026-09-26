@@ -11,3 +11,6 @@ coverage/
 .turbo/
 .claude/settings.local.json
 tools/screenshots/out/
+
+# Python bytecode from the livery-research skill scripts
+__pycache__/
