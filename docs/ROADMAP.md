@@ -59,11 +59,46 @@ these harnesses print.
 Both change what every harness figure means, so nothing measured before them is comparable
 with anything measured after.
 
-## 2. Phone layout
+## 2. Routing and the app shell
+
+Turns the app from one flow into a world the reader can browse. Before the editor, which
+adds screens, and before *publish it*, because a shared link makes the URL scheme a
+public contract: change it and every link out there breaks.
+
+- **An app shell.** A persistent top navigation over every area (simulate, eras, editor,
+  game, about), unbuilt ones disabled as the menu cards are; inside a run, breadcrumbs
+  (`Era 1980 › 1984 › Round 3`).
+- **Everything the run has produced is browsable at any moment**: a page per driver,
+  team, season and race, reachable from anywhere in the run, statistics derived from
+  result rows as everywhere else. The year is simulated in full up front, so **every
+  page must stop at the reveal cursor** — a driver page mid-season cannot show a race
+  the reader has not reached.
+- **Client-side routing.** The URL says where the reader is; the store caches the
+  `World` it computed. Do not sync the two both ways: the URL is the input, and a world
+  is reused while its recipe is unchanged. Which router is open (`docs/DECISIONS.md`).
+- **The back button works like Football Manager's — decided.** Back and forward move
+  between *places* in the run, never through *time*: *Continue* is the only thing that
+  advances the reveal, nothing rewinds it, and a page revisited shows the run as it
+  stands now. Back past the run's first page asks whether to leave the run (a router
+  navigation blocker; leaving the site altogether gets only the browser's own prompt).
+  So the reveal cursor is run state, not history. A link that reproduces a run is made
+  by a **Share** action writing the recipe (year, seed, ability mode, randomness, grid
+  edits, how far through), which is also what the bug report page needs.
+- **A standalone season is a one-year run** — one shell, one set of rules for both.
+- **The host must serve deep links**: `/era/…` has to answer with `index.html`. One
+  rewrite rule on Netlify or Cloudflare Pages; hash URLs or a `404.html` workaround on
+  GitHub Pages. Settle it with the host in *publish it*.
+- **Screenshots, so Claude can see the UI.** A Playwright script in `tools/` renders a
+  list of share links at desktop and phone widths to PNGs that Claude reads. Its own
+  browser with a throwaway profile — never the author's Chrome. The same link gives the
+  same pixels, so it can later become a visual check in CI. Serves *phone layout*.
+
+## 3. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
-and the session reveal assumes room beside the table.
+the session reveal assumes room beside the table, and the app shell's navigation and
+breadcrumbs need a phone form of their own.
 
 Detect by **viewport width via CSS media queries, not user-agent sniffing** — it handles
 narrow desktop windows and tablets for free and keeps the decision in the stylesheet
@@ -78,7 +113,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 3. The in-app ratings editor
+## 4. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -99,13 +134,14 @@ circuits once *circuit character* lands.
   no equivalent problem.
 - **Edits apply to the user's run and survive the sitting.** File-based export/import is
   the phase-1 form of local persistence (*stack for later phases*, below); Dexie/IndexedDB
-  is later. An imported file is untrusted input — validate it.
+  is later. An imported file is untrusted input — validate it. How a run on edited data
+  is saved and shared is open (`docs/DECISIONS.md`).
 - **Export in the authored seed format** — `drivers.json`, `teams.json`, `engines.json`,
   `seasons/<year>.json`, exactly as the repo writes them. This is the half that also
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 4. Publish it
+## 5. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -143,14 +179,16 @@ author's address to every scraper, permanently; a hosted form adds a dependency 
 privacy obligations. Whichever it is, **the page's job is to make the report
 reproducible**: pre-fill the seed, the season, the rating mode, the randomness level and
 a build identifier, because a seeded simulation with those five facts reproduces exactly
-and without them a bug report is a ghost story. That identifier is the reason to put a
-version stamp in the footer here.
+and without them a bug report is a ghost story. The Share link from *routing and the app
+shell* carries all of it. That identifier is the reason to put a version stamp in the
+footer here.
 
 ***Going live.***
 
 - **Hosting.** Any static host works. GitHub Pages needs no new account but serves a
   project site from a subpath, which means setting `base` in `apps/web/vite.config.ts`
-  and a router that agrees; Netlify or Cloudflare Pages avoid that. Pick one — moving
+  and a router that agrees, and deep links need a workaround there (*routing and the app
+  shell*); Netlify or Cloudflare Pages avoid both. Pick one — moving
   later is an afternoon. A domain is optional: every host gives a free subdomain that can
   be replaced later. If buying one, **turn on WHOIS privacy** — without it, registration
   publishes the registrant's real name, address, phone and email.
@@ -180,7 +218,7 @@ version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 5. Historical career records
+## 6. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -205,7 +243,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 6. Seasonal factors
+## 7. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -214,7 +252,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 7. Circuit character
+## 8. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -230,7 +268,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 8. Driver market
+## 9. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. Needs ageing (who is declining, who retires) and
@@ -242,7 +280,7 @@ records* give the market the reputations to reason about.
 This is where the substitution point left clean in the era loop gets used: the grid for
 year N+1 stops coming from that year's seed file and starts coming from the market.
 
-## 9. Game mode
+## 10. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working

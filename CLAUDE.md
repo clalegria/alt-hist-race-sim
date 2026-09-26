@@ -133,3 +133,6 @@ In full in `docs/DECISIONS.md`.
 - **What moves the driver market**: also why `adaptability` weighs zero in the overall,
   and how engine deals move.
 - **Should the fitter and tuner ever move driver ratings?**
+- **Which router** (TanStack Router is the leaning).
+- **What a saved or shared run replays against**, when both the author and the reader
+  can change the data under it.

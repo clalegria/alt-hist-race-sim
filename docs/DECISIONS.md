@@ -24,3 +24,27 @@ carries three smaller questions with it:
 `pnpm fit` and `pnpm tune` fit cars; drivers move only behind `--drivers`, off by default
 (`tools/calibrate/src/targets.ts`). Whether driver ratings should ever be fitted, rather
 than only authored by hand, is open.
+
+## Which router
+
+Blocks *routing and the app shell*. **TanStack Router** types and validates the search
+params — a URL is untrusted input, like an imported save — and is the leaning.
+**React Router** is the more common choice, with far more examples to learn from. Both
+have the navigation blocker the leave-the-run prompt needs.
+
+## What does a saved or shared run replay against?
+
+A recipe (seed, year, settings, grid edits) reproduces a run only on the same data and
+engine, and the data moves two ways: the author retunes it between builds, and a reader
+edits it in the ratings editor. Blocks the Share link's format (*routing and the app
+shell*) and the editor's export. The options are not exclusive:
+
+- **Stamp a hash** of the data and engine in every link and save; warn on a mismatch.
+- **Keep old builds deployed** at versioned paths, so an old link opens on the build
+  that made it.
+- **Save the results, not just the recipe**, so a save file survives any change.
+  `JSON.stringify(world)` is already a complete snapshot.
+- **A reader's edits travel as a diff** against the authored data they were made on
+  (a named *scenario*): inside the link when small, in the save file otherwise.
+
+Part of the same question: what survives a page reload before local persistence exists.
