@@ -9,16 +9,16 @@
  * underneath it:
  *
  * ```
- *   real age    22   24   26  27···30···34   36   38   40   43
- *                 \    \   |   |    |    |    |    |    |    |
- *   canonical    22   24   26  27···30···34   36   38   40   43   (an 8-season plateau)
- *   canonical    24   26   27  27···30···34   37   40   43   47   (a 3-season plateau)
+ *   peak at 30, both traits at 5:
+ *   real age           22   26   27   29   30   31   34   38   43
+ *   8-season plateau   22   26   27   29   30   31   34   38   43   (the identity)
+ *   3-season plateau   20   24   25   27   30   34   37   41   46
  * ```
  *
  * Both rows read the same curve. `peakSeasons` decides how much of the real
  * timeline the plateau covers, and the rise and fall pick up from its edges — so
  * the driver on the second row is at his best for three seasons rather than
- * eight, and everything outside that arrives sooner.
+ * eight: he reaches it later and falls away from it sooner.
  *
  * `developmentSpeed` and `declineSpeed` then set how fast each row runs outside
  * the plateau. They cannot make the fall from peak steeper than the population's,

@@ -97,7 +97,6 @@ on every car and asserts the markup is byte-identical.
 
 `validateSeedData` requires a whole number in `-10..10`; the field sits after `chassis`
 and before `drivers`, which is also where `writeSeason.ts` (the `pnpm fit --write`
-substituter) expects not to find it. Authored so far: 1979 Williams `+6` and Ligier `-7`,
-2026 McLaren `+4`. **Adding one is an authoring judgement about a real season, not a
+substituter) expects not to find it. **Adding one is an authoring judgement about a real season, not a
 tuning knob** — the tuning invariant in `CLAUDE.md` covers it exactly as it covers a
 chassis rating.

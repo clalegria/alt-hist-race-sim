@@ -119,8 +119,8 @@ expected driver-error risk by ~12% and its mechanical risk by ~2%, which pushed 
 year's retirement rate up ~1.3 points and broke the fit behind all 77 `retirementFactor`
 values. The four DNF endpoints in `race/constants.ts` now carry a **x0.985 / x0.90**
 correction that undoes exactly that, which puts the whole 77-year set back where it sat
-before wet racing existed. The derivation and the table are in
-`.claude/rules/race-constants.md`. **Note that this makes a dry race
+before wet racing existed. The table is in
+`.claude/rules/race-constants.md`, the derivation in `constants.ts`. **Note that this makes a dry race
 retire marginally fewer cars than it used to** — unavoidable, and the author's call.
 
 **Win shares — not corrected, deliberately.** The best driver loses 1-2 points of win

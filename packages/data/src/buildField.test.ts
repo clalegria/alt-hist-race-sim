@@ -252,11 +252,11 @@ describe("building a field", () => {
     // The anchor: whatever the curve does either side, the season the author
     // named is the one where the authored numbers come out unchanged.
     //
-    // Two exclusions, both real curve behaviour rather than tolerances. An
-    // authored setback is allowed to bite in the peak season itself; and a
-    // driver whose peak season *is* their debut season still pays the rookie
-    // penalty, because the curve never rewards a driver for not having started
-    // yet.
+    // One exclusion, real curve behaviour rather than a tolerance: an authored
+    // setback is allowed to bite in the peak season itself. A driver whose peak
+    // season *is* their debut season is checked like anyone else — the rookie
+    // penalty's fade is capped at `peakSeason - debutSeason`, so it is spent by
+    // the peak season and costs him nothing there.
     let checked = 0;
     for (const record of drivers) {
       if (record.stepDown !== undefined || record.offSeasons !== undefined) {

@@ -47,7 +47,7 @@ pnpm season [seed] # simulate a full season, print both championships
 pnpm calibrate [n] # run a grid n times (default 5000), print distributions
 pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
 pnpm retirements [n]  # retirement rate per year vs real; --sweep re-fits the factor
-pnpm progression <driver>  # one driver's ageing curve, age 18-50 (no arg lists the pool)
+pnpm progression <driver>  # one driver's ageing curve, age 16-55 (no arg lists the pool)
 pnpm tune          # rating tuner (prints proposals, writes nothing)
 pnpm fit <year>    # fit a season's chassis/engines to its real results; --write applies
 ```
@@ -98,7 +98,7 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
   reference every harness uses; only level 2 is unscaled; the app opens on 2.
   `race-randomness.md`.
 - **Team form**: the share of session noise that belongs to the team rather than the car,
-  so it cancels out of a teammate comparison. `race-constants.md`.
+  so it cancels out of a teammate comparison. `race-engine.md`.
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.

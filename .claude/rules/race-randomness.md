@@ -48,7 +48,7 @@ what is left concentrating the titles is reliability, which this setting does no
 Three numbers move and nothing else does. `qualifyingNoise` and `racingNoise` take the
 same factor: scaling both in step leaves the variance split intact, where scaling one
 alone would quietly re-weight weekend form against session luck, which is a different
-lever (`.claude/rules/race-constants.md`).
+lever (`.claude/rules/race-engine.md`).
 
 **`teamFormBoost` is the third, and it moves only at levels 4 and 5** (1.2 and 1.35).
 It exists because scaling the sigmas uniformly does not scale *upsets* uniformly. Noise

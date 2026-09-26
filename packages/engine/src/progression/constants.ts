@@ -3,9 +3,8 @@
  *
  * The curve is **deterministic**: same career in, same ratings out, no PRNG
  * anywhere. Two drivers with identical authored careers age identically, and a
- * driver ages the same way in every seed. That is a deliberate simplification —
- * per-run scatter on the realized peak is a later decision, and the
- * realize-once-and-store invariant exists for the day it lands.
+ * driver ages the same way in every seed: there is no per-run scatter, by
+ * the author's decision.
  *
  * The model has two halves, and the split is the point:
  *
@@ -57,7 +56,7 @@ export interface AbilityAnchor {
  *   gains eight points a year, an 18-year-old five, a 24-year-old under three.
  * - 28 to 33 is genuinely flat. A driver is at their best for years, not for a
  *   season, and the plateau either side of that is within a few percent.
- * - 35 to 42 is a *gentle* slope: nine percent over seven years. This is the
+ * - 35 to 42 is a *gentle* slope: 0.97 down to 0.825 over seven years. This is the
  *   number that most shapes how the sim feels, because it decides whether a
  *   35-year-old champion is finished or merely no longer favourite.
  * - Past the plateau no segment is gentler than the one before it, all the way
@@ -107,8 +106,8 @@ export const CANONICAL_ABILITY: readonly AbilityAnchor[] = [
  * squeezed onto `plateauStart`–`plateauEnd`, with the peak season landing on
  * `peak`. That is what keeps `peakSeasons` a literal count.
  *
- * **Both plateau ends want to sit where the curve is already within a percent of
- * peak**, and 27–34 is chosen for exactly that: an authored plateau should read
+ * **Both plateau ends want to sit where the curve is already within about two
+ * percent of peak**, and 27–34 is chosen for exactly that: an authored plateau should read
  * back as a plateau. Widening this interval towards the curve's real shoulders
  * makes every authored plateau report shorter than it was written, because its
  * outermost seasons land on ability the reader would not call a peak. It also

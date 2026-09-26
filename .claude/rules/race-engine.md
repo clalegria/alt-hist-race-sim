@@ -78,7 +78,7 @@ The mechanical DNF roll is correlated within a team the same way:
 own, then passes the result through the normal CDF so it is still uniform. Each car's
 failure *rate* is therefore exactly what its reliability says, and only the pairing
 changes — which is what leaves every season's `retirementFactor` describing the
-same total number of retirements. Why these exist and what they were worth is
+same total number of retirements. Why these exist is
 `.claude/rules/race-constants.md`.
 
 **Consistency modulates each axis from the rating that owns it.** The team's terms are

@@ -10,41 +10,34 @@ paths:
 # Web app — the grid and its editor
 
 The opening screen of a season and the only screen that changes what gets simulated.
-Split out of `.claude/rules/web-display.md`, which still owns everything downstream of
-the grid — the sessions, the tables and the accent — and which loads alongside this one
-whenever you are in `src/components/`; naming is `.claude/rules/web-names.md` and the
-team colours this screen washes its cards with are `.claude/rules/web-liveries.md`. How either list is *ordered* and how the pool is
-*narrowed* moved out again, to `.claude/rules/web-lists.md`, which loads here too. The
-architecture underneath all three, including why the draft lives where it does, is in
-`.claude/rules/web-app.md`.
+Downstream of the grid — the sessions, the tables, the accent — is
+`.claude/rules/web-display.md`; naming is `.claude/rules/web-names.md`, the card
+liveries `.claude/rules/web-liveries.md`, and how either list is *ordered* and the pool
+*narrowed* is `.claude/rules/web-lists.md`, which loads here too. Why the draft lives in
+component state rather than the store is `.claude/rules/web-store.md`.
 
-- **The grid is a `Card`, like every results panel.** It was a bare `<section>` for a
-  long time and got away with it because the page behind it was flat; the background
-  checkerboard made it obvious, since a transparent panel lets the texture run straight
-  through what is supposed to be a solid block. Every sibling on that page —
-  `SeasonCalendar`, `StandingsTable`, each `Section` — is a `Card`, so the grid was the
-  only one. Its header is `CardHeader` with `flex-row` overriding the default
+- **The grid is a `Card`, like every results panel** (`SeasonCalendar`,
+  `StandingsTable`, each `Section`); a bare panel lets the background checkerboard run
+  through it. Its header is `CardHeader` with `flex-row` overriding the default
   `flex-col` through `cn`, which keeps the sort switch and the Edit/Apply buttons
   opposite the title rather than stacked under the description. The **team tiles inside
   stay `bg-card` on a `bg-card` panel**, drawn by their borders and liveries and not by
-  a fill step — the qualifying grid already nests exactly that way, and it is the case
+  a fill step — the qualifying grid nests the same way, and it is the case
   `.claude/rules/web-styling.md` means when it says the border draws the panel on dark.
-  The reserve list beside it carries `shadow-sm` for the same reason: two panels side
-  by side at different elevations is worse than either elevation.
 
 - **The grid opens closed.** Teams and drivers with a flag, an age and one overall
   rating; the individual ratings live behind a popover, and teams are listed
-  alphabetically rather than by pace so the pecking order is not given away before a
-  wheel turns. A test asserts no rating label appears in the closed markup. The age on a
+  alphabetically by default so the pecking order is not given away before a wheel
+  turns. A test asserts no rating label appears in the closed markup. The age on a
   row is `ratedAge` — the age the ratings beside it describe, which under `peak` is the
   driver's age at their peak and not their age in the year loaded. `SeasonGrid` takes
-  `ratingMode` for that one purpose: the ratings arrive already resolved on the
-  entrants, and the age does not.
-- **Inside a card, drivers are ordered by rating and then alphabetically**, in
-  `seatsInOrder` — the same `sortBy("overall")` the team list uses, ties and all.
+  `ratingMode` for that and for `ArrangementNote`'s wording: the ratings arrive already
+  resolved on the entrants, and the age does not.
+- **Inside a card, drivers are in ranking-rule order** (`compareByRating`, then name),
+  in `seatsInOrder` — the same `sortBy("overall")` the team list uses, ties and all.
   Which of a team's drivers is its *first* driver is the one comparison a card exists to
-  make, so unlike the team order it does not follow the sort switch: it holds in the
-  alphabetical default too, because a card is a pairing and not a league table.
+  make, so unlike the team order it does not follow the sort switch: a card is a pairing
+  and not a league table.
   **It returns `{ entrant, seat }` pairs rather than reordered entrants.** The seat
   index is a `SeatRef` to the editor — what an empty seat is selected and filled by, and
   what the React key is — so it has to keep meaning the seat the season entered rather
@@ -52,47 +45,43 @@ architecture underneath all three, including why the draft lives where it does, 
   falls to the bottom of the card with no case of its own.
 - **A clickable name is marked by a fill, never an underline.** `NAME_TARGET` in
   `SeasonGrid.tsx` is the one definition — nothing at rest, `bg-accent` under the
-  cursor or the keyboard focus, and the same fill held while a panel is open — and it
-  is shared by the popover triggers and by the edit-mode buttons in `DriverEntry` and
-  `ReserveList`, which are the same name in the same slot doing a different job. The
-  mark used to be a dotted underline; it is the right convention for one link in a
-  paragraph and the wrong one for forty-odd names on a page, which read as ruled paper
-  and worst of all in dark. **The affordance is not restated per row** — the section
-  header says "Select any name for its full ratings" once, which is also what pays for
-  the trade: touch has no hover and so sees nothing until it taps. `bg-accent` and not
-  `bg-muted` because a swapped-in driver's row already carries `SWAPPED_IN`, and the
-  hover has to be visible on top of that fill. `components.test.tsx` counts the whole
-  shared string against seats-plus-teams and asserts the word "underline" appears
-  nowhere in a rendered grid.
+  cursor or the keyboard focus, and the same fill held while a panel is open — shared
+  by the popover triggers and by the edit-mode buttons in `DriverEntry` and
+  `ReserveList`, which are the same name in the same slot doing a different job. An
+  underline under every name reads as ruled paper. **The affordance is not restated
+  per row** — the section header says "Select any name for its full ratings" once.
+  `bg-accent` and
+  not `bg-muted` because a swapped-in driver's row already carries `SWAPPED_IN`, and the
+  hover has to show on top of that fill. `components.test.tsx` counts the whole shared
+  string against seats-plus-teams and asserts "underline" appears nowhere in a grid.
 - **The overall on a team card already has the engine in it**, via
-  `carOverall(chassis, engine)` → the model's own `powertrain()`. Showing the bare
-  chassis would be a number nothing races on. The popover behind it shows the parts instead:
-  the four chassis ratings, then the engine's three under its own heading — an engine
-  has no consistency, so that panel is one row shorter, which is the point rather than
-  an omission. A car with an authored `developmentTrend` gets a third panel under those,
-  drawn as a bar filling from the **middle** rather than the left — zero is a real value
-  there, not the bottom of a scale — plus a sentence saying what it means. It is
-  deliberately **not** in `carOverall`: a trend rotates a car's pace about mid-season, so
-  the overall already *is* the average of its year. A test renders the same grid with a
+  `carOverall(chassis, engine)` → the model's own `powertrain()`; a bare chassis is a
+  number nothing races on. The popover shows the parts instead: the four chassis
+  ratings (`CHASSIS_RATINGS`, the chassis as authored, not the blend), then the
+  engine's three under its own heading — an engine has no consistency, so that panel is
+  one row shorter, which is the point rather than an omission. A car with an authored
+  `developmentTrend` gets a third panel, a bar filling from the **middle** — zero is a
+  real value there, not the bottom of a scale — plus a sentence saying what it means.
+  It is deliberately **not** in `carOverall`: a trend rotates pace about mid-season, so
+  the overall already *is* the average of its year. A test renders the grid with a
   trend on every car and asserts the markup is unchanged.
   `.claude/rules/car-development.md`.
+- **The driver popover** lists the six ratings in `DRIVER_RATINGS` order, "Wet weather"
+  between composure and the muted adaptability row.
 - **The grid can be rearranged: drivers by swapping, engines by picking.** `Edit grid`
   turns every driver row into a select button, puts a supplier `select` on every team
   card, and opens `ReserveList` — everyone in the pool without a seat — as a sticky
   sidebar; the team cards drop from three columns to two to make room. Select a driver,
   then whoever takes the seat: seated ↔ reserve, or seated ↔ seated between two teams.
-  Two reserves in a row cannot swap, so the second just becomes the selection rather
-  than doing nothing visible. Nothing here can *add* a car, by construction rather than
-  by validation — and the engine picker offers only what the season rates, so nothing
-  can invent a supplier either. A native `select` rather than a styled listbox: it is a
-  plain one-of-N from a short list, and the platform control is keyboard- and
-  screen-reader-correct for free.
+  The whole interaction is the pure `pickUp`. Nothing here can *add* a car, by
+  construction rather than by validation — and the engine picker offers only what the
+  season rates, so nothing can invent a supplier either. A native `select` because the platform
+  control is keyboard- and screen-reader-correct for free.
 - **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
-  fastest in slowest, shuffled — in their own panel above the cards, because every other
-  control in here moves one driver. **The cast they draw on is this editor's own pool
-  filters**, so whoever the "Without a drive" panel is showing is whoever may be
-  promoted. `.claude/rules/grid-arrangements-app.md` (which loads here too) has the
-  panel, the world and why a hand edit ends a rule;
+  fastest in slowest, shuffled — in their own panel above the cards. **The cast they
+  draw on is this editor's own pool filters**, so whoever the "Without a drive" panel is
+  showing is whoever may be promoted. `.claude/rules/grid-arrangements-app.md` (which
+  loads here too) has the panel and why a hand edit ends a rule;
   `.claude/rules/grid-arrangements.md` has the rules themselves.
 - **`Copy <year> grid` puts last season's drivers over this one**, and is the reason
   the editor has an empty-seat state at all. It reads the *previous playable* season —
@@ -110,11 +99,10 @@ architecture underneath all three, including why the draft lives where it does, 
   teams leaves the cars they were in this year with nobody in them, and there is no
   sensible automatic answer to "who drives it" — so the reader is asked. An empty seat
   is a `GridPick` like a driver is: select it, then a name. `Apply grid` is **disabled**
-  while one is open, and a notice at the top of the card counts them; disabled rather
-  than hidden, because a button that vanished would read as the editor breaking.
-  Swapping can never *create* one — both ends of a swap name somebody — which is why
-  the fixture in `grid-editor.test.tsx` writes one out rather than clicking it into
-  existence.
+  while one is open, and a notice at the top of the card counts them.
+  Swapping never adds one: moving a seated driver into an empty seat empties the seat
+  they left, so the count is unchanged — which is why the fixture in
+  `grid-editor.test.tsx` writes one out rather than clicking it into existence.
   - `buildField` cannot make an entrant with no driver, so **`previewField` in
     `GridStage` splices placeholder entrants in**: the team's own chassis and engine,
     the `EMPTY_SEAT` sentinel as the driver id, zeroed ratings. That is what keeps
@@ -128,28 +116,15 @@ architecture underneath all three, including why the draft lives where it does, 
   counts exactly two accented cards per summary. A driver who is not where history put
   them carries the same soft fill (`SWAPPED_IN`) in the grid, and so does the header of
   a team running an engine it was not given, so the note and the cards agree without the
-  reader matching names. The summary declares it **twice** — a banner above the
-  champions, because finding out at the foot of the page is finding out too late, and
-  the full list on the grid at the end.
+  reader matching names. The summary declares it **twice** — `EditedGridBanner` above
+  the champions, because finding out at the foot of the page is too late, and the full
+  list on the grid at the end.
   **Both kinds of change share one notice**, in `GridChanges`: one row per team, "Alain
   Prost for Jody Scheckter" and "Renault engine for Ferrari" on the same line if both
-  happened, and `changeCount` totals seats and engines together. Two separate notices
-  would make a season that changed one of each look like two unrelated caveats.
-- `lib/rating.ts` computes the overall: a **display heuristic, not model truth** —
-  nothing in the engine reads it — whose weights approximate how much each rating
-  actually moves results. Reliability carries a real share of the car number despite
-  touching no race score, because a fragile car forfeits points it had the pace to
-  take — knowingly under what the attrition eras would ask for, since a grid page is
-  read as "how quick is this car". Adaptability is weighted zero:
-  paying for it would claim a driver is better at something the sim never asks of.
-  `racing` is most of both numbers and `wetWeather` the least of the driver's — small
-  because only ~15% of rounds are wet, not because a wet race cares little about it.
-  The exact weights are in `.claude/rules/data-layers.md`, and they move by hand; do
-  not copy them here. The driver popover lists wet weather as
-  "Wet weather", between composure and the muted adaptability row.
-  The engine is the exception to "the weights live here": `carOverall` folds it in
-  through the engine package's `powertrain()` rather than giving it weights of its own,
-  because how much an engine is worth is a *model* claim and there must be one answer.
-  That claim is now two ratios, not one — 0.3 of pace and half of reliability — so a
-  local copy would be twice as easy to get wrong. The card's rating rows come from
-  `CHASSIS_RATINGS`, and they are the chassis as authored, not the blend.
+  happened, and `changeCount` totals seats and engines together.
+- **`lib/rating.ts` is a re-export** of `driverOverall`, `carOverall`, `carRacing` and
+  `compareByRating` from `@alt-hist/data`: a **display heuristic, not model truth** —
+  nothing in the engine reads it. The weights, why reliability and adaptability sit
+  where they do, and why the engine is folded in through `powertrain()` rather than
+  weighted locally are `.claude/rules/data-layers.md`; they move by hand, so do not
+  copy them here or re-implement them in the app.
