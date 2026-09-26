@@ -22,7 +22,7 @@ All seventy-seven seasons are written, one JSON file each in
 not typing, and it is **the author's**: a session touches these numbers only when asked
 for that era by name — the tuning invariant in `CLAUDE.md`.
 
-- **Going backwards from 2026; everything down to 2012 is done.** Seventy-seven seasons
+- **Going backwards from 2026; everything down to 2005 is done.** Seventy-seven seasons
   were written far faster than they can be checked, so every rating is a first draft.
 - **The far ends are the least trustworthy**, because they are least like the racing the
   model was built around: tiny fields, wild attrition, privateers and shared drives in

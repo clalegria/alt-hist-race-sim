@@ -61,15 +61,10 @@ const TUNE_NOISE = process.argv.includes("--noise");
 /**
  * How far a rating may drift from its authored value, to preserve intent.
  *
- * Engines get a wider band than chassis: the chassis ratings are the product of
- * earlier calibration passes and carry real intent, while the engine ratings
- * were authored by hand in one sitting and have never been fitted to anything.
- *
- * The chassis band was 8 and is 12, because introducing engines changed what a
- * chassis rating *means*: a car is now `0.8 · chassis + 0.2 · engine`, so
- * holding the same effective pace needs the chassis to move by 1.25× whatever
- * the engine took out of it. Keeping the old band would have capped the fit
- * below where the previous calibration already sat.
+ * Engines get a wider band than chassis. The chassis band still has to leave
+ * room for the engine: a car's pace blends the two (`weightChassisPerformance`
+ * in the race constants), so holding a car's pace steady while its engine moves
+ * asks the chassis to move by 1 / that weight times what the engine took out.
  */
 const MAX_DRIFT_CHASSIS = 12;
 const MAX_DRIFT_ENGINE = 15;

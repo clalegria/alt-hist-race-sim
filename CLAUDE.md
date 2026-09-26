@@ -8,9 +8,14 @@ are resolved probabilistically; drivers age, move between teams via a transfer m
 and retire; statistics accumulate over the run. Eventually this should also become a
 videogame though the specifics are not yet planned.
 
-Hobby project for learning modern TypeScript/React, and specially how to work with
-Claude Code itself. Will eventually be shared publicly. ~98% of code is AI-generated,
-so the rules below are the guardrails that keep the project coherent — follow them.
+Hobby project for learning modern TypeScript/React, and especially how to work with
+Claude Code itself. Will eventually be shared publicly. ~98% of the code is
+AI-generated, so the rules below are the guardrails that keep the project coherent —
+follow them.
+
+**The author is an experienced programmer in non-web legacy languages, but new to
+TypeScript, React and web development.** When making a design decision, explain it with
+that in mind: name the web-dev convention or framework idea involved and why it fits.
 
 ## Current phase
 **Phase 1: browser-only. No backend, no database, no user accounts.** The engine runs
