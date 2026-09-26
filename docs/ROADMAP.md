@@ -249,17 +249,15 @@ directions, negotiate engine deals. Far future, and explicitly after a working
 multi-season simulation — it is *era-advanced* seen from inside one team, so it needs
 everything the market needs and a decision loop besides.
 
-Car progression lives here rather than as a mode of its own. The `SeasonProgressionModel`
-seam has two implementations: `HistoricalProgression`, which is just "read the next
-season file", and `EvolutionaryProgression` (random walk + mean reversion), which is what
-makes cars drift from real history. Only the second is real work, and it is a **submode
-inside this mode and `era-advanced`**, not a card on the menu. Build the interface when
-that second implementation lands, not before.
+Car progression lives here rather than as a mode of its own. A `SeasonProgressionModel`
+seam (not built) will have two implementations: `HistoricalProgression`, which is just
+"read the next season file", and `EvolutionaryProgression` (random walk + mean
+reversion), which is what makes cars drift from real history. Only the second is real
+work, and it is a **submode inside this mode and `era-advanced`**, not a card on the
+menu. Build the interface when that second implementation lands, not before.
 
 Engines make this bigger: a career needs engine *deals* to move as well as cars to
-develop, and `SeasonProgressionModel` has no `nextSeasonEngines()`. Whether a supplier
-relationship is something the market moves, something progression rolls, or something
-this mode chooses is undecided. Nothing should be designed around it yet.
+develop. How they move is open (`docs/DECISIONS.md`); design nothing around it yet.
 
 ## Stack for later phases
 

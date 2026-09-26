@@ -12,7 +12,7 @@ carries three smaller questions with it:
 
 - **`adaptability`** is authored and read by nothing, and weighted zero in the overall
   (`packages/data/src/rating.ts`), because it is reserved for this.
-- **Engine deals.** `SeasonProgressionModel` has no `nextSeasonEngines()`, and nothing
+- **Engine deals.** Nothing changes an engine supplier between seasons, and nothing
   models a works versus a customer deal (a works team is inferred from matching names).
   Whether a supplier moves with the market, with progression, or only by a team-management
   choice is part of the same conversation.
