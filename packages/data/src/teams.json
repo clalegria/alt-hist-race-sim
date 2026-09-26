@@ -7,8 +7,21 @@
     ],
     "liveries": [
       { "from": 1971, "primaryColor": "#003E7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A3E0", "badgeStripes": 2 },
-      { "from": 1984, "primaryColor": "#FFFFFF", "secondaryColor1": "#17255A", "secondaryColor2": "#FFDF00", "badgeStripes": 2 },
-      { "from": 1994, "primaryColor": "#003E7E", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00A3E0", "badgeStripes": 2 }
+      { "from": 1975, "primaryColor": "#FFFFFF", "secondaryColor1": "#F5361A", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 1976, "primaryColor": "#0E1730", "secondaryColor1": "#C9A227", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1978, "primaryColor": "#FFFFFF", "secondaryColor1": "#00563F", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
+      { "from": 1984, "primaryColor": "#FFFFFF", "secondaryColor1": "#00563F", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
+      { "from": 1985, "primaryColor": "#FFFFFF", "secondaryColor1": "#0A2472", "secondaryColor2": "#FFD700", "badgeStripes": 2 },
+      { "from": 1994, "primaryColor": "#0A2472", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C9A227", "badgeStripes": 2 },
+      { "from": 1998, "primaryColor": "#CE2B37", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 1 },
+      { "from": 2000, "primaryColor": "#FFFFFF", "secondaryColor1": "#0A1E4A", "secondaryColor2": "#0055A4", "badgeStripes": 1 },
+      { "from": 2006, "primaryColor": "#1D2A4D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#C8CCCF", "badgeStripes": 1 },
+      { "from": 2014, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#0A2472", "badgeStripes": 2 },
+      { "from": 2019, "primaryColor": "#00A3E0", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#0A2472", "badgeStripes": 2 },
+      { "from": 2020, "primaryColor": "#FFFFFF", "secondaryColor1": "#1C64B0", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 2021, "primaryColor": "#0032A0", "secondaryColor1": "#00A3E0", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 2025, "primaryColor": "#2A3EA8", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#0A2472", "badgeStripes": 1 },
+      { "from": 2026, "primaryColor": "#5DA6E6", "secondaryColor1": "#2A3EA8", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
     ]
   },
   {
@@ -87,9 +100,19 @@
       { "from": 1997, "name": "Arrows", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1977, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
-      { "from": 1991, "primaryColor": "#FFFFFF", "secondaryColor1": "#a31414", "secondaryColor2": "#003DA5", "badgeStripes": 1 },
-      { "from": 1992, "primaryColor": "#FF6A00", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+      { "from": 1977, "primaryColor": "#CDB27C", "secondaryColor1": "#000000", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1980, "primaryColor": "#C9A227", "secondaryColor1": "#000000", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1981, "primaryColor": "#FF8000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 1 },
+      { "from": 1983, "primaryColor": "#F3EBCF", "secondaryColor1": "#B02617", "secondaryColor2": "#0A2472", "badgeStripes": 2 },
+      { "from": 1987, "primaryColor": "#FFFFFF", "secondaryColor1": "#9B1B30", "secondaryColor2": "#0A2472", "badgeStripes": 1 },
+      { "from": 1992, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 1994, "primaryColor": "#FFFFFF", "secondaryColor1": "#2A8FC7", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1995, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#0A2472", "badgeStripes": 2 },
+      { "from": 1996, "primaryColor": "#C8102E", "secondaryColor1": "#1E4C9A", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1997, "primaryColor": "#FFFFFF", "secondaryColor1": "#2E3A8C", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1998, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#3F4448", "badgeStripes": 1 },
+      { "from": 1999, "primaryColor": "#000000", "secondaryColor1": "#FF6A00", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 2000, "primaryColor": "#FF8000", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
     ]
   },
   {
