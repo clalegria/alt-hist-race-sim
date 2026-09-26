@@ -136,7 +136,7 @@
    * never a smooth spin: a quarter turn lands every pixel of the wheel exactly
    * on another, and anything in between would blur the pixel art.
    */
-  --animate-wheel: wheel-turn 0.3s steps(4) infinite;
+  --animate-wheel: wheel-turn 0.8s steps(4) infinite;
 
   @keyframes wheel-turn {
     to {

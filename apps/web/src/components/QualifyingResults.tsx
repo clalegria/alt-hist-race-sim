@@ -8,6 +8,7 @@ import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { HomeStar } from "./HomeAdvantage.js";
 import { TeamBadge } from "./TeamBadge.js";
+import { TeamCar } from "./TeamCar.js";
 
 /**
  * One car's slot on the grid.
@@ -56,9 +57,22 @@ function GridSlot({ entry, country }: { entry: RaceEntryResult; country?: string
           <HomeStar driverId={entry.driverId} country={country} className="shrink-0" />
         </span>
       </span>
+      {/*
+        In the gap between the names and the time. The names keep `flex-1`, so
+        the car sits hard against the time and a long name truncates before it
+        reaches the car. Hidden on the single-column phone grid, where that gap
+        is what the name needs.
+      */}
+      <TeamCar teamId={entry.teamId} className="hidden sm:block" />
+      {/*
+        A fixed width, right-aligned, so the car beside it lands in the same
+        place in every slot: "pole" is narrower than a time, and at its own
+        width it let the pole-sitter's car drift right of everyone else's.
+        Nine characters of the mono face holds "+12.345s" with room to spare.
+      */}
       <span
         className={cn(
-          "shrink-0 text-xs tabular-nums",
+          "w-[9ch] shrink-0 text-right text-xs tabular-nums",
           pole ? STANDOUT_TEXT : "text-muted-foreground",
         )}
       >

@@ -5,6 +5,7 @@ import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { HomeStar } from "./HomeAdvantage.js";
+import { TeamCar } from "./TeamCar.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -30,6 +31,17 @@ function classify(race: RaceResult): readonly RaceEntryResult[] {
  */
 const CELL = "px-2";
 
+/**
+ * The cars' own column, between the names and the grid.
+ *
+ * A column rather than a car inside the name cell, so the table sizes it past
+ * the longest name on the sheet and every car lines up. `w-full` gives it the
+ * spare width the name cell used to take, which keeps the cars beside the
+ * names. Only from `md`: below that the sheet is already short of room, and a
+ * car is not worth a sideways scrollbar.
+ */
+const CAR_COLUMN = "hidden w-full md:table-cell";
+
 function gapOf(entry: RaceEntryResult): string {
   if (entry.finishPosition === 1) {
     return "winner";
@@ -42,6 +54,7 @@ export function RaceClassification({
   points,
   country,
   badge = false,
+  car = false,
 }: {
   race: RaceResult;
   /** The season's points scale. What a finish is worth depends on the year. */
@@ -58,6 +71,8 @@ export function RaceClassification({
    * rather than repeating the screen the reader just left.
    */
   badge?: boolean;
+  /** Draw the team's car on every row, by the same rule and with the same default. */
+  car?: boolean;
 }) {
   return (
     <Table>
@@ -65,6 +80,7 @@ export function RaceClassification({
         <TableRow className="hover:bg-transparent">
           <TableHead className={cn(CELL, "w-12 text-right")}>Pos</TableHead>
           <TableHead className={CELL}>Driver</TableHead>
+          {car ? <TableHead className={cn(CELL, CAR_COLUMN)} /> : null}
           <TableHead className={cn(CELL, "text-right")}>Grid</TableHead>
           <TableHead className={cn(CELL, "text-right")}>Gap</TableHead>
           <TableHead className={CELL}>Status</TableHead>
@@ -97,7 +113,11 @@ export function RaceClassification({
               <TableCell
                 className={cn(
                   CELL,
+                  // The spare width goes to the car column once it shows, and the
+                  // names stop wrapping then: squeezed by that column, they
+                  // folded onto two lines when there was room for one.
                   "w-full whitespace-normal",
+                  car && "md:w-auto md:whitespace-nowrap",
                   finished || "text-muted-foreground",
                 )}
               >
@@ -117,6 +137,11 @@ export function RaceClassification({
                   <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
                 </span>
               </TableCell>
+              {car ? (
+                <TableCell className={cn(CELL, CAR_COLUMN)}>
+                  <TeamCar teamId={entry.teamId} />
+                </TableCell>
+              ) : null}
               <TableCell className={cn(CELL, "text-muted-foreground text-right tabular-nums")}>
                 {entry.gridPosition}
               </TableCell>

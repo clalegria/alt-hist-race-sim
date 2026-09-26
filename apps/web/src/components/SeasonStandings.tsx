@@ -27,6 +27,7 @@ export function SeasonStandings({
   points,
   description,
   badge = false,
+  car = false,
   charts = false,
 }: {
   season: SeasonResult;
@@ -41,6 +42,8 @@ export function SeasonStandings({
    * honour, where this pair *is* an expansion, does not.
    */
   badge?: boolean;
+  /** Draw each team's car on every row, by the same rule and with the same default. */
+  car?: boolean;
   /**
    * Draw each championship's evolution chart under its own table.
    *
@@ -64,6 +67,7 @@ export function SeasonStandings({
         points={points}
         calendar={calendar}
         badge={badge}
+        car={car}
       />
       {/*
         Under the table rather than above it or beside it: the table says who
@@ -86,6 +90,7 @@ export function SeasonStandings({
         points={points}
         calendar={calendar}
         badge={badge}
+        car={car}
       />
       {charts ? (
         <StandingsEvolution

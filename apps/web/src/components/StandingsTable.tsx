@@ -7,6 +7,7 @@ import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { RaceByRace } from "./RaceByRace.js";
+import { TeamCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
@@ -36,6 +37,19 @@ const COLUMNS = [
  * row per round; a team's is a row per *car*, since a team may run one, two or
  * three of them.
  */
+/**
+ * The cars' own column, between the names and the figures.
+ *
+ * A column rather than a car inside the name cell, because a table sizes a
+ * column to its widest cell: every car then starts just past the longest name
+ * *in this table*, whatever season it is. A fixed width in the name cell
+ * cannot promise that, and a long team name pushed its car out of line.
+ * `w-full` hands this column the table's spare width, so the cars stay close
+ * to the names and the figures close up on the right. Hidden on a phone, where
+ * the names need the room.
+ */
+const CAR_COLUMN = "hidden w-full sm:table-cell";
+
 export function StandingsTable({
   title,
   description,
@@ -45,6 +59,7 @@ export function StandingsTable({
   points,
   calendar,
   badge = false,
+  car = false,
 }: {
   title: string;
   description: string;
@@ -55,6 +70,8 @@ export function StandingsTable({
    * these tables are themselves the expansion of a roll-of-honour row.
    */
   badge?: boolean;
+  /** Draw the team's car on every row, by the same rule and with the same default. */
+  car?: boolean;
   /** The results both the table and its expansions are derived from. */
   season: SeasonResult;
   /** The season's points scale, so an expansion scores its rounds as the table did. */
@@ -66,7 +83,7 @@ export function StandingsTable({
   // the two tables on the summary open independently. Purely view state: it
   // says nothing about the simulation, so it stays here rather than the store.
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const columnCount = COLUMNS.length + 2;
+  const columnCount = COLUMNS.length + (car ? 3 : 2);
 
   return (
     <Card>
@@ -81,6 +98,7 @@ export function StandingsTable({
           <TableRow>
             <TableHead className="w-12 text-right">Pos</TableHead>
             <TableHead>{nameColumn}</TableHead>
+            {car ? <TableHead className={CAR_COLUMN} /> : null}
             {COLUMNS.map((column) => (
               <TableHead key={column.key} className="text-right">
                 {column.label}
@@ -123,6 +141,11 @@ export function StandingsTable({
                       )}
                     </DisclosureButton>
                   </TableCell>
+                  {car ? (
+                    <TableCell className={CAR_COLUMN}>
+                      <TeamCar teamId={standing.teamId} />
+                    </TableCell>
+                  ) : null}
                   {COLUMNS.map((column) => (
                     <TableCell
                       key={column.key}

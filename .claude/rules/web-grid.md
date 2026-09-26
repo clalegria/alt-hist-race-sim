@@ -56,7 +56,8 @@ component state rather than the store is `.claude/rules/web-store.md`.
   string against seats-plus-teams and asserts "underline" appears nowhere in a grid.
 - **The overall on a team card already has the engine in it**, via
   `carOverall(chassis, engine)` → the model's own `powertrain()`; a bare chassis is a
-  number nothing races on. The popover shows the parts instead: the four chassis
+  number nothing races on. The popover's header is the card's flag, badge and name, then
+  the team's car (`web-team-car.md`). Below it the popover shows the parts: the four chassis
   ratings (`CHASSIS_RATINGS`, the chassis as authored, not the blend), then the
   engine's three under its own heading — an engine has no consistency, so that panel is
   one row shorter, which is the point rather than an omission. A car with an authored

@@ -108,8 +108,15 @@ export function SeasonCalendar({
                         {/*
                           The round's own country, so an entry racing at home
                           is starred here exactly as it is on the race screen.
+                          The cars too, by the author's call — unlike the
+                          badges, which an expansion leaves off.
                         */}
-                        <RaceClassification race={race} points={points} country={round?.country} />
+                        <RaceClassification
+                          race={race}
+                          points={points}
+                          country={round?.country}
+                          car
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

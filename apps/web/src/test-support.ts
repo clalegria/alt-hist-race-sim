@@ -22,6 +22,7 @@ import {
   type RatingMode,
   seasonSeed,
 } from "@alt-hist/data";
+import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
 import { createWorld, type World } from "./store/season.js";
 
 /**
@@ -85,4 +86,17 @@ export function starterCount(world: World, round = 0): number {
     throw new Error(`the season has no round ${round + 1}`);
   }
   return race.entries.filter((entry) => entry.started).length;
+}
+
+/**
+ * The `<svg>` elements in a rendered tree that are not team cars.
+ *
+ * Several tests count flags, rain clouds and home stars by counting `<svg>`,
+ * and a car is an `<svg>` too. Cars are counted out by their canvas, so a
+ * row gaining a car does not read as a row gaining a flag.
+ */
+export function svgsBesideCars(html: string): number {
+  const svgs = html.split("<svg").length - 1;
+  const cars = html.split(`viewBox="0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}"`).length - 1;
+  return svgs - cars;
 }

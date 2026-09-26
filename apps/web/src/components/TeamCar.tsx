@@ -1,6 +1,6 @@
 import type { Livery } from "@alt-hist/data";
 import {
-  type CarSprite,
+  carSpriteFor,
   type PixelRole,
   pixelRuns,
   runsPath,
@@ -9,10 +9,15 @@ import {
   wheelRows,
 } from "../lib/car-sprites.js";
 import { cn } from "../lib/utils.js";
+import { useLivery, useSeasonYear } from "./Liveries.js";
 
 /**
- * A champion's car: its decade's sprite painted in the team's livery, wheels
- * turning.
+ * A team's car: its decade's sprite painted in the team's livery.
+ *
+ * **Two sizes, and only two.** Every row, slot and panel that shows a car uses
+ * `small`, so a car is the same size wherever it is met; only the champion
+ * cards use `large`, and only they turn the wheels. Both are whole multiples of
+ * the sprite (1× and 3×), which is what keeps every pixel square.
  *
  * **An inline SVG, drawn as one path per colour**, with `crispEdges` so the
  * browser does not blur the pixel edges when it scales them up. Inline rather
@@ -74,23 +79,49 @@ function Pixels({
   );
 }
 
-export function ChampionCar({
-  sprite,
+/**
+ * Width and height at each size: 1× and 3× the sprite's canvas. Exported so
+ * tests can tell the sizes apart in a rendered tree.
+ */
+export const CAR_SIZES = {
+  small: "h-3.5 w-12",
+  large: "h-10.5 w-36",
+} as const;
+
+export type CarSize = keyof typeof CAR_SIZES;
+
+/**
+ * A car drawn from colours the caller already has.
+ *
+ * `SeasonGrid` resolves liveries from the year it is handed rather than from
+ * the `Liveries` context, which is what lets the grid editor preview a draft
+ * the world has never seen — the reason `LiveryBadge` exists beside
+ * `TeamBadge`, and this beside `TeamCar`.
+ */
+export function LiveryCar({
   livery,
+  year,
+  size = "small",
+  animated = false,
   className,
 }: {
-  sprite: CarSprite;
   livery: Livery;
+  /** Which decade's car. Outside a season, the newest. */
+  year?: number | undefined;
+  size?: CarSize;
+  /** Turn the wheels. The champion cards only. */
+  animated?: boolean;
   className?: string | undefined;
 }) {
+  const sprite = carSpriteFor(year ?? Number.POSITIVE_INFINITY);
   const colours = coloursFor(livery);
   return (
     <svg
-      // Decorative: the card names the champion and the team in words.
+      // Decorative: wherever a car appears, the team is named in words beside it.
       aria-hidden="true"
       viewBox={`0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}`}
       shapeRendering="crispEdges"
-      className={cn("shrink-0", className)}
+      className={cn("shrink-0", CAR_SIZES[size], className)}
     >
       <Pixels rows={sprite.rows} colours={colours} />
       {sprite.wheels.map((wheel) => (
@@ -99,11 +130,47 @@ export function ChampionCar({
             The turning is on an inner group so it pivots about the wheel's
             own centre (`fill-box`) rather than the corner of the canvas.
           */}
-          <g className="motion-safe:animate-wheel [transform-box:fill-box] [transform-origin:center]">
+          <g
+            className={
+              animated
+                ? "motion-safe:animate-wheel [transform-box:fill-box] [transform-origin:center]"
+                : undefined
+            }
+          >
             <Pixels rows={wheelRows(wheel)} colours={colours} />
           </g>
         </g>
       ))}
     </svg>
+  );
+}
+
+/** A team's car in the season in scope, from the `Liveries` context. */
+export function TeamCar({
+  teamId,
+  size,
+  animated,
+  className,
+}: {
+  teamId: string;
+  size?: CarSize;
+  animated?: boolean;
+  className?: string | undefined;
+}) {
+  const liveryOf = useLivery();
+  const year = useSeasonYear();
+  const livery = liveryOf(teamId);
+  // Nothing for a team the seed data does not know, as `TeamBadge` does.
+  if (livery === undefined) {
+    return null;
+  }
+  return (
+    <LiveryCar
+      livery={livery}
+      year={year}
+      size={size ?? "small"}
+      animated={animated ?? false}
+      className={className}
+    />
   );
 }

@@ -32,6 +32,7 @@ import {
   SEED,
   seededWorld,
   starterCount,
+  svgsBesideCars,
   teamCount,
 } from "./test-support.js";
 
@@ -367,16 +368,14 @@ describe("flags", () => {
     const html = render({ kind: "race", round: 0 });
     // One for the round, one per car down the classification, then the
     // collapsed sidebar: eight drivers and eight teams — plus a star on each
-    // car racing at home, and the cloud if it rained.
-    expect((html.match(/<svg/g) ?? []).length).toBe(
-      1 + SEATS + 8 + 8 + rainIcons(0) + homeStars(0),
-    );
+    // car racing at home, and the cloud if it rained. Not the cars.
+    expect(svgsBesideCars(html)).toBe(1 + SEATS + 8 + 8 + rainIcons(0) + homeStars(0));
   });
 
   it("flies a flag beside every driver in qualifying", () => {
     const html = render({ kind: "qualifying", round: 0 });
-    // Every car plus the round, the home stars, and the cloud if it rained.
-    expect((html.match(/<svg/g) ?? []).length).toBe(SEATS + 1 + rainIcons(0) + homeStars(0));
+    // Every driver plus the round, the home stars, and the cloud if it rained.
+    expect(svgsBesideCars(html)).toBe(SEATS + 1 + rainIcons(0) + homeStars(0));
   });
 
   it("keeps the non-qualifiers off the starting grid", () => {
@@ -407,9 +406,9 @@ describe("flags", () => {
   it("flies a flag on every row of both championship tables", () => {
     const html = render({ kind: "summary" });
     const drivers = between(html, "Drivers’ Championship", "Constructors’ Championship");
-    expect((drivers.match(/<svg/g) ?? []).length).toBe(SEATS);
+    expect(svgsBesideCars(drivers)).toBe(SEATS);
     const teams = between(html, "Constructors’ Championship", "Grid");
-    expect((teams.match(/<svg/g) ?? []).length).toBe(TEAMS);
+    expect(svgsBesideCars(teams)).toBe(TEAMS);
   });
 });
 
