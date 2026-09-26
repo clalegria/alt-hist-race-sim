@@ -19,6 +19,7 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
+import { carSpriteFor } from "../lib/car-sprites.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
@@ -26,13 +27,14 @@ import { useSortOrder } from "../lib/sort-preference.js";
 import { positionsOf } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import type { View, World } from "../store/season.js";
+import { ChampionCar } from "./ChampionCar.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
 import { HomeAdvantage } from "./HomeAdvantage.js";
 import { EditedGridBanner } from "./LineupChanges.js";
-import { Liveries } from "./Liveries.js";
+import { Liveries, useLivery } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { RandomnessNote } from "./RandomnessNote.js";
@@ -114,6 +116,7 @@ function Champion({
   detail,
   country,
   teamId,
+  year,
 }: {
   label: string;
   name: string;
@@ -124,21 +127,41 @@ function Champion({
    * on the constructors' side. Undefined before anyone has scored.
    */
   teamId?: string | undefined;
+  /** Which decade's car is drawn. */
+  year: number;
 }) {
+  const liveryOf = useLivery();
+  const livery = teamId === undefined ? undefined : liveryOf(teamId);
   return (
     // The same accent pole and the race winner carry: whoever won the thing on
     // screen looks the same wherever you meet them.
     <Card className={cn("flex-1", STANDOUT_SURFACE)}>
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
-          {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
-          {country === undefined || country === "" ? null : (
-            <Flag country={country} title={country} className="h-4 w-6" />
-          )}
-          {name}
-        </CardTitle>
-        <CardDescription>{detail}</CardDescription>
+      <CardHeader className="gap-3 lg:flex-row lg:items-center lg:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <CardDescription>{label}</CardDescription>
+          <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
+            {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
+            {country === undefined || country === "" ? null : (
+              <Flag country={country} title={country} className="h-4 w-6" />
+            )}
+            {name}
+          </CardTitle>
+          <CardDescription>{detail}</CardDescription>
+        </div>
+        {/*
+          After the words, so the card still reads label, name, detail, and at
+          the right-hand edge. Beside them only once the card is wide enough:
+          narrower, it would squeeze a team's name onto three lines, so it
+          drops beneath instead. Three times the sprite's size, a whole
+          multiple, so every pixel stays square.
+        */}
+        {livery === undefined ? null : (
+          <ChampionCar
+            sprite={carSpriteFor(year)}
+            livery={livery}
+            className="h-12 w-48 self-end lg:self-auto"
+          />
+        )}
       </CardHeader>
     </Card>
   );
@@ -212,6 +235,7 @@ function Summary({
           name={champion === undefined ? "—" : driverName(champion.driverId)}
           country={champion === undefined ? undefined : driverCountry(champion.driverId)}
           {...(champion === undefined ? {} : { teamId: champion.teamId })}
+          year={year}
           detail={
             champion === undefined
               ? "Nobody scored."
@@ -223,6 +247,7 @@ function Summary({
           name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
           country={topTeam === undefined ? undefined : teamCountry(topTeam.teamId)}
           {...(topTeam === undefined ? {} : { teamId: topTeam.teamId })}
+          year={year}
           detail={
             topTeam === undefined
               ? "Nobody scored."

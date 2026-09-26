@@ -97,7 +97,9 @@ with whichever background the reader is on. `cardTint` mixes toward `--color-car
 definition the far end of the live theme from its background — so both follow a
 light/dark switch with no JavaScript and no per-theme branch. Keep the mix percentages
 off 100%: at full strength the mix is the raw colour again and the guarantee is gone
-silently, which is why a test asserts it.
+silently, which is why a test asserts it. The one exception is the champion car: a
+picture of a car rather than a surface, kept visible by its outline instead
+(`web-champion-car.md`).
 
 Mixing a colour toward a surface it already matches produces no wash at all: white teams
 looked ungradiented on the light theme and near-black ones on the dark theme, both
