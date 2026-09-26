@@ -59,6 +59,7 @@ pnpm retirements [n]  # retirement rate per year vs real; --sweep re-fits the fa
 pnpm progression <driver>  # one driver's ageing curve, age 16-55 (no arg lists the pool)
 pnpm tune          # rating tuner (prints proposals, writes nothing)
 pnpm fit <year>    # fit a season's chassis/engines to its real results; --write applies
+pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/rules/screenshots.md)
 ```
 
 ## Architecture rules (invariants — do not violate)

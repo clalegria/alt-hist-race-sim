@@ -1,0 +1,16 @@
+{
+  "name": "@alt-hist/screenshots",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "start": "playwright install --only-shell chromium && tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "playwright": "1.63.0",
+    "tsx": "^4.20.6"
+  }
+}

@@ -88,10 +88,10 @@ public contract: change it and every link out there breaks.
 - **The host must serve deep links**: `/era/…` has to answer with `index.html`. One
   rewrite rule on Netlify or Cloudflare Pages; hash URLs or a `404.html` workaround on
   GitHub Pages. Settle it with the host in *publish it*.
-- **Screenshots, so Claude can see the UI.** A Playwright script in `tools/` renders a
-  list of share links at desktop and phone widths to PNGs that Claude reads. Its own
-  browser with a throwaway profile — never the author's Chrome. The same link gives the
-  same pixels, so it can later become a visual check in CI. Serves *phone layout*.
+- **Screenshots from URLs.** `pnpm screenshots` (`.claude/rules/screenshots.md`)
+  reaches each screen by clicking through today; switch each step to a share link once
+  they exist. The same link gives the same pixels, so it can then become a visual check
+  in CI.
 
 ## 3. Phone layout
 

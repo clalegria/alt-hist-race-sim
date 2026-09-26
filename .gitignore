@@ -10,3 +10,4 @@ coverage/
 .vite/
 .turbo/
 .claude/settings.local.json
+tools/screenshots/out/
