@@ -48,8 +48,9 @@ exists on the harnesses that take a `--mode`; it is not for producing a figure.
 
 - **No host country.** `pnpm calibrate` and the tuner run `simulateRace` with no
   `RoundContext`, so all three shares of home advantage — driver, team, engine — pay
-  nothing. Rotating the harness through a real calendar would fold it into everything it
-  prints; that is a change to what the instrument measures, and needs the author's word.
+  nothing. The author has decided the harness should race a real calendar, folding home
+  advantage into everything it prints; that is *harness fidelity* in `docs/ROADMAP.md`,
+  not yet built.
 - **No development trend.** They race with no `seasonProgress`, which is mid-season,
   where every car's `developmentTrend` is worth exactly zero. `--phase start` / `--phase
   end` ask the other question and print their phase in the heading.

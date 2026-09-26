@@ -57,8 +57,8 @@ Three properties hold it in place, each with a test:
 The three numbers are a first guess, chosen for plausibility — a home race is worth a
 tenth or two, not a car upgrade. **The harnesses cannot see them**: `pnpm calibrate` and
 the tuner both run with no `RoundContext`, so home advantage pays nothing in any race
-they run. Putting a real number on these would mean first deciding whether the harness
-should rotate through a real calendar. See `.claude/rules/calibration.md`.
+they run, until the harness races a real calendar (*harness fidelity* in
+`docs/ROADMAP.md`). See `.claude/rules/calibration.md`.
 
 ## The star
 

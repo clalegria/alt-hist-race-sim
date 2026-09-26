@@ -86,7 +86,8 @@ average. Two tests hold that trade in place: the erratic car's mean finish must 
 worse, and its win rate must stay under twice the steady car's.
 
 Widen the gap for more wildcards and streakier racing; close it back toward 1.0 for
-stricter dominance by the best pairing.
+stricter dominance by the best pairing. A middle option is untried: stretch the bad tail
+*and* compress the good one, keeping some asymmetry while capping the ceiling.
 
 ## The noise splits on two axes: weekend/session, and team/car
 
@@ -116,8 +117,7 @@ the whole argument for it: it is a redistribution, not an extra dice roll.
 What it was reasoned against is real teammate head-to-heads, which for a strong pairing
 in a dominant car sit around a fifth to a quarter of races — where the model, before the
 share existed, was closer to a third. Teams whose two drivers are close stay near a coin
-flip, which is correct. Both shares are judgements rather than answers to a harness; see
-`docs/DECISIONS.md`.
+flip, which is correct. Both shares are judgements rather than answers to a harness.
 
 ## The DNF endpoints carry a wet correction
 

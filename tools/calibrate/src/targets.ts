@@ -101,9 +101,10 @@ const TARGETS_1980: SeasonTargets = {
  *
  * **The retirement target is 1980's, not a measurement of 1981.** No separate
  * figure has been established for the year, and inventing one would put a made-
- * up number where the honest answer is "the era curve is an open decision" —
- * see `mechanicalDnfEraScale` in `docs/DECISIONS.md`. This is the one target
- * here that is inherited rather than observed.
+ * up number where the era belongs to the season's `retirementFactor`
+ * (`.claude/rules/retirement-factor.md`), which the tuner does not read yet —
+ * see *harness fidelity* in `docs/ROADMAP.md`. This is the one target here that
+ * is inherited rather than observed.
  */
 const TARGETS_1981: SeasonTargets = {
   year: 1981,

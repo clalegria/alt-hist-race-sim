@@ -179,18 +179,9 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
 ## Open decisions (confirm with the author before implementing — do not assume)
 Full reasoning in `docs/DECISIONS.md`; these one-liners exist so a session knows a
 question is open without carrying the argument.
-- **Per-run scatter on the ageing curve** — settled as *no scatter for now*; the curve is
-  deterministic. Peak shape matters again only if that reopens.
-- **Should the tuner see a season's retirement factor?** `pnpm tune` works at the neutral
-  factor against `targets.ts`, while every season carries its own — so the tuner is
-  answering a slightly different question from the one the season asks. Either change is a
-  tuning decision, and the author's.
-- **Consistency's spread lever is open** (1.3 / 0.75): it buys wildcards, and hands the
-  best pairing a little more win share than a flat 1.0 would. Wet racing's retirement
-  drift is corrected — the four DNF endpoints carry x0.985 / x0.90
-  (`.claude/rules/race-constants.md`) — its win-share drift deliberately is not.
-- **Circuits have no character** — `RoundContext` opened the door (`wetChance` is already
-  there, unused); what a circuit *does* is undecided, as are the home-advantage numbers.
 - **What moves the driver market** — a design conversation, not a coding task; and it is
   why `driverOverall` still weights `adaptability` at zero (a display heuristic in
-  `packages/data/src/rating.ts`, whose other four weights move by hand).
+  `packages/data/src/rating.ts`, whose other four weights move by hand). Engine deals
+  ride on the same conversation.
+- **Should the fitter and tuner move drivers?** Off by default behind `--drivers`;
+  whether driver ratings are ever fitted rather than only authored is open.

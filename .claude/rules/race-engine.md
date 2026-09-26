@@ -24,7 +24,9 @@ and the car *are*, the rest are what happens to them:
    it is mid-season and every trend is worth zero.
 1. **Qualifying** — `0.64·car + 0.36·driver + home − consistencyPenalty + noise`, sorted
    → grid. The whole entry list runs, however big it is.
-2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start.
+2. **The cut** — the fastest `maxStarters` (26, the 1980 limit) take the start. One
+   constant for every era, on purpose: per-era limits, pre-qualifying and round-by-round
+   entry lists are deliberately not modelled.
    Anyone slower keeps their grid position but is a **DNQ**: `started: false`,
    `raceScore: null`, and *not* a retirement. `retirements` and `classifiedCount`
    count starters only; `nonQualifiers` counts the rest. A field at or under the

@@ -65,10 +65,9 @@ on its cars than any real one.
 factors to within a fraction of a point, which is worth knowing: a sweep is not quietly
 measuring the ageing curve. 200–400 seasons a year is plenty of sample either way.
 
-**The tuner runs at the neutral factor**, deliberately: `pnpm tune` builds constants from
-`RACE_CONSTANTS`, not from `seasonConstants`, so a season's dial cannot drift the ratings
-it proposes. Whether it *should* see the factor is an open question for the author
-(`docs/DECISIONS.md`).
+**The tuner runs at the neutral factor** today: `pnpm tune` builds constants from
+`RACE_CONSTANTS`, not from `seasonConstants`. The author has decided it should see each
+season's factor instead; that is *harness fidelity* in `docs/ROADMAP.md`, not yet built.
 
 ## Counting rules — the part to get right
 
