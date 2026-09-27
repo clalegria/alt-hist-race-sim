@@ -35,8 +35,15 @@ UA = "alt-hist-race-sim-livery-skill/1.0 (hobby project; python-urllib)"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 OPENVERSE_API = "https://api.openverse.org/v1/images/"
 # Seconds between requests to one host: Commons answers bursts with HTTP 429 and
-# Openverse limits anonymous clients. Other image hosts get no pause.
-PAUSE = {"commons.wikimedia.org": 1.5, "upload.wikimedia.org": 1.0, "api.openverse.org": 1.0}
+# Openverse limits anonymous clients; StatsF1 is a small hobby site, so it gets a long pause.
+# Other image hosts get no pause.
+PAUSE = {
+    "commons.wikimedia.org": 1.5,
+    "upload.wikimedia.org": 1.0,
+    "api.openverse.org": 1.0,
+    "www.statsf1.com": 5.0,
+    "statsf1.com": 5.0,
+}
 _last = {}
 
 

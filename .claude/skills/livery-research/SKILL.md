@@ -68,6 +68,14 @@ era (`"source"`, `"note"`) are yours for the proposal and are dropped by `apply`
 photos) and Wikimedia Commons. `--source commons` searches Commons alone. Both
 rate-limit anonymous use; search for what you need rather than sweeping.
 
+**StatsF1** (statsf1.com) has good period photos, one page per chassis, e.g.
+`https://www.statsf1.com/en/eurobrun-er189b.aspx`, but it is the **last resort**: it
+blocks readily, even the author's own browser. Only when Openverse, Commons and the
+author have nothing, ask the author whether it's worth using for that one season.
+It refuses scripted clients, so never fetch its pages, never retry, and never fake a
+browser user agent. If the author agrees, give them the chassis page URL; they may send
+a photo, which you use like any other photo they send.
+
 ## Workflow
 
 ### 1. Scope
