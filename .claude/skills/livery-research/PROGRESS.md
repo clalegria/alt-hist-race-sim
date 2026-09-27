@@ -16,6 +16,9 @@ clashes with a team under review.
   no photo.
 - `brabham`: whole history 1962-1991. 1972 rests on museum cars only; 1992 (pink/blue
   BT60B) needs its own era if that season is added.
+- `brm`: 1970-74; 1951-69 only checked against demo cars (green, orange nose band). 1974
+  (Motul teal) rests on demo cars only; the 1970-71 Yardley shades are read through a
+  warm cast.
 - `caterham` (Lotus Racing + Caterham, 2010-2014): whole history. 2013 rests on launch
   studio renders only.
 - `coloni`: whole history 1987-1991; 1991 is the author's own. 1987 has no photo (carries
@@ -23,6 +26,11 @@ clashes with a team under review.
   the Subaru C3B (white, red, green), not the yellow Ford C3C of the second half.
 - `dallara` (Dallara + the 1993 BMS Lola): whole history 1988-1993. 1993 is half red,
   half white; red taken as primary.
+- `embassy_hill`: whole history 1973-1975, one era (white, red, gold). The gold stripe is
+  the fin crest, chosen over black to tell it from McLaren and Williams.
+- `ensign`: whole history 1973-1981. No photo: 1974 (carries 1973's green), 1981 (carries
+  1980's Unipart navy, leaned royal to clear Lotus). Demo cars only: 1973, 1977, 1979
+  (one car).
 - `eurobrun`: whole history 1988-1990. 1989 (orange) rests on demo and museum cars only;
   1990 (silver) on one author-supplied photo.
 - `ferrari`: whole history 1950-2026; solid red but for white-stripe eras (1975-78,
@@ -38,6 +46,8 @@ clashes with a team under review.
 - `haas` (the 2016+ team, not `haas_lola`): whole history; 2025-26 is one era.
 - `haas_lola` (1985-1986, not `haas`): whole history, one era. The Beatrice red is leaned
   crimson to clear Ferrari; told from Zakspeed by the blue stripe.
+- `hesketh`: whole history 1974-1976. 1976 rests on one museum car, Edwards's Penthouse
+  308D (half black, half white; white taken as primary); Ertl's car has no photo.
 - `hrt`: whole history 2010-2012. 2011's red is split between two photos; 2012's red and
   gold are read by eye.
 - `larrousse`: whole history 1987-1994. 1987-88 rests on demo cars only; 1991 has no photo
@@ -50,6 +60,8 @@ clashes with a team under review.
 - `march` (March + Leyton House, 1970-1992): whole history. Single-source: 1973 (orange-red,
   one museum car), 1992 (turquoise, one blurry photo); 1987 and 1989 have no photo.
   1977 follows Ribeiro's Hollywood car, not Scheckter's Rothmans one.
+- `matra`: whole history 1968-1971, one French-blue era (original colours confirmed). Rests
+  on museum and demo cars only; 1969 (MS80) has no photo.
 - `mclaren`: 1966-73. 1974-96 (Marlboro) and 1997+ are the author's own eras, kept.
 - `minardi`: 1985-2005; 2006+ is the author's own. No photo: 1988, 1992, 2002 (each
   carries the season before). Thin evidence: 1991 and 1997 (museum cars only), 2000
@@ -66,6 +78,9 @@ clashes with a team under review.
   evidence: 1997-98 (museum cars only), 2000 (no photo; carries the R2-R5 look back).
 - `super_aguri`: whole history 2006-2008, one era. Stripes run black then red to tell it
   from Toyota's red and navy; the red shade is unconfirmed.
+- `surtees`: whole history 1970-1978. Thin evidence: 1972 red/white (demo cars and a Corgi
+  toy; Hailwood's car may have stayed Brooke Bond Oxo white/blue), 1973 navy (demo and
+  museum cars only), 1977 (one small period photo; carries 1976's Durex accents).
 - `theodore`: whole history 1981-1983. 1981-82 white rests on black-and-white photos only;
   its red and black accents are a guess. 1983's navy rests on one small period scan.
 - `toyota`: whole history 2002-2009, one era.
@@ -75,6 +90,10 @@ clashes with a team under review.
   photo; 1982 rests on one illustration.
 - `pacific`: whole history 1994-1995. 1995's blue is nudged off Jordan's (ΔE 14, told
   apart by the green stripe).
+- `parnelli`: whole history 1975, one era. Half red, half white; the Viceroy red taken as
+  primary.
+- `penske`: whole history 1975-1976. 1975's white PC1 draws only its blue stripe (red as
+  the second colour) so it is not Hesketh's twin.
 - `rial`: whole history 1988-1989, one era. Rests on demo cars from one 2024 meeting; the
   blue is lightened off Onyx's.
 - `ram`: whole history 1983-1985. 1983 (white) rests on one museum car; 1984 has no photo
@@ -84,6 +103,7 @@ clashes with a team under review.
 - `virgin` (Virgin → Marussia → Manor): whole history 2010-2016. 2014 is merged with
   2015 (red with white and black).
 - `williams`: 1975-2026. 1971-72 keeps placeholder colours until a photo turns up.
+- `wolf`: whole history 1977-1979, one era (near-black navy and gold).
 - `zakspeed`: whole history 1985-1989, one era. 1987 rests on one illustration.
 
 ## Set by hand from the author's own specs
