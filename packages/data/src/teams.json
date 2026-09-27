@@ -600,7 +600,7 @@
       { "from": 1964, "name": "Honda", "base": "JP" }
     ],
     "liveries": [
-      { "from": 1964, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+      { "from": 1964, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#1A1A1A", "badgeStripes": 1 }
     ]
   },
   {
@@ -620,7 +620,7 @@
       { "from": 1954, "name": "Mercedes", "base": "DE" }
     ],
     "liveries": [
-      { "from": 1954, "primaryColor": "#C8CCCE", "secondaryColor1": "#00A19B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+      { "from": 1954, "primaryColor": "#C8CCCF", "secondaryColor1": "#1A1A1A", "secondaryColor2": "#FFFFFF", "badgeStripes": 0 }
     ]
   },
   {
@@ -777,7 +777,8 @@
       { "from": 1951, "name": "BRM", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1951, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1951, "primaryColor": "#4A7C59", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#1A1A1A", "badgeStripes": 0 },
+      { "from": 1962, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
       { "from": 1970, "primaryColor": "#FFFFFF", "secondaryColor1": "#A8791F", "secondaryColor2": "#B02617", "badgeStripes": 2 },
       { "from": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#000000", "badgeStripes": 2 },
       { "from": 1974, "primaryColor": "#13706A", "secondaryColor1": "#B8BCC0", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }

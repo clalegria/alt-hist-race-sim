@@ -16,7 +16,8 @@ clashes with a team under review.
   no photo.
 - `brabham`: whole history 1962-1991. 1972 rests on museum cars only; 1992 (pink/blue
   BT60B) needs its own era if that season is added.
-- `brm`: 1970-74; 1951-69 only checked against demo cars (green, orange nose band). 1974
+- `brm`: 1951-74. 1951-61 is plain green, lightened off Connaught's twin; the orange nose
+  band starts 1962. Both set from knowledge, not photos. 1974
   (Motul teal) rests on demo cars only; the 1970-71 Yardley shades are read through a
   warm cast.
 - `caterham` (Lotus Racing + Caterham, 2010-2014): whole history. 2013 rests on launch
@@ -108,6 +109,11 @@ clashes with a team under review.
 
 ## Set by hand from the author's own specs
 
-`cadillac` 2026, `jordan` whole history (1991 keeps its original colours by the author's
-choice), `minardi` 2006+, `renault` (the 1977-85 works team, not
-`toleman`) whole history, `sauber` 1993+, `stewart` 2005+ (blue), `toleman` 1981+.
+`cadillac` 2026, `honda` (the 1964-68 works team) one red stripe on white, `jordan` whole
+history (1991 keeps its original colours by the author's choice), `mercedes` (the 1954-55
+works team, not `tyrrell`) plain silver, `minardi` 2006+, `renault` (the 1977-85 works
+team, not `toleman`) whole history, `sauber` 1993+, `stewart` 2005+ (blue), `toleman`
+1981+.
+
+The other 1950-74 race winners were checked at a glance and left as they were: Alfa
+Romeo, Maserati, Vanwall, Cooper, Rob Walker, Porsche and Eagle.
