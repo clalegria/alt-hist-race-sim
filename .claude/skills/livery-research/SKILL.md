@@ -33,7 +33,8 @@ re-explain it.
 - **Free tools only.** No paid APIs or API keys; the author has turned them down. If the
   free search comes up empty for a season, ask them for a photo.
 - **Don't run the test suite** for a livery change, and don't commit unless asked.
-- When they say a team is done, it's done: don't reopen its eras unprompted.
+- When they say a team is done, it's done: don't reopen its eras unprompted, and add it
+  to [PROGRESS.md](PROGRESS.md) in the same piece of work.
 
 ## The tools
 
@@ -71,7 +72,7 @@ rate-limit anonymous use; search for what you need rather than sweeping.
 
 ### 1. Scope
 
-Resolve the team id with `find` — the modern Aston Martin is `jordan`, Red Bull is
+Read [PROGRESS.md](PROGRESS.md) first: a team listed there is signed off. Resolve the team id with `find` — the modern Aston Martin is `jordan`, Red Bull is
 `stewart`, Alpine is `toleman`. Run `show` to see the current eras and the name in force
 each year: you search with the name *of that year*. A request for "the 1985 grid" means
 every team in `grid 1985`, one after another.
