@@ -37,8 +37,10 @@ re-explain it.
 
 ## The tools
 
-Run from the repo root. Put images, plans and sheets in the session scratchpad if one is
-listed, otherwise a temp directory — never in the repo. Images need Pillow
+Run from the repo root. Put downloaded images and plans in the session scratchpad if one
+is listed, otherwise a temp directory. **Badge sheets go in
+`.claude/skills/livery-research/out/`** (gitignored), because the user can't open the
+scratchpad; name them `<team>-<years>.png`. Images need Pillow
 (`pip install --user Pillow`).
 
 ```
@@ -208,7 +210,9 @@ Any red ring is unfinished work. Then give the user:
 Mark in the evidence column whether each source is a period race photo or a demo /
 museum / user-supplied one. Then: eras that changed or merged; clashes you moved away
 from, with ΔE before and after; clashes you left, and why; every doubtful call (a season
-with no photos, a single-source era, a half-and-half primary); and the sheet's path.
+with no photos, a single-source era, a half-and-half primary); and each sheet as a
+clickable workspace-relative link, e.g.
+`[lotus-1958-1978.png](.claude/skills/livery-research/out/lotus-1958-1978.png)`.
 **Write nothing until the user says go**, then apply what they approved (see "Working
 with the user").
 
