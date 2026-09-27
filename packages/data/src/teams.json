@@ -218,7 +218,13 @@
       { "from": 1973, "name": "Ensign", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1973, "primaryColor": "#1B3A6B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 1 }
+      { "from": 1973, "primaryColor": "#004225", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1975, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#1A1A1A", "badgeStripes": 2 },
+      { "from": 1976, "primaryColor": "#9B1B30", "secondaryColor1": "#1D2A4D", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1977, "primaryColor": "#AB0904", "secondaryColor1": "#F7A005", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1978, "primaryColor": "#1A1A1A", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1979, "primaryColor": "#AB0904", "secondaryColor1": "#00594F", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1980, "primaryColor": "#0A2472", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
     ]
   },
   {
@@ -771,7 +777,10 @@
       { "from": 1951, "name": "BRM", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1951, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+      { "from": 1951, "primaryColor": "#013220", "secondaryColor1": "#FF6A00", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1970, "primaryColor": "#FFFFFF", "secondaryColor1": "#A8791F", "secondaryColor2": "#B02617", "badgeStripes": 2 },
+      { "from": 1972, "primaryColor": "#FFFFFF", "secondaryColor1": "#E10600", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 1974, "primaryColor": "#13706A", "secondaryColor1": "#B8BCC0", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
     ]
   },
   {
@@ -831,7 +840,13 @@
       { "from": 1970, "name": "Surtees", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1970, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#00843D", "badgeStripes": 2 }
+      { "from": 1970, "primaryColor": "#F7483B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#9B1B30", "badgeStripes": 1 },
+      { "from": 1971, "primaryColor": "#FFFFFF", "secondaryColor1": "#0A1E4A", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1972, "primaryColor": "#F7483B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#9B1B30", "badgeStripes": 1 },
+      { "from": 1973, "primaryColor": "#0A1E4A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 2 },
+      { "from": 1974, "primaryColor": "#FFD200", "secondaryColor1": "#003DA5", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 },
+      { "from": 1976, "primaryColor": "#FFFFFF", "secondaryColor1": "#0A1E4A", "secondaryColor2": "#8C6A43", "badgeStripes": 2 },
+      { "from": 1978, "primaryColor": "#F86631", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#151515", "badgeStripes": 1 }
     ]
   },
   {
@@ -841,7 +856,8 @@
       { "from": 1973, "name": "Hesketh", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 },
+      { "from": 1976, "primaryColor": "#FFFFFF", "secondaryColor1": "#151515", "secondaryColor2": "#00563F", "badgeStripes": 1 }
     ]
   },
   {
@@ -851,7 +867,8 @@
       { "from": 1974, "name": "Penske", "base": "US" }
     ],
     "liveries": [
-      { "from": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+      { "from": 1974, "primaryColor": "#FFFFFF", "secondaryColor1": "#003DA5", "secondaryColor2": "#E4002B", "badgeStripes": 1 },
+      { "from": 1976, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
     ]
   },
   {
@@ -861,7 +878,7 @@
       { "from": 1973, "name": "Embassy Hill", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 1 }
+      { "from": 1973, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#C8A951", "badgeStripes": 2 }
     ]
   },
   {
@@ -871,7 +888,7 @@
       { "from": 1977, "name": "Wolf", "base": "CA" }
     ],
     "liveries": [
-      { "from": 1977, "primaryColor": "#0A1E4A", "secondaryColor1": "#C8A951", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
+      { "from": 1977, "primaryColor": "#13243B", "secondaryColor1": "#C8A951", "secondaryColor2": "#AB0904", "badgeStripes": 1 }
     ]
   },
   {
@@ -881,7 +898,7 @@
       { "from": 1974, "name": "Parnelli", "base": "US" }
     ],
     "liveries": [
-      { "from": 1974, "primaryColor": "#003DA5", "secondaryColor1": "#FFD200", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+      { "from": 1974, "primaryColor": "#B02617", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#0A1E4A", "badgeStripes": 1 }
     ]
   },
   {
