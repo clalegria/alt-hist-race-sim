@@ -150,7 +150,9 @@
       { "from": 1975, "name": "Fittipaldi", "base": "BR" }
     ],
     "liveries": [
-      { "from": 1975, "primaryColor": "#F2C500", "secondaryColor1": "#009C3B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
+      { "from": 1975, "primaryColor": "#C8CCCF", "secondaryColor1": "#1E4C9A", "secondaryColor2": "#00843D", "badgeStripes": 2 },
+      { "from": 1977, "primaryColor": "#FFCD00", "secondaryColor1": "#E10600", "secondaryColor2": "#00843D", "badgeStripes": 2 },
+      { "from": 1980, "primaryColor": "#FFEC17", "secondaryColor1": "#A6051A", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
     ]
   },
   {
@@ -195,7 +197,7 @@
     ],
     "liveries": [
       { "from": 1950, "primaryColor": "#A6051A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#007A33", "badgeStripes": 1 },
-      { "from": 1980, "primaryColor": "#FF4A00", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 1 },
+      { "from": 1980, "primaryColor": "#FFFFFF", "secondaryColor1": "#FF6A13", "secondaryColor2": "#000000", "badgeStripes": 1 },
       { "from": 1984, "primaryColor": "#26A18A", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
     ]
   },
@@ -206,7 +208,7 @@
       { "from": 1977, "name": "ATS", "base": "DE" }
     ],
     "liveries": [
-      { "from": 1977, "primaryColor": "#000000", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+      { "from": 1977, "primaryColor": "#FFEC17", "secondaryColor1": "#000000", "secondaryColor2": "#FFFFFF", "badgeStripes": 1 }
     ]
   },
   {
@@ -253,7 +255,8 @@
       { "from": 1977, "name": "Theodore", "base": "HK" }
     ],
     "liveries": [
-      { "from": 1977, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+      { "from": 1977, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 },
+      { "from": 1983, "primaryColor": "#0A1E4A", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#FFD200", "badgeStripes": 1 }
     ]
   },
   {
@@ -309,7 +312,8 @@
       { "from": 1981, "name": "Spirit", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1981, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#003DA5", "badgeStripes": 2 }
+      { "from": 1981, "primaryColor": "#1E4C9A", "secondaryColor1": "#E4002B", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 },
+      { "from": 1984, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 0 }
     ]
   },
   {
@@ -319,7 +323,8 @@
       { "from": 1976, "name": "RAM", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1976, "primaryColor": "#00843D", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
+      { "from": 1976, "primaryColor": "#FFFFFF", "secondaryColor1": "#00843D", "secondaryColor2": "#E4002B", "badgeStripes": 2 },
+      { "from": 1984, "primaryColor": "#00594F", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#E4002B", "badgeStripes": 2 }
     ]
   },
   {
@@ -367,7 +372,7 @@
       { "from": 1984, "name": "Haas Lola", "base": "GB" }
     ],
     "liveries": [
-      { "from": 1984, "primaryColor": "#E4002B", "secondaryColor1": "#FFFFFF", "secondaryColor2": "#000000", "badgeStripes": 2 }
+      { "from": 1984, "primaryColor": "#CE2B37", "secondaryColor1": "#1E4C9A", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
     ]
   },
   {
@@ -416,7 +421,7 @@
       { "from": 1988, "name": "Rial", "base": "DE" }
     ],
     "liveries": [
-      { "from": 1988, "primaryColor": "#FFFFFF", "secondaryColor1": "#E4002B", "secondaryColor2": "#000000", "badgeStripes": 2 }
+      { "from": 1988, "primaryColor": "#2E7BD6", "secondaryColor1": "#F2C500", "secondaryColor2": "#FFFFFF", "badgeStripes": 2 }
     ]
   },
   {
