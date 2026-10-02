@@ -219,8 +219,10 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
   route that does not exist, or a missing `year`, fails `pnpm typecheck` — and search
   params are validated by a schema at the route, which a Share link needs. It has the
   navigation blocker §3 needs.
-- **PROPOSED** — A **code-based route tree** (one `routes.tsx`, read top to bottom)
-  rather than file-based routing, which generates a file to keep in sync.
+- **DECIDED** — **File-based routing**: one file per route under `apps/web/src/routes/`,
+  the URL in its name, and TanStack's Vite plugin generating `routeTree.gen.ts` from them.
+- **PROPOSED** — Commit `routeTree.gen.ts` and exclude it from Biome, so `pnpm typecheck`
+  passes on a fresh clone without the dev server having run; never edit it by hand.
 
 ## 11. Build order
 
