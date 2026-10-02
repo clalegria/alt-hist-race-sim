@@ -10,18 +10,16 @@ decision; it lives in the rule file for that constant.
 Their open questions — the market, the run settings, `adaptability`, engine deals — are
 listed in `docs/design/era-advanced.md`, not here.
 
+## The app shell
+
+Its open questions — the router, how events surface, team URLs — are listed in
+`docs/design/app-shell.md`, not here.
+
 ## Should the fitter and tuner move drivers?
 
 `pnpm fit` and `pnpm tune` fit cars; drivers move only behind `--drivers`, off by default
 (`tools/calibrate/src/targets.ts`). Whether driver ratings should ever be fitted, rather
 than only authored by hand, is open.
-
-## Which router
-
-Blocks *routing and the app shell*. **TanStack Router** types and validates the search
-params — a URL is untrusted input, like an imported save — and is the leaning.
-**React Router** is the more common choice, with far more examples to learn from. Both
-have the navigation blocker the leave-the-run prompt needs.
 
 ## What does a saved or shared run replay against?
 
@@ -37,5 +35,3 @@ shell*) and the editor's export. The options are not exclusive:
   `JSON.stringify(world)` is already a complete snapshot.
 - **A reader's edits travel as a diff** against the authored data they were made on
   (a named *scenario*): inside the link when small, in the save file otherwise.
-
-Part of the same question: what survives a page reload before local persistence exists.

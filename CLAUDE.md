@@ -138,6 +138,6 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
 In full in `docs/DECISIONS.md`.
 - **The advanced era and game mode**: open questions in `docs/design/era-advanced.md`.
 - **Should the fitter and tuner ever move driver ratings?**
-- **Which router** (TanStack Router is the leaning).
+- **The app shell and the router**: open questions in `docs/design/app-shell.md`.
 - **What a saved or shared run replays against**, when both the author and the reader
   can change the data under it.

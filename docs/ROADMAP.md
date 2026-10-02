@@ -43,37 +43,16 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ## 1. Routing and the app shell
 
-Turns the app from one flow into a world the reader can browse. Before the editor, which
-adds screens, and before *publish it*, because a shared link makes the URL scheme a
-public contract: change it and every link out there breaks.
+Turns the app from one flow into a world the reader can browse: a persistent top
+navigation, a page per driver, team, season and session that stops at the reveal cursor,
+back and forward that move between places but never through time, a run that survives a
+reload, and a Share link. **Designed in `docs/design/app-shell.md`** — the navigation
+model, the URL scheme, each page, how a run ends, how it is ready for the market and game
+mode, and its own build order, one session per step. Its open questions, the router
+included, live there.
 
-- **An app shell.** A persistent top navigation over every area (simulate, eras, editor,
-  game, about), unbuilt ones disabled as the menu cards are; inside a run, breadcrumbs
-  (`Era 1980 › 1984 › Round 3`).
-- **Everything the run has produced is browsable at any moment**: a page per driver,
-  team, season and race, reachable from anywhere in the run, statistics derived from
-  result rows as everywhere else. The year is simulated in full up front, so **every
-  page must stop at the reveal cursor** — a driver page mid-season cannot show a race
-  the reader has not reached.
-- **Client-side routing.** The URL says where the reader is; the store caches the
-  `World` it computed. Do not sync the two both ways: the URL is the input, and a world
-  is reused while its recipe is unchanged. Which router is open (`docs/DECISIONS.md`).
-- **The back button works like Football Manager's — decided.** Back and forward move
-  between *places* in the run, never through *time*: *Continue* is the only thing that
-  advances the reveal, nothing rewinds it, and a page revisited shows the run as it
-  stands now. Back past the run's first page asks whether to leave the run (a router
-  navigation blocker; leaving the site altogether gets only the browser's own prompt).
-  So the reveal cursor is run state, not history. A link that reproduces a run is made
-  by a **Share** action writing the recipe (year, seed, ability mode, randomness, grid
-  edits, how far through), which is also what the bug report page needs.
-- **A standalone season is a one-year run** — one shell, one set of rules for both.
-- **The host must serve deep links**: `/era/…` has to answer with `index.html`. One
-  rewrite rule on Netlify or Cloudflare Pages; hash URLs or a `404.html` workaround on
-  GitHub Pages. Settle it with the host in *publish it*.
-- **Screenshots from URLs.** `pnpm screenshots` (`.claude/rules/screenshots.md`)
-  reaches each screen by clicking through today; switch each step to a share link once
-  they exist. The same link gives the same pixels, so it can then become a visual check
-  in CI.
+Before the editor, which adds screens, and before *publish it*, because a shared link
+makes the URL scheme a public contract: change it and every link out there breaks.
 
 ## 2. Phone layout
 
