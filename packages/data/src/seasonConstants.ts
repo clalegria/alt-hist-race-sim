@@ -21,6 +21,7 @@
 import {
   DEFAULT_RANDOMNESS_LEVEL,
   parseRetirementFactor,
+  RACE_CONSTANTS,
   type RaceConstants,
   type RandomnessLevel,
   withRandomness,
@@ -45,13 +46,18 @@ import type { SeasonSeed } from "./types.js";
  * `parseRetirementFactor` narrows rather than trusting: the JSON's field is
  * typed `number`, and a season whose factor is out of range is caught by
  * `validateSeedData` rather than here.
+ *
+ * `base` is for a caller racing constants that are not in `constants.ts` yet —
+ * the tuner's `--noise` candidates — so they are bent by the season exactly as
+ * the written ones would be, rather than composed by hand at the call site.
  */
 export function seasonConstants(
   season: SeasonSeed,
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
+  base: RaceConstants = RACE_CONSTANTS,
 ): RaceConstants {
   return withRetirementFactor(
     parseRetirementFactor(season.retirementFactor),
-    withRandomness(randomness),
+    withRandomness(randomness, base),
   );
 }

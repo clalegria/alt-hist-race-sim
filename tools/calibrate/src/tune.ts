@@ -27,9 +27,10 @@
  * and the car knobs are left to say what separates one chassis from another.
  */
 
-import { driverRatingsFor, driversById, seasonSeed } from "@alt-hist/data";
+import { driverRatingsFor, driversById, seasonConstants, seasonSeed } from "@alt-hist/data";
 import {
   createRng,
+  DEFAULT_RANDOMNESS_LEVEL,
   type EngineSpec,
   RACE_CONSTANTS,
   type RaceConstants,
@@ -37,6 +38,7 @@ import {
   simulateRace,
 } from "@alt-hist/engine";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
+import { realRetirementRate } from "./realRetirements.js";
 import {
   type ChassisField,
   type EngineField,
@@ -54,6 +56,18 @@ const RACES_PER_EVAL = 6000;
 const YEAR = parseYear(process.argv);
 const TUNED_SEASON = seasonSeed(YEAR);
 const TARGETS: SeasonTargets = targetsFor(YEAR);
+/**
+ * The real share of starters that retired that year, counted as
+ * `pnpm retirements` counts it. A throw rather than a guess, for the reason
+ * `targetsFor` throws.
+ */
+const RETIREMENT_TARGET: number = (() => {
+  const rate = realRetirementRate(YEAR);
+  if (rate === null) {
+    throw new Error(`No real retirement record for ${YEAR}`);
+  }
+  return rate;
+})();
 
 const TUNE_DRIVERS = process.argv.includes("--drivers");
 const TUNE_NOISE = process.argv.includes("--noise");
@@ -155,12 +169,18 @@ function initialState(): State {
   };
 }
 
+/**
+ * The constants the season itself races on — its retirement factor, at the
+ * reference randomness level — with the noise candidates in place of the
+ * written sigmas. Through `seasonConstants`, so the tuner bends them exactly as
+ * every other runner of the season does.
+ */
 function constantsFor(state: State): RaceConstants {
-  return {
+  return seasonConstants(TUNED_SEASON, DEFAULT_RANDOMNESS_LEVEL, {
     ...RACE_CONSTANTS,
     qualifyingNoise: state.noise.qualifying,
     racingNoise: state.noise.racing,
-  };
+  });
 }
 
 /**
@@ -223,11 +243,7 @@ interface Outcome {
   retirementRate: number;
 }
 
-function run(
-  field: readonly RaceEntrant[],
-  races: number,
-  constants: RaceConstants = RACE_CONSTANTS,
-): Outcome {
+function run(field: readonly RaceEntrant[], races: number, constants: RaceConstants): Outcome {
   const teamWins = new Map<string, number>();
   const teamPoles = new Map<string, number>();
   const driverWins = new Map<string, number>();
@@ -293,7 +309,7 @@ function error(state: State, races = RACES_PER_EVAL): number {
     total += WEIGHT_DRIVER_WINS * (actual - share(TARGETS, TARGETS.driverWins, driverId)) ** 2;
   }
 
-  total += WEIGHT_RETIREMENTS * (outcome.retirementRate - TARGETS.retirementRate) ** 2;
+  total += WEIGHT_RETIREMENTS * (outcome.retirementRate - RETIREMENT_TARGET) ** 2;
   return total;
 }
 
@@ -370,6 +386,9 @@ function buildKnobs(state: State): Knob[] {
   // noise term. If the search wants more noise, that is the missing dimension
   // asking for room, not a data problem. Opt in: these are constants, not
   // ratings, and they are shared by every season rather than owned by this one.
+  // The candidates are in `constants.ts` units — the reference level's scaling
+  // is applied on top in `constantsFor` — so a proposal is a value to write
+  // there, not the scaled sigma the race actually ran.
   if (TUNE_NOISE) {
     knobs.push({
       label: "const qualifyingNoise",
@@ -401,6 +420,9 @@ function main(): void {
   console.log(
     `tuning ${YEAR}: ${knobs.length} knobs` +
       `${TUNE_DRIVERS ? " (+drivers)" : ""}${TUNE_NOISE ? " (+noise)" : ""}`,
+  );
+  console.log(
+    `retirement factor ${TUNED_SEASON.retirementFactor}, randomness ${DEFAULT_RANDOMNESS_LEVEL}`,
   );
 
   let best = error(state);
@@ -471,7 +493,7 @@ function main(): void {
   }
   console.log(
     `  retirement rate ${(outcome.retirementRate * 100).toFixed(1)}% ` +
-      `(target ${(TARGETS.retirementRate * 100).toFixed(1)}%)`,
+      `(target ${(RETIREMENT_TARGET * 100).toFixed(1)}%)`,
   );
 }
 

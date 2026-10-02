@@ -47,6 +47,23 @@ describe("seasonConstants", () => {
     expect(constants.driverErrorDnfAtZeroComposure).toBe(factorOnly.driverErrorDnfAtZeroComposure);
   });
 
+  it("bends a caller's own base constants, not the written ones", () => {
+    // Offset from the written sigmas rather than fixed numbers, so the two can
+    // never coincide however the constants are moved.
+    const base = {
+      ...RACE_CONSTANTS,
+      qualifyingNoise: RACE_CONSTANTS.qualifyingNoise + 1,
+      racingNoise: RACE_CONSTANTS.racingNoise + 1,
+    };
+    expect(seasonConstants(season(5), UNSCALED_RANDOMNESS_LEVEL, base)).toBe(base);
+
+    const constants = seasonConstants(season(9), 5, base);
+    const noiseOnly = withRandomness(5, base);
+    expect(constants.qualifyingNoise).toBe(noiseOnly.qualifyingNoise);
+    expect(constants.racingNoise).toBe(noiseOnly.racingNoise);
+    expect(constants.mechanicalDnfEraScale).toBe(withRetirementFactor(9).mechanicalDnfEraScale);
+  });
+
   it("falls back to the default factor rather than trusting an out-of-range number", () => {
     // `validateSeedData` is what actually rejects these; this is the second
     // line, so a season that slipped through races on the constants themselves

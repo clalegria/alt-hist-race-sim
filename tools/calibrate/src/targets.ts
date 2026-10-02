@@ -11,6 +11,9 @@
  * One record per authored year, keyed by year, because the tuner takes
  * `--year` like every other tool here. A season with no targets cannot be
  * tuned, and says so rather than falling back to somebody else's numbers.
+ *
+ * No retirement rate here: the tuner reads the year's real one from
+ * `realRetirements.ts`, counted the way `pnpm retirements` counts it.
  */
 
 /** The chassis attributes the tuner is allowed to move. */
@@ -33,8 +36,6 @@ export interface SeasonTargets {
    * more gently in the objective for that reason.
    */
   readonly teamPoles: Readonly<Record<string, number>>;
-  /** Share of starters that failed to see the flag. */
-  readonly retirementRate: number;
   /**
    * Which cars are worth tuning, and on which attributes.
    *
@@ -67,8 +68,6 @@ const TARGETS_1980: SeasonTargets = {
   driverWins: { jones: 5, piquet: 3, arnoux: 2, reutemann: 1, laffite: 1, pironi: 1, jabouille: 1 },
   teamWins: { williams: 6, brabham: 3, renault: 3, ligier: 2 },
   teamPoles: { renault: 6, ligier: 3, williams: 3, brabham: 1, alfa_romeo: 1 },
-  // Roughly 40-45% of a 1980 field failed to see the flag.
-  retirementRate: 0.42,
   tunedChassis: [
     ["williams", ["racing", "qualifying", "reliability"]],
     ["ligier", ["racing", "qualifying", "reliability"]],
@@ -98,13 +97,6 @@ const TARGETS_1980: SeasonTargets = {
  * Ferrari, Ligier and Patrese's Arrows at Long Beach. Same caveat as 1980 — the
  * shape is what matters, and the shape is that the turbos owned Saturday while
  * Sunday was anybody's.
- *
- * **The retirement target is 1980's, not a measurement of 1981.** No separate
- * figure has been established for the year, and inventing one would put a made-
- * up number where the era belongs to the season's `retirementFactor`
- * (`.claude/rules/retirement-factor.md`), which the tuner does not read yet —
- * see *harness fidelity* in `docs/ROADMAP.md`. This is the one target here that
- * is inherited rather than observed.
  */
 const TARGETS_1981: SeasonTargets = {
   year: 1981,
@@ -120,7 +112,6 @@ const TARGETS_1981: SeasonTargets = {
   },
   teamWins: { williams: 4, brabham: 3, renault: 3, ferrari: 2, ligier: 2, mclaren: 1 },
   teamPoles: { renault: 6, brabham: 4, williams: 2, ferrari: 1, ligier: 1, arrows: 1 },
-  retirementRate: 0.42,
   tunedChassis: [
     ["williams", ["racing", "qualifying", "reliability"]],
     ["brabham", ["racing", "qualifying", "reliability"]],

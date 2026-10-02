@@ -23,9 +23,9 @@ season JSON  →  seasonConstants(seed, randomness)  →  withRetirementFactor(.
   it derives a copy, never edits `constants.ts`, and returns the constants object
   **by identity** at the neutral setting.
 - `packages/data/src/seasonConstants.ts` composes it with the randomness level. Every
-  runner of a season goes through it — the app store, `pnpm season`,
-  `pnpm calibrate-season`, `pnpm retirements`. Do not compose the two by hand at a
-  call site.
+  runner of a season goes through it — the app store and every harness that takes a
+  year. Do not compose the two by hand at a call site; a caller racing constants not
+  yet written (the tuner's `--noise`) passes them as its `base`.
 - `tools/calibrate/src/realRetirements.ts` is the target set; `retirements.ts` is the
   harness. `pnpm retirements --sweep` prints the best-fitting factor per year.
 
@@ -65,9 +65,9 @@ on its cars than any real one.
 factors to within a fraction of a point, which is worth knowing: a sweep is not quietly
 measuring the ageing curve. 200–400 seasons a year is plenty of sample either way.
 
-**The tuner runs at the neutral factor** today: `pnpm tune` builds constants from
-`RACE_CONSTANTS`, not from `seasonConstants`. The author has decided it should see each
-season's factor instead; that is *harness fidelity* in `docs/ROADMAP.md`, not yet built.
+**The tuner races at the season's factor** and scores against the year's real rate from
+`realRetirements.ts`, so its reliability proposals are what is left after the factor,
+not a second copy of it.
 
 ## Counting rules — the part to get right
 

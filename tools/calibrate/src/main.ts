@@ -17,8 +17,15 @@
  * worth in April, and what it is worth in October.
  */
 
-import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
-import { createRng, simulateRace, withRandomness } from "@alt-hist/engine";
+import {
+  buildField,
+  driversById,
+  seasonConstants,
+  seasonSeed,
+  teamIdentityIn,
+  teamsById,
+} from "@alt-hist/data";
+import { createRng, simulateRace } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
 import { padLeft, padRight, pct } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
@@ -61,8 +68,9 @@ function main(): void {
   // what it meant before trends existed.
   const phase = parsePhase(process.argv);
   const round = phaseRound(phase);
-  const constants = withRandomness(randomness);
-  const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
+  const season = seasonSeed(year);
+  const constants = seasonConstants(season, randomness);
+  const field = buildField(season, undefined, CALIBRATION_RATING_MODE);
   const teams = teamsById();
 
   /**
@@ -164,7 +172,8 @@ function main(): void {
       (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`),
   );
   console.log(
-    `${field.length} cars, ${teamTallies.size} teams, randomness ${randomness}, ${elapsed.toFixed(0)}ms`,
+    `${field.length} cars, ${teamTallies.size} teams, randomness ${randomness}, ` +
+      `retirement factor ${season.retirementFactor}, ${elapsed.toFixed(0)}ms`,
   );
   console.log("");
 

@@ -1,7 +1,7 @@
 /**
  * Single-race viewer.
  *
- * Runs one race on the 1980 grid and prints the classification. Useful for
+ * Runs one race on a season's grid and prints the classification. Useful for
  * eyeballing whether a result *looks* like a race, which aggregate percentages
  * cannot tell you.
  *
@@ -14,14 +14,24 @@
  * Mid-season by default, which is what a race with no year around it is: every
  * car's development trend is worth nothing there, so this prints the same race
  * it printed before trends existed. `--phase start` / `--phase end` opt in.
+ * No venue either, so home advantage pays nothing: `pnpm calibrate` is the tool
+ * that races the real calendar. The constants are the season's own, retirement
+ * factor included, through `seasonConstants`.
  *
  * The weather is *rolled* by default, exactly as a real round rolls it, so a
  * given seed is wet or dry as the dice say. `--wet <0-1>` forces an afternoon
  * without disturbing the stream, which is what makes the two comparable.
  */
 
-import { buildField, driversById, seasonSeed, teamIdentityIn, teamsById } from "@alt-hist/data";
-import { createRng, type RaceGap, simulateRace, withRandomness } from "@alt-hist/engine";
+import {
+  buildField,
+  driversById,
+  seasonConstants,
+  seasonSeed,
+  teamIdentityIn,
+  teamsById,
+} from "@alt-hist/data";
+import { createRng, type RaceGap, simulateRace } from "@alt-hist/engine";
 import { parseSeed } from "./args.js";
 import { padLeft, padRight } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
@@ -63,8 +73,9 @@ function main(): void {
   // Undefined lets the round roll its own sky, which is the default and the
   // honest one. A forced afternoon still lets the roll happen underneath it.
   const weather = parseWet(process.argv);
-  const field = buildField(seasonSeed(year), undefined, CALIBRATION_RATING_MODE);
-  const result = simulateRace(field, createRng(seed), withRandomness(randomness), {
+  const season = seasonSeed(year);
+  const field = buildField(season, undefined, CALIBRATION_RATING_MODE);
+  const result = simulateRace(field, createRng(seed), seasonConstants(season, randomness), {
     ...phaseRound(phase),
     ...(weather === undefined ? {} : { weather }),
   });

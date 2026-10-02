@@ -43,20 +43,16 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ## 1. Harness fidelity
 
-Two changes to what the instruments measure, both decided by the author. They come first
-because they serve the authoring pass: every rating that pass moves is judged against what
+One change to what the instruments measure, decided by the author. It comes first
+because it serves the authoring pass: every rating that pass moves is judged against what
 these harnesses print.
 
-- **`pnpm tune` sees each season's retirement factor.** Today it builds its constants from
-  neutral `RACE_CONSTANTS` rather than `seasonConstants`
-  (`.claude/rules/retirement-factor.md`), so it answers a slightly different question from
-  the one the season asks. The `retirementRate` target then has to be read per season too.
 - **`pnpm calibrate` races a real calendar.** It and the tuner run with no `RoundContext`,
   so home advantage pays nothing and every car's development trend sits at its zero point
   (`.claude/rules/calibration.md`). Rotating through the season's own rounds makes both
   visible, at the cost of its figures no longer being a neutral race.
 
-Both change what every harness figure means, so nothing measured before them is comparable
+It changes what every harness figure means, so nothing measured before it is comparable
 with anything measured after.
 
 ## 2. Routing and the app shell
