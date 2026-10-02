@@ -215,21 +215,12 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 
 ## 10. Router
 
-**OPEN** — `docs/DECISIONS.md` listed it; owned here now. Both have the navigation blocker
-§3 needs.
-
-- **TanStack Router** — **for:** links and params are **checked by `tsc`** (a link to a
-  route that does not exist, or a missing `year`, fails `pnpm typecheck`), which suits a
-  codebase where the compiler is the guard on generated code; **search params are
-  validated by a schema** at the route, which is what a Share link needs. **Against:**
-  smaller community, fewer examples, more set-up (a route tree and a type registration).
-- **React Router** (v7) — **for:** the most used, the most examples, the simplest mental
-  model. **Against:** params arrive as `string | undefined` and search params as raw
-  text, so parsing and validation are hand-written on every page; full typing comes with
-  its "framework mode", which brings server-rendering machinery phase 1 does not want.
-
-Leaning: TanStack, with a **code-based route tree** (one `routes.tsx` read top to bottom)
-rather than file-based routing, which generates a file to keep in sync.
+- **DECIDED** — **TanStack Router.** Links and params are checked by `tsc` — a link to a
+  route that does not exist, or a missing `year`, fails `pnpm typecheck` — and search
+  params are validated by a schema at the route, which a Share link needs. It has the
+  navigation blocker §3 needs.
+- **PROPOSED** — A **code-based route tree** (one `routes.tsx`, read top to bottom)
+  rather than file-based routing, which generates a file to keep in sync.
 
 ## 11. Build order
 

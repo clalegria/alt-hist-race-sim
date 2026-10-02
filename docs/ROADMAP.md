@@ -48,8 +48,7 @@ navigation, a page per driver, team, season and session that stops at the reveal
 back and forward that move between places but never through time, a run that survives a
 reload, and a Share link. **Designed in `docs/design/app-shell.md`** — the navigation
 model, the URL scheme, each page, how a run ends, how it is ready for the market and game
-mode, and its own build order, one session per step. Its open questions, the router
-included, live there.
+mode, and its own build order, one session per step. Its open questions live there.
 
 Before the editor, which adds screens, and before *publish it*, because a shared link
 makes the URL scheme a public contract: change it and every link out there breaks.

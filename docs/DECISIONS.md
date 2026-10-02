@@ -12,7 +12,7 @@ listed in `docs/design/era-advanced.md`, not here.
 
 ## The app shell
 
-Its open questions — the router, how events surface, team URLs — are listed in
+Its open questions — how events surface, team URLs — are listed in
 `docs/design/app-shell.md`, not here.
 
 ## Should the fitter and tuner move drivers?
