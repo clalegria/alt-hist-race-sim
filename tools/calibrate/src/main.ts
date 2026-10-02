@@ -1,20 +1,22 @@
 /**
  * Headless Monte Carlo harness.
  *
- * Runs the same 1980 grid N times with seeds 1..N and prints the resulting
- * distributions. This is how the race constants get tuned — the seed ratings
- * and `RACE_CONSTANTS` are hand-authored guesses until this table says
- * otherwise.
+ * Runs one season's grid N times with seeds 1..N and prints the resulting
+ * distributions, per team and per driver.
  *
- *   pnpm calibrate            # 5000 races
- *   pnpm calibrate 20000      # more races, tighter numbers
- *   pnpm calibrate 20000 --phase end   # 20000 season finales
+ *   pnpm calibrate                # 5000 races
+ *   pnpm calibrate 20000          # more races, tighter numbers
+ *   pnpm calibrate --year 1985    # another season's grid
  *
- * **Mid-season unless told otherwise.** A race with no year around it is
- * mid-season, where every car's `developmentTrend` is worth exactly nothing — so
- * the default run measures the same thing it measured before trends existed.
- * `--phase start` and `--phase end` ask the other question: what this grid is
- * worth in April, and what it is worth in October.
+ * **The season's own races.** Race i is held at round i of the real calendar,
+ * cycling (`calendar.ts`), so home advantage pays at every round with a host and
+ * each car's development trend is felt at its point in the year. The constants
+ * are the season's too — its retirement factor included — through
+ * `seasonConstants`. It is still a lone race per seed, not a season: no
+ * standings, and every round as likely to be wet as any other.
+ *
+ * No `--phase`: the calendar already puts each race at its time of year. A
+ * single afternoon at a chosen point in the season is `pnpm race --phase`.
  */
 
 import {
@@ -27,9 +29,9 @@ import {
 } from "@alt-hist/data";
 import { createRng, simulateRace } from "@alt-hist/engine";
 import { parseCount } from "./args.js";
+import { calendarRound } from "./calendar.js";
 import { padLeft, padRight, pct } from "./format.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
-import { DEFAULT_SEASON_PHASE, parsePhase, phaseLabel, phaseRound } from "./phase.js";
 import { parseRandomness } from "./randomness.js";
 import { parseYear, withoutFlags } from "./year.js";
 
@@ -63,11 +65,12 @@ function main(): void {
   const year = parseYear(process.argv);
   const races = parseCount(argv[2], DEFAULT_RACES, "Race count");
   const randomness = parseRandomness(process.argv);
-  // Which part of the season these N afternoons are. Mid-season by default,
-  // where every development trend is worth nothing, so the default run means
-  // what it meant before trends existed.
-  const phase = parsePhase(process.argv);
-  const round = phaseRound(phase);
+  // A throw rather than ignoring it: the flag used to pin the time of year, and
+  // a run that silently dropped it would print the calendar's numbers under
+  // the impression they were a finale's.
+  if (process.argv.includes("--phase") || process.argv.includes("-p")) {
+    throw new Error("pnpm calibrate races the real calendar; --phase is a pnpm race flag");
+  }
   const season = seasonSeed(year);
   const constants = seasonConstants(season, randomness);
   const field = buildField(season, undefined, CALIBRATION_RATING_MODE);
@@ -119,7 +122,7 @@ function main(): void {
   const startedAt = performance.now();
 
   for (let seed = 1; seed <= races; seed += 1) {
-    const result = simulateRace(field, createRng(seed), constants, round);
+    const result = simulateRace(field, createRng(seed), constants, calendarRound(season, seed - 1));
     totalRetirements += result.retirements;
     totalStarters += field.length - result.nonQualifiers;
 
@@ -168,8 +171,8 @@ function main(): void {
 
   console.log("");
   console.log(
-    `${year} grid — ${races} races, seeds 1..${races}` +
-      (phase === DEFAULT_SEASON_PHASE ? "" : ` — ${phaseLabel(phase)}`),
+    `${year} grid — ${races} races, seeds 1..${races}, ` +
+      `cycling the ${season.calendar.length}-round calendar`,
   );
   console.log(
     `${field.length} cars, ${teamTallies.size} teams, randomness ${randomness}, ` +

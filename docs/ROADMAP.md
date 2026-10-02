@@ -9,11 +9,11 @@ the questions they left open are in `docs/DECISIONS.md`. Other documents refer t
 here by *name*, never by number: the numbering is the order, and it shifts.
 
 **Two tracks run at once.** *The authoring pass* is the author's own, under way, and the
-top priority; *the build order* below it is the coding work, spined as **the harnesses
-that pass leans on**, then **how a run feels**, then **going live**, then **the shape of the seed data**, then **the alternate
-history**. The three unbuilt modes in `apps/web/src/lib/modes.ts` are each turned on by
-the item of that name: `edit-ratings` by the ratings editor, `era-advanced` by the driver
-market, `game` by game mode.
+top priority; *the build order* below it is the coding work, spined as **how a run feels**,
+then **going live**, then **the shape of the seed data**, then **the alternate history**.
+The three unbuilt modes in `apps/web/src/lib/modes.ts` are each turned on by the item of
+that name: `edit-ratings` by the ratings editor, `era-advanced` by the driver market,
+`game` by game mode.
 
 ## The authoring pass — season fine-tuning
 
@@ -41,21 +41,7 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ---
 
-## 1. Harness fidelity
-
-One change to what the instruments measure, decided by the author. It comes first
-because it serves the authoring pass: every rating that pass moves is judged against what
-these harnesses print.
-
-- **`pnpm calibrate` races a real calendar.** It and the tuner run with no `RoundContext`,
-  so home advantage pays nothing and every car's development trend sits at its zero point
-  (`.claude/rules/calibration.md`). Rotating through the season's own rounds makes both
-  visible, at the cost of its figures no longer being a neutral race.
-
-It changes what every harness figure means, so nothing measured before it is comparable
-with anything measured after.
-
-## 2. Routing and the app shell
+## 1. Routing and the app shell
 
 Turns the app from one flow into a world the reader can browse. Before the editor, which
 adds screens, and before *publish it*, because a shared link makes the URL scheme a
@@ -89,7 +75,7 @@ public contract: change it and every link out there breaks.
   they exist. The same link gives the same pixels, so it can then become a visual check
   in CI.
 
-## 3. Phone layout
+## 2. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -109,7 +95,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 4. The in-app ratings editor
+## 3. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -137,7 +123,7 @@ circuits once *circuit character* lands.
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 5. Publish it
+## 4. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -214,7 +200,7 @@ footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 6. Historical career records
+## 5. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -239,7 +225,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 7. Seasonal factors
+## 6. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -248,7 +234,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 8. Circuit character
+## 7. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -264,7 +250,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 9. Driver market
+## 8. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -278,7 +264,7 @@ next-season grid and the event feed. This is where the substitution point left c
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 10. Game mode
+## 9. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working

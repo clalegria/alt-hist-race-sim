@@ -44,22 +44,21 @@ own prime into the car beside him — a modern team can come out at a third of i
 share purely because another team's peak driver outguns its own. `--mode peak` still
 exists on the harnesses that take a `--mode`; it is not for producing a figure.
 
-## What the harnesses do not see
+## They race the season the app races
 
-- **No host country.** `pnpm calibrate` and the tuner run `simulateRace` with no
-  `RoundContext`, so all three shares of home advantage — driver, team, engine — pay
-  nothing. The author has decided the harness should race a real calendar, folding home
-  advantage into everything it prints; that is *harness fidelity* in `docs/ROADMAP.md`,
-  not yet built.
-- **No development trend.** They race with no `seasonProgress`, which is mid-season,
-  where every car's `developmentTrend` is worth exactly zero. `--phase start` / `--phase
-  end` ask the other question and print their phase in the heading.
+Every harness that takes a year races on `seasonConstants` — that season's retirement
+factor at the chosen randomness level — and the tuner does too, at the reference level.
 
-`pnpm calibrate-season` sees both, because a season runs its own calendar. Its numbers
-are therefore a different quantity from `pnpm calibrate`'s, not a check on them — the gap
-between the two win shares is roughly what home advantage is worth. Note also that points
-are convex in pace, so any non-zero trend is worth slightly more points than a flat car
-of the same rating (`.claude/rules/car-development.md`).
+**`pnpm calibrate` and the tuner race the real calendar.** Race *i* is held at round
+*i* mod *n* (`tools/calibrate/src/calendar.ts`), so all three shares of home advantage
+pay where a round has a host, and each car's `developmentTrend` is felt at that round's
+point in the year. A win share there is the same quantity as one from
+`pnpm calibrate-season`; what the season adds is titles and points. Points are convex in
+pace, so a car with a trend scores slightly more on average than the same car flat
+(`.claude/rules/car-development.md`).
+
+**`pnpm race` is the one exception:** a single afternoon with no venue, mid-season unless
+`--phase start|end` says otherwise (`phase.ts`). `pnpm calibrate` rejects `--phase`.
 
 ## The four
 
@@ -123,7 +122,7 @@ rather than re-serialising, so the hand-aligned columns survive.
   for the blend: holding a car's effective pace steady while the engine takes 30% of it
   asks the chassis to move about 1.43× whatever the engine took out. Too narrow a band
   caps a fit before it starts.
-- `buildFieldFrom` in the tuner must keep matching `buildField` attribute for attribute,
-  or the tuner optimises a model the sim does not run. It builds fields by hand only
-  because the whole point is to race ratings that are not in the JSON yet.
+- The tuner's `buildFieldFrom` starts from `buildField` and overlays only the ratings it
+  is trying. Keep it that way: a hand-built field drifts from the one the sim races, and
+  the tuner then optimises a model nothing runs.
 - `tools/*` may use dev dependencies (tsx runs the TS directly). The engine may not.

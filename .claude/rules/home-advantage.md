@@ -55,10 +55,8 @@ Three properties hold it in place, each with a test:
   them races everywhere as a visitor.
 
 The three numbers are a first guess, chosen for plausibility — a home race is worth a
-tenth or two, not a car upgrade. **The harnesses cannot see them**: `pnpm calibrate` and
-the tuner both run with no `RoundContext`, so home advantage pays nothing in any race
-they run, until the harness races a real calendar (*harness fidelity* in
-`docs/ROADMAP.md`). See `.claude/rules/calibration.md`.
+tenth or two, not a car upgrade. Every harness but `pnpm race` races a real calendar and
+so pays it; `pnpm race` has no venue. See `.claude/rules/calibration.md`.
 
 ## The star
 

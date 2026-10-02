@@ -1,7 +1,7 @@
 /**
- * Which part of the season a single race is being run at.
+ * Which part of the season `pnpm race` runs its one afternoon at.
  *
- * The race harnesses simulate one afternoon with no year around it, so a car's
+ * A lone race has no year around it, so a car's
  * `developmentTrend` has nothing to read: `simulateRace` with no
  * `seasonProgress` is mid-season, where every trend is worth exactly nothing.
  * That is the right default — a harness that silently ran the opener would
@@ -11,17 +11,15 @@
  * question development exists to raise, and a season harness answers it only in
  * aggregate. So it is a flag:
  *
- *   pnpm race 7 --phase start        # round one: +ve trends at their worst
- *   pnpm calibrate 20000 --phase end # the finale, 20,000 times
- *   pnpm calibrate 20000             # mid-season, and unchanged by any of this
+ *   pnpm race 7 --phase start   # round one: +ve trends at their worst
+ *   pnpm race 7 --phase end     # the same afternoon as the finale
  *
  * Throws on anything else, for the reason `parseYear` and `parseRandomness` do:
  * a silent fallback prints one run's numbers under another run's heading.
  *
- * The *season* harnesses take no such flag and never will. A season runs its own
- * calendar, so every round already knows where it sits and development is on
- * throughout — which is what makes `pnpm calibrate-season` the honest measure of
- * what a trend is worth.
+ * Nothing else takes it. The season harnesses, `pnpm calibrate` and the tuner
+ * all race the real calendar (`calendar.ts`), so every round already knows
+ * where it sits and development is on throughout.
  */
 
 import { MID_SEASON_PROGRESS, type RoundContext } from "@alt-hist/engine";
@@ -58,8 +56,8 @@ export function parsePhase(argv: readonly string[]): SeasonPhase {
  * default byte-for-byte what it was is what stops the feature moving a run that
  * did not ask for it.
  *
- * No `country` either way: no race a harness runs has a host country, so home
- * advantage pays nothing here — see `.claude/rules/calibration.md`.
+ * No `country` either way: `pnpm race` has no venue, so home advantage pays
+ * nothing there — see `.claude/rules/calibration.md`.
  */
 export function phaseRound(phase: SeasonPhase): RoundContext {
   switch (phase) {

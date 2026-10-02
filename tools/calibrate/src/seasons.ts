@@ -17,17 +17,10 @@
  * a season is where sixth places add up. That is what the scoring columns here
  * are for: how often a car scores at all, and the points it ends the year on.
  *
- * **A season is also where car development lives.** This harness runs the year's own
- * calendar, so every entry's `developmentTrend` is on throughout — quick early and slow
- * late, or the reverse — while `pnpm calibrate` is mid-season by default and feels none
- * of it. Worth knowing when reading the points columns: points are convex in pace, so a
- * car with a trend scores slightly more on average than the same car flat.
- *
- * **These numbers are not comparable with `pnpm calibrate`'s.** That harness runs
- * `simulateRace` with no `RoundContext`, so home advantage never pays; a season
- * runs the year's real calendar, so it pays at every round that has a host
- * country. A win share here and a win share there are two different quantities,
- * and the gap between them is exactly what home advantage is worth.
+ * Both harnesses race the year's own calendar, so home advantage and each entry's
+ * `developmentTrend` are in both, and a win share here is the same quantity as one
+ * there. Worth knowing when reading the points columns: points are convex in pace, so
+ * a car with a trend scores slightly more on average than the same car flat.
  *
  * The same rules apply to what is done with this output as to
  * `pnpm calibrate` — see `.claude/rules/calibration.md`. It is an instrument the
@@ -128,15 +121,13 @@ function positionals(argv: readonly string[]): string[] {
 }
 
 /**
- * `aged` (the default here) or `peak`.
+ * `aged` (the default, as in every harness here) or `peak`.
  *
- * This harness deliberately differs from the package-wide `DEFAULT_RATING_MODE`
- * and from `pnpm calibrate`, both of which are `peak`. A season is a year in
- * someone's career: running it with every driver at their authored peak asks
- * what a grid of thirty simultaneous career-bests would do, which is not a year
- * that ever happens. Ageing the field to the season's own year is the question
- * worth measuring. `--mode peak` is still there for comparing against the
- * race-level figures, which are all peak.
+ * It differs from the package-wide `DEFAULT_RATING_MODE`, which is `peak` for
+ * the app. A season is a year in someone's career: running it with every driver
+ * at their authored peak asks what a grid of thirty simultaneous career-bests
+ * would do, which is not a year that ever happens. `--mode peak` is still there
+ * for reading a grid on its own terms, not for producing a figure (`mode.ts`).
  *
  * An unknown mode throws rather than falling back, for the same reason an
  * unauthored year does: a silent substitution prints one grid under another

@@ -69,17 +69,12 @@ this existed.
 
 ## The harnesses
 
-- **`pnpm calibrate` and `pnpm race` are mid-season by default**, where a trend is worth
-  exactly zero — so adding trends to a season file changed nothing either of them prints.
-  `--phase start` / `--phase end` opt in to the two ends
-  (`tools/calibrate/src/phase.ts`).
-- **`pnpm calibrate-season`, `pnpm season`, `pnpm fit` and `pnpm retirements` all run a
-  real calendar**, so development is on throughout. The season harness is the honest
-  measure of what a trend is worth; `retirements` is unaffected either way, since
+- **Every harness but `pnpm race` runs a real calendar**, so development is on
+  throughout — `pnpm calibrate` and the tuner cycle through its rounds
+  (`tools/calibrate/src/calendar.ts`). `retirements` is unaffected either way, since
   reliability does not move.
-- **The tuner (`pnpm tune`) races fields it builds by hand and carries no trends.** It
-  fits ratings at the neutral mid-season point, which is the same point the trend rotates
-  about — consistent, but worth knowing before reading a proposal for a car that has one.
+- **`pnpm race` is mid-season by default**, where a trend is worth exactly zero.
+  `--phase start` / `--phase end` opt in to the two ends (`tools/calibrate/src/phase.ts`).
 
 ## The UI
 

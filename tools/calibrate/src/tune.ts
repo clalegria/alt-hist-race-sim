@@ -27,7 +27,13 @@
  * and the car knobs are left to say what separates one chassis from another.
  */
 
-import { driverRatingsFor, driversById, seasonConstants, seasonSeed } from "@alt-hist/data";
+import {
+  buildField,
+  driverRatingsFor,
+  driversById,
+  seasonConstants,
+  seasonSeed,
+} from "@alt-hist/data";
 import {
   createRng,
   DEFAULT_RANDOMNESS_LEVEL,
@@ -37,6 +43,7 @@ import {
   type RaceEntrant,
   simulateRace,
 } from "@alt-hist/engine";
+import { calendarRound } from "./calendar.js";
 import { CALIBRATION_RATING_MODE } from "./mode.js";
 import { realRetirementRate } from "./realRetirements.js";
 import {
@@ -184,56 +191,44 @@ function constantsFor(state: State): RaceConstants {
 }
 
 /**
- * The field as the race model will see it — engine included.
+ * The grid exactly as the sim builds it, for the overlay below to start from.
  *
- * Built here rather than through `buildField` because the whole point is to
- * race ratings that are not in the JSON yet. It must otherwise match what
- * `buildField` produces attribute for attribute, or the tuner optimises a model
- * the sim does not run. Countries are the one deliberate omission: the harness
- * measures a neutral race with no `RoundContext`, so home advantage pays
- * nothing in any of these and carrying the codes would be dead weight.
+ * Built once: the overlay replaces the tuned numbers and nothing else, so
+ * everything the tuner does not move — the driver's other four attributes in
+ * this year, the countries home advantage reads, the team's development trend —
+ * comes from `buildField` itself and cannot drift away from it.
+ */
+const BASE_FIELD: readonly RaceEntrant[] = buildField(
+  TUNED_SEASON,
+  undefined,
+  CALIBRATION_RATING_MODE,
+);
+
+/**
+ * The field as the race model will see it, with the state's ratings in place of
+ * the authored ones — the whole point being to race ratings not in the JSON yet.
  */
 function buildFieldFrom(state: State): RaceEntrant[] {
-  const pool = driversById();
-  const field: RaceEntrant[] = [];
-
-  for (const entry of TUNED_SEASON.entries) {
-    const chassis = state.chassis.get(entry.teamId);
+  return BASE_FIELD.map((entrant) => {
+    const chassis = state.chassis.get(entrant.teamId);
     if (chassis === undefined) {
-      throw new Error(`No chassis state for ${entry.teamId}`);
+      throw new Error(`No chassis state for ${entrant.teamId}`);
     }
-    const engine = state.engines.get(entry.engineId);
+    const engine = entrant.engineId === undefined ? undefined : state.engines.get(entrant.engineId);
     if (engine === undefined) {
-      throw new Error(`No engine state for ${entry.engineId}`);
+      throw new Error(`No engine state for ${entrant.engineId}`);
     }
-    for (const driverId of entry.drivers) {
-      const authored = pool.get(driverId);
-      const tuned = state.drivers.get(driverId);
-      if (authored === undefined || tuned === undefined) {
-        throw new Error(`No driver state for ${driverId}`);
-      }
-      const rated = driverRatingsFor(authored, YEAR, CALIBRATION_RATING_MODE);
-      field.push({
-        driverId,
-        teamId: entry.teamId,
-        driver: {
-          racing: tuned.racing,
-          qualifying: tuned.qualifying,
-          // The four the tuner does not move still have to be the ones the sim
-          // would race in this year, or `buildFieldFrom` stops matching
-          // `buildField` and the tuner optimises a model nothing runs.
-          consistency: rated.consistency,
-          adaptability: rated.adaptability,
-          composure: rated.composure,
-          wetWeather: rated.wetWeather,
-        },
-        chassis,
-        engineId: entry.engineId,
-        engine,
-      });
+    const tuned = state.drivers.get(entrant.driverId);
+    if (tuned === undefined) {
+      throw new Error(`No driver state for ${entrant.driverId}`);
     }
-  }
-  return field;
+    return {
+      ...entrant,
+      driver: { ...entrant.driver, racing: tuned.racing, qualifying: tuned.qualifying },
+      chassis: { ...entrant.chassis, ...chassis },
+      engine,
+    };
+  });
 }
 
 interface Outcome {
@@ -253,7 +248,12 @@ function run(field: readonly RaceEntrant[], races: number, constants: RaceConsta
   const teamOf = new Map(field.map((e) => [e.driverId, e.teamId]));
 
   for (let seed = 1; seed <= races; seed += 1) {
-    const result = simulateRace(field, createRng(seed), constants);
+    const result = simulateRace(
+      field,
+      createRng(seed),
+      constants,
+      calendarRound(TUNED_SEASON, seed - 1),
+    );
     retirements += result.retirements;
     starters += field.length - result.nonQualifiers;
 
