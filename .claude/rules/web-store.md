@@ -117,7 +117,7 @@ moment Apply hands it to `setGrid`, and not before: applying re-runs fourteen ra
 a reader halfway through moving four drivers has not yet asked a question worth
 answering. The two drafts open and close together, so one `null` answers for both.
 
-While the editor is open, `App` takes the **forward buttons away** — `GridStage`
+While the editor is open, `SeasonScreen` takes the **forward buttons away** — `GridStage`
 raises `onEditingChange` and `Actions` shows a note instead. Stepping on mid-edit
 would discard the draft silently *and* reveal a season run on the grid the reader was
 in the middle of replacing.

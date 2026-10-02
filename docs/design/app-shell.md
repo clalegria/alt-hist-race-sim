@@ -2,8 +2,9 @@
 
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
-none of it is built. Where it sits in the build order is *routing and the app shell* in
-`docs/ROADMAP.md`; §11 is its own build order, one step per session.
+what is built — the router, the first four routes and the top nav — is
+`.claude/rules/web-routing.md`. Where it sits in the build order is *routing and the app
+shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
 
 - **DECIDED** — the author's decision.
 - **PROPOSED** — a suggested design. Confirm with the author before building on it.
@@ -113,15 +114,13 @@ breaks every shared link.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ ◆ alt-hist   Simulate   Eras   Editor·   Game·   About               [☾]    │  · = disabled
+│ ◆ alt-hist  Season  Era (basic)  Era (advanced)·  Game·  Editor·  About· [☾]│  · = disabled
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Era 1980 › 1984 › Round 3 › Race     Rd 3/16 · Race   [Share] [Continue ▸] ⋯│
 │ Overview   Season   Drivers   Teams                                         │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Top nav** — areas as data, like `lib/modes.ts`: an unbuilt area is a disabled entry,
-  and a future one (Market, Inbox, My team) is a row, not a layout change.
 - **Run bar**, inside a run only — breadcrumbs, the current beat, Share, Continue, and an
   overflow menu holding *Skip* (rest of season / jump to year, with today's confirms) and
   *Exit run*. A one-year run's breadcrumbs start at the year: `1984 › Round 3 › Race`.
@@ -209,38 +208,24 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
    The log is what reload (§3) and Share (§8) serialise.
 2. **The cursor is a timeline of beats** (§2): an event or a decision is a new kind.
 3. **Pages read, the run bar acts** (§8): a page never advances or edits the run.
-4. **Navigation is data** (§5): Inbox, Market, *Next season's grid*, My team
+4. **Navigation is data** (§5; the top nav's `lib/areas.ts`): Inbox, Market, *Next season's grid*, My team
    (`era-advanced.md` §12) are rows, each with an optional unread count.
 5. **Every page goes through `revealed()`** — events and next season's grid included.
 
-## 10. Router
-
-- **DECIDED** — **TanStack Router.** Links and params are checked by `tsc` — a link to a
-  route that does not exist, or a missing `year`, fails `pnpm typecheck` — and search
-  params are validated by a schema at the route, which a Share link needs. It has the
-  navigation blocker §3 needs.
-- **DECIDED** — **File-based routing**: one file per route under `apps/web/src/routes/`,
-  the URL in its name, and TanStack's Vite plugin generating `routeTree.gen.ts` from them.
-- **PROPOSED** — Commit `routeTree.gen.ts` and exclude it from Biome, so `pnpm typecheck`
-  passes on a fresh clone without the dev server having run; never edit it by hand.
-
-## 11. Build order
+## 10. Build order
 
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **The router and the shell.** Today's flow mapped onto routes one to one — home,
-   setups, the run — under the top nav. No new pages. The `Screen` union's "which screen"
-   moves to the router.
-2. **The timeline and the run bar.** Cursor as beats (§2); Continue navigating to the
+1. **The timeline and the run bar.** Cursor as beats (§2); Continue navigating to the
    revealed beat; breadcrumbs; Skip; the exit dialog and the back-past-start blocker;
    the *Resume run* card.
-3. **Surviving a reload.** The input log, the recipe in `localStorage`, the build stamp.
-4. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
-5. **Season and session pages**, browsable by URL.
-6. **Driver and team pages**, the two index lists, the panel's page link.
-7. **Share.** The link and the `/share` entry route.
-8. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+2. **Surviving a reload.** The input log, the recipe in `localStorage`, the build stamp.
+3. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
+4. **Season and session pages**, browsable by URL.
+5. **Driver and team pages**, the two index lists, the panel's page link.
+6. **Share.** The link and the `/share` entry route.
+7. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

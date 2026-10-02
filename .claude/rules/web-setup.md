@@ -88,13 +88,12 @@ The neighbours come from `adjacentSeason(year, ±1)` in `lib/seasons.ts`, which 
 `PLAYABLE_SEASONS` rather than adding one, so a gap in the seed data is skipped rather
 than offered.
 
-**The grid leaves through a plain Back**, to the year picker it came from — no
-confirming step, because nothing has been revealed yet and leaving costs the reader
-nothing. It is `actionsFor(...).back`, so the whole button set of every stage still
+**The grid leaves through a plain Back**, to the year picker it came from, discarding
+the run (`.claude/rules/web-routing.md`) — no confirming step, because nothing has been
+revealed yet and leaving costs the reader nothing. It is `actionsFor(...).back`, so the whole button set of every stage still
 comes out of that one pure function; past the grid it is null and "Start again" does
 the job. The year picker's Back is `BackBar` in `App.tsx`, rendered into the **sticky
 bar** — it draws none of its own navigation — so every screen keeps its way out in the
 same place, rather than one of them hiding it under six rows of year buttons.
-**Navigation is always the right-hand end of that bar**, up against the theme toggle,
-on every screen that has any.
+**Navigation is always the right-hand end of that bar**, on every screen that has any.
 

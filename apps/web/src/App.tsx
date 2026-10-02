@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
+import { Outlet } from "@tanstack/react-router";
+import { useState } from "react";
 import { EraChampions } from "./components/EraChampions.js";
-import { MainMenu } from "./components/MainMenu.js";
-import { EraPicker, SeasonPicker } from "./components/SeasonPicker.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
-import { ThemeToggle } from "./components/ThemeToggle.js";
+import { TopNav } from "./components/TopNav.js";
 import { Button } from "./components/ui/button.js";
 import { YearPicker } from "./components/YearPicker.js";
-import type { ModeId } from "./lib/modes.js";
 import { adjacentSeason, isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
 import { type EraRun, useSeasonStore, type View, type World } from "./store/season.js";
 
@@ -126,15 +124,16 @@ export function seasonLabel(year: number, run?: EraRun): string {
 }
 
 /**
- * The page frame: sticky bar with the theme toggle, a centred column, and the
- * site footer.
+ * A page inside the frame: its sticky bar, a centred column, and the site
+ * footer.
  *
  * The footer is rendered here rather than by each screen so that every screen
  * has one — the attribution belongs to the app, not to the season screen that
  * happened to have a seed worth printing. `seed` is the only part that varies,
- * and only the season screen passes it.
+ * and only the season screen passes it. A page with nothing to put in the bar
+ * draws no bar.
  */
-function Shell({
+export function Shell({
   bar,
   seed,
   children,
@@ -144,19 +143,21 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh">
+    <div className="flex flex-1 flex-col">
       {/*
         Sticky, so the way forward is always one click away rather than a scroll
         past a 28-row table. The same buttons repeat at the foot of the page,
-        which is where a reader who has just finished reading actually is.
+        which is where a reader who has just finished reading actually is. The
+        top nav above it scrolls away; this is the bar that stays.
       */}
-      <header className="bg-background/85 border-border sticky top-0 z-40 border-b backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          {bar ?? <span />}
-          <ThemeToggle />
+      {bar === undefined ? null : (
+        <div className="bg-background/85 border-border sticky top-0 z-40 border-b backdrop-blur">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            {bar}
+          </div>
         </div>
-      </header>
-      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl flex-col gap-6 px-4 pb-8 sm:px-6 lg:pb-10">
+      )}
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 pb-8 sm:px-6 lg:pb-10">
         {children}
         {/* Pushed to the bottom of the viewport on a short page, so the credit
             sits at the foot of the window rather than under the last button. */}
@@ -175,9 +176,9 @@ function Shell({
  * navigation in the same place — the season screen's buttons sit here too, and
  * a Back button below six rows of year buttons is somewhere nobody looks.
  *
- * Pushed to the right end of the bar, up against the theme toggle, because that
- * is where the season screen's buttons sit: navigation is always the right-hand
- * side of the bar, whatever screen the reader is on.
+ * Pushed to the right end of the bar, because that is where the season screen's
+ * buttons sit: navigation is always the right-hand side of the bar, whatever
+ * screen the reader is on.
  */
 export function BackBar({ onBack }: { onBack: () => void }) {
   return (
@@ -279,19 +280,32 @@ function Actions(props: SeasonActions) {
  * changes where the summary leads and where the grid's Back goes, whether the
  * ability toggle is offered at all, and nothing else.
  *
- * Exported for the tests, like `actionsFor` beside it: `run` is a prop, so both
- * cases render statically. The app as a whole cannot be — Zustand serves a
- * *server* snapshot of its initial state to `renderToStaticMarkup`, so a driven
- * store never reaches the markup and every such render is the opening menu.
+ * The ways *out* of the run — the grid's Back and "Main menu" — are props,
+ * because they navigate and that is the route's job (`routes/run.tsx`). It
+ * keeps this component free of the router, so it renders statically in tests,
+ * and `run` is a prop too, so both cases do. Rendering the route itself cannot
+ * show a season — Zustand serves a *server* snapshot of its initial state to
+ * `renderToStaticMarkup`, so a driven store never reaches the markup.
  */
-export function SeasonScreen({ world, view, run }: { world: World; view: View; run?: EraRun }) {
+export function SeasonScreen({
+  world,
+  view,
+  run,
+  onBack,
+  onMainMenu,
+}: {
+  world: World;
+  view: View;
+  run?: EraRun;
+  /** Off the grid, back to the page that opened it. */
+  onBack: () => void;
+  /** Out of the run altogether, from "Start again". */
+  onMainMenu: () => void;
+}) {
   const nextSession = useSeasonStore((state) => state.nextSession);
   const skipToEnd = useSeasonStore((state) => state.skipToEnd);
   const restartSeason = useSeasonStore((state) => state.restartSeason);
-  const openMenu = useSeasonStore((state) => state.openMenu);
-  const openSeasonSetup = useSeasonStore((state) => state.openSeasonSetup);
   const showEraChampions = useSeasonStore((state) => state.showEraChampions);
-  const leaveEraSeason = useSeasonStore((state) => state.leaveEraSeason);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
   const switchSeasonYear = useSeasonStore((state) => state.switchSeasonYear);
   const setGrid = useSeasonStore((state) => state.setGrid);
@@ -326,10 +340,10 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
     onStartAgain: () => {
       setConfirming(true);
     },
-    onBack: inEra ? leaveEraSeason : openSeasonSetup,
+    onBack,
     onMainMenu: () => {
       setConfirming(false);
-      openMenu();
+      onMainMenu();
     },
     onRestart: () => {
       setConfirming(false);
@@ -396,12 +410,12 @@ export function SeasonScreen({ world, view, run }: { world: World; view: View; r
  * the same `YearPicker` the setup screens use, restricted to years the era has
  * not reached — defaulting to the far end, which is what the button used to do
  * outright. **Main menu** throws the run away and there is no save file yet, so
- * it confirms rather than going on a single click.
+ * it confirms rather than going on a single click; where it then goes is the
+ * route's business, as on the season screen.
  */
-function EraChampionsScreen({ run }: { run: EraRun }) {
+export function EraChampionsScreen({ run, onMainMenu }: { run: EraRun; onMainMenu: () => void }) {
   const nextEraSeason = useSeasonStore((state) => state.nextEraSeason);
   const simulateRestOfEra = useSeasonStore((state) => state.simulateRestOfEra);
-  const openMenu = useSeasonStore((state) => state.openMenu);
   const lastCrowned = run.seasons.at(-1)?.year;
   const onward = eraActionsFor(lastCrowned);
 
@@ -420,7 +434,7 @@ function EraChampionsScreen({ run }: { run: EraRun }) {
           variant="outline"
           onClick={() => {
             setAsking(null);
-            openMenu();
+            onMainMenu();
           }}
         >
           Main menu
@@ -517,54 +531,18 @@ function EraChampionsScreen({ run }: { run: EraRun }) {
   );
 }
 
+/**
+ * The frame every page sits in: the top nav, then whichever route matched.
+ *
+ * The root route renders this (`routes/__root.tsx`), and `<Outlet />` is
+ * where the router puts the page for the current URL — the slot a layout leaves
+ * for its children. Each page brings its own `Shell`.
+ */
 export function App() {
-  const screen = useSeasonStore((state) => state.screen);
-  const openSeasonSetup = useSeasonStore((state) => state.openSeasonSetup);
-  const openEraSetup = useSeasonStore((state) => state.openEraSetup);
-  const openMenu = useSeasonStore((state) => state.openMenu);
-  const startSeason = useSeasonStore((state) => state.startSeason);
-  const startEra = useSeasonStore((state) => state.startEra);
-
-  // Each stage is a new page of results, so it starts at the top. Without this,
-  // stepping on from a race — where the buttons sit below two championship
-  // tables — drops the reader into the middle of the next one.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: firing on every screen change is the point, including a rewind that lands back on the same stage.
-  useEffect(() => {
-    window.scrollTo({ top: 0 });
-  }, [screen]);
-
-  switch (screen.kind) {
-    case "menu":
-      return (
-        <Shell>
-          <MainMenu
-            onChoose={(mode: ModeId) => {
-              if (mode === "season") {
-                openSeasonSetup();
-              } else if (mode === "era-basic") {
-                openEraSetup();
-              }
-            }}
-          />
-        </Shell>
-      );
-    case "season-setup":
-      return (
-        <Shell bar={<BackBar onBack={openMenu} />}>
-          <SeasonPicker onStart={startSeason} />
-        </Shell>
-      );
-    case "season":
-      return <SeasonScreen world={screen.world} view={screen.view} />;
-    case "era-setup":
-      return (
-        <Shell bar={<BackBar onBack={openMenu} />}>
-          <EraPicker onStart={startEra} />
-        </Shell>
-      );
-    case "era":
-      return <SeasonScreen world={screen.world} view={screen.view} run={screen.run} />;
-    case "era-champions":
-      return <EraChampionsScreen run={screen.run} />;
-  }
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <TopNav />
+      <Outlet />
+    </div>
+  );
 }

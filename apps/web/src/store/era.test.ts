@@ -17,31 +17,32 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { ERA_RATING_MODE, type EraRun, type Screen, useSeasonStore, type World } from "./season.js";
+import { ERA_RATING_MODE, type EraRun, type Run, useSeasonStore, type World } from "./season.js";
 
 /** The earliest authored year, which is where an era has the most left to run. */
 const YEAR = FIRST_AUTHORED_SEASON;
 /** The year an era cannot run past, off the data rather than written down. */
 const LAST_YEAR = PLAYABLE_SEASONS.at(-1) ?? YEAR;
 
-function screen(): Screen {
-  return useSeasonStore.getState().screen;
+/** The run in the store, or null when there is none. */
+function active(): Run | null {
+  return useSeasonStore.getState().run;
 }
 
 /** The era season on screen, or a throw naming what was there instead. */
 function running(): { run: EraRun; world: World } {
-  const current = screen();
-  if (current.kind !== "era") {
-    throw new Error(`expected an era season on screen, found "${current.kind}"`);
+  const current = active();
+  if (current?.kind !== "era") {
+    throw new Error(`expected an era season on screen, found "${current?.kind ?? "no run"}"`);
   }
   return { run: current.run, world: current.world };
 }
 
 /** The roll-up on screen, or a throw. */
 function crowned(): EraRun {
-  const current = screen();
-  if (current.kind !== "era-champions") {
-    throw new Error(`expected the champions on screen, found "${current.kind}"`);
+  const current = active();
+  if (current?.kind !== "era-champions") {
+    throw new Error(`expected the champions on screen, found "${current?.kind ?? "no run"}"`);
   }
   return current.run;
 }
@@ -61,12 +62,10 @@ function playEra(seed: number, from: number, years: number): readonly World[] {
 
 describe("starting an era", () => {
   beforeEach(() => {
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
   });
 
-  it("goes menu, then setup, then the first season of the run", () => {
-    useSeasonStore.getState().openEraSetup();
-    expect(screen().kind).toBe("era-setup");
+  it("opens on the first season of the run", () => {
     useSeasonStore.getState().startEra(YEAR);
     expect(running().world.year).toBe(YEAR);
     expect(running().run).toEqual({ startYear: YEAR, seasons: [] });
@@ -74,8 +73,8 @@ describe("starting an era", () => {
 
   it("opens at the grid, with nothing crowned yet", () => {
     useSeasonStore.getState().simulateEra(3, YEAR);
-    const current = screen();
-    expect(current.kind === "era" && current.view).toEqual({ kind: "grid" });
+    const current = active();
+    expect(current?.kind === "era" && current.view).toEqual({ kind: "grid" });
     expect(running().run.seasons).toHaveLength(0);
   });
 
@@ -116,7 +115,7 @@ describe("starting an era", () => {
   it("ignores the era controls when no era is on screen", () => {
     for (const act of ["showEraChampions", "nextEraSeason", "leaveEraSeason"] as const) {
       useSeasonStore.getState()[act]();
-      expect(screen(), act).toEqual({ kind: "menu" });
+      expect(active(), act).toBeNull();
     }
   });
 });
@@ -156,8 +155,8 @@ describe("running on to the next year", () => {
 
   it("opens the following season at its grid, the run intact behind it", () => {
     useSeasonStore.getState().nextEraSeason();
-    const current = screen();
-    expect(current.kind === "era" && current.view).toEqual({ kind: "grid" });
+    const current = active();
+    expect(current?.kind === "era" && current.view).toEqual({ kind: "grid" });
     expect(running().world.year).toBe(YEAR + 1);
     expect(running().run.seasons).toHaveLength(1);
     expect(running().run.startYear).toBe(YEAR);
@@ -351,13 +350,13 @@ describe("simulating the rest of an era", () => {
     // It is wired to a button only that screen draws, but a season half-read is
     // not a run to fast-forward, and the menu has no run at all.
     useSeasonStore.getState().simulateEra(5, YEAR);
-    const playing = screen();
+    const playing = active();
     useSeasonStore.getState().simulateRestOfEra();
-    expect(screen()).toBe(playing);
+    expect(active()).toBe(playing);
 
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
     useSeasonStore.getState().simulateRestOfEra();
-    expect(screen()).toEqual({ kind: "menu" });
+    expect(active()).toBeNull();
   });
 });
 
@@ -457,10 +456,12 @@ describe("a bulk rule kept across an era", () => {
 });
 
 describe("the way back out of an era", () => {
-  it("leaves the first season for the year picker, having crowned nothing", () => {
+  it("leaves no run behind the first season, having crowned nothing", () => {
+    // The route takes the reader back to the year picker; the store's part is
+    // only that nothing of the run survives.
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().leaveEraSeason();
-    expect(screen()).toEqual({ kind: "era-setup" });
+    expect(active()).toBeNull();
   });
 
   it("leaves a later season for the roll-up it came from, unchanged", () => {
@@ -474,12 +475,12 @@ describe("the way back out of an era", () => {
     expect(crowned().seasons.map((world) => world.year)).toEqual([YEAR]);
   });
 
-  it("abandons the whole run for the main menu", () => {
+  it("abandons the whole run on exit", () => {
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
     useSeasonStore.getState().showEraChampions();
-    useSeasonStore.getState().openMenu();
-    expect(screen()).toEqual({ kind: "menu" });
+    useSeasonStore.getState().exitRun();
+    expect(active()).toBeNull();
   });
 });
 
@@ -493,11 +494,11 @@ describe("a season inside an era", () => {
 
   it("reveals itself exactly as a standalone one does", () => {
     useSeasonStore.getState().nextSession();
-    const current = screen();
-    expect(current.kind === "era" && current.view).toEqual({ kind: "qualifying", round: 0 });
+    const current = active();
+    expect(current?.kind === "era" && current.view).toEqual({ kind: "qualifying", round: 0 });
     useSeasonStore.getState().skipToEnd();
-    const after = screen();
-    expect(after.kind === "era" && after.view).toEqual({ kind: "summary" });
+    const after = active();
+    expect(after?.kind === "era" && after.view).toEqual({ kind: "summary" });
   });
 
   it("takes Start again as another go at this year, not at the era", () => {

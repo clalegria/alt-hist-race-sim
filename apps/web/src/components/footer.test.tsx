@@ -9,8 +9,8 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { App } from "../App.js";
 import { useSeasonStore } from "../store/season.js";
+import { renderRoute } from "../test-router.js";
 import { SiteFooter } from "./SiteFooter.js";
 
 const CREDIT = "Developed by Claudio Alegria";
@@ -43,14 +43,13 @@ describe("the footer", () => {
     expect(renderToStaticMarkup(<SiteFooter />)).not.toContain("Seed");
   });
 
-  it("is part of the frame, so a screen with no seed still has one", () => {
+  it("is part of the frame, so a screen with no seed still has one", async () => {
     // The main menu is the case the bug was about: it had nothing to print in
-    // a footer, so it had no footer. Rendered through `App` rather than through
-    // `Shell` — which is private — and at the initial screen, because
-    // `renderToStaticMarkup` reads the store's *initial* state whatever has
-    // been dispatched at it.
-    const html = renderToStaticMarkup(<App />);
-    expect(useSeasonStore.getInitialState().screen.kind).toBe("menu");
+    // a footer, so it had no footer. Rendered through the router, at the store's
+    // *initial* state, which is what a static render reads whatever has been
+    // dispatched at it.
+    const { html } = await renderRoute("/");
+    expect(useSeasonStore.getInitialState().run).toBeNull();
     expect(html).toContain(CREDIT);
     // Nothing to say about a run that has not started.
     expect(html).not.toContain("Seed");

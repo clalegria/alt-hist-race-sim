@@ -1,11 +1,12 @@
 /**
  * The screens to capture, in order, and how a reader gets to each.
  *
- * There is no routing yet, so a step is reached by clicking on from the one
+ * A run lives on one URL, `/run`, with no way to reach a given stage of it
+ * from the address bar yet, so a step is reached by clicking on from the one
  * before it — `reach` assumes the page is showing the previous step's screen.
- * When routing lands, each `reach` becomes a `page.goto()` of that screen's
- * share link and the steps stop depending on each other; the runner in
- * `main.ts` does not change.
+ * Once a share link exists, each `reach` becomes a `page.goto()` of one and
+ * the steps stop depending on each other; the runner in `main.ts` does not
+ * change.
  *
  * Locators go by role and visible text, as a reader finds things, never by CSS
  * class: the styling is the thing these pictures are for checking, and it moves.

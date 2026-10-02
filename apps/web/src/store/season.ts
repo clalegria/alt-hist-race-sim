@@ -12,10 +12,10 @@
  * `createRngFromState` turns back into a working generator exactly where the
  * season left off.
  *
- * Above the world sits the `Screen`: which of the app's pages the reader is on.
- * A world only exists on the season screen, so it is a member of that variant
- * rather than a nullable field — the menu cannot accidentally read a season
- * nobody has started, and no code has to guard against it.
+ * Above the world sits the `Run`: the season or era the reader has started, or
+ * null before one is. Which *page* they are on is the URL's business, not the
+ * store's (`.claude/rules/web-routing.md`). A world only exists inside a run, so
+ * it is a member of those variants rather than a nullable field.
  */
 
 import {
@@ -350,22 +350,17 @@ export interface EraRun {
 }
 
 /**
- * Which page the app is on.
+ * The run in progress: what has been simulated, and how far through it the
+ * reader is.
  *
- * The menu is the seam every future mode arrives through, so a new one is a new
- * variant here rather than a branch inside the season screen. The era mode is
- * the first to take that route: it reuses the season screen's own reveal, with
- * a run carried alongside and a roll-up between years.
+ * A new mode is a new variant here rather than a branch inside the season
+ * screen. The era mode is the first to take that route: it reuses the season
+ * screen's own reveal, with an `EraRun` carried alongside and a roll-up between
+ * years. Which page shows it is the router's business.
  */
-export type Screen =
-  /** The opening screen: what this is, and which mode to run. */
-  | { readonly kind: "menu" }
-  /** Choosing the year to start from. */
-  | { readonly kind: "season-setup" }
+export type Run =
   /** A season, simulated and being revealed. */
   | { readonly kind: "season"; readonly world: World; readonly view: View }
-  /** Choosing the year an era starts from. */
-  | { readonly kind: "era-setup" }
   /** One season of an era, revealed exactly as a standalone one is. */
   | {
       readonly kind: "era";
@@ -377,7 +372,7 @@ export type Screen =
   | { readonly kind: "era-champions"; readonly run: EraRun };
 
 /**
- * The screens that carry a season being revealed.
+ * The runs that carry a season being revealed.
  *
  * A standalone season and a season inside an era are the same screen with a
  * different frame around it, so every action over a world — stepping the
@@ -385,10 +380,10 @@ export type Screen =
  * either. Narrowing to this once is what keeps the store from growing a second
  * copy of each of those actions.
  */
-type PlayingScreen = Extract<Screen, { kind: "season" } | { kind: "era" }>;
+type PlayingRun = Extract<Run, { kind: "season" } | { kind: "era" }>;
 
-function isPlaying(screen: Screen): screen is PlayingScreen {
-  return screen.kind === "season" || screen.kind === "era";
+function isPlaying(run: Run | null): run is PlayingRun {
+  return run?.kind === "season" || run?.kind === "era";
 }
 
 /**
@@ -411,13 +406,13 @@ export function advance(view: View, rounds: number): View {
 }
 
 interface SeasonStore {
-  readonly screen: Screen;
-  /** Back to the opening screen, abandoning whatever season was running. */
-  readonly openMenu: () => void;
-  /** The year picker, for a single season. */
-  readonly openSeasonSetup: () => void;
-  /** The year picker, for an era: the year it starts from. */
-  readonly openEraSetup: () => void;
+  /** The run in progress, or null before one is started and after one is exited. */
+  readonly run: Run | null;
+  /**
+   * Discards the run. Only an explicit way out calls this — never a navigation,
+   * since leaving the run's page is not leaving the run.
+   */
+  readonly exitRun: () => void;
   /**
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
@@ -462,9 +457,9 @@ interface SeasonStore {
    */
   readonly showEraChampions: () => void;
   /**
-   * Leaves the era season on screen without crowning it, back to the page it
-   * was reached from: the roll-up if any year has been crowned, the era picker
-   * if this is the run's first.
+   * Leaves the era season on screen without crowning it, back to what it was
+   * reached from: the roll-up if any year has been crowned, and otherwise no run
+   * at all — the caller takes the reader back to the era picker.
    *
    * The grid's Back, in other words. It exists because a grid inside an era has
    * nowhere else to go — "Start again" is not offered there, since nothing has
@@ -584,42 +579,36 @@ interface SeasonStore {
   readonly restartSeason: () => void;
 }
 
-/** A standalone season screen at its opening grid. */
-function openSeason(world: World): Screen {
+/** A standalone season at its opening grid. */
+function openSeason(world: World): Run {
   return { kind: "season", world, view: { kind: "grid" } };
 }
 
-/** The screen it already was, showing a different world, back at the grid. */
-function replaceWorld(screen: PlayingScreen, world: World): PlayingScreen {
-  return screen.kind === "season"
+/** The run it already was, with a different world, back at the grid. */
+function replaceWorld(run: PlayingRun, world: World): PlayingRun {
+  return run.kind === "season"
     ? { kind: "season", world, view: { kind: "grid" } }
-    : { kind: "era", run: screen.run, world, view: { kind: "grid" } };
+    : { kind: "era", run: run.run, world, view: { kind: "grid" } };
 }
 
 export const useSeasonStore = create<SeasonStore>((set, get) => ({
-  // Nothing is simulated until a mode is chosen: the app opens on the menu, and
+  // Nothing is simulated until a mode is chosen: the app opens with no run, and
   // a season nobody asked for is neither shown nor computed.
-  screen: { kind: "menu" },
-  openMenu: () => {
-    set({ screen: { kind: "menu" } });
-  },
-  openSeasonSetup: () => {
-    set({ screen: { kind: "season-setup" } });
-  },
-  openEraSetup: () => {
-    set({ screen: { kind: "era-setup" } });
+  run: null,
+  exitRun: () => {
+    set({ run: null });
   },
   startSeason: (year, randomness = readRandomness()) => {
     set({
-      screen: openSeason(createWorld(randomSeed(), year, readRatingMode(), null, null, randomness)),
+      run: openSeason(createWorld(randomSeed(), year, readRatingMode(), null, null, randomness)),
     });
   },
   simulate: (seed, year, ratingMode, randomness) => {
-    set({ screen: openSeason(createWorld(seed, year, ratingMode, null, null, randomness)) });
+    set({ run: openSeason(createWorld(seed, year, ratingMode, null, null, randomness)) });
   },
   startEra: (year, randomness = readRandomness()) => {
     set({
-      screen: {
+      run: {
         kind: "era",
         run: { startYear: year, seasons: [] },
         world: createWorld(randomSeed(), year, ERA_RATING_MODE, null, null, randomness),
@@ -629,7 +618,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   simulateEra: (seed, year, randomness) => {
     set({
-      screen: {
+      run: {
         kind: "era",
         run: { startYear: year, seasons: [] },
         world: createWorld(seed, year, ERA_RATING_MODE, null, null, randomness),
@@ -639,13 +628,13 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   showEraChampions: () => {
     set((state) =>
-      state.screen.kind === "era"
+      state.run?.kind === "era"
         ? {
-            screen: {
+            run: {
               kind: "era-champions",
               run: {
-                startYear: state.screen.run.startYear,
-                seasons: [...state.screen.run.seasons, state.screen.world],
+                startYear: state.run.run.startYear,
+                seasons: [...state.run.run.seasons, state.run.world],
               },
             },
           }
@@ -654,22 +643,22 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   leaveEraSeason: () => {
     set((state) =>
-      state.screen.kind === "era"
+      state.run?.kind === "era"
         ? {
-            screen:
-              state.screen.run.seasons.length === 0
-                ? { kind: "era-setup" }
-                : { kind: "era-champions", run: state.screen.run },
+            run:
+              state.run.run.seasons.length === 0
+                ? null
+                : { kind: "era-champions", run: state.run.run },
           }
         : state,
     );
   },
   nextEraSeason: () => {
     set((state) => {
-      if (state.screen.kind !== "era-champions") {
+      if (state.run?.kind !== "era-champions") {
         return state;
       }
-      const last = state.screen.run.seasons.at(-1);
+      const last = state.run.run.seasons.at(-1);
       const year = last === undefined ? null : nextEraYear(last.year);
       if (last === undefined || year === null) {
         return state;
@@ -682,16 +671,16 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       // behind them.
       const grid = nextEraGrid(last, year, seed);
       return {
-        screen: {
+        run: {
           kind: "era",
-          run: state.screen.run,
+          run: state.run.run,
           world: createWorld(
             seed,
             year,
             last.ratingMode,
             grid.lineup,
             null,
-            // Baked in at the era's setup screen: every year of a run is raced
+            // Baked in at the era's setup run: every year of a run is raced
             // under the level its first year was started on.
             last.randomness,
             grid.arrangement,
@@ -703,10 +692,10 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   simulateRestOfEra: (through) => {
     set((state) => {
-      if (state.screen.kind !== "era-champions") {
+      if (state.run?.kind !== "era-champions") {
         return state;
       }
-      const seasons = [...state.screen.run.seasons];
+      const seasons = [...state.run.run.seasons];
       let last = seasons.at(-1);
       // Nothing left to run is nothing to do — and returning the state itself
       // rather than an equal copy keeps the screen from re-rendering the whole
@@ -743,9 +732,9 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
         seasons.push(last);
       }
       return {
-        screen: {
+        run: {
           kind: "era-champions",
-          run: { startYear: state.screen.run.startYear, seasons },
+          run: { startYear: state.run.run.startYear, seasons },
         },
       };
     });
@@ -754,30 +743,30 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
     // An era does not have this choice, and calling it there must not leave a
     // trace: remembering a mode chosen on a screen that never offered it would
     // reach the *next standalone season* the reader starts.
-    if (get().screen.kind === "era") {
+    if (get().run?.kind === "era") {
       return;
     }
     // Remembered even if the switch itself is a no-op, so the choice survives
     // whatever the reader does next.
     rememberRatingMode(mode);
     set((state) =>
-      state.screen.kind === "season" && state.screen.view.kind === "grid"
+      state.run?.kind === "season" && state.run.view.kind === "grid"
         ? {
-            screen: replaceWorld(
-              state.screen,
+            run: replaceWorld(
+              state.run,
               createWorld(
-                state.screen.world.seed,
-                state.screen.world.year,
+                state.run.world.seed,
+                state.run.world.year,
                 mode,
                 // Who is "fastest" is exactly what the ability mode decides, so
                 // an arranged grid is arranged again on the new ratings rather
                 // than carried over as the seats the old ones produced. The seed
                 // is the same, so a randomised grid is the same shuffle and
                 // flipping back and forth is not a slot machine.
-                nextLineup(state.screen.world, state.screen.world.seed, mode),
-                state.screen.world.engines,
-                state.screen.world.randomness,
-                state.screen.world.arrangement,
+                nextLineup(state.run.world, state.run.world.seed, mode),
+                state.run.world.engines,
+                state.run.world.randomness,
+                state.run.world.arrangement,
               ),
             ),
           }
@@ -786,17 +775,17 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   setGrid: (lineup, engines, arrangement = null) => {
     set((state) =>
-      isPlaying(state.screen) && state.screen.view.kind === "grid"
+      isPlaying(state.run) && state.run.view.kind === "grid"
         ? {
-            screen: replaceWorld(
-              state.screen,
+            run: replaceWorld(
+              state.run,
               createWorld(
-                state.screen.world.seed,
-                state.screen.world.year,
-                state.screen.world.ratingMode,
+                state.run.world.seed,
+                state.run.world.year,
+                state.run.world.ratingMode,
                 lineup,
                 engines,
-                state.screen.world.randomness,
+                state.run.world.randomness,
                 arrangement,
               ),
             ),
@@ -806,11 +795,11 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   nextSession: () => {
     set((state) =>
-      isPlaying(state.screen)
+      isPlaying(state.run)
         ? {
-            screen: {
-              ...state.screen,
-              view: advance(state.screen.view, state.screen.world.season.races.length),
+            run: {
+              ...state.run,
+              view: advance(state.run.view, state.run.world.season.races.length),
             },
           }
         : state,
@@ -818,21 +807,21 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   skipToEnd: () => {
     set((state) =>
-      isPlaying(state.screen) ? { screen: { ...state.screen, view: { kind: "summary" } } } : state,
+      isPlaying(state.run) ? { run: { ...state.run, view: { kind: "summary" } } } : state,
     );
   },
   switchSeasonYear: (year) => {
     set((state) => {
-      if (state.screen.kind !== "season" || state.screen.view.kind !== "grid") {
+      if (state.run?.kind !== "season" || state.run.view.kind !== "grid") {
         return state;
       }
       rememberSeasonYear(year);
       return {
-        screen: openSeason(
+        run: openSeason(
           createWorld(
             randomSeed(),
             year,
-            state.screen.world.ratingMode,
+            state.run.world.ratingMode,
             // A grid the reader assembled was assembled for another year's
             // entry list; nothing about it transfers. The bulk rule behind it
             // goes too: it *could* be re-run on the new year, but retaining a
@@ -841,7 +830,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             // when a rule stops applying.
             null,
             null,
-            state.screen.world.randomness,
+            state.run.world.randomness,
           ),
         ),
       };
@@ -849,14 +838,14 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   restartSeason: () => {
     set((state) => {
-      if (!isPlaying(state.screen)) {
+      if (!isPlaying(state.run)) {
         return state;
       }
-      const { world } = state.screen;
+      const { world } = state.run;
       const seed = randomSeed();
       return {
-        screen: replaceWorld(
-          state.screen,
+        run: replaceWorld(
+          state.run,
           createWorld(
             seed,
             world.year,

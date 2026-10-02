@@ -11,14 +11,14 @@ paths:
 # Web app — the era mode
 
 `era-basic`: a run of seasons, each one the real grid of its year. The architecture it
-sits on — the one store, the reveal cursor, the screen union, how any of this is
+sits on — the one store, the reveal cursor, the `Run` union, how any of this is
 tested — is `.claude/rules/web-app.md`, which loads alongside this file. This one owns
 only what the *multi-season* shell adds.
 
 ## The loop
 
-Three screens on top of the season flow: `era-setup` → `era` → `era-champions` → `era`
-→ … `EraRun` is `{ startYear, seasons }` and lives on the last two.
+The era picker (`/era/new`), then two kinds of run on `/run`: `era` → `era-champions`
+→ `era` → … `EraRun` is `{ startYear, seasons }` and lives on both.
 
 **An era reuses the season screen rather than copying it.** `SeasonScreen` in `App.tsx`
 takes an optional `run`, and that is the whole difference: it changes where the summary
@@ -26,7 +26,7 @@ leads and where the grid's Back goes. Every other stage is byte-for-byte the sam
 reveal. `actionsFor(view, rounds, inEra)` says the same thing, and a test asserts that
 every stage but the summary is identical under both — if a second flow ever grew here,
 there would be two reveals to keep in step. The store follows the same shape:
-`isPlaying(screen)` narrows to `season | era`, so `nextSession`, `skipToEnd`,
+`isPlaying(run)` narrows to `season | era`, so `nextSession`, `skipToEnd`,
 `setRatingMode`, `setGrid` and `restartSeason` are written once and work in both.
 
 **`run.seasons` holds finished worlds, not a table of winners.** Results are the source
@@ -37,7 +37,8 @@ one season does, and a test asserts it.
 
 **The season on screen is not in the run.** It joins on `showEraChampions()`, which is
 the *only* thing that appends — so a year cannot be crowned twice, and a year abandoned
-half-read (`leaveEraSeason()`, the grid's Back) never enters the roll of honour at all.
+half-read (`leaveEraSeason()`, the grid's Back) never enters the roll of honour at all;
+with nothing crowned it leaves no run, and the route goes back to the era picker.
 `restartSeason` inside an era re-runs the current year only; the crowned years stand,
 because they were read and this one was not.
 

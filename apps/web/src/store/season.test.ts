@@ -17,14 +17,7 @@ import {
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { adjacentSeason } from "../lib/seasons.js";
-import {
-  advance,
-  createWorld,
-  type Screen,
-  useSeasonStore,
-  type View,
-  type World,
-} from "./season.js";
+import { advance, createWorld, type Run, useSeasonStore, type View, type World } from "./season.js";
 
 /** The year these fixtures run in, and the seats it enters. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -224,42 +217,41 @@ describe("every authored season", () => {
   });
 });
 
-function screen(): Screen {
-  return useSeasonStore.getState().screen;
+/** The run in the store, or null when there is none. */
+function active(): Run | null {
+  return useSeasonStore.getState().run;
 }
 
 /** The season on screen, or a throw naming what was there instead. */
 function running(): { world: World; view: View } {
-  const current = screen();
-  if (current.kind !== "season") {
-    throw new Error(`expected a season on screen, found "${current.kind}"`);
+  const current = active();
+  if (current?.kind !== "season") {
+    throw new Error(`expected a season on screen, found "${current?.kind ?? "no run"}"`);
   }
   return { world: current.world, view: current.view };
 }
 
-describe("the screens", () => {
+describe("the run", () => {
   beforeEach(() => {
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
   });
 
-  it("opens on the menu, with nothing simulated", () => {
+  it("opens with no run, nothing simulated", () => {
     // The app used to run a season on page load that nobody had asked for.
-    expect(screen()).toEqual({ kind: "menu" });
+    expect(active()).toBeNull();
   });
 
-  it("goes menu, then setup, then a season", () => {
-    useSeasonStore.getState().openSeasonSetup();
-    expect(screen().kind).toBe("season-setup");
+  it("holds a season once one is started", () => {
     useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.year).toBe(YEAR);
     expect(running().view).toEqual({ kind: "grid" });
   });
 
-  it("comes back to the menu from a season in progress", () => {
+  it("discards a season in progress on exit", () => {
     useSeasonStore.getState().simulate(11, YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().openMenu();
-    expect(screen()).toEqual({ kind: "menu" });
+    useSeasonStore.getState().exitRun();
+    expect(active()).toBeNull();
   });
 
   it("ignores the season controls when no season is on screen", () => {
@@ -267,7 +259,7 @@ describe("the screens", () => {
     // a better answer than a crash on a world that does not exist.
     for (const act of ["nextSession", "skipToEnd", "restartSeason"] as const) {
       useSeasonStore.getState()[act]();
-      expect(screen(), act).toEqual({ kind: "menu" });
+      expect(active(), act).toBeNull();
     }
   });
 
@@ -618,7 +610,7 @@ describe("the chosen grid", () => {
     // The grid belongs to the year it was drawn for; a fresh start is a fresh
     // grid, unlike the ability mode, which is a way of playing.
     useSeasonStore.getState().setGrid(swapped, null);
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
     useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.lineup).toBeNull();
   });
@@ -786,13 +778,13 @@ describe("the remembered ability mode", () => {
     // The path the reader takes on Start again → Main menu → YEAR. Without the
     // preference this came back peak every time.
     storedAs("aged");
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
     useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.ratingMode).toBe("aged");
   });
 
   it("still opens on peak when nothing has been chosen", () => {
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
     useSeasonStore.getState().startSeason(YEAR);
     expect(running().world.ratingMode).toBe("peak");
   });
@@ -983,17 +975,17 @@ describe("stepping to the season next door", () => {
   });
 
   it("does nothing at all off a season screen", () => {
-    useSeasonStore.getState().openMenu();
+    useSeasonStore.getState().exitRun();
     useSeasonStore.getState().switchSeasonYear(NEXT);
-    expect(screen()).toEqual({ kind: "menu" });
+    expect(active()).toBeNull();
   });
 
   it("leaves an era's year to the run", () => {
     // An era's next year comes from the run, not the reader: a button that
     // jumped out of it would be leaving the mode rather than stepping in it.
     useSeasonStore.getState().simulateEra(5, YEAR);
-    const before = screen();
+    const before = active();
     useSeasonStore.getState().switchSeasonYear(NEXT);
-    expect(screen()).toBe(before);
+    expect(active()).toBe(before);
   });
 });

@@ -11,15 +11,16 @@ they wrap *are* real dependencies (currently `@radix-ui/react-popover`).
 
 ## Screens and state
 
-**One union of screens.** `Screen` in `store/season.ts` is
-`menu → season-setup → season` for a single year and
-`menu → era-setup → era ⇄ era-champions` for a run of them, and a `World` is a *member
-of the variants that have one* rather than a nullable field beside them — so the menu
-cannot read a season nobody started and no component has to guard against one. Nothing
-is simulated until a mode is chosen: the app opens on the menu having run no races at
-all. **The era half is `.claude/rules/web-era.md`**, which loads alongside this file on
-the store and `App.tsx`; everything below describes both unless it says otherwise, since
-an era is the same season screen with a run carried beside it.
+**The URL says which page; the store holds the run.** Routes (`/`, `/season/new`,
+`/era/new`, `/run`) and the top nav are `.claude/rules/web-routing.md`. The store's
+`run` is null until one is started, then a `Run` in `store/season.ts`: `season` for a
+single year, `era ⇄ era-champions` for a run of them. A `World` is a *member of the
+variants that have one* rather than a nullable field beside them, so nothing reads a
+season nobody started. Nothing is simulated until a mode is chosen: the app opens on the
+menu having run no races at all. **The era half is `.claude/rules/web-era.md`**, which
+loads alongside this file on the store and `App.tsx`; everything below describes both
+unless it says otherwise, since an era is the same season screen with a run carried
+beside it.
 
 Modes come from `lib/modes.ts` and years from `lib/seasons.ts`; both list what does
 not exist yet — the unbuilt modes, and any year without seed data — as disabled entries

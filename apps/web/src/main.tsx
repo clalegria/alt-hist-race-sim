@@ -6,10 +6,11 @@
 import "@fontsource-variable/archivo/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
+import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./App.js";
 import "./index.css";
+import { createAppRouter } from "./router.js";
 
 const root = document.getElementById("root");
 if (root === null) {
@@ -18,6 +19,6 @@ if (root === null) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <RouterProvider router={createAppRouter()} />
   </StrictMode>,
 );

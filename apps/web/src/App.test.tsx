@@ -636,12 +636,15 @@ describe("the buttons", () => {
  * would draw a control that silently does nothing.
  */
 describe("who is offered the ability toggle", () => {
+  const noop = () => {};
   const shown = (run?: EraRun) =>
     renderToStaticMarkup(
       <SeasonScreen
         world={world}
         view={{ kind: "grid" }}
         {...(run === undefined ? {} : { run })}
+        onBack={noop}
+        onMainMenu={noop}
       />,
     ).includes("Driver ability");
 
