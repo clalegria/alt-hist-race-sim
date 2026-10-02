@@ -66,7 +66,7 @@ export interface Crumb {
 }
 
 /**
- * The trail to `place`, from the run's top: `Era 1980 › 1984 › Round 3 › Race`.
+ * The trail to `place`, from the run's top: `Era › 1984 › Round 3 › Race`.
  * A one-year run has no era above its season, so its trail starts at the year.
  *
  * The trail describes the *page*, where the run bar's cursor text describes
@@ -79,7 +79,7 @@ export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
   const crumbs: { label: string; link?: RunLink | undefined }[] = [];
   if (run.kind === "era") {
     crumbs.push({
-      label: `Era ${run.run.startYear}`,
+      label: "Era",
       link: crowned(run).seasons.length > 0 ? REVIEW_LINK : undefined,
     });
   }

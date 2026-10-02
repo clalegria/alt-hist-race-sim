@@ -15,7 +15,6 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { BackBar } from "../App.js";
 import { MODES } from "../lib/modes.js";
 import {
   DEFAULT_SEASON_YEAR,
@@ -181,12 +180,5 @@ describe("the season picker", () => {
 
   it("says why the rest are dark", () => {
     expect(html).toContain(playableSummary());
-  });
-
-  it("leaves a way back to the menu, in the bar rather than in the page", () => {
-    // Same place the season screen keeps its buttons, so the reader is not
-    // hunting for this one below six rows of years.
-    expect(html).not.toContain(">Back<");
-    expect(renderToStaticMarkup(<BackBar onBack={noop} />)).toContain(">Back<");
   });
 });

@@ -6,7 +6,6 @@ import { ExitRunDialog, JumpForwardDialog } from "./components/RunDialogs.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
-import { Button } from "./components/ui/button.js";
 import { type Crumb, runBarFor } from "./lib/run-bar.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import type { View } from "./lib/timeline.js";
@@ -54,27 +53,6 @@ export function Shell({
           <SiteFooter {...(seed === undefined ? {} : { seed })} />
         </div>
       </div>
-    </div>
-  );
-}
-
-/**
- * The sticky-bar content for a screen that is only a choice: one way back.
- *
- * In the bar rather than under the choice itself, so every screen keeps its
- * navigation in the same place — the season screen's buttons sit here too, and
- * a Back button below six rows of year buttons is somewhere nobody looks.
- *
- * Pushed to the right end of the bar, because that is where the season screen's
- * buttons sit: navigation is always the right-hand side of the bar, whatever
- * screen the reader is on.
- */
-export function BackBar({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-      <Button variant="outline" onClick={onBack}>
-        Back
-      </Button>
     </div>
   );
 }

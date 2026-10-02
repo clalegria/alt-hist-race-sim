@@ -11,7 +11,7 @@ import {
 } from "./ui/dropdown-menu.js";
 
 /**
- * Where this page sits in the run: `Era 1980 › 1984 › Round 3 › Race`.
+ * Where this page sits in the run: `Era › 1984 › Round 3 › Race`.
  *
  * A real `<nav>` with an ordered list, the pattern screen readers announce as a
  * breadcrumb trail, and `aria-current="page"` on the last crumb. A crumb with a

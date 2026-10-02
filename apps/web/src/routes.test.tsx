@@ -63,6 +63,16 @@ describe("each URL", () => {
   }
 });
 
+describe("a setup page", () => {
+  it("draws no sticky bar: the run bar starts at the run's grid", async () => {
+    for (const path of ["/season/new", "/era/new"]) {
+      const { html } = await renderRoute(path);
+      expect(html, path).not.toContain("sticky top-0");
+      expect(html, path).not.toContain(">Back<");
+    }
+  });
+});
+
 describe("the guard on /run", () => {
   /** What `/run`'s guard does before the page renders: a redirect, or nothing. */
   function guard(): unknown {

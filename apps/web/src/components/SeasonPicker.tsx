@@ -39,8 +39,8 @@ import { YearPicker } from "./YearPicker.js";
  * it arrives as copy rather than as a second component that would drift out of
  * step the first time the range changes.
  *
- * Nothing but the choice: the way back lives in the sticky bar, with every other
- * screen's navigation, and is `BackBar` in `App.tsx`.
+ * Nothing but the choice: there is no bar on a setup page — the run bar starts
+ * at the grid — and the top nav is the way elsewhere.
  */
 export function SeasonPicker({
   onStart,

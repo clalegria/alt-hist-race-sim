@@ -139,7 +139,11 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await button(page, "End it and start").click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
-      await page.getByText(`Era ${YEAR}`, { exact: true }).first().waitFor();
+      await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .first()
+        .getByText("Era", { exact: true })
+        .waitFor();
     },
   },
   {

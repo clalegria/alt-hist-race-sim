@@ -17,7 +17,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BackBar, RunFrame, SeasonPage, Shell } from "./App.js";
+import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
 import { ExitRunDialog } from "./components/RunDialogs.js";
 import { crumbsFor } from "./lib/run-bar.js";
@@ -216,7 +216,7 @@ export function SetupPage({
     }
   };
   return (
-    <Shell bar={<BackBar onBack={() => void navigate({ to: "/" })} />}>
+    <Shell>
       {picker((year, randomness) => {
         if (hasRun) {
           setPending({ year, randomness });

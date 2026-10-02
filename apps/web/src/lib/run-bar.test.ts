@@ -171,18 +171,18 @@ describe("the breadcrumbs", () => {
       cursor: { kind: "grid" },
     };
     const crumbs = crumbsFor(run, { year: YEAR + 1, beat: { kind: "grid" } });
-    expect(crumbs.map((crumb) => crumb.label)).toEqual([`Era ${YEAR}`, String(YEAR + 1), "Grid"]);
+    expect(crumbs.map((crumb) => crumb.label)).toEqual(["Era", String(YEAR + 1), "Grid"]);
     expect(crumbs[0]?.link).toEqual(REVIEW_LINK);
     expect(crumbs[1]?.link).toBeUndefined();
   });
 
   it("are the era alone on its roll of honour", () => {
     const crumbs = crumbsFor(era({ kind: "review" }), { year: YEAR, beat: { kind: "review" } });
-    expect(crumbs).toEqual([{ label: `Era ${YEAR}` }]);
+    expect(crumbs).toEqual([{ label: "Era" }]);
   });
 
   it("do not link the era before anything has been crowned", () => {
     const crumbs = crumbsFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "grid" } });
-    expect(crumbs[0]).toEqual({ label: `Era ${YEAR}` });
+    expect(crumbs[0]).toEqual({ label: "Era" });
   });
 });

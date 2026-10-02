@@ -88,8 +88,7 @@ than offered.
 
 **A run has no Back button of its own.** The browser's Back moves between its pages,
 and a Back past its first page — onto the setup page — asks whether to exit the run
-(`.claude/rules/web-routing.md`). The year picker's Back is `BackBar` in `App.tsx`, rendered into the **sticky
-bar** — it draws none of its own navigation — so every screen keeps its way out in the
-same place, rather than one of them hiding it under six rows of year buttons.
-**Navigation is always the right-hand end of that bar**, on every screen that has any.
+(`.claude/rules/web-routing.md`). **A setup page has no sticky bar at all**: the bar
+is the run's, and starts at its grid. The top nav is the way off a setup page. On every
+page that has a bar, **navigation is its right-hand end**.
 
