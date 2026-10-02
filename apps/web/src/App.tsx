@@ -1,127 +1,16 @@
 import { Outlet } from "@tanstack/react-router";
-import { useState } from "react";
-import { EraChampions } from "./components/EraChampions.js";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { GridEdit } from "./components/GridStage.js";
+import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
+import { ExitRunDialog, JumpForwardDialog } from "./components/RunDialogs.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
 import { Button } from "./components/ui/button.js";
-import { YearPicker } from "./components/YearPicker.js";
-import { adjacentSeason, isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./lib/seasons.js";
-import { type EraRun, useSeasonStore, type View, type World } from "./store/season.js";
-
-/**
- * What each button says, per stage — the two forward ones, and the way back off
- * the grid. Null means the button is absent.
- *
- * Pure, and exported, because the button set *is* the navigation: getting it
- * wrong strands the reader mid-season with no way on.
- *
- * `inEra` is the only thing the era mode changes here, and it changes exactly
- * one stage: a standalone season *ends* at its summary and offers nothing
- * forward, where a season inside an era has a next page — the champions crowned
- * so far. Every other stage is the same screen with the same buttons, which is
- * the point of running the era on the season flow rather than beside it.
- */
-export function actionsFor(
-  view: View,
-  rounds: number,
-  inEra = false,
-): { next: string | null; skip: string | null; back: string | null } {
-  switch (view.kind) {
-    case "grid":
-      // The grid has revealed nothing yet, so leaving it costs the reader
-      // nothing and needs no confirming: one button, straight back to the page
-      // it came from. Past here that job belongs to "Start again", which has a
-      // season on screen to ask about.
-      return { next: "Simulate next session", skip: "Simulate full season", back: "Back" };
-    case "qualifying":
-      return { next: "Simulate next session", skip: "Simulate rest of the season", back: null };
-    case "race":
-      // Nothing left to skip past once the last race has been run.
-      return view.round + 1 < rounds
-        ? { next: "Simulate next session", skip: "Simulate rest of the season", back: null }
-        : { next: "Show season summary", skip: null, back: null };
-    case "summary":
-      return inEra
-        ? { next: "Show champions so far", skip: null, back: null }
-        : { next: null, skip: null, back: null };
-  }
-}
-
-/** Where in the season we are, short enough for the sticky bar. */
-export function stageLabel(view: View, rounds: number): string {
-  switch (view.kind) {
-    case "grid":
-      return "Grid";
-    case "qualifying":
-      return `Round ${view.round + 1}/${rounds} — Qualifying`;
-    case "race":
-      return `Round ${view.round + 1}/${rounds} — Race`;
-    case "summary":
-      return "Season summary";
-  }
-}
-
-/**
- * The two ways on from the roll of honour: the next year, and the far end.
- *
- * `next` is the year that follows the last one crowned, and `rest` the year the
- * era can run to in one go — null for each where the button should not be
- * drawn. Pure and exported for the same reason `actionsFor` is: which buttons a
- * screen offers *is* its navigation, and this is the one screen a reader can be
- * stranded on with nothing forward.
- *
- * `rest` is null at the end of the range, and also when the next year *is* the
- * end: two buttons that do the same thing is a worse offer than one. It is both
- * the far end of the jump the second button opens and the year that jump
- * defaults to, so where there is nowhere past the next year to jump *to*, there
- * is no button either.
- */
-export function eraActionsFor(lastCrowned: number | undefined): {
-  next: number | null;
-  rest: number | null;
-} {
-  const next = lastCrowned === undefined ? null : nextEraYear(lastCrowned);
-  const end = PLAYABLE_SEASONS.at(-1);
-  return { next, rest: next === null || end === undefined || next === end ? null : end };
-}
-
-/**
- * Which year a jump forward will actually run to.
- *
- * The reader picks a year in a picker that outlives the jump it describes — the
- * roll of honour re-renders with the era four seasons longer and the same year
- * still selected — so a chosen year is only honoured while it is still ahead of
- * the run and still has a season behind it. Anything else falls back to `rest`,
- * the far end, which is also what an untouched picker means.
- *
- * Pure and exported for the same reason the two beside it are: it decides what
- * a button does, and a stale year here would either do nothing or quietly run
- * the era to 2026.
- */
-export function eraJumpTarget(
-  lastCrowned: number | undefined,
-  chosen: number | null,
-): number | null {
-  const { next, rest } = eraActionsFor(lastCrowned);
-  // Where there is no jump to make there is no target, whatever was picked:
-  // `rest` being null is the screen saying it draws no jump button at all.
-  if (rest === null || next === null) {
-    return null;
-  }
-  return chosen !== null && chosen >= next && isPlayable(chosen) ? chosen : rest;
-}
-
-/**
- * What the sticky bar calls the season on screen.
- *
- * Inside an era it also says which run it belongs to, because a reader four
- * years in has no other reminder that stepping off this summary goes to a roll
- * of honour rather than nowhere.
- */
-export function seasonLabel(year: number, run?: EraRun): string {
-  return run === undefined ? `${year} Season` : `${year} Season — era from ${run.startYear}`;
-}
+import { type Crumb, runBarFor } from "./lib/run-bar.js";
+import { adjacentSeason } from "./lib/seasons.js";
+import type { View } from "./lib/timeline.js";
+import { type EraRun, type Run, useSeasonStore, type World } from "./store/season.js";
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
@@ -190,134 +79,163 @@ export function BackBar({ onBack }: { onBack: () => void }) {
   );
 }
 
-interface SeasonActions {
-  readonly view: View;
-  readonly rounds: number;
-  /** Present only inside an era, which changes the summary's way forward. */
-  readonly run?: EraRun | undefined;
-  readonly onNext: () => void;
-  readonly onSkip: () => void;
-  /** True while the reader is being asked where "start again" should land. */
-  readonly confirming: boolean;
-  /** True while the grid is being rearranged, which is not a moment to step on. */
-  readonly editingGrid: boolean;
-  readonly onStartAgain: () => void;
-  /** Out of the grid, back to the page that opened it. */
-  readonly onBack: () => void;
-  readonly onMainMenu: () => void;
-  readonly onRestart: () => void;
-  readonly onCancel: () => void;
-}
+/**
+ * Tells the run bar whether the grid editor is open. The grid page raises it;
+ * the frame, which draws the bar, holds it. A context rather than a prop
+ * because the page is the router's `<Outlet />`, not a child the frame renders.
+ */
+const GridEditingContext = createContext<(editing: boolean) => void>(() => {});
 
 /**
- * The forward buttons, or — once "Start again" is pressed — the two places it
- * can go.
+ * Everything a page inside a run sits in: the run bar at the top, the same
+ * actions again at the foot, and the dialogs those actions open.
  *
- * The choice is asked inline rather than in a modal: there is no dialog
- * primitive in here, and adding one for three buttons would buy a dependency
- * and a focus trap to solve a question that fits on the same row. Both copies
- * of this row (sticky bar and page foot) share one confirming flag, so they
- * always show the same thing.
+ * Every action is a prop, because each one moves the store *and* the URL and
+ * that is the route's job (`run-routes.tsx`); this keeps the frame free of the
+ * router apart from the breadcrumbs' links. What the reader is being asked —
+ * start again, exit, jump where — is component state, the same split as
+ * everywhere else: it is not simulation state.
+ *
+ * **Pages read, the run bar acts.** A page inside a run never advances or
+ * edits it, the grid editor on the cursor's own grid excepted, so a read-only
+ * view of a run later is these pages with this bar's actions hidden.
  */
-function Actions(props: SeasonActions) {
-  if (props.editingGrid) {
-    // No way forward while a grid is half-rearranged: the draft would go with
-    // it, and the season simulated would be the one the reader was replacing.
-    return (
-      <span className="text-muted-foreground text-xs">
-        Editing the grid. Apply or cancel it to carry on.
-      </span>
-    );
-  }
+export function RunFrame({
+  run,
+  crumbs,
+  onContinue,
+  onSkip,
+  onJump,
+  onRestart,
+  onExit,
+  leaving,
+  children,
+}: {
+  run: Run;
+  crumbs: readonly Crumb[];
+  onContinue: () => void;
+  onSkip: () => void;
+  onJump: (through: number) => void;
+  onRestart: () => void;
+  /** Exit run, confirmed. */
+  onExit: () => void;
+  /**
+   * A Back past the run's first page, held while the reader is asked. Null
+   * while nothing is being held.
+   */
+  leaving: { onConfirm: () => void; onCancel: () => void } | null;
+  children: React.ReactNode;
+}) {
+  const [editingGrid, setEditingGrid] = useState(false);
+  const [asking, setAsking] = useState<"restart" | "exit" | "jump" | null>(null);
+  const state = runBarFor(run);
+  const actions: RunActionsProps = {
+    state,
+    // Only while the cursor is on a grid: the flag outlives nothing else.
+    editingGrid: editingGrid && run.cursor.kind === "grid",
+    confirmingRestart: asking === "restart",
+    onContinue,
+    onSkip,
+    onJump: () => {
+      setAsking("jump");
+    },
+    onStartAgain: () => {
+      setAsking("restart");
+    },
+    onRestart: () => {
+      setAsking(null);
+      onRestart();
+    },
+    onCancelRestart: () => {
+      setAsking(null);
+    },
+    onExit: () => {
+      setAsking("exit");
+    },
+  };
 
-  if (props.confirming) {
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-muted-foreground text-xs">Start again from</span>
-        <Button variant="outline" onClick={props.onMainMenu}>
-          Main menu
-        </Button>
-        <Button variant="outline" onClick={props.onRestart}>
-          Beginning of the season
-        </Button>
-        <Button variant="ghost" onClick={props.onCancel}>
-          Cancel
-        </Button>
-      </div>
-    );
-  }
-
-  const actions = actionsFor(props.view, props.rounds, props.run !== undefined);
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {actions.next === null ? null : <Button onClick={props.onNext}>{actions.next}</Button>}
-      {actions.skip === null ? null : (
-        <Button variant="outline" onClick={props.onSkip}>
-          {actions.skip}
-        </Button>
-      )}
-      {/* The same trailing slot in both cases: the way off this screen. */}
-      {actions.back === null ? null : (
-        <Button variant="outline" onClick={props.onBack}>
-          {actions.back}
-        </Button>
-      )}
-      {props.view.kind === "grid" ? null : (
-        <Button variant="outline" onClick={props.onStartAgain}>
-          Start again
-        </Button>
-      )}
-    </div>
+    <GridEditingContext.Provider value={setEditingGrid}>
+      <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
+        <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+        <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
+          <span className="text-muted-foreground text-xs">{state.cursor}</span>
+          <RunActions {...actions} />
+        </div>
+      </Shell>
+      <ExitRunDialog
+        open={asking === "exit" || leaving !== null}
+        variant="exit"
+        onConfirm={() => {
+          setAsking(null);
+          if (leaving !== null) {
+            leaving.onConfirm();
+          } else {
+            onExit();
+          }
+        }}
+        onCancel={() => {
+          setAsking(null);
+          leaving?.onCancel();
+        }}
+      />
+      {run.cursor.kind === "review" ? (
+        <JumpForwardDialog
+          open={asking === "jump"}
+          lastCrowned={run.world.year}
+          onJump={(through) => {
+            setAsking(null);
+            onJump(through);
+          }}
+          onCancel={() => {
+            setAsking(null);
+          }}
+        />
+      ) : null}
+    </GridEditingContext.Provider>
   );
 }
 
 /**
- * A season being revealed — standalone, or one year of an era.
+ * One beat of one season, on its own page: the grid, a session or the
+ * summary, for whichever year of the run the URL names.
  *
- * One screen for both. An era is the season flow run again and again, so a
- * second copy of this with a different header is exactly the duplication the
- * mode was meant not to need: what differs is the run carried alongside, which
- * changes where the summary leads and where the grid's Back goes, whether the
- * ability toggle is offered at all, and nothing else.
+ * `run` is present only inside an era, and is the years before this one: it
+ * changes whether the ability toggle is offered and what the grid editor's
+ * carry-over copies, and nothing else. `locked` is a grid the run has moved
+ * past. `onYearChange` is the grid's shortcut to the season next door, which
+ * moves the URL and so comes from the route.
  *
- * The ways *out* of the run — the grid's Back and "Main menu" — are props,
- * because they navigate and that is the route's job (`routes/run.tsx`). It
- * keeps this component free of the router, so it renders statically in tests,
- * and `run` is a prop too, so both cases do. Rendering the route itself cannot
- * show a season — Zustand serves a *server* snapshot of its initial state to
- * `renderToStaticMarkup`, so a driven store never reaches the markup.
+ * Rendering the route itself cannot show a season — Zustand serves a *server*
+ * snapshot of its initial state to `renderToStaticMarkup`, so a driven store
+ * never reaches the markup — so this takes the world as a prop and is tested
+ * as a component.
  */
-export function SeasonScreen({
+export function SeasonPage({
   world,
   view,
   run,
-  onBack,
-  onMainMenu,
+  locked = false,
+  onYearChange,
 }: {
   world: World;
   view: View;
   run?: EraRun;
-  /** Off the grid, back to the page that opened it. */
-  onBack: () => void;
-  /** Out of the run altogether, from "Start again". */
-  onMainMenu: () => void;
+  locked?: boolean;
+  onYearChange?: (year: number) => void;
 }) {
-  const nextSession = useSeasonStore((state) => state.nextSession);
-  const skipToEnd = useSeasonStore((state) => state.skipToEnd);
-  const restartSeason = useSeasonStore((state) => state.restartSeason);
-  const showEraChampions = useSeasonStore((state) => state.showEraChampions);
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
-  const switchSeasonYear = useSeasonStore((state) => state.switchSeasonYear);
   const setGrid = useSeasonStore((state) => state.setGrid);
+  const setEditingGrid = useContext(GridEditingContext);
+  // Leaving the grid page mid-edit — browser Back, a breadcrumb — unmounts the
+  // editor without it saying it closed, which would leave the bar waiting on it.
+  useEffect(
+    () => () => {
+      setEditingGrid(false);
+    },
+    [setEditingGrid],
+  );
 
-  // Purely about what the reader is being asked, so it stays out of the store:
-  // the rule is that *simulation* state lives there, not that React may hold
-  // nothing at all.
-  const [confirming, setConfirming] = useState(false);
-  const [editingGrid, setEditingGrid] = useState(false);
-
-  const inEra = run !== undefined;
-  const rounds = world.season.races.length;
   // The grid the reader actually watched last year, for the editor's carry-over
   // button — the era's own history rather than the seed file's, since inside an
   // era last season may itself have been rewritten. A standalone season has no
@@ -327,207 +245,34 @@ export function SeasonScreen({
     previousYear === null
       ? null
       : (run?.seasons.find((season) => season.year === previousYear)?.lineup ?? null);
-  const actionProps: SeasonActions = {
-    view,
-    rounds,
-    run,
-    // The summary is the one stage an era takes somewhere else: on to the
-    // champions, crowning this year on the way.
-    onNext: inEra && view.kind === "summary" ? showEraChampions : nextSession,
-    onSkip: skipToEnd,
-    confirming,
-    editingGrid: editingGrid && view.kind === "grid",
-    onStartAgain: () => {
-      setConfirming(true);
-    },
-    onBack,
-    onMainMenu: () => {
-      setConfirming(false);
-      onMainMenu();
-    },
-    onRestart: () => {
-      setConfirming(false);
-      restartSeason();
-    },
-    onCancel: () => {
-      setConfirming(false);
-    },
-  };
+  const editable = view.kind === "grid" && !locked;
 
   return (
-    <Shell
-      seed={world.seed}
-      bar={
-        <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold tracking-tight">
-              {seasonLabel(world.year, run)}
-            </span>
-            <span className="text-muted-foreground text-xs">{stageLabel(view, rounds)}</span>
-          </div>
-          <Actions {...actionProps} />
-        </div>
-      }
-    >
-      <div className="pt-8 lg:pt-10">
-        <SeasonView
-          world={world}
-          view={view}
-          // An era is fixed at `ERA_RATING_MODE` and offers no switch, so the
-          // handler is not passed either — the store would refuse it anyway, and
-          // wiring a control that cannot fire is how one comes back by accident.
-          canChooseAbility={run === undefined}
-          inEra={inEra}
-          previousLineup={previousLineup}
-          {...(run === undefined
-            ? { onRatingModeChange: setRatingMode, onYearChange: switchSeasonYear }
-            : {})}
-          onGridChange={(edit) => {
-            setGrid(edit.lineup, edit.engines, edit.arrangement);
-          }}
-          onGridEditingChange={setEditingGrid}
-        />
-      </div>
-
-      <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">
-        <Actions {...actionProps} />
-      </div>
-    </Shell>
-  );
-}
-
-/**
- * The roll-up between two years: what the era has crowned, and the way on.
- *
- * The buttons are here rather than inside `EraChampions` for the same reason
- * every other screen's are in the bar — navigation is the right-hand end of the
- * bar on every page — and so the roll-up itself stays a pure render of a run.
- *
- * Two of the three ways on ask something first, and both ask it inline, in the
- * button row itself, exactly as "Start again" does on the season screen: no
- * dialog primitive, one flag shared by both copies of the row so they never
- * disagree. **Jumping forward** opens a year picker over the roll of honour —
- * the same `YearPicker` the setup screens use, restricted to years the era has
- * not reached — defaulting to the far end, which is what the button used to do
- * outright. **Main menu** throws the run away and there is no save file yet, so
- * it confirms rather than going on a single click; where it then goes is the
- * route's business, as on the season screen.
- */
-export function EraChampionsScreen({ run, onMainMenu }: { run: EraRun; onMainMenu: () => void }) {
-  const nextEraSeason = useSeasonStore((state) => state.nextEraSeason);
-  const simulateRestOfEra = useSeasonStore((state) => state.simulateRestOfEra);
-  const lastCrowned = run.seasons.at(-1)?.year;
-  const onward = eraActionsFor(lastCrowned);
-
-  // What the reader is being asked, which is not simulation state and so stays
-  // out of the store — the same split the season screen's `confirming` makes.
-  const [asking, setAsking] = useState<"jump" | "menu" | null>(null);
-  const [chosen, setChosen] = useState<number | null>(null);
-  const target = eraJumpTarget(lastCrowned, chosen);
-  const jumping = asking === "jump" && target !== null;
-
-  const actions =
-    asking === "menu" ? (
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-muted-foreground text-xs">Leave the era? It is not saved.</span>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setAsking(null);
-            onMainMenu();
-          }}
-        >
-          Main menu
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setAsking(null);
-          }}
-        >
-          Cancel
-        </Button>
-      </div>
-    ) : jumping ? (
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          onClick={() => {
-            setAsking(null);
-            simulateRestOfEra(target);
-          }}
-        >
-          Simulate through to {target}
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setAsking(null);
-          }}
-        >
-          Cancel
-        </Button>
-      </div>
-    ) : (
-      <div className="flex flex-wrap items-center gap-2">
-        {onward.next === null ? null : (
-          <Button onClick={nextEraSeason}>Simulate {onward.next}</Button>
-        )}
-        {onward.rest === null ? null : (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setAsking("jump");
-            }}
-          >
-            Jump forward
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          onClick={() => {
-            setAsking("menu");
-          }}
-        >
-          Main menu
-        </Button>
-      </div>
-    );
-
-  return (
-    <Shell
-      bar={
-        <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold tracking-tight">Era from {run.startYear}</span>
-            <span className="text-muted-foreground text-xs">Between seasons</span>
-          </div>
-          {actions}
-        </div>
-      }
-    >
-      {/*
-        Above the roll of honour rather than below it: the screen is scrolled to
-        the top when it opens, and a picker under twenty crowned seasons is a
-        panel nobody would find.
-      */}
-      {jumping ? (
-        <div className="pt-6">
-          <YearPicker
-            year={target}
-            onSelect={setChosen}
-            title="Jump forward to"
-            lead={`Every season from ${lastCrowned === undefined ? "" : lastCrowned + 1} on is simulated in one go, and the era stops on the year you pick. Nothing after it is run, so you can carry on from there.`}
-            describeYear={(year) => `Simulate the era through to ${year}`}
-            // Only years the era has ahead of it: a year already crowned is
-            // history this run has written, and the store refuses it anyway.
-            playable={(year) => isPlayable(year) && onward.next !== null && year >= onward.next}
-          />
-        </div>
-      ) : null}
-
-      <EraChampions run={run} />
-      <div className="border-border flex flex-wrap items-center gap-3 border-t pt-6">{actions}</div>
-    </Shell>
+    <SeasonView
+      world={world}
+      view={view}
+      // An era is fixed at `ERA_RATING_MODE` and offers no switch, so the
+      // handler is not passed either — the store would refuse it anyway, and
+      // wiring a control that cannot fire is how one comes back by accident.
+      canChooseAbility={run === undefined}
+      inEra={run !== undefined}
+      locked={locked}
+      previousLineup={previousLineup}
+      {...(run === undefined && editable
+        ? {
+            onRatingModeChange: setRatingMode,
+            ...(onYearChange === undefined ? {} : { onYearChange }),
+          }
+        : {})}
+      {...(editable
+        ? {
+            onGridChange: (edit: GridEdit) => {
+              setGrid(edit.lineup, edit.engines, edit.arrangement);
+            },
+          }
+        : {})}
+      onGridEditingChange={setEditingGrid}
+    />
   );
 }
 

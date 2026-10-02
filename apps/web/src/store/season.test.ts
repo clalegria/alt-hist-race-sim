@@ -17,7 +17,8 @@ import {
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { adjacentSeason } from "../lib/seasons.js";
-import { advance, createWorld, type Run, useSeasonStore, type View, type World } from "./season.js";
+import type { Beat } from "../lib/timeline.js";
+import { createWorld, type Run, useSeasonStore, type World } from "./season.js";
 
 /** The year these fixtures run in, and the seats it enters. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -223,12 +224,12 @@ function active(): Run | null {
 }
 
 /** The season on screen, or a throw naming what was there instead. */
-function running(): { world: World; view: View } {
+function running(): { world: World; view: Beat } {
   const current = active();
   if (current?.kind !== "season") {
     throw new Error(`expected a season on screen, found "${current?.kind ?? "no run"}"`);
   }
-  return { world: current.world, view: current.view };
+  return { world: current.world, view: current.cursor };
 }
 
 describe("the run", () => {
@@ -257,7 +258,7 @@ describe("the run", () => {
   it("ignores the season controls when no season is on screen", () => {
     // They are wired to buttons only the season screen renders, but a no-op is
     // a better answer than a crash on a world that does not exist.
-    for (const act of ["nextSession", "skipToEnd", "restartSeason"] as const) {
+    for (const act of ["continueRun", "skipToEnd", "restartSeason"] as const) {
       useSeasonStore.getState()[act]();
       expect(active(), act).toBeNull();
     }
@@ -289,8 +290,6 @@ describe("the run", () => {
 });
 
 describe("revealing the season", () => {
-  const ROUNDS = 14;
-
   beforeEach(() => {
     useSeasonStore.getState().simulate(3, YEAR);
   });
@@ -299,49 +298,9 @@ describe("revealing the season", () => {
     expect(running().view).toEqual({ kind: "grid" });
   });
 
-  it("walks qualifying, race, qualifying, race", () => {
-    let view = advance({ kind: "grid" }, ROUNDS);
-    expect(view).toEqual({ kind: "qualifying", round: 0 });
-    view = advance(view, ROUNDS);
-    expect(view).toEqual({ kind: "race", round: 0 });
-    view = advance(view, ROUNDS);
-    expect(view).toEqual({ kind: "qualifying", round: 1 });
-    view = advance(view, ROUNDS);
-    expect(view).toEqual({ kind: "race", round: 1 });
-  });
-
-  it("reaches the summary after the last race, not before", () => {
-    expect(advance({ kind: "race", round: ROUNDS - 2 }, ROUNDS)).toEqual({
-      kind: "qualifying",
-      round: ROUNDS - 1,
-    });
-    expect(advance({ kind: "race", round: ROUNDS - 1 }, ROUNDS)).toEqual({ kind: "summary" });
-  });
-
-  it("shows every session exactly once on the way through", () => {
-    // Two per round plus the summary; anything else means a skipped or
-    // repeated session.
-    const seen: View[] = [];
-    let view: View = { kind: "grid" };
-    for (let step = 0; step < ROUNDS * 2 + 5; step += 1) {
-      view = advance(view, ROUNDS);
-      seen.push(view);
-      if (view.kind === "summary") {
-        break;
-      }
-    }
-    expect(seen).toHaveLength(ROUNDS * 2 + 1);
-    expect(seen.filter((v) => v.kind === "qualifying")).toHaveLength(ROUNDS);
-    expect(seen.filter((v) => v.kind === "race")).toHaveLength(ROUNDS);
-  });
-
-  it("stays put once the season is over", () => {
-    expect(advance({ kind: "summary" }, ROUNDS)).toEqual({ kind: "summary" });
-  });
-
   it("steps the cursor without re-running anything", () => {
     const before = running().world;
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     expect(running().view).toEqual({ kind: "qualifying", round: 0 });
     // The year was simulated the moment the seed was drawn, so revealing it
     // hands back the very same object.
@@ -349,9 +308,16 @@ describe("revealing the season", () => {
   });
 
   it("skips to the summary from anywhere", () => {
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().skipToEnd();
     expect(running().view).toEqual({ kind: "summary" });
+  });
+
+  it("goes nowhere past the summary, which is where a one-year run ends", () => {
+    useSeasonStore.getState().skipToEnd();
+    const before = active();
+    useSeasonStore.getState().continueRun();
+    expect(active()).toBe(before);
   });
 
   it("starts a fresh season of the same year, back at the grid", () => {
@@ -416,7 +382,7 @@ describe("driver ability mode", () => {
   it("refuses to switch once the season has started revealing", () => {
     // Past the grid the reader has seen results the new field would never have
     // produced, so the switch is not offered and the action does nothing.
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     const before = running().world;
     useSeasonStore.getState().setRatingMode("aged");
     expect(running().world).toBe(before);
@@ -576,7 +542,7 @@ describe("the chosen grid", () => {
   it("refuses to change the grid once the season has started revealing", () => {
     // Same rule as the ability toggle, for the same reason: the reader has seen
     // results that a different field would never have produced.
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     const before = running().world;
     useSeasonStore.getState().setGrid(swapped, null);
     expect(running().world).toBe(before);
@@ -751,7 +717,7 @@ describe("the grid arranged by rule", () => {
   });
 
   it("refuses a rule once the season has started revealing", () => {
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     const before = running().world;
     useSeasonStore.getState().setGrid(null, null, ranked);
     expect(running().world).toBe(before);
@@ -775,7 +741,7 @@ describe("the remembered ability mode", () => {
   });
 
   it("starts a season from the menu in the remembered mode", () => {
-    // The path the reader takes on Start again → Main menu → YEAR. Without the
+    // The path the reader takes on Exit run → Season → YEAR. Without the
     // preference this came back peak every time.
     storedAs("aged");
     useSeasonStore.getState().exitRun();
@@ -903,7 +869,7 @@ describe("the chosen engines", () => {
   });
 
   it("cannot be changed once the season has started revealing", () => {
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().setGrid(null, resupplied);
     expect(running().world.engines).toBeNull();
   });
@@ -967,7 +933,7 @@ describe("stepping to the season next door", () => {
 
   it("refuses once the season has started revealing", () => {
     // Same rule as the ability toggle and the grid editor, for the same reason.
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     const before = running().world;
     useSeasonStore.getState().switchSeasonYear(NEXT);
     expect(running().world).toBe(before);

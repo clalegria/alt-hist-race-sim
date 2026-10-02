@@ -25,9 +25,11 @@ UI: **never the author's own Chrome**, and no browser MCP without asking first.
   so the init script replaces the page's `Math.random` with a seeded generator.
   `RANDOM_SEED` in `src/main.ts`; the year is `YEAR` in `src/steps.ts`.
 - **Steps** (`src/steps.ts`): one named step per screen, reached by clicking on from the
-  previous one, with role and text locators, never CSS classes: a run is one URL with no
-  address for a stage yet. Once the Share link lands each `reach` becomes a
-  `page.goto()` of one and the runner does not change.
+  previous one, with role and text locators, never CSS classes: a run lives only in the
+  page's memory, so a `goto` would lose it. Some steps are `page.goBack()`, which walks
+  browser history through a run and raises the exit dialog past its start — the one
+  place the blocker runs in a real browser. Once the Share link lands each `reach` can
+  become a `page.goto()` of one and the runner does not change.
 - Output is `NN-<step>-<desktop|phone>-<light|dark>.png`. A page error, a console error
   or Vite's error overlay makes the run fail.
 

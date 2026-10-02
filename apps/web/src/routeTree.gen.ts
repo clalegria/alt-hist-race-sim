@@ -12,7 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RunRouteImport } from './routes/run'
 import { Route as EraNewRouteImport } from './routes/era/new'
+import { Route as RunIndexRouteImport } from './routes/run/index'
 import { Route as SeasonNewRouteImport } from './routes/season/new'
+import { Route as RunYearIndexRouteImport } from './routes/run/$year/index'
+import { Route as RunYearGridRouteImport } from './routes/run/$year/grid'
+import { Route as RunYearRoundRoundQualifyingRouteImport } from './routes/run/$year/round/$round/qualifying'
+import { Route as RunYearRoundRoundRaceRouteImport } from './routes/run/$year/round/$round/race'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,42 +34,109 @@ const EraNewRoute = EraNewRouteImport.update({
   path: '/era/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RunIndexRoute = RunIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunRoute,
+} as any)
 const SeasonNewRoute = SeasonNewRouteImport.update({
   id: '/season/new',
   path: '/season/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RunYearIndexRoute = RunYearIndexRouteImport.update({
+  id: '/$year/',
+  path: '/$year/',
+  getParentRoute: () => RunRoute,
+} as any)
+const RunYearGridRoute = RunYearGridRouteImport.update({
+  id: '/$year/grid',
+  path: '/$year/grid',
+  getParentRoute: () => RunRoute,
+} as any)
+const RunYearRoundRoundQualifyingRoute =
+  RunYearRoundRoundQualifyingRouteImport.update({
+    id: '/$year/round/$round/qualifying',
+    path: '/$year/round/$round/qualifying',
+    getParentRoute: () => RunRoute,
+  } as any)
+const RunYearRoundRoundRaceRoute = RunYearRoundRoundRaceRouteImport.update({
+  id: '/$year/round/$round/race',
+  path: '/$year/round/$round/race',
+  getParentRoute: () => RunRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/run': typeof RunRoute
+  '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
   '/season/new': typeof SeasonNewRoute
+  '/run/': typeof RunIndexRoute
+  '/run/$year/grid': typeof RunYearGridRoute
+  '/run/$year/': typeof RunYearIndexRoute
+  '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
+  '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/run': typeof RunRoute
   '/era/new': typeof EraNewRoute
   '/season/new': typeof SeasonNewRoute
+  '/run': typeof RunIndexRoute
+  '/run/$year/grid': typeof RunYearGridRoute
+  '/run/$year': typeof RunYearIndexRoute
+  '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
+  '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/run': typeof RunRoute
+  '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
   '/season/new': typeof SeasonNewRoute
+  '/run/': typeof RunIndexRoute
+  '/run/$year/grid': typeof RunYearGridRoute
+  '/run/$year/': typeof RunYearIndexRoute
+  '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
+  '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/run' | '/era/new' | '/season/new'
+  fullPaths:
+    | '/'
+    | '/run'
+    | '/era/new'
+    | '/season/new'
+    | '/run/'
+    | '/run/$year/grid'
+    | '/run/$year/'
+    | '/run/$year/round/$round/qualifying'
+    | '/run/$year/round/$round/race'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/run' | '/era/new' | '/season/new'
-  id: '__root__' | '/' | '/run' | '/era/new' | '/season/new'
+  to:
+    | '/'
+    | '/era/new'
+    | '/season/new'
+    | '/run'
+    | '/run/$year/grid'
+    | '/run/$year'
+    | '/run/$year/round/$round/qualifying'
+    | '/run/$year/round/$round/race'
+  id:
+    | '__root__'
+    | '/'
+    | '/run'
+    | '/era/new'
+    | '/season/new'
+    | '/run/'
+    | '/run/$year/grid'
+    | '/run/$year/'
+    | '/run/$year/round/$round/qualifying'
+    | '/run/$year/round/$round/race'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  RunRoute: typeof RunRoute
+  RunRoute: typeof RunRouteWithChildren
   EraNewRoute: typeof EraNewRoute
   SeasonNewRoute: typeof SeasonNewRoute
 }
@@ -92,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EraNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/run/': {
+      id: '/run/'
+      path: '/'
+      fullPath: '/run/'
+      preLoaderRoute: typeof RunIndexRouteImport
+      parentRoute: typeof RunRoute
+    }
     '/season/new': {
       id: '/season/new'
       path: '/season/new'
@@ -99,12 +178,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeasonNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/run/$year/': {
+      id: '/run/$year/'
+      path: '/$year'
+      fullPath: '/run/$year/'
+      preLoaderRoute: typeof RunYearIndexRouteImport
+      parentRoute: typeof RunRoute
+    }
+    '/run/$year/grid': {
+      id: '/run/$year/grid'
+      path: '/$year/grid'
+      fullPath: '/run/$year/grid'
+      preLoaderRoute: typeof RunYearGridRouteImport
+      parentRoute: typeof RunRoute
+    }
+    '/run/$year/round/$round/qualifying': {
+      id: '/run/$year/round/$round/qualifying'
+      path: '/$year/round/$round/qualifying'
+      fullPath: '/run/$year/round/$round/qualifying'
+      preLoaderRoute: typeof RunYearRoundRoundQualifyingRouteImport
+      parentRoute: typeof RunRoute
+    }
+    '/run/$year/round/$round/race': {
+      id: '/run/$year/round/$round/race'
+      path: '/$year/round/$round/race'
+      fullPath: '/run/$year/round/$round/race'
+      preLoaderRoute: typeof RunYearRoundRoundRaceRouteImport
+      parentRoute: typeof RunRoute
+    }
   }
 }
 
+interface RunRouteChildren {
+  RunIndexRoute: typeof RunIndexRoute
+  RunYearGridRoute: typeof RunYearGridRoute
+  RunYearIndexRoute: typeof RunYearIndexRoute
+  RunYearRoundRoundQualifyingRoute: typeof RunYearRoundRoundQualifyingRoute
+  RunYearRoundRoundRaceRoute: typeof RunYearRoundRoundRaceRoute
+}
+
+const RunRouteChildren: RunRouteChildren = {
+  RunIndexRoute: RunIndexRoute,
+  RunYearGridRoute: RunYearGridRoute,
+  RunYearIndexRoute: RunYearIndexRoute,
+  RunYearRoundRoundQualifyingRoute: RunYearRoundRoundQualifyingRoute,
+  RunYearRoundRoundRaceRoute: RunYearRoundRoundRaceRoute,
+}
+
+const RunRouteWithChildren = RunRoute._addFileChildren(RunRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  RunRoute: RunRoute,
+  RunRoute: RunRouteWithChildren,
   EraNewRoute: EraNewRoute,
   SeasonNewRoute: SeasonNewRoute,
 }

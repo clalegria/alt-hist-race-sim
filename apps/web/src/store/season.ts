@@ -53,6 +53,7 @@ import {
 } from "../lib/preferences.js";
 import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
+import { type Beat, nextBeat, type Place, type View } from "../lib/timeline.js";
 
 /** The serializable world. Add to this and it must stay plain data. */
 export interface World {
@@ -309,28 +310,8 @@ export function createWorld(
 }
 
 /**
- * How much of the season the reader has been shown.
- *
- * The whole year is simulated the moment a seed is drawn — one continuous RNG
- * stream through every round, which is what makes a season reproducible. This
- * cursor therefore *reveals* a season that already exists rather than driving
- * the simulation. "Simulate next session" is a promise about what the reader
- * sees next, not about when the dice are rolled, and the results are identical
- * either way.
- *
- * Deliberately not part of `World`: where the reader has got to is not
- * simulation state, and a save file should not care.
- */
-export type View =
-  | { readonly kind: "grid" }
-  /** `round` is a zero-based index into `world.season.races`. */
-  | { readonly kind: "qualifying"; readonly round: number }
-  | { readonly kind: "race"; readonly round: number }
-  | { readonly kind: "summary" };
-
-/**
  * A run of seasons — the basic era mode: where it started, and every year
- * already finished, in order.
+ * before the one on the cursor, in order.
  *
  * The finished worlds themselves rather than a table of champions, because
  * **results are the source of truth and statistics are derived**: who won 1983
@@ -340,9 +321,10 @@ export type View =
  * shape. Plain data throughout, like the world it holds, so an era serialises to
  * a save file exactly as one season does.
  *
- * The season currently being revealed is *not* in here — it lives on the era
- * screen beside the run, and joins the list when the reader steps off its
- * summary. So `seasons` is precisely "the years that have been crowned".
+ * The season on the cursor is *not* in here — it is the run's `world`, and
+ * joins this list when Continue steps off its review onto the next year. Which
+ * years have been *crowned* is `crowned(run)`: these, plus the world on the
+ * cursor once the cursor reaches its review.
  */
 export interface EraRun {
   readonly startYear: number;
@@ -353,56 +335,51 @@ export interface EraRun {
  * The run in progress: what has been simulated, and how far through it the
  * reader is.
  *
+ * `cursor` is the beat the reader has reached in `world`'s year
+ * (`lib/timeline.ts`). Deliberately not part of `World`: where the reader has
+ * got to is not simulation state, and a world's save file should not care.
+ *
  * A new mode is a new variant here rather than a branch inside the season
- * screen. The era mode is the first to take that route: it reuses the season
- * screen's own reveal, with an `EraRun` carried alongside and a roll-up between
- * years. Which page shows it is the router's business.
+ * screen. The era mode is the first to take that route: it reuses the season's
+ * own beats, with an `EraRun` carried alongside and a review between years.
+ * Which page shows a beat is the router's business.
  */
 export type Run =
   /** A season, simulated and being revealed. */
-  | { readonly kind: "season"; readonly world: World; readonly view: View }
-  /** One season of an era, revealed exactly as a standalone one is. */
+  | { readonly kind: "season"; readonly world: World; readonly cursor: Beat }
+  /** One season of an era, revealed exactly as a standalone one is, then reviewed. */
   | {
       readonly kind: "era";
       readonly run: EraRun;
       readonly world: World;
-      readonly view: View;
-    }
-  /** Between years: the champions crowned so far, season by season. */
-  | { readonly kind: "era-champions"; readonly run: EraRun };
+      readonly cursor: Beat;
+    };
 
 /**
- * The runs that carry a season being revealed.
+ * The years of an era that have been crowned: every one before the cursor's,
+ * and the cursor's own once it has reached its review.
  *
- * A standalone season and a season inside an era are the same screen with a
- * different frame around it, so every action over a world — stepping the
- * cursor, skipping, re-running on other ratings or another grid — works on
- * either. Narrowing to this once is what keeps the store from growing a second
- * copy of each of those actions.
+ * Derived rather than kept, so a year cannot be crowned twice and the world on
+ * the cursor is never stored twice.
  */
-type PlayingRun = Extract<Run, { kind: "season" } | { kind: "era" }>;
+export function crowned(run: Extract<Run, { kind: "era" }>): EraRun {
+  return run.cursor.kind === "review"
+    ? { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] }
+    : run.run;
+}
 
-function isPlaying(run: Run | null): run is PlayingRun {
-  return run?.kind === "season" || run?.kind === "era";
+/** Where the cursor is, as a place in the run. */
+export function cursorPlace(run: Run): Place {
+  return { year: run.world.year, beat: run.cursor };
 }
 
 /**
- * The next thing to show: qualifying, then that race, then the next qualifying,
- * and the summary once the last race has been seen.
+ * Whether the cursor is on a beat of the season itself rather than the era's
+ * review — the beats on which a season can still be skipped through or started
+ * again.
  */
-export function advance(view: View, rounds: number): View {
-  switch (view.kind) {
-    case "grid":
-      return rounds > 0 ? { kind: "qualifying", round: 0 } : { kind: "summary" };
-    case "qualifying":
-      return { kind: "race", round: view.round };
-    case "race":
-      return view.round + 1 < rounds
-        ? { kind: "qualifying", round: view.round + 1 }
-        : { kind: "summary" };
-    case "summary":
-      return view;
-  }
+function isPlaying(run: Run | null): run is Run & { readonly cursor: View } {
+  return run !== null && run.cursor.kind !== "review";
 }
 
 interface SeasonStore {
@@ -449,43 +426,29 @@ interface SeasonStore {
   /** The same from a chosen seed, and for the same reason: tests need one. */
   readonly simulateEra: (seed: number, year: number, randomness?: RandomnessLevel) => void;
   /**
-   * Ends the season on screen and shows the champions crowned so far.
+   * Reveals the next beat — what Continue on the run bar does.
    *
-   * The moment a season stops being the one being played and becomes part of
-   * the run: this is the only thing that appends to `run.seasons`, so a year
-   * cannot be counted twice, and none is crowned before it has been read.
+   * Within a season that is the next session, then the summary. In an era the
+   * summary leads on to the review, which is the moment the year is crowned
+   * (`crowned`); and the review leads on to the next year's grid, which is
+   * where that year is simulated.
+   *
+   * **The next year is the seam the advanced mode replaces.** Its field comes
+   * from that year's seed file and nothing else — no market, no progression
+   * model, nothing carried forward but the dice and how the reader chose to
+   * play. A mode that simulates the grid instead substitutes what is handed to
+   * `createWorld` in `nextEraWorld`, and nothing else about the loop changes.
+   *
+   * Nothing happens at a beat with nothing after it: a one-year run's summary,
+   * or an era's review once `nextEraYear` says the data has run out.
    */
-  readonly showEraChampions: () => void;
-  /**
-   * Leaves the era season on screen without crowning it, back to what it was
-   * reached from: the roll-up if any year has been crowned, and otherwise no run
-   * at all — the caller takes the reader back to the era picker.
-   *
-   * The grid's Back, in other words. It exists because a grid inside an era has
-   * nowhere else to go — "Start again" is not offered there, since nothing has
-   * been revealed to start again *from* — and because leaving a year unread must
-   * not add it to the roll of honour.
-   */
-  readonly leaveEraSeason: () => void;
-  /**
-   * Runs the next year of the era, on the grid history had that year.
-   *
-   * **This is the seam the advanced mode replaces.** The field for year N+1
-   * comes from that year's seed file and nothing else — no market, no
-   * progression model, nothing carried forward but the dice and how the reader
-   * chose to play. A mode that simulates the grid instead substitutes what is
-   * handed to `createWorld` here, and nothing else about the loop changes.
-   *
-   * Nothing happens past the end of the authored range: `nextEraYear` says the
-   * era stops there, and the screen offers no button to call this.
-   */
-  readonly nextEraSeason: () => void;
+  readonly continueRun: () => void;
   /**
    * Runs the era on in one go, up to and including `through` — or, with no year
    * given, straight to the last authored season.
    *
    * The era's "skip to the end", and it must produce **exactly** the history
-   * stepping through would have: each year is built the way `nextEraSeason`
+   * stepping through would have: each year is built the way Continue
    * builds one, off the year before it, so skipping and playing differ only in
    * what the reader stopped to read. A test asserts the two are identical. That
    * is also why a *partial* jump is the same action with a stop year rather
@@ -497,7 +460,9 @@ interface SeasonStore {
    * loop could never reach would otherwise run the era to the end instead.
    *
    * None of these years is revealed session by session — they are crowned
-   * unread, which is what skipping means everywhere else here too.
+   * unread, which is what skipping means everywhere else here too. Only from
+   * the review, the one beat between years; it lands on the review of the last
+   * year it ran.
    */
   readonly simulateRestOfEra: (through?: number) => void;
   /**
@@ -537,9 +502,7 @@ interface SeasonStore {
      */
     arrangement?: GridArrangement | null,
   ) => void;
-  /** Reveals the next session. */
-  readonly nextSession: () => void;
-  /** Jumps straight to the finished season. */
+  /** Jumps straight to the finished season, from the grid or any session. */
   readonly skipToEnd: () => void;
   /**
    * The grid of the season next door — the year before or the year after — on a
@@ -574,21 +537,56 @@ interface SeasonStore {
    * the dice change. The menu is where a different year comes from.
    *
    * Inside an era it re-runs the current year only. The seasons already crowned
-   * stand: they were read, and this one has not been finished.
+   * stand: they were read, and this one has not been finished. Refused on the
+   * review, where the year on the cursor has itself been crowned.
    */
   readonly restartSeason: () => void;
 }
 
 /** A standalone season at its opening grid. */
 function openSeason(world: World): Run {
-  return { kind: "season", world, view: { kind: "grid" } };
+  return { kind: "season", world, cursor: { kind: "grid" } };
+}
+
+/** An era at the grid of its first year, with nothing behind it. */
+function openEra(world: World): Run {
+  return {
+    kind: "era",
+    run: { startYear: world.year, seasons: [] },
+    world,
+    cursor: { kind: "grid" },
+  };
 }
 
 /** The run it already was, with a different world, back at the grid. */
-function replaceWorld(run: PlayingRun, world: World): PlayingRun {
-  return run.kind === "season"
-    ? { kind: "season", world, view: { kind: "grid" } }
-    : { kind: "era", run: run.run, world, view: { kind: "grid" } };
+function replaceWorld(run: Run, world: World): Run {
+  return { ...run, world, cursor: { kind: "grid" } };
+}
+
+/**
+ * The year after `last` in an era, built off it: that year's own entry list,
+ * the dice continuing `last`'s stream, and whatever the reader chose about how
+ * to play — the ability mode, a bulk rule they asked to keep, the randomness
+ * level — carried. What they chose about one grid does not carry, because it
+ * was a grid for a year now behind them.
+ *
+ * The one step both Continue and a jump forward take, so the two cannot
+ * produce different histories.
+ */
+function nextEraWorld(last: World, year: number): World {
+  const seed = nextSeed(last.rngState);
+  const grid = nextEraGrid(last, year, seed);
+  return createWorld(
+    seed,
+    year,
+    last.ratingMode,
+    grid.lineup,
+    null,
+    // Baked in at the era's setup: every year of a run is raced under the
+    // level its first year was started on.
+    last.randomness,
+    grid.arrangement,
+  );
 }
 
 export const useSeasonStore = create<SeasonStore>((set, get) => ({
@@ -608,99 +606,54 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   startEra: (year, randomness = readRandomness()) => {
     set({
-      run: {
-        kind: "era",
-        run: { startYear: year, seasons: [] },
-        world: createWorld(randomSeed(), year, ERA_RATING_MODE, null, null, randomness),
-        view: { kind: "grid" },
-      },
+      run: openEra(createWorld(randomSeed(), year, ERA_RATING_MODE, null, null, randomness)),
     });
   },
   simulateEra: (seed, year, randomness) => {
-    set({
-      run: {
-        kind: "era",
-        run: { startYear: year, seasons: [] },
-        world: createWorld(seed, year, ERA_RATING_MODE, null, null, randomness),
-        view: { kind: "grid" },
-      },
-    });
+    set({ run: openEra(createWorld(seed, year, ERA_RATING_MODE, null, null, randomness)) });
   },
-  showEraChampions: () => {
-    set((state) =>
-      state.run?.kind === "era"
-        ? {
-            run: {
-              kind: "era-champions",
-              run: {
-                startYear: state.run.run.startYear,
-                seasons: [...state.run.run.seasons, state.run.world],
-              },
-            },
-          }
-        : state,
-    );
-  },
-  leaveEraSeason: () => {
-    set((state) =>
-      state.run?.kind === "era"
-        ? {
-            run:
-              state.run.run.seasons.length === 0
-                ? null
-                : { kind: "era-champions", run: state.run.run },
-          }
-        : state,
-    );
-  },
-  nextEraSeason: () => {
+  continueRun: () => {
     set((state) => {
-      if (state.run?.kind !== "era-champions") {
+      const run = state.run;
+      if (run === null) {
         return state;
       }
-      const last = state.run.run.seasons.at(-1);
-      const year = last === undefined ? null : nextEraYear(last.year);
-      if (last === undefined || year === null) {
+      const year = run.kind === "era" ? nextEraYear(run.world.year) : null;
+      const next = nextBeat(
+        run.cursor,
+        run.world.season.races.length,
+        run.kind === "era",
+        year !== null,
+      );
+      if (next === null) {
         return state;
       }
-      const seed = nextSeed(last.rngState);
-      // The next year's dice continue the last year's stream, and its grid is
-      // that year's own entry list. What the reader chose about *how to play* —
-      // the ability mode, and a bulk rule they asked to keep — carries; what
-      // they chose about one grid does not, because it was a grid for a year now
-      // behind them.
-      const grid = nextEraGrid(last, year, seed);
-      return {
-        run: {
-          kind: "era",
-          run: state.run.run,
-          world: createWorld(
-            seed,
-            year,
-            last.ratingMode,
-            grid.lineup,
-            null,
-            // Baked in at the era's setup run: every year of a run is raced
-            // under the level its first year was started on.
-            last.randomness,
-            grid.arrangement,
-          ),
-          view: { kind: "grid" },
-        },
-      };
+      // Off the review is onto a new year: the one just crowned joins the run,
+      // and the next is simulated from where its dice stopped.
+      if (run.kind === "era" && run.cursor.kind === "review" && year !== null) {
+        return {
+          run: {
+            kind: "era",
+            run: { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] },
+            world: nextEraWorld(run.world, year),
+            cursor: next,
+          },
+        };
+      }
+      return { run: { ...run, cursor: next } };
     });
   },
   simulateRestOfEra: (through) => {
     set((state) => {
-      if (state.run?.kind !== "era-champions") {
+      const run = state.run;
+      if (run?.kind !== "era" || run.cursor.kind !== "review") {
         return state;
       }
-      const seasons = [...state.run.run.seasons];
-      let last = seasons.at(-1);
+      let last = run.world;
       // Nothing left to run is nothing to do — and returning the state itself
       // rather than an equal copy keeps the screen from re-rendering the whole
       // roll of honour for a button press that changed nothing.
-      if (last === undefined || nextEraYear(last.year) === null) {
+      if (nextEraYear(last.year) === null) {
         return state;
       }
       // A year already behind the run, or one with no season to play, is not a
@@ -709,32 +662,23 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       if (through !== undefined && (through <= last.year || !isPlayable(through))) {
         return state;
       }
-      // The same step `nextEraSeason` takes, taken until the data runs out or
-      // the target year has been crowned: that year's own entry list, and dice
-      // continuing the year before's stream. Written as a loop rather than a
-      // second rule so the two cannot produce different histories.
+      // The same step Continue takes off a review, taken until the data runs
+      // out or the target year has been crowned.
+      const seasons = [...run.run.seasons];
       for (
         let year = nextEraYear(last.year);
         year !== null && (through === undefined || year <= through);
         year = nextEraYear(last.year)
       ) {
-        const seed = nextSeed(last.rngState);
-        const grid = nextEraGrid(last, year, seed);
-        last = createWorld(
-          seed,
-          year,
-          last.ratingMode,
-          grid.lineup,
-          null,
-          last.randomness,
-          grid.arrangement,
-        );
         seasons.push(last);
+        last = nextEraWorld(last, year);
       }
       return {
         run: {
-          kind: "era-champions",
-          run: { startYear: state.run.run.startYear, seasons },
+          kind: "era",
+          run: { startYear: run.run.startYear, seasons },
+          world: last,
+          cursor: { kind: "review" },
         },
       };
     });
@@ -750,7 +694,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
     // whatever the reader does next.
     rememberRatingMode(mode);
     set((state) =>
-      state.run?.kind === "season" && state.run.view.kind === "grid"
+      state.run?.kind === "season" && state.run.cursor.kind === "grid"
         ? {
             run: replaceWorld(
               state.run,
@@ -775,7 +719,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   setGrid: (lineup, engines, arrangement = null) => {
     set((state) =>
-      isPlaying(state.run) && state.run.view.kind === "grid"
+      state.run !== null && state.run.cursor.kind === "grid"
         ? {
             run: replaceWorld(
               state.run,
@@ -793,26 +737,16 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
         : state,
     );
   },
-  nextSession: () => {
-    set((state) =>
-      isPlaying(state.run)
-        ? {
-            run: {
-              ...state.run,
-              view: advance(state.run.view, state.run.world.season.races.length),
-            },
-          }
-        : state,
-    );
-  },
   skipToEnd: () => {
     set((state) =>
-      isPlaying(state.run) ? { run: { ...state.run, view: { kind: "summary" } } } : state,
+      isPlaying(state.run) && state.run.cursor.kind !== "summary"
+        ? { run: { ...state.run, cursor: { kind: "summary" } } }
+        : state,
     );
   },
   switchSeasonYear: (year) => {
     set((state) => {
-      if (state.run?.kind !== "season" || state.run.view.kind !== "grid") {
+      if (state.run?.kind !== "season" || state.run.cursor.kind !== "grid") {
         return state;
       }
       rememberSeasonYear(year);

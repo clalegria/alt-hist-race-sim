@@ -28,7 +28,7 @@ places enforce it, and all three are needed: `startEra`/`simulateEra` build with
 constant rather than the remembered mode, `setRatingMode` returns early on an era
 screen — **without remembering**, since the preference seeds the next *standalone*
 season and would otherwise reach a screen the reader never connected it to — and
-`SeasonScreen` passes `canChooseAbility={run === undefined}` so the control is not
+`SeasonPage` passes `canChooseAbility={run === undefined}` so the control is not
 drawn. A control that fires into a no-op is how the choice comes back by accident.
 
 **`switchSeasonYear(year)` is the grid's shortcut to the season next door.** It is
@@ -117,8 +117,9 @@ moment Apply hands it to `setGrid`, and not before: applying re-runs fourteen ra
 a reader halfway through moving four drivers has not yet asked a question worth
 answering. The two drafts open and close together, so one `null` answers for both.
 
-While the editor is open, `SeasonScreen` takes the **forward buttons away** — `GridStage`
-raises `onEditingChange` and `Actions` shows a note instead. Stepping on mid-edit
+While the editor is open, the run bar takes the **forward buttons away** — `GridStage`
+raises `onEditingChange`, the grid page passes it up through `GridEditingContext`, and
+`RunActions` shows a note instead. Stepping on mid-edit
 would discard the draft silently *and* reveal a season run on the grid the reader was
 in the middle of replacing.
 

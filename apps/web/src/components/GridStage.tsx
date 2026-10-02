@@ -549,6 +549,7 @@ export function GridStage({
   arrangement = null,
   inEra = false,
   previousLineup = null,
+  locked = false,
   onApply,
   onEditingChange,
 }: {
@@ -583,6 +584,12 @@ export function GridStage({
    * year behind it, so it passes nothing and the button copies history.
    */
   previousLineup?: SeasonLineup | null;
+  /**
+   * A grid that has been raced: drawn as it stood, with no way into the editor.
+   * The store would refuse the edit anyway, and a button that does nothing is a
+   * control that lies.
+   */
+  locked?: boolean;
   /** Absent in tests, where nothing is clicked. The controls still render. */
   onApply?: (edit: GridEdit) => void;
   /**
@@ -933,7 +940,7 @@ export function GridStage({
           engineChanges={supplyChanges}
           arrangement={shownArrangement}
           openSeats={open.length}
-          action={action}
+          {...(locked ? {} : { action })}
           ratingMode={ratingMode}
           sort={sort}
           onSortChange={setSort}

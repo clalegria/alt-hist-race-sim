@@ -24,8 +24,9 @@ import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { positionsOf } from "../lib/standings.js";
+import type { View } from "../lib/timeline.js";
 import { cn } from "../lib/utils.js";
-import type { View, World } from "../store/season.js";
+import type { World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
@@ -466,6 +467,12 @@ interface SeasonViewProps {
   readonly previousLineup?: SeasonLineup | null;
   /** Raised while the grid editor is open, so the page can hide the way forward. */
   readonly onGridEditingChange?: (editing: boolean) => void;
+  /**
+   * A grid the run has moved past, revisited: drawn as it was raced, with the
+   * ability toggle, the season switcher and the editor all put away, and a
+   * line saying why. Only the grid the cursor is on can still be changed.
+   */
+  readonly locked?: boolean;
 }
 
 /**
@@ -484,6 +491,7 @@ function SeasonBody({
   onGridChange,
   onGridEditingChange,
   previousLineup = null,
+  locked = false,
 }: SeasonViewProps) {
   // Whether the grid editor is open. The page is told too — it puts the way
   // forward away — but the year switcher below is drawn from this copy, so the
@@ -495,7 +503,12 @@ function SeasonBody({
   if (view.kind === "grid") {
     return (
       <div className="flex flex-col gap-6">
-        {canChooseAbility ? (
+        {locked ? (
+          <p className="text-muted-foreground text-sm">
+            This grid has been raced, so it can no longer be changed.
+          </p>
+        ) : null}
+        {canChooseAbility && !locked ? (
           <RatingModeToggle
             mode={world.ratingMode}
             year={world.year}
@@ -515,7 +528,7 @@ function SeasonBody({
             editor's own preview then throws on. The way forward off this stage
             is put away while editing for the same reason.
           */}
-          {canChooseAbility && !editingGrid ? (
+          {canChooseAbility && !editingGrid && !locked ? (
             <SeasonSwitcher
               year={world.year}
               {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
@@ -531,6 +544,7 @@ function SeasonBody({
           arrangement={world.arrangement}
           inEra={inEra}
           previousLineup={previousLineup}
+          locked={locked}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           onEditingChange={(editing) => {
             setEditingGrid(editing);

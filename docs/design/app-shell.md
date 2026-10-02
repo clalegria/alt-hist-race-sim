@@ -2,8 +2,9 @@
 
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
-what is built — the router, the first four routes and the top nav — is
-`.claude/rules/web-routing.md`. Where it sits in the build order is *routing and the app
+what is built — the router, the top nav, the timeline of beats, a page per beat, the
+run bar and the ways out of a run — is `.claude/rules/web-routing.md` and
+`.claude/rules/web-app.md`. Where it sits in the build order is *routing and the app
 shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
 
 - **DECIDED** — the author's decision.
@@ -20,14 +21,9 @@ shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
 | **Run** — worlds, settings, grid edits | the store | no |
 | **Reveal cursor** — how far through | the store, part of the run | no |
 
-- **DECIDED** — The URL is an input, never a mirror: a page reads its place from the URL
-  and its data from the store, and nothing writes the store back into the URL.
-- **DECIDED** — Back and forward move between *places*, never through time, as in
-  Football Manager. **Continue is the only thing that advances the reveal**; nothing
-  rewinds it, and a page revisited shows the run as it stands now.
-- **DECIDED** — **Continue jumps to the session it just revealed**, from wherever the
-  reader is, pushing a history entry. Back then returns to the page they were browsing,
-  now one session further on.
+The URL as an input, back and forward between places, and Continue pushing the page it
+revealed are built (`.claude/rules/web-routing.md`).
+
 - **PROPOSED** — **One gate for the cursor.** `revealed(run, cursor)` returns only what
   the reader has reached, and every page reads through it, so a page *cannot* show a
   race the reader has not reached — it never receives one. Property-tested: no result
@@ -37,12 +33,9 @@ shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
 
 ## 2. The run timeline
 
-- **PROPOSED** — The cursor is **a position in an ordered list of beats**, not today's
-  `View` union of grid/qualifying/race/summary plus a separate champions screen. Today's
-  beats: `grid → qualifying 1 → race 1 → … → season summary → era review → next grid`.
-  Each beat kind knows its page, so Continue is "next beat, then go to its page", and the
-  run bar's stage label is "describe this beat".
-- **PROPOSED** — This is the seam the market and game mode land on (§9). Kinds are added,
+The cursor is built as a list of beats (`.claude/rules/web-app.md`). What is left:
+
+- **PROPOSED** — It is the seam the market and game mode land on (§9). Kinds are added,
   not redesigned: a market event stamped with its round (`era-advanced.md` §2) becomes a
   beat; a **decision** beat blocks Continue until answered, the button turning into
   "Respond to …".
@@ -64,24 +57,15 @@ shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
   same recipe would replay to different results; then the app says the run was made on
   an older version and cannot be resumed, rather than silently rewriting history. Only
   matters once the app is public.
-- **DECIDED** — Exiting asks first. **PROPOSED** — the ways out, all through **one
-  confirm dialog** ("Exit this run? It will be discarded."):
-  - **Exit run** in the run bar's overflow menu.
-  - **Back past the run's first page** — a router navigation blocker.
-  - **Starting a new run** while one exists ("This will end your current run").
 
-  Not exits: Home, About or any other area (the run waits; Home shows a *Resume run*
-  card and the run bar comes back with it), a reload, closing the tab. The browser's own
-  leave-site prompt is therefore not needed. Today's inline confirms (*Start again*,
-  *Main menu*) cannot serve the blocker, which interrupts a browser navigation, so this
-  brings in a dialog primitive (shadcn's AlertDialog, Radix underneath) — used for all
-  three. *Start again* (re-run this year) keeps its inline confirm; *Main menu* stops
-  needing one, since going home no longer discards.
+Exiting — one dialog for Exit run, Back past the run's first page and Start while a run
+exists — is built (`.claude/rules/web-routing.md`).
 
 ## 4. Routes
 
 **PROPOSED** — the URL scheme. Public once *publish it* ships: renaming a route then
-breaks every shared link.
+breaks every shared link. Built so far: `/`, the setup pages, `/run`, `/run/1984`, the
+grid and the sessions (each showing its own beat; the tabs and the rest are to come).
 
 ```
 /                              home: mode cards (+ Resume run while one exists)
@@ -110,21 +94,11 @@ breaks every shared link.
 
 ## 5. The shell
 
-**PROPOSED** — on every page:
+The top nav and the run bar are built (`.claude/rules/web-routing.md`). **PROPOSED** —
+still to add:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ◆ alt-hist  Season  Era (basic)  Era (advanced)·  Game·  Editor·  About· [☾]│  · = disabled
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Era 1980 › 1984 › Round 3 › Race     Rd 3/16 · Race   [Share] [Continue ▸] ⋯│
-│ Overview   Season   Drivers   Teams                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-- **Run bar**, inside a run only — breadcrumbs, the current beat, Share, Continue, and an
-  overflow menu holding *Skip* (rest of season / jump to year, with today's confirms) and
-  *Exit run*. A one-year run's breadcrumbs start at the year: `1984 › Round 3 › Race`.
-- **Run tabs** — the run's sections, also data.
+- **Share** in the run bar, beside Continue (§8).
+- **Run tabs** under it — *Overview Season Drivers Teams* — the run's sections, as data.
 - The phone form (*phone layout*, the next roadmap item) collapses the top nav to a menu
   and the run bar to Continue plus the overflow; keep both as data so that is a restyle.
 
@@ -136,8 +110,6 @@ rendering through `renderToStaticMarkup` in tests, as today.
 
 - **Home, setup** — `MainMenu`, `SeasonPicker` and `SimulationSettings` as they are.
   *Start* builds the run and goes to `/run/<year>/grid`, the run's first page.
-- **Grid** — `GridStage`. Editable while the cursor is on the grid; afterwards the same
-  page read-only, saying so.
 - **Session** — today's reveal stage. Prev/next round links move between places and never
   reveal; a round not reached is disabled.
 
@@ -217,15 +189,13 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **The timeline and the run bar.** Cursor as beats (§2); Continue navigating to the
-   revealed beat; breadcrumbs; Skip; the exit dialog and the back-past-start blocker;
-   the *Resume run* card.
-2. **Surviving a reload.** The input log, the recipe in `localStorage`, the build stamp.
-3. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
-4. **Season and session pages**, browsable by URL.
-5. **Driver and team pages**, the two index lists, the panel's page link.
-6. **Share.** The link and the `/share` entry route.
-7. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+1. **Surviving a reload.** The input log, the recipe in `localStorage`, the build stamp.
+2. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
+3. **Season and session pages**, browsable by URL: the season's tabs, the session's
+   round links, the era overview's year in progress.
+4. **Driver and team pages**, the two index lists, the panel's page link.
+5. **Share.** The link and the `/share` entry route.
+6. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

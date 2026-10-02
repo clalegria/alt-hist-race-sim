@@ -70,17 +70,15 @@ out, and getting it wrong is invisible: 1981 renders perfectly well with 1980's 
 names. `seasons.smoke.test.tsx` walks every authored season through every stage and
 checks each round against its own calendar entry.
 
-**"Start again" asks where to** — *Main menu* or *Beginning of the season*, inline on
-the same button row rather than in a modal (no dialog primitive here, and one is not
-worth a dependency plus a focus trap for three buttons). *Beginning of the season*
-draws a **fresh seed for the same year and the same `ratingMode`**: another go, not a
-replay, and everything the reader *chose* carries over — only the dice change. Both
-copies of the action row — sticky bar and page foot — share one confirming flag so
-they cannot disagree.
+**"Start again" asks first, inline in the run bar** — it only re-runs this year, so it
+does not need the exit dialog. It draws a **fresh seed for the same year and the same
+`ratingMode`**: another go, not a replay, and everything the reader *chose* carries over
+— only the dice change. Both copies of the action row — sticky bar and page foot — share
+one confirming flag so they cannot disagree. There is no *Main menu* beside it: going
+Home no longer ends a run.
 
 **The grid offers the seasons either side of it**, in `SeasonSwitcher` — the shortcut
-for a reader who has just watched 1980 and wants 1981. It is where "Start again →
-Beginning of the season" lands them, and the alternative was Back plus a decade rail to
+for a reader who has just watched 1980 and wants 1981. It is where Start again lands them, and the alternative was Back plus a decade rail to
 answer a one-button question. Drawn **only on the grid**, for the reason
 `RatingModeToggle` is — past it the reader has seen results that switching would throw
 away — and **only in a standalone season**, since an era's year belongs to the run.
@@ -88,11 +86,9 @@ The neighbours come from `adjacentSeason(year, ±1)` in `lib/seasons.ts`, which 
 `PLAYABLE_SEASONS` rather than adding one, so a gap in the seed data is skipped rather
 than offered.
 
-**The grid leaves through a plain Back**, to the year picker it came from, discarding
-the run (`.claude/rules/web-routing.md`) — no confirming step, because nothing has been
-revealed yet and leaving costs the reader nothing. It is `actionsFor(...).back`, so the whole button set of every stage still
-comes out of that one pure function; past the grid it is null and "Start again" does
-the job. The year picker's Back is `BackBar` in `App.tsx`, rendered into the **sticky
+**A run has no Back button of its own.** The browser's Back moves between its pages,
+and a Back past its first page — onto the setup page — asks whether to exit the run
+(`.claude/rules/web-routing.md`). The year picker's Back is `BackBar` in `App.tsx`, rendered into the **sticky
 bar** — it draws none of its own navigation — so every screen keeps its way out in the
 same place, rather than one of them hiding it under six rows of year buttons.
 **Navigation is always the right-hand end of that bar**, on every screen that has any.

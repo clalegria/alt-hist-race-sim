@@ -48,6 +48,8 @@ order rather than searching for a name — a works team is called the same thing
 the options in every other team's picker.
 
 What this level cannot reach: the click handlers, the scroll-to-top effect, the
-start-again confirming flag, the editor's open/closed toggle, and popover contents,
-which Radix does not render while closed. All would need jsdom. Where a click *ends
+start-again confirming flag, the editor's open/closed toggle, the navigation blocker,
+and anything Radix renders into a portal — popover contents, the overflow menu's items,
+the dialogs. All would need jsdom. What the menu offers is `runBarFor`, tested as data;
+the blocker and the dialogs are exercised in a real browser by `pnpm screenshots`. Where a click *ends
 up* is covered: it ends up in the store, or in `pickUp`.

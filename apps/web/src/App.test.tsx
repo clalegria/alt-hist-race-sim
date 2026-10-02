@@ -4,8 +4,8 @@
  * `SeasonView` takes the world and the cursor as props, so every stage can be
  * rendered directly with `renderToStaticMarkup` — no DOM, no store, and no need
  * to click through fourteen rounds to see what round fourteen looks like. The
- * buttons are covered separately through `actionsFor`, which is the whole of the
- * navigation logic.
+ * run bar's actions are covered separately through `runBarFor`, which is the
+ * whole of the navigation logic (`lib/run-bar.test.ts`).
  */
 
 import {
@@ -19,13 +19,14 @@ import {
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { actionsFor, eraActionsFor, eraJumpTarget, SeasonScreen } from "./App.js";
+import { SeasonPage } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
 import { adjacentSeason, PLAYABLE_SEASONS } from "./lib/seasons.js";
-import type { EraRun, View, World } from "./store/season.js";
+import type { View } from "./lib/timeline.js";
+import type { EraRun, World } from "./store/season.js";
 import {
   findWorld,
   OVERSUBSCRIBED_YEAR,
@@ -522,130 +523,19 @@ describe("a settled championship", () => {
   });
 });
 
-describe("the buttons", () => {
-  it("offers a step, a skip and a way back on the grid", () => {
-    // Back only here: nothing has been revealed yet, so leaving costs nothing.
-    // Past the grid it is "Start again" that asks where to.
-    expect(actionsFor({ kind: "grid" }, ROUNDS)).toEqual({
-      next: "Simulate next session",
-      skip: "Simulate full season",
-      back: "Back",
-    });
-  });
-
-  it("offers a step and a skip through the season", () => {
-    // Rounds derived from the calendar: any round before the last has both a
-    // session to step to and a season left to skip.
-    for (const round of new Set([0, Math.floor((ROUNDS - 1) / 2), ROUNDS - 2])) {
-      expect(actionsFor({ kind: "qualifying", round }, ROUNDS).next).toBe("Simulate next session");
-      expect(actionsFor({ kind: "race", round }, ROUNDS).skip).toBe("Simulate rest of the season");
-      // A season being revealed is left through "Start again", not through Back.
-      expect(actionsFor({ kind: "race", round }, ROUNDS).back).toBeNull();
-    }
-    // Qualifying for the last round still has a race left to skip past.
-    expect(actionsFor({ kind: "qualifying", round: ROUNDS - 1 }, ROUNDS).skip).toBe(
-      "Simulate rest of the season",
-    );
-  });
-
-  it("drops the skip after the last race and offers the summary", () => {
-    expect(actionsFor({ kind: "race", round: ROUNDS - 1 }, ROUNDS)).toEqual({
-      next: "Show season summary",
-      skip: null,
-      back: null,
-    });
-  });
-
-  it("offers nothing forward from the summary", () => {
-    expect(actionsFor({ kind: "summary" }, ROUNDS)).toEqual({
-      next: null,
-      skip: null,
-      back: null,
-    });
-  });
-
-  it("takes an era's summary on to the champions instead of stopping there", () => {
-    // The one stage the era mode changes: a standalone season ends at its
-    // summary, a year of an era has a roll of honour after it.
-    expect(actionsFor({ kind: "summary" }, ROUNDS, true)).toEqual({
-      next: "Show champions so far",
-      skip: null,
-      back: null,
-    });
-  });
-
-  it("offers the next year and the far end from the roll of honour", () => {
-    const onward = eraActionsFor(FIRST_PLAYABLE);
-    expect(onward.next).toBe(FIRST_PLAYABLE + 1);
-    expect(onward.rest).toBe(LAST_PLAYABLE);
-  });
-
-  it("drops the skip when the next year is the last one anyway", () => {
-    // Two buttons doing the same thing is a worse offer than one.
-    expect(eraActionsFor(LAST_PLAYABLE - 1)).toEqual({ next: LAST_PLAYABLE, rest: null });
-  });
-
-  it("offers nothing forward once the era reaches the end of the data", () => {
-    expect(eraActionsFor(LAST_PLAYABLE)).toEqual({ next: null, rest: null });
-  });
-
-  it("defaults a jump forward to the far end, which is what the button used to do", () => {
-    expect(eraJumpTarget(FIRST_PLAYABLE, null)).toBe(LAST_PLAYABLE);
-  });
-
-  it("jumps to the year the reader picked, next year included", () => {
-    expect(eraJumpTarget(FIRST_PLAYABLE, FIRST_PLAYABLE + 5)).toBe(FIRST_PLAYABLE + 5);
-    expect(eraJumpTarget(FIRST_PLAYABLE, FIRST_PLAYABLE + 1)).toBe(FIRST_PLAYABLE + 1);
-  });
-
-  it("drops a year the era has since run past, back to the far end", () => {
-    // The picker outlives the jump it describes: crowning four more seasons
-    // leaves the year that was chosen behind the run, and honouring it would
-    // hand the store a target it can only refuse.
-    expect(eraJumpTarget(FIRST_PLAYABLE + 4, FIRST_PLAYABLE + 2)).toBe(LAST_PLAYABLE);
-    expect(eraJumpTarget(FIRST_PLAYABLE, LAST_PLAYABLE + 1)).toBe(LAST_PLAYABLE);
-  });
-
-  it("offers no jump at all once there is nowhere past the next year to jump to", () => {
-    expect(eraJumpTarget(LAST_PLAYABLE - 1, LAST_PLAYABLE)).toBeNull();
-    expect(eraJumpTarget(LAST_PLAYABLE, null)).toBeNull();
-  });
-
-  it("leaves every other stage of an era exactly as it was", () => {
-    // The point of running the era on the season flow rather than beside it: if
-    // any other stage differed, there would be two reveals to keep in step.
-    const views: View[] = [
-      { kind: "grid" },
-      { kind: "qualifying", round: 0 },
-      { kind: "race", round: 0 },
-      { kind: "race", round: ROUNDS - 1 },
-    ];
-    for (const view of views) {
-      expect(actionsFor(view, ROUNDS, true), view.kind).toEqual(actionsFor(view, ROUNDS));
-    }
-  });
-});
-
 /**
  * The one seam the component tests above cannot reach: which screen passes
  * `canChooseAbility`.
  *
  * `SeasonView` renders the toggle or does not, and the store refuses the change
  * or does not — both covered on their own. What connects them is a single
- * expression in `SeasonScreen`, and a year inside an era that forgot to say so
+ * expression in `SeasonPage`, and a year inside an era that forgot to say so
  * would draw a control that silently does nothing.
  */
 describe("who is offered the ability toggle", () => {
-  const noop = () => {};
   const shown = (run?: EraRun) =>
     renderToStaticMarkup(
-      <SeasonScreen
-        world={world}
-        view={{ kind: "grid" }}
-        {...(run === undefined ? {} : { run })}
-        onBack={noop}
-        onMainMenu={noop}
-      />,
+      <SeasonPage world={world} view={{ kind: "grid" }} {...(run === undefined ? {} : { run })} />,
     ).includes("Driver ability");
 
   it("offers it on a standalone season's grid", () => {
@@ -660,5 +550,25 @@ describe("who is offered the ability toggle", () => {
 
   it("keeps that true once years have been crowned, not just on the first", () => {
     expect(shown({ startYear: world.year - 3, seasons: [world] })).toBe(false);
+  });
+});
+
+describe("a grid the run has moved past", () => {
+  const html = (locked: boolean) =>
+    renderToStaticMarkup(<SeasonPage world={world} view={{ kind: "grid" }} locked={locked} />);
+
+  it("is drawn as it was raced, with no way to change it", () => {
+    const locked = html(true);
+    expect(locked).toContain("This grid has been raced");
+    expect(locked).not.toContain("Edit grid");
+    expect(locked).not.toContain("Driver ability");
+    // Still the grid: every seat on it.
+    expect(locked).toContain(driverName(world.field[0]?.driverId ?? ""));
+  });
+
+  it("is editable while the run is on it", () => {
+    const open = html(false);
+    expect(open).toContain("Edit grid");
+    expect(open).not.toContain("This grid has been raced");
   });
 });

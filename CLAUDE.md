@@ -97,6 +97,8 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   `packages/data/src/rating.ts`). One rule for every list on screen and every grid reseat.
 - **Score-and-sort**: the v1 race model behind `RaceModel`: one noisy score per driver,
   sorted, then DNFs. `.claude/rules/race-engine.md`.
+- **Beat**: one step of a run's reveal — the grid, a session, the summary, an era's
+  review. The cursor is the beat reached; each beat is a page. `.claude/rules/web-app.md`.
 - **Round context**: where a round is held and how far through the year it is; the seam
   circuit features will hang off.
 - **Development trend**: a car's pace drifting across a season about its authored rating.

@@ -1,12 +1,11 @@
 /**
  * The screens to capture, in order, and how a reader gets to each.
  *
- * A run lives on one URL, `/run`, with no way to reach a given stage of it
- * from the address bar yet, so a step is reached by clicking on from the one
- * before it — `reach` assumes the page is showing the previous step's screen.
- * Once a share link exists, each `reach` becomes a `page.goto()` of one and
- * the steps stop depending on each other; the runner in `main.ts` does not
- * change.
+ * A run lives only in the page's memory — nothing survives a reload yet — so a
+ * step is reached by clicking on from the one before it, never by `goto`:
+ * `reach` assumes the page is showing the previous step's screen. Back and
+ * forward are browser history, so some steps are a `goBack()`, which is also
+ * what exercises the guard on leaving a run.
  *
  * Locators go by role and visible text, as a reader finds things, never by CSS
  * class: the styling is the thing these pictures are for checking, and it moves.
@@ -24,16 +23,27 @@ export interface Step {
   readonly reach: (page: Page) => Promise<void>;
 }
 
-/** Buttons appear twice on the season screen — sticky bar and page foot — so take the first. */
+/** Buttons appear twice on a run's pages — run bar and page foot — so take the first. */
 function button(page: Page, name: string | RegExp): Locator {
   return page.getByRole("button", { name, exact: typeof name === "string" }).first();
 }
 
-/** Opens the year's decade on the picker, then selects the year. */
+/** Opens the decade on the picker, then selects the year. */
 async function pickYear(page: Page, label: string): Promise<void> {
   await button(page, `The ${Math.floor(YEAR / 10) * 10}s`).click();
   await button(page, label).click();
   await page.getByRole("button", { name: label, exact: true, pressed: true }).waitFor();
+}
+
+/** Picks one of the run bar's overflow actions. */
+async function runAction(page: Page, name: string): Promise<void> {
+  await button(page, "More run actions").click();
+  await page.getByRole("menuitem", { name, exact: true }).click();
+}
+
+/** Waits for the run bar to say the run has reached `text`. */
+async function cursorAt(page: Page, text: string | RegExp): Promise<void> {
+  await page.getByText(text).first().waitFor();
 }
 
 export const STEPS: readonly Step[] = [
@@ -55,58 +65,103 @@ export const STEPS: readonly Step[] = [
     name: "grid",
     reach: async (page) => {
       await button(page, `Begin the ${YEAR} season`).click();
-      await button(page, "Simulate full season").waitFor();
+      await page.waitForURL(`**/run/${YEAR}/grid`);
+      await cursorAt(page, `${YEAR} · Grid`);
     },
   },
   {
     name: "qualifying",
     reach: async (page) => {
-      await button(page, "Simulate next session").click();
-      await page.getByText(/^Round 1\/\d+ — Qualifying$/).waitFor();
+      await button(page, /^Continue/).click();
+      await page.waitForURL(`**/run/${YEAR}/round/1/qualifying`);
+      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Qualifying$`));
     },
   },
   {
     name: "race",
     reach: async (page) => {
-      await button(page, "Simulate next session").click();
-      await page.getByText(/^Round 1\/\d+ — Race$/).waitFor();
+      await button(page, /^Continue/).click();
+      await page.waitForURL(`**/run/${YEAR}/round/1/race`);
+      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Race$`));
     },
   },
   {
     name: "season-summary",
     reach: async (page) => {
-      await button(page, "Simulate rest of the season").click();
-      await page.getByText("Season summary", { exact: true }).first().waitFor();
+      await runAction(page, "Simulate rest of the season");
+      await page.waitForURL(`**/run/${YEAR}`);
+      await cursorAt(page, `${YEAR} · Season summary`);
+    },
+  },
+  {
+    name: "grid-raced",
+    reach: async (page) => {
+      // Back through the pages already read: a place, never a step back in time.
+      for (let i = 0; i < 3; i += 1) {
+        await page.goBack();
+      }
+      await page.waitForURL(`**/run/${YEAR}/grid`);
+      await page.getByText("This grid has been raced", { exact: false }).waitFor();
+    },
+  },
+  {
+    name: "exit-dialog",
+    reach: async (page) => {
+      // One more Back is past the run's first page, which asks first.
+      await page.goBack();
+      await page.getByRole("alertdialog", { name: "Exit this run?" }).waitFor();
+    },
+  },
+  {
+    name: "home-resume",
+    reach: async (page) => {
+      await button(page, "Cancel").click();
+      await page.getByRole("link", { name: "alt-hist", exact: true }).click();
+      await page.getByText("Resume run").waitFor();
     },
   },
   {
     name: "era-setup",
     reach: async (page) => {
-      await button(page, "Start again").click();
-      await button(page, "Main menu").click();
-      await button(page, /^Simulate an era \(basic version\)/).click();
+      await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
       await pickYear(page, `Start an era in ${YEAR}`);
+    },
+  },
+  {
+    name: "replace-dialog",
+    reach: async (page) => {
+      await button(page, `Begin an era from ${YEAR}`).click();
+      await page.getByRole("alertdialog", { name: "Start a new run?" }).waitFor();
     },
   },
   {
     name: "era-grid",
     reach: async (page) => {
-      await button(page, `Begin an era from ${YEAR}`).click();
-      await page.getByText(`${YEAR} Season — era from ${YEAR}`).waitFor();
+      await button(page, "End it and start").click();
+      await page.waitForURL(`**/run/${YEAR}/grid`);
+      await page.getByText(`Era ${YEAR}`, { exact: true }).first().waitFor();
     },
   },
   {
     name: "era-summary",
     reach: async (page) => {
-      await button(page, "Simulate full season").click();
-      await button(page, "Show champions so far").waitFor();
+      await runAction(page, "Simulate full season");
+      await cursorAt(page, `${YEAR} · Season summary`);
     },
   },
   {
     name: "era-champions",
     reach: async (page) => {
-      await button(page, "Show champions so far").click();
-      await page.getByText("Between seasons", { exact: true }).waitFor();
+      await button(page, /^Continue/).click();
+      await page.waitForURL("**/run");
+      await cursorAt(page, `${YEAR} · Between seasons`);
+    },
+  },
+  {
+    name: "era-jump",
+    reach: async (page) => {
+      await runAction(page, "Jump forward…");
+      await page.getByRole("alertdialog", { name: "Jump forward" }).waitFor();
     },
   },
 ];

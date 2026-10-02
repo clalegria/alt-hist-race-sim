@@ -17,7 +17,14 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { ERA_RATING_MODE, type EraRun, type Run, useSeasonStore, type World } from "./season.js";
+import {
+  crowned,
+  ERA_RATING_MODE,
+  type EraRun,
+  type Run,
+  useSeasonStore,
+  type World,
+} from "./season.js";
 
 /** The earliest authored year, which is where an era has the most left to run. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -29,22 +36,22 @@ function active(): Run | null {
   return useSeasonStore.getState().run;
 }
 
-/** The era season on screen, or a throw naming what was there instead. */
+/** The era season being played, or a throw naming what was there instead. */
 function running(): { run: EraRun; world: World } {
   const current = active();
-  if (current?.kind !== "era") {
-    throw new Error(`expected an era season on screen, found "${current?.kind ?? "no run"}"`);
+  if (current?.kind !== "era" || current.cursor.kind === "review") {
+    throw new Error(`expected an era season being played, found "${current?.kind ?? "no run"}"`);
   }
   return { run: current.run, world: current.world };
 }
 
-/** The roll-up on screen, or a throw. */
-function crowned(): EraRun {
+/** What the era has crowned, with the cursor on its review — or a throw. */
+function rollOfHonour(): EraRun {
   const current = active();
-  if (current?.kind !== "era-champions") {
-    throw new Error(`expected the champions on screen, found "${current?.kind ?? "no run"}"`);
+  if (current?.kind !== "era" || current.cursor.kind !== "review") {
+    throw new Error(`expected the review, found "${current?.kind ?? "no run"}"`);
   }
-  return current.run;
+  return crowned(current);
 }
 
 /** Plays `years` seasons of an era from a seed, and hands back what it crowned. */
@@ -52,12 +59,12 @@ function playEra(seed: number, from: number, years: number): readonly World[] {
   useSeasonStore.getState().simulateEra(seed, from);
   for (let played = 0; played < years; played += 1) {
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     if (played + 1 < years) {
-      useSeasonStore.getState().nextEraSeason();
+      useSeasonStore.getState().continueRun();
     }
   }
-  return crowned().seasons;
+  return rollOfHonour().seasons;
 }
 
 describe("starting an era", () => {
@@ -74,7 +81,7 @@ describe("starting an era", () => {
   it("opens at the grid, with nothing crowned yet", () => {
     useSeasonStore.getState().simulateEra(3, YEAR);
     const current = active();
-    expect(current?.kind === "era" && current.view).toEqual({ kind: "grid" });
+    expect(current?.kind === "era" && current.cursor).toEqual({ kind: "grid" });
     expect(running().run.seasons).toHaveLength(0);
   });
 
@@ -112,8 +119,8 @@ describe("starting an era", () => {
     }
   });
 
-  it("ignores the era controls when no era is on screen", () => {
-    for (const act of ["showEraChampions", "nextEraSeason", "leaveEraSeason"] as const) {
+  it("ignores the run's controls when there is no run", () => {
+    for (const act of ["continueRun", "simulateRestOfEra", "skipToEnd", "restartSeason"] as const) {
       useSeasonStore.getState()[act]();
       expect(active(), act).toBeNull();
     }
@@ -128,9 +135,9 @@ describe("crowning a season", () => {
   it("is where the season on screen joins the run", () => {
     const played = running().world;
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    expect(crowned().seasons).toEqual([played]);
-    expect(crowned().startYear).toBe(YEAR);
+    useSeasonStore.getState().continueRun();
+    expect(rollOfHonour().seasons).toEqual([played]);
+    expect(rollOfHonour().startYear).toBe(YEAR);
   });
 
   it("crowns each year exactly once, in the order they were raced", () => {
@@ -141,7 +148,7 @@ describe("crowning a season", () => {
   });
 
   it("crowns nothing while a season is still being read", () => {
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     expect(running().run.seasons).toHaveLength(0);
   });
 });
@@ -150,13 +157,13 @@ describe("running on to the next year", () => {
   beforeEach(() => {
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
   });
 
   it("opens the following season at its grid, the run intact behind it", () => {
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
     const current = active();
-    expect(current?.kind === "era" && current.view).toEqual({ kind: "grid" });
+    expect(current?.kind === "era" && current.cursor).toEqual({ kind: "grid" });
     expect(running().world.year).toBe(YEAR + 1);
     expect(running().run.seasons).toHaveLength(1);
     expect(running().run.startYear).toBe(YEAR);
@@ -166,20 +173,20 @@ describe("running on to the next year", () => {
     // The seam the advanced mode replaces, and the one thing this mode must not
     // fake: the field for year N+1 is the entry list history had that year, not
     // last year's grid carried forward.
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
     const entered = seasonSeed(YEAR + 1).entries.flatMap((entry) => entry.drivers);
     expect(running().world.field.map((entrant) => entrant.driverId)).toEqual(entered);
     expect(running().world.season.races).toHaveLength(seasonSeed(YEAR + 1).calendar.length);
   });
 
   it("scores it on that year's own points scale", () => {
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
     expect(running().world.points).toEqual(seasonSeed(YEAR + 1).points);
   });
 
   it("rolls fresh dice rather than replaying the year before", () => {
-    const before = crowned().seasons[0];
-    useSeasonStore.getState().nextEraSeason();
+    const before = rollOfHonour().seasons[0];
+    useSeasonStore.getState().continueRun();
     expect(running().world.seed).not.toBe(before?.seed);
   });
 
@@ -188,10 +195,10 @@ describe("running on to the next year", () => {
     // a no-op is a better answer than a throw on a year nobody has authored.
     useSeasonStore.getState().simulateEra(5, LAST_YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    const before = crowned();
-    useSeasonStore.getState().nextEraSeason();
-    expect(crowned()).toBe(before);
+    useSeasonStore.getState().continueRun();
+    const before = active();
+    useSeasonStore.getState().continueRun();
+    expect(active()).toBe(before);
   });
 });
 
@@ -216,8 +223,8 @@ describe("an era as a whole", () => {
     // is the same one: year N+1 is built the way year N was.
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().continueRun();
     expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
   });
 
@@ -229,8 +236,8 @@ describe("an era as a whole", () => {
     const played = [running().world];
     for (let i = 0; i < 3; i += 1) {
       useSeasonStore.getState().skipToEnd();
-      useSeasonStore.getState().showEraChampions();
-      useSeasonStore.getState().nextEraSeason();
+      useSeasonStore.getState().continueRun();
+      useSeasonStore.getState().continueRun();
       played.push(running().world);
     }
     expect(played.map((world) => world.randomness)).toEqual(played.map(() => 5));
@@ -239,9 +246,9 @@ describe("an era as a whole", () => {
   it("bakes it in through skipping to the end as well as stepping", () => {
     useSeasonStore.getState().simulateEra(5, YEAR, 4);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra();
-    const seasons = crowned().seasons;
+    const seasons = rollOfHonour().seasons;
     expect(seasons.length).toBeGreaterThan(1);
     expect(seasons.map((world) => world.randomness)).toEqual(seasons.map(() => 4));
   });
@@ -256,16 +263,16 @@ describe("simulating the rest of an era", () => {
   it("runs every remaining year, straight to the last authored season", () => {
     useSeasonStore.getState().simulateEra(5, LAST_YEAR - 3);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra();
 
-    expect(crowned().seasons.map((world) => world.year)).toEqual([
+    expect(rollOfHonour().seasons.map((world) => world.year)).toEqual([
       LAST_YEAR - 3,
       LAST_YEAR - 2,
       LAST_YEAR - 1,
       LAST_YEAR,
     ]);
-    expect(crowned().startYear).toBe(LAST_YEAR - 3);
+    expect(rollOfHonour().startYear).toBe(LAST_YEAR - 3);
   });
 
   it("produces exactly the history stepping through would have", () => {
@@ -273,9 +280,9 @@ describe("simulating the rest of an era", () => {
     // the reader gave up is the reading, not the seasons.
     useSeasonStore.getState().simulateEra(31, LAST_YEAR - 3);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra();
-    const skipped = crowned().seasons;
+    const skipped = rollOfHonour().seasons;
 
     expect(skipped).toEqual(playEra(31, LAST_YEAR - 3, 4));
   });
@@ -283,25 +290,25 @@ describe("simulating the rest of an era", () => {
   it("does nothing once the era has reached the end of the data", () => {
     useSeasonStore.getState().simulateEra(5, LAST_YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    const before = crowned();
+    useSeasonStore.getState().continueRun();
+    const before = active();
     useSeasonStore.getState().simulateRestOfEra();
-    expect(crowned()).toBe(before);
+    expect(active()).toBe(before);
   });
 
   it("stops on the year it was given, leaving the rest of the era to run", () => {
     useSeasonStore.getState().simulateEra(5, LAST_YEAR - 4);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 2);
 
-    expect(crowned().seasons.map((world) => world.year)).toEqual([
+    expect(rollOfHonour().seasons.map((world) => world.year)).toEqual([
       LAST_YEAR - 4,
       LAST_YEAR - 3,
       LAST_YEAR - 2,
     ]);
     // And the run carries on from there, which is the whole point of stopping.
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
     expect(running().world.year).toBe(LAST_YEAR - 1);
   });
 
@@ -310,18 +317,18 @@ describe("simulating the rest of an era", () => {
     // stops, the era must be the one the reader would have played by hand.
     useSeasonStore.getState().simulateEra(17, LAST_YEAR - 4);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 2);
 
-    expect(crowned().seasons).toEqual(playEra(17, LAST_YEAR - 4, 3));
+    expect(rollOfHonour().seasons).toEqual(playEra(17, LAST_YEAR - 4, 3));
   });
 
   it("reaches the end when the year it is given is the end", () => {
     useSeasonStore.getState().simulateEra(5, LAST_YEAR - 2);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR);
-    expect(crowned().seasons.at(-1)?.year).toBe(LAST_YEAR);
+    expect(rollOfHonour().seasons.at(-1)?.year).toBe(LAST_YEAR);
   });
 
   it("refuses a year the era has already crowned, rather than running to the end", () => {
@@ -329,21 +336,21 @@ describe("simulating the rest of an era", () => {
     // falling through to "no target" and fast-forwarding the whole era.
     useSeasonStore.getState().simulateEra(5, LAST_YEAR - 3);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    const before = crowned();
+    useSeasonStore.getState().continueRun();
+    const before = active();
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 3);
-    expect(crowned()).toBe(before);
+    expect(active()).toBe(before);
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR - 9);
-    expect(crowned()).toBe(before);
+    expect(active()).toBe(before);
   });
 
   it("refuses a year with no season behind it", () => {
     useSeasonStore.getState().simulateEra(5, LAST_YEAR - 3);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    const before = crowned();
+    useSeasonStore.getState().continueRun();
+    const before = active();
     useSeasonStore.getState().simulateRestOfEra(LAST_YEAR + 10);
-    expect(crowned()).toBe(before);
+    expect(active()).toBe(before);
   });
 
   it("is a no-op anywhere but the roll of honour", () => {
@@ -374,8 +381,8 @@ describe("a bulk rule kept across an era", () => {
   function applyAndRunOn(arrangement: GridArrangement): void {
     useSeasonStore.getState().setGrid(null, null, arrangement);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().continueRun();
   }
 
   beforeEach(() => {
@@ -408,8 +415,8 @@ describe("a bulk rule kept across an era", () => {
     applyAndRunOn(kept);
     for (let year = 0; year < 2; year += 1) {
       useSeasonStore.getState().skipToEnd();
-      useSeasonStore.getState().showEraChampions();
-      useSeasonStore.getState().nextEraSeason();
+      useSeasonStore.getState().continueRun();
+      useSeasonStore.getState().continueRun();
       expect(running().world.arrangement, String(running().world.year)).toEqual(kept);
       expect(running().world.lineup, String(running().world.year)).not.toBeNull();
     }
@@ -420,9 +427,9 @@ describe("a bulk rule kept across an era", () => {
     // stepping through would have.
     useSeasonStore.getState().setGrid(null, null, kept);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra(YEAR + 3);
-    const seasons = crowned().seasons;
+    const seasons = rollOfHonour().seasons;
 
     expect(seasons).toHaveLength(4);
     expect(seasons.map((world) => world.arrangement)).toEqual(seasons.map(() => kept));
@@ -432,20 +439,20 @@ describe("a bulk rule kept across an era", () => {
   it("gives the same history stepped through as jumped", () => {
     useSeasonStore.getState().setGrid(null, null, kept);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
+    useSeasonStore.getState().continueRun();
     useSeasonStore.getState().simulateRestOfEra(YEAR + 2);
-    const jumped = crowned().seasons;
+    const jumped = rollOfHonour().seasons;
 
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().setGrid(null, null, kept);
     for (let year = 0; year < 3; year += 1) {
       useSeasonStore.getState().skipToEnd();
-      useSeasonStore.getState().showEraChampions();
+      useSeasonStore.getState().continueRun();
       if (year < 2) {
-        useSeasonStore.getState().nextEraSeason();
+        useSeasonStore.getState().continueRun();
       }
     }
-    expect(crowned().seasons).toEqual(jumped);
+    expect(rollOfHonour().seasons).toEqual(jumped);
   });
 
   it("is a save file like the rest of a run", () => {
@@ -455,30 +462,34 @@ describe("a bulk rule kept across an era", () => {
   });
 });
 
-describe("the way back out of an era", () => {
-  it("leaves no run behind the first season, having crowned nothing", () => {
-    // The route takes the reader back to the year picker; the store's part is
-    // only that nothing of the run survives.
-    useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().leaveEraSeason();
-    expect(active()).toBeNull();
-  });
-
-  it("leaves a later season for the roll-up it came from, unchanged", () => {
-    // The year being abandoned was never read to the end, so it must not join
-    // the roll of honour on the way past.
+describe("the review between years", () => {
+  beforeEach(() => {
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    useSeasonStore.getState().nextEraSeason();
-    useSeasonStore.getState().leaveEraSeason();
-    expect(crowned().seasons.map((world) => world.year)).toEqual([YEAR]);
+    useSeasonStore.getState().continueRun();
+  });
+
+  it("follows the summary, and crowns the year on screen without storing it twice", () => {
+    const current = active();
+    expect(current?.kind === "era" && current.cursor).toEqual({ kind: "review" });
+    // The year on the cursor is the run's world, not a second copy in the list.
+    expect(current?.kind === "era" && current.run.seasons).toEqual([]);
+    expect(rollOfHonour().seasons.map((world) => world.year)).toEqual([YEAR]);
+  });
+
+  it("refuses Start again, since the year it would re-run has been crowned", () => {
+    const before = active();
+    useSeasonStore.getState().restartSeason();
+    expect(active()).toBe(before);
+  });
+
+  it("refuses a skip, with no season left to skip through", () => {
+    const before = active();
+    useSeasonStore.getState().skipToEnd();
+    expect(active()).toBe(before);
   });
 
   it("abandons the whole run on exit", () => {
-    useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
     useSeasonStore.getState().exitRun();
     expect(active()).toBeNull();
   });
@@ -488,17 +499,17 @@ describe("a season inside an era", () => {
   beforeEach(() => {
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().skipToEnd();
-    useSeasonStore.getState().showEraChampions();
-    useSeasonStore.getState().nextEraSeason();
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().continueRun();
   });
 
   it("reveals itself exactly as a standalone one does", () => {
-    useSeasonStore.getState().nextSession();
+    useSeasonStore.getState().continueRun();
     const current = active();
-    expect(current?.kind === "era" && current.view).toEqual({ kind: "qualifying", round: 0 });
+    expect(current?.kind === "era" && current.cursor).toEqual({ kind: "qualifying", round: 0 });
     useSeasonStore.getState().skipToEnd();
     const after = active();
-    expect(after?.kind === "era" && after.view).toEqual({ kind: "summary" });
+    expect(after?.kind === "era" && after.cursor).toEqual({ kind: "summary" });
   });
 
   it("takes Start again as another go at this year, not at the era", () => {

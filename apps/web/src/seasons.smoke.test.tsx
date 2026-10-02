@@ -12,7 +12,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SeasonView } from "./components/SeasonView.js";
 import { driverName, teamName } from "./lib/names.js";
-import { createWorld, type View } from "./store/season.js";
+import type { View } from "./lib/timeline.js";
+import { createWorld } from "./store/season.js";
 
 describe("each authored season, through the whole reveal", () => {
   for (const [year, seed] of seasons) {

@@ -17,17 +17,16 @@ only what the *multi-season* shell adds.
 
 ## The loop
 
-The era picker (`/era/new`), then two kinds of run on `/run`: `era` → `era-champions`
-→ `era` → … `EraRun` is `{ startYear, seasons }` and lives on both.
+The era picker (`/era/new`), then one `era` run: `{ run: EraRun, world, cursor }`, the
+cursor walking each year's beats and then its **review** (`/run`, the roll of honour)
+before the next year's grid. `EraRun` is `{ startYear, seasons }`.
 
-**An era reuses the season screen rather than copying it.** `SeasonScreen` in `App.tsx`
-takes an optional `run`, and that is the whole difference: it changes where the summary
-leads and where the grid's Back goes. Every other stage is byte-for-byte the same
-reveal. `actionsFor(view, rounds, inEra)` says the same thing, and a test asserts that
-every stage but the summary is identical under both — if a second flow ever grew here,
-there would be two reveals to keep in step. The store follows the same shape:
-`isPlaying(run)` narrows to `season | era`, so `nextSession`, `skipToEnd`,
-`setRatingMode`, `setGrid` and `restartSeason` are written once and work in both.
+**An era reuses the season's beats rather than copying them.** `SeasonPage` in
+`App.tsx` takes an optional `run`, and that changes whether the ability toggle is offered
+and what the grid's carry-over copies — nothing else. `runBarFor` says the same thing,
+and a test asserts every beat but the summary offers the same actions in both. The store
+follows the same shape: `continueRun`, `skipToEnd`, `setGrid` and `restartSeason` are
+written once and work in both.
 
 **`run.seasons` holds finished worlds, not a table of winners.** Results are the source
 of truth and statistics are derived, so who won a year is a `championshipStandings` call
@@ -35,20 +34,21 @@ over a season that is already in hand — `lib/era.ts` makes it, once per season
 roll-up. The run is plain data throughout: an era serialises to a save file exactly as
 one season does, and a test asserts it.
 
-**The season on screen is not in the run.** It joins on `showEraChampions()`, which is
-the *only* thing that appends — so a year cannot be crowned twice, and a year abandoned
-half-read (`leaveEraSeason()`, the grid's Back) never enters the roll of honour at all;
-with nothing crowned it leaves no run, and the route goes back to the era picker.
-`restartSeason` inside an era re-runs the current year only; the crowned years stand,
-because they were read and this one was not.
+**`run.seasons` is the years before the world on the cursor**; which years are
+*crowned* is derived. `crowned(run)` adds the world once the cursor reaches its review,
+and every reader of the roll-up goes through it — so no world is stored twice and no
+year can be crowned twice. Continue off the review is the only thing that appends to
+`seasons`, on its way to building the next year. `restartSeason` inside an era re-runs
+the current year only, and is refused on the review, where that year has itself been
+crowned.
 
 ## What crosses a year boundary
 
-**The grid does not.** `nextEraSeason()` builds year N+1 with `createWorld(seed, year+1,
-ratingMode)` and nothing else: the field is that year's own entry list, straight from
+**The grid does not.** `nextEraWorld(last, year)` in the store builds year N+1 with one
+`createWorld` call: the field is that year's own entry list, straight from
 `<year+1>.json`. **This is the seam `era-advanced` replaces** — a mode that simulates
 the grid substitutes what is handed to `createWorld` there, and nothing else about the
-loop changes. Keep it a single call. An edited lineup or engine supply is deliberately
+loop changes. Keep it a single call, shared by Continue and the jump. An edited lineup or engine supply is deliberately
 *not* carried: it was a grid for a year now behind them. The ability mode is carried,
 but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
 switch; see `.claude/rules/web-store.md` for why.
@@ -66,7 +66,8 @@ end from the seed its first season was drawn on, which is what makes a bug repor
 seasons in usable, and no year repeats another's dice. `Math.random()` here would have
 cost exactly that, and is why the era does not call `randomSeed()` per year.
 
-**`simulateRestOfEra(through?)` is the same step in a loop**, not a second rule — it
+**`simulateRestOfEra(through?)` is the same step in a loop**, run from the review and
+landing on the review of the year it stops on, not a second rule — it
 must produce *exactly* the history stepping through would have, and a test asserts the
 two are identical world for world, jumped to a mid-era year as well as run to the end.
 Skipping gives up the reading, never the seasons. `through` is the year it stops *on*,
@@ -77,27 +78,20 @@ clamped: falling through to "no target" would silently run the whole era to the 
 returns the state object itself when there is nothing left to run, rather than an equal
 copy, so a press that changes nothing does not re-render seventy-six rows.
 
-**Both of the champions screen's non-forward buttons ask first, inline in the button
-row** — the same pattern as the season screen's "Start again", one flag shared by the
-sticky-bar and page-foot copies, no dialog primitive. *Jump forward* opens a `YearPicker`
-above the roll of honour (where the reader, scrolled to the top, will actually see it),
-restricted by its injected `playable` to years the era has not reached, defaulting to the
-far end — which is what the old "Simulate rest of the era, to 2026" did outright.
-`eraJumpTarget(lastCrowned, chosen)` in `App.tsx` decides what the button runs: pure and
-exported like `eraActionsFor` beside it, because the picker outlives the jump it
-describes — after a jump the same year is still selected with the run four seasons past
-it, and a stale target must fall back to the far end rather than reach the store. *Main
-menu* throws the run away and there is no save file yet, so it confirms.
+**Jump forward is in the run bar's overflow, on the review**, and opens
+`JumpForwardDialog`: a `YearPicker` restricted by its injected `playable` to years the
+era has not reached, defaulting to the far end. `eraJumpTarget(lastCrowned, chosen)` in
+`lib/run-bar.ts` decides what it runs: pure and exported like `eraActionsFor` beside it,
+because a stale year must fall back to the far end rather than reach the store.
 
 **The era stops where the data does.** `nextEraYear(year)` in `lib/seasons.ts` returns
 `year + 1` only if it is authored — never a year written down, so the run reaches
-further the moment a later season lands. The champions screen offers no forward button
-past it, and `nextEraSeason()` is a no-op there rather than a throw.
+further the moment a later season lands. The run bar offers no Continue
+past it, and `continueRun()` is a no-op there rather than a throw.
 
 ## The roll of honour
 
-`EraChampions` is a pure render of a run, buttons included from `App` like every other
-screen's. Chronological, earliest first — a record, not a leaderboard. **The year just
+`EraChampions` is a pure render of a run; its actions are the run bar's. Chronological, earliest first — a record, not a leaderboard. **The year just
 finished is the last row and carries `STANDOUT_ROW`**, exactly one row per view, which
 is the accent rule from `web-display.md`: it is the champion of the thing the reader
 just came off.
@@ -132,10 +126,9 @@ feeds it.
 
 `EraPicker` is `SeasonPicker` with different copy, not a second component — the same
 years, the same disabled rule, so the two cannot drift apart the next time the range
-changes. `eraActionsFor(lastCrowned)` in `App.tsx` is the roll-up's button set, pure and
-tested like `actionsFor`: the next year, and the far end of the range — the latter null
-when it *is* the next year, since two buttons doing one thing is a worse offer than
-one.
+changes. `eraActionsFor(lastCrowned)` in `lib/run-bar.ts` is the review's way on: the next
+year, and the far end of the range — the latter null when it *is* the next year, since a
+jump doing what Continue does is a worse offer than none.
 
 ## The career statistics
 

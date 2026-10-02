@@ -37,7 +37,14 @@ function ModeCard({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => vo
   );
 }
 
-export function MainMenu({ onChoose }: { onChoose: (mode: ModeId) => void }) {
+export function MainMenu({
+  onChoose,
+  resume,
+}: {
+  onChoose: (mode: ModeId) => void;
+  /** The run in progress, if there is one: drawn above the modes, since it is the likeliest next click. */
+  resume?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-8 py-6 sm:py-10">
       <header className="flex flex-col gap-3">
@@ -53,6 +60,8 @@ export function MainMenu({ onChoose }: { onChoose: (mode: ModeId) => void }) {
           that happened in real life.
         </p>
       </header>
+
+      {resume}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {MODES.map((mode) => (

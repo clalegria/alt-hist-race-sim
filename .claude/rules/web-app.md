@@ -7,14 +7,15 @@ paths:
 
 `apps/web` reveals a season a session at a time. React + Vite, Tailwind 4, Zustand.
 shadcn/ui components are **copied in, not a dependency** — but the Radix primitives
-they wrap *are* real dependencies (currently `@radix-ui/react-popover`).
+they wrap *are* real dependencies (`react-popover`, `react-alert-dialog`,
+`react-dropdown-menu`).
 
 ## Screens and state
 
-**The URL says which page; the store holds the run.** Routes (`/`, `/season/new`,
-`/era/new`, `/run`) and the top nav are `.claude/rules/web-routing.md`. The store's
-`run` is null until one is started, then a `Run` in `store/season.ts`: `season` for a
-single year, `era ⇄ era-champions` for a run of them. A `World` is a *member of the
+**The URL says which page; the store holds the run.** Routes, the top nav and the run
+bar are `.claude/rules/web-routing.md`. The store's `run` is null until one is started,
+then a `Run` in `store/season.ts`: `season` for a single year, `era` for a run of them,
+each a world and a cursor. A `World` is a *member of the
 variants that have one* rather than a nullable field beside them, so nothing reads a
 season nobody started. Nothing is simulated until a mode is chosen: the app opens on the
 menu having run no races at all. **The era half is `.claude/rules/web-era.md`**, which
@@ -36,17 +37,25 @@ been authored" for a while after 1981 landed, and that is why the copy is derive
 `createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
 year rather than quietly falling back.
 
-## The reveal
+## The reveal: a timeline of beats
 
 The whole year is simulated the instant a seed is drawn — one continuous RNG stream
-through every round, which is what makes a season reproducible. `View` is a cursor
-over results that already exist:
+through every round, which is what makes a season reproducible. The cursor (`run.cursor`)
+is a `Beat` (`lib/timeline.ts`) over results that already exist:
 
 ```
-grid → qualifying 1 → race 1 → qualifying 2 → race 2 → … → summary
+grid → qualifying 1 → race 1 → … → summary → (era) review → next year's grid
 ```
 
-"Simulate next session" is a promise about what the reader sees next, not about when
-the dice are rolled. `advance()` is a pure function over that cursor and
-`actionsFor()` in `App.tsx` is the whole of the navigation — both tested directly,
-because getting either wrong strands the reader mid-season.
+`View` is the season screen's part of it, every beat but `review`. Continue is a promise
+about what the reader sees next, not about when the dice are rolled. `nextBeat` is the
+order, `comparePlaces`/`isReached` compare two `Place`s (a year and a beat) anywhere in
+a run, and `describeBeat` is the run bar's words for one. **A new kind of beat** — a
+market event, a decision — **is a row in that file**, plus a page and a line in the bar.
+
+`continueRun()` is the store's one forward step: the next session, the summary, an era's
+review, then the next year (built there, which is the advanced mode's seam —
+`.claude/rules/web-era.md`). Nothing rewinds the cursor: Start again draws a new season
+and puts it at the grid, and Back moves between pages, never through time. The walk is
+property-tested (every session once, strictly increasing, `isReached` agreeing with it),
+and `runBarFor()` is the whole of what can be done on each beat (`web-routing.md`).
