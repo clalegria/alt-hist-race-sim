@@ -11,6 +11,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { createAppRouter } from "./router.js";
+import { startRunPersistence } from "./store/persist.js";
+
+// Before the router: a reload onto a run's page must find the run already there.
+startRunPersistence();
 
 const root = document.getElementById("root");
 if (root === null) {

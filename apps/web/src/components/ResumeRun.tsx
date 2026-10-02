@@ -43,3 +43,21 @@ export function ResumeRun({
     </div>
   );
 }
+
+/**
+ * Where the Resume card would be, when the run saved before a reload could not
+ * be rebuilt (`store/persist.ts`): this build would replay it differently, and
+ * a run quietly rewritten under the reader is worse than one that is gone.
+ */
+export function RunNotResumed({ onDismiss }: { onDismiss?: () => void }) {
+  return (
+    <div className="bg-card flex flex-wrap items-center gap-3 rounded-xl border p-5 shadow-sm">
+      <p className="text-muted-foreground min-w-0 flex-1 text-sm">
+        Your last run couldn't be resumed: it was made on a different version of the simulator.
+      </p>
+      <Button variant="ghost" onClick={onDismiss}>
+        Dismiss
+      </Button>
+    </div>
+  );
+}

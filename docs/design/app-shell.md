@@ -3,10 +3,11 @@
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
 what is built — the router, the top nav, the timeline of beats, a page per beat, the
-run bar and the ways out of a run — is `.claude/rules/web-routing.md`,
-`.claude/rules/web-run-bar.md` and
-`.claude/rules/web-app.md`. Where it sits in the build order is *routing and the app
-shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
+run bar, the ways out of a run and surviving a reload — is
+`.claude/rules/web-routing.md`, `.claude/rules/web-run-bar.md`,
+`.claude/rules/web-persistence.md` and `.claude/rules/web-app.md`. Where it sits in the
+build order is *routing and the app shell* in `docs/ROADMAP.md`; §10 is its own build
+order, one step per session.
 
 - **DECIDED** — the author's decision.
 - **PROPOSED** — a suggested design. Confirm with the author before building on it.
@@ -48,19 +49,10 @@ The cursor is built as a list of beats (`.claude/rules/web-app.md`). What is lef
 
 - **DECIDED** — **A run survives a reload, and closing the tab.** It ends only when the
   reader exits it.
-- **PROPOSED** — How: on every Continue and every grid edit, the run's **recipe** (start
-  year, seed, ability mode, randomness, retained bulk rule, grid edits) and its cursor go
-  to `localStorage`; on load, the store rebuilds the run from them. Simulation is
-  deterministic, so the recipe *is* the run. A snapshot (`JSON.stringify` of every world)
-  would also work but a long era is likely to outgrow `localStorage`'s few megabytes.
-  This is not the save-file feature (§8) — one slot, the current run, nothing to manage.
-- **PROPOSED** — The recipe carries a **build stamp**. Resumed on a different build, the
-  same recipe would replay to different results; then the app says the run was made on
-  an older version and cannot be resumed, rather than silently rewriting history. Only
-  matters once the app is public.
 
-Exiting — one dialog for Exit run, Back past the run's first page and Start while a run
-exists — is built (`.claude/rules/web-run-bar.md`).
+Both halves are built: the recipe in `localStorage`, checked by a fingerprint of each
+world (`.claude/rules/web-persistence.md`), and one dialog for Exit run, Back past the
+run's first page, and Start while a run exists (`.claude/rules/web-run-bar.md`).
 
 ## 4. Routes
 
@@ -159,7 +151,7 @@ Four different things, built at different times. **Only the first is in this ite
 | | What it carries | Survives a new build? | When |
 |---|---|---|---|
 | **Share link** | the recipe and how far through | no — replays | this item |
-| **Save file** | recipe, input log *and* every world (snapshot) | yes | the ratings editor |
+| **Save file** | recipe *and* every world (snapshot) | yes | the ratings editor |
 | **Read-only view** | a snapshot, opened with no Continue | yes | after save files |
 | **Account / other device** | a save file, uploaded | yes | a backend phase |
 
@@ -178,8 +170,9 @@ Four different things, built at different times. **Only the first is in this ite
 
 Nothing here builds them; these rules keep them a matter of adding, not reworking:
 
-1. **Player inputs go through one log in the store** — grid edits now, decisions later.
-   The log is what reload (§3) and Share (§8) serialise.
+1. **A player input is recorded on the world it shaped**: grid edits now, decisions
+   later. The recipe that reload (§3) and Share (§8) serialise is derived from the
+   worlds, so there is no second log to keep in step with them.
 2. **The cursor is a timeline of beats** (§2): an event or a decision is a new kind.
 3. **Pages read, the run bar acts** (§8): a page never advances or edits the run.
 4. **Navigation is data** (§5; the top nav's `lib/areas.ts`): Inbox, Market, *Next season's grid*, My team
@@ -191,13 +184,13 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Surviving a reload.** The input log, the recipe in `localStorage`, the build stamp.
-2. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
-3. **Season and session pages**, browsable by URL: the season's tabs, the session's
+1. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
+2. **Season and session pages**, browsable by URL: the season's tabs, the session's
    round links, the era overview's year in progress.
-4. **Driver and team pages**, the two index lists, the panel's page link.
-5. **Share.** The link and the `/share` entry route.
-6. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+3. **Driver and team pages**, the two index lists, the panel's page link.
+4. **Share.** The link and the `/share` entry route. The reload recipe is its
+   starting point.
+5. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../App.js";
 import { MainMenu } from "../components/MainMenu.js";
-import { ResumeRun } from "../components/ResumeRun.js";
+import { ResumeRun, RunNotResumed } from "../components/ResumeRun.js";
 import { RunConfirmDialog } from "../components/RunDialogs.js";
 import { runBarFor, runTitle } from "../lib/run-bar.js";
 import { linkTo } from "../lib/run-places.js";
@@ -15,12 +15,16 @@ function HomePage() {
   const navigate = useNavigate();
   const run = useSeasonStore((state) => state.run);
   const exitRun = useSeasonStore((state) => state.exitRun);
+  const resumeFailed = useSeasonStore((state) => state.resumeFailed);
+  const dismissResumeFailed = useSeasonStore((state) => state.dismissResumeFailed);
   const [asking, setAsking] = useState(false);
   return (
     <Shell>
       <MainMenu
         {...(run === null
-          ? {}
+          ? resumeFailed
+            ? { resume: <RunNotResumed onDismiss={dismissResumeFailed} /> }
+            : {}
           : {
               resume: (
                 <ResumeRun

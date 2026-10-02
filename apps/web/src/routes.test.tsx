@@ -20,7 +20,7 @@ import {
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { ResumeRun } from "./components/ResumeRun.js";
+import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
 import { AREAS, type Area, isAvailable } from "./lib/areas.js";
@@ -299,5 +299,11 @@ describe("the Resume run card", () => {
     // A button inside an <a> is invalid HTML, and clicking it would follow the link.
     const link = html.slice(html.indexOf("<a "), html.indexOf("</a>"));
     expect(link).not.toContain("<button");
+  });
+
+  it("gives way to a notice when the saved run could not be resumed", () => {
+    const html = renderToStaticMarkup(<RunNotResumed />);
+    expect(html).toContain("couldn&#x27;t be resumed");
+    expect(html).toContain(">Dismiss</button>");
   });
 });

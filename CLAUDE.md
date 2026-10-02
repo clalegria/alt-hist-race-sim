@@ -99,6 +99,8 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   sorted, then DNFs. `.claude/rules/race-engine.md`.
 - **Beat**: one step of a run's reveal — the grid, a session, the summary, an era's
   review. The cursor is the beat reached; each beat is a page. `.claude/rules/web-app.md`.
+- **Recipe**: what rebuilds a run after a reload, each world's own inputs plus the
+  cursor, checked by a fingerprint of each world. `web-persistence.md`.
 - **Round context**: where a round is held and how far through the year it is; the seam
   circuit features will hang off.
 - **Development trend**: a car's pace drifting across a season about its authored rating.

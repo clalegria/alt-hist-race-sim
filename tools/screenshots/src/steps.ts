@@ -1,8 +1,8 @@
 /**
  * The screens to capture, in order, and how a reader gets to each.
  *
- * A run lives only in the page's memory — nothing survives a reload yet — so a
- * step is reached by clicking on from the one before it, never by `goto`:
+ * Each browser context starts with empty storage, so there is no run until a
+ * step starts one, and a step is reached by clicking on from the one before it:
  * `reach` assumes the page is showing the previous step's screen. Back and
  * forward are browser history, so some steps are a `goBack()`, which is also
  * what exercises the guard on leaving a run.

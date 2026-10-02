@@ -78,5 +78,6 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
 - The confirm buttons are plain buttons, not Radix's `Action`: `Action` also closes
   through `onOpenChange`, which is the cancel path here.
 - **`/run` with no run redirects to `/`** in its `beforeLoad` guard: a typed URL, a
-  reload (nothing survives one yet), or forward onto an exited run.
+  reload whose saved run would not rebuild (`.claude/rules/web-persistence.md`), or
+  forward onto an exited run.
 

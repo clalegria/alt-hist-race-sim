@@ -29,6 +29,8 @@ edits it in the ratings editor. Blocks the Share link's format (*routing and the
 shell*) and the editor's export. The options are not exclusive:
 
 - **Stamp a hash** of the data and engine in every link and save; warn on a mismatch.
+  The reload recipe already carries a fingerprint of each world it rebuilds
+  (`.claude/rules/web-persistence.md`).
 - **Keep old builds deployed** at versioned paths, so an old link opens on the build
   that made it.
 - **Save the results, not just the recipe**, so a save file survives any change.

@@ -410,6 +410,13 @@ interface SeasonStore {
    */
   readonly exitRun: () => void;
   /**
+   * Whether the run saved before the last reload could not be rebuilt on this
+   * build (`store/persist.ts`). Home says so until the reader dismisses it or
+   * starts another run.
+   */
+  readonly resumeFailed: boolean;
+  readonly dismissResumeFailed: () => void;
+  /**
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
    *
@@ -673,6 +680,10 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   run: null,
   exitRun: () => {
     set({ run: null });
+  },
+  resumeFailed: false,
+  dismissResumeFailed: () => {
+    set({ resumeFailed: false });
   },
   startSeason: (year, randomness = readRandomness()) => {
     set({

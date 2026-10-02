@@ -8,8 +8,8 @@ import { useSeasonStore } from "../store/season.js";
  * an outlet for the page.
  *
  * `beforeLoad` runs before any page inside renders, on every navigation to one,
- * and sends a reader with no run home: a typed URL, a reload (nothing survives
- * one yet), or browser-forward onto a run that has since been exited.
+ * and sends a reader with no run home: a typed URL, a reload of a run that
+ * could not be resumed, or browser-forward onto a run that has since been exited.
  */
 export const Route = createFileRoute("/run")({
   beforeLoad: () => {
