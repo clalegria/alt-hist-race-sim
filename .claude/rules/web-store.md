@@ -110,7 +110,7 @@ therefore already a complete save file, and tests assert both the round trip and
 no function or class instance has crept in.
 
 View state that says nothing about the simulation — which race row is expanded, the
-start-again confirming flag, the grid editor's **draft** lineup and draft engines —
+question a dialog is asking, the grid editor's **draft** lineup and draft engines —
 stays in component `useState`. The rule is that *simulation* state lives in the one
 store, not that React may never hold anything. A draft becomes simulation state at the
 moment Apply hands it to `setGrid`, and not before: applying re-runs fourteen races, and
@@ -128,6 +128,6 @@ in the middle of replacing.
 need no special support — `{ races: races.slice(0, n) }` *is* the table after round n.
 
 A fresh random seed is drawn each time a season is started, from the picker and by
-Start again. That is **not** a violation of the no-`Math.random()` rule: choosing
+either restart. That is **not** a violation of the no-`Math.random()` rule: choosing
 *which* seed to run happens before any generator exists, so it lives in `lib/seed.ts`
 and never in `packages/engine`.

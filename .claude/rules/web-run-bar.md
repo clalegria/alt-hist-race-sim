@@ -1,0 +1,72 @@
+---
+paths:
+  - "apps/web/src/App.tsx"
+  - "apps/web/src/run-routes.tsx"
+  - "apps/web/src/lib/run-bar.ts"
+  - "apps/web/src/components/RunBar.tsx"
+  - "apps/web/src/components/RunDialogs.tsx"
+  - "apps/web/src/components/ResumeRun.tsx"
+---
+
+# Web app — the run bar
+
+What can be done to a run, and how a run is entered and left. The pages it sits over
+and the router are `.claude/rules/web-routing.md`; the store actions behind each button
+are `.claude/rules/web-app.md` and `.claude/rules/web-era.md`.
+
+`RunLayout` (the `/run` layout) draws `RunFrame`: `Shell` with `RunBar` in the sticky
+bar, the same actions again at the page foot, and the dialogs. **Pages read, the run
+bar acts** — a page never advances or edits the run, the cursor's own grid excepted —
+so a read-only view of a run later is these pages with the bar's actions hidden.
+
+- **Breadcrumbs describe the page, the cursor text the run.** `crumbsFor(run, place)`:
+  `Era › 1984 › Round 3 › Race`, a one-year run starting at the year. A crumb links
+  only to a page reached; the last is the page itself, `aria-current="page"`. The
+  layout finds the page from the deepest match's `routeId` (`runPageOf`). Under them,
+  `1984 · Round 3/16 · Race` says where the cursor is.
+- **Three kinds of action** (`runBarFor(run)` in `lib/run-bar.ts` decides which are
+  offered, and is what the tests read):
+  - **Forward** — *Continue* (the primary button; its `title` names the next beat),
+    the skip to this season's end (*Simulate full season* / *Simulate rest of the
+    season*, not after the last race), and *Jump to…* (an era with a later year ahead).
+    All three **push**, so Back returns to the page the reader was on.
+  - **Over again** — *Restart season* (off the grid, not on the review) and *Restart
+    era* (an era past its first grid). New dice, never a rewind; they **replace** the
+    URL with the new grid, since the page left belongs to results that no longer exist.
+  - **Out** — *Exit run*.
+- **All of them on the bar from `md` up; on a phone, Continue plus ⋯** (Radix
+  `DropdownMenu`) holding the rest. Both layouts are rendered from one list and a media
+  query shows one, so they cannot offer different things.
+- **Jump to…** opens `JumpDialog`: a `YearPicker` over `jumpYears(run)` and *Stop at*
+  the season's **start** (its grid, to set it up) or **end** (its summary).
+  `jumpTarget(run, chosen)` decides where it lands — a choice the run has overtaken
+  falls back to one still ahead; the default is the end of the next year. The store's
+  `jumpTo` does the rest (`.claude/rules/web-era.md`); the skip is `jumpTo` with this
+  season's end.
+- While the grid editor is open the actions give way to a note: the grid page raises
+  it through `GridEditingContext`, since the page is an `<Outlet />` the frame does
+  not render, and clears it on unmount.
+- The scroll-to-top on every change to the run lives in `RunLayout`; a change of URL
+  resets scroll by itself.
+
+## Entering and leaving a run
+
+- **Start** on a setup page (`SetupPage` in `run-routes.tsx`) calls
+  `startSeason`/`startEra`, then **pushes** the grid — so the entry behind a run's first
+  page is always its setup page.
+- **Navigation never discards a run.** Home, the top nav and back/forward leave it
+  waiting; Home's `ResumeRun` card links to the cursor's page.
+- **One dialog for everything that throws work away** — `RunConfirmDialog` (Radix
+  `AlertDialog`), worded per case in `RUN_CONFIRM_COPY`: the two restarts and three
+  ways out of a run.
+  - *Exit run*: `exitRun`, then `/` with `replace`.
+  - **Back past the run's first page**: `useBlocker` in `RunLayout` holds any
+    navigation `isBackPastStart(action, from, to)` matches — a `BACK` from `/run…` onto
+    `/season/new` or `/era/new` — and opens the dialog. Confirm is `proceed()` then
+    `exitRun()`; cancel is `reset()`.
+  - **Start while a run exists**: the setup page asks "Start a new run?" first.
+- The confirm buttons are plain buttons, not Radix's `Action`: `Action` also closes
+  through `onOpenChange`, which is the cancel path here.
+- **`/run` with no run redirects to `/`** in its `beforeLoad` guard: a typed URL, a
+  reload (nothing survives one yet), or forward onto an exited run.
+

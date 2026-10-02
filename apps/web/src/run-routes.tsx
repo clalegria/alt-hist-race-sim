@@ -19,7 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
-import { ExitRunDialog } from "./components/RunDialogs.js";
+import { RunConfirmDialog } from "./components/RunDialogs.js";
 import { crumbsFor } from "./lib/run-bar.js";
 import {
   isBackPastStart,
@@ -52,7 +52,7 @@ export function guardRunPage(page: RunPage, params: RunParams): void {
  * The page at one URL inside `/run`.
  *
  * Resolves again on every render, not only in the guard, because the store can
- * move under a page without a navigation — Start again on a race leaves its
+ * move under a page without a navigation — Restart season on a race leaves its
  * URL naming a session the new season has not revealed — and a page that
  * cannot be shown goes to the cursor rather than drawing something stale.
  */
@@ -94,16 +94,17 @@ export function RunPlacePage({ page, params }: { page: RunPage; params: RunParam
  * The layout around every page inside `/run`: the run bar and its actions,
  * the guard against Back past the run's first page, and an outlet for the page.
  *
- * Each action moves the store, then the URL. **Continue pushes** a history
- * entry, so Back returns to the page the reader was on; the others replace
- * where landing back on the page they came from would mean nothing.
+ * Each action moves the store, then the URL. **The ways forward push** a
+ * history entry — Continue, the skip, a jump — so Back returns to the page the
+ * reader was on. **The restarts replace** it: the page they came from belongs
+ * to results that no longer exist.
  */
 export function RunLayout() {
   const run = useSeasonStore((state) => state.run);
   const continueRun = useSeasonStore((state) => state.continueRun);
-  const skipToEnd = useSeasonStore((state) => state.skipToEnd);
-  const simulateRestOfEra = useSeasonStore((state) => state.simulateRestOfEra);
+  const jumpTo = useSeasonStore((state) => state.jumpTo);
   const restartSeason = useSeasonStore((state) => state.restartSeason);
+  const restartEra = useSeasonStore((state) => state.restartEra);
   const exitRun = useSeasonStore((state) => state.exitRun);
   const navigate = useNavigate();
   const matches = useMatches();
@@ -119,8 +120,8 @@ export function RunLayout() {
   });
 
   // Each beat is a new page of results, so it starts at the top. A change of
-  // URL does this by itself; this is for a cursor move that keeps the URL —
-  // a jump forward from the roll of honour lands back on it.
+  // URL does this by itself; this is for a change that keeps the URL — a
+  // restart of a season whose grid was already on screen.
   // biome-ignore lint/correctness/useExhaustiveDependencies: firing on every change to the run is the point.
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -154,15 +155,20 @@ export function RunLayout() {
         toCursor(false);
       }}
       onSkip={() => {
-        skipToEnd();
+        // The skip is a jump to the end of this season.
+        jumpTo({ year: run.world.year, beat: { kind: "summary" } });
         toCursor(false);
       }}
-      onJump={(through) => {
-        simulateRestOfEra(through);
+      onJump={(target) => {
+        jumpTo(target);
+        toCursor(false);
+      }}
+      onRestartSeason={() => {
+        restartSeason();
         toCursor(true);
       }}
-      onRestart={() => {
-        restartSeason();
+      onRestartEra={() => {
+        restartEra();
         toCursor(true);
       }}
       onExit={() => {
@@ -224,7 +230,7 @@ export function SetupPage({
           begin(year, randomness);
         }
       })}
-      <ExitRunDialog
+      <RunConfirmDialog
         open={pending !== null}
         variant="replace"
         onConfirm={() => {

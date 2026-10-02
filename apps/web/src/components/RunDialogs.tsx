@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { eraActionsFor, eraJumpTarget } from "../lib/run-bar.js";
-import { isPlayable } from "../lib/seasons.js";
+import { type JumpPoint, jumpPlace, jumpTarget, jumpYears } from "../lib/run-bar.js";
+import { comparePlaces, type Place } from "../lib/timeline.js";
+import { cn } from "../lib/utils.js";
+import { cursorPlace, type Run } from "../store/season.js";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -13,11 +15,12 @@ import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
 
 /**
- * What the exit dialog says, by how the reader is leaving. Exit run and Back
- * past the run's first page are the same question; Start on a setup page is
- * the same consequence reached from the other side.
+ * What the confirmation says, by what is about to be thrown away. Exit run and
+ * Back past the run's first page are the same question; Start on a setup page
+ * is the same consequence reached from the other side; the two restarts throw
+ * away results but keep the run.
  */
-export const EXIT_RUN_COPY = {
+export const RUN_CONFIRM_COPY = {
   exit: {
     title: "Exit this run?",
     description: "It will be discarded. There is no way to get it back.",
@@ -28,33 +31,46 @@ export const EXIT_RUN_COPY = {
     description: "This will end your current run. It will be discarded.",
     confirm: "End it and start",
   },
+  restartSeason: {
+    title: "Restart this season?",
+    description:
+      "It is raced again from its grid, on new dice. What you have seen of it is discarded; the grid stays as you set it.",
+    confirm: "Restart season",
+  },
+  restartEra: {
+    title: "Restart the era?",
+    description:
+      "Every season so far is discarded, and the era starts again from its first grid, on new dice. That grid stays as you set it.",
+    confirm: "Restart era",
+  },
 } as const;
 
+export type RunConfirm = keyof typeof RUN_CONFIRM_COPY;
+
 /**
- * The one confirmation every way out of a run goes through: the overflow's
- * Exit run, a browser Back past the run's first page, and Start while a run
- * exists.
+ * The one confirmation for everything that throws work away: Exit run, a
+ * browser Back past the run's first page, Start while a run exists, and both
+ * restarts.
  *
- * A dialog rather than the inline confirm the rest of the bar uses, because a
- * browser navigation has to be held *while* the question is asked, and the
- * page the reader is leaving from may have no bar row to ask it in. Radix's
- * `AlertDialog` traps focus, closes on Escape — as a Cancel — and announces
- * itself as an alert, which is the platform contract for "this destroys
- * something". Controlled: the caller decides when it is open and what each
- * answer does.
+ * A dialog because a browser navigation has to be held *while* the question is
+ * asked, and then the same dialog for the rest, so throwing a run away always
+ * looks the same. Radix's `AlertDialog` traps focus, closes on Escape — as a
+ * Cancel — and announces itself as an alert, which is the platform contract for
+ * "this destroys something". Controlled: the caller decides when it is open and
+ * what each answer does.
  */
-export function ExitRunDialog({
+export function RunConfirmDialog({
   open,
   variant,
   onConfirm,
   onCancel,
 }: {
   open: boolean;
-  variant: keyof typeof EXIT_RUN_COPY;
+  variant: RunConfirm;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const copy = EXIT_RUN_COPY[variant];
+  const copy = RUN_CONFIRM_COPY[variant];
   return (
     <AlertDialog
       open={open}
@@ -83,31 +99,41 @@ export function ExitRunDialog({
   );
 }
 
+/** What the jump's two landing points are called, and what each is for. */
+const POINTS: readonly { readonly point: JumpPoint; readonly label: string }[] = [
+  { point: "start", label: "Start of the season" },
+  { point: "end", label: "End of the season" },
+];
+
 /**
- * The overflow's Jump forward: pick a year ahead of the era, then run every
- * season up to it in one go.
+ * Jump to…: pick a year ahead, and whether to stop at its start — its grid, to
+ * set it up — or at its end, its summary. Every season up to there is run in
+ * one go and crowned unread.
  *
- * The same `YearPicker` the setup pages use, restricted to the years the era
- * has not reached and opening on the far end. What the button runs is
- * `eraJumpTarget`, so a year picked and then overtaken falls back to the far
- * end rather than reaching the store.
+ * The same `YearPicker` the setup pages use, restricted to the years a jump can
+ * reach. What the button runs is `jumpTarget`, so a choice the run has since
+ * overtaken falls back to one still ahead rather than reaching the store.
  */
-export function JumpForwardDialog({
+export function JumpDialog({
   open,
-  lastCrowned,
+  run,
   onJump,
   onCancel,
 }: {
   open: boolean;
-  lastCrowned: number;
-  onJump: (through: number) => void;
+  run: Run;
+  onJump: (target: Place) => void;
   onCancel: () => void;
 }) {
-  // Which year is picked is about the question being asked, not the run, so it
-  // stays here rather than in the store.
-  const [chosen, setChosen] = useState<number | null>(null);
-  const target = eraJumpTarget(lastCrowned, chosen);
-  const { next } = eraActionsFor(lastCrowned);
+  // The question being asked, not the run, so it stays here rather than in
+  // the store.
+  const [chosen, setChosen] = useState<{ year: number | null; point: JumpPoint }>({
+    year: null,
+    point: "end",
+  });
+  const years = jumpYears(run);
+  const target = jumpTarget(run, chosen);
+  const cursor = cursorPlace(run);
   return (
     <AlertDialog
       open={open && target !== null}
@@ -118,20 +144,48 @@ export function JumpForwardDialog({
       }}
     >
       <AlertDialogContent className="max-w-3xl">
-        <AlertDialogTitle>Jump forward</AlertDialogTitle>
+        <AlertDialogTitle>Jump to…</AlertDialogTitle>
         <AlertDialogDescription>
-          Every season from {lastCrowned + 1} on is simulated in one go, and the era stops on the
-          year you pick.
+          Every season up to the one you pick is simulated in one go. Stop at its start to set up
+          its grid, or at its end.
         </AlertDialogDescription>
         {target === null ? null : (
-          <YearPicker
-            year={target}
-            onSelect={setChosen}
-            title="Jump forward to"
-            lead="Nothing after it is run, so you can carry on from there."
-            describeYear={(year) => `Simulate the era through to ${year}`}
-            playable={(year) => isPlayable(year) && next !== null && year >= next}
-          />
+          <>
+            <YearPicker
+              year={target.year}
+              onSelect={(year) => {
+                setChosen((current) => ({ ...current, year }));
+              }}
+              title="Season"
+              lead="Only seasons still ahead of the run."
+              describeYear={(year) => `Jump to ${year}`}
+              playable={(year) => years.includes(year)}
+            />
+            <fieldset className="flex flex-wrap items-center gap-2">
+              <legend className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
+                Stop at
+              </legend>
+              {POINTS.map(({ point, label }) => {
+                // The start of a year already begun is behind the run.
+                const ahead = comparePlaces(jumpPlace(target.year, point), cursor) > 0;
+                const pressed = target.beat.kind === (point === "start" ? "grid" : "summary");
+                return (
+                  <Button
+                    key={point}
+                    variant="outline"
+                    aria-pressed={pressed}
+                    disabled={!ahead}
+                    className={cn(pressed && "bg-primary text-primary-foreground border-primary")}
+                    onClick={() => {
+                      setChosen((current) => ({ ...current, point }));
+                    }}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </fieldset>
+          </>
         )}
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
@@ -143,7 +197,9 @@ export function JumpForwardDialog({
                 onJump(target);
               }}
             >
-              Simulate through to {target}
+              {target.beat.kind === "grid"
+                ? `Simulate to the ${target.year} grid`
+                : `Simulate through ${target.year}`}
             </Button>
           )}
         </AlertDialogFooter>

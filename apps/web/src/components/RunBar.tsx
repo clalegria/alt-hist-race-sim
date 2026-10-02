@@ -59,25 +59,36 @@ export interface RunActionsProps {
   readonly state: RunBarState;
   /** True while the grid is being rearranged, which is not a moment to step on. */
   readonly editingGrid: boolean;
-  /** True while the reader is being asked whether to start the season again. */
-  readonly confirmingRestart: boolean;
   readonly onContinue: () => void;
   readonly onSkip: () => void;
+  /** Opens the jump dialog. */
   readonly onJump: () => void;
-  readonly onStartAgain: () => void;
-  readonly onRestart: () => void;
-  readonly onCancelRestart: () => void;
+  /** Asks, then restarts this season. */
+  readonly onRestartSeason: () => void;
+  /** Asks, then restarts the whole era. */
+  readonly onRestartEra: () => void;
+  /** Asks, then exits the run. */
   readonly onExit: () => void;
 }
 
+/** One action, as both layouts draw it. */
+interface Action {
+  readonly label: string;
+  readonly onSelect: () => void;
+}
+
 /**
- * The run's actions: Continue, and an overflow menu for everything else.
+ * The run's actions, in three kinds: **forward** (Continue, the skip to this
+ * season's end, Jump to…), **over again** (Restart season, Restart era) and
+ * **out** (Exit run). Nothing goes back in time; Back is the browser's, and
+ * moves between pages.
  *
- * **Continue is the only thing that moves the run forward a beat**; the rest
- * are rarer and live behind ⋯ — skipping, jumping, starting the season again,
- * leaving the run. Start again still asks inline, on the same row, because it
- * only re-runs this year; leaving the whole run asks in a dialog
- * (`RunDialogs.tsx`), which is also what the browser's Back is caught by.
+ * All of them are on the bar on a wide screen — Continue as the one primary
+ * button, the other ways forward beside it, the ones that throw work away
+ * quieter at the end. On a phone there is room for Continue alone, so the rest
+ * fold into ⋯: the same list, so the two layouts cannot offer different things.
+ * Both are rendered and CSS shows one, which keeps the choice in the stylesheet
+ * (a media query, `md:`) rather than in script.
  *
  * Drawn twice, in the sticky bar and at the foot of the page, from one set of
  * props, so the two copies always show the same thing.
@@ -93,23 +104,17 @@ export function RunActions(props: RunActionsProps) {
     );
   }
 
-  if (props.confirmingRestart) {
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-muted-foreground text-xs">
-          Start this season again on fresh dice?
-        </span>
-        <Button variant="outline" onClick={props.onRestart}>
-          Start again
-        </Button>
-        <Button variant="ghost" onClick={props.onCancelRestart}>
-          Cancel
-        </Button>
-      </div>
-    );
-  }
-
   const { state } = props;
+  const forward: Action[] = [
+    ...(state.skip === null ? [] : [{ label: state.skip, onSelect: props.onSkip }]),
+    ...(state.jump ? [{ label: "Jump to…", onSelect: props.onJump }] : []),
+  ];
+  const over: Action[] = [
+    ...(state.restartSeason ? [{ label: "Restart season", onSelect: props.onRestartSeason }] : []),
+    ...(state.restartEra ? [{ label: "Restart era", onSelect: props.onRestartEra }] : []),
+    { label: "Exit run", onSelect: props.onExit },
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {state.next === null ? null : (
@@ -120,26 +125,40 @@ export function RunActions(props: RunActionsProps) {
           </span>
         </Button>
       )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" aria-label="More run actions" className="px-3">
-            <span aria-hidden="true">⋯</span>
+      <div className="hidden flex-wrap items-center gap-2 md:flex">
+        {forward.map((action) => (
+          <Button key={action.label} variant="outline" onClick={action.onSelect}>
+            {action.label}
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {state.skip === null ? null : (
-            <DropdownMenuItem onSelect={props.onSkip}>{state.skip}</DropdownMenuItem>
-          )}
-          {state.jump ? (
-            <DropdownMenuItem onSelect={props.onJump}>Jump forward…</DropdownMenuItem>
-          ) : null}
-          {state.restart ? (
-            <DropdownMenuItem onSelect={props.onStartAgain}>Start again</DropdownMenuItem>
-          ) : null}
-          {state.skip === null && !state.jump && !state.restart ? null : <DropdownMenuSeparator />}
-          <DropdownMenuItem onSelect={props.onExit}>Exit run</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        ))}
+        {over.map((action) => (
+          <Button key={action.label} variant="ghost" onClick={action.onSelect}>
+            {action.label}
+          </Button>
+        ))}
+      </div>
+      <div className="md:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" aria-label="More run actions" className="px-3">
+              <span aria-hidden="true">⋯</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {forward.map((action) => (
+              <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+            {forward.length === 0 ? null : <DropdownMenuSeparator />}
+            {over.map((action) => (
+              <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

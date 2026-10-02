@@ -2,13 +2,13 @@ import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { GridEdit } from "./components/GridStage.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
-import { ExitRunDialog, JumpForwardDialog } from "./components/RunDialogs.js";
+import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
 import { type Crumb, runBarFor } from "./lib/run-bar.js";
 import { adjacentSeason } from "./lib/seasons.js";
-import type { View } from "./lib/timeline.js";
+import type { Place, View } from "./lib/timeline.js";
 import { type EraRun, type Run, useSeasonStore, type World } from "./store/season.js";
 
 /**
@@ -84,7 +84,8 @@ export function RunFrame({
   onContinue,
   onSkip,
   onJump,
-  onRestart,
+  onRestartSeason,
+  onRestartEra,
   onExit,
   leaving,
   children,
@@ -93,8 +94,12 @@ export function RunFrame({
   crumbs: readonly Crumb[];
   onContinue: () => void;
   onSkip: () => void;
-  onJump: (through: number) => void;
-  onRestart: () => void;
+  /** Jump to…, once the reader has picked where. */
+  onJump: (target: Place) => void;
+  /** Restart season, confirmed. */
+  onRestartSeason: () => void;
+  /** Restart era, confirmed. */
+  onRestartEra: () => void;
   /** Exit run, confirmed. */
   onExit: () => void;
   /**
@@ -105,31 +110,41 @@ export function RunFrame({
   children: React.ReactNode;
 }) {
   const [editingGrid, setEditingGrid] = useState(false);
-  const [asking, setAsking] = useState<"restart" | "exit" | "jump" | null>(null);
+  const [asking, setAsking] = useState<RunConfirm | "jump" | null>(null);
   const state = runBarFor(run);
   const actions: RunActionsProps = {
     state,
     // Only while the cursor is on a grid: the flag outlives nothing else.
     editingGrid: editingGrid && run.cursor.kind === "grid",
-    confirmingRestart: asking === "restart",
     onContinue,
     onSkip,
     onJump: () => {
       setAsking("jump");
     },
-    onStartAgain: () => {
-      setAsking("restart");
+    onRestartSeason: () => {
+      setAsking("restartSeason");
     },
-    onRestart: () => {
-      setAsking(null);
-      onRestart();
-    },
-    onCancelRestart: () => {
-      setAsking(null);
+    onRestartEra: () => {
+      setAsking("restartEra");
     },
     onExit: () => {
       setAsking("exit");
     },
+  };
+  // A held Back is asked as an exit, whatever else was being asked.
+  const confirming: RunConfirm | null =
+    leaving !== null ? "exit" : asking === "jump" || asking === "replace" ? null : asking;
+  const confirmed: Record<RunConfirm, () => void> = {
+    exit: () => {
+      if (leaving !== null) {
+        leaving.onConfirm();
+      } else {
+        onExit();
+      }
+    },
+    replace: () => {},
+    restartSeason: onRestartSeason,
+    restartEra: onRestartEra,
   };
 
   return (
@@ -141,15 +156,13 @@ export function RunFrame({
           <RunActions {...actions} />
         </div>
       </Shell>
-      <ExitRunDialog
-        open={asking === "exit" || leaving !== null}
-        variant="exit"
+      <RunConfirmDialog
+        open={confirming !== null}
+        variant={confirming ?? "exit"}
         onConfirm={() => {
           setAsking(null);
-          if (leaving !== null) {
-            leaving.onConfirm();
-          } else {
-            onExit();
+          if (confirming !== null) {
+            confirmed[confirming]();
           }
         }}
         onCancel={() => {
@@ -157,19 +170,17 @@ export function RunFrame({
           leaving?.onCancel();
         }}
       />
-      {run.cursor.kind === "review" ? (
-        <JumpForwardDialog
-          open={asking === "jump"}
-          lastCrowned={run.world.year}
-          onJump={(through) => {
-            setAsking(null);
-            onJump(through);
-          }}
-          onCancel={() => {
-            setAsking(null);
-          }}
-        />
-      ) : null}
+      <JumpDialog
+        open={asking === "jump"}
+        run={run}
+        onJump={(target) => {
+          setAsking(null);
+          onJump(target);
+        }}
+        onCancel={() => {
+          setAsking(null);
+        }}
+      />
     </GridEditingContext.Provider>
   );
 }

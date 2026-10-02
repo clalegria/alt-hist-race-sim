@@ -70,15 +70,13 @@ out, and getting it wrong is invisible: 1981 renders perfectly well with 1980's 
 names. `seasons.smoke.test.tsx` walks every authored season through every stage and
 checks each round against its own calendar entry.
 
-**"Start again" asks first, inline in the run bar** — it only re-runs this year, so it
-does not need the exit dialog. It draws a **fresh seed for the same year and the same
+**Restart season asks first**, in the run's confirm dialog
+(`.claude/rules/web-run-bar.md`). It draws a **fresh seed for the same year and the same
 `ratingMode`**: another go, not a replay, and everything the reader *chose* carries over
-— only the dice change. Both copies of the action row — sticky bar and page foot — share
-one confirming flag so they cannot disagree. There is no *Main menu* beside it: going
-Home no longer ends a run.
+— only the dice change. An era's *Restart era* is `.claude/rules/web-era.md`.
 
 **The grid offers the seasons either side of it**, in `SeasonSwitcher` — the shortcut
-for a reader who has just watched 1980 and wants 1981. It is where Start again lands them, and the alternative was Back plus a decade rail to
+for a reader who has just watched 1980 and wants 1981. It is where Restart season lands them, and the alternative was Back plus a decade rail to
 answer a one-button question. Drawn **only on the grid**, for the reason
 `RatingModeToggle` is — past it the reader has seen results that switching would throw
 away — and **only in a standalone season**, since an era's year belongs to the run.
@@ -88,7 +86,7 @@ than offered.
 
 **A run has no Back button of its own.** The browser's Back moves between its pages,
 and a Back past its first page — onto the setup page — asks whether to exit the run
-(`.claude/rules/web-routing.md`). **A setup page has no sticky bar at all**: the bar
+(`.claude/rules/web-run-bar.md`). **A setup page has no sticky bar at all**: the bar
 is the run's, and starts at its grid. The top nav is the way off a setup page. On every
 page that has a bar, **navigation is its right-hand end**.
 

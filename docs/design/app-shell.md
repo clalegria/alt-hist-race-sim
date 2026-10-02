@@ -3,7 +3,8 @@
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
 what is built — the router, the top nav, the timeline of beats, a page per beat, the
-run bar and the ways out of a run — is `.claude/rules/web-routing.md` and
+run bar and the ways out of a run — is `.claude/rules/web-routing.md`,
+`.claude/rules/web-run-bar.md` and
 `.claude/rules/web-app.md`. Where it sits in the build order is *routing and the app
 shell* in `docs/ROADMAP.md`; §10 is its own build order, one step per session.
 
@@ -59,7 +60,7 @@ The cursor is built as a list of beats (`.claude/rules/web-app.md`). What is lef
   matters once the app is public.
 
 Exiting — one dialog for Exit run, Back past the run's first page and Start while a run
-exists — is built (`.claude/rules/web-routing.md`).
+exists — is built (`.claude/rules/web-run-bar.md`).
 
 ## 4. Routes
 
@@ -94,13 +95,14 @@ grid and the sessions (each showing its own beat; the tabs and the rest are to c
 
 ## 5. The shell
 
-The top nav and the run bar are built (`.claude/rules/web-routing.md`). **PROPOSED** —
+The top nav and the run bar are built (`.claude/rules/web-routing.md`,
+`.claude/rules/web-run-bar.md`). **PROPOSED** —
 still to add:
 
 - **Share** in the run bar, beside Continue (§8).
 - **Run tabs** under it — *Overview Season Drivers Teams* — the run's sections, as data.
-- The phone form (*phone layout*, the next roadmap item) collapses the top nav to a menu
-  and the run bar to Continue plus the overflow; keep both as data so that is a restyle.
+- The top nav's phone form (*phone layout*, the next roadmap item): a menu. The run
+  bar's — Continue plus ⋯ — is built.
 
 ## 6. Pages
 

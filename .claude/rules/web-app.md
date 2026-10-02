@@ -12,8 +12,8 @@ they wrap *are* real dependencies (`react-popover`, `react-alert-dialog`,
 
 ## Screens and state
 
-**The URL says which page; the store holds the run.** Routes, the top nav and the run
-bar are `.claude/rules/web-routing.md`. The store's `run` is null until one is started,
+**The URL says which page; the store holds the run.** Routes and the top nav are
+`.claude/rules/web-routing.md`, the run bar `.claude/rules/web-run-bar.md`. The store's `run` is null until one is started,
 then a `Run` in `store/season.ts`: `season` for a single year, `era` for a run of them,
 each a world and a cursor. A `World` is a *member of the
 variants that have one* rather than a nullable field beside them, so nothing reads a
@@ -55,7 +55,8 @@ market event, a decision — **is a row in that file**, plus a page and a line i
 
 `continueRun()` is the store's one forward step: the next session, the summary, an era's
 review, then the next year (built there, which is the advanced mode's seam —
-`.claude/rules/web-era.md`). Nothing rewinds the cursor: Start again draws a new season
-and puts it at the grid, and Back moves between pages, never through time. The walk is
+`.claude/rules/web-era.md`); `jumpTo` is that step in a loop. Nothing rewinds the
+cursor: a restart draws a new season and puts it at the grid, and Back moves between
+pages, never through time. The walk is
 property-tested (every session once, strictly increasing, `isReached` agreeing with it),
-and `runBarFor()` is the whole of what can be done on each beat (`web-routing.md`).
+and `runBarFor()` is the whole of what can be done on each beat (`web-run-bar.md`).

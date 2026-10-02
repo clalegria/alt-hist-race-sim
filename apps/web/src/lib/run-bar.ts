@@ -4,14 +4,18 @@
  * Pure and exported because the bar *is* the run's navigation: an action
  * missing from the wrong beat strands the reader with no way on, and one
  * present on the wrong beat reaches a store action that refuses it. Kept apart
- * from `RunBar.tsx` so the whole set is tested without a DOM — the overflow
- * menu's items render into a portal, which a static render never draws.
+ * from `RunBar.tsx` so the whole set is tested without a DOM — the phone's
+ * overflow menu renders into a portal, which a static render never draws.
+ *
+ * The actions come in three kinds: **forward** (Continue one beat, or jump to a
+ * later one), **over again** (the season, or the whole era, on new dice), and
+ * **out** (exit the run). Nothing goes back in time.
  */
 
 import { crowned, cursorPlace, type Run } from "../store/season.js";
 import { linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
-import { isPlayable, nextEraYear, PLAYABLE_SEASONS } from "./seasons.js";
-import { describeBeat, isReached, nextBeat, type Place } from "./timeline.js";
+import { nextEraYear } from "./seasons.js";
+import { comparePlaces, describeBeat, isReached, nextBeat, type Place } from "./timeline.js";
 
 /** Where the cursor is, and which of the bar's actions it allows. */
 export interface RunBarState {
@@ -19,12 +23,17 @@ export interface RunBarState {
   readonly cursor: string;
   /** What Continue reveals, in the same words; null where there is nothing next. */
   readonly next: string | null;
-  /** The overflow's skip, worded for where the season is; null where there is none. */
+  /**
+   * The shortcut to the end of this season — a jump with its commonest target —
+   * worded for where the season is; null where there is no season left to skip.
+   */
   readonly skip: string | null;
-  /** Whether the overflow offers a jump forward through the era. */
+  /** Whether Jump to… is offered: an era with a later year to land in. */
   readonly jump: boolean;
-  /** Whether the overflow offers Start again: off the grid, and not between years. */
-  readonly restart: boolean;
+  /** Whether Restart season is offered: off the grid, and not between years. */
+  readonly restartSeason: boolean;
+  /** Whether Restart era is offered: an era past its first grid. */
+  readonly restartEra: boolean;
 }
 
 export function runBarFor(run: Run): RunBarState {
@@ -49,8 +58,10 @@ export function runBarFor(run: Run): RunBarState {
         : (cursor.kind === "qualifying" || cursor.kind === "race") && !lastRace
           ? "Simulate rest of the season"
           : null,
-    jump: cursor.kind === "review" && eraActionsFor(world.year).rest !== null,
-    restart: cursor.kind !== "grid" && cursor.kind !== "review",
+    // This year's end alone is what the skip already offers.
+    jump: jumpYears(run).some((year) => year > world.year),
+    restartSeason: cursor.kind !== "grid" && cursor.kind !== "review",
+    restartEra: run.kind === "era" && (run.run.seasons.length > 0 || cursor.kind !== "grid"),
   };
 }
 
@@ -104,40 +115,52 @@ export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
   );
 }
 
-/**
- * The two ways on from the roll of honour: the next year, and the far end.
- *
- * `next` is the year that follows the last one crowned, and `rest` the year the
- * era can run to in one go — null for each where it is not offered. `rest` is
- * null at the end of the range, and also when the next year *is* the end: a
- * jump that does what Continue does is a worse offer than none.
- */
-export function eraActionsFor(lastCrowned: number | undefined): {
-  next: number | null;
-  rest: number | null;
-} {
-  const next = lastCrowned === undefined ? null : nextEraYear(lastCrowned);
-  const end = PLAYABLE_SEASONS.at(-1);
-  return { next, rest: next === null || end === undefined || next === end ? null : end };
+/** Where in a year a jump lands: its grid, or its end (the season summary). */
+export type JumpPoint = "start" | "end";
+
+/** The place a jump to `point` of `year` lands on. */
+export function jumpPlace(year: number, point: JumpPoint): Place {
+  return { year, beat: point === "start" ? { kind: "grid" } : { kind: "summary" } };
 }
 
 /**
- * Which year a jump forward will actually run to.
- *
- * The reader picks a year in a picker that can outlive the jump it describes,
- * so a chosen year is only honoured while it is still ahead of the run and
- * still has a season behind it. Anything else falls back to `rest`, the far
- * end, which is also what an untouched picker means — a stale year here would
- * either do nothing or quietly run the era to 2026.
+ * The years a jump can land in, in order: this year while its end is still
+ * ahead, then every year the run can reach after it. Walked with `nextEraYear`,
+ * the same step the run takes, so a year with no seed data ends the list rather
+ * than being offered and then refused. A one-year run has only its own.
  */
-export function eraJumpTarget(
-  lastCrowned: number | undefined,
-  chosen: number | null,
-): number | null {
-  const { next, rest } = eraActionsFor(lastCrowned);
-  // Where there is no jump to make there is no target, whatever was picked.
-  if (rest === null || next === null) {
+export function jumpYears(run: Run): readonly number[] {
+  const cursor = cursorPlace(run);
+  const year = run.world.year;
+  const years = comparePlaces(jumpPlace(year, "end"), cursor) > 0 ? [year] : [];
+  if (run.kind === "era") {
+    for (let next = nextEraYear(year); next !== null; next = nextEraYear(next)) {
+      years.push(next);
+    }
+  }
+  return years;
+}
+
+/**
+ * Where a jump the reader has set up actually lands.
+ *
+ * The dialog's choice can outlive what it describes — the run moves on under
+ * it — so it is only honoured while it is still ahead of the cursor. A year
+ * that is not, or no year chosen, falls back to the first year a jump can
+ * reach after this one; the start of a year already begun falls back to its
+ * end. Null when there is nowhere to jump at all.
+ */
+export function jumpTarget(
+  run: Run,
+  chosen: { readonly year: number | null; readonly point: JumpPoint },
+): Place | null {
+  const years = jumpYears(run);
+  const later = years.find((year) => year > run.world.year);
+  const year =
+    chosen.year !== null && years.includes(chosen.year) ? chosen.year : (later ?? years[0]);
+  if (year === undefined) {
     return null;
   }
-  return chosen !== null && chosen >= next && isPlayable(chosen) ? chosen : rest;
+  const wanted = jumpPlace(year, chosen.point);
+  return comparePlaces(wanted, cursorPlace(run)) > 0 ? wanted : jumpPlace(year, "end");
 }

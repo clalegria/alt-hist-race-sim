@@ -35,8 +35,17 @@ async function pickYear(page: Page, label: string): Promise<void> {
   await page.getByRole("button", { name: label, exact: true, pressed: true }).waitFor();
 }
 
-/** Picks one of the run bar's overflow actions. */
+/**
+ * Picks one of the run bar's actions: a button on a wide screen, an item in
+ * the ⋯ menu on a phone. A role locator skips what CSS hides, so whichever
+ * layout is showing is the one found.
+ */
 async function runAction(page: Page, name: string): Promise<void> {
+  const direct = page.getByRole("button", { name, exact: true }).first();
+  if (await direct.isVisible()) {
+    await direct.click();
+    return;
+  }
   await button(page, "More run actions").click();
   await page.getByRole("menuitem", { name, exact: true }).click();
 }
@@ -164,8 +173,24 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-jump",
     reach: async (page) => {
-      await runAction(page, "Jump forward…");
-      await page.getByRole("alertdialog", { name: "Jump forward" }).waitFor();
+      await runAction(page, "Jump to…");
+      await page.getByRole("alertdialog", { name: "Jump to…" }).waitFor();
+    },
+  },
+  {
+    name: "era-jumped",
+    reach: async (page) => {
+      // The dialog opens on the end of the next year.
+      await button(page, `Simulate through ${YEAR + 1}`).click();
+      await page.waitForURL(`**/run/${YEAR + 1}`);
+      await cursorAt(page, `${YEAR + 1} · Season summary`);
+    },
+  },
+  {
+    name: "era-restart-dialog",
+    reach: async (page) => {
+      await runAction(page, "Restart era");
+      await page.getByRole("alertdialog", { name: "Restart the era?" }).waitFor();
     },
   },
 ];

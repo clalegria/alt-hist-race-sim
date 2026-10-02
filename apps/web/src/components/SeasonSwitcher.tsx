@@ -6,7 +6,7 @@ import { Button } from "./ui/button.js";
  *
  * A shortcut, not a navigation change: everything here can already be reached
  * by going Back and picking a year. What made it worth a control is where a
- * reader actually is when they want it — "Start again" lands them on the grid,
+ * reader actually is when they want it — Restart season lands them on the grid,
  * and the thing they most often want next is the year before or the year after
  * the one they have just watched. Two clicks and a decade rail to answer a
  * question that is one button wide.

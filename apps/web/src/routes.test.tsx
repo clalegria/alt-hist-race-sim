@@ -199,7 +199,7 @@ describe("the guards on the pages inside /run", () => {
 
   it("let the reader back to every page once the season is over", () => {
     useSeasonStore.getState().simulate(3, YEAR);
-    useSeasonStore.getState().skipToEnd();
+    useSeasonStore.getState().jumpTo({ year: YEAR, beat: { kind: "summary" } });
     for (const page of pages.filter((each) => each.name !== "review")) {
       expect(guardOf(page.route, page.params), page.name).toBeUndefined();
     }
@@ -225,13 +225,11 @@ describe("the run bar", () => {
         crumbs={crumbsFor(run, cursorPlace(run))}
         state={runBarFor(run)}
         editingGrid={false}
-        confirmingRestart={false}
         onContinue={noop}
         onSkip={noop}
         onJump={noop}
-        onStartAgain={noop}
-        onRestart={noop}
-        onCancelRestart={noop}
+        onRestartSeason={noop}
+        onRestartEra={noop}
         onExit={noop}
       />,
     );
@@ -247,6 +245,29 @@ describe("the run bar", () => {
     const html = await bar({ kind: "season", world, cursor: { kind: "grid" } });
     expect(html).toContain(">Continue");
     expect(html).toContain('aria-label="More run actions"');
+  });
+
+  it("puts every action on the bar on a wide screen, and folds them into ⋯ on a phone", async () => {
+    const era: Run = {
+      kind: "era",
+      run: { startYear: YEAR, seasons: [] },
+      world,
+      cursor: { kind: "race", round: 0 },
+    };
+    const html = await bar(era);
+    // Both layouts are in the markup and a media query shows one: the buttons
+    // in a row hidden below `md`, the menu's trigger hidden from it.
+    for (const label of [
+      "Simulate rest of the season",
+      "Jump to…",
+      "Restart season",
+      "Restart era",
+      "Exit run",
+    ]) {
+      expect(html, label).toContain(`>${label}</button>`);
+    }
+    expect(html).toContain('class="hidden flex-wrap items-center gap-2 md:flex"');
+    expect(html).toMatch(/class="md:hidden"><button[^>]*aria-label="More run actions"/);
   });
 
   it("offers no Continue at the end of a one-year run, but still the way out", async () => {

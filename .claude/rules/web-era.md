@@ -23,9 +23,10 @@ before the next year's grid. `EraRun` is `{ startYear, seasons }`.
 
 **An era reuses the season's beats rather than copying them.** `SeasonPage` in
 `App.tsx` takes an optional `run`, and that changes whether the ability toggle is offered
-and what the grid's carry-over copies — nothing else. `runBarFor` says the same thing,
-and a test asserts every beat but the summary offers the same actions in both. The store
-follows the same shape: `continueRun`, `skipToEnd`, `setGrid` and `restartSeason` are
+and what the grid's carry-over copies — nothing else. `runBarFor` says the same thing:
+a test asserts every beat but the summary offers the same season actions in both, the
+era adding only its own — the jump across years and Restart era. The store
+follows the same shape: `continueRun`, `jumpTo`, `setGrid` and `restartSeason` are
 written once and work in both.
 
 **`run.seasons` holds finished worlds, not a table of winners.** Results are the source
@@ -38,9 +39,14 @@ one season does, and a test asserts it.
 *crowned* is derived. `crowned(run)` adds the world once the cursor reaches its review,
 and every reader of the roll-up goes through it — so no world is stored twice and no
 year can be crowned twice. Continue off the review is the only thing that appends to
-`seasons`, on its way to building the next year. `restartSeason` inside an era re-runs
-the current year only, and is refused on the review, where that year has itself been
-crowned.
+`seasons`, on its way to building the next year.
+
+**Two restarts, both new dice and never a rewind.** `restartSeason` re-runs the current
+year only, the crowned years standing, and is refused on the review, where that year
+has itself been crowned. `restartEra` goes back to the first year's grid with every year
+since discarded; what carries is how the reader chose to play (randomness, ability mode)
+and **the first year's grid** — its edits, engines and bulk rule, a kept rule going on to
+arrange every year after. A grid edited in a later year goes with that year.
 
 ## What crosses a year boundary
 
@@ -66,23 +72,15 @@ end from the seed its first season was drawn on, which is what makes a bug repor
 seasons in usable, and no year repeats another's dice. `Math.random()` here would have
 cost exactly that, and is why the era does not call `randomSeed()` per year.
 
-**`simulateRestOfEra(through?)` is the same step in a loop**, run from the review and
-landing on the review of the year it stops on, not a second rule — it
-must produce *exactly* the history stepping through would have, and a test asserts the
-two are identical world for world, jumped to a mid-era year as well as run to the end.
-Skipping gives up the reading, never the seasons. `through` is the year it stops *on*,
-inclusive, and a partial jump is deliberately this action with a stop year rather than a
-loop of its own — an era jumped to 1980 and then played on must be the era that was
-stepped through. A `through` behind the run or with no seed data is refused outright, not
-clamped: falling through to "no target" would silently run the whole era to the end. It
-returns the state object itself when there is nothing left to run, rather than an equal
-copy, so a press that changes nothing does not re-render seventy-six rows.
-
-**Jump forward is in the run bar's overflow, on the review**, and opens
-`JumpForwardDialog`: a `YearPicker` restricted by its injected `playable` to years the
-era has not reached, defaulting to the far end. `eraJumpTarget(lastCrowned, chosen)` in
-`lib/run-bar.ts` decides what it runs: pure and exported like `eraActionsFor` beside it,
-because a stale year must fall back to the far end rather than reach the store.
+**A jump is Continue, pressed until it gets there.** `stepRun(run)` is one Continue as a
+pure function and `jumpRun(run, target)` loops it, so `jumpTo` writes *exactly* the
+history stepping through would have, by construction — tests assert it world for world,
+to a year's start and to its end. Skipping gives up the reading, never the seasons;
+every year passed is crowned unread. A target lands only on a year's **grid** or its
+**summary**, and one behind the cursor, of any other kind, or never reached (no seed
+data, another year of a one-year run) is refused outright, not clamped: a stray target
+must not quietly run the era to its end. Refused, `jumpTo` returns the state object
+itself, so a press that changes nothing re-renders nothing.
 
 **The era stops where the data does.** `nextEraYear(year)` in `lib/seasons.ts` returns
 `year + 1` only if it is authored — never a year written down, so the run reaches
@@ -126,9 +124,7 @@ feeds it.
 
 `EraPicker` is `SeasonPicker` with different copy, not a second component — the same
 years, the same disabled rule, so the two cannot drift apart the next time the range
-changes. `eraActionsFor(lastCrowned)` in `lib/run-bar.ts` is the review's way on: the next
-year, and the far end of the range — the latter null when it *is* the next year, since a
-jump doing what Continue does is a worse offer than none.
+changes.
 
 ## The career statistics
 

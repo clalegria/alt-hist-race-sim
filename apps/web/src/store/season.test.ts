@@ -232,6 +232,14 @@ function running(): { world: World; view: Beat } {
   return { world: current.world, view: current.cursor };
 }
 
+/** The run on to the end of the season on the cursor — the run bar's skip. */
+function skipToEnd(): void {
+  const current = active();
+  if (current !== null) {
+    useSeasonStore.getState().jumpTo({ year: current.world.year, beat: { kind: "summary" } });
+  }
+}
+
 describe("the run", () => {
   beforeEach(() => {
     useSeasonStore.getState().exitRun();
@@ -250,7 +258,7 @@ describe("the run", () => {
 
   it("discards a season in progress on exit", () => {
     useSeasonStore.getState().simulate(11, YEAR);
-    useSeasonStore.getState().skipToEnd();
+    skipToEnd();
     useSeasonStore.getState().exitRun();
     expect(active()).toBeNull();
   });
@@ -258,7 +266,7 @@ describe("the run", () => {
   it("ignores the season controls when no season is on screen", () => {
     // They are wired to buttons only the season screen renders, but a no-op is
     // a better answer than a crash on a world that does not exist.
-    for (const act of ["continueRun", "skipToEnd", "restartSeason"] as const) {
+    for (const act of ["continueRun", "restartSeason", "restartEra"] as const) {
       useSeasonStore.getState()[act]();
       expect(active(), act).toBeNull();
     }
@@ -309,12 +317,20 @@ describe("revealing the season", () => {
 
   it("skips to the summary from anywhere", () => {
     useSeasonStore.getState().continueRun();
-    useSeasonStore.getState().skipToEnd();
+    skipToEnd();
     expect(running().view).toEqual({ kind: "summary" });
   });
 
+  it("jumps nowhere but this season's end, in a one-year run", () => {
+    const before = active();
+    for (const year of [YEAR - 1, YEAR + 1]) {
+      useSeasonStore.getState().jumpTo({ year, beat: { kind: "summary" } });
+      expect(active(), String(year)).toBe(before);
+    }
+  });
+
   it("goes nowhere past the summary, which is where a one-year run ends", () => {
-    useSeasonStore.getState().skipToEnd();
+    skipToEnd();
     const before = active();
     useSeasonStore.getState().continueRun();
     expect(active()).toBe(before);
@@ -323,7 +339,7 @@ describe("revealing the season", () => {
   it("starts a fresh season of the same year, back at the grid", () => {
     // "Beginning of the season" is another go, not a replay: same year, new
     // seed, so the results are the reader's to discover again.
-    useSeasonStore.getState().skipToEnd();
+    skipToEnd();
     const before = running().world;
     useSeasonStore.getState().restartSeason();
     expect(running().view).toEqual({ kind: "grid" });
@@ -389,7 +405,7 @@ describe("driver ability mode", () => {
     expect(running().world.ratingMode).toBe("peak");
   });
 
-  it("carries the chosen mode through Start again", () => {
+  it("carries the chosen mode through Restart season", () => {
     // Picking aged drivers is a choice about how to play, not a property of one
     // season — starting another must not quietly hand back peak ratings.
     useSeasonStore.getState().setRatingMode("aged");
@@ -461,7 +477,7 @@ describe("the randomness level", () => {
     expect(running().world.randomness).toBe(level);
   });
 
-  it("carries through Start again, like every other choice", () => {
+  it("carries through Restart season, like every other choice", () => {
     useSeasonStore.getState().simulate(3, YEAR, "peak", 4);
     const before = running().world;
     useSeasonStore.getState().restartSeason();
@@ -549,7 +565,7 @@ describe("the chosen grid", () => {
     expect(running().world.lineup).toBeNull();
   });
 
-  it("carries the grid through Start again, on fresh dice", () => {
+  it("carries the grid through Restart season, on fresh dice", () => {
     useSeasonStore.getState().setGrid(swapped, null);
     const before = running().world;
     useSeasonStore.getState().restartSeason();
@@ -643,7 +659,7 @@ describe("the grid arranged by rule", () => {
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
 
-  it("re-runs a ranked rule through Start again, on fresh dice and the same grid", () => {
+  it("re-runs a ranked rule through Restart season, on fresh dice and the same grid", () => {
     // Applied, then restarted twice: the first restart is what materialises the
     // rule into a lineup, and the second is the claim — a rule that ranks by
     // rating does not depend on the dice, so a new seed must hand back the same
@@ -661,7 +677,7 @@ describe("the grid arranged by rule", () => {
     expect(running().world.seed).not.toBe(seed);
   });
 
-  it("re-rolls a shuffled grid on Start again, given enough goes", () => {
+  it("re-rolls a shuffled grid on Restart season, given enough goes", () => {
     // Not an assertion about one restart: two shuffles of the same field can
     // agree. What must not happen is the grid being frozen for the rest of the
     // run, which is what carrying the lineup instead of the rule would do.

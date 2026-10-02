@@ -6,16 +6,12 @@ paths:
   - "apps/web/src/App.tsx"
   - "apps/web/src/lib/areas.ts"
   - "apps/web/src/lib/run-places.ts"
-  - "apps/web/src/lib/run-bar.ts"
   - "apps/web/src/components/TopNav.tsx"
-  - "apps/web/src/components/RunBar.tsx"
-  - "apps/web/src/components/RunDialogs.tsx"
-  - "apps/web/src/components/ResumeRun.tsx"
   - "apps/web/src/routes.test.tsx"
   - "apps/web/src/test-router.tsx"
 ---
 
-# Web app — routing, the frame and the run bar
+# Web app — routing and the frame
 
 Which page the reader is on is the URL's; what the run is, is the store's
 (`.claude/rules/web-app.md`). What is still to build is `docs/design/app-shell.md`.
@@ -64,7 +60,7 @@ A one-year run's `/run` goes on to its summary, or the cursor before it ends; an
 
 Each child route resolves **twice**, through `guardRunPage` in `beforeLoad` (a stray
 URL never draws) and `RunPlacePage` in render, which returns `<Navigate replace>` when
-the store has moved under a page without a navigation — Start again on a race leaves
+the store has moved under a page without a navigation — a restart on a race leaves
 its URL naming a session the new season has not revealed.
 
 **Only the grid the cursor is on can be edited** (`editable`). Any other grid,
@@ -75,52 +71,9 @@ season switcher, and a line saying the grid has been raced.
 `SeasonPage` and `RunFrame` in `App.tsx` take their actions as props, so they never
 touch the router and still render through `renderToStaticMarkup` in tests.
 
-## The run bar
+## The run bar, and entering and leaving a run
 
-`RunLayout` (the `/run` layout) draws `RunFrame`: `Shell` with `RunBar` in the sticky
-bar, the same actions again at the page foot, and the dialogs. **Pages read, the run
-bar acts** — a page never advances or edits the run, the cursor's own grid excepted —
-so a read-only view of a run later is these pages with the bar's actions hidden.
-
-- **Breadcrumbs describe the page, the cursor text the run.** `crumbsFor(run, place)`:
-  `Era › 1984 › Round 3 › Race`, a one-year run starting at the year. A crumb links
-  only to a page reached; the last is the page itself, `aria-current="page"`. The
-  layout finds the page from the deepest match's `routeId` (`runPageOf`). Under them,
-  `1984 · Round 3/16 · Race` says where the cursor is.
-- **Continue** reveals the next beat and **pushes** its URL, from wherever the reader
-  is, so Back returns to the page they were on. Its `title` names the next beat.
-- **The ⋯ overflow** (Radix `DropdownMenu`): *Simulate full season* / *Simulate rest of
-  the season* (grid and sessions, not after the last race), *Jump forward…* (the
-  review, with years ahead), *Start again* (off the grid, not on the review), *Exit run*.
-  `runBarFor(run)` in `lib/run-bar.ts` decides which, and is what the tests read: the
-  menu's items render into a portal a static render never draws.
-- *Start again* asks inline in the bar, then replaces the URL with the new grid.
-  *Jump forward* opens `JumpForwardDialog` (`YearPicker` over years ahead,
-  `eraJumpTarget` deciding the run-to year) and replaces the URL with `/run`.
-- While the grid editor is open the actions give way to a note: the grid page raises
-  it through `GridEditingContext`, since the page is an `<Outlet />` the frame does
-  not render, and clears it on unmount.
-- The scroll-to-top on every change to the run lives in `RunLayout`; a change of URL
-  resets scroll by itself.
-
-## Entering and leaving a run
-
-- **Start** on a setup page (`SetupPage` in `run-routes.tsx`) calls
-  `startSeason`/`startEra`, then **pushes** the grid — so the entry behind a run's first
-  page is always its setup page.
-- **Navigation never discards a run.** Home, the top nav and back/forward leave it
-  waiting; Home's `ResumeRun` card links to the cursor's page.
-- **Three ways out, one dialog** — `ExitRunDialog` (Radix `AlertDialog`):
-  - *Exit run* in the overflow: `exitRun`, then `/` with `replace`.
-  - **Back past the run's first page**: `useBlocker` in `RunLayout` holds any
-    navigation `isBackPastStart(action, from, to)` matches — a `BACK` from `/run…` onto
-    `/season/new` or `/era/new` — and opens the dialog. Confirm is `proceed()` then
-    `exitRun()`; cancel is `reset()`.
-  - **Start while a run exists**: the setup page asks "Start a new run?" first.
-- The confirm buttons are plain buttons, not Radix's `Action`: `Action` also closes
-  through `onOpenChange`, which is the cancel path here.
-- **`/run` with no run redirects to `/`** in its `beforeLoad` guard: a typed URL, a
-  reload (nothing survives one yet), or forward onto an exited run.
+`.claude/rules/web-run-bar.md`, which loads with the bar's own files.
 
 ## The frame
 

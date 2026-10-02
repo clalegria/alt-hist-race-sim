@@ -53,7 +53,7 @@ import {
 } from "../lib/preferences.js";
 import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
-import { type Beat, nextBeat, type Place, type View } from "../lib/timeline.js";
+import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
 
 /** The serializable world. Add to this and it must stay plain data. */
 export interface World {
@@ -375,8 +375,7 @@ export function cursorPlace(run: Run): Place {
 
 /**
  * Whether the cursor is on a beat of the season itself rather than the era's
- * review — the beats on which a season can still be skipped through or started
- * again.
+ * review — the beats on which a season can still be started again.
  */
 function isPlaying(run: Run | null): run is Run & { readonly cursor: View } {
   return run !== null && run.cursor.kind !== "review";
@@ -444,27 +443,22 @@ interface SeasonStore {
    */
   readonly continueRun: () => void;
   /**
-   * Runs the era on in one go, up to and including `through` — or, with no year
-   * given, straight to the last authored season.
+   * Runs the run on to `target` in one go: a later year's grid, or a season's
+   * end (its summary). The one way of skipping — "simulate rest of the season"
+   * is this with the end of the current season as its target.
    *
-   * The era's "skip to the end", and it must produce **exactly** the history
-   * stepping through would have: each year is built the way Continue
-   * builds one, off the year before it, so skipping and playing differ only in
-   * what the reader stopped to read. A test asserts the two are identical. That
-   * is also why a *partial* jump is the same action with a stop year rather
-   * than its own loop: an era jumped to 1980 and then run on must be the era
-   * that was stepped through, year for year.
+   * **Continue, pressed until it gets there** (`jumpRun`), so a jump writes
+   * exactly the history stepping would have, by construction: skipping gives
+   * up the reading, never the seasons. Every year passed on the way is crowned
+   * unread.
    *
-   * A `through` that is behind the run, or that has no seed data, does nothing:
-   * the screen only offers years ahead of the last one crowned, and a target the
-   * loop could never reach would otherwise run the era to the end instead.
-   *
-   * None of these years is revealed session by session — they are crowned
-   * unread, which is what skipping means everywhere else here too. Only from
-   * the review, the one beat between years; it lands on the review of the last
-   * year it ran.
+   * A target that is not ahead of the cursor, is neither a grid nor a summary,
+   * or that the run can never reach — a year with no seed data, another year of
+   * a one-year run — is refused outright rather than clamped: a stray target
+   * must not quietly run the era to its end. Refused, it returns the state
+   * itself, so a press that changes nothing re-renders nothing.
    */
-  readonly simulateRestOfEra: (through?: number) => void;
+  readonly jumpTo: (target: Place) => void;
   /**
    * Re-runs the season from the same seed with the other ability model.
    *
@@ -502,8 +496,6 @@ interface SeasonStore {
      */
     arrangement?: GridArrangement | null,
   ) => void;
-  /** Jumps straight to the finished season, from the grid or any session. */
-  readonly skipToEnd: () => void;
   /**
    * The grid of the season next door — the year before or the year after — on a
    * fresh seed.
@@ -541,6 +533,18 @@ interface SeasonStore {
    * review, where the year on the cursor has itself been crowned.
    */
   readonly restartSeason: () => void;
+  /**
+   * Back to the grid of the era's first year, on a fresh seed, every year
+   * since discarded.
+   *
+   * The era's version of `restartSeason`, and the same promise: a new draw,
+   * not a rewind. What carries is how the reader chose to play — the
+   * randomness level, the ability mode — and **the first year's grid**, edits,
+   * engines and bulk rule included (a rule ticked to be kept goes on arranging
+   * every year after, as before). Grids edited in later years go with those
+   * years: each was a grid for a year this run no longer has.
+   */
+  readonly restartEra: () => void;
 }
 
 /** A standalone season at its opening grid. */
@@ -589,6 +593,60 @@ function nextEraWorld(last: World, year: number): World {
   );
 }
 
+/**
+ * The run one Continue further on, or null where there is nowhere further to
+ * go: a one-year run's summary, or an era's review once the data runs out.
+ *
+ * Off a review is onto a new year: the one just crowned joins the run, and the
+ * next is simulated from where its dice stopped.
+ */
+export function stepRun(run: Run): Run | null {
+  const year = run.kind === "era" ? nextEraYear(run.world.year) : null;
+  const next = nextBeat(
+    run.cursor,
+    run.world.season.races.length,
+    run.kind === "era",
+    year !== null,
+  );
+  if (next === null) {
+    return null;
+  }
+  if (run.kind === "era" && run.cursor.kind === "review" && year !== null) {
+    return {
+      kind: "era",
+      run: { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] },
+      world: nextEraWorld(run.world, year),
+      cursor: next,
+    };
+  }
+  return { ...run, cursor: next };
+}
+
+/**
+ * The run at `target`, reached by stepping — or null for a target a jump may
+ * not land on: not ahead of the cursor, not a grid or a season's end, or never
+ * reached because the run ends first.
+ */
+export function jumpRun(run: Run, target: Place): Run | null {
+  if (target.beat.kind !== "grid" && target.beat.kind !== "summary") {
+    return null;
+  }
+  if (comparePlaces(target, cursorPlace(run)) <= 0 || !isPlayable(target.year)) {
+    return null;
+  }
+  let at = run;
+  while (comparePlaces(cursorPlace(at), target) < 0) {
+    const next = stepRun(at);
+    if (next === null) {
+      return null;
+    }
+    at = next;
+  }
+  // Every grid and every summary is a beat the walk passes through, so it stops
+  // on the target exactly.
+  return at;
+}
+
 export const useSeasonStore = create<SeasonStore>((set, get) => ({
   // Nothing is simulated until a mode is chosen: the app opens with no run, and
   // a season nobody asked for is neither shown nor computed.
@@ -614,73 +672,14 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   continueRun: () => {
     set((state) => {
-      const run = state.run;
-      if (run === null) {
-        return state;
-      }
-      const year = run.kind === "era" ? nextEraYear(run.world.year) : null;
-      const next = nextBeat(
-        run.cursor,
-        run.world.season.races.length,
-        run.kind === "era",
-        year !== null,
-      );
-      if (next === null) {
-        return state;
-      }
-      // Off the review is onto a new year: the one just crowned joins the run,
-      // and the next is simulated from where its dice stopped.
-      if (run.kind === "era" && run.cursor.kind === "review" && year !== null) {
-        return {
-          run: {
-            kind: "era",
-            run: { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] },
-            world: nextEraWorld(run.world, year),
-            cursor: next,
-          },
-        };
-      }
-      return { run: { ...run, cursor: next } };
+      const next = state.run === null ? null : stepRun(state.run);
+      return next === null ? state : { run: next };
     });
   },
-  simulateRestOfEra: (through) => {
+  jumpTo: (target) => {
     set((state) => {
-      const run = state.run;
-      if (run?.kind !== "era" || run.cursor.kind !== "review") {
-        return state;
-      }
-      let last = run.world;
-      // Nothing left to run is nothing to do — and returning the state itself
-      // rather than an equal copy keeps the screen from re-rendering the whole
-      // roll of honour for a button press that changed nothing.
-      if (nextEraYear(last.year) === null) {
-        return state;
-      }
-      // A year already behind the run, or one with no season to play, is not a
-      // place to jump to. Refused rather than clamped: the alternative is a
-      // stray target silently running the whole era to 2026.
-      if (through !== undefined && (through <= last.year || !isPlayable(through))) {
-        return state;
-      }
-      // The same step Continue takes off a review, taken until the data runs
-      // out or the target year has been crowned.
-      const seasons = [...run.run.seasons];
-      for (
-        let year = nextEraYear(last.year);
-        year !== null && (through === undefined || year <= through);
-        year = nextEraYear(last.year)
-      ) {
-        seasons.push(last);
-        last = nextEraWorld(last, year);
-      }
-      return {
-        run: {
-          kind: "era",
-          run: { startYear: run.run.startYear, seasons },
-          world: last,
-          cursor: { kind: "review" },
-        },
-      };
+      const landed = state.run === null ? null : jumpRun(state.run, target);
+      return landed === null ? state : { run: landed };
     });
   },
   setRatingMode: (mode) => {
@@ -737,13 +736,6 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
         : state,
     );
   },
-  skipToEnd: () => {
-    set((state) =>
-      isPlaying(state.run) && state.run.cursor.kind !== "summary"
-        ? { run: { ...state.run, cursor: { kind: "summary" } } }
-        : state,
-    );
-  },
   switchSeasonYear: (year) => {
     set((state) => {
       if (state.run?.kind !== "season" || state.run.cursor.kind !== "grid") {
@@ -792,6 +784,31 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.engines,
             world.randomness,
             world.arrangement,
+          ),
+        ),
+      };
+    });
+  },
+  restartEra: () => {
+    set((state) => {
+      const run = state.run;
+      if (run?.kind !== "era") {
+        return state;
+      }
+      const first = run.run.seasons[0] ?? run.world;
+      const seed = randomSeed();
+      return {
+        run: openEra(
+          createWorld(
+            seed,
+            first.year,
+            first.ratingMode,
+            // As `restartSeason` does for one year: the reader's grid carries,
+            // and a rule behind it is thrown again on the new dice.
+            nextLineup(first, seed, first.ratingMode),
+            first.engines,
+            first.randomness,
+            first.arrangement,
           ),
         ),
       };
