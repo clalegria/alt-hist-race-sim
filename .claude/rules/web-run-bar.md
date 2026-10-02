@@ -55,16 +55,26 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   `startSeason`/`startEra`, then **pushes** the grid — so the entry behind a run's first
   page is always its setup page.
 - **Navigation never discards a run.** Home, the top nav and back/forward leave it
-  waiting; Home's `ResumeRun` card links to the cursor's page.
+  waiting. Home's `ResumeRun` card links to the cursor's page, with *Exit run* beside
+  the link — not inside it, since an `<a>` cannot hold a button.
 - **One dialog for everything that throws work away** — `RunConfirmDialog` (Radix
-  `AlertDialog`), worded per case in `RUN_CONFIRM_COPY`: the two restarts and three
-  ways out of a run.
-  - *Exit run*: `exitRun`, then `/` with `replace`.
+  `AlertDialog`), worded per case in `RUN_CONFIRM_COPY`: the two restarts and the ways
+  out of a run.
+- **A way out asks only when there is something to lose.** `isUntouched(run)` in the
+  store: the cursor still on the run's first grid, and that grid as it was entered.
+  Until then the run is still being set up, and going back to change the randomness is
+  not abandoning anything. The ability toggle and the year switcher keep a run
+  untouched; a grid edit, anything revealed, or a later era year does not. An untouched
+  run is left in the store by Back — navigation never discards one — and the setup
+  page's Start replaces it without asking.
+  - *Exit run*, from the bar or the Home card: `exitRun`; from the bar, then `/` with
+    `replace`.
   - **Back past the run's first page**: `useBlocker` in `RunLayout` holds any
     navigation `isBackPastStart(action, from, to)` matches — a `BACK` from `/run…` onto
-    `/season/new` or `/era/new` — and opens the dialog. Confirm is `proceed()` then
+    `/season/new` or `/era/new` — when the run is not untouched, reading the store at
+    the moment of the navigation, and opens the dialog. Confirm is `proceed()` then
     `exitRun()`; cancel is `reset()`.
-  - **Start while a run exists**: the setup page asks "Start a new run?" first.
+  - **Start while a touched run exists**: the setup page asks "Start a new run?" first.
 - The confirm buttons are plain buttons, not Radix's `Action`: `Action` also closes
   through `onOpenChange`, which is the cancel path here.
 - **`/run` with no run redirects to `/`** in its `beforeLoad` guard: a typed URL, a

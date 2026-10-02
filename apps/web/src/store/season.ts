@@ -374,6 +374,26 @@ export function cursorPlace(run: Run): Place {
 }
 
 /**
+ * Whether leaving the run would lose nothing: the cursor is still on its first
+ * grid, and that grid is as the season entered it.
+ *
+ * Every way out of a run asks first unless this is true, because until then
+ * the run is still being set up — going back to change the randomness is not
+ * abandoning anything. The ability toggle and the year switcher do not count:
+ * the first is remembered as a preference, the second only draws a different
+ * season. A grid edit does, and so does anything revealed or any later year.
+ */
+export function isUntouched(run: Run): boolean {
+  return (
+    run.cursor.kind === "grid" &&
+    (run.kind === "season" || run.run.seasons.length === 0) &&
+    run.world.lineup === null &&
+    run.world.engines === null &&
+    run.world.arrangement === null
+  );
+}
+
+/**
  * Whether the cursor is on a beat of the season itself rather than the era's
  * review — the beats on which a season can still be started again.
  */

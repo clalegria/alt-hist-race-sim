@@ -18,7 +18,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { adjacentSeason } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
-import { createWorld, type Run, useSeasonStore, type World } from "./season.js";
+import { createWorld, isUntouched, type Run, useSeasonStore, type World } from "./season.js";
 
 /** The year these fixtures run in, and the seats it enters. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -969,5 +969,61 @@ describe("stepping to the season next door", () => {
     const before = active();
     useSeasonStore.getState().switchSeasonYear(NEXT);
     expect(active()).toBe(before);
+  });
+});
+
+describe("an untouched run, which can be left without asking", () => {
+  /** Whether the run in the store is untouched, or a throw if there is none. */
+  function untouched(): boolean {
+    const current = active();
+    if (current === null) {
+      throw new Error("expected a run");
+    }
+    return isUntouched(current);
+  }
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("is a fresh season on its grid", () => {
+    expect(untouched()).toBe(true);
+  });
+
+  it("stays untouched through the ability toggle and the year switcher", () => {
+    // Neither loses anything: the mode is remembered, and the switcher only
+    // draws a different season.
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(untouched()).toBe(true);
+    const next = adjacentSeason(YEAR, 1);
+    if (next !== null) {
+      useSeasonStore.getState().switchSeasonYear(next);
+      expect(untouched()).toBe(true);
+    }
+  });
+
+  it("is touched once anything has been revealed", () => {
+    useSeasonStore.getState().continueRun();
+    expect(untouched()).toBe(false);
+  });
+
+  it("is touched by an edited grid: a swap, or a rule", () => {
+    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
+    expect(untouched()).toBe(false);
+    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore.getState().setGrid(null, null, {
+      kind: "random",
+      includeUnemployed: false,
+      filters: DEFAULT_DRIVER_FILTERS,
+      retain: false,
+    });
+    expect(untouched()).toBe(false);
+  });
+
+  it("is untouched again when an edit is undone", () => {
+    // `createWorld` normalises a grid put back as it was entered to no edit.
+    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
+    useSeasonStore.getState().setGrid(AUTHORED, null);
+    expect(untouched()).toBe(true);
   });
 });

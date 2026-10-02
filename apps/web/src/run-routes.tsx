@@ -29,7 +29,7 @@ import {
   resolveRunPage,
   runPageOf,
 } from "./lib/run-places.js";
-import { cursorPlace, useSeasonStore } from "./store/season.js";
+import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
 /**
  * The `beforeLoad` of every page inside `/run`: home when there is no run, the
@@ -110,10 +110,18 @@ export function RunLayout() {
   const matches = useMatches();
 
   // Held until the reader answers the exit dialog. Off once there is no run,
-  // so a Back after an exit is just a Back.
+  // so a Back after an exit is just a Back — and never held for an untouched
+  // run, where going back to the setup page loses nothing. The store is read at
+  // the moment of the navigation, not when this rendered.
   const blocker = useBlocker({
-    shouldBlockFn: ({ action, current, next }) =>
-      isBackPastStart(action, current.pathname, next.pathname),
+    shouldBlockFn: ({ action, current, next }) => {
+      const now = useSeasonStore.getState().run;
+      return (
+        now !== null &&
+        !isUntouched(now) &&
+        isBackPastStart(action, current.pathname, next.pathname)
+      );
+    },
     withResolver: true,
     enableBeforeUnload: false,
     disabled: run === null,
@@ -199,8 +207,9 @@ export function RunLayout() {
  *
  * Start **pushes** the run's first page, which is what makes this page the
  * entry behind it, and so what a Back past the start lands on (and is asked
- * about). Starting while a run is already in progress ends that run, so it asks
- * first, in the same dialog every other way out of a run uses.
+ * about). Starting while a run is in progress ends that run, so it asks first,
+ * in the same dialog every other way out of a run uses — unless the run is
+ * untouched, which is the reader who went back to change the randomness.
  */
 export function SetupPage({
   start,
@@ -210,7 +219,7 @@ export function SetupPage({
   picker: (onStart: (year: number, randomness: RandomnessLevel) => void) => React.ReactNode;
 }) {
   const navigate = useNavigate();
-  const hasRun = useSeasonStore((state) => state.run !== null);
+  const asks = useSeasonStore((state) => state.run !== null && !isUntouched(state.run));
   const [pending, setPending] = useState<{ year: number; randomness: RandomnessLevel } | null>(
     null,
   );
@@ -224,7 +233,7 @@ export function SetupPage({
   return (
     <Shell>
       {picker((year, randomness) => {
-        if (hasRun) {
+        if (asks) {
           setPending({ year, randomness });
         } else {
           begin(year, randomness);

@@ -286,4 +286,18 @@ describe("the Resume run card", () => {
     expect(html).toContain(`href="/run/${YEAR}/round/3/race"`);
     expect(html).toContain("Resume run");
   });
+
+  it("offers Exit run beside the link, not inside it", async () => {
+    const html = await inRouter(
+      <ResumeRun
+        title="Era from 1980"
+        detail="somewhere"
+        link={linkTo({ year: YEAR, beat: { kind: "grid" } })}
+      />,
+    );
+    expect(html).toContain(">Exit run</button>");
+    // A button inside an <a> is invalid HTML, and clicking it would follow the link.
+    const link = html.slice(html.indexOf("<a "), html.indexOf("</a>"));
+    expect(link).not.toContain("<button");
+  });
 });

@@ -23,6 +23,7 @@ import {
   cursorPlace,
   ERA_RATING_MODE,
   type EraRun,
+  isUntouched,
   type Run,
   useSeasonStore,
   type World,
@@ -625,5 +626,36 @@ describe("a season inside an era", () => {
     useSeasonStore.getState().setGrid(null, null);
     expect(running().run.seasons).toHaveLength(1);
     expect(running().world.year).toBe(authored.year);
+  });
+});
+
+describe("an untouched era", () => {
+  /** Whether the run in the store is untouched, or a throw if there is none. */
+  function untouched(): boolean {
+    const current = active();
+    if (current === null) {
+      throw new Error("expected a run");
+    }
+    return isUntouched(current);
+  }
+
+  it("is a fresh era on its first grid", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    expect(untouched()).toBe(true);
+  });
+
+  it("is touched on any later year's grid, untouched as that grid is", () => {
+    // The years behind it were read, so leaving would lose them.
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "grid" } });
+    expect(running().world.lineup).toBeNull();
+    expect(untouched()).toBe(false);
+  });
+
+  it("is untouched again after Restart era, on a first grid nobody edited", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
+    useSeasonStore.getState().restartEra();
+    expect(untouched()).toBe(true);
   });
 });

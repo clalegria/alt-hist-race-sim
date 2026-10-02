@@ -33,7 +33,7 @@ type-checked: a link to a path with no route fails `pnpm typecheck`.
 
 | URL | Route file | Page |
 |---|---|---|
-| `/` | `index.tsx` | `MainMenu`, with a `ResumeRun` card while a run exists |
+| `/` | `index.tsx` | `MainMenu`, with a `ResumeRun` card (resume, or exit) while a run exists |
 | `/season/new`, `/era/new` | `season/new.tsx`, `era/new.tsx` | `SetupPage` around `SeasonPicker` / `EraPicker` |
 | `/run` | `run.tsx` (layout), `run/index.tsx` | the era's roll of honour (`EraChampions` over `crowned(run)`) |
 | `/run/1984` | `run/$year/index.tsx` | that year's summary |

@@ -9,7 +9,7 @@ import { TopNav } from "./components/TopNav.js";
 import { type Crumb, runBarFor } from "./lib/run-bar.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import type { Place, View } from "./lib/timeline.js";
-import { type EraRun, type Run, useSeasonStore, type World } from "./store/season.js";
+import { type EraRun, isUntouched, type Run, useSeasonStore, type World } from "./store/season.js";
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
@@ -128,7 +128,12 @@ export function RunFrame({
       setAsking("restartEra");
     },
     onExit: () => {
-      setAsking("exit");
+      // Nothing to lose, so nothing to ask.
+      if (isUntouched(run)) {
+        onExit();
+      } else {
+        setAsking("exit");
+      }
     },
   };
   // A held Back is asked as an exit, whatever else was being asked.
