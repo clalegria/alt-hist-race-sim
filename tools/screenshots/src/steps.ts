@@ -95,8 +95,17 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "round-menu",
+    reach: async (page) => {
+      // The round's crumb opens a menu of every round, the ones ahead greyed.
+      await button(page, "Other rounds").click();
+      await page.getByRole("menuitem", { name: /^1 · / }).waitFor();
+    },
+  },
+  {
     name: "season-midseason",
     reach: async (page) => {
+      await page.keyboard.press("Escape");
       // The year's crumb is its page, there from the grid on.
       await page
         .getByRole("navigation", { name: "Breadcrumb" })
@@ -220,6 +229,56 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // The dialog opens on the end of the next year.
       await button(page, `Simulate through ${YEAR + 1}`).click();
+      await page.waitForURL(`**/run/${YEAR + 1}`);
+      await cursorAt(page, `${YEAR + 1} · Season summary`);
+    },
+  },
+  {
+    name: "year-menu",
+    reach: async (page) => {
+      // Two years reached now, so the year's crumb lists them.
+      await button(page, "Other years").click();
+      await page.getByRole("menuitem", { name: String(YEAR) }).waitFor();
+    },
+  },
+  {
+    name: "past-season",
+    reach: async (page) => {
+      // Clicked, not just opened: the menu's items are links that navigate.
+      await page.getByRole("menuitem", { name: String(YEAR) }).click();
+      await page.waitForURL(`**/run/${YEAR}`);
+      await page
+        .getByRole("link", { name: /Back to/ })
+        .first()
+        .waitFor();
+    },
+  },
+  {
+    name: "past-calendar",
+    reach: async (page) => {
+      await page
+        .getByRole("navigation", { name: "Season" })
+        .getByRole("link", { name: "Calendar", exact: true })
+        .click();
+      await page.waitForURL(`**/run/${YEAR}?tab=calendar`);
+    },
+  },
+  {
+    name: "past-race",
+    reach: async (page) => {
+      // A past season's race, straight from its calendar row.
+      await page.getByRole("link", { name: "Race →" }).first().click();
+      await page.waitForURL(`**/run/${YEAR}/round/1/race`);
+    },
+  },
+  {
+    name: "back-to-run",
+    reach: async (page) => {
+      // The way back to where the run is: the end of the year jumped to.
+      await page
+        .getByRole("link", { name: /Back to/ })
+        .first()
+        .click();
       await page.waitForURL(`**/run/${YEAR + 1}`);
       await cursorAt(page, `${YEAR + 1} · Season summary`);
     },

@@ -1,7 +1,9 @@
+import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import { eraChampions, eraSpan, type SeasonChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import type { RevealedWorld } from "../lib/reveal.js";
+import type { RunLink } from "../lib/run-places.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import type { EraRun } from "../store/season.js";
@@ -40,11 +42,14 @@ export function ChampionRow({
   latest,
   open,
   onToggle,
+  seasonLink,
 }: {
   season: SeasonChampions;
   latest: boolean;
   open: boolean;
   onToggle: () => void;
+  /** The season page of a year, for the foot of its panel. Absent in a test without a router. */
+  seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
   return (
     <EntryNames field={season.world.field}>
@@ -118,6 +123,17 @@ export function ChampionRow({
                   points={season.world.points}
                   description="Final classification."
                 />
+                {/* The panel first, the page second, as the career panels do. */}
+                {seasonLink === undefined ? null : (
+                  <p className="text-right text-sm">
+                    <Link
+                      {...seasonLink(season.year)}
+                      className="text-primary font-medium underline-offset-4 hover:underline"
+                    >
+                      {season.year} season page →
+                    </Link>
+                  </p>
+                )}
               </div>
             </TableCell>
           </TableRow>
@@ -157,10 +173,13 @@ export function ChampionRow({
 export function RollOfHonour({
   seasons,
   inProgress = null,
+  seasonLink,
 }: {
   seasons: readonly SeasonChampions[];
   /** The year the cursor is in, drawn last; null on the review. */
   inProgress?: RevealedWorld | null;
+  /** A year's season page. Absent in a test without a router. */
+  seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
   // One year at a time, because two full championship tables is already a page.
   const [openYear, setOpenYear] = useState<number | null>(null);
@@ -197,6 +216,7 @@ export function RollOfHonour({
                 onToggle={() => {
                   setOpenYear(openYear === season.year ? null : season.year);
                 }}
+                seasonLink={seasonLink}
               />
             </Fragment>
           ))}
@@ -313,9 +333,12 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
 export function EraChampions({
   run,
   inProgress = null,
+  seasonLink,
 }: {
   run: EraRun;
   inProgress?: RevealedWorld | null;
+  /** A year's season page, for the roll of honour's panels. Absent in a test without a router. */
+  seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
   const seasons = useMemo(() => eraChampions(run.seasons), [run.seasons]);
   // The settings the run was started on, which every year of it shares — they
@@ -343,7 +366,7 @@ export function EraChampions({
         opened from any of them is the same career.
       */}
       <SeasonHistoryProvider seasons={run.seasons}>
-        <RollOfHonour seasons={seasons} inProgress={inProgress} />
+        <RollOfHonour seasons={seasons} inProgress={inProgress} seasonLink={seasonLink} />
 
         {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
       </SeasonHistoryProvider>

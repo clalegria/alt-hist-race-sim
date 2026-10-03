@@ -6,15 +6,17 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { eraChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import { revealYear } from "../lib/reveal.js";
+import { linkTo } from "../lib/run-places.js";
 import { seasonTabLinks } from "../lib/season-tabs.js";
-import { sessionNav } from "../lib/session-nav.js";
+import { roundPages, sessionNav } from "../lib/session-nav.js";
 import type { Beat } from "../lib/timeline.js";
 import { inRouter } from "../test-router.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
-import { EraChampions } from "./EraChampions.js";
-import { NOT_YET } from "./SeasonCalendar.js";
+import { ChampionRow, EraChampions } from "./EraChampions.js";
+import { CalendarRow, NOT_YET } from "./SeasonCalendar.js";
 import { SeasonView } from "./SeasonView.js";
 
 const world = seededWorld(3, "aged", YEAR);
@@ -155,5 +157,76 @@ describe("the era overview's year in progress", () => {
     expect(html).toContain("No season finished yet.");
     expect(html).toContain("on the grid");
     expect(count(html, STANDOUT_ROW)).toBe(0);
+  });
+});
+
+describe("the links out of an opened row", () => {
+  const race = world.season.races[MID];
+  const teamFor = new Map(world.field.map((entrant) => [entrant.driverId, entrant.teamId]));
+  const calendarRow = (pages: boolean) => (
+    <table>
+      <tbody>
+        {race === undefined ? null : (
+          <CalendarRow
+            index={MID}
+            round={SEED.calendar[MID]}
+            race={race}
+            points={world.points}
+            teamFor={teamFor}
+            open
+            onToggle={() => {}}
+            pages={pages ? roundPages(YEAR, MID) : undefined}
+          />
+        )}
+      </tbody>
+    </table>
+  );
+
+  it("lead from a calendar round to its race page, from the row itself", async () => {
+    const html = await inRouter(calendarRow(true));
+    expect(html).toContain(`href="/run/${YEAR}/round/${MID + 1}/race"`);
+  });
+
+  it("link every round raced from the calendar, the pending round's qualifying, and none ahead", async () => {
+    const html = await inRouter(
+      <SeasonView
+        world={revealYear(world, { kind: "qualifying", round: MID })}
+        view={{ kind: "summary" }}
+        finished={false}
+        tab="calendar"
+        pagesOf={(round) => roundPages(YEAR, round)}
+      />,
+    );
+    const races = [...html.matchAll(/href="[^"]*\/round\/(\d+)\/race"/g)].map((m) => Number(m[1]));
+    expect(races).toEqual(Array.from({ length: MID }, (_, round) => round + 1));
+    const qualifying = [...html.matchAll(/href="[^"]*\/round\/(\d+)\/qualifying"/g)].map((m) =>
+      Number(m[1]),
+    );
+    expect(qualifying).toEqual([MID + 1]);
+  });
+
+  it("lead from a crowned year to its season page", async () => {
+    const champions = eraChampions([world])[0];
+    if (champions === undefined) {
+      throw new Error("no season to crown");
+    }
+    const html = await inRouter(
+      <table>
+        <tbody>
+          <ChampionRow
+            season={champions}
+            latest
+            open
+            onToggle={() => {}}
+            seasonLink={(year) => linkTo({ year, beat: { kind: "summary" } })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(html).toContain(`href="/run/${YEAR}"`);
+  });
+
+  it("are not drawn without the links, as in a test with no router", () => {
+    expect(renderToStaticMarkup(calendarRow(false))).not.toContain("<a ");
   });
 });

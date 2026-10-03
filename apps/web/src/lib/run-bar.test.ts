@@ -7,10 +7,20 @@
 import { describe, expect, it } from "vitest";
 import type { Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
-import { crumbsFor, jumpPlace, jumpTarget, jumpYears, runBarFor, runTitle } from "./run-bar.js";
+import {
+  type Crumb,
+  crumbsFor,
+  jumpPlace,
+  jumpTarget,
+  jumpYears,
+  returnFor,
+  runBarFor,
+  runTitle,
+} from "./run-bar.js";
 import { linkTo, REVIEW_LINK } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
-import type { Beat } from "./timeline.js";
+import { roundLink } from "./session-nav.js";
+import { type Beat, isReached } from "./timeline.js";
 
 const world = seededWorld(3, "aged", YEAR);
 const ROUNDS = world.season.races.length;
@@ -263,5 +273,108 @@ describe("the breadcrumbs", () => {
   it("link the era's overview before anything has been crowned", () => {
     const crumbs = crumbsFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "grid" } });
     expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK });
+  });
+});
+
+describe("the breadcrumbs' menus", () => {
+  const next = seededWorld(4, "aged", YEAR + 1);
+  /** An era in its second year, the first crowned behind it. */
+  const secondYear = (cursor: Beat): Run => ({
+    kind: "era",
+    run: { startYear: YEAR, seasons: [world] },
+    world: next,
+    cursor,
+  });
+  const menuOf = (crumbs: readonly Crumb[], label: string) =>
+    crumbs.find((crumb) => crumb.menu?.label === label)?.menu;
+
+  it("list every year the run has reached, each to its season page", () => {
+    const run = secondYear({ kind: "race", round: 0 });
+    for (const year of [YEAR, YEAR + 1]) {
+      const menu = menuOf(crumbsFor(run, { year, beat: { kind: "grid" } }), "Other years");
+      expect(menu?.items.map((item) => item.label)).toEqual([String(YEAR), String(YEAR + 1)]);
+      expect(menu?.items.map((item) => item.link)).toEqual([
+        linkTo({ year: YEAR, beat: { kind: "summary" } }),
+        linkTo({ year: YEAR + 1, beat: { kind: "summary" } }),
+      ]);
+      expect(menu?.items.filter((item) => item.current).map((item) => item.label)).toEqual([
+        String(year),
+      ]);
+    }
+  });
+
+  it("offer no other years in a one-year run, or on a year not reached", () => {
+    const one = crumbsFor(season({ kind: "summary" }), { year: YEAR, beat: { kind: "summary" } });
+    expect(menuOf(one, "Other years")).toBeUndefined();
+    const ahead = crumbsFor(secondYear({ kind: "grid" }), {
+      year: YEAR + 2,
+      beat: { kind: "race", round: 0 },
+    });
+    expect(ahead.some((crumb) => crumb.menu !== undefined)).toBe(false);
+  });
+
+  it("list every round of the year, linking only the ones reached, where the round links go", () => {
+    for (const cursor of beatsOf(ROUNDS)) {
+      const at = { year: YEAR, beat: cursor };
+      for (const page of beatsOf(ROUNDS)) {
+        if (
+          (page.kind !== "qualifying" && page.kind !== "race") ||
+          !isReached(at, { year: YEAR, beat: page })
+        ) {
+          continue;
+        }
+        const label = `${JSON.stringify(cursor)} → ${JSON.stringify(page)}`;
+        const menu = menuOf(crumbsFor(season(cursor), { year: YEAR, beat: page }), "Other rounds");
+        expect(menu?.items, label).toHaveLength(ROUNDS);
+        menu?.items.forEach((item, round) => {
+          expect(item.link, `${label} round ${round}`).toEqual(
+            roundLink(at, YEAR, page.kind, round),
+          );
+          expect(item.current).toBe(round === page.round);
+          expect(item.label.startsWith(`${round + 1} · `)).toBe(true);
+        });
+      }
+    }
+  });
+
+  it("give nothing ahead of the cursor a link", () => {
+    const at = { year: YEAR, beat: { kind: "qualifying", round: 1 } } as const;
+    const menu = menuOf(crumbsFor(season(at.beat), at), "Other rounds");
+    for (const item of menu?.items ?? []) {
+      if (item.link !== null) {
+        const params = "params" in item.link ? (item.link.params as Record<string, string>) : {};
+        const kind = item.link.to.endsWith("qualifying") ? "qualifying" : "race";
+        const place = { year: YEAR, beat: { kind, round: Number(params.round) - 1 } } as const;
+        expect(isReached(at, place), item.label).toBe(true);
+      }
+    }
+    expect(menu?.items.filter((item) => item.link === null)).toHaveLength(ROUNDS - 2);
+  });
+});
+
+describe("the way back to where the run is", () => {
+  it("is not offered on the cursor's own page, whatever the beat", () => {
+    for (const beat of beatsOf(ROUNDS)) {
+      expect(returnFor(season(beat), { year: YEAR, beat }), JSON.stringify(beat)).toBeNull();
+      expect(returnFor(era(beat), { year: YEAR, beat }), JSON.stringify(beat)).toBeNull();
+    }
+    expect(returnFor(era({ kind: "review" }), { year: YEAR, beat: { kind: "review" } })).toBeNull();
+  });
+
+  it("leads from any other page to the cursor's, named as the bar names the cursor", () => {
+    const cursor: Beat = { kind: "race", round: Math.min(2, ROUNDS - 1) };
+    const run = season(cursor);
+    for (const beat of beatsOf(ROUNDS)) {
+      if (JSON.stringify(beat) === JSON.stringify(cursor)) {
+        continue;
+      }
+      expect(returnFor(run, { year: YEAR, beat }), JSON.stringify(beat)).toEqual({
+        label: runBarFor(run).cursor,
+        link: linkTo({ year: YEAR, beat: cursor }),
+      });
+    }
+    // An era's overview, opened from its first grid.
+    const overview = returnFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "review" } });
+    expect(overview?.link).toEqual(linkTo({ year: YEAR, beat: { kind: "grid" } }));
   });
 });

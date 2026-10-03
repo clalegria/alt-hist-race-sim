@@ -82,8 +82,9 @@ its tabs, the grid and the sessions (`.claude/rules/web-routing.md`).
 
 ## 5. The shell
 
-The top nav and the run bar are built (`.claude/rules/web-routing.md`,
-`.claude/rules/web-run-bar.md`). **PROPOSED** —
+The top nav and the run bar are built, the breadcrumbs with menus of the other years
+and rounds (`.claude/rules/web-routing.md`, `.claude/rules/web-run-bar.md`).
+**PROPOSED** —
 still to add:
 
 - **Share** in the run bar, beside Continue (§8).

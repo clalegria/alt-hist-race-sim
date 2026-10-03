@@ -24,8 +24,9 @@ import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
 import { AREAS, type Area, isAvailable } from "./lib/areas.js";
-import { crumbsFor, runBarFor } from "./lib/run-bar.js";
+import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import { linkTo } from "./lib/run-places.js";
+import type { Place } from "./lib/timeline.js";
 import { Route as GridRoute } from "./routes/run/$year/grid.js";
 import { Route as SeasonRoute } from "./routes/run/$year/index.js";
 import { Route as QualifyingRoute } from "./routes/run/$year/round/$round/qualifying.js";
@@ -216,10 +217,12 @@ describe("the guards on the pages inside /run", () => {
 describe("the run bar", () => {
   const world = seededWorld(3, "aged", YEAR);
   const noop = () => {};
-  const bar = (run: Run) =>
+  /** The bar on `place`, the cursor's own page unless another is named. */
+  const bar = (run: Run, place: Place = cursorPlace(run)) =>
     inRouter(
       <RunBar
-        crumbs={crumbsFor(run, cursorPlace(run))}
+        crumbs={crumbsFor(run, place)}
+        returnTo={returnFor(run, place)}
         state={runBarFor(run)}
         editingGrid={false}
         onContinue={noop}
@@ -265,6 +268,30 @@ describe("the run bar", () => {
     }
     expect(html).toContain('class="hidden flex-wrap items-center gap-2 md:flex"');
     expect(html).toMatch(/class="md:hidden"><button[^>]*aria-label="More run actions"/);
+  });
+
+  it("puts a menu of the other rounds beside the round, and none of other years in one year", async () => {
+    // The menus' items render into a portal, so they are tested as data in
+    // `lib/run-bar.test.ts`; here, that the button is drawn.
+    const html = await bar({ kind: "season", world, cursor: { kind: "race", round: 0 } });
+    expect(html).toMatch(/<button[^>]*aria-label="Other rounds"/);
+    expect(html).not.toContain('aria-label="Other years"');
+  });
+
+  it("puts the way back first on a page away from the cursor, Continue beside it", async () => {
+    const run: Run = { kind: "season", world, cursor: { kind: "grid" } };
+    const away = await bar(run, { year: YEAR, beat: { kind: "summary" } });
+    // A link, since it goes somewhere, styled as the primary button.
+    expect(away).toMatch(
+      new RegExp(`<a[^>]*href="/run/${YEAR}/grid"[^>]*>[^]*?Back to ${YEAR} · Grid`),
+    );
+    expect(away).toContain(`Run is at ${YEAR} · Grid`);
+    // Continue is still there, but no longer the primary button.
+    expect(away).toMatch(/<button[^>]*class="[^"]*border-border[^"]*"[^>]*title="Next:/);
+
+    const home = await bar(run);
+    expect(home).not.toContain("Back to");
+    expect(home).not.toContain("Run is at");
   });
 
   it("offers no Continue at the end of a one-year run, but still the way out", async () => {

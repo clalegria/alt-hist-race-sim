@@ -27,7 +27,11 @@ After round 3 of 16" before, then the settings line; under them **one tab at a t
 - **Calendar** — `SeasonCalendar` over every round of the calendar (`rounds`), not just
   the races revealed. A round not reached is greyed, does not open, and shows `NOT_YET`
   in place of its pole and winner; the cursor's qualifying-only round (`pending`) shows
-  its pole and nothing more.
+  its pole and nothing more. **It is the season's table of contents, so each row links
+  its page** in a last column (`pagesOf`, from `roundPages`): *Race →* on a round raced,
+  *Qualifying →* on the pending round, nothing ahead. The name still opens the
+  classification in place, the quick look. `CalendarRow` is **controlled** like the
+  roll of honour's `ChampionRow`, so an opened row renders in a test.
 - **Grid** — `SeasonGrid` with the shared sort switch.
 
 **A tab is a search param, not a path**: the path says *which* season, the query how it
@@ -46,12 +50,14 @@ A session page has `SessionHeader` — the round's name, flag, number and circui
 or *Classification*. **They move between places and never reveal**: a link only to a
 place reached, anything ahead drawn disabled (a `span`, never an `<a>` to nowhere). The
 next round keeps the session on screen, or goes to its qualifying while its race is
-ahead. They stay within a season.
+ahead. They stay within a season; across rounds and years, the breadcrumbs' menus
+(`.claude/rules/web-run-bar.md`) use the same `roundLink`.
 
 ## Testing
 
-Both take their links as props, like the run bar, so `SeasonView` renders without them
-in a test with no router; a test that needs them renders inside `inRouter`
+Everything here takes its links as props, like the run bar, so `SeasonView` renders
+without them in a test with no router; a test that needs them renders inside `inRouter`
 (`test-router.tsx`). `lib/session-nav.test.ts` walks every cursor × every reached
 session; `season-pages.test.tsx` counts the calendar's rows, its openable rounds and its
-`NOT_YET` markers against the cursor.
+`NOT_YET` markers against the cursor, and opens a `CalendarRow` and a `ChampionRow` for
+their links.

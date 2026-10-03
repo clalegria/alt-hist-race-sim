@@ -13,7 +13,7 @@ import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
-import type { SessionNav } from "../lib/session-nav.js";
+import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
 import { CompactStandings } from "./CompactStandings.js";
@@ -240,6 +240,8 @@ interface SeasonViewProps {
   readonly tab?: SeasonTab;
   /** On the season's page, the links to its tabs. Absent in a test without a router. */
   readonly tabs?: readonly SeasonTabLink[];
+  /** On the season's page, a round's pages for the calendar. Absent in a test without a router. */
+  readonly pagesOf?: (round: number) => RoundPages;
   /** On a session's page, the links around it. Absent in a test without a router. */
   readonly sessionNav?: SessionNav | null;
 }
@@ -264,6 +266,7 @@ function SeasonBody({
   finished = true,
   tab = "standings",
   tabs,
+  pagesOf,
   sessionNav,
 }: SeasonViewProps) {
   // Whether the grid editor is open. The page is told too — it puts the way
@@ -334,6 +337,7 @@ function SeasonBody({
         finished={finished}
         tab={tab}
         {...(tabs === undefined ? {} : { tabs })}
+        pagesOf={pagesOf}
       />
     );
   }

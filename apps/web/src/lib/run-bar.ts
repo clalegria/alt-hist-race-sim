@@ -14,7 +14,8 @@
 
 import { cursorPlace, type Run } from "../store/season.js";
 import { laterYears, linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
-import { nextEraYear } from "./seasons.js";
+import { nextEraYear, seasonSeed } from "./seasons.js";
+import { roundLink } from "./session-nav.js";
 import { comparePlaces, describeBeat, isReached, nextBeat, type Place } from "./timeline.js";
 
 /** Where the cursor is, and which of the bar's actions it allows. */
@@ -65,15 +66,74 @@ export function runBarFor(run: Run): RunBarState {
   };
 }
 
+/** The way back to where the run is, from a page that is somewhere else. */
+export interface ReturnLink {
+  /** The cursor in words, as the run bar says it: "1985 · Grid". */
+  readonly label: string;
+  readonly link: RunLink;
+}
+
+/**
+ * The way back to the cursor's page, while the page on screen is another one —
+ * the "jump to live" a stream offers once you have scrolled back. Null on the
+ * cursor's own page, where there is nowhere to go back to.
+ *
+ * Continue acts on the cursor whatever page is on screen, so from anywhere
+ * else it would advance a run the reader is not looking at; this is what the
+ * bar puts first instead.
+ */
+export function returnFor(run: Run, place: Place): ReturnLink | null {
+  const cursor = cursorPlace(run);
+  return comparePlaces(place, cursor) === 0
+    ? null
+    : { label: runBarFor(run).cursor, link: linkTo(cursor) };
+}
+
 /** What a run is called on the Home page's Resume card. */
 export function runTitle(run: Run): string {
   return run.kind === "era" ? `Era from ${run.run.startYear}` : `${run.world.year} season`;
+}
+
+/** One entry of a crumb's menu: a sibling page, null while it is still ahead. */
+export interface CrumbItem {
+  readonly label: string;
+  readonly link: RunLink | null;
+  /** The one the page on screen belongs to. */
+  readonly current: boolean;
+}
+
+/** A crumb's siblings: the other years, or the other rounds of this one. */
+export interface CrumbMenu {
+  /** What the menu's button is called, for a screen reader. */
+  readonly label: string;
+  readonly items: readonly CrumbItem[];
 }
 
 /** One breadcrumb. `link` is absent for the page itself and for a place not reached. */
 export interface Crumb {
   readonly label: string;
   readonly link?: RunLink;
+  /** Its siblings, so the trail moves sideways as well as up. */
+  readonly menu?: CrumbMenu;
+}
+
+/** The years the run has reached, earliest first. */
+function yearsReached(run: Run): readonly number[] {
+  return [
+    ...(run.kind === "era" ? run.run.seasons.map((world) => world.year) : []),
+    run.world.year,
+  ];
+}
+
+/** How many rounds a year the run has reached has, off that year's own world. */
+function roundsOf(run: Run, year: number): number {
+  const world =
+    year === run.world.year
+      ? run.world
+      : run.kind === "era"
+        ? run.run.seasons.find((each) => each.year === year)
+        : undefined;
+  return world?.season.races.length ?? 0;
 }
 
 /**
@@ -84,35 +144,70 @@ export interface Crumb {
  * how far the run has got; the two differ whenever the reader has gone back to
  * look at something. A crumb links only to a page the reader has reached, and
  * the last crumb — this page — links nowhere.
+ *
+ * On a year the reader has reached, the year and the round also carry a
+ * **menu of their siblings**: every year reached, each to its season page,
+ * once there is more than one; and every round of the year, each where
+ * `roundLink` sends it, a round still ahead listed without a link.
  */
 export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
   const cursor = cursorPlace(run);
-  const crumbs: { label: string; link?: RunLink | undefined }[] = [];
+  const crumbs: Crumb[] = [];
   // The era's overview is there from its first grid on.
   if (run.kind === "era") {
     crumbs.push({ label: "Era", link: REVIEW_LINK });
   }
   const beat = place.beat;
+  // The year's page opens with its grid, so any page of a year reached has it.
+  const yearReached = isReached(cursor, { year: place.year, beat: { kind: "grid" } });
   if (beat.kind !== "review") {
-    // The year's page opens with its grid, so any page of a year reached has it.
+    const years = yearsReached(run);
     crumbs.push({
       label: String(place.year),
-      link: isReached(cursor, { year: place.year, beat: { kind: "grid" } })
-        ? linkTo({ year: place.year, beat: { kind: "summary" } })
-        : undefined,
+      ...(yearReached ? { link: linkTo({ year: place.year, beat: { kind: "summary" } }) } : {}),
+      ...(yearReached && years.length > 1
+        ? {
+            menu: {
+              label: "Other years",
+              items: years.map((year) => ({
+                label: String(year),
+                link: linkTo({ year, beat: { kind: "summary" } }),
+                current: year === place.year,
+              })),
+            },
+          }
+        : {}),
     });
   }
   if (beat.kind === "grid") {
     crumbs.push({ label: "Grid" });
   } else if (beat.kind === "qualifying" || beat.kind === "race") {
-    crumbs.push({ label: `Round ${beat.round + 1}` });
+    const calendar = seasonSeed(place.year).calendar;
+    crumbs.push({
+      label: `Round ${beat.round + 1}`,
+      ...(yearReached
+        ? {
+            menu: {
+              label: "Other rounds",
+              items: Array.from({ length: roundsOf(run, place.year) }, (_, round) => ({
+                label: `${round + 1} · ${calendar[round]?.name ?? `Round ${round + 1}`}`,
+                link: roundLink(cursor, place.year, beat.kind, round),
+                current: round === beat.round,
+              })),
+            },
+          }
+        : {}),
+    });
     crumbs.push({ label: beat.kind === "qualifying" ? "Qualifying" : "Race" });
   }
-  return crumbs.map((crumb, index) =>
-    crumb.link === undefined || index === crumbs.length - 1
-      ? { label: crumb.label }
-      : { label: crumb.label, link: crumb.link },
-  );
+  // The last crumb is the page itself, so it links nowhere; its menu stays.
+  return crumbs.map((crumb, index) => {
+    if (index !== crumbs.length - 1 || crumb.link === undefined) {
+      return crumb;
+    }
+    const { link: _, ...rest } = crumb;
+    return rest;
+  });
 }
 
 /** Where in a year a jump lands: its grid, or its end (the season summary). */

@@ -7,6 +7,7 @@ import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
+import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
@@ -172,11 +173,14 @@ export function SeasonOverview({
   finished,
   tab,
   tabs,
+  pagesOf,
 }: {
   world: RevealedWorld;
   finished: boolean;
   tab: SeasonTab;
   tabs?: readonly SeasonTabLink[] | undefined;
+  /** A round's pages, for the calendar's expansions. Absent in a test without a router. */
+  pagesOf?: ((round: number) => RoundPages) | undefined;
 }) {
   const { season, year, points } = world;
   // Both read the year being played rather than a season pinned at import
@@ -245,6 +249,7 @@ export function SeasonOverview({
             points={points}
             teamFor={teamFor}
             rounds={season.rounds}
+            pagesOf={pagesOf}
             pending={
               season.qualifying === null
                 ? null

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
-import type { Crumb, RunBarState } from "../lib/run-bar.js";
-import { Button } from "./ui/button.js";
+import type { Crumb, CrumbMenu, ReturnLink, RunBarState } from "../lib/run-bar.js";
+import { Button, buttonClass } from "./ui/button.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +11,56 @@ import {
 } from "./ui/dropdown-menu.js";
 
 /**
- * Where this page sits in the run: `Era › 1984 › Round 3 › Race`.
+ * A crumb's siblings, behind a `▾` beside it: the other years, or the other
+ * rounds of this one. Each is a `Link` inside the menu item (`asChild`), so it
+ * is a real anchor — it opens in a new tab — with Radix's keyboard handling
+ * around it. One still ahead is listed, disabled, so the season's length shows.
+ */
+function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={menu.label}
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded px-0.5 text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
+        ▾
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-h-80 min-w-48 overflow-y-auto">
+        {menu.items.map((item) =>
+          item.link === null ? (
+            <DropdownMenuItem key={item.label} disabled>
+              {item.label} <span className="text-muted-foreground ml-auto pl-3">not yet</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem key={item.label} asChild>
+              <Link
+                {...item.link}
+                {...(item.current ? { "aria-current": "page" as const } : {})}
+                className={item.current ? "font-semibold" : undefined}
+              >
+                {item.label}
+                {item.current ? (
+                  <span aria-hidden="true" className="ml-auto pl-3">
+                    ✓
+                  </span>
+                ) : null}
+              </Link>
+            </DropdownMenuItem>
+          ),
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/**
+ * Where this page sits in the run: `Era › 1984 ▾ › Round 3 ▾ › Race`.
  *
  * A real `<nav>` with an ordered list, the pattern screen readers announce as a
  * breadcrumb trail, and `aria-current="page"` on the last crumb. A crumb with a
- * link is a `Link`, so it can be opened in a new tab like any other.
+ * link is a `Link`, so it can be opened in a new tab like any other. A crumb
+ * with siblings has a menu of them beside it — the breadcrumb switcher — so
+ * the trail moves across years and rounds as well as up.
  */
 export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
   return (
@@ -30,7 +75,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                   ›
                 </li>
               )}
-              <li>
+              <li className="flex items-center gap-0.5">
                 {crumb.link !== undefined ? (
                   <Link
                     {...crumb.link}
@@ -46,6 +91,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                     {crumb.label}
                   </span>
                 )}
+                {crumb.menu === undefined ? null : <CrumbMenuButton menu={crumb.menu} />}
               </li>
             </Fragment>
           );
@@ -69,6 +115,11 @@ export interface RunActionsProps {
   readonly onRestartEra: () => void;
   /** Asks, then exits the run. */
   readonly onExit: () => void;
+  /**
+   * The way back to where the run is, while the page on screen is elsewhere;
+   * null or absent on the cursor's own page.
+   */
+  readonly returnTo?: ReturnLink | null;
 }
 
 /** One action, as both layouts draw it. */
@@ -105,10 +156,18 @@ export function RunActions(props: RunActionsProps) {
   }
 
   const { state } = props;
+  // Away from the cursor's page, the way back takes the primary slot and
+  // Continue steps aside: it would advance a run the reader is not looking at.
+  const away = props.returnTo ?? null;
   const forward: Action[] = [
     ...(state.skip === null ? [] : [{ label: state.skip, onSelect: props.onSkip }]),
     ...(state.jump ? [{ label: "Jump to…", onSelect: props.onJump }] : []),
   ];
+  // On a phone there is room for one button beside ⋯, so Continue joins the menu.
+  const phoneForward: Action[] =
+    away === null || state.next === null
+      ? forward
+      : [{ label: "Continue", onSelect: props.onContinue }, ...forward];
   const over: Action[] = [
     ...(state.restartSeason ? [{ label: "Restart season", onSelect: props.onRestartSeason }] : []),
     ...(state.restartEra ? [{ label: "Restart era", onSelect: props.onRestartEra }] : []),
@@ -117,8 +176,22 @@ export function RunActions(props: RunActionsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {away === null ? null : (
+        <Link {...away.link} className={buttonClass("primary")}>
+          <span aria-hidden="true" className="mr-1.5">
+            ↩
+          </span>
+          Back to {away.label}
+        </Link>
+      )}
       {state.next === null ? null : (
-        <Button onClick={props.onContinue} title={`Next: ${state.next}`}>
+        <Button
+          onClick={props.onContinue}
+          title={`Next: ${state.next}`}
+          variant={away === null ? "primary" : "outline"}
+          // Away, it is on the ⋯ menu on a phone instead.
+          className={away === null ? undefined : "hidden md:inline-flex"}
+        >
           Continue
           <span aria-hidden="true" className="ml-1.5">
             ▸
@@ -145,12 +218,12 @@ export function RunActions(props: RunActionsProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {forward.map((action) => (
+            {phoneForward.map((action) => (
               <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
                 {action.label}
               </DropdownMenuItem>
             ))}
-            {forward.length === 0 ? null : <DropdownMenuSeparator />}
+            {phoneForward.length === 0 ? null : <DropdownMenuSeparator />}
             {over.map((action) => (
               <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
                 {action.label}
@@ -173,7 +246,16 @@ export function RunBar({ crumbs, ...actions }: RunActionsProps & { crumbs: reado
     <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
       <div className="flex flex-col gap-0.5 leading-tight">
         <Breadcrumbs crumbs={crumbs} />
-        <span className="text-muted-foreground text-xs">{actions.state.cursor}</span>
+        {actions.returnTo === undefined || actions.returnTo === null ? (
+          <span className="text-muted-foreground text-xs">{actions.state.cursor}</span>
+        ) : (
+          <Link
+            {...actions.returnTo.link}
+            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+          >
+            Run is at {actions.state.cursor}
+          </Link>
+        )}
       </div>
       <RunActions {...actions} />
     </div>

@@ -21,7 +21,7 @@ import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
 import { NotReached } from "./components/NotReached.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
-import { crumbsFor, runBarFor } from "./lib/run-bar.js";
+import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import {
   isBackPastStart,
   linkTo,
@@ -31,7 +31,7 @@ import {
   runPageOf,
 } from "./lib/run-places.js";
 import { type SeasonTab, seasonTabLinks } from "./lib/season-tabs.js";
-import { sessionNav } from "./lib/session-nav.js";
+import { roundPages, sessionNav } from "./lib/session-nav.js";
 import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
 /**
@@ -103,7 +103,13 @@ export function RunPlacePage({
         />
       );
     case "review":
-      return <EraChampions run={resolved.run} inProgress={resolved.inProgress} />;
+      return (
+        <EraChampions
+          run={resolved.run}
+          inProgress={resolved.inProgress}
+          seasonLink={(year) => linkTo({ year, beat: { kind: "summary" } })}
+        />
+      );
     case "season":
       return (
         <SeasonPage
@@ -112,6 +118,7 @@ export function RunPlacePage({
           finished={resolved.finished}
           tab={tab}
           tabs={seasonTabLinks(resolved.place.year, tab)}
+          pagesOf={(round) => roundPages(resolved.place.year, round)}
           sessionNav={sessionNav(cursorPlace(run), resolved.place, resolved.world.season.rounds)}
           {...(run.kind === "era" ? { run: run.run } : {})}
           locked={resolved.view.kind === "grid" && !resolved.editable}
@@ -196,6 +203,7 @@ export function RunLayout() {
     <RunFrame
       run={run}
       crumbs={crumbsFor(run, place)}
+      returnTo={returnFor(run, place)}
       onContinue={() => {
         continueRun();
         toCursor(false);

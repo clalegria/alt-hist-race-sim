@@ -27,14 +27,37 @@ export interface SessionNav {
   readonly next: RoundLink | null;
 }
 
+/** The link to `at` if the reader at `cursor` has reached it, else null. */
+function reached(cursor: Place, at: Place): RunLink | null {
+  return isReached(cursor, at) ? linkTo(at) : null;
+}
+
+/**
+ * The link to another round of `year`, keeping the session on screen: that
+ * round's `kind` if reached, else its qualifying — the furthest the reader can
+ * go in a round whose race is still ahead — else null, a round not reached.
+ *
+ * The one rule for moving between rounds, so the round links and the
+ * breadcrumb's round menu cannot disagree about where a round leads.
+ */
+export function roundLink(
+  cursor: Place,
+  year: number,
+  kind: "qualifying" | "race",
+  round: number,
+): RunLink | null {
+  return (
+    reached(cursor, { year, beat: { kind, round } }) ??
+    reached(cursor, { year, beat: { kind: "qualifying", round } })
+  );
+}
+
 /**
  * The links around the session at `place`, for a reader at `cursor`, in a
  * season of `rounds` rounds. Null when `place` is not a session.
  *
- * The rounds either side keep the session on screen — race to race, qualifying
- * to qualifying — except where the next round's race is still ahead and its
- * qualifying is not: that link goes to the qualifying, the furthest the reader
- * can go in that round.
+ * The rounds either side go where `roundLink` says: the same session, or the
+ * next round's qualifying while its race is ahead.
  */
 export function sessionNav(cursor: Place, place: Place, rounds: number): SessionNav | null {
   const beat = place.beat;
@@ -42,12 +65,11 @@ export function sessionNav(cursor: Place, place: Place, rounds: number): Session
     return null;
   }
   const { year } = place;
-  const reached = (at: Place): RunLink | null => (isReached(cursor, at) ? linkTo(at) : null);
   const label = (round: number) => `Round ${round + 1}`;
   const after = beat.round + 1;
   return {
-    qualifying: reached({ year, beat: { kind: "qualifying", round: beat.round } }),
-    race: reached({ year, beat: { kind: "race", round: beat.round } }),
+    qualifying: reached(cursor, { year, beat: { kind: "qualifying", round: beat.round } }),
+    race: reached(cursor, { year, beat: { kind: "race", round: beat.round } }),
     previous:
       beat.round === 0
         ? null
@@ -60,9 +82,21 @@ export function sessionNav(cursor: Place, place: Place, rounds: number): Session
         ? null
         : {
             label: label(after),
-            link:
-              reached({ year, beat: { kind: beat.kind, round: after } }) ??
-              reached({ year, beat: { kind: "qualifying", round: after } }),
+            link: roundLink(cursor, year, beat.kind, after),
           },
+  };
+}
+
+/** A round's two pages: where the calendar's expansion of a round raced leads. */
+export interface RoundPages {
+  readonly qualifying: RunLink;
+  readonly race: RunLink;
+}
+
+/** The pages of `round` (zero-based) of `year`. Only for a round whose race is reached. */
+export function roundPages(year: number, round: number): RoundPages {
+  return {
+    qualifying: linkTo({ year, beat: { kind: "qualifying", round } }),
+    race: linkTo({ year, beat: { kind: "race", round } }),
   };
 }

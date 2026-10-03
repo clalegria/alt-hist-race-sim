@@ -7,10 +7,10 @@ import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
 import type { RevealedWorld } from "./lib/reveal.js";
-import { type Crumb, runBarFor } from "./lib/run-bar.js";
+import { type Crumb, type ReturnLink, runBarFor } from "./lib/run-bar.js";
 import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
-import type { SessionNav } from "./lib/session-nav.js";
+import type { RoundPages, SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
 import { type EraRun, isUntouched, type Run, useSeasonStore } from "./store/season.js";
 
@@ -84,6 +84,7 @@ const GridEditingContext = createContext<(editing: boolean) => void>(() => {});
 export function RunFrame({
   run,
   crumbs,
+  returnTo,
   onContinue,
   onSkip,
   onJump,
@@ -95,6 +96,8 @@ export function RunFrame({
 }: {
   run: Run;
   crumbs: readonly Crumb[];
+  /** The way back to where the run is, while the page is elsewhere. */
+  returnTo: ReturnLink | null;
   onContinue: () => void;
   onSkip: () => void;
   /** Jump to…, once the reader has picked where. */
@@ -117,6 +120,7 @@ export function RunFrame({
   const state = runBarFor(run);
   const actions: RunActionsProps = {
     state,
+    returnTo,
     // Only while the cursor is on a grid: the flag outlives nothing else.
     editingGrid: editingGrid && run.cursor.kind === "grid",
     onContinue,
@@ -220,6 +224,7 @@ export function SeasonPage({
   finished,
   tab,
   tabs,
+  pagesOf,
   sessionNav,
 }: {
   world: RevealedWorld;
@@ -231,6 +236,8 @@ export function SeasonPage({
   finished?: boolean;
   tab?: SeasonTab;
   tabs?: readonly SeasonTabLink[];
+  /** On the season's page: a round's pages, for the calendar. */
+  pagesOf?: (round: number) => RoundPages;
   /** On a session's page: the links around it. */
   sessionNav?: SessionNav | null;
 }) {
@@ -285,6 +292,7 @@ export function SeasonPage({
       {...(finished === undefined ? {} : { finished })}
       {...(tab === undefined ? {} : { tab })}
       {...(tabs === undefined ? {} : { tabs })}
+      {...(pagesOf === undefined ? {} : { pagesOf })}
       {...(sessionNav === undefined ? {} : { sessionNav })}
     />
   );

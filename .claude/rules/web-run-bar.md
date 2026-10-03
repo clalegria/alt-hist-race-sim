@@ -23,7 +23,14 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   `Era › 1984 › Round 3 › Race`, a one-year run starting at the year. A crumb links
   only to a page reached — *Era* to the era's overview, the year to its season page,
   both reached from the year's grid on; the last is the page itself,
-  `aria-current="page"`. The
+  `aria-current="page"`.
+- **The year and the round are also switchers**: a `▾` beside each (`CrumbMenu`, from
+  `crumbsFor`) opens a Radix `DropdownMenu` of its siblings, so the trail moves across
+  as well as up. Years: every year reached, each to its season page, once there are two.
+  Rounds: every round of the year, each where `roundLink` (`lib/session-nav.ts`) sends
+  it, the same rule as the round links at a session's foot; a round ahead is listed,
+  disabled, "not yet". Each item is `DropdownMenuItem asChild` around a `Link`, so it
+  is a real anchor. The items render in a portal, so they are tested as data. The
   layout finds the page from the deepest match's `routeId` (`runPageOf`). Under them,
   `1984 · Round 3/16 · Race` says where the cursor is.
 - **Three kinds of action** (`runBarFor(run)` in `lib/run-bar.ts` decides which are
@@ -39,6 +46,13 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
 - **All of them on the bar from `md` up; on a phone, Continue plus ⋯** (Radix
   `DropdownMenu`) holding the rest. Both layouts are rendered from one list and a media
   query shows one, so they cannot offer different things.
+- **Away from the cursor's page, the way back comes first** — the "jump to live" a
+  stream shows once you scroll back. `returnFor(run, place)` is null on the cursor's
+  own page; elsewhere it gives *↩ Back to 1985 · Grid*, a `Link` wearing the primary
+  button's look (`buttonClass` in `ui/button.tsx`: it navigates, so it is an `<a>`).
+  Continue drops to `outline` beside it, since it acts on the cursor, not on the page
+  on screen; on a phone it moves into ⋯. The cursor line under the crumbs becomes the
+  same link, "Run is at …".
 - **Jump to…** opens `JumpDialog`: a `YearPicker` over `jumpYears(run)` and *Stop at*
   the season's **start** (its grid, to set it up) or **end** (its summary).
   `jumpTarget(run, chosen)` decides where it lands — a choice the run has overtaken
