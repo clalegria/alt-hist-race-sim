@@ -15,6 +15,11 @@ listed in `docs/design/era-advanced.md`, not here.
 Its open questions — how events surface, team URLs — are listed in
 `docs/design/app-shell.md`, not here.
 
+## Run settings
+
+Their open questions — a ghost team's car, whether the car walk reverts to the mean, the
+Breakdowns multiplier — are listed in `docs/design/run-settings.md`, not here.
+
 ## Should the fitter and tuner move drivers?
 
 `pnpm fit` and `pnpm tune` fit cars; drivers move only behind `--drivers`, off by default

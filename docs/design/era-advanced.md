@@ -61,6 +61,10 @@ Chosen before the run starts, like the randomness level, and part of what a Shar
 records. The *historical* options read season files after the run has diverged, so they
 depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 
+**The frozen grid, career events on or off, and random car development are built first
+in `era-basic`**, designed in `docs/design/run-settings.md`; this mode inherits them.
+What follows is only what stays advanced.
+
 - **DECIDED** — **Randomness** keeps its meaning: how chaotic the *races* are. It does not
   touch the market.
 - **DECIDED** — **Careers**: *historical* — every driver ages on the authored curve,
@@ -75,19 +79,15 @@ depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
   each driver retires in their real retirement year.
 - **PROPOSED** — The random retirement age depends on the era: fifties drivers raced into
   their forties, modern ones mostly stop in their late thirties.
-- **DECIDED** — **Grid evolution**: *historical* (teams appear, fold and rename as in real
-  life), *frozen* (the starting season's teams, every year), or an *intermediate* hybrid.
-  Built on team lineage (`.claude/rules/team-eras.md`): a team's id is permanent across
-  its names.
-- **DECIDED** — **Car development**: *historical* (each season's authored ratings) or
-  *random* (each year's car a random change from the last). One `SeasonProgressionModel`
-  seam, two implementations: `HistoricalProgression` reads the next season file;
-  `EvolutionaryProgression` (random walk plus mean reversion) is the real work. Build the
-  interface with the second, not before. Game mode goes much deeper (§10).
-- **OPEN** — The intermediate grid mode; the random development model; which of a season
-  file's data (car and engine ratings, calendar, points) still applies once a team or
-  engine pairing no longer matches history; whether the careers and retirement settings
-  should be one setting.
+- **DECIDED** — **Grid evolution**: *historical*, *frozen* (both in
+  `run-settings.md` §6), or an *intermediate* hybrid. Built on team lineage
+  (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
+- **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
+  change from the last, `run-settings.md` §3's *last year's car*. Game mode goes much
+  deeper (§10).
+- **OPEN** — The intermediate grid mode; which of a season file's data (car and engine
+  ratings, calendar, points) still applies once a team or engine pairing no longer
+  matches history; whether the careers and retirement settings should be one setting.
 
 ## 4. Information model
 
@@ -239,6 +239,6 @@ depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 9. The next-season grid and the event feed.
 10. Pre-season testing.
 11. The engine market and works-team locks.
-12. The grid-evolution and car-development settings.
+12. The intermediate grid mode.
 13. Rookie supply.
 14. The multi-season dominance harness.
