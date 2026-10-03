@@ -46,6 +46,17 @@ export {
   carryOverLineup,
 } from "./carryOver.js";
 export {
+  applyChassis,
+  authoredChassis,
+  CHASSIS_STEP_RANGE,
+  type ChassisChange,
+  canStepChassis,
+  chassisChanges,
+  isAuthoredChassis,
+  type SeasonChassis,
+  stepChassis,
+} from "./chassis.js";
+export {
   applyEngines,
   authoredEngines,
   availableEngines,

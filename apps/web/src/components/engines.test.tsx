@@ -123,6 +123,7 @@ describe("the supplier picker", () => {
     onSelect: () => {},
     engineIds: availableEngines(SEED).map((engine) => engine.engineId),
     onEngineChange: () => {},
+    onChassisStep: () => {},
   };
   const html = renderToStaticMarkup(
     <SeasonGrid

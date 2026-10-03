@@ -1,4 +1,5 @@
 import {
+  authoredChassis,
   authoredEngines,
   authoredLineup,
   DEFAULT_DRIVER_FILTERS,
@@ -7,6 +8,7 @@ import {
   reserveDrivers,
   seasonSeed,
   seasons,
+  stepChassis,
   swapDrivers,
 } from "@alt-hist/data";
 import {
@@ -903,6 +905,71 @@ describe("the chosen engines", () => {
   });
 });
 
+describe("the re-rated chassis", () => {
+  /**
+   * One team's chassis stepped down twice, every rating — a step is the
+   * editor's own primitive, so the expected chassis is derived, never read off
+   * the data. Down rather than up, so a car already on the top of the scale
+   * still moves.
+   */
+  const TEAM = SEED.entries[0]?.teamId ?? "";
+  const authored = authoredChassis(SEED);
+  const rerated = stepChassis(stepChassis(authored, TEAM, -1), TEAM, -1);
+  if (rerated === authored) {
+    throw new Error("the fixture team's chassis is on the bottom of the scale");
+  }
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("starts on the chassis the season was entered with", () => {
+    expect(running().world.chassis).toBeNull();
+  });
+
+  it("re-runs the same seed with the reader's own chassis in the field", () => {
+    const before = running().world;
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    const after = running().world;
+
+    expect(after.chassis).toEqual(rerated);
+    expect(after.seed).toBe(before.seed);
+    for (const entrant of after.field) {
+      expect(entrant.chassis, entrant.teamId).toEqual(rerated[entrant.teamId]);
+    }
+    expect(after.season).toEqual(
+      createWorld(3, YEAR, "peak", null, null, DEFAULT_RANDOMNESS_LEVEL, null, rerated).season,
+    );
+  });
+
+  it("forgets a chassis set that is the authored one, so nothing claims a change", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, null, authored);
+    expect(running().world.chassis).toBeNull();
+    expect(running().world).toEqual(createWorld(3, YEAR));
+  });
+
+  it("carries into a fresh seed of the same season, and across a change of ability model", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.chassis).toEqual(rerated);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world.chassis).toEqual(rerated);
+  });
+
+  it("cannot be changed once the season has started revealing", () => {
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    expect(running().world.chassis).toBeNull();
+  });
+
+  it("is part of the save file like everything else", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
 describe("stepping to the season next door", () => {
   /** The year after the fixture one, off the playable list. */
   const NEXT = adjacentSeason(YEAR, 1);
@@ -1017,6 +1084,14 @@ describe("an untouched run, which can be left without asking", () => {
       filters: DEFAULT_DRIVER_FILTERS,
       retain: false,
     });
+    expect(untouched()).toBe(false);
+  });
+
+  it("is touched by a re-rated chassis", () => {
+    const team = SEED.entries[0]?.teamId ?? "";
+    useSeasonStore
+      .getState()
+      .setGrid(null, null, null, stepChassis(authoredChassis(SEED), team, -1));
     expect(untouched()).toBe(false);
   });
 

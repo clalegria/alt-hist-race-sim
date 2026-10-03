@@ -8,11 +8,13 @@
  */
 
 import {
+  authoredChassis,
   DEFAULT_DRIVER_FILTERS,
   DEFAULT_RATING_MODE,
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
   seasonSeed,
+  stepChassis,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
@@ -184,6 +186,20 @@ describe("running on to the next year", () => {
     expect(running().world.year).toBe(YEAR + 1);
     expect(running().run.seasons).toHaveLength(1);
     expect(running().run.startYear).toBe(YEAR);
+  });
+
+  it("does not carry a re-rated chassis into it: that was a car for last year", () => {
+    const seed = seasonSeed(YEAR);
+    const rerated = stepChassis(authoredChassis(seed), seed.entries[0]?.teamId ?? "", -1);
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "grid" } });
+    expect(running().world.chassis).toBeNull();
+    const entered = seasonSeed(YEAR + 1).entries;
+    for (const entrant of running().world.field) {
+      const entry = entered.find((e) => e.teamId === entrant.teamId);
+      expect(entrant.chassis, entrant.teamId).toEqual(entry?.chassis);
+    }
   });
 
   it("races that year's own grid, straight from its seed file", () => {
@@ -402,6 +418,16 @@ describe("restarting the era", () => {
     useSeasonStore.getState().restartEra();
     expect(running().world.arrangement).toEqual(kept);
     expect(running().world.lineup).not.toBeNull();
+  });
+
+  it("keeps the first year's re-rated chassis", () => {
+    const seed = seasonSeed(YEAR);
+    const rerated = stepChassis(authoredChassis(seed), seed.entries[0]?.teamId ?? "", -1);
+    useSeasonStore.getState().simulateEra(5, YEAR);
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
+    useSeasonStore.getState().restartEra();
+    expect(running().world.chassis).toEqual(rerated);
   });
 
   it("drops a grid edited in a later year, which this run no longer has", () => {

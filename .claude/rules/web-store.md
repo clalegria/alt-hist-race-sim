@@ -50,18 +50,19 @@ it, `restartSeason` carries the world's own. `simulate` deliberately ignores it 
 is the entry point whose output must depend only on its arguments, and tests would
 otherwise be order-dependent on whatever was last remembered.
 
-**The grid is a simulation input too, in two halves.** `world.lineup` is the reader's
-own driver allocation and `world.engines` their own engine supply — each **null for the
-season as it was entered**, null rather than a copy of the authored one, so "was this
-edited?" is a property of the world instead of a comparison somebody has to remember to
-make. `createWorld` normalises an edit that lands back on the authored grid to null, so
-undoing your last swap stops the notices.
+**The grid is a simulation input too, in three parts.** `world.lineup` is the reader's
+own driver allocation, `world.engines` their own engine supply and `world.chassis` their
+own chassis ratings — each **null for the season as it was entered**, null rather than a
+copy of the authored one, so "was this edited?" is a property of the world instead of a
+comparison somebody has to remember to make. `createWorld` normalises an edit that lands
+back on the authored grid to null, so undoing your last swap stops the notices.
 
-Two fields rather than one because they are two questions — who drives the car, and
-what is in the back of it — and either can be changed without the other. **One store
-action, though**: `setGrid(lineup, engines)` applies both, because the editor applies
-one draft and a reader who moved a driver *and* changed a supplier asked a single
-question. Simulating a season in between would answer one nobody asked.
+Separate fields because they are separate questions — who drives the car, what is in the
+back of it, how good the car is — and any can be changed without the others. **One store
+action, though**: `setGrid(lineup, engines, arrangement?, chassis?)` applies them all,
+because the editor applies one draft and a reader who moved a driver *and* changed a
+supplier asked a single question. Simulating a season in between would answer one nobody
+asked. `chassis` is last (in `createWorld` too) only so earlier callers stay unchanged.
 
 A third field rides with them: `world.arrangement`, the bulk rule the grid was arranged
 by, which `setGrid` takes as its optional third argument. It is a record of *how* the
@@ -93,10 +94,10 @@ control; the season summary and the roll of honour carry it as one small line
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
 (`{ seed, year, points, ratingMode, randomness, rngState, field, lineup, engines,
-arrangement, season }`) — one
+chassis, arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
-they drive on `engines`, and their ratings on `ratingMode`. `points` is the year's
+they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's
 championship scale, off its seed file, for the same reason: it is the record of what
 the season was actually scored on. Every table takes it — `championshipStandings`,
 `constructorStandings`, the clinch functions, `pointsFor`, `driverRounds` and
@@ -110,12 +111,12 @@ therefore already a complete save file, and tests assert both the round trip and
 no function or class instance has crept in.
 
 View state that says nothing about the simulation — which race row is expanded, the
-question a dialog is asking, the grid editor's **draft** lineup and draft engines —
+question a dialog is asking, the grid editor's **drafts** of lineup, engines and chassis —
 stays in component `useState`. The rule is that *simulation* state lives in the one
 store, not that React may never hold anything. A draft becomes simulation state at the
 moment Apply hands it to `setGrid`, and not before: applying re-runs fourteen races, and
 a reader halfway through moving four drivers has not yet asked a question worth
-answering. The two drafts open and close together, so one `null` answers for both.
+answering. The drafts open and close together, so one `null` answers for all of them.
 
 While the editor is open, the run bar takes the **forward buttons away** — `GridStage`
 raises `onEditingChange`, the grid page passes it up through `GridEditingContext`, and

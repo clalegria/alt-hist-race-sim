@@ -45,6 +45,15 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     rather than trusting, because an override can arrive from a save file.
   - An `EngineChange` is `{ teamId, from, to }`, always both halves: a car has exactly
     one engine, so fitting one always removes another.
+- `chassis.ts` is the same shape again for the grid editor's chassis what-if: a
+  `SeasonChassis` is `Record<teamId, ChassisSpec>`, **absolute ratings, not offsets**, so
+  a check is a range check; `applyChassis` validates whole numbers 0–100 (the seed
+  data's own range). It never touches the authored data.
+  - `stepChassis(chassis, teamId, ±1, key?)` moves one rating, or all four without a
+    key, each clamped to `CHASSIS_STEP_RANGE` (1–100) on its own, and hands back the
+    same object when nothing moved. `canStepChassis` says whether a step could move.
+  - `authoredChassis`, `isAuthoredChassis` and `chassisChanges` (`{ teamId, from, to }`)
+    mirror the engine functions.
 - `rating.ts` holds the display-only overall (`driverOverall`, `carOverall`). The
   weights are `DRIVER_WEIGHTS` / `CAR_WEIGHTS` there, move by hand, and carry their
   reasoning in the doc comments above them — read those, not a copy here. Both put most

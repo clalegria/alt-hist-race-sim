@@ -4,7 +4,7 @@
  * Simulation is deterministic, so a world is a function of the inputs it was
  * built from, and every `World` already records all of them: the seed, the
  * year, the ability mode, the randomness level and the reader's grid (lineup,
- * engines, arrangement). The recipe is therefore *derived* from the run rather
+ * engines, chassis, arrangement). The recipe is therefore *derived* from the run rather
  * than kept beside it: one entry per world, plus the cursor. There is no second
  * record of the reader's inputs that could fall out of step with the worlds.
  *
@@ -24,6 +24,7 @@ import {
   type GridArrangement,
   RATING_MODES,
   type RatingMode,
+  type SeasonChassis,
   type SeasonEngines,
   type SeasonLineup,
 } from "@alt-hist/data";
@@ -33,7 +34,7 @@ import type { Beat } from "../lib/timeline.js";
 import { createWorld, type Run, type World } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 1;
+export const RECIPE_VERSION = 2;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -43,6 +44,7 @@ export interface WorldRecipe {
   readonly randomness: RandomnessLevel;
   readonly lineup: SeasonLineup | null;
   readonly engines: SeasonEngines | null;
+  readonly chassis: SeasonChassis | null;
   readonly arrangement: GridArrangement | null;
   /** `fingerprint` of the world these inputs built. */
   readonly check: string;
@@ -90,6 +92,7 @@ function worldRecipe(world: World): WorldRecipe {
     randomness: world.randomness,
     lineup: world.lineup,
     engines: world.engines,
+    chassis: world.chassis,
     arrangement: world.arrangement,
     check: fingerprint(world),
   };
@@ -110,7 +113,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** A plain object or null: what a lineup, an engine supply or an arrangement looks like from outside. */
+/** A plain object or null: what a lineup, an engine supply, a chassis set or an arrangement looks like from outside. */
 function isRecordOrNull(value: unknown): boolean {
   return value === null || isRecord(value);
 }
@@ -140,7 +143,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
   if (!isRecord(raw)) {
     return null;
   }
-  const { seed, year, ratingMode, randomness, lineup, engines, arrangement, check } = raw;
+  const { seed, year, ratingMode, randomness, lineup, engines, chassis, arrangement, check } = raw;
   const valid =
     Number.isInteger(seed) &&
     Number.isInteger(year) &&
@@ -149,6 +152,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     RANDOMNESS_LEVELS.some((level) => level === randomness) &&
     isRecordOrNull(lineup) &&
     isRecordOrNull(engines) &&
+    isRecordOrNull(chassis) &&
     isRecordOrNull(arrangement) &&
     typeof check === "string";
   return valid ? (raw as unknown as WorldRecipe) : null;
@@ -164,6 +168,7 @@ function rebuild(recipe: WorldRecipe): World | null {
     recipe.engines,
     recipe.randomness,
     recipe.arrangement,
+    recipe.chassis,
   );
   return fingerprint(world) === recipe.check ? world : null;
 }

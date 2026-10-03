@@ -8,6 +8,7 @@
  */
 
 import {
+  authoredChassis,
   authoredEngines,
   authoredLineup,
   DEFAULT_DRIVER_FILTERS,
@@ -15,6 +16,7 @@ import {
   type GridArrangement,
   reserveDrivers,
   seasonSeed,
+  stepChassis,
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -65,6 +67,17 @@ describe("a run rebuilt from its recipe", () => {
   it("is the same season, freshly started", () => {
     useSeasonStore.getState().simulate(3, YEAR);
     expect(roundTrip(current())).toEqual(current());
+  });
+
+  it("keeps a re-rated chassis", () => {
+    const team = SEED.entries[0]?.teamId ?? "";
+    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore
+      .getState()
+      .setGrid(null, null, null, stepChassis(authoredChassis(SEED), team, -1));
+    const run = current();
+    expect(run.world.chassis, "the chassis was re-rated").not.toBeNull();
+    expect(roundTrip(run)).toEqual(run);
   });
 
   it("keeps an edited grid, engines and all, part-way through the season", () => {

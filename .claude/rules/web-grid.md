@@ -58,7 +58,7 @@ component state rather than the store is `.claude/rules/web-store.md`.
   `carOverall(chassis, engine)` → the model's own `powertrain()`; a bare chassis is a
   number nothing races on. The popover's header is the card's flag, badge and name, then
   the team's car (`web-team-car.md`). Below it the popover shows the parts: the four chassis
-  ratings (`CHASSIS_RATINGS`, the chassis as authored, not the blend), then the
+  ratings (`CHASSIS_RATINGS`, the chassis, not the blend), then the
   engine's three under its own heading — an engine has no consistency, so that panel is
   one row shorter, which is the point rather than an omission. A car with an authored
   `developmentTrend` gets a third panel, a bar filling from the **middle** — zero is a
@@ -78,6 +78,18 @@ component state rather than the store is `.claude/rules/web-store.md`.
   construction rather than by validation — and the engine picker offers only what the
   season rates, so nothing can invent a supplier either. A native `select` because the platform
   control is keyboard- and screen-reader-correct for free.
+- **A chassis can be made stronger or weaker, in the editor only.** Each card has a
+  labelled Chassis row under the Engine picker (one `ROW_LABEL` width, so the two line
+  up), whose − and + move all four chassis ratings by one (`stepChassis`). Its own row
+  because a stepper in the header took its width out of the team name. After the
+  buttons the row says what moved **in words** (`chassisSummary`: "+2 each", or "racing
+  +3, reliability −1"), never a number beside the overall: the overall blends chassis
+  and engine and weights racing heavily, so +4 reliability moves it about 0.2. The team
+  popover gives each chassis rating its own stepper with that rating's change between
+  the buttons (the popover widens to `w-96` for it). The grid with the editor shut has
+  none, and the engine panel never does. A button is disabled once nothing it would
+  move can move further. A step is a hand edit and ends a bulk rule, since the rules
+  rank the cars.
 - **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
   fastest in slowest, shuffled — in their own panel above the cards. **The cast they
   draw on is this editor's own pool filters**, so whoever the "Without a drive" panel is
@@ -117,12 +129,14 @@ component state rather than the store is `.claude/rules/web-store.md`.
   counts exactly two accented cards per summary. A driver who is not where history put
   them carries the same soft fill (`SWAPPED_IN`) in the grid, and so does the header of
   a team running an engine it was not given, so the note and the cards agree without the
-  reader matching names. The summary declares it **twice** — `EditedGridBanner` above
-  the champions, because finding out at the foot of the page is too late, and the full
-  list on the grid at the end.
-  **Both kinds of change share one notice**, in `GridChanges`: one row per team, "Alain
-  Prost for Jody Scheckter" and "Renault engine for Ferrari" on the same line if both
-  happened, and `changeCount` totals seats and engines together.
+  reader matching names; a re-rated chassis marks the header the same way. The summary
+  declares it **twice** — `EditedGridBanner` above the champions, because finding out
+  at the foot of the page is too late, and the full list on the grid at the end.
+  **Every kind of change shares one notice**, in `GridChanges`: one row per team, "Alain
+  Prost for Jody Scheckter", "Renault engine for Ferrari" and the chassis on the same
+  line if all happened. `chassisNote` says "Chassis +2" when all four ratings moved
+  together and "Chassis: racing +3, reliability −1" otherwise. `changeCount` totals
+  seats, engines and chassis, a re-rated chassis counting once per team.
 - **`lib/rating.ts` is a re-export** of `driverOverall`, `carOverall`, `carRacing` and
   `compareByRating` from `@alt-hist/data`: a **display heuristic, not model truth** —
   nothing in the engine reads it. The weights, why reliability and adaptability sit

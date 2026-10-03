@@ -22,7 +22,7 @@ to be**, never a second copy of it.
 
 **`createWorld` records it and never obeys it.** The editor computes what the reader is
 looking at *before* they apply it — over the draft they had already changed, with the
-engines they had already chosen — and a world that re-derived the grid from the rule
+engines and chassis they had already chosen — and a world that re-derived the grid from the rule
 would hand them a season they never agreed to. Re-running one is `arrangedLineup`, and
 its three callers do so before calling `createWorld`:
 
@@ -33,7 +33,7 @@ its three callers do so before calling `createWorld`:
 
 **`arrangedLineup` always arranges over the season's own entry list**, never over the
 grid the rule last produced. That makes it a function of the year, the seed, the mode,
-the engine supply and the arrangement's own filters and nothing else, which is what keeps re-running it stable — flipping
+the engine supply, the chassis and the arrangement's own filters and nothing else, which is what keeps re-running it stable — flipping
 the ability mode and back returns the grid the reader had, where a shuffle of a shuffle
 would turn a toggle into a dice cup. Nothing is lost by it: a rule cannot survive a hand
 edit, so the only grid a rule can be in force over is one the same rule made, and
@@ -55,7 +55,7 @@ one is a control an era takes *away* and the other one it adds.
 ## A hand edit ends it
 
 Every manual change clears the chosen rule: a swap, filling an empty seat, picking an
-engine, copying last season's grid, Restore. Not out of caution — the grid *says* which
+engine, stepping a chassis, copying last season's grid, Restore. Not out of caution — the grid *says* which
 rule it is arranged by, and one swap later that sentence is false; inside an era a rule
 left in force would arrange next year off the back of a change made to this one.
 

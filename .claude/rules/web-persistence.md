@@ -19,8 +19,8 @@ megabytes `localStorage` allows. Simulation is deterministic, so the recipe rebu
 run exactly.
 
 **The recipe is derived from the run, not kept beside it.** Every `World` already records
-the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `lineup`, `engines`
-and `arrangement`, which are exactly `createWorld`'s arguments. `recipeOf(run)` is one
+the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `lineup`, `engines`,
+`chassis` and `arrangement`, which are exactly `createWorld`'s arguments. `recipeOf(run)` is one
 entry per world (an era's `run.seasons`, then `world`), plus the kind, the cursor and a
 `version`. Because there is no second record of the reader's inputs, nothing can fall
 out of step with the worlds.

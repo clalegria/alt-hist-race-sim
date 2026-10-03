@@ -78,7 +78,8 @@ Styling and layout only; nothing about the model changes.
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
 it and run their own what-if, in the browser. Drivers, teams/chassis, engines, and
-circuits once *circuit character* lands.
+circuits once *circuit character* lands. The grid editor already re-rates one season's
+chassis for one run (`stepChassis`); this item is the editor that changes the data itself.
 
 - **The driver editor shows that driver's whole career progression, as a table and a
   chart** — it *is* the screen, because a driver is a curve rather than a set of numbers

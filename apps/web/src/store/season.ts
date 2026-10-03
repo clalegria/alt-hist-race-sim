@@ -19,6 +19,7 @@
  */
 
 import {
+  applyChassis,
   applyEngines,
   applyLineup,
   arrangeLineup,
@@ -27,9 +28,11 @@ import {
   DEFAULT_RATING_MODE,
   filledLineup,
   type GridArrangement,
+  isAuthoredChassis,
   isAuthoredEngines,
   isAuthoredLineup,
   type RatingMode,
+  type SeasonChassis,
   type SeasonEngines,
   type SeasonLineup,
   seasonConstants,
@@ -125,6 +128,15 @@ export interface World {
    */
   readonly engines: SeasonEngines | null;
   /**
+   * The reader's own chassis ratings, or null for the chassis the season was
+   * entered with — null for the reason `lineup` and `engines` are.
+   *
+   * A third part of the grid rather than part of `engines`: how good the car a
+   * team built is, as opposed to whose unit is in the back of it. It re-rates
+   * one season's cars and nothing else; the authored data is never touched.
+   */
+  readonly chassis: SeasonChassis | null;
+  /**
    * The rule the grid was arranged by, or null for a grid nobody rearranged in
    * one press — the reader's own swaps included, since those are seats and not a
    * rule.
@@ -178,10 +190,11 @@ export const ERA_RATING_MODE: RatingMode = "aged";
  * and arranging an arrangement draws on the same cast as arranging the entry
  * list did.
  *
- * The engines are the exception, and they are not a grid: a team handed a better
- * unit is a better car, and the rules rank cars with the engine folded in. So
- * the supply the season is *being run on* is applied first, or a re-run would
- * rank the field differently from the way the reader saw it ranked.
+ * The engines and the chassis are the exception, and they are not a grid: a
+ * team handed a better unit or a re-rated chassis is a better car, and the
+ * rules rank cars on both. So the cars the season is *being run on* are applied
+ * first, or a re-run would rank the field differently from the way the reader
+ * saw it ranked.
  *
  * **The dice come from the season's own seed**, so a randomised grid is
  * reproducible from the number the season is reproducible from: the same seed
@@ -200,10 +213,12 @@ function arrangedLineup(
   arrangement: GridArrangement,
   ratingMode: RatingMode,
   engines: SeasonEngines | null,
+  chassis: SeasonChassis | null,
 ): SeasonLineup {
   const season = seasonSeed(year);
   const authored = authoredLineup(season);
-  const entered = engines === null ? season : applyEngines(season, engines);
+  const resupplied = engines === null ? season : applyEngines(season, engines);
+  const entered = chassis === null ? resupplied : applyChassis(resupplied, chassis);
   const arranged = arrangeLineup(entered, authored, arrangement, {
     mode: ratingMode,
     rng: createRng(seed),
@@ -223,7 +238,14 @@ function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonL
   if (world.arrangement === null) {
     return world.lineup;
   }
-  return arrangedLineup(world.year, seed, world.arrangement, ratingMode, world.engines);
+  return arrangedLineup(
+    world.year,
+    seed,
+    world.arrangement,
+    ratingMode,
+    world.engines,
+    world.chassis,
+  );
 }
 
 /**
@@ -250,8 +272,9 @@ function nextEraGrid(
     return { lineup: null, arrangement: null };
   }
   return {
-    // No engines: an era does not carry a supply deal across a year either.
-    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null),
+    // No engines and no chassis: an era carries neither a supply deal nor a
+    // re-rated car across a year.
+    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null, null),
     arrangement,
   };
 }
@@ -278,6 +301,7 @@ export function createWorld(
   engines: SeasonEngines | null = null,
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
   arrangement: GridArrangement | null = null,
+  chassis: SeasonChassis | null = null,
 ): World {
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
@@ -285,7 +309,9 @@ export function createWorld(
   const edited = lineup !== null && !isAuthoredLineup(authored, lineup) ? lineup : null;
   const resupplied = engines !== null && !isAuthoredEngines(authored, engines) ? engines : null;
   const withDrivers = edited === null ? authored : applyLineup(authored, edited);
-  const entered = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
+  const rerated = chassis !== null && !isAuthoredChassis(authored, chassis) ? chassis : null;
+  const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
+  const entered = rerated === null ? withEngines : applyChassis(withEngines, rerated);
   const rng = createRng(seed);
   const field = buildField(entered, undefined, ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
@@ -304,6 +330,7 @@ export function createWorld(
     field,
     lineup: edited,
     engines: resupplied,
+    chassis: rerated,
     arrangement,
     season,
   };
@@ -389,6 +416,7 @@ export function isUntouched(run: Run): boolean {
     (run.kind === "season" || run.run.seasons.length === 0) &&
     run.world.lineup === null &&
     run.world.engines === null &&
+    run.world.chassis === null &&
     run.world.arrangement === null
   );
 }
@@ -500,8 +528,8 @@ interface SeasonStore {
   readonly setRatingMode: (mode: RatingMode) => void;
   /**
    * Re-runs the season from the same seed with the reader's own grid: who
-   * drives what, and what is in the back of it. `null` for either half means
-   * that half as the season entered it.
+   * drives what, what is in the back of it, and how good the chassis is. `null`
+   * for any part means that part as the season entered it.
    *
    * One action rather than two because the editor applies one draft — a reader
    * who moved a driver and changed a supplier asked a single question, and
@@ -522,6 +550,8 @@ interface SeasonStore {
      * caller that predates the rules.
      */
     arrangement?: GridArrangement | null,
+    /** The reader's chassis ratings; null — the default — for the season's own. */
+    chassis?: SeasonChassis | null,
   ) => void;
   /**
    * The grid of the season next door — the year before or the year after — on a
@@ -551,7 +581,7 @@ interface SeasonStore {
    * A new draw rather than a rewind: replaying results the reader has already
    * seen is a re-read, and what "start again" has always meant here is another
    * go at the season. Everything *chosen* carries over — the ability mode and
-   * an edited grid alike — drivers and engines both — because a reader who put
+   * an edited grid alike — drivers, engines and chassis — because a reader who put
    * Mansell in the Williams asked for that grid, not for one season of it. Only
    * the dice change. The menu is where a different year comes from.
    *
@@ -567,7 +597,7 @@ interface SeasonStore {
    * The era's version of `restartSeason`, and the same promise: a new draw,
    * not a rewind. What carries is how the reader chose to play — the
    * randomness level, the ability mode — and **the first year's grid**, edits,
-   * engines and bulk rule included (a rule ticked to be kept goes on arranging
+   * engines, chassis and bulk rule included (a rule ticked to be kept goes on arranging
    * every year after, as before). Grids edited in later years go with those
    * years: each was a grid for a year this run no longer has.
    */
@@ -741,13 +771,14 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.engines,
                 state.run.world.randomness,
                 state.run.world.arrangement,
+                state.run.world.chassis,
               ),
             ),
           }
         : state,
     );
   },
-  setGrid: (lineup, engines, arrangement = null) => {
+  setGrid: (lineup, engines, arrangement = null, chassis = null) => {
     set((state) =>
       state.run !== null && state.run.cursor.kind === "grid"
         ? {
@@ -761,6 +792,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 engines,
                 state.run.world.randomness,
                 arrangement,
+                chassis,
               ),
             ),
           }
@@ -815,6 +847,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.engines,
             world.randomness,
             world.arrangement,
+            world.chassis,
           ),
         ),
       };
@@ -840,6 +873,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             first.engines,
             first.randomness,
             first.arrangement,
+            first.chassis,
           ),
         ),
       };

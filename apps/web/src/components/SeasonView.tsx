@@ -1,9 +1,11 @@
 import {
   type CalendarRace,
+  chassisChanges,
   engineChanges,
   type GridArrangement,
   lineupChanges,
   type RatingMode,
+  type SeasonChassis,
   type SeasonEngines,
   type SeasonLineup,
 } from "@alt-hist/data";
@@ -172,6 +174,7 @@ function Summary({
   points,
   lineup,
   engines,
+  chassis,
   arrangement,
   settings,
 }: {
@@ -183,6 +186,7 @@ function Summary({
   points: PointsScale;
   lineup: SeasonLineup | null;
   engines: SeasonEngines | null;
+  chassis: SeasonChassis | null;
   /** The bulk rule the grid was arranged by, said on the banner and the grid. */
   arrangement: GridArrangement | null;
   /** What the year was run under, from `settingsOf`. */
@@ -206,6 +210,10 @@ function Summary({
     () => (engines === null ? [] : engineChanges(seed, engines)),
     [engines, seed],
   );
+  const rerated = useMemo(
+    () => (chassis === null ? [] : chassisChanges(seed, chassis)),
+    [chassis, seed],
+  );
   // The grid at the foot of the season gets the same switch the opening one
   // has: by then the pecking order is the point rather than a spoiler. Same
   // switch and the same choice — it is shared with every other list on the app.
@@ -218,10 +226,14 @@ function Summary({
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
-      {changes.length === 0 && supplyChanges.length === 0 && arrangement === null ? null : (
+      {changes.length === 0 &&
+      supplyChanges.length === 0 &&
+      rerated.length === 0 &&
+      arrangement === null ? null : (
         <EditedGridBanner
           changes={changes}
           engineChanges={supplyChanges}
+          chassisChanges={rerated}
           arrangement={arrangement}
           ratingMode={ratingMode}
         />
@@ -297,6 +309,7 @@ function Summary({
           ratingMode={ratingMode}
           changes={changes}
           engineChanges={supplyChanges}
+          chassisChanges={rerated}
           arrangement={arrangement}
           sort={teamSort}
           onSortChange={setTeamSort}
@@ -541,6 +554,7 @@ function SeasonBody({
           ratingMode={world.ratingMode}
           lineup={world.lineup}
           engines={world.engines}
+          chassis={world.chassis}
           arrangement={world.arrangement}
           inEra={inEra}
           previousLineup={previousLineup}
@@ -585,6 +599,7 @@ function SeasonBody({
       points={world.points}
       lineup={world.lineup}
       engines={world.engines}
+      chassis={world.chassis}
       arrangement={world.arrangement}
       settings={settingsOf(world)}
     />
