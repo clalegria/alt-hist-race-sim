@@ -12,7 +12,13 @@
  * cannot be rendered this way. Those screens are rendered as components.
  */
 
-import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+  RouterProvider,
+} from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createAppRouter } from "./router.js";
 
@@ -23,4 +29,14 @@ export async function renderRoute(path: string): Promise<{ html: string; pathnam
     html: renderToStaticMarkup(<RouterProvider router={router} />),
     pathname: router.state.location.pathname,
   };
+}
+
+/** Renders `node` inside a bare router, which a `Link` needs around it. */
+export async function inRouter(node: ReactNode): Promise<string> {
+  const router = createRouter({
+    routeTree: createRootRoute({ component: () => node }),
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+  });
+  await router.load();
+  return renderToStaticMarkup(<RouterProvider router={router} />);
 }

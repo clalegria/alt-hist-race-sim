@@ -64,7 +64,7 @@ wider leaves a stubby column with a hard edge two-thirds of the way across, whic
 as a mistake because it looks like one.
 
 **No component may read a season fixed at import time.** Round names come from the
-world's own year — `SeasonView` resolves `seasonSeed(world.year)` and hands
+world's own year — `SeasonOverview` resolves `seasonSeed(world.year)` and hands
 `SeasonCalendar` a `calendar` prop. This was the 1980 coupling the roadmap called
 out, and getting it wrong is invisible: 1981 renders perfectly well with 1980's round
 names. `seasons.smoke.test.tsx` walks every authored season through every stage and

@@ -470,7 +470,10 @@ describe("filtering the drivers without a drive", () => {
 });
 
 describe("what the season summary says about an edited grid", () => {
-  const html = renderToStaticMarkup(<SeasonView {...shownAt(editedWorld, { kind: "summary" })} />);
+  // The grid tab: the banner heads every tab, and the grid is this one.
+  const html = renderToStaticMarkup(
+    <SeasonView {...shownAt(editedWorld, { kind: "summary" })} tab="grid" />,
+  );
   const plain = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
 
   it("declares it at the top, before the champions", () => {
@@ -478,7 +481,7 @@ describe("what the season summary says about an edited grid", () => {
     expect(html.indexOf("Alternate grid")).toBeLessThan(html.indexOf("champion"));
   });
 
-  it("repeats it at the foot, on the grid it happened to", () => {
+  it("repeats it on the grid tab, on the grid it happened to", () => {
     expect(html).toContain("This grid was edited");
     expect(html.indexOf("This grid was edited")).toBeGreaterThan(html.indexOf("Alternate grid"));
   });
@@ -833,7 +836,7 @@ describe("remembering how the reader wants lists ordered", () => {
       <GridStage field={world.field} year={YEAR} ratingMode={MODE} lineup={null} engines={null} />,
     );
   const summary = () =>
-    renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
+    renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} tab="grid" />);
 
   /**
    * The order the grid's switch has chosen. Parsed attribute by attribute, like

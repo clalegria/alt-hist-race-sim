@@ -1,0 +1,159 @@
+/**
+ * The season's page, the links around a session, and the era overview's year
+ * in progress — each rendered at a cursor partway through the year, as the
+ * gate hands it to a page. Counts come off the world, never a seed's outcome.
+ */
+
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { STANDOUT_ROW } from "../lib/highlight.js";
+import { revealYear } from "../lib/reveal.js";
+import { seasonTabLinks } from "../lib/season-tabs.js";
+import { sessionNav } from "../lib/session-nav.js";
+import type { Beat } from "../lib/timeline.js";
+import { inRouter } from "../test-router.js";
+import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { EraChampions } from "./EraChampions.js";
+import { NOT_YET } from "./SeasonCalendar.js";
+import { SeasonView } from "./SeasonView.js";
+
+const world = seededWorld(3, "aged", YEAR);
+const ROUNDS = world.season.races.length;
+/** A round in the middle of the season, so rounds lie on both sides of it. */
+const MID = Math.floor(ROUNDS / 2);
+
+/** The season's page as a reader at `cursor` gets it: the year cut there, not finished. */
+const seasonPage = (cursor: Beat, tab: "standings" | "calendar" | "grid") =>
+  renderToStaticMarkup(
+    <SeasonView
+      world={revealYear(world, cursor)}
+      view={{ kind: "summary" }}
+      finished={cursor.kind === "summary"}
+      tab={tab}
+    />,
+  );
+
+const count = (html: string, needle: string) => html.split(needle).length - 1;
+
+describe("the season's page, partway through the year", () => {
+  it("lists every round on the calendar, opening only the ones raced", () => {
+    const html = seasonPage({ kind: "race", round: MID }, "calendar");
+    expect(count(html, "<tr")).toBe(1 + SEED.calendar.length);
+    expect(count(html, "aria-expanded")).toBe(MID + 1);
+    for (const race of SEED.calendar) {
+      expect(html, race.name).toContain(race.name);
+    }
+  });
+
+  it("names no pole or winner for a round not reached", () => {
+    const html = seasonPage({ kind: "race", round: MID }, "calendar");
+    expect(count(html, `title="${NOT_YET}"`)).toBe(2 * (ROUNDS - MID - 1));
+  });
+
+  it("shows the pole of a round whose qualifying alone is revealed, and not its winner", () => {
+    const html = seasonPage({ kind: "qualifying", round: MID }, "calendar");
+    expect(count(html, `title="${NOT_YET}"`)).toBe(2 * (ROUNDS - MID) - 1);
+    expect(count(html, "aria-expanded")).toBe(MID);
+  });
+
+  it("says how far the season has got, and crowns nobody", () => {
+    const html = seasonPage({ kind: "race", round: MID }, "standings");
+    expect(html).toContain(`After round ${MID + 1} of ${ROUNDS}.`);
+    expect(html).not.toContain("champion");
+    expect(html).toContain("Drivers’ Championship");
+  });
+
+  it("has no tables to show before the first race", () => {
+    const html = seasonPage({ kind: "grid" }, "standings");
+    expect(html).toContain("No round raced yet.");
+    expect(html).not.toContain("Drivers’ Championship");
+  });
+
+  it("crowns the champions once the summary is reached", () => {
+    const html = seasonPage({ kind: "summary" }, "standings");
+    expect(html).toContain("Drivers’ champion");
+    expect(html).toContain("Final classification.");
+  });
+
+  it("links every tab but the one on screen, the standings at the season's own address", async () => {
+    const html = await inRouter(
+      <SeasonView
+        world={revealYear(world, { kind: "race", round: MID })}
+        view={{ kind: "summary" }}
+        finished={false}
+        tab="calendar"
+        tabs={seasonTabLinks(YEAR, "calendar")}
+      />,
+    );
+    const tabs = html.slice(html.indexOf('<nav aria-label="Season"'), html.indexOf("</nav>"));
+    expect(tabs).toMatch(/aria-current="page"[^>]*>Calendar</);
+    expect(count(tabs, 'aria-current="page"')).toBe(1);
+    expect(tabs).toContain(`href="/run/${YEAR}"`);
+    expect(tabs).toContain(`href="/run/${YEAR}?tab=grid"`);
+    expect(tabs).not.toContain("?tab=calendar");
+  });
+});
+
+describe("the links around a session", () => {
+  const page = (cursor: Beat, shown: Beat) =>
+    inRouter(
+      <SeasonView
+        world={revealYear(world, cursor)}
+        view={shown as Exclude<Beat, { kind: "review" }>}
+        sessionNav={sessionNav({ year: YEAR, beat: cursor }, { year: YEAR, beat: shown }, ROUNDS)}
+      />,
+    );
+
+  it("disable the race and the next round while the cursor is on this qualifying", async () => {
+    const html = await page({ kind: "qualifying", round: MID }, { kind: "qualifying", round: MID });
+    expect(html).toMatch(/aria-disabled="true"[^>]*>Race</);
+    expect(html).toContain(`Round ${MID + 2} (not yet)`);
+    expect(html).not.toContain(`/round/${MID + 2}/`);
+    expect(html).toContain(`href="/run/${YEAR}/round/${MID}/qualifying"`);
+  });
+
+  it("link the next round once it is reached, and the race beside its qualifying", async () => {
+    const html = await page({ kind: "summary" }, { kind: "qualifying", round: MID });
+    expect(html).toContain(`href="/run/${YEAR}/round/${MID + 1}/race"`);
+    expect(html).toContain(`href="/run/${YEAR}/round/${MID + 2}/qualifying"`);
+    expect(html).not.toContain("(not yet)");
+  });
+
+  it("name the round in the page's header", async () => {
+    const html = await page({ kind: "summary" }, { kind: "race", round: MID });
+    expect(html).toContain(SEED.calendar[MID]?.name ?? "missing");
+    expect(html).toContain(`Round ${MID + 1} of ${ROUNDS}`);
+  });
+});
+
+describe("the era overview's year in progress", () => {
+  const next = seededWorld(4, "aged", YEAR + 1);
+  const run = { startYear: YEAR, seasons: [world] };
+
+  it("follows the crowned years with the year under way, without the accent", () => {
+    const html = renderToStaticMarkup(
+      <EraChampions run={run} inProgress={revealYear(next, { kind: "race", round: 0 })} />,
+    );
+    expect(html).toContain("in progress, leaders after round 1");
+    expect(html).toContain(`${YEAR + 1} is under way.`);
+    expect(count(html, STANDOUT_ROW)).toBe(1);
+  });
+
+  it("is left off on the review, where the year has been crowned", () => {
+    const html = renderToStaticMarkup(<EraChampions run={run} inProgress={null} />);
+    expect(html).not.toContain("in progress");
+    expect(html).toContain(`Next comes`);
+  });
+
+  it("is all there is before the first year is crowned", () => {
+    const html = renderToStaticMarkup(
+      <EraChampions
+        run={{ startYear: YEAR, seasons: [] }}
+        inProgress={revealYear(world, { kind: "grid" })}
+      />,
+    );
+    expect(html).toContain("No season finished yet.");
+    expect(html).toContain("on the grid");
+    expect(count(html, STANDOUT_ROW)).toBe(0);
+  });
+});

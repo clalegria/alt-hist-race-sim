@@ -12,7 +12,7 @@
  * **out** (exit the run). Nothing goes back in time.
  */
 
-import { crowned, cursorPlace, type Run } from "../store/season.js";
+import { cursorPlace, type Run } from "../store/season.js";
 import { laterYears, linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
 import { nextEraYear } from "./seasons.js";
 import { comparePlaces, describeBeat, isReached, nextBeat, type Place } from "./timeline.js";
@@ -88,18 +88,18 @@ export interface Crumb {
 export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
   const cursor = cursorPlace(run);
   const crumbs: { label: string; link?: RunLink | undefined }[] = [];
+  // The era's overview is there from its first grid on.
   if (run.kind === "era") {
-    crumbs.push({
-      label: "Era",
-      link: crowned(run).seasons.length > 0 ? REVIEW_LINK : undefined,
-    });
+    crumbs.push({ label: "Era", link: REVIEW_LINK });
   }
   const beat = place.beat;
   if (beat.kind !== "review") {
-    const summary: Place = { year: place.year, beat: { kind: "summary" } };
+    // The year's page opens with its grid, so any page of a year reached has it.
     crumbs.push({
       label: String(place.year),
-      link: isReached(cursor, summary) ? linkTo(summary) : undefined,
+      link: isReached(cursor, { year: place.year, beat: { kind: "grid" } })
+        ? linkTo({ year: place.year, beat: { kind: "summary" } })
+        : undefined,
     });
   }
   if (beat.kind === "grid") {

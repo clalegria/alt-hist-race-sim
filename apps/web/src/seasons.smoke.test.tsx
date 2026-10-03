@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SeasonView } from "./components/SeasonView.js";
 import { driverName, teamName } from "./lib/names.js";
+import type { SeasonTab } from "./lib/season-tabs.js";
 import type { View } from "./lib/timeline.js";
 import { createWorld } from "./store/season.js";
 import { shownAt } from "./test-support.js";
@@ -23,8 +24,10 @@ describe("each authored season, through the whole reveal", () => {
       // Entities decoded: React escapes an apostrophe to `&#x27;`, and the
       // pool holds names with one in them. Every assertion here is against a
       // name, so decode once at the source rather than at each match.
-      const render = (view: View): string =>
-        renderToStaticMarkup(<SeasonView {...shownAt(world, view)} />)
+      const render = (view: View, tab?: SeasonTab): string =>
+        renderToStaticMarkup(
+          <SeasonView {...shownAt(world, view)} {...(tab === undefined ? {} : { tab })} />,
+        )
           .replace(/&#x27;/g, "'")
           .replace(/&quot;/g, '"')
           .replace(/&amp;/g, "&");
@@ -49,12 +52,12 @@ describe("each authored season, through the whole reveal", () => {
         });
       });
 
-      it("lists every round of its own calendar on the summary", () => {
-        const html = render({ kind: "summary" });
+      it("lists every round of its own calendar on the season's calendar tab", () => {
+        const html = render({ kind: "summary" }, "calendar");
         for (const race of seed.calendar) {
           expect(html, `${year} ${race.name}`).toContain(race.name);
         }
-        expect(html).toContain("Final classification.");
+        expect(render({ kind: "summary" })).toContain("Final classification.");
       });
 
       it("crowns a champion", () => {

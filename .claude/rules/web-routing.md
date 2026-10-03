@@ -37,8 +37,8 @@ type-checked: a link to a path with no route fails `pnpm typecheck`.
 |---|---|---|
 | `/` | `index.tsx` | `MainMenu`, with a `ResumeRun` card (resume, or exit) while a run exists |
 | `/season/new`, `/era/new` | `season/new.tsx`, `era/new.tsx` | `SetupPage` around `SeasonPicker` / `EraPicker` |
-| `/run` | `run.tsx` (layout), `run/index.tsx` | the era's roll of honour (`EraChampions` over `crowned(run)`) |
-| `/run/1984` | `run/$year/index.tsx` | that year's summary |
+| `/run` | `run.tsx` (layout), `run/index.tsx` | an era's overview: the roll of honour (`EraChampions` over `crowned(run)`) and the year in progress |
+| `/run/1984?tab=calendar` | `run/$year/index.tsx` | that year's season page, one tab at a time (`web-season-pages.md`) |
 | `/run/1984/grid` | `run/$year/grid.tsx` | that year's grid |
 | `/run/1984/round/3/qualifying`, `…/race` | `run/$year/round/$round/*.tsx` | one session; the round counts from 1 |
 
@@ -56,14 +56,17 @@ round from 1 without a leading zero, and the round must exist in that year's wor
 `resolveRunPage` gives one of four answers:
 
 - **season** or **review**: the run has the place and the cursor has **reached** it
-  (`isReached`). The page gets it through the gate, below.
+  (`isReached`). The page gets it through the gate, below. **The season page opens with
+  its grid**: `/run/1984` is the summary beat's page, but reachable from that year's
+  grid on, cut at the cursor; `finished` says the summary is reached. **An era's `/run`
+  is always reached**: the crowned years, plus `inProgress`, the cursor's year cut at the
+  cursor (null on the review).
 - **unreached**: a place still ahead that the run *can* get to. That means a later beat
-  of the cursor's year, a year in `laterYears(run)` (the `nextEraYear` walk, also what
-  Jump to… offers) with a round its calendar has, or an era's `/run` before anything is
-  crowned. `NotReached` says so and links to the cursor. Continue stays in the run bar.
+  of the cursor's year, or a year in `laterYears(run)` (the `nextEraYear` walk, also
+  what Jump to… offers) with a round its calendar has. `NotReached` says so and links to
+  the cursor. Continue stays in the run bar.
 - **redirect** to the cursor: a malformed param, a round the season doesn't have, or a
-  year the run will never reach. A one-year run's `/run` goes on to its summary, or to
-  the cursor before the summary is reached.
+  year the run will never reach. A one-year run's `/run` goes on to its season page.
 
 Each child route resolves **twice**: in `guardRunPage` in `beforeLoad` (only a
 redirect throws, so a stray URL never draws) and in `RunPlacePage` in render. The
@@ -132,6 +135,7 @@ reported rather than followed, so `routes.test.tsx` tests every run page's guard
 calling `beforeLoad` directly. Pages that need a run cannot be rendered this way (the
 store's server snapshot is its initial state): the place rules are tested in
 `lib/run-places.test.ts`, the bar's in `lib/run-bar.test.ts`, and `RunBar` and
-`ResumeRun` render inside a bare router, which a `Link` needs. The blocker and the
-dialogs' contents need a real browser; `pnpm screenshots` walks Back through the run
-and past its start (`.claude/rules/screenshots.md`).
+`ResumeRun` render inside a bare router (`inRouter` in `test-router.tsx`), which a
+`Link` needs. The blocker and the dialogs' contents need a real browser;
+`pnpm screenshots` walks Back through the run and past its start
+(`.claude/rules/screenshots.md`).

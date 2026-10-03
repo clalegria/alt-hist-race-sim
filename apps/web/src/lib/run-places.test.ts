@@ -49,7 +49,7 @@ function paramsOf(place: Place): {
         ? "qualifying"
         : link.to === "/run/$year/round/$round/race"
           ? "race"
-          : "summary";
+          : "season";
   return { page, params };
 }
 
@@ -114,7 +114,9 @@ describe("what a page inside /run shows", () => {
     beats.forEach((beat, index) => {
       const { page, params } = paramsOf({ year: YEAR, beat });
       const resolved = resolveRunPage(run, page, params);
-      expect(resolved.kind, JSON.stringify(beat)).toBe(index <= at ? "season" : "unreached");
+      // The summary's page is the season's own, there from the grid on.
+      const shown = index <= at || beat.kind === "summary";
+      expect(resolved.kind, JSON.stringify(beat)).toBe(shown ? "season" : "unreached");
       if (resolved.kind === "season") {
         expect(resolved.view).toEqual(beat);
         expect(resolved.world.year).toBe(YEAR);
@@ -154,12 +156,27 @@ describe("what a page inside /run shows", () => {
     expect(past.kind === "season" && past.editable).toBe(false);
   });
 
-  it("sends a one-year run's /run on to its season, or to the cursor before it ends", () => {
-    const over = resolveRunPage(season({ kind: "summary" }), "review", {});
-    expect(over.kind === "redirect" && over.to).toEqual(
-      linkTo({ year: YEAR, beat: { kind: "summary" } }),
-    );
-    redirectsToCursor("review", {});
+  it("shows the season's page from its grid on, finished only once the summary is reached", () => {
+    for (const beat of beatsOf(ROUNDS)) {
+      const resolved = resolveRunPage(season(beat), "season", { year: String(YEAR) });
+      expect(resolved.kind, JSON.stringify(beat)).toBe("season");
+      expect(resolved.kind === "season" && resolved.finished, JSON.stringify(beat)).toBe(
+        beat.kind === "summary",
+      );
+      // Cut at the cursor, like every other page.
+      expect(resolved.kind === "season" && resolved.world.season).toEqual(
+        revealYear(first, beat).season,
+      );
+    }
+  });
+
+  it("sends a one-year run's /run on to its season, wherever the cursor is", () => {
+    for (const beat of [{ kind: "grid" }, cursor, { kind: "summary" }] as const) {
+      const resolved = resolveRunPage(season(beat), "review", {});
+      expect(resolved.kind === "redirect" && resolved.to, JSON.stringify(beat)).toEqual(
+        linkTo({ year: YEAR, beat: { kind: "summary" } }),
+      );
+    }
   });
 });
 
@@ -179,17 +196,21 @@ describe("what a page inside an era shows", () => {
     expect(resolved.kind === "season" && resolved.editable).toBe(false);
   });
 
-  it("shows the roll of honour once a year has been crowned", () => {
-    const resolved = resolveRunPage(era({ kind: "grid" }), "review", {});
-    expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first]);
+  it("shows the overview with the crowned years and the year in progress, cut at the cursor", () => {
+    for (const cursor of [{ kind: "grid" }, { kind: "race", round: 0 }] as const) {
+      const resolved = resolveRunPage(era(cursor), "review", {});
+      expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first]);
+      expect(resolved.kind === "review" && resolved.inProgress).toEqual(revealYear(second, cursor));
+    }
   });
 
   it("counts the year on the cursor as crowned once the cursor reaches its review", () => {
     const resolved = resolveRunPage(era({ kind: "review" }), "review", {});
     expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first, second]);
+    expect(resolved.kind === "review" && resolved.inProgress).toBeNull();
   });
 
-  it("says the roll of honour is not reached yet while nothing has been crowned", () => {
+  it("shows the overview from the era's first grid, before anything is crowned", () => {
     const fresh: Run = {
       kind: "era",
       run: { startYear: YEAR, seasons: [] },
@@ -197,10 +218,9 @@ describe("what a page inside an era shows", () => {
       cursor: { kind: "grid" },
     };
     const resolved = resolveRunPage(fresh, "review", {});
-    expect(resolved.kind === "unreached" && resolved.place).toEqual({
-      year: YEAR,
-      beat: { kind: "review" },
-    });
+    expect(resolved.kind).toBe("review");
+    expect(resolved.kind === "review" && resolved.run.seasons).toEqual([]);
+    expect(resolved.kind === "review" && resolved.inProgress?.year).toBe(YEAR);
   });
 
   it("says a year the era will go on to is not reached yet, for any round it has", () => {
@@ -278,7 +298,7 @@ describe("the gate, at the only door pages have", () => {
 describe("the route a page matched", () => {
   it("names a page for every route inside /run, and none outside it", () => {
     expect(runPageOf("/run/")).toBe("review");
-    expect(runPageOf("/run/$year/")).toBe("summary");
+    expect(runPageOf("/run/$year/")).toBe("season");
     expect(runPageOf("/run/$year/grid")).toBe("grid");
     expect(runPageOf("/run/$year/round/$round/qualifying")).toBe("qualifying");
     expect(runPageOf("/run/$year/round/$round/race")).toBe("race");

@@ -18,7 +18,7 @@ only what the *multi-season* shell adds.
 ## The loop
 
 The era picker (`/era/new`), then one `era` run: `{ run: EraRun, world, cursor }`, the
-cursor walking each year's beats and then its **review** (`/run`, the roll of honour)
+cursor walking each year's beats and then its **review** (`/run`, the era's overview)
 before the next year's grid. `EraRun` is `{ startYear, seasons }`.
 
 **An era reuses the season's beats rather than copying them.** `SeasonPage` in
@@ -89,10 +89,17 @@ past it, and `continueRun()` is a no-op there rather than a throw.
 
 ## The roll of honour
 
-`EraChampions` is a pure render of a run; its actions are the run bar's. Chronological, earliest first — a record, not a leaderboard. **The year just
-finished is the last row and carries `STANDOUT_ROW`**, exactly one row per view, which
-is the accent rule from `web-display.md`: it is the champion of the thing the reader
-just came off.
+`EraChampions` is a pure render of a run; its actions are the run bar's. Chronological,
+earliest first — a record, not a leaderboard. **The year last crowned carries
+`STANDOUT_ROW`**, exactly one row per view, which is the accent rule from
+`web-display.md`: on the review it is the champion of the thing the reader just came off.
+
+**The year in progress follows it** (`InProgressRow`, from `inProgress`): each
+championship's leader as far as the cursor has got, or "on the grid". Muted, never
+opened, never accented — it is a season still being written. It is there whenever the
+cursor is not on a review, so `/run` is a page from the era's first grid on; with
+nothing crowned it is the only row, and the career statistics (crowned years only) are
+left out.
 
 **Each row publishes its own season's engine supply**, wrapping its `<tr>` in
 `EntryNames` (a provider renders no DOM, so it nests inside `<tbody>` fine). This is the
@@ -105,7 +112,7 @@ that search it passed against a deliberately emptied field.
 **A row opens into that year's full championships.** The **year is the control** —
 `▶` chevron, `aria-expanded`, the name itself as the button — the same affordance the
 championship tables and the calendar use. The panel is `SeasonStandings`, which is
-*also* what the season summary ends on: extracted out of `SeasonView` precisely so a
+*also* the season page's standings tab: extracted out of `SeasonView` precisely so a
 year read out of the roll of honour and a year just finished cannot say different
 things. Its calendar comes from `seasonSeed(row.year)`, never a season fixed at import
 time, and each row of it still opens into its own race-by-race — an expansion inside an

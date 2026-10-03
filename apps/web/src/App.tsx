@@ -8,7 +8,9 @@ import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
 import type { RevealedWorld } from "./lib/reveal.js";
 import { type Crumb, runBarFor } from "./lib/run-bar.js";
+import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
+import type { SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
 import { type EraRun, isUntouched, type Run, useSeasonStore } from "./store/season.js";
 
@@ -215,12 +217,22 @@ export function SeasonPage({
   run,
   locked = false,
   onYearChange,
+  finished,
+  tab,
+  tabs,
+  sessionNav,
 }: {
   world: RevealedWorld;
   view: View;
   run?: EraRun;
   locked?: boolean;
   onYearChange?: (year: number) => void;
+  /** On the season's page: whether its summary is reached, and its tabs. */
+  finished?: boolean;
+  tab?: SeasonTab;
+  tabs?: readonly SeasonTabLink[];
+  /** On a session's page: the links around it. */
+  sessionNav?: SessionNav | null;
 }) {
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
   const setGrid = useSeasonStore((state) => state.setGrid);
@@ -270,6 +282,10 @@ export function SeasonPage({
           }
         : {})}
       onGridEditingChange={setEditingGrid}
+      {...(finished === undefined ? {} : { finished })}
+      {...(tab === undefined ? {} : { tab })}
+      {...(tabs === undefined ? {} : { tabs })}
+      {...(sessionNav === undefined ? {} : { sessionNav })}
     />
   );
 }

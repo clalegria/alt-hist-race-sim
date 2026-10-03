@@ -56,8 +56,11 @@ export function linkTo(place: Place) {
 
 export type RunLink = ReturnType<typeof linkTo>;
 
-/** The pages inside `/run`, one per beat kind. */
-export type RunPage = "review" | "summary" | "grid" | "qualifying" | "race";
+/**
+ * The pages inside `/run`. Each beat kind has one; `season` is the summary
+ * beat's, and is also the year's own page from its grid on.
+ */
+export type RunPage = "review" | "season" | "grid" | "qualifying" | "race";
 
 /** The URL's own parameters, before anything has checked them. */
 export interface RunParams {
@@ -89,7 +92,7 @@ export function placeFromParams(page: Exclude<RunPage, "review">, params: RunPar
     const round = parseRound(params.round);
     return round === null ? null : { year, beat: { kind: page, round } };
   }
-  return { year, beat: { kind: page } };
+  return { year, beat: { kind: page === "season" ? "summary" : page } };
 }
 
 /**
@@ -104,8 +107,17 @@ export type RunResolution =
       readonly view: View;
       /** Only the grid the cursor is on can still be changed; any other is history. */
       readonly editable: boolean;
+      /** Whether the reader has reached this year's summary, so its champions are known. */
+      readonly finished: boolean;
     }
-  | { readonly kind: "review"; readonly place: Place; readonly run: EraRun }
+  | {
+      readonly kind: "review";
+      readonly place: Place;
+      /** The crowned years. */
+      readonly run: EraRun;
+      /** The cursor's year as far as it has got; null while the cursor is on its review. */
+      readonly inProgress: RevealedWorld | null;
+    }
   | { readonly kind: "unreached"; readonly place: Place }
   | { readonly kind: "redirect"; readonly to: RunLink };
 
@@ -147,9 +159,12 @@ function canReach(run: Run, place: Place): boolean {
 /**
  * What the page at `page` with `params` may show of `run`.
  *
- * `/run` is the era's roll of honour, reached once a year has been crowned and
- * not reached yet before then. A one-year run has no review: its `/run` is its
- * season, which today means its summary, and until that is reached, the cursor.
+ * `/run` is an era's overview — the roll of honour and the year in progress —
+ * reachable from the era's first grid. A one-year run has no overview, so its
+ * `/run` goes on to its season.
+ *
+ * `/run/1984` is the season's own page, reachable once its grid is: the year
+ * as far as the cursor has got, and its summary once that is reached.
  */
 export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunResolution {
   const cursor = cursorPlace(run);
@@ -158,27 +173,26 @@ export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunR
 
   if (page === "review") {
     if (shown.crowned === null) {
-      const summary: Place = { year: run.world.year, beat: { kind: "summary" } };
-      return {
-        kind: "redirect",
-        to: isReached(cursor, summary) ? linkTo(summary) : linkTo(cursor),
-      };
+      return { kind: "redirect", to: linkTo({ year: run.world.year, beat: { kind: "summary" } }) };
     }
-    const last = shown.crowned.seasons.at(-1);
-    return last === undefined
-      ? { kind: "unreached", place: { year: run.world.year, beat: { kind: "review" } } }
-      : {
-          kind: "review",
-          place: { year: last.year, beat: { kind: "review" } },
-          run: shown.crowned,
-        };
+    return {
+      kind: "review",
+      place: {
+        year: shown.crowned.seasons.at(-1)?.year ?? run.world.year,
+        beat: { kind: "review" },
+      },
+      run: shown.crowned,
+      inProgress: run.cursor.kind === "review" ? null : (shown.years.at(-1) ?? null),
+    };
   }
 
   const place = placeFromParams(page, params);
   if (place === null || place.beat.kind === "review") {
     return toCursor;
   }
-  if (!isReached(cursor, place)) {
+  // The season's page opens with its grid; every other page with its own beat.
+  const opens: Place = page === "season" ? { year: place.year, beat: { kind: "grid" } } : place;
+  if (!isReached(cursor, opens)) {
     return canReach(run, place) ? { kind: "unreached", place } : toCursor;
   }
   const world = shown.years.find((each) => each.year === place.year);
@@ -195,6 +209,7 @@ export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunR
     world,
     view: beat,
     editable: beat.kind === "grid" && comparePlaces(place, cursor) === 0,
+    finished: isReached(cursor, { year: place.year, beat: { kind: "summary" } }),
   };
 }
 
@@ -204,7 +219,7 @@ export function runPageOf(routeId: string): RunPage | null {
     case "/run/":
       return "review";
     case "/run/$year/":
-      return "summary";
+      return "season";
     case "/run/$year/grid":
       return "grid";
     case "/run/$year/round/$round/qualifying":

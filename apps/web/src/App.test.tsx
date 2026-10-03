@@ -24,6 +24,7 @@ import { SeasonView } from "./components/SeasonView.js";
 import { STANDOUT_ROW } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
+import type { SeasonTab } from "./lib/season-tabs.js";
 import { adjacentSeason, PLAYABLE_SEASONS } from "./lib/seasons.js";
 import type { View } from "./lib/timeline.js";
 import type { EraRun, World } from "./store/season.js";
@@ -54,8 +55,10 @@ if (FIRST_ROUND === undefined || LAST_ROUND === undefined) {
   throw new Error("the authored season has no calendar");
 }
 
-function render(view: View, of: World = world): string {
-  return renderToStaticMarkup(<SeasonView {...shownAt(of, view)} />);
+function render(view: View, of: World = world, tab?: SeasonTab): string {
+  return renderToStaticMarkup(
+    <SeasonView {...shownAt(of, view)} {...(tab === undefined ? {} : { tab })} />,
+  );
 }
 
 describe("the opening grid", () => {
@@ -203,7 +206,7 @@ describe("a qualifying session", () => {
   it("is titled with the round it belongs to", () => {
     expect(html).toContain(FIRST_ROUND.name);
     expect(html).toContain(FIRST_ROUND.circuit);
-    expect(html).toContain("Qualifying");
+    expect(html).toContain("Starting grid");
   });
 
   it("forms up the whole entry list, pole first", () => {
@@ -308,9 +311,10 @@ describe("the season summary", () => {
     expect(html).toMatch(/points from \d+ wins?\./);
   });
 
-  it("lists every round with its pole and winner", () => {
+  it("lists every round with its pole and winner on its calendar tab", () => {
+    const calendar = render({ kind: "summary" }, world, "calendar");
     for (const race of SEED.calendar) {
-      expect(html, race.name).toContain(race.name);
+      expect(calendar, race.name).toContain(race.name);
     }
   });
 
@@ -329,8 +333,10 @@ describe("the season summary", () => {
     expect(html).not.toContain(">DNQ<");
   });
 
-  it("still ends with the grid, in the same simplified form", () => {
-    expect(html).toContain("Select any name for its full ratings");
+  it("keeps the grid on its own tab, in the same simplified form", () => {
+    expect(render({ kind: "summary" }, world, "grid")).toContain(
+      "Select any name for its full ratings",
+    );
   });
 });
 
@@ -409,7 +415,8 @@ describe("flags", () => {
     const html = render({ kind: "summary" });
     const drivers = between(html, "Drivers’ Championship", "Constructors’ Championship");
     expect(svgsBesideCars(drivers)).toBe(SEATS);
-    const teams = between(html, "Constructors’ Championship", "Grid");
+    // The standings tab ends on the constructors' table and its chart.
+    const teams = html.slice(html.indexOf("Constructors’ Championship"));
     expect(svgsBesideCars(teams)).toBe(TEAMS);
   });
 });

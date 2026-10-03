@@ -123,8 +123,8 @@ describe("the settings a finished championship was run under", () => {
     const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     const champion = html.indexOf("champion");
     const note = html.indexOf("Simulation settings");
-    // The card headed "Season" is the round-by-round table under the break.
-    const seasonCard = html.indexOf(">Season<");
+    // The standings, the first tab, are the tables under the break.
+    const seasonCard = html.indexOf("Drivers’ Championship");
     expect(champion).toBeGreaterThan(-1);
     expect(seasonCard).toBeGreaterThan(-1);
     expect(note).toBeGreaterThan(champion);

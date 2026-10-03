@@ -195,8 +195,10 @@ describe("a grid with a re-rated chassis", () => {
     expect(count(html, SWAPPED_IN)).toBe(count(plain, SWAPPED_IN) + 1);
   });
 
-  it("says so at the top of the summary, and again on the grid at the foot", () => {
-    const html = renderToStaticMarkup(<SeasonView {...shownAt(changed, { kind: "summary" })} />);
+  it("says so at the top of the season page, and again on its grid tab", () => {
+    const html = renderToStaticMarkup(
+      <SeasonView {...shownAt(changed, { kind: "summary" })} tab="grid" />,
+    );
     expect(html).toContain("Alternate grid");
     expect(count(html, chassisNote(changes[0] as ChassisChange))).toBe(2);
     expect(html).toContain("1 change from the season as it was entered");

@@ -17,7 +17,6 @@ import {
   isRedirect,
   RouterProvider,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { NotReached, placeLabel } from "./components/NotReached.js";
@@ -28,13 +27,13 @@ import { AREAS, type Area, isAvailable } from "./lib/areas.js";
 import { crumbsFor, runBarFor } from "./lib/run-bar.js";
 import { linkTo } from "./lib/run-places.js";
 import { Route as GridRoute } from "./routes/run/$year/grid.js";
-import { Route as SummaryRoute } from "./routes/run/$year/index.js";
+import { Route as SeasonRoute } from "./routes/run/$year/index.js";
 import { Route as QualifyingRoute } from "./routes/run/$year/round/$round/qualifying.js";
 import { Route as RaceRoute } from "./routes/run/$year/round/$round/race.js";
 import { Route as ReviewRoute } from "./routes/run/index.js";
 import { Route as RunRoute } from "./routes/run.js";
 import { cursorPlace, type Run, useSeasonStore } from "./store/season.js";
-import { renderRoute } from "./test-router.js";
+import { inRouter, renderRoute } from "./test-router.js";
 import { seededWorld, YEAR } from "./test-support.js";
 
 const CREDIT = "Developed by Claudio Alegria";
@@ -163,7 +162,7 @@ describe("the guards on the pages inside /run", () => {
   const year = String(YEAR);
   const pages = [
     { name: "review", route: ReviewRoute, params: {} },
-    { name: "summary", route: SummaryRoute, params: { year } },
+    { name: "season", route: SeasonRoute, params: { year } },
     { name: "grid", route: GridRoute, params: { year } },
     { name: "qualifying", route: QualifyingRoute, params: { year, round: "1" } },
     { name: "race", route: RaceRoute, params: { year, round: "1" } },
@@ -213,16 +212,6 @@ describe("the guards on the pages inside /run", () => {
     }
   });
 });
-
-/** Renders `node` inside a bare router, which a `Link` needs around it. */
-async function inRouter(node: ReactNode): Promise<string> {
-  const router = createRouter({
-    routeTree: createRootRoute({ component: () => node }),
-    history: createMemoryHistory({ initialEntries: ["/"] }),
-  });
-  await router.load();
-  return renderToStaticMarkup(<RouterProvider router={router} />);
-}
 
 describe("the run bar", () => {
   const world = seededWorld(3, "aged", YEAR);

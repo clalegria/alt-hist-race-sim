@@ -30,6 +30,8 @@ import {
   resolveRunPage,
   runPageOf,
 } from "./lib/run-places.js";
+import { type SeasonTab, seasonTabLinks } from "./lib/season-tabs.js";
+import { sessionNav } from "./lib/session-nav.js";
 import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
 /**
@@ -60,7 +62,16 @@ export function guardRunPage(page: RunPage, params: RunParams): void {
  * something stale; only an address *arrived at* ahead of the cursor says it is
  * not reached yet.
  */
-export function RunPlacePage({ page, params }: { page: RunPage; params: RunParams }) {
+export function RunPlacePage({
+  page,
+  params,
+  tab = "standings",
+}: {
+  page: RunPage;
+  params: RunParams;
+  /** The season page's tab, from its search params. */
+  tab?: SeasonTab;
+}) {
   const run = useSeasonStore((state) => state.run);
   const switchSeasonYear = useSeasonStore((state) => state.switchSeasonYear);
   const navigate = useNavigate();
@@ -92,12 +103,16 @@ export function RunPlacePage({ page, params }: { page: RunPage; params: RunParam
         />
       );
     case "review":
-      return <EraChampions run={resolved.run} />;
+      return <EraChampions run={resolved.run} inProgress={resolved.inProgress} />;
     case "season":
       return (
         <SeasonPage
           world={resolved.world}
           view={resolved.view}
+          finished={resolved.finished}
+          tab={tab}
+          tabs={seasonTabLinks(resolved.place.year, tab)}
+          sessionNav={sessionNav(cursorPlace(run), resolved.place, resolved.world.season.rounds)}
           {...(run.kind === "era" ? { run: run.run } : {})}
           locked={resolved.view.kind === "grid" && !resolved.editable}
           onYearChange={(year) => {

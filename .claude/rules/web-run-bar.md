@@ -21,7 +21,9 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
 
 - **Breadcrumbs describe the page, the cursor text the run.** `crumbsFor(run, place)`:
   `Era › 1984 › Round 3 › Race`, a one-year run starting at the year. A crumb links
-  only to a page reached; the last is the page itself, `aria-current="page"`. The
+  only to a page reached — *Era* to the era's overview, the year to its season page,
+  both reached from the year's grid on; the last is the page itself,
+  `aria-current="page"`. The
   layout finds the page from the deepest match's `routeId` (`runPageOf`). Under them,
   `1984 · Round 3/16 · Race` says where the cursor is.
 - **Three kinds of action** (`runBarFor(run)` in `lib/run-bar.ts` decides which are

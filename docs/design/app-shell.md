@@ -3,8 +3,9 @@
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
 what is built — the router, the top nav, the timeline of beats, a page per beat, the
-gate, the run bar, the ways out of a run and surviving a reload — is
-`.claude/rules/web-routing.md`, `.claude/rules/web-run-bar.md`,
+gate, the season page and session links, the run bar, the ways out of a run and
+surviving a reload — is `.claude/rules/web-routing.md`,
+`.claude/rules/web-season-pages.md`, `.claude/rules/web-run-bar.md`,
 `.claude/rules/web-persistence.md` and `.claude/rules/web-app.md`. Where it sits in the
 build order is *routing and the app shell* in `docs/ROADMAP.md`; §10 is its own build
 order, one step per session.
@@ -51,8 +52,8 @@ run's first page, and Start while a run exists (`.claude/rules/web-run-bar.md`).
 ## 4. Routes
 
 **PROPOSED** — the URL scheme. Public once *publish it* ships: renaming a route then
-breaks every shared link. Built so far: `/`, the setup pages, `/run`, `/run/1984`, the
-grid and the sessions (each showing its own beat; the tabs and the rest are to come).
+breaks every shared link. Built so far: `/`, the setup pages, `/run`, `/run/1984` with
+its tabs, the grid and the sessions (`.claude/rules/web-routing.md`).
 
 ```
 /                              home: mode cards (+ Resume run while one exists)
@@ -92,28 +93,11 @@ still to add:
 
 ## 6. Pages
 
-**PROPOSED** — each is a thin route component: read the params, read the store through
-`revealed()`, pass props to a component. The components stay props-driven, so they keep
-rendering through `renderToStaticMarkup` in tests, as today.
+The home, setup, season, session and era-overview pages are built
+(`.claude/rules/web-routing.md`, `.claude/rules/web-season-pages.md`,
+`.claude/rules/web-era.md`). **PROPOSED** — the rest, each a thin route component that
+reads the params and the store through `revealed()` and passes props to a component:
 
-- **Home, setup** — `MainMenu`, `SeasonPicker` and `SimulationSettings` as they are.
-  *Start* builds the run and goes to `/run/<year>/grid`, the run's first page.
-- **Session** — today's reveal stage. Prev/next round links move between places and never
-  reveal; a round not reached is disabled.
-
-  ```
-   Brazilian GP · Round 3                    [Qualifying | Race]    ☂ wet
-   ┌ Classification ─────────────────────┐  ┌ Championship after Rd 3 ┐
-   │ 1  Piquet    Brabham-BMW            │  │ 1 Piquet  24            │
-   │ 2  Prost     McLaren-TAG   +4.2s    │  │ 2 Prost   18            │
-   └─────────────────────────────────────┘  └─────────────────────────┘
-   ‹ Round 2                                            Round 4 (not yet) ›
-  ```
-- **Season** — tabs: *Standings* (both tables and the evolution chart, as of the cursor),
-  *Calendar* (every round with its winner, unreached rounds listed but greyed), *Grid*
-  (the entry list). Finished, it is the season summary (`SeasonStandings`).
-- **Era overview** — `EraChampions`: roll of honour and career statistics, plus the year
-  in progress as a last row ("1984 — in progress, leader after round 3").
 - **Driver** — header (flag, name, age, current team, rating), the run's totals, season
   by season (`lib/history.ts`), and the current season race by race, unreached rounds
   as `···`. On the grid but not yet raced: the entry alone.
@@ -178,12 +162,11 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Season and session pages**, browsable by URL: the season's tabs, the session's
-   round links, the era overview's year in progress.
-2. **Driver and team pages**, the two index lists, the panel's page link.
-3. **Share.** The link and the `/share` entry route. The reload recipe is its
+1. **Driver and team pages**, the two index lists, the panel's page link, and the run
+   tabs (§5) that lead to them.
+2. **Share.** The link and the `/share` entry route. The reload recipe is its
    starting point.
-4. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+3. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

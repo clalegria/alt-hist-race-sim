@@ -14,6 +14,7 @@ import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
+import type { SeasonTab } from "../lib/season-tabs.js";
 import { SEED, seededWorld, shownAt, teamCount, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
@@ -253,11 +254,13 @@ describe("where liveries appear", () => {
     }
   });
 
-  const summary = renderToStaticMarkup(
-    <Liveries year={YEAR}>
-      <SeasonView {...shownAt(world, { kind: "summary" })} />
-    </Liveries>,
-  );
+  /** The finished season's page, on one tab. */
+  const summaryTab = (tab: SeasonTab) =>
+    renderToStaticMarkup(
+      <Liveries year={YEAR}>
+        <SeasonView {...shownAt(world, { kind: "summary" })} tab={tab} />
+      </Liveries>,
+    );
 
   const qualifying = renderToStaticMarkup(
     <Liveries year={YEAR}>
@@ -276,8 +279,11 @@ describe("where liveries appear", () => {
     const drivers = championshipStandings(world.season, world.points).length;
     const teams = constructorStandings(world.season, world.points).length;
     const rounds = world.season.races.length;
-    // Plus the grid panel below the tables, which badges its cards too.
-    expect(badgeCount(summary)).toBe(2 + drivers + teams + 2 * rounds + badgedCards);
+    // The champions head every tab; the tables, the calendar and the grid
+    // panel (which badges its cards too) are one tab each.
+    expect(badgeCount(summaryTab("standings"))).toBe(2 + drivers + teams);
+    expect(badgeCount(summaryTab("calendar"))).toBe(2 + 2 * rounds);
+    expect(badgeCount(summaryTab("grid"))).toBe(2 + badgedCards);
   });
 
   it("outlines every grid card in its team's first accent", () => {

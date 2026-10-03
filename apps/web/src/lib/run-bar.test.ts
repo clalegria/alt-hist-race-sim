@@ -222,13 +222,26 @@ describe("the breadcrumbs", () => {
     expect(crumbs.slice(1).every((crumb) => crumb.link === undefined)).toBe(true);
   });
 
-  it("link nowhere the reader has not reached", () => {
+  it("link the year's page from any page of a year begun, finished or not", () => {
     const crumbs = crumbsFor(season(raceTwo), { year: YEAR, beat: { kind: "grid" } });
     expect(crumbs.map((crumb) => crumb.label)).toEqual([String(YEAR), "Grid"]);
-    expect(crumbs.every((crumb) => crumb.link === undefined)).toBe(true);
+    expect(crumbs[0]?.link).toEqual(linkTo({ year: YEAR, beat: { kind: "summary" } }));
+    expect(crumbs[1]?.link).toBeUndefined();
   });
 
-  it("start at the era inside one, linking its roll of honour once a year is crowned", () => {
+  it("link nowhere the reader has not reached", () => {
+    // A later year's page, asked for ahead of the cursor: "Not reached yet".
+    const crumbs = crumbsFor(era({ kind: "grid" }), { year: YEAR + 1, beat: raceTwo });
+    expect(crumbs.map((crumb) => crumb.label)).toEqual([
+      "Era",
+      String(YEAR + 1),
+      "Round 2",
+      "Race",
+    ]);
+    expect(crumbs.slice(1).every((crumb) => crumb.link === undefined)).toBe(true);
+  });
+
+  it("start at the era inside one, linking its overview and the year", () => {
     const next = seededWorld(4, "aged", YEAR + 1);
     const run: Run = {
       kind: "era",
@@ -239,7 +252,7 @@ describe("the breadcrumbs", () => {
     const crumbs = crumbsFor(run, { year: YEAR + 1, beat: { kind: "grid" } });
     expect(crumbs.map((crumb) => crumb.label)).toEqual(["Era", String(YEAR + 1), "Grid"]);
     expect(crumbs[0]?.link).toEqual(REVIEW_LINK);
-    expect(crumbs[1]?.link).toBeUndefined();
+    expect(crumbs[1]?.link).toEqual(linkTo({ year: YEAR + 1, beat: { kind: "summary" } }));
   });
 
   it("are the era alone on its roll of honour", () => {
@@ -247,8 +260,8 @@ describe("the breadcrumbs", () => {
     expect(crumbs).toEqual([{ label: "Era" }]);
   });
 
-  it("do not link the era before anything has been crowned", () => {
+  it("link the era's overview before anything has been crowned", () => {
     const crumbs = crumbsFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "grid" } });
-    expect(crumbs[0]).toEqual({ label: "Era" });
+    expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK });
   });
 });

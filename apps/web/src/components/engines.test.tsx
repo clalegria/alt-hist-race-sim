@@ -190,8 +190,10 @@ describe("a re-supplied grid", () => {
     expect(html).toContain(`>${teamName(swap.teamId)}-${engineName(swap.to)}<`);
   });
 
-  it("says so at the top of the summary, and again on the grid at the foot", () => {
-    const html = renderToStaticMarkup(<SeasonView {...shownAt(changed, { kind: "summary" })} />);
+  it("says so at the top of the season page, and again on its grid tab", () => {
+    const html = renderToStaticMarkup(
+      <SeasonView {...shownAt(changed, { kind: "summary" })} tab="grid" />,
+    );
     const said = `${engineName(swap.to)} engine for ${engineName(swap.from)}`;
 
     expect(html).toContain("Alternate grid");

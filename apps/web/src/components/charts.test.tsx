@@ -171,17 +171,18 @@ describe("the season summary", () => {
     expect(expansion).not.toContain("How the drivers’ title was won");
   });
 
-  /** The legend of one chart: everything between its heading and the next card. */
-  function legend(from: string, to: string): string {
+  /** The legend of one chart: everything between its heading and the next card, or the end. */
+  function legend(from: string, to?: string): string {
     const start = summary.indexOf(from);
-    const end = summary.indexOf(to, start);
+    const end = to === undefined ? summary.length : summary.indexOf(to, start);
     expect(start).toBeGreaterThan(-1);
     expect(end).toBeGreaterThan(start);
     return summary.slice(start, end);
   }
 
   const driversLegend = legend("How the drivers’ title was won", "Constructors’ Championship");
-  const teamsLegend = legend("How the constructors’ title was won", "Grid");
+  // The last thing on the standings tab.
+  const teamsLegend = legend("How the constructors’ title was won");
 
   it("names the top few of each table, in the order the table has them", () => {
     const drivers = championshipStandings(world.season, world.points).slice(0, TOP_DRIVERS);

@@ -1,67 +1,39 @@
-import {
-  type CalendarRace,
-  chassisChanges,
-  engineChanges,
-  type GridArrangement,
-  lineupChanges,
-  type RatingMode,
-  type SeasonChassis,
-  type SeasonEngines,
-  type SeasonLineup,
-} from "@alt-hist/data";
+import type { CalendarRace, RatingMode, SeasonLineup } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
   constructorsTitleClinchedBy,
   driversTitleClinchedBy,
-  type PointsScale,
-  type RaceEntrant,
   type RaceResult,
   type RaceWeather,
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
-import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
+import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
-import { useSortOrder } from "../lib/sort-preference.js";
+import type { SessionNav } from "../lib/session-nav.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
-import { cn } from "../lib/utils.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName } from "./EntryNames.js";
-import { Flag } from "./Flag.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
 import { HomeAdvantage } from "./HomeAdvantage.js";
-import { EditedGridBanner } from "./LineupChanges.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { RandomnessNote } from "./RandomnessNote.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
-import { SeasonCalendar } from "./SeasonCalendar.js";
-import { SeasonGrid } from "./SeasonGrid.js";
-import { SeasonStandings } from "./SeasonStandings.js";
+import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
-import { type Setting, SimulationSettings, settingsOf } from "./SimulationSettings.js";
-import { TeamBadge } from "./TeamBadge.js";
-import { TeamCar } from "./TeamCar.js";
+import { RoundLinks, SessionHeader } from "./SessionNav.js";
 import { TitleBanner } from "./TitleBanner.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { WeatherBadge } from "./WeatherBadge.js";
+import { Card, CardHeader, CardTitle } from "./ui/card.js";
 
-/** The name of a round, falling back to a bare number if the calendar is short. */
-function roundLabel(
-  calendar: readonly CalendarRace[],
-  round: number,
-): { name: string; circuit: string; country: string } {
-  const race = calendar[round];
-  return {
-    name: race?.name ?? `Round ${round + 1}`,
-    circuit: race?.circuit ?? "",
-    country: race?.country ?? "",
-  };
+/** Where a round is held, for home advantage; empty if the calendar is short. */
+function roundCountry(calendar: readonly CalendarRace[], round: number): string {
+  return calendar[round]?.country ?? "";
 }
 
 /**
@@ -78,244 +50,18 @@ function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-function Section({
-  title,
-  subtitle,
-  country,
-  weather,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  country?: string;
-  /**
-   * What the sky did. Drawn beside the round's name, and only when it rained —
-   * `WeatherBadge` renders nothing for a dry afternoon, which is most of them.
-   */
-  weather?: RaceWeather;
-  children: React.ReactNode;
-}) {
+/**
+ * One session's sheet. The round's name, flag and weather are the page's
+ * header (`SessionHeader`), so the card says only which sheet this is.
+ */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex flex-wrap items-center gap-2">
-          {country === undefined || country === "" ? null : (
-            <Flag country={country} title={country} className="h-4 w-6" />
-          )}
-          {title}
-          {weather === undefined ? null : <WeatherBadge weather={weather} />}
-        </CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       {children}
     </Card>
-  );
-}
-
-function Champion({
-  label,
-  name,
-  detail,
-  country,
-  teamId,
-}: {
-  label: string;
-  name: string;
-  detail: string;
-  country?: string | undefined;
-  /**
-   * Whose colours the box wears — the champion's team, or the champion itself
-   * on the constructors' side. Undefined before anyone has scored.
-   */
-  teamId?: string | undefined;
-}) {
-  return (
-    // The same accent pole and the race winner carry: whoever won the thing on
-    // screen looks the same wherever you meet them.
-    //
-    // The two cards stand side by side at the same height, whatever their
-    // words, so the header fills its card: the car then parks in the same
-    // bottom-right corner of both, and the header's bottom rule — drawn to
-    // separate a header from a body this card does not have — is dropped
-    // rather than left floating wherever the shorter card's words end.
-    <Card className={cn("flex flex-1 flex-col", STANDOUT_SURFACE)}>
-      <CardHeader className="flex-1 gap-3 border-b-0 lg:flex-row lg:gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
-            {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
-            {country === undefined || country === "" ? null : (
-              <Flag country={country} title={country} className="h-4 w-6" />
-            )}
-            {name}
-          </CardTitle>
-          <CardDescription>{detail}</CardDescription>
-        </div>
-        {/*
-          After the words, so the card still reads label, name, detail, and in
-          the bottom-right corner. Beside them only once the card is wide
-          enough: narrower, it would squeeze a team's name onto three lines, so
-          it drops beneath instead. The one car on the app drawn large, and
-          the one whose wheels turn.
-        */}
-        {teamId === undefined ? null : (
-          <TeamCar teamId={teamId} size="large" animated className="mt-auto self-end" />
-        )}
-      </CardHeader>
-    </Card>
-  );
-}
-
-function Summary({
-  season,
-  field,
-  year,
-  ratingMode,
-  points,
-  lineup,
-  engines,
-  chassis,
-  arrangement,
-  settings,
-}: {
-  season: SeasonResult;
-  field: readonly RaceEntrant[];
-  year: number;
-  /** The mode the season was *raced* on, so the grid's ages match its ratings. */
-  ratingMode: RatingMode;
-  points: PointsScale;
-  lineup: SeasonLineup | null;
-  engines: SeasonEngines | null;
-  chassis: SeasonChassis | null;
-  /** The bulk rule the grid was arranged by, said on the banner and the grid. */
-  arrangement: GridArrangement | null;
-  /** What the year was run under, from `settingsOf`. */
-  settings: readonly Setting[];
-}) {
-  const nameOf = useEntryName();
-  const champion = useMemo(() => championshipStandings(season, points)[0], [season, points]);
-  const topTeam = useMemo(() => constructorStandings(season, points)[0], [season, points]);
-  const teamFor = useMemo(
-    () => new Map(field.map((entrant) => [entrant.driverId, entrant.teamId])),
-    [field],
-  );
-  // Both read the year being played rather than a season pinned at import
-  // time — the app runs more than one now.
-  const seed = useMemo(() => seasonSeed(year), [year]);
-  const changes = useMemo(
-    () => (lineup === null ? [] : lineupChanges(seed, lineup)),
-    [lineup, seed],
-  );
-  const supplyChanges = useMemo(
-    () => (engines === null ? [] : engineChanges(seed, engines)),
-    [engines, seed],
-  );
-  const rerated = useMemo(
-    () => (chassis === null ? [] : chassisChanges(seed, chassis)),
-    [chassis, seed],
-  );
-  // The grid at the foot of the season gets the same switch the opening one
-  // has: by then the pecking order is the point rather than a spoiler. Same
-  // switch and the same choice — it is shared with every other list on the app.
-  const [teamSort, setTeamSort] = useSortOrder();
-
-  return (
-    <>
-      {/*
-        Above the champions, because a championship won on a grid the reader
-        assembled is a different claim from one won on the grid of 1980, and
-        finding that out at the foot of the page is finding it out too late.
-      */}
-      {changes.length === 0 &&
-      supplyChanges.length === 0 &&
-      rerated.length === 0 &&
-      arrangement === null ? null : (
-        <EditedGridBanner
-          changes={changes}
-          engineChanges={supplyChanges}
-          chassisChanges={rerated}
-          arrangement={arrangement}
-          ratingMode={ratingMode}
-        />
-      )}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <Champion
-          label="Drivers&rsquo; champion"
-          name={champion === undefined ? "—" : driverName(champion.driverId)}
-          country={champion === undefined ? undefined : driverCountry(champion.driverId)}
-          {...(champion === undefined ? {} : { teamId: champion.teamId })}
-          detail={
-            champion === undefined
-              ? "Nobody scored."
-              : `${nameOf(champion.teamId)} — ${champion.points} points from ${plural(champion.wins, "win")}.`
-          }
-        />
-        <Champion
-          label="Constructors&rsquo; champion"
-          name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
-          country={topTeam === undefined ? undefined : teamCountry(topTeam.teamId)}
-          {...(topTeam === undefined ? {} : { teamId: topTeam.teamId })}
-          detail={
-            topTeam === undefined
-              ? "Nobody scored."
-              : `${topTeam.points} points from ${plural(topTeam.wins, "win")}.`
-          }
-        />
-      </div>
-      {/*
-        Between the champions and the season they came out of, which is the
-        break in the page anyway: the result above it, how it was arrived at
-        below, and the terms both were settled under in the gap. The padding is
-        the gap — these sections are stacked without one.
-      */}
-      <SimulationSettings settings={settings} className="text-muted-foreground py-5 text-xs" />
-      {/*
-        The three tables the season is reported in, set apart from each other.
-        `SeasonStandings` returns its two tables in a fragment, so they become
-        items of this column alongside the calendar and take the same gap — one
-        rule for all three rather than margins hung on each. Narrower than the
-        gap under it: these belong together, the grid below them is a different
-        subject.
-      */}
-      <div className="flex flex-col gap-4">
-        <SeasonCalendar
-          season={season}
-          calendar={seed.calendar}
-          points={points}
-          teamFor={teamFor}
-        />
-        <SeasonStandings
-          season={season}
-          calendar={seed.calendar}
-          points={points}
-          description="Final classification."
-          badge
-          car
-          charts
-        />
-      </div>
-      {/*
-        A gap wider than the page's own, because this is where the season stops
-        being reported and starts being described. The grid draws its own panel
-        now, so this no longer has to do the whole job of separating it — a bare
-        heading one ordinary gap under the last constructor row used to read as
-        another row of that table, and a border settles that on its own. The
-        wider gap stays for the subject change, not for the ambiguity.
-      */}
-      <div className="pt-6">
-        <SeasonGrid
-          field={field}
-          seasonYear={year}
-          ratingMode={ratingMode}
-          changes={changes}
-          engineChanges={supplyChanges}
-          chassisChanges={rerated}
-          arrangement={arrangement}
-          sort={teamSort}
-          onSortChange={setTeamSort}
-        />
-      </div>
-    </>
   );
 }
 
@@ -358,7 +104,7 @@ function RaceStage({
     };
   }, [world.season, view.round, points]);
 
-  const label = roundLabel(seasonSeed(world.year).calendar, view.round);
+  const country = roundCountry(seasonSeed(world.year).calendar, view.round);
   // The season's length, not the races revealed: the clinch arithmetic needs
   // every round still to come.
   const total = world.season.rounds;
@@ -404,13 +150,8 @@ function RaceStage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <Section
-          title={`${label.name} — Race`}
-          subtitle={label.circuit}
-          country={label.country}
-          weather={race.weather}
-        >
-          <RaceClassification race={race} points={points} country={label.country} badge car />
+        <Section title="Classification">
+          <RaceClassification race={race} points={points} country={country} badge car />
         </Section>
 
         <aside className="flex flex-col gap-4">
@@ -489,6 +230,18 @@ interface SeasonViewProps {
    * line saying why. Only the grid the cursor is on can still be changed.
    */
   readonly locked?: boolean;
+  /**
+   * On the season's page, whether the reader has reached its summary: the
+   * champions are drawn only then. Defaults to true, so a bare render of the
+   * summary is the finished season.
+   */
+  readonly finished?: boolean;
+  /** On the season's page, the tab on screen; the standings by default. */
+  readonly tab?: SeasonTab;
+  /** On the season's page, the links to its tabs. Absent in a test without a router. */
+  readonly tabs?: readonly SeasonTabLink[];
+  /** On a session's page, the links around it. Absent in a test without a router. */
+  readonly sessionNav?: SessionNav | null;
 }
 
 /**
@@ -508,6 +261,10 @@ function SeasonBody({
   onGridEditingChange,
   previousLineup = null,
   locked = false,
+  finished = true,
+  tab = "standings",
+  tabs,
+  sessionNav,
 }: SeasonViewProps) {
   // Whether the grid editor is open. The page is told too — it puts the way
   // forward away — but the year switcher below is drawn from this copy, so the
@@ -570,43 +327,61 @@ function SeasonBody({
     );
   }
 
+  if (view.kind === "summary") {
+    return (
+      <SeasonOverview
+        world={world}
+        finished={finished}
+        tab={tab}
+        {...(tabs === undefined ? {} : { tabs })}
+      />
+    );
+  }
+
+  const calendar = seasonSeed(world.year).calendar;
+  const header = (weather: RaceWeather) => (
+    <SessionHeader
+      session={view.kind}
+      round={view.round}
+      rounds={world.season.rounds}
+      race={calendar[view.round]}
+      weather={weather}
+      {...(sessionNav === undefined || sessionNav === null ? {} : { nav: sessionNav })}
+    />
+  );
+  const footer =
+    sessionNav === undefined || sessionNav === null ? null : <RoundLinks nav={sessionNav} />;
+
   const sheet = view.kind === "qualifying" ? qualifyingOf(world.season, view.round) : undefined;
   if (view.kind === "qualifying" && sheet !== undefined) {
-    const label = roundLabel(seasonSeed(world.year).calendar, view.round);
+    const country = roundCountry(calendar, view.round);
     return (
-      <Section
-        title={`${label.name} — Qualifying`}
-        subtitle={label.circuit}
-        country={label.country}
-        // The weather belongs to the whole weekend, not to Sunday: it widens
-        // qualifying's noise and shifts its weights exactly as it does the
-        // race's, so a wet round has to say so here too.
-        weather={sheet.weather}
-      >
-        <QualifyingResults race={sheet} country={label.country} />
-      </Section>
+      <>
+        {/*
+          The weather belongs to the whole weekend, not to Sunday: it widens
+          qualifying's noise and shifts its weights exactly as it does the
+          race's, so a wet round has to say so here too.
+        */}
+        {header(sheet.weather)}
+        <Section title="Starting grid">
+          <QualifyingResults race={sheet} country={country} />
+        </Section>
+        {footer}
+      </>
     );
   }
 
   const race = view.kind === "race" ? world.season.races[view.round] : undefined;
   if (view.kind === "race" && race !== undefined) {
-    return <RaceStage world={world} view={view} race={race} />;
+    return (
+      <>
+        {header(race.weather)}
+        <RaceStage world={world} view={view} race={race} />
+        {footer}
+      </>
+    );
   }
-
-  return (
-    <Summary
-      season={world.season}
-      field={world.field}
-      year={world.year}
-      ratingMode={world.ratingMode}
-      points={world.points}
-      lineup={world.lineup}
-      engines={world.engines}
-      chassis={world.chassis}
-      arrangement={world.arrangement}
-      settings={settingsOf(world)}
-    />
-  );
+  return null;
 }
 
 /**

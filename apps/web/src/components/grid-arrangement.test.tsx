@@ -252,14 +252,22 @@ describe("what the grid says about a rule in force", () => {
 
 describe("what the season summary says about a rule", () => {
   const html = renderToStaticMarkup(
-    <SeasonView {...shownAt(arrangedWorld, { kind: "summary" })} canChooseAbility={false} />,
+    <SeasonView
+      {...shownAt(arrangedWorld, { kind: "summary" })}
+      canChooseAbility={false}
+      tab="grid"
+    />,
   );
   const plain = renderToStaticMarkup(
-    <SeasonView {...shownAt(plainWorld, { kind: "summary" })} canChooseAbility={false} />,
+    <SeasonView
+      {...shownAt(plainWorld, { kind: "summary" })}
+      canChooseAbility={false}
+      tab="grid"
+    />,
   );
 
   it("declares it twice, like every other thing done to the grid", () => {
-    // Once in the banner above the champions, once on the grid at the foot: a
+    // Once in the banner above the champions, once on the grid tab: a
     // championship won on a rearranged grid is a different claim from one won
     // on the entry list, and the foot of the page is too late to find out.
     expect(html.split(RANKED_LABEL)).toHaveLength(3);

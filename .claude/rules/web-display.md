@@ -63,14 +63,14 @@ them.
   `championshipStandings` over one fewer race and comparing, which costs nothing
   because standings are derived. Round one shows none. Direction rides the glyph as
   well as the colour, with the count in a `title`, so it is not colour-only. The full
-  breakdown belongs to the summary — after one round it is all zeroes.
+  breakdown belongs to the season page — after one round it is all zeroes.
 - **Actions live in a sticky header, repeated at the foot**, and every stage change
   scrolls to the top — otherwise stepping on from a race means scrolling past two
   28-row tables, then landing mid-page in the next session.
 
-## The summary's expandable rows
+## The standings' expandable rows
 
-**Every row of the summary's championship tables opens into its own season.**
+**Every row of the season page's championship tables opens into its own season.**
 `StandingsTable` owns the toggle and `RaceByRace` draws the panel, so the drivers' and
 constructors' tables get the expansion from one place — the same reason they share the
 table itself. The **pair** of them is `SeasonStandings`, which the era's roll of honour

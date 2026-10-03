@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { eraChampions, eraSpan, type SeasonChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
+import type { RevealedWorld } from "../lib/reveal.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import type { EraRun } from "../store/season.js";
@@ -153,7 +154,14 @@ export function ChampionRow({
  * state and only this table's; `ChampionRow` stays **controlled** so both
  * states of a row render without a DOM and without a click.
  */
-export function RollOfHonour({ seasons }: { seasons: readonly SeasonChampions[] }) {
+export function RollOfHonour({
+  seasons,
+  inProgress = null,
+}: {
+  seasons: readonly SeasonChampions[];
+  /** The year the cursor is in, drawn last; null on the review. */
+  inProgress?: RevealedWorld | null;
+}) {
   // One year at a time, because two full championship tables is already a page.
   const [openYear, setOpenYear] = useState<number | null>(null);
   const last = seasons.at(-1);
@@ -192,6 +200,7 @@ export function RollOfHonour({ seasons }: { seasons: readonly SeasonChampions[] 
               />
             </Fragment>
           ))}
+          {inProgress === null ? null : <InProgressRow world={inProgress} />}
         </TableBody>
       </Table>
     </Card>
@@ -199,8 +208,89 @@ export function RollOfHonour({ seasons }: { seasons: readonly SeasonChampions[] 
 }
 
 /**
- * The screen between two years of an era: every champion crowned so far, and
- * what the era adds up to underneath.
+ * The year the cursor is in, under the years crowned: who leads each
+ * championship as far as the reader has got. Muted and never opened — it is a
+ * season still being written, not a row of the record, so it takes no accent.
+ */
+export function InProgressRow({ world }: { world: RevealedWorld }) {
+  const leaders = useMemo(() => eraChampions([world])[0], [world]);
+  const raced = world.season.races.length;
+  return (
+    <EntryNames field={world.field}>
+      <Liveries year={world.year}>
+        <TableRow className="hover:bg-transparent">
+          <TableCell>
+            <span className="flex flex-col leading-tight">
+              <span className="font-semibold tabular-nums">{world.year}</span>
+              <span className="text-muted-foreground text-xs">
+                {raced === 0 ? "on the grid" : `in progress, leaders after round ${raced}`}
+              </span>
+            </span>
+          </TableCell>
+          {raced === 0 || leaders === undefined ? (
+            <TableCell colSpan={COLUMN_COUNT - 1} className="text-muted-foreground">
+              Not raced yet.
+            </TableCell>
+          ) : (
+            <>
+              <TableCell>
+                <DriverName
+                  driverId={leaders.driver?.driverId ?? null}
+                  teamId={leaders.driver?.teamId}
+                  badge
+                />
+              </TableCell>
+              <TableCell className="text-right tabular-nums">
+                {leaders.driver?.points ?? "—"}
+              </TableCell>
+              <TableCell className="text-muted-foreground text-right tabular-nums">
+                {leaders.driver?.wins ?? "—"}
+              </TableCell>
+              <TableCell>
+                {leaders.team === null ? (
+                  <span className="text-muted-foreground">—</span>
+                ) : (
+                  <TeamName teamId={leaders.team.teamId} badge />
+                )}
+              </TableCell>
+              <TableCell className="text-right tabular-nums">
+                {leaders.team?.points ?? "—"}
+              </TableCell>
+              <TableCell className="text-muted-foreground text-right tabular-nums">
+                {leaders.team?.wins ?? "—"}
+              </TableCell>
+            </>
+          )}
+        </TableRow>
+      </Liveries>
+    </EntryNames>
+  );
+}
+
+/** The line under the overview's heading: what has been run, and what comes next. */
+function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld | null): string {
+  const span = eraSpan(seasons);
+  const run =
+    seasons.length === 0
+      ? "No season finished yet."
+      : seasons.length === 1
+        ? `One season run, ${span}.`
+        : `${seasons.length} seasons run, ${span}.`;
+  if (inProgress !== null) {
+    return `${run} ${inProgress.year} is under way.`;
+  }
+  const last = seasons.at(-1);
+  const nextYear = last === undefined ? null : nextEraYear(last.year);
+  return nextYear === null
+    ? `${run} There is no season after this one to run — the era ends here.`
+    : `${run} Next comes ${nextYear}, on the grid that year actually had.`;
+}
+
+/**
+ * An era's overview (`/run`): every champion crowned so far, the year in
+ * progress under them, and what the era adds up to underneath. Between two
+ * years it is the page Continue lands on; from the era's first grid on it is
+ * a page the reader can go back to.
  *
  * The one thing the basic era mode adds to the season flow, and the reason it
  * is worth building before anything simulates a grid — a season at a time says
@@ -210,42 +300,37 @@ export function RollOfHonour({ seasons }: { seasons: readonly SeasonChampions[] 
  * Two readings of the same seasons, in that order. The **roll of honour** is
  * chronological, earliest first, because it is a record rather than a
  * leaderboard: a reader following an era wants to run their eye down it in the
- * order they played it. The year just finished is its last row and carries the
- * winner's accent, which is the same accent the summary just gave the same two
- * names — it is the champion of the thing on screen, arriving on a page of
- * champions. The **career statistics** below are the other axis: who won the
- * era rather than who won each year.
+ * order they played it. The year last crowned is its last row and carries the
+ * winner's accent, which is the same accent the summary gave the same two
+ * names. The **career statistics** below are the other axis: who won the era
+ * rather than who won each year — crowned years only, so they are left out
+ * until there is one.
  *
- * Props-driven like every other screen here, so it renders without a DOM and
- * without a store.
+ * `inProgress` is the cursor's year as far as it has got, null while the
+ * cursor is on the review. Props-driven like every other screen here, so it
+ * renders without a DOM and without a store.
  */
-export function EraChampions({ run }: { run: EraRun }) {
+export function EraChampions({
+  run,
+  inProgress = null,
+}: {
+  run: EraRun;
+  inProgress?: RevealedWorld | null;
+}) {
   const seasons = useMemo(() => eraChampions(run.seasons), [run.seasons]);
-  const first = seasons[0];
-  const last = seasons.at(-1);
-  const nextYear = last === undefined ? null : nextEraYear(last.year);
-  const span = eraSpan(seasons);
+  // The settings the run was started on, which every year of it shares — they
+  // are baked in when an era begins. Read off the first season crowned rather
+  // than the last, because that is the one that fixed them.
+  const first = seasons[0]?.world ?? inProgress;
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Champions so far</h1>
-        <p className="text-muted-foreground max-w-prose text-sm">
-          {seasons.length === 1
-            ? `One season run, ${span}.`
-            : `${seasons.length} seasons run, ${span}.`}{" "}
-          {nextYear === null
-            ? "There is no season after this one to run — the era ends here."
-            : `Next comes ${nextYear}, on the grid that year actually had.`}
-        </p>
-        {/*
-          The settings the run was started on, which every year of it shares —
-          they are baked in when an era begins. Read off the first season
-          crowned rather than the last, because that is the one that fixed them.
-        */}
-        {first === undefined ? null : (
+        <p className="text-muted-foreground max-w-prose text-sm">{eraLead(seasons, inProgress)}</p>
+        {first === null ? null : (
           <SimulationSettings
-            settings={settingsOf(first.world)}
+            settings={settingsOf(first)}
             className="text-muted-foreground text-xs"
           />
         )}
@@ -258,9 +343,9 @@ export function EraChampions({ run }: { run: EraRun }) {
         opened from any of them is the same career.
       */}
       <SeasonHistoryProvider seasons={run.seasons}>
-        <RollOfHonour seasons={seasons} />
+        <RollOfHonour seasons={seasons} inProgress={inProgress} />
 
-        <CareerStatistics seasons={run.seasons} />
+        {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
       </SeasonHistoryProvider>
     </div>
   );

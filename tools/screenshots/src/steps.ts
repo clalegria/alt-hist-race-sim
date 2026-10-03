@@ -95,6 +95,30 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "season-midseason",
+    reach: async (page) => {
+      // The year's crumb is its page, there from the grid on.
+      await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .first()
+        .getByRole("link", { name: String(YEAR), exact: true })
+        .click();
+      await page.waitForURL(`**/run/${YEAR}`);
+      await page.getByRole("heading", { name: `${YEAR} season` }).waitFor();
+    },
+  },
+  {
+    name: "season-calendar",
+    reach: async (page) => {
+      await page
+        .getByRole("navigation", { name: "Season" })
+        .getByRole("link", { name: "Calendar", exact: true })
+        .click();
+      await page.waitForURL(`**/run/${YEAR}?tab=calendar`);
+      await page.getByText(/rounds raced\./).waitFor();
+    },
+  },
+  {
     name: "season-summary",
     reach: async (page) => {
       await runAction(page, "Simulate rest of the season");
@@ -106,7 +130,8 @@ export const STEPS: readonly Step[] = [
     name: "grid-raced",
     reach: async (page) => {
       // Back through the pages already read: a place, never a step back in time.
-      for (let i = 0; i < 3; i += 1) {
+      // Summary, calendar tab, season page, race, qualifying, then the grid.
+      for (let i = 0; i < 5; i += 1) {
         await page.goBack();
       }
       await page.waitForURL(`**/run/${YEAR}/grid`);
@@ -153,6 +178,19 @@ export const STEPS: readonly Step[] = [
         .first()
         .getByText("Era", { exact: true })
         .waitFor();
+    },
+  },
+  {
+    name: "era-overview-start",
+    reach: async (page) => {
+      // The overview is there from the era's first grid, the year under way.
+      await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .first()
+        .getByRole("link", { name: "Era", exact: true })
+        .click();
+      await page.waitForURL("**/run");
+      await page.getByText("No season finished yet.", { exact: false }).waitFor();
     },
   },
   {
