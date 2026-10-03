@@ -32,6 +32,7 @@ import {
   OVERSUBSCRIBED_YEAR,
   SEED,
   seededWorld,
+  shownAt,
   starterCount,
   svgsBesideCars,
   teamCount,
@@ -54,7 +55,7 @@ if (FIRST_ROUND === undefined || LAST_ROUND === undefined) {
 }
 
 function render(view: View, of: World = world): string {
-  return renderToStaticMarkup(<SeasonView world={of} view={view} />);
+  return renderToStaticMarkup(<SeasonView {...shownAt(of, view)} />);
 }
 
 describe("the opening grid", () => {
@@ -115,7 +116,7 @@ describe("the shortcut to the season next door", () => {
 
   it("is not offered inside an era, whose year belongs to the run", () => {
     const inEra = renderToStaticMarkup(
-      <SeasonView world={world} view={{ kind: "grid" }} canChooseAbility={false} />,
+      <SeasonView {...shownAt(world, { kind: "grid" })} canChooseAbility={false} />,
     );
     expect(inEra).not.toContain("Another year");
     expect(inEra).not.toContain(label(adjacentSeason(world.year, 1) ?? 0));
@@ -152,7 +153,7 @@ describe("the driver ability toggle", () => {
     // not just the pressed one — a switch drawn with one option greyed out is
     // still a switch.
     const inEra = renderToStaticMarkup(
-      <SeasonView world={world} view={{ kind: "grid" }} canChooseAbility={false} />,
+      <SeasonView {...shownAt(world, { kind: "grid" })} canChooseAbility={false} />,
     );
     expect(inEra).not.toContain("At their peak");
     expect(inEra).not.toContain("At their age");
@@ -535,7 +536,7 @@ describe("a settled championship", () => {
 describe("who is offered the ability toggle", () => {
   const shown = (run?: EraRun) =>
     renderToStaticMarkup(
-      <SeasonPage world={world} view={{ kind: "grid" }} {...(run === undefined ? {} : { run })} />,
+      <SeasonPage {...shownAt(world, { kind: "grid" })} {...(run === undefined ? {} : { run })} />,
     ).includes("Driver ability");
 
   it("offers it on a standalone season's grid", () => {
@@ -555,7 +556,7 @@ describe("who is offered the ability toggle", () => {
 
 describe("a grid the run has moved past", () => {
   const html = (locked: boolean) =>
-    renderToStaticMarkup(<SeasonPage world={world} view={{ kind: "grid" }} locked={locked} />);
+    renderToStaticMarkup(<SeasonPage {...shownAt(world, { kind: "grid" })} locked={locked} />);
 
   it("is drawn as it was raced, with no way to change it", () => {
     const locked = html(true);

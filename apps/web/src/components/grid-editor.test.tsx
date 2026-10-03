@@ -37,7 +37,7 @@ import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage, pickUp, previewField, ReserveList } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
 import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
@@ -470,8 +470,8 @@ describe("filtering the drivers without a drive", () => {
 });
 
 describe("what the season summary says about an edited grid", () => {
-  const html = renderToStaticMarkup(<SeasonView world={editedWorld} view={{ kind: "summary" }} />);
-  const plain = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+  const html = renderToStaticMarkup(<SeasonView {...shownAt(editedWorld, { kind: "summary" })} />);
+  const plain = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
 
   it("declares it at the top, before the champions", () => {
     expect(html).toContain("Alternate grid");
@@ -833,7 +833,7 @@ describe("remembering how the reader wants lists ordered", () => {
       <GridStage field={world.field} year={YEAR} ratingMode={MODE} lineup={null} engines={null} />,
     );
   const summary = () =>
-    renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
 
   /**
    * The order the grid's switch has chosen. Parsed attribute by attribute, like

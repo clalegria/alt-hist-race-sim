@@ -17,7 +17,7 @@ import {
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { createWorld } from "../store/season.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage } from "./GridStage.js";
 import { changeCount, chassisNote, chassisSummary, signed } from "./LineupChanges.js";
 import { ChassisStepper, type GridEditing, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
@@ -196,7 +196,7 @@ describe("a grid with a re-rated chassis", () => {
   });
 
   it("says so at the top of the summary, and again on the grid at the foot", () => {
-    const html = renderToStaticMarkup(<SeasonView world={changed} view={{ kind: "summary" }} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(changed, { kind: "summary" })} />);
     expect(html).toContain("Alternate grid");
     expect(count(html, chassisNote(changes[0] as ChassisChange))).toBe(2);
     expect(html).toContain("1 change from the season as it was entered");

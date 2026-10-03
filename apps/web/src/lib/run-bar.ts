@@ -13,7 +13,7 @@
  */
 
 import { crowned, cursorPlace, type Run } from "../store/season.js";
-import { linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
+import { laterYears, linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
 import { nextEraYear } from "./seasons.js";
 import { comparePlaces, describeBeat, isReached, nextBeat, type Place } from "./timeline.js";
 
@@ -125,20 +125,15 @@ export function jumpPlace(year: number, point: JumpPoint): Place {
 
 /**
  * The years a jump can land in, in order: this year while its end is still
- * ahead, then every year the run can reach after it. Walked with `nextEraYear`,
- * the same step the run takes, so a year with no seed data ends the list rather
- * than being offered and then refused. A one-year run has only its own.
+ * ahead, then every year the run can reach after it (`laterYears`, the same
+ * list a "Not reached yet" page is offered for), so a year with no seed data
+ * ends the list rather than being offered and then refused. A one-year run has
+ * only its own.
  */
 export function jumpYears(run: Run): readonly number[] {
-  const cursor = cursorPlace(run);
   const year = run.world.year;
-  const years = comparePlaces(jumpPlace(year, "end"), cursor) > 0 ? [year] : [];
-  if (run.kind === "era") {
-    for (let next = nextEraYear(year); next !== null; next = nextEraYear(next)) {
-      years.push(next);
-    }
-  }
-  return years;
+  const thisYear = comparePlaces(jumpPlace(year, "end"), cursorPlace(run)) > 0 ? [year] : [];
+  return [...thisYear, ...laterYears(run)];
 }
 
 /**

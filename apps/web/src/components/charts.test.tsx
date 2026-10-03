@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 import { TOP_DRIVERS, TOP_TEAMS } from "../lib/evolution.js";
 import { legible, liveryFor } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
@@ -28,7 +28,7 @@ import { dashGradient, endLabelNudges, legendColumns, plotSeries } from "./Stand
 const world = seededWorld();
 const summary = renderToStaticMarkup(
   <Liveries year={YEAR}>
-    <SeasonView world={world} view={{ kind: "summary" }} />
+    <SeasonView {...shownAt(world, { kind: "summary" })} />
   </Liveries>,
 );
 

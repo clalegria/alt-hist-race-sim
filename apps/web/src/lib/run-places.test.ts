@@ -4,11 +4,14 @@
  * without stepping the store there; counts come off the world.
  */
 
+import { seasonSeed } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
-import type { Run } from "../store/season.js";
+import { cursorPlace, type Run, stepRun } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
+import { revealYear } from "./reveal.js";
 import {
   isBackPastStart,
+  laterYears,
   linkTo,
   parseRound,
   parseYear,
@@ -17,7 +20,7 @@ import {
   resolveRunPage,
   runPageOf,
 } from "./run-places.js";
-import type { Beat, Place } from "./timeline.js";
+import { type Beat, isReached, type Place } from "./timeline.js";
 
 const first = seededWorld(3, "aged", YEAR);
 const second = seededWorld(4, "aged", YEAR + 1);
@@ -99,39 +102,48 @@ describe("the URL's parameters", () => {
 describe("what a page inside /run shows", () => {
   const cursor: Beat = { kind: "race", round: Math.min(2, ROUNDS - 1) };
   const run = season(cursor);
-  const redirectsToCursor = (page: RunPage, params: Record<string, string>) => {
-    const resolved = resolveRunPage(run, page, params);
+  const redirectsToCursor = (page: RunPage, params: Record<string, string>, of: Run = run) => {
+    const resolved = resolveRunPage(of, page, params);
     expect(resolved.kind, `${page} ${JSON.stringify(params)}`).toBe("redirect");
-    expect(resolved.kind === "redirect" && resolved.to).toEqual(
-      linkTo({ year: YEAR, beat: cursor }),
-    );
+    expect(resolved.kind === "redirect" && resolved.to).toEqual(linkTo(cursorPlace(of)));
   };
 
-  it("shows every beat the reader has reached, and none past it", () => {
+  it("shows every beat the reader has reached, and says the rest is not reached yet", () => {
     const beats = beatsOf(ROUNDS);
     const at = beats.findIndex((beat) => JSON.stringify(beat) === JSON.stringify(cursor));
     beats.forEach((beat, index) => {
       const { page, params } = paramsOf({ year: YEAR, beat });
       const resolved = resolveRunPage(run, page, params);
-      expect(resolved.kind, JSON.stringify(beat)).toBe(index <= at ? "season" : "redirect");
+      expect(resolved.kind, JSON.stringify(beat)).toBe(index <= at ? "season" : "unreached");
       if (resolved.kind === "season") {
         expect(resolved.view).toEqual(beat);
-        expect(resolved.world).toBe(first);
+        expect(resolved.world.year).toBe(YEAR);
+      }
+      if (resolved.kind === "unreached") {
+        expect(resolved.place).toEqual({ year: YEAR, beat });
       }
     });
   });
 
-  it("sends a year the run does not have, or a malformed one, to the cursor", () => {
+  it("hands a page the season cut at the cursor, not the whole of it", () => {
+    const resolved = resolveRunPage(run, "grid", { year: String(YEAR) });
+    expect(resolved.kind === "season" && resolved.world.season).toEqual(
+      revealYear(first, cursor).season,
+    );
+  });
+
+  it("sends a year the run will never reach, or a malformed one, to the cursor", () => {
     redirectsToCursor("grid", { year: String(YEAR - 1) });
+    // Another year of a one-year run is never reached.
     redirectsToCursor("grid", { year: String(YEAR + 1) });
     redirectsToCursor("grid", { year: "nineteen" });
   });
 
-  it("sends a round the season does not have to the cursor, even once it is over", () => {
-    const over = season({ kind: "summary" });
-    for (const round of ["0", String(ROUNDS + 1), "x"]) {
-      const resolved = resolveRunPage(over, "race", { year: String(YEAR), round });
-      expect(resolved.kind, round).toBe("redirect");
+  it("sends a round the season does not have to the cursor, before and after it is over", () => {
+    for (const of of [run, season({ kind: "summary" })]) {
+      for (const round of ["0", String(ROUNDS + 1), "x"]) {
+        redirectsToCursor("race", { year: String(YEAR), round }, of);
+      }
     }
   });
 
@@ -152,13 +164,13 @@ describe("what a page inside /run shows", () => {
 });
 
 describe("what a page inside an era shows", () => {
-  it("shows a crowned year's pages, whatever the cursor is doing now", () => {
+  it("shows a crowned year's pages whole, whatever the cursor is doing now", () => {
     const run = era({ kind: "grid" });
     for (const beat of beatsOf(first.season.races.length)) {
       const { page, params } = paramsOf({ year: YEAR, beat });
       const resolved = resolveRunPage(run, page, params);
       expect(resolved.kind, JSON.stringify(beat)).toBe("season");
-      expect(resolved.kind === "season" && resolved.world).toBe(first);
+      expect(resolved.kind === "season" && resolved.world.season.races).toEqual(first.season.races);
     }
   });
 
@@ -177,14 +189,89 @@ describe("what a page inside an era shows", () => {
     expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first, second]);
   });
 
-  it("sends /run to the cursor while nothing has been crowned", () => {
+  it("says the roll of honour is not reached yet while nothing has been crowned", () => {
     const fresh: Run = {
       kind: "era",
       run: { startYear: YEAR, seasons: [] },
       world: first,
       cursor: { kind: "grid" },
     };
-    expect(resolveRunPage(fresh, "review", {}).kind).toBe("redirect");
+    const resolved = resolveRunPage(fresh, "review", {});
+    expect(resolved.kind === "unreached" && resolved.place).toEqual({
+      year: YEAR,
+      beat: { kind: "review" },
+    });
+  });
+
+  it("says a year the era will go on to is not reached yet, for any round it has", () => {
+    const run = era({ kind: "grid" });
+    const later = laterYears(run)[0];
+    expect(later).toBeDefined();
+    if (later === undefined) {
+      return;
+    }
+    const rounds = seasonSeed(later).calendar.length;
+    for (const beat of [
+      { kind: "grid" },
+      { kind: "qualifying", round: rounds - 1 },
+      { kind: "race", round: 0 },
+      { kind: "summary" },
+    ] as const) {
+      const { page, params } = paramsOf({ year: later, beat });
+      expect(resolveRunPage(run, page, params).kind, JSON.stringify(beat)).toBe("unreached");
+    }
+    const tooFar = resolveRunPage(run, "race", { year: String(later), round: String(rounds + 1) });
+    expect(tooFar.kind).toBe("redirect");
+  });
+
+  it("sends a year before the era started to the cursor", () => {
+    const resolved = resolveRunPage(era({ kind: "grid" }), "grid", { year: String(YEAR - 1) });
+    expect(resolved.kind).toBe("redirect");
+  });
+});
+
+describe("the gate, at the only door pages have", () => {
+  /** A two-year era stepped through every beat, so each is the cursor once. */
+  function everyCursor(): Run[] {
+    const runs: Run[] = [];
+    let run: Run | null = {
+      kind: "era",
+      run: { startYear: YEAR, seasons: [] },
+      world: first,
+      cursor: { kind: "grid" },
+    };
+    while (run !== null && run.world.year <= YEAR + 1) {
+      runs.push(run);
+      run = stepRun(run);
+    }
+    return runs;
+  }
+
+  it("hands no page a result past the cursor, whatever URL it is asked for", () => {
+    for (const run of everyCursor()) {
+      const cursor = cursorPlace(run);
+      for (const year of [YEAR, YEAR + 1]) {
+        for (const beat of beatsOf(run.world.season.races.length)) {
+          const { page, params } = paramsOf({ year, beat });
+          const resolved = resolveRunPage(run, page, params);
+          if (resolved.kind !== "season") {
+            continue;
+          }
+          const label = `${JSON.stringify(cursor)} → ${year} ${JSON.stringify(beat)}`;
+          // Every race handed over is one whose race beat the reader has reached.
+          resolved.world.season.races.forEach((_, round) => {
+            expect(isReached(cursor, { year, beat: { kind: "race", round } }), label).toBe(true);
+          });
+          const sheet = resolved.world.season.qualifying;
+          if (sheet !== null) {
+            expect(cursor, label).toEqual({
+              year,
+              beat: { kind: "qualifying", round: sheet.round },
+            });
+          }
+        }
+      }
+    }
   });
 });
 

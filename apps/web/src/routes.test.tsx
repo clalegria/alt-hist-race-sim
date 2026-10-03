@@ -20,6 +20,7 @@ import {
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
+import { NotReached, placeLabel } from "./components/NotReached.js";
 import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
@@ -184,16 +185,23 @@ describe("the guards on the pages inside /run", () => {
     expect(guardOf(GridRoute, { year })).toBeUndefined();
   });
 
-  it("send a page the reader has not reached to the cursor", () => {
+  it("let a page not reached yet through, to say so", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    for (const page of pages.filter((each) => each.name !== "grid" && each.name !== "review")) {
+      expect(guardOf(page.route, page.params), page.name).toBeUndefined();
+    }
+  });
+
+  it("send a URL naming no place the run will reach to the cursor", () => {
     useSeasonStore.getState().simulate(3, YEAR);
     const cursor = linkTo({ year: YEAR, beat: { kind: "grid" } });
-    for (const page of pages.filter((each) => each.name !== "grid")) {
-      const thrown = guardOf(page.route, page.params);
-      expect(isRedirect(thrown), page.name).toBe(true);
-      expect(isRedirect(thrown) && thrown.options.to, page.name).toBe(cursor.to);
-      expect(isRedirect(thrown) && thrown.options.params, page.name).toEqual(
-        "params" in cursor && cursor.params,
-      );
+    for (const [route, params] of [
+      [GridRoute, { year: "84" }],
+      [GridRoute, { year: String(YEAR + 1) }],
+      [RaceRoute, { year, round: "0" }],
+    ] as const) {
+      const thrown = guardOf(route, params);
+      expect(isRedirect(thrown) && thrown.options.to, JSON.stringify(params)).toBe(cursor.to);
     }
   });
 
@@ -274,6 +282,23 @@ describe("the run bar", () => {
     const html = await bar({ kind: "season", world, cursor: { kind: "summary" } });
     expect(html).not.toContain(">Continue");
     expect(html).toContain('aria-label="More run actions"');
+  });
+});
+
+describe("the Not reached yet page", () => {
+  const place = { year: YEAR, beat: { kind: "race", round: 2 } } as const;
+  const cursor = { year: YEAR, beat: { kind: "grid" } } as const;
+  const page = () =>
+    inRouter(<NotReached place={place} cursor="where the run is" link={linkTo(cursor)} />);
+
+  it("says so, and names the place", async () => {
+    const html = await page();
+    expect(html).toContain("Not reached yet");
+    expect(html).toContain(placeLabel(place));
+  });
+
+  it("links back to the page the run is on", async () => {
+    expect(await page()).toContain(`href="/run/${YEAR}/grid"`);
   });
 });
 

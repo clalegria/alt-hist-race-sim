@@ -25,7 +25,7 @@ import { describe, expect, it } from "vitest";
 import { engineName, entryName, teamName } from "../lib/names.js";
 import { carOverall } from "../lib/rating.js";
 import { createWorld } from "../store/season.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage } from "./GridStage.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { SeasonGrid } from "./SeasonGrid.js";
@@ -191,7 +191,7 @@ describe("a re-supplied grid", () => {
   });
 
   it("says so at the top of the summary, and again on the grid at the foot", () => {
-    const html = renderToStaticMarkup(<SeasonView world={changed} view={{ kind: "summary" }} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(changed, { kind: "summary" })} />);
     const said = `${engineName(swap.to)} engine for ${engineName(swap.from)}`;
 
     expect(html).toContain("Alternate grid");
@@ -200,7 +200,7 @@ describe("a re-supplied grid", () => {
   });
 
   it("says none of it when the supply was left alone", () => {
-    const html = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     expect(html).not.toContain("Alternate grid");
     expect(html).not.toContain("engine for ");
   });
@@ -218,7 +218,7 @@ describe("the entry name, everywhere a team is named", () => {
       { kind: "race", round: 0 },
       { kind: "summary" },
     ] as const) {
-      const html = renderToStaticMarkup(<SeasonView world={world} view={view} />);
+      const html = renderToStaticMarkup(<SeasonView {...shownAt(world, view)} />);
       expect(html, view.kind).toContain(CUSTOMER_NAME);
     }
   });

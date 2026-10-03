@@ -23,12 +23,12 @@ import {
 import { useMemo, useState } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
+import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
 import { cn } from "../lib/utils.js";
-import type { World } from "../store/season.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
@@ -332,7 +332,7 @@ function RaceStage({
   view,
   race,
 }: {
-  world: World;
+  world: RevealedWorld;
   view: Extract<View, { kind: "race" }>;
   race: RaceResult;
 }) {
@@ -359,7 +359,9 @@ function RaceStage({
   }, [world.season, view.round, points]);
 
   const label = roundLabel(seasonSeed(world.year).calendar, view.round);
-  const total = world.season.races.length;
+  // The season's length, not the races revealed: the clinch arithmetic needs
+  // every round still to come.
+  const total = world.season.rounds;
   const remaining = total - soFar.races.length;
 
   // Who, if anyone, can no longer be caught, and whether that became true on
@@ -435,7 +437,8 @@ function RaceStage({
 }
 
 interface SeasonViewProps {
-  readonly world: World;
+  /** The year as far as the reader has got (`revealYear`), never the whole of it. */
+  readonly world: RevealedWorld;
   readonly view: View;
   /**
    * Whether the reader gets to choose the ability model at all.
@@ -510,8 +513,6 @@ function SeasonBody({
   // forward away — but the year switcher below is drawn from this copy, so the
   // state has to be readable here rather than only raised.
   const [editingGrid, setEditingGrid] = useState(false);
-  const round =
-    view.kind === "qualifying" || view.kind === "race" ? world.season.races[view.round] : undefined;
 
   if (view.kind === "grid") {
     return (
@@ -569,7 +570,8 @@ function SeasonBody({
     );
   }
 
-  if (view.kind === "qualifying" && round !== undefined) {
+  const sheet = view.kind === "qualifying" ? qualifyingOf(world.season, view.round) : undefined;
+  if (view.kind === "qualifying" && sheet !== undefined) {
     const label = roundLabel(seasonSeed(world.year).calendar, view.round);
     return (
       <Section
@@ -579,15 +581,16 @@ function SeasonBody({
         // The weather belongs to the whole weekend, not to Sunday: it widens
         // qualifying's noise and shifts its weights exactly as it does the
         // race's, so a wet round has to say so here too.
-        weather={round.weather}
+        weather={sheet.weather}
       >
-        <QualifyingResults race={round} country={label.country} />
+        <QualifyingResults race={sheet} country={label.country} />
       </Section>
     );
   }
 
-  if (view.kind === "race" && round !== undefined) {
-    return <RaceStage world={world} view={view} race={round} />;
+  const race = view.kind === "race" ? world.season.races[view.round] : undefined;
+  if (view.kind === "race" && race !== undefined) {
+    return <RaceStage world={world} view={view} race={race} />;
   }
 
   return (

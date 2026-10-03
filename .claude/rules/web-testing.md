@@ -9,9 +9,11 @@ paths:
 
 Vitest with **no jsdom**. `SeasonView` takes the world and the cursor as **props**
 rather than reading the store, so every stage renders through `renderToStaticMarkup`
-without a DOM and without clicking through fourteen rounds; `MainMenu` and
+without a DOM and without clicking through fourteen rounds. `MainMenu` and
 `SeasonPicker` take their callbacks the same way — the only level at which a greyed-out
-mode or an unplayable year can be checked. The routes connect them; rendering a URL
+mode or an unplayable year can be checked. A test passes a season as
+`shownAt(world, view)` (`src/test-support.ts`): the world cut at that beat, as the gate
+cuts it for a page. The routes connect them; rendering a URL
 through the router is `.claude/rules/web-routing.md`.
 
 That split is partly structural and partly because **zustand serves

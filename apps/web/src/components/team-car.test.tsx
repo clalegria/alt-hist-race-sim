@@ -14,7 +14,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CAR_SPRITES, carSpriteFor, SPRITE_HEIGHT, SPRITE_WIDTH } from "../lib/car-sprites.js";
 import { driverName } from "../lib/names.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import { seededWorld, shownAt, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -181,7 +181,7 @@ describe("the race screens", () => {
     // The sheet is also opened out of the calendar, where it draws none; the
     // screen is the call site that has to ask.
     const screen = renderToStaticMarkup(
-      <SeasonView world={world} view={{ kind: "race", round: 0 }} />,
+      <SeasonView {...shownAt(world, { kind: "race", round: 0 })} />,
     );
     expect(carClasses(screen)).toHaveLength(race.entries.length);
   });
@@ -199,7 +199,7 @@ describe("the champion cards", () => {
   const world = seededWorld();
   const summary = renderToStaticMarkup(
     <Liveries year={YEAR}>
-      <SeasonView world={world} view={{ kind: "summary" }} />
+      <SeasonView {...shownAt(world, { kind: "summary" })} />
     </Liveries>,
   );
 
@@ -246,7 +246,7 @@ describe("the championship tables", () => {
   const world = seededWorld();
   const summary = renderToStaticMarkup(
     <Liveries year={YEAR}>
-      <SeasonView world={world} view={{ kind: "summary" }} />
+      <SeasonView {...shownAt(world, { kind: "summary" })} />
     </Liveries>,
   );
   const between = (from: string, to: string) =>

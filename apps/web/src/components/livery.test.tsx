@@ -14,7 +14,7 @@ import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
-import { SEED, seededWorld, teamCount, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, teamCount, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -255,7 +255,7 @@ describe("where liveries appear", () => {
 
   const summary = renderToStaticMarkup(
     <Liveries year={YEAR}>
-      <SeasonView world={world} view={{ kind: "summary" }} />
+      <SeasonView {...shownAt(world, { kind: "summary" })} />
     </Liveries>,
   );
 

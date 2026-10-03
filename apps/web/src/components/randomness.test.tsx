@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { createWorld } from "../store/season.js";
+import { shownAt } from "../test-support.js";
 import { EraChampions } from "./EraChampions.js";
 import { RandomnessNote } from "./RandomnessNote.js";
 import { RANDOMNESS_OPTIONS, RandomnessSlider, randomnessLabel } from "./RandomnessSlider.js";
@@ -119,7 +120,7 @@ describe("the settings a finished championship was run under", () => {
     // Where it goes is the point: overlaying the champion is what the first
     // attempt did. The summary's sections are stacked with no gap of their own,
     // so this line has to bring its own padding and sit in the break.
-    const html = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     const champion = html.indexOf("champion");
     const note = html.indexOf("Simulation settings");
     // The card headed "Season" is the round-by-round table under the break.

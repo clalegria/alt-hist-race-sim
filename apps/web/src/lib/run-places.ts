@@ -4,18 +4,21 @@
  *
  * **The URL says which place, the store says what is there.** A page reads its
  * year and round from the URL — untrusted input, a reader can type anything —
- * and asks `resolveRunPage` whether the run has that place and the reader has
- * reached it. Anything else is sent to the cursor: a typo, a year the run never
- * reached, a round the season does not have, a session not yet revealed.
- * (A page saying "Not reached yet" in place of that redirect is the gate's step
- * in `docs/design/app-shell.md`.)
+ * and asks `resolveRunPage` what it may show. A place the reader has reached
+ * comes back cut at the cursor (`revealed`, in `reveal.ts`), so no page is ever
+ * handed a result the reader has not seen. A place still ahead that the run
+ * can get to is "not reached yet"; anything else — a typo, a round the season
+ * does not have, a year the run will never reach — is sent to the cursor.
  *
  * Pure apart from the typed link objects, so every rule here is tested without
  * a router or a store.
  */
 
+import { seasonSeed } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
-import { crowned, cursorPlace, type EraRun, type Run, type World } from "../store/season.js";
+import { cursorPlace, type EraRun, type Run } from "../store/season.js";
+import { type RevealedWorld, revealed } from "./reveal.js";
+import { nextEraYear } from "./seasons.js";
 import { comparePlaces, isReached, type Place, type View } from "./timeline.js";
 
 /** The era's roll of honour, which has one page whatever year it was reached after. */
@@ -89,63 +92,100 @@ export function placeFromParams(page: Exclude<RunPage, "review">, params: RunPar
   return { year, beat: { kind: page } };
 }
 
-/** What a URL inside `/run` shows: a season's beat, the era's review, or a redirect. */
+/**
+ * What a URL inside `/run` shows: a season's beat or the era's review, cut at
+ * the cursor; a place the run has still to reach; or a redirect.
+ */
 export type RunResolution =
   | {
       readonly kind: "season";
       readonly place: Place;
-      readonly world: World;
+      readonly world: RevealedWorld;
       readonly view: View;
       /** Only the grid the cursor is on can still be changed; any other is history. */
       readonly editable: boolean;
     }
   | { readonly kind: "review"; readonly place: Place; readonly run: EraRun }
+  | { readonly kind: "unreached"; readonly place: Place }
   | { readonly kind: "redirect"; readonly to: RunLink };
 
-/** The world a year of the run was raced in, if the run has reached that year. */
-function worldOf(run: Run, year: number): World | undefined {
-  if (run.world.year === year) {
-    return run.world;
+/**
+ * The years an era can still go on to, in order, after the cursor's: walked
+ * with `nextEraYear`, the step the run itself takes, so a year with no seed
+ * data ends the list. A one-year run has none.
+ */
+export function laterYears(run: Run): readonly number[] {
+  const years: number[] = [];
+  if (run.kind === "era") {
+    for (let next = nextEraYear(run.world.year); next !== null; next = nextEraYear(next)) {
+      years.push(next);
+    }
   }
-  return run.kind === "era" ? run.run.seasons.find((world) => world.year === year) : undefined;
+  return years;
+}
+
+/** How many rounds `year` has: the run's own world for its year, the seed data after it. */
+function roundsIn(run: Run, year: number): number {
+  return year === run.world.year ? run.world.season.races.length : seasonSeed(year).calendar.length;
+}
+
+/**
+ * Whether the run can still get to `place`, which is ahead of the cursor: a
+ * beat of the cursor's own year, or of a year an era goes on to, and a round
+ * that year actually has.
+ */
+function canReach(run: Run, place: Place): boolean {
+  if (place.year !== run.world.year && !laterYears(run).includes(place.year)) {
+    return false;
+  }
+  const beat = place.beat;
+  return (
+    (beat.kind !== "qualifying" && beat.kind !== "race") || beat.round < roundsIn(run, place.year)
+  );
 }
 
 /**
  * What the page at `page` with `params` may show of `run`.
  *
- * `/run` is the era's roll of honour, reached once a year has been crowned. A
- * one-year run has no review: its `/run` is its season, which today means its
- * summary, and until that is reached, the cursor.
+ * `/run` is the era's roll of honour, reached once a year has been crowned and
+ * not reached yet before then. A one-year run has no review: its `/run` is its
+ * season, which today means its summary, and until that is reached, the cursor.
  */
 export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunResolution {
   const cursor = cursorPlace(run);
   const toCursor: RunResolution = { kind: "redirect", to: linkTo(cursor) };
+  const shown = revealed(run);
 
   if (page === "review") {
-    if (run.kind === "season") {
+    if (shown.crowned === null) {
       const summary: Place = { year: run.world.year, beat: { kind: "summary" } };
       return {
         kind: "redirect",
         to: isReached(cursor, summary) ? linkTo(summary) : linkTo(cursor),
       };
     }
-    const done = crowned(run);
-    const last = done.seasons.at(-1);
+    const last = shown.crowned.seasons.at(-1);
     return last === undefined
-      ? toCursor
-      : { kind: "review", place: { year: last.year, beat: { kind: "review" } }, run: done };
+      ? { kind: "unreached", place: { year: run.world.year, beat: { kind: "review" } } }
+      : {
+          kind: "review",
+          place: { year: last.year, beat: { kind: "review" } },
+          run: shown.crowned,
+        };
   }
 
   const place = placeFromParams(page, params);
-  if (place === null || place.beat.kind === "review" || !isReached(cursor, place)) {
+  if (place === null || place.beat.kind === "review") {
     return toCursor;
   }
-  const world = worldOf(run, place.year);
+  if (!isReached(cursor, place)) {
+    return canReach(run, place) ? { kind: "unreached", place } : toCursor;
+  }
+  const world = shown.years.find((each) => each.year === place.year);
   const beat = place.beat;
   if (
     world === undefined ||
-    ((beat.kind === "qualifying" || beat.kind === "race") &&
-      beat.round >= world.season.races.length)
+    ((beat.kind === "qualifying" || beat.kind === "race") && beat.round >= world.season.rounds)
   ) {
     return toCursor;
   }

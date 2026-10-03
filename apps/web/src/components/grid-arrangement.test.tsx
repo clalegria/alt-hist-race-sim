@@ -30,7 +30,7 @@ import {
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { createWorld } from "../store/season.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridArrangements, GridStage } from "./GridStage.js";
 import { ARRANGEMENT_LABELS, ArrangementNote, arrangementNote } from "./LineupChanges.js";
 import { SeasonGrid } from "./SeasonGrid.js";
@@ -202,10 +202,10 @@ describe("the panel of rules", () => {
 
 describe("what the grid says about a rule in force", () => {
   const html = renderToStaticMarkup(
-    <SeasonView world={arrangedWorld} view={{ kind: "grid" }} canChooseAbility={false} />,
+    <SeasonView {...shownAt(arrangedWorld, { kind: "grid" })} canChooseAbility={false} />,
   );
   const plain = renderToStaticMarkup(
-    <SeasonView world={plainWorld} view={{ kind: "grid" }} canChooseAbility={false} />,
+    <SeasonView {...shownAt(plainWorld, { kind: "grid" })} canChooseAbility={false} />,
   );
 
   it("names the rule on the grid the reader comes back to", () => {
@@ -252,10 +252,10 @@ describe("what the grid says about a rule in force", () => {
 
 describe("what the season summary says about a rule", () => {
   const html = renderToStaticMarkup(
-    <SeasonView world={arrangedWorld} view={{ kind: "summary" }} canChooseAbility={false} />,
+    <SeasonView {...shownAt(arrangedWorld, { kind: "summary" })} canChooseAbility={false} />,
   );
   const plain = renderToStaticMarkup(
-    <SeasonView world={plainWorld} view={{ kind: "summary" }} canChooseAbility={false} />,
+    <SeasonView {...shownAt(plainWorld, { kind: "summary" })} canChooseAbility={false} />,
   );
 
   it("declares it twice, like every other thing done to the grid", () => {

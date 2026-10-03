@@ -3,7 +3,7 @@
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
 what is built — the router, the top nav, the timeline of beats, a page per beat, the
-run bar, the ways out of a run and surviving a reload — is
+gate, the run bar, the ways out of a run and surviving a reload — is
 `.claude/rules/web-routing.md`, `.claude/rules/web-run-bar.md`,
 `.claude/rules/web-persistence.md` and `.claude/rules/web-app.md`. Where it sits in the
 build order is *routing and the app shell* in `docs/ROADMAP.md`; §10 is its own build
@@ -23,15 +23,9 @@ order, one step per session.
 | **Run** — worlds, settings, grid edits | the store | no |
 | **Reveal cursor** — how far through | the store, part of the run | no |
 
-The URL as an input, back and forward between places, and Continue pushing the page it
-revealed are built (`.claude/rules/web-routing.md`).
-
-- **PROPOSED** — **One gate for the cursor.** `revealed(run, cursor)` returns only what
-  the reader has reached, and every page reads through it, so a page *cannot* show a
-  race the reader has not reached — it never receives one. Property-tested: no result
-  past the cursor reaches any page.
-- **PROPOSED** — A URL past the cursor (typed, or kept from an older tab) renders a
-  **"Not reached yet"** page with the Continue button, rather than a silent redirect.
+The URL as an input, back and forward between places, Continue pushing the page it
+revealed, the gate (`revealed(run)`) and the "Not reached yet" page are built
+(`.claude/rules/web-routing.md`).
 
 ## 2. The run timeline
 
@@ -184,13 +178,12 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **The gate.** `revealed()` and its property tests; the "Not reached yet" page.
-2. **Season and session pages**, browsable by URL: the season's tabs, the session's
+1. **Season and session pages**, browsable by URL: the season's tabs, the session's
    round links, the era overview's year in progress.
-3. **Driver and team pages**, the two index lists, the panel's page link.
-4. **Share.** The link and the `/share` entry route. The reload recipe is its
+2. **Driver and team pages**, the two index lists, the panel's page link.
+3. **Share.** The link and the `/share` entry route. The reload recipe is its
    starting point.
-5. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+4. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

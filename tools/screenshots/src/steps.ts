@@ -193,4 +193,25 @@ export const STEPS: readonly Step[] = [
       await page.getByRole("alertdialog", { name: "Restart the era?" }).waitFor();
     },
   },
+  {
+    name: "era-restarted",
+    reach: async (page) => {
+      // The page the restart leaves names a year the new run has not reached;
+      // it goes to the new grid rather than saying "Not reached yet".
+      await page
+        .getByRole("alertdialog", { name: "Restart the era?" })
+        .getByRole("button", { name: "Restart era" })
+        .click();
+      await page.waitForURL(`**/run/${YEAR}/grid`);
+      await cursorAt(page, `${YEAR} · Grid`);
+    },
+  },
+  {
+    name: "not-reached",
+    reach: async (page) => {
+      // A typed address ahead of the cursor: a reload, which the run survives.
+      await page.goto(`/run/${YEAR + 1}/round/2/race`);
+      await page.getByRole("heading", { name: "Not reached yet" }).waitFor();
+    },
+  },
 ];

@@ -11,7 +11,7 @@
 import type { RaceWeather } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { findWorld, type seededWorld } from "../test-support.js";
+import { findWorld, type seededWorld, shownAt } from "../test-support.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonView } from "./SeasonView.js";
 import { WeatherBadge, wetnessPercent } from "./WeatherBadge.js";
@@ -84,9 +84,9 @@ describe("a wet round in a season", () => {
   });
 
   it("is stated on the race screen and on its qualifying", () => {
-    const race = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "race", round }} />);
+    const race = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "race", round })} />);
     const qualifying = renderToStaticMarkup(
-      <SeasonView world={world} view={{ kind: "qualifying", round }} />,
+      <SeasonView {...shownAt(world, { kind: "qualifying", round })} />,
     );
     const weather = world.season.races[round]?.weather;
     if (weather === undefined) {
@@ -106,7 +106,7 @@ describe("a wet round in a season", () => {
       throw new Error("the searched season has no dry round to compare against");
     }
     const html = renderToStaticMarkup(
-      <SeasonView world={world} view={{ kind: "race", round: dryRound }} />,
+      <SeasonView {...shownAt(world, { kind: "race", round: dryRound })} />,
     );
     expect(html).not.toContain("Wet race");
   });

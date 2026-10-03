@@ -6,6 +6,8 @@ paths:
   - "apps/web/src/App.tsx"
   - "apps/web/src/lib/areas.ts"
   - "apps/web/src/lib/run-places.ts"
+  - "apps/web/src/lib/reveal.ts"
+  - "apps/web/src/components/NotReached.tsx"
   - "apps/web/src/components/TopNav.tsx"
   - "apps/web/src/routes.test.tsx"
   - "apps/web/src/test-router.tsx"
@@ -51,17 +53,48 @@ route fails the typecheck), and `resolveRunPage(run, page, params)` says what a 
 show. **Params are untrusted input**: `parseYear` wants four digits, `parseRound` a
 round from 1 without a leading zero, and the round must exist in that year's world.
 
-A page shows a place only if the run **has** that year (`world`, or one in
-`run.run.seasons`) and the cursor has **reached** it (`isReached`). Anything else — a
-typo, a year never reached, a session not yet revealed — redirects to the cursor. (The
-"Not reached yet" page that replaces that redirect is the gate's step in the design doc.)
-A one-year run's `/run` goes on to its summary, or the cursor before it ends; an era's
-`/run` is reached once a year has been crowned.
+`resolveRunPage` gives one of four answers:
 
-Each child route resolves **twice**, through `guardRunPage` in `beforeLoad` (a stray
-URL never draws) and `RunPlacePage` in render, which returns `<Navigate replace>` when
-the store has moved under a page without a navigation — a restart on a race leaves
-its URL naming a session the new season has not revealed.
+- **season** or **review**: the run has the place and the cursor has **reached** it
+  (`isReached`). The page gets it through the gate, below.
+- **unreached**: a place still ahead that the run *can* get to. That means a later beat
+  of the cursor's year, a year in `laterYears(run)` (the `nextEraYear` walk, also what
+  Jump to… offers) with a round its calendar has, or an era's `/run` before anything is
+  crowned. `NotReached` says so and links to the cursor. Continue stays in the run bar.
+- **redirect** to the cursor: a malformed param, a round the season doesn't have, or a
+  year the run will never reach. A one-year run's `/run` goes on to its summary, or to
+  the cursor before the summary is reached.
+
+Each child route resolves **twice**: in `guardRunPage` in `beforeLoad` (only a
+redirect throws, so a stray URL never draws) and in `RunPlacePage` in render. The
+store can move under a page without a navigation: a restart on a race leaves its URL
+naming a session the new season hasn't revealed. So a page that was *showing* its
+place a render ago and has lost it returns `<Navigate replace>` to the cursor (a ref
+holds the address last shown). Only an address *arrived at* ahead of the cursor draws
+"Not reached yet".
+
+## The gate
+
+**Every page reads the run through `revealed(run)`** (`lib/reveal.ts`), so a page
+can't show a result the reader hasn't reached: it is never handed one.
+`resolveRunPage` is the only door. Its `season` answer carries a `RevealedWorld`, and
+its `review` answer carries the crowned years.
+
+- Years before the cursor's come back whole. The cursor's own year keeps the races
+  whose *race* beat is reached.
+- On a qualifying beat the round's race has run but isn't revealed, so the gate adds a
+  `QualifyingSheet` copied field by field: grid, gaps, DNQs, weather, and no finishing
+  order. `qualifyingOf(season, round)` is what the qualifying page reads.
+- `season.rounds` is the season's length. Use it, never `races.length`, which stops at
+  the cursor (the clinch arithmetic needs the rounds still to come).
+- **The type is the guard.** `SeasonSoFar` requires `rounds` and `qualifying`, so a raw
+  `World` can't be passed as a `RevealedWorld`, and a page handed the ungated world fails
+  `pnpm typecheck`. It is still a `SeasonResult`, so standings calls read it unchanged.
+  A new page (driver, team, calendar) takes what the gate gives, never the store's
+  `Run`.
+- Property-tested in `lib/reveal.test.ts` (every beat of a season and an era: nothing
+  past the cursor, nothing reached withheld, no race key in a sheet). Also tested at
+  the door in `lib/run-places.test.ts` (every cursor × every URL).
 
 **Only the grid the cursor is on can be edited** (`editable`). Any other grid,
 revisited, is `SeasonPage` with `locked`: no editor button, no ability toggle, no

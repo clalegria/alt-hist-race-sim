@@ -16,11 +16,12 @@ import {
   useMatches,
   useNavigate,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
+import { NotReached } from "./components/NotReached.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
-import { crumbsFor } from "./lib/run-bar.js";
+import { crumbsFor, runBarFor } from "./lib/run-bar.js";
 import {
   isBackPastStart,
   linkTo,
@@ -33,9 +34,10 @@ import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
 /**
  * The `beforeLoad` of every page inside `/run`: home when there is no run, the
- * cursor when the URL names a place the run does not have or has not reached,
- * and through otherwise. It runs on every navigation to the page, before it
- * renders, so a stray URL never draws.
+ * cursor when the URL names a place the run does not have and never will, and
+ * through otherwise — a place not reached yet included, which draws its own
+ * page. It runs on every navigation to the page, before it renders, so a stray
+ * URL never draws.
  */
 export function guardRunPage(page: RunPage, params: RunParams): void {
   const run = useSeasonStore.getState().run;
@@ -53,21 +55,42 @@ export function guardRunPage(page: RunPage, params: RunParams): void {
  *
  * Resolves again on every render, not only in the guard, because the store can
  * move under a page without a navigation — Restart season on a race leaves its
- * URL naming a session the new season has not revealed — and a page that
- * cannot be shown goes to the cursor rather than drawing something stale.
+ * URL naming a session the new season has not revealed. A page that was
+ * showing its place and no longer can goes to the cursor rather than drawing
+ * something stale; only an address *arrived at* ahead of the cursor says it is
+ * not reached yet.
  */
 export function RunPlacePage({ page, params }: { page: RunPage; params: RunParams }) {
   const run = useSeasonStore((state) => state.run);
   const switchSeasonYear = useSeasonStore((state) => state.switchSeasonYear);
   const navigate = useNavigate();
-  if (run === null) {
+  // The address this page last showed a place for, so a place lost under it
+  // can be told from one that was never there.
+  const showing = useRef<string | null>(null);
+  const address = `${page}/${params.year ?? ""}/${params.round ?? ""}`;
+  const resolved = run === null ? null : resolveRunPage(run, page, params);
+  const visible = resolved?.kind === "season" || resolved?.kind === "review";
+  useEffect(() => {
+    showing.current = visible ? address : null;
+  }, [visible, address]);
+
+  if (run === null || resolved === null) {
     // Drawn for an instant between an exit and the navigation it starts.
     return null;
   }
-  const resolved = resolveRunPage(run, page, params);
   switch (resolved.kind) {
     case "redirect":
       return <Navigate {...resolved.to} replace />;
+    case "unreached":
+      return showing.current === address ? (
+        <Navigate {...linkTo(cursorPlace(run))} replace />
+      ) : (
+        <NotReached
+          place={resolved.place}
+          cursor={runBarFor(run).cursor}
+          link={linkTo(cursorPlace(run))}
+        />
+      );
     case "review":
       return <EraChampions run={resolved.run} />;
     case "season":

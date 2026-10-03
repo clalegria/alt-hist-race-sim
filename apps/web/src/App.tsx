@@ -6,10 +6,11 @@ import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunD
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
+import type { RevealedWorld } from "./lib/reveal.js";
 import { type Crumb, runBarFor } from "./lib/run-bar.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import type { Place, View } from "./lib/timeline.js";
-import { type EraRun, isUntouched, type Run, useSeasonStore, type World } from "./store/season.js";
+import { type EraRun, isUntouched, type Run, useSeasonStore } from "./store/season.js";
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
@@ -200,6 +201,9 @@ export function RunFrame({
  * past. `onYearChange` is the grid's shortcut to the season next door, which
  * moves the URL and so comes from the route.
  *
+ * `world` is the year as far as the reader has got (`revealYear`), never the
+ * store's whole world: a page is never handed a result past the cursor.
+ *
  * Rendering the route itself cannot show a season — Zustand serves a *server*
  * snapshot of its initial state to `renderToStaticMarkup`, so a driven store
  * never reaches the markup — so this takes the world as a prop and is tested
@@ -212,7 +216,7 @@ export function SeasonPage({
   locked = false,
   onYearChange,
 }: {
-  world: World;
+  world: RevealedWorld;
   view: View;
   run?: EraRun;
   locked?: boolean;

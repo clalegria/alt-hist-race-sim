@@ -1,7 +1,7 @@
-import type { RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry } from "../lib/names.js";
+import type { QualifyingEntry, QualifyingSheet } from "../lib/reveal.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
@@ -17,7 +17,7 @@ import { TeamCar } from "./TeamCar.js";
  * size — a name that wrapped to two lines would throw the whole column out.
  * Names shorten to initials and then truncate instead.
  */
-function GridSlot({ entry, country }: { entry: RaceEntryResult; country?: string | undefined }) {
+function GridSlot({ entry, country }: { entry: QualifyingEntry; country?: string | undefined }) {
   const nameOf = useEntryName();
   const nationality = driverCountry(entry.driverId);
   const pole = entry.gridPosition === 1;
@@ -104,7 +104,7 @@ function StartingGrid({
   starters,
   country,
 }: {
-  starters: readonly RaceEntryResult[];
+  starters: readonly QualifyingEntry[];
   country?: string | undefined;
 }) {
   return (
@@ -122,7 +122,8 @@ export function QualifyingResults({
   race,
   country,
 }: {
-  race: RaceResult;
+  /** Qualifying alone: on the cursor's own round the race has not been revealed. */
+  race: QualifyingSheet;
   /**
    * Where the round was held, so an entry racing at home can be starred. Absent
    * for a grid shown outside a round, which simply stars nobody.

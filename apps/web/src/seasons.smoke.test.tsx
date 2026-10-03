@@ -14,6 +14,7 @@ import { SeasonView } from "./components/SeasonView.js";
 import { driverName, teamName } from "./lib/names.js";
 import type { View } from "./lib/timeline.js";
 import { createWorld } from "./store/season.js";
+import { shownAt } from "./test-support.js";
 
 describe("each authored season, through the whole reveal", () => {
   for (const [year, seed] of seasons) {
@@ -23,7 +24,7 @@ describe("each authored season, through the whole reveal", () => {
       // pool holds names with one in them. Every assertion here is against a
       // name, so decode once at the source rather than at each match.
       const render = (view: View): string =>
-        renderToStaticMarkup(<SeasonView world={world} view={view} />)
+        renderToStaticMarkup(<SeasonView {...shownAt(world, view)} />)
           .replace(/&#x27;/g, "'")
           .replace(/&quot;/g, '"')
           .replace(/&amp;/g, "&");

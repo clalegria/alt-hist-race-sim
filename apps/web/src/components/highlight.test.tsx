@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { PODIUM_ROW, STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverRounds } from "../lib/results.js";
 import type { World } from "../store/season.js";
-import { findWorld, SEED, seededWorld } from "../test-support.js";
+import { findWorld, SEED, seededWorld, shownAt } from "../test-support.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -80,7 +80,7 @@ describe("the standout accent", () => {
     // A front row is not a podium, and a championship table has no podium at
     // all — borrowing the mark there would say something the sim never claimed.
     const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
-    const summary = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    const summary = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     for (const html of [quali, summary]) {
       expect(html).not.toContain(PODIUM_ROW);
     }
@@ -114,7 +114,7 @@ describe("the standout accent", () => {
   });
 
   it("marks both champions on the summary", () => {
-    const html = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     const cards = occurrences(html, TINT);
     // Two champion cards, and nothing else on a page of three tables.
     expect(cards).toBe(2);
@@ -136,7 +136,7 @@ describe("the standout accent", () => {
     expect(PODIUM_ROW).toContain("primary");
 
     const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
-    const summary = renderToStaticMarkup(<SeasonView world={world} view={{ kind: "summary" }} />);
+    const summary = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     for (const html of [quali, summary]) {
       expect(html).toContain(TINT);
       expect(html).toContain(STANDOUT_TEXT);

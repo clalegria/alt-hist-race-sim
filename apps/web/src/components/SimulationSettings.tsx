@@ -24,7 +24,7 @@ export interface Setting {
 }
 
 /** The settings one world was run under. The only place the list is written. */
-export function settingsOf(world: World): readonly Setting[] {
+export function settingsOf(world: Pick<World, "randomness">): readonly Setting[] {
   return [{ name: "Randomness", value: randomnessLabel(world.randomness) }];
 }
 

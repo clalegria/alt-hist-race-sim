@@ -23,6 +23,8 @@ import {
   seasonSeed,
 } from "@alt-hist/data";
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
+import { type RevealedWorld, revealYear } from "./lib/reveal.js";
+import type { View } from "./lib/timeline.js";
 import { createWorld, type World } from "./store/season.js";
 
 /**
@@ -38,6 +40,14 @@ export const SEED = seasonSeed(YEAR);
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
 export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {
   return mode === undefined ? createWorld(seed, year) : createWorld(seed, year, mode);
+}
+
+/**
+ * A season page's props at `view`: the year cut there, exactly as the gate
+ * hands it to a page — so a render never sees a result the reader would not.
+ */
+export function shownAt(world: World, view: View): { world: RevealedWorld; view: View } {
+  return { world: revealYear(world, view), view };
 }
 
 /**

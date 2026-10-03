@@ -48,7 +48,8 @@ grid → qualifying 1 → race 1 → … → summary → (era) review → next y
 ```
 
 `View` is the season screen's part of it, every beat but `review`. Continue is a promise
-about what the reader sees next, not about when the dice are rolled. `nextBeat` is the
+about what the reader sees next, not about when the dice are rolled. What a page may
+read of those results is the gate's call, `revealed(run)` (`.claude/rules/web-routing.md`). `nextBeat` is the
 order, `comparePlaces`/`isReached` compare two `Place`s (a year and a beat) anywhere in
 a run, and `describeBeat` is the run bar's words for one. **A new kind of beat** — a
 market event, a decision — **is a row in that file**, plus a page and a line in the bar.
