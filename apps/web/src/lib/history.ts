@@ -18,8 +18,8 @@
  */
 
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
-import type { World } from "../store/season.js";
 import { driverName } from "./names.js";
+import { isComplete, type TalliedYear } from "./reveal.js";
 
 /** What both panels write on a line: where they finished, and with what. */
 export interface SeasonFigures {
@@ -39,6 +39,12 @@ export interface SeasonFigures {
   readonly wins: number;
   readonly podiums: number;
   readonly poles: number;
+  /**
+   * How many rounds the place is after, on a year the reader is still partway
+   * through; null on a finished one. A place mid-season is a place *so far*,
+   * and "1st" alone would read as a title.
+   */
+  readonly afterRound: number | null;
 }
 
 /** One season of a driver's career: the above, plus who they drove for. */
@@ -103,12 +109,13 @@ function append<T>(lists: Map<string, T[]>, key: string, value: T): void {
  * so a panel reads down the years however a run was assembled — the same reason
  * `tallyCareers` sorts.
  */
-export function seasonHistories(seasons: readonly World[]): SeasonHistories {
+export function seasonHistories(seasons: readonly TalliedYear[]): SeasonHistories {
   const drivers = new Map<string, DriverSeason[]>();
   const teams = new Map<string, TeamSeason[]>();
 
   for (const world of [...seasons].sort((a, b) => a.year - b.year)) {
     const lineups = new Map<string, TeamDriverSeason[]>();
+    const afterRound = isComplete(world) ? null : world.season.races.length;
     championshipStandings(world.season, world.points).forEach((standing, index) => {
       const position = index + 1;
       append(drivers, standing.driverId, {
@@ -119,6 +126,7 @@ export function seasonHistories(seasons: readonly World[]): SeasonHistories {
         wins: standing.wins,
         podiums: standing.podiums,
         poles: standing.poles,
+        afterRound,
       });
       append(lineups, standing.teamId, {
         driverId: standing.driverId,
@@ -135,6 +143,7 @@ export function seasonHistories(seasons: readonly World[]): SeasonHistories {
         wins: standing.wins,
         podiums: standing.podiums,
         poles: standing.poles,
+        afterRound,
         drivers: lineups.get(standing.teamId) ?? [],
       });
     });
@@ -150,6 +159,21 @@ export function ordinal(position: number): string {
     return `${position}th`;
   }
   return `${position}${["th", "st", "nd", "rd"][position % 10] ?? "th"}`;
+}
+
+/**
+ * Where a season ended, as read out: "1st", or "1st after round 5" on a year
+ * still being written — a lead, not a title.
+ */
+export function placeLabel(figures: SeasonFigures): string {
+  return figures.afterRound === null
+    ? ordinal(figures.position)
+    : `${ordinal(figures.position)} after round ${figures.afterRound}`;
+}
+
+/** Whether the season was won outright: first, and finished. */
+export function isTitle(figures: SeasonFigures): boolean {
+  return figures.afterRound === null && figures.position === 1;
 }
 
 /** "1 win", "4 wins" — a figure nobody has to read past a wrong plural. */
@@ -201,6 +225,6 @@ export interface LineupEntry {
 export function lineupOf(season: TeamSeason): readonly LineupEntry[] {
   return season.drivers.map((driver) => ({
     label: `${driverName(driver.driverId)} ${ordinal(driver.position)}`,
-    champion: driver.position === 1,
+    champion: season.afterRound === null && driver.position === 1,
   }));
 }

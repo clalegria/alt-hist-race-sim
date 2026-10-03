@@ -17,13 +17,16 @@ import { describe, expect, it } from "vitest";
 import { eraChampions } from "../lib/era.js";
 import {
   figuresLine,
+  isTitle,
   lineupOf,
   ordinal,
+  placeLabel,
   seasonHistories,
   type TeamSeason,
 } from "../lib/history.js";
 import type { CareerSpell, RankedRecord } from "../lib/records.js";
 import { careerRecords, rankBy } from "../lib/records.js";
+import { revealYear } from "../lib/reveal.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
 import { CareerStatistics, RecordRow } from "./CareerStatistics.js";
@@ -83,6 +86,7 @@ describe("a career, season by season", () => {
           wins: standing.wins,
           podiums: standing.podiums,
           poles: standing.poles,
+          afterRound: null,
         });
       });
     }
@@ -169,9 +173,50 @@ describe("a team's season", () => {
       wins: 0,
       podiums: 0,
       poles: 0,
+      afterRound: null,
       drivers: [],
     };
     expect(lineupOf(empty)).toEqual([]);
+  });
+});
+
+describe("a year still being written", () => {
+  // The run's crowned years, then a year cut halfway through its calendar —
+  // what the frame hands the panels while the reader is mid-season.
+  const live = createWorld(7, YEAR + 4);
+  const halfway = Math.floor(live.season.races.length / 2);
+  const years = [...run.seasons, revealYear(live, { kind: "race", round: halfway - 1 })];
+
+  it("crowns nobody: titles add up to the finished years only", () => {
+    const { drivers, teams } = careerRecords(years);
+    const titles = (list: typeof drivers) => list.reduce((sum, each) => sum + each.titles, 0);
+    expect(titles(drivers)).toBe(run.seasons.length);
+    expect(titles(teams)).toBe(run.seasons.length);
+  });
+
+  it("marks every place in it as a place so far, and no finished one", () => {
+    const histories = seasonHistories(years);
+    const all = [...histories.drivers.values(), ...histories.teams.values()].flat();
+    expect(all.some((season) => season.year === live.year)).toBe(true);
+    for (const season of all) {
+      expect(season.afterRound).toBe(season.year === live.year ? halfway : null);
+      if (season.year === live.year) {
+        expect(isTitle(season)).toBe(false);
+      }
+    }
+    for (const season of [...histories.teams.values()].flat()) {
+      if (season.year === live.year) {
+        expect(lineupOf(season).some((driver) => driver.champion)).toBe(false);
+      }
+    }
+  });
+
+  it("says how far through a lead is", () => {
+    const base = { year: 1980, position: 1, points: 9, wins: 1, podiums: 1, poles: 0 };
+    expect(placeLabel({ ...base, afterRound: null })).toBe("1st");
+    expect(placeLabel({ ...base, afterRound: 3 })).toBe("1st after round 3");
+    expect(isTitle({ ...base, afterRound: null })).toBe(true);
+    expect(isTitle({ ...base, afterRound: 3 })).toBe(false);
   });
 });
 
@@ -186,6 +231,7 @@ describe("a season's figures on one line", () => {
       wins: 0,
       podiums: 0,
       poles: 0,
+      afterRound: null,
     });
     expect(quiet).toBe("4 pts");
     const loud = figuresLine({
@@ -195,12 +241,21 @@ describe("a season's figures on one line", () => {
       wins: 4,
       podiums: 7,
       poles: 3,
+      afterRound: null,
     });
     expect(loud).toBe("55 pts · 4 wins · 7 podiums · 3 poles");
   });
 
   it("counts one of a thing in the singular", () => {
-    const one = figuresLine({ year: 1980, position: 5, points: 9, wins: 1, podiums: 1, poles: 1 });
+    const one = figuresLine({
+      year: 1980,
+      position: 5,
+      points: 9,
+      wins: 1,
+      podiums: 1,
+      poles: 1,
+      afterRound: null,
+    });
     expect(one).toBe("9 pts · 1 win · 1 podium · 1 pole");
   });
 
@@ -233,7 +288,12 @@ function panelTriggers(markup: string): string[] {
 }
 
 describe("the champions screen", () => {
-  const screen = renderToStaticMarkup(<EraChampions run={run} />);
+  // Inside the provider the run's frame puts around every page.
+  const screen = renderToStaticMarkup(
+    <SeasonHistoryProvider seasons={run.seasons}>
+      <EraChampions run={run} />
+    </SeasonHistoryProvider>,
+  );
 
   it("opens a panel from both champions of every crowned year", () => {
     // One for the driver, one for the team, on every row of the roll of honour

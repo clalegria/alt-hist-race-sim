@@ -19,12 +19,17 @@ bar, the same actions again at the page foot, and the dialogs. **Pages read, the
 bar acts** — a page never advances or edits the run, the cursor's own grid excepted —
 so a read-only view of a run later is these pages with the bar's actions hidden.
 
-- **Breadcrumbs describe the page, the cursor text the run.** `crumbsFor(run, place)`:
-  `Era › 1984 › Round 3 › Race`, a one-year run starting at the year. A crumb links
+- **Breadcrumbs describe the page, the cursor text the run.** `crumbsFor(run, at)`,
+  `at` a `Place` or a people page's `RosterLocation`: `Era › 1984 › Round 3 › Race`,
+  `Era › Drivers › Nelson Piquet`, a one-year run starting at the year. A crumb links
   only to a page reached — *Era* to the era's overview, the year to its season page,
   both reached from the year's grid on; the last is the page itself,
   `aria-current="page"`.
-- **The year and the round are also switchers**: a `▾` beside each (`CrumbMenu`, from
+- **The root crumb carries the run's sections** (`sectionsMenu`), the way to the lists
+  of everyone in the run: *Overview · Drivers · Teams* under *Era*, *Season · Drivers ·
+  Teams* under a one-year run's year, the page's own section marked. There are no run
+  tabs; this menu is where they would have been (`.claude/rules/web-people-pages.md`).
+- **An era's year and the round are also switchers**: a `▾` beside each (`CrumbMenu`, from
   `crumbsFor`) opens a Radix `DropdownMenu` of its siblings, so the trail moves across
   as well as up. Years: every year reached, each to its season page, once there are two.
   Rounds: every round of the year, each where `roundLink` (`lib/session-nav.ts`) sends

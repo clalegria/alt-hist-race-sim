@@ -12,8 +12,8 @@ listed in `docs/design/era-advanced.md`, not here.
 
 ## The app shell
 
-Its open questions — how events surface, team URLs — are listed in
-`docs/design/app-shell.md`, not here.
+Its open question — how events surface — is listed in `docs/design/app-shell.md`,
+not here.
 
 ## Run settings
 

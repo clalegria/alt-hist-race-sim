@@ -284,6 +284,78 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "sections-menu",
+    reach: async (page) => {
+      // The root crumb lists the run's sections: the way to everyone in it.
+      await button(page, "Run sections").click();
+      await page.getByRole("menuitem", { name: "Drivers", exact: true }).waitFor();
+    },
+  },
+  {
+    name: "drivers-index",
+    reach: async (page) => {
+      await page.getByRole("menuitem", { name: "Drivers", exact: true }).click();
+      await page.waitForURL("**/run/drivers");
+      await page.getByRole("heading", { name: "Drivers", exact: true }).waitFor();
+    },
+  },
+  {
+    name: "drivers-by-wins",
+    reach: async (page) => {
+      // A column heading re-sorts the list, as a search param.
+      await page.getByRole("columnheader").getByRole("link", { name: /^Wins/ }).click();
+      await page.waitForURL("**/run/drivers?sort=wins");
+    },
+  },
+  {
+    name: "driver-page",
+    reach: async (page) => {
+      // The top of the list, by wins: a name on an index is a link to the page.
+      await page.getByRole("cell").getByRole("link").first().click();
+      await page.waitForURL("**/run/driver/*");
+      await page.getByRole("heading", { name: "Season by season" }).waitFor();
+    },
+  },
+  {
+    name: "teams-index",
+    reach: async (page) => {
+      await button(page, "Run sections").click();
+      await page.getByRole("menuitem", { name: "Teams", exact: true }).click();
+      await page.waitForURL("**/run/teams");
+      await page.getByRole("heading", { name: "Teams", exact: true }).waitFor();
+    },
+  },
+  {
+    name: "team-page",
+    reach: async (page) => {
+      await page.getByRole("cell").getByRole("link").first().click();
+      await page.waitForURL("**/run/team/*");
+      await page.getByRole("heading", { name: "Season by season" }).waitFor();
+    },
+  },
+  {
+    name: "career-panel",
+    reach: async (page) => {
+      // A name on the overview opens its panel, and the panel leads to the page.
+      await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .first()
+        .getByRole("link", { name: "Era", exact: true })
+        .click();
+      await page.waitForURL("**/run");
+      await page.locator('[aria-haspopup="dialog"]').first().click();
+      await page.getByRole("link", { name: "Full page →" }).waitFor();
+    },
+  },
+  {
+    name: "career-full-page",
+    reach: async (page) => {
+      await page.getByRole("link", { name: "Full page →" }).click();
+      await page.waitForURL(/\/run\/(driver|team)\//);
+      await page.getByRole("heading", { name: "Season by season" }).waitFor();
+    },
+  },
+  {
     name: "era-restart-dialog",
     reach: async (page) => {
       await runAction(page, "Restart era");
@@ -309,6 +381,28 @@ export const STEPS: readonly Step[] = [
       // A typed address ahead of the cursor: a reload, which the run survives.
       await page.goto(`/run/${YEAR + 1}/round/2/race`);
       await page.getByRole("heading", { name: "Not reached yet" }).waitFor();
+    },
+  },
+  {
+    name: "drivers-on-grid",
+    reach: async (page) => {
+      // The era back at its first grid: everyone listed, nothing scored yet.
+      await page.goto("/run/drivers");
+      await page.getByRole("heading", { name: "Drivers", exact: true }).waitFor();
+    },
+  },
+  {
+    name: "driver-midseason",
+    reach: async (page) => {
+      // Round 1 raced: a driver's year reads as a place so far.
+      await runAction(page, "Continue");
+      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Qualifying$`));
+      await runAction(page, "Continue");
+      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Race$`));
+      await page.goto("/run/drivers");
+      await page.getByRole("cell").getByRole("link").first().click();
+      await page.waitForURL("**/run/driver/*");
+      await page.getByText("after round 1").first().waitFor();
     },
   },
 ];

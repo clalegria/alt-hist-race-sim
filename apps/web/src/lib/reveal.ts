@@ -52,6 +52,26 @@ export interface SeasonSoFar extends SeasonResult {
 /** A year of the run, cut at the reader's cursor: what every page is handed. */
 export type RevealedWorld = Omit<World, "season"> & { readonly season: SeasonSoFar };
 
+/**
+ * What a career tally reads of one year: a whole `World` or a `RevealedWorld`
+ * both are one. `rounds` is present only on a year the gate has cut.
+ */
+export interface TalliedYear {
+  readonly year: number;
+  readonly points: World["points"];
+  readonly season: SeasonResult & { readonly rounds?: number };
+}
+
+/**
+ * Whether every race of the year has been revealed. A year cut before its last
+ * race is still being written: its leader is not its champion, and a place in
+ * it is a place *so far*. A whole world, which carries no `rounds`, is complete.
+ */
+export function isComplete(year: TalliedYear): boolean {
+  const { rounds } = year.season;
+  return rounds === undefined || year.season.races.length >= rounds;
+}
+
 /** A run, cut at the reader's cursor. */
 export interface RevealedRun {
   readonly cursor: Place;

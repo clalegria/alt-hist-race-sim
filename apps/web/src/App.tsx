@@ -1,12 +1,14 @@
 import { Outlet } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { GridEdit } from "./components/GridStage.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
+import { SeasonHistoryProvider } from "./components/SeasonHistory.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
-import type { RevealedWorld } from "./lib/reveal.js";
+import { type RevealedWorld, revealed } from "./lib/reveal.js";
+import { PAGE_OF } from "./lib/roster-places.js";
 import { type Crumb, type ReturnLink, runBarFor } from "./lib/run-bar.js";
 import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
@@ -118,6 +120,9 @@ export function RunFrame({
   const [editingGrid, setEditingGrid] = useState(false);
   const [asking, setAsking] = useState<RunConfirm | "jump" | null>(null);
   const state = runBarFor(run);
+  // Every year the reader has reached, the cursor's cut at the cursor: what
+  // the career panel behind any name on any page of the run reads.
+  const years = useMemo(() => revealed(run).years, [run]);
   const actions: RunActionsProps = {
     state,
     returnTo,
@@ -162,7 +167,9 @@ export function RunFrame({
   return (
     <GridEditingContext.Provider value={setEditingGrid}>
       <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
-        <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+        <SeasonHistoryProvider seasons={years} pageOf={PAGE_OF}>
+          <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+        </SeasonHistoryProvider>
         <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
           <span className="text-muted-foreground text-xs">{state.cursor}</span>
           <RunActions {...actions} />

@@ -13,9 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RunRouteImport } from './routes/run'
 import { Route as EraNewRouteImport } from './routes/era/new'
 import { Route as RunIndexRouteImport } from './routes/run/index'
+import { Route as RunDriversRouteImport } from './routes/run/drivers'
+import { Route as RunTeamsRouteImport } from './routes/run/teams'
 import { Route as SeasonNewRouteImport } from './routes/season/new'
 import { Route as RunYearIndexRouteImport } from './routes/run/$year/index'
 import { Route as RunYearGridRouteImport } from './routes/run/$year/grid'
+import { Route as RunDriverDriverIdRouteImport } from './routes/run/driver/$driverId'
+import { Route as RunTeamTeamIdRouteImport } from './routes/run/team/$teamId'
 import { Route as RunYearRoundRoundQualifyingRouteImport } from './routes/run/$year/round/$round/qualifying'
 import { Route as RunYearRoundRoundRaceRouteImport } from './routes/run/$year/round/$round/race'
 
@@ -39,6 +43,16 @@ const RunIndexRoute = RunIndexRouteImport.update({
   path: '/',
   getParentRoute: () => RunRoute,
 } as any)
+const RunDriversRoute = RunDriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => RunRoute,
+} as any)
+const RunTeamsRoute = RunTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => RunRoute,
+} as any)
 const SeasonNewRoute = SeasonNewRouteImport.update({
   id: '/season/new',
   path: '/season/new',
@@ -52,6 +66,16 @@ const RunYearIndexRoute = RunYearIndexRouteImport.update({
 const RunYearGridRoute = RunYearGridRouteImport.update({
   id: '/$year/grid',
   path: '/$year/grid',
+  getParentRoute: () => RunRoute,
+} as any)
+const RunDriverDriverIdRoute = RunDriverDriverIdRouteImport.update({
+  id: '/driver/$driverId',
+  path: '/driver/$driverId',
+  getParentRoute: () => RunRoute,
+} as any)
+const RunTeamTeamIdRoute = RunTeamTeamIdRouteImport.update({
+  id: '/team/$teamId',
+  path: '/team/$teamId',
   getParentRoute: () => RunRoute,
 } as any)
 const RunYearRoundRoundQualifyingRoute =
@@ -70,9 +94,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
+  '/run/drivers': typeof RunDriversRoute
+  '/run/teams': typeof RunTeamsRoute
   '/season/new': typeof SeasonNewRoute
   '/run/': typeof RunIndexRoute
   '/run/$year/grid': typeof RunYearGridRoute
+  '/run/driver/$driverId': typeof RunDriverDriverIdRoute
+  '/run/team/$teamId': typeof RunTeamTeamIdRoute
   '/run/$year/': typeof RunYearIndexRoute
   '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
   '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
@@ -80,9 +108,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/era/new': typeof EraNewRoute
+  '/run/drivers': typeof RunDriversRoute
+  '/run/teams': typeof RunTeamsRoute
   '/season/new': typeof SeasonNewRoute
   '/run': typeof RunIndexRoute
   '/run/$year/grid': typeof RunYearGridRoute
+  '/run/driver/$driverId': typeof RunDriverDriverIdRoute
+  '/run/team/$teamId': typeof RunTeamTeamIdRoute
   '/run/$year': typeof RunYearIndexRoute
   '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
   '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
@@ -92,9 +124,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
+  '/run/drivers': typeof RunDriversRoute
+  '/run/teams': typeof RunTeamsRoute
   '/season/new': typeof SeasonNewRoute
   '/run/': typeof RunIndexRoute
   '/run/$year/grid': typeof RunYearGridRoute
+  '/run/driver/$driverId': typeof RunDriverDriverIdRoute
+  '/run/team/$teamId': typeof RunTeamTeamIdRoute
   '/run/$year/': typeof RunYearIndexRoute
   '/run/$year/round/$round/qualifying': typeof RunYearRoundRoundQualifyingRoute
   '/run/$year/round/$round/race': typeof RunYearRoundRoundRaceRoute
@@ -105,9 +141,13 @@ export interface FileRouteTypes {
     | '/'
     | '/run'
     | '/era/new'
+    | '/run/drivers'
+    | '/run/teams'
     | '/season/new'
     | '/run/'
     | '/run/$year/grid'
+    | '/run/driver/$driverId'
+    | '/run/team/$teamId'
     | '/run/$year/'
     | '/run/$year/round/$round/qualifying'
     | '/run/$year/round/$round/race'
@@ -115,9 +155,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/era/new'
+    | '/run/drivers'
+    | '/run/teams'
     | '/season/new'
     | '/run'
     | '/run/$year/grid'
+    | '/run/driver/$driverId'
+    | '/run/team/$teamId'
     | '/run/$year'
     | '/run/$year/round/$round/qualifying'
     | '/run/$year/round/$round/race'
@@ -126,9 +170,13 @@ export interface FileRouteTypes {
     | '/'
     | '/run'
     | '/era/new'
+    | '/run/drivers'
+    | '/run/teams'
     | '/season/new'
     | '/run/'
     | '/run/$year/grid'
+    | '/run/driver/$driverId'
+    | '/run/team/$teamId'
     | '/run/$year/'
     | '/run/$year/round/$round/qualifying'
     | '/run/$year/round/$round/race'
@@ -171,6 +219,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunIndexRouteImport
       parentRoute: typeof RunRoute
     }
+    '/run/drivers': {
+      id: '/run/drivers'
+      path: '/drivers'
+      fullPath: '/run/drivers'
+      preLoaderRoute: typeof RunDriversRouteImport
+      parentRoute: typeof RunRoute
+    }
+    '/run/teams': {
+      id: '/run/teams'
+      path: '/teams'
+      fullPath: '/run/teams'
+      preLoaderRoute: typeof RunTeamsRouteImport
+      parentRoute: typeof RunRoute
+    }
     '/season/new': {
       id: '/season/new'
       path: '/season/new'
@@ -192,6 +254,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunYearGridRouteImport
       parentRoute: typeof RunRoute
     }
+    '/run/driver/$driverId': {
+      id: '/run/driver/$driverId'
+      path: '/driver/$driverId'
+      fullPath: '/run/driver/$driverId'
+      preLoaderRoute: typeof RunDriverDriverIdRouteImport
+      parentRoute: typeof RunRoute
+    }
+    '/run/team/$teamId': {
+      id: '/run/team/$teamId'
+      path: '/team/$teamId'
+      fullPath: '/run/team/$teamId'
+      preLoaderRoute: typeof RunTeamTeamIdRouteImport
+      parentRoute: typeof RunRoute
+    }
     '/run/$year/round/$round/qualifying': {
       id: '/run/$year/round/$round/qualifying'
       path: '/$year/round/$round/qualifying'
@@ -210,16 +286,24 @@ declare module '@tanstack/react-router' {
 }
 
 interface RunRouteChildren {
+  RunDriversRoute: typeof RunDriversRoute
+  RunTeamsRoute: typeof RunTeamsRoute
   RunIndexRoute: typeof RunIndexRoute
   RunYearGridRoute: typeof RunYearGridRoute
+  RunDriverDriverIdRoute: typeof RunDriverDriverIdRoute
+  RunTeamTeamIdRoute: typeof RunTeamTeamIdRoute
   RunYearIndexRoute: typeof RunYearIndexRoute
   RunYearRoundRoundQualifyingRoute: typeof RunYearRoundRoundQualifyingRoute
   RunYearRoundRoundRaceRoute: typeof RunYearRoundRoundRaceRoute
 }
 
 const RunRouteChildren: RunRouteChildren = {
+  RunDriversRoute: RunDriversRoute,
+  RunTeamsRoute: RunTeamsRoute,
   RunIndexRoute: RunIndexRoute,
   RunYearGridRoute: RunYearGridRoute,
+  RunDriverDriverIdRoute: RunDriverDriverIdRoute,
+  RunTeamTeamIdRoute: RunTeamTeamIdRoute,
   RunYearIndexRoute: RunYearIndexRoute,
   RunYearRoundRoundQualifyingRoute: RunYearRoundRoundQualifyingRoute,
   RunYearRoundRoundRaceRoute: RunYearRoundRoundRaceRoute,

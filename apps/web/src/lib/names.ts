@@ -77,6 +77,11 @@ export function driverCountry(driverId: string): string | undefined {
   return drivers.get(driverId)?.nationality;
 }
 
+/** The year a driver was born, for an age; undefined for an id the data does not know. */
+export function driverBirthYear(driverId: string): number | undefined {
+  return drivers.get(driverId)?.birthYear;
+}
+
 export function teamCountry(teamId: string, year?: number): string | undefined {
   const team = teams.get(teamId);
   return team === undefined ? undefined : teamIdentityIn(team, year).base;

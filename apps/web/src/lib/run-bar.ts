@@ -13,6 +13,10 @@
  */
 
 import { cursorPlace, type Run } from "../store/season.js";
+import { driverName, teamName } from "./names.js";
+import { revealed } from "./reveal.js";
+import { lastYearOf, rosterOf } from "./roster.js";
+import { driversLink, type RosterLink, type RosterLocation, teamsLink } from "./roster-places.js";
 import { laterYears, linkTo, REVIEW_LINK, type RunLink } from "./run-places.js";
 import { nextEraYear, seasonSeed } from "./seasons.js";
 import { roundLink } from "./session-nav.js";
@@ -82,9 +86,10 @@ export interface ReturnLink {
  * else it would advance a run the reader is not looking at; this is what the
  * bar puts first instead.
  */
-export function returnFor(run: Run, place: Place): ReturnLink | null {
+export function returnFor(run: Run, at: Place | RosterLocation): ReturnLink | null {
   const cursor = cursorPlace(run);
-  return comparePlaces(place, cursor) === 0
+  // A people page is never the cursor's: the run is always somewhere else.
+  return !("page" in at) && comparePlaces(at, cursor) === 0
     ? null
     : { label: runBarFor(run).cursor, link: linkTo(cursor) };
 }
@@ -94,15 +99,18 @@ export function runTitle(run: Run): string {
   return run.kind === "era" ? `Era from ${run.run.startYear}` : `${run.world.year} season`;
 }
 
+/** Where a crumb or a menu entry can lead: a beat's page, or a people page. */
+export type CrumbLink = RunLink | RosterLink;
+
 /** One entry of a crumb's menu: a sibling page, null while it is still ahead. */
 export interface CrumbItem {
   readonly label: string;
-  readonly link: RunLink | null;
+  readonly link: CrumbLink | null;
   /** The one the page on screen belongs to. */
   readonly current: boolean;
 }
 
-/** A crumb's siblings: the other years, or the other rounds of this one. */
+/** A crumb's siblings: the run's sections, the other years, or the other rounds of this one. */
 export interface CrumbMenu {
   /** What the menu's button is called, for a screen reader. */
   readonly label: string;
@@ -112,7 +120,7 @@ export interface CrumbMenu {
 /** One breadcrumb. `link` is absent for the page itself and for a place not reached. */
 export interface Crumb {
   readonly label: string;
-  readonly link?: RunLink;
+  readonly link?: CrumbLink;
   /** Its siblings, so the trail moves sideways as well as up. */
   readonly menu?: CrumbMenu;
 }
@@ -136,28 +144,108 @@ function roundsOf(run: Run, year: number): number {
   return world?.season.races.length ?? 0;
 }
 
+/** The run's sections, as the root crumb's menu lists them. */
+export type RunSection = "overview" | "season" | "drivers" | "teams";
+
 /**
- * The trail to `place`, from the run's top: `Era › 1984 › Round 3 › Race`.
- * A one-year run has no era above its season, so its trail starts at the year.
+ * The root crumb's menu: **the run's sections**, the way across to the lists of
+ * everyone in it. An era's root is *Era*, and its sections are the overview
+ * and the two lists; a one-year run's root is its year, and its sections are
+ * the season and the two lists. `current` is the section the page is in, if
+ * any — a page of one year of an era is in none of them.
+ */
+export function sectionsMenu(run: Run, current: RunSection | null): CrumbMenu {
+  const first: CrumbItem =
+    run.kind === "era"
+      ? { label: "Overview", link: REVIEW_LINK, current: current === "overview" }
+      : {
+          label: "Season",
+          link: linkTo({ year: run.world.year, beat: { kind: "summary" } }),
+          current: current === "season",
+        };
+  return {
+    label: "Run sections",
+    items: [
+      first,
+      { label: "Drivers", link: driversLink(), current: current === "drivers" },
+      { label: "Teams", link: teamsLink(), current: current === "teams" },
+    ],
+  };
+}
+
+/** The last crumb is the page itself, so it links nowhere; its menu stays. */
+function endingHere(crumbs: readonly Crumb[]): readonly Crumb[] {
+  return crumbs.map((crumb, index) => {
+    if (index !== crumbs.length - 1 || crumb.link === undefined) {
+      return crumb;
+    }
+    const { link: _, ...rest } = crumb;
+    return rest;
+  });
+}
+
+/**
+ * The trail to a people page: `Era › Drivers › Nelson Piquet`, or from the
+ * year in a one-year run. A team is named as of its last year on the run's
+ * grid — the name the reader has most recently seen it under.
+ */
+function rosterCrumbs(run: Run, at: RosterLocation): readonly Crumb[] {
+  const drivers = at.page === "drivers" || at.page === "driver";
+  const menu = sectionsMenu(run, drivers ? "drivers" : "teams");
+  const root: Crumb =
+    run.kind === "era"
+      ? { label: "Era", link: REVIEW_LINK, menu }
+      : {
+          label: String(run.world.year),
+          link: linkTo({ year: run.world.year, beat: { kind: "summary" } }),
+          menu,
+        };
+  const crumbs: Crumb[] = [
+    root,
+    drivers ? { label: "Drivers", link: driversLink() } : { label: "Teams", link: teamsLink() },
+  ];
+  if (at.id !== undefined) {
+    const lastYear = lastYearOf(rosterOf(revealed(run).years).teams.get(at.id));
+    crumbs.push({
+      label: at.page === "driver" ? driverName(at.id) : teamName(at.id, lastYear ?? run.world.year),
+    });
+  }
+  return endingHere(crumbs);
+}
+
+/**
+ * The trail to a page, from the run's top: `Era › 1984 › Round 3 › Race`, or
+ * `Era › Drivers › Nelson Piquet`. A one-year run has no era above its season,
+ * so its trail starts at the year.
  *
  * The trail describes the *page*, where the run bar's cursor text describes
  * how far the run has got; the two differ whenever the reader has gone back to
  * look at something. A crumb links only to a page the reader has reached, and
  * the last crumb — this page — links nowhere.
  *
- * On a year the reader has reached, the year and the round also carry a
- * **menu of their siblings**: every year reached, each to its season page,
- * once there is more than one; and every round of the year, each where
- * `roundLink` sends it, a round still ahead listed without a link.
+ * **The root crumb carries the run's sections** (`sectionsMenu`): the way to
+ * the lists of everyone in the run. On a year the reader has reached, an era's
+ * year and any round also carry a **menu of their siblings**: every year
+ * reached, each to its season page, once there is more than one; and every
+ * round of the year, each where `roundLink` sends it, a round still ahead
+ * listed without a link.
  */
-export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
+export function crumbsFor(run: Run, at: Place | RosterLocation): readonly Crumb[] {
+  if ("page" in at) {
+    return rosterCrumbs(run, at);
+  }
+  const place = at;
   const cursor = cursorPlace(run);
   const crumbs: Crumb[] = [];
+  const beat = place.beat;
   // The era's overview is there from its first grid on.
   if (run.kind === "era") {
-    crumbs.push({ label: "Era", link: REVIEW_LINK });
+    crumbs.push({
+      label: "Era",
+      link: REVIEW_LINK,
+      menu: sectionsMenu(run, beat.kind === "review" ? "overview" : null),
+    });
   }
-  const beat = place.beat;
   // The year's page opens with its grid, so any page of a year reached has it.
   const yearReached = isReached(cursor, { year: place.year, beat: { kind: "grid" } });
   if (beat.kind !== "review") {
@@ -165,18 +253,22 @@ export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
     crumbs.push({
       label: String(place.year),
       ...(yearReached ? { link: linkTo({ year: place.year, beat: { kind: "summary" } }) } : {}),
-      ...(yearReached && years.length > 1
-        ? {
-            menu: {
-              label: "Other years",
-              items: years.map((year) => ({
-                label: String(year),
-                link: linkTo({ year, beat: { kind: "summary" } }),
-                current: year === place.year,
-              })),
-            },
-          }
-        : {}),
+      // A one-year run's year is its root, so it carries the run's sections;
+      // an era's carries the other years once there are two.
+      ...(run.kind === "season"
+        ? { menu: sectionsMenu(run, "season") }
+        : yearReached && years.length > 1
+          ? {
+              menu: {
+                label: "Other years",
+                items: years.map((year) => ({
+                  label: String(year),
+                  link: linkTo({ year, beat: { kind: "summary" } }),
+                  current: year === place.year,
+                })),
+              },
+            }
+          : {}),
     });
   }
   if (beat.kind === "grid") {
@@ -200,14 +292,7 @@ export function crumbsFor(run: Run, place: Place): readonly Crumb[] {
     });
     crumbs.push({ label: beat.kind === "qualifying" ? "Qualifying" : "Race" });
   }
-  // The last crumb is the page itself, so it links nowhere; its menu stays.
-  return crumbs.map((crumb, index) => {
-    if (index !== crumbs.length - 1 || crumb.link === undefined) {
-      return crumb;
-    }
-    const { link: _, ...rest } = crumb;
-    return rest;
-  });
+  return endingHere(crumbs);
 }
 
 /** Where in a year a jump lands: its grid, or its end (the season summary). */

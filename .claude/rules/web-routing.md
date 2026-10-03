@@ -41,6 +41,7 @@ type-checked: a link to a path with no route fails `pnpm typecheck`.
 | `/run/1984?tab=calendar` | `run/$year/index.tsx` | that year's season page, one tab at a time (`web-season-pages.md`) |
 | `/run/1984/grid` | `run/$year/grid.tsx` | that year's grid |
 | `/run/1984/round/3/qualifying`, `…/race` | `run/$year/round/$round/*.tsx` | one session; the round counts from 1 |
+| `/run/drivers`, `/run/teams`, `/run/driver/piquet`, `/run/team/tyrrell` | `run/drivers.tsx`, `run/teams.tsx`, `run/driver/$driverId.tsx`, `run/team/$teamId.tsx` | the people pages, through their own door, `resolveRosterPage` (`web-people-pages.md`) |
 
 **The URL is an input, never a mirror.** A page reads where it is from the URL and what
 to show from the store; nothing writes the store into the URL.

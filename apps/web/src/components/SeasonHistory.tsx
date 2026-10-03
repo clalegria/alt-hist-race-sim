@@ -20,36 +20,78 @@
  * rendered on its own gets, which is how most of this app is tested.
  */
 
+import { Link } from "@tanstack/react-router";
 import { createContext, useContext, useMemo } from "react";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
   count,
   figuresLine,
+  isTitle,
   type LineupEntry,
   lineupOf,
   NO_HISTORIES,
-  ordinal,
+  placeLabel,
+  type SeasonFigures,
   type SeasonHistories,
   seasonHistories,
 } from "../lib/history.js";
 import { driverCountry, driverName, teamCountry, teamName } from "../lib/names.js";
+import type { TalliedYear } from "../lib/reveal.js";
+import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn } from "../lib/utils.js";
-import type { World } from "../store/season.js";
 import { Flag } from "./Flag.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
-const Histories = createContext<SeasonHistories>(NO_HISTORIES);
+/** The run's careers, and where each one's page is — null outside a router. */
+interface HistoryScope {
+  readonly histories: SeasonHistories;
+  readonly pageOf: PageOf | null;
+}
 
-/** Every career of a run, tallied once for every panel on the screen. */
+const Histories = createContext<HistoryScope>({ histories: NO_HISTORIES, pageOf: null });
+
+/**
+ * Every career of a run, tallied once for every panel on the screen.
+ *
+ * The run's frame provides it over every year the reader has reached, the
+ * cursor's own cut at the cursor, so a panel opened anywhere in the run says
+ * the same thing. `pageOf` is how a panel links on to the person's page; a
+ * test with no router leaves it out and the panel draws no link.
+ */
 export function SeasonHistoryProvider({
   seasons,
+  pageOf = null,
   children,
 }: {
-  seasons: readonly World[];
+  seasons: readonly TalliedYear[];
+  pageOf?: PageOf | null;
   children: React.ReactNode;
 }) {
   const histories = useMemo(() => seasonHistories(seasons), [seasons]);
-  return <Histories.Provider value={histories}>{children}</Histories.Provider>;
+  const scope = useMemo(() => ({ histories, pageOf }), [histories, pageOf]);
+  return <Histories.Provider value={scope}>{children}</Histories.Provider>;
+}
+
+/**
+ * Where a person's page is, inside a run's frame; null outside one, which is
+ * every test without a router. The grid's ratings popovers read it too, so a
+ * name leads on to its page whichever panel it opened.
+ */
+export function usePageOf(): PageOf | null {
+  return useContext(Histories).pageOf;
+}
+
+/**
+ * The way from a panel to the page behind it. The panel is the quick look and
+ * the page the whole story, so every panel ends on this, at its foot, where a
+ * reader who has read it is.
+ */
+export function FullPageLink({ link }: { link: RosterLink }) {
+  return (
+    <Link {...link} className="text-primary text-xs font-medium hover:underline">
+      Full page →
+    </Link>
+  );
 }
 
 /**
@@ -74,38 +116,34 @@ export const HISTORY_TARGET =
  * panel worth a colour.
  */
 function HistoryLine({
-  year,
   middle,
-  position,
-  figures,
+  season,
   lineup,
 }: {
-  year: number;
   middle: string;
-  position: number;
-  figures: string;
+  season: SeasonFigures;
   /** Who drove the cars, on a team's panel. Empty everywhere else. */
   lineup?: readonly LineupEntry[];
 }) {
   return (
     <li className="border-border/60 border-t py-1.5 first:border-t-0 first:pt-0">
       <div className="flex items-baseline gap-2">
-        <span className="w-9 shrink-0 text-xs font-medium tabular-nums">{year}</span>
+        <span className="w-9 shrink-0 text-xs font-medium tabular-nums">{season.year}</span>
         <span className="min-w-0 flex-1 truncate text-sm">{middle}</span>
         <span
           className={cn(
             "shrink-0 text-xs tabular-nums",
-            position === 1 ? `${STANDOUT_TEXT} font-semibold` : "text-muted-foreground",
+            isTitle(season) ? `${STANDOUT_TEXT} font-semibold` : "text-muted-foreground",
           )}
         >
-          {ordinal(position)}
+          {placeLabel(season)}
         </span>
       </div>
       {/*
         Indented to start under the middle column rather than under the year, so
         a panel reads as two columns and not as ragged prose.
       */}
-      <div className="text-muted-foreground pl-11 text-xs">{figures}</div>
+      <div className="text-muted-foreground pl-11 text-xs">{figuresLine(season)}</div>
       {lineup === undefined || lineup.length === 0 ? null : (
         <div className="text-muted-foreground pl-11 text-xs">
           {lineup.map((driver, index) => (
@@ -144,12 +182,15 @@ function HistoryPanel({
   name,
   country,
   seasons,
+  page,
   children,
 }: {
   name: string;
   /** A driver's nationality, a team's base — the flag every table names them with. */
   country: string | undefined;
   seasons: number;
+  /** Their page, where the panel leads on to; null where there is none to link. */
+  page: RosterLink | null;
   children: React.ReactNode;
 }) {
   return (
@@ -164,6 +205,11 @@ function HistoryPanel({
         </span>
       </div>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>
+      {page === null ? null : (
+        <div className="border-border border-t px-4 py-2 text-right">
+          <FullPageLink link={page} />
+        </div>
+      )}
     </PopoverContent>
   );
 }
@@ -205,21 +251,21 @@ export function DriverHistory({
   className?: string | undefined;
   children: React.ReactNode;
 }) {
-  const seasons = useContext(Histories).drivers.get(driverId);
+  const { histories, pageOf } = useContext(Histories);
+  const seasons = histories.drivers.get(driverId);
   const panel =
     seasons === undefined || seasons.length === 0 ? null : (
       <HistoryPanel
         name={driverName(driverId)}
         country={driverCountry(driverId)}
         seasons={seasons.length}
+        page={pageOf?.driver(driverId) ?? null}
       >
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            year={season.year}
             middle={teamName(season.teamId, season.year)}
-            position={season.position}
-            figures={figuresLine(season)}
+            season={season}
           />
         ))}
       </HistoryPanel>
@@ -251,7 +297,8 @@ export function TeamHistory({
   className?: string | undefined;
   children: React.ReactNode;
 }) {
-  const seasons = useContext(Histories).teams.get(teamId);
+  const { histories, pageOf } = useContext(Histories);
+  const seasons = histories.teams.get(teamId);
   // The team as of its last season in the run — its name, its flag and, on the
   // rows below, a livery would all be eras; the heading has to pick one year.
   const last = seasons?.at(-1)?.year;
@@ -261,14 +308,13 @@ export function TeamHistory({
         name={teamName(teamId, last)}
         country={teamCountry(teamId, last)}
         seasons={seasons.length}
+        page={pageOf?.team(teamId) ?? null}
       >
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            year={season.year}
             middle={teamName(teamId, season.year)}
-            position={season.position}
-            figures={figuresLine(season)}
+            season={season}
             lineup={lineupOf(season)}
           />
         ))}

@@ -3,10 +3,11 @@
 The persistent navigation, the URL scheme, the pages a run can be browsed through, and
 how a run lives, survives a reload and ends. Design intent, not a description of code:
 what is built — the router, the top nav, the timeline of beats, a page per beat, the
-gate, the season page and session links, the run bar, the ways out of a run and
-surviving a reload — is `.claude/rules/web-routing.md`,
+gate, the season page and session links, the run bar, the ways out of a run, surviving
+a reload, and the driver and team pages — is `.claude/rules/web-routing.md`,
 `.claude/rules/web-season-pages.md`, `.claude/rules/web-run-bar.md`,
-`.claude/rules/web-persistence.md` and `.claude/rules/web-app.md`. Where it sits in the
+`.claude/rules/web-persistence.md`, `.claude/rules/web-people-pages.md` and
+`.claude/rules/web-app.md`. Where it sits in the
 build order is *routing and the app shell* in `docs/ROADMAP.md`; §10 is its own build
 order, one step per session.
 
@@ -52,8 +53,8 @@ run's first page, and Start while a run exists (`.claude/rules/web-run-bar.md`).
 ## 4. Routes
 
 **PROPOSED** — the URL scheme. Public once *publish it* ships: renaming a route then
-breaks every shared link. Built so far: `/`, the setup pages, `/run`, `/run/1984` with
-its tabs, the grid and the sessions (`.claude/rules/web-routing.md`).
+breaks every shared link. Built so far: everything below but `/about`, `/report` and
+`/share` (`.claude/rules/web-routing.md`).
 
 ```
 /                              home: mode cards (+ Resume run while one exists)
@@ -76,52 +77,39 @@ its tabs, the grid and the sessions (`.claude/rules/web-routing.md`).
 - `/run` is singular, no run id: phase 1 has one run at a time. Saved runs (§8) add
   `/run/:id/…` if they ever need more than one open.
 - **A standalone season is a one-year run** — same routes, no overview.
-- **OPEN** — Team URLs use the lineage id (`.claude/rules/team-eras.md`), so today's
-  Mercedes is `/run/team/tyrrell`. Stable, since a name-based slug would change with each
-  era, but odd to read. Alternative: accept a name slug and redirect to the id.
+- **DECIDED** — Team URLs use the lineage id, so today's Mercedes is
+  `/run/team/tyrrell`. A name slug that redirects to the id can be added later without
+  breaking a link.
 
 ## 5. The shell
 
 The top nav and the run bar are built, the breadcrumbs with menus of the other years
-and rounds (`.claude/rules/web-routing.md`, `.claude/rules/web-run-bar.md`).
-**PROPOSED** —
-still to add:
+and rounds, and the root crumb's menu of the run's sections, which is where the run's
+lists are reached — **DECIDED**, in place of run tabs (`.claude/rules/web-run-bar.md`).
+**PROPOSED** — still to add:
 
 - **Share** in the run bar, beside Continue (§8).
-- **Run tabs** under it — *Overview Season Drivers Teams* — the run's sections, as data.
 - The top nav's phone form (*phone layout*, the next roadmap item): a menu. The run
   bar's — Continue plus ⋯ — is built.
 
 ## 6. Pages
 
-The home, setup, season, session and era-overview pages are built
-(`.claude/rules/web-routing.md`, `.claude/rules/web-season-pages.md`,
-`.claude/rules/web-era.md`). **PROPOSED** — the rest, each a thin route component that
-reads the params and the store through `revealed()` and passes props to a component:
-
-- **Driver** — header (flag, name, age, current team, rating), the run's totals, season
-  by season (`lib/history.ts`), and the current season race by race, unreached rounds
-  as `···`. On the grid but not yet raced: the entry alone.
-
-  ```
-   🇧🇷 Nelson Piquet · 31 · Brabham-BMW (1984)
-   3 titles · 21 wins · 40 podiums · 18 poles
-   1984  Brabham  1st  24 pts · 1 win        (through round 3)
-   1983  Brabham  1st  …
-   1984: BRA P1 · RSA DNF · BEL P4 · ··· · ···
-  ```
-- **Team** — the same shape; name and livery as of its latest season, lineup lines from
-  `lineupOf`, lineage spells as `CareerStatistics` shows them.
-- **Drivers, Teams** — one sortable table each of everyone in the run, career totals
-  from `lib/records.ts`, ordered by the ranking rule.
+Every page of §4 inside `/run` is built (`.claude/rules/web-routing.md`,
+`.claude/rules/web-season-pages.md`, `.claude/rules/web-era.md`,
+`.claude/rules/web-people-pages.md`). Pages still to come — events, next season's grid
+— follow the same shape: a thin route component that reads the params and the store
+through a door that cuts the run at the cursor, and passes props to a component.
 
 ## 7. Names: panel first, page second
 
-- **DECIDED** — The career panels (`SeasonHistory`: select a driver or team on the era
-  screen, a panel lists their seasons) stay, and gain a **"Full page →"** link.
-- **PROPOSED** — One affordance everywhere: any driver or team name in any table opens
-  that panel, and the panel links to the page. A name never navigates directly, so there
-  is one gesture to learn, not two.
+- **DECIDED** — One affordance everywhere: a driver or team name opens its career
+  panel, and the panel ends on *Full page →*. A name never navigates directly — except
+  on the two index lists, which are directories. Built: the panel on every run page, its
+  link, and the same link on the grid's popovers (`.claude/rules/web-careers.md`).
+- Still to do: the names in the standings, the classification, the calendar, qualifying
+  and the race-by-race panels do not open a panel yet. Where a name is already a row's
+  expand button, it becomes the two-control row the record cards use (chevron expands,
+  name opens the panel).
 
 ## 8. Sharing and saving
 
@@ -163,8 +151,8 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Driver and team pages**, the two index lists, the panel's page link, and the run
-   tabs (§5) that lead to them.
+1. **Names open their panel everywhere** (§7): the standings, classification,
+   calendar, qualifying and race-by-race names.
 2. **Share.** The link and the `/share` entry route. The reload recipe is its
    starting point.
 3. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual

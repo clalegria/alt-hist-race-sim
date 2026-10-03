@@ -7,6 +7,8 @@
 import { describe, expect, it } from "vitest";
 import type { Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
+import { driverName } from "./names.js";
+import { driversLink, teamsLink } from "./roster-places.js";
 import {
   type Crumb,
   crumbsFor,
@@ -16,6 +18,7 @@ import {
   returnFor,
   runBarFor,
   runTitle,
+  sectionsMenu,
 } from "./run-bar.js";
 import { linkTo, REVIEW_LINK } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
@@ -266,13 +269,30 @@ describe("the breadcrumbs", () => {
   });
 
   it("are the era alone on its roll of honour", () => {
-    const crumbs = crumbsFor(era({ kind: "review" }), { year: YEAR, beat: { kind: "review" } });
-    expect(crumbs).toEqual([{ label: "Era" }]);
+    const run = era({ kind: "review" });
+    const crumbs = crumbsFor(run, { year: YEAR, beat: { kind: "review" } });
+    expect(crumbs).toEqual([{ label: "Era", menu: sectionsMenu(run, "overview") }]);
   });
 
   it("link the era's overview before anything has been crowned", () => {
-    const crumbs = crumbsFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "grid" } });
-    expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK });
+    const run = era({ kind: "grid" });
+    const crumbs = crumbsFor(run, { year: YEAR, beat: { kind: "grid" } });
+    expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK, menu: sectionsMenu(run, null) });
+  });
+
+  it("lead to a person's page from the root, through their list", () => {
+    const run = era({ kind: "race", round: 1 });
+    const driverId = world.field[0]?.driverId ?? "";
+    const crumbs = crumbsFor(run, { page: "driver", id: driverId });
+    expect(crumbs.map((crumb) => crumb.label)).toEqual(["Era", "Drivers", driverName(driverId)]);
+    expect(crumbs[0]?.link).toEqual(REVIEW_LINK);
+    expect(crumbs[1]?.link).toEqual(driversLink());
+    expect(crumbs[2]?.link).toBeUndefined();
+    // A list is the last crumb on its own page, and the root is the year in a
+    // one-year run.
+    const list = crumbsFor(season({ kind: "grid" }), { page: "teams" });
+    expect(list.map((crumb) => crumb.label)).toEqual([String(YEAR), "Teams"]);
+    expect(list[1]?.link).toBeUndefined();
   });
 });
 
@@ -310,7 +330,47 @@ describe("the breadcrumbs' menus", () => {
       year: YEAR + 2,
       beat: { kind: "race", round: 0 },
     });
-    expect(ahead.some((crumb) => crumb.menu !== undefined)).toBe(false);
+    // The root's sections are there whatever the page; no sibling menu is.
+    expect(
+      ahead.some((crumb) => crumb.menu !== undefined && crumb.menu.label !== "Run sections"),
+    ).toBe(false);
+  });
+
+  it("put the run's sections on the root, marking the one the page is in", () => {
+    const one = season({ kind: "race", round: 0 });
+    const many = secondYear({ kind: "race", round: 0 });
+    const sections = (crumbs: readonly Crumb[]) => menuOf(crumbs, "Run sections");
+    const current = (crumbs: readonly Crumb[]) =>
+      sections(crumbs)
+        ?.items.filter((item) => item.current)
+        .map((item) => item.label);
+
+    // An era's root is Era: the overview and the two lists.
+    const onYear = crumbsFor(many, { year: YEAR, beat: { kind: "grid" } });
+    expect(onYear[0]?.menu?.label).toBe("Run sections");
+    expect(sections(onYear)?.items.map((item) => item.label)).toEqual([
+      "Overview",
+      "Drivers",
+      "Teams",
+    ]);
+    expect(sections(onYear)?.items.map((item) => item.link)).toEqual([
+      REVIEW_LINK,
+      driversLink(),
+      teamsLink(),
+    ]);
+    expect(current(onYear)).toEqual([]);
+    expect(current(crumbsFor(many, { page: "driver", id: "x" }))).toEqual(["Drivers"]);
+    expect(current(crumbsFor(many, { page: "teams" }))).toEqual(["Teams"]);
+
+    // A one-year run's root is its year: the season and the two lists.
+    const oneYear = crumbsFor(one, { year: YEAR, beat: { kind: "race", round: 0 } });
+    expect(oneYear[0]?.menu?.label).toBe("Run sections");
+    expect(sections(oneYear)?.items.map((item) => item.label)).toEqual([
+      "Season",
+      "Drivers",
+      "Teams",
+    ]);
+    expect(current(oneYear)).toEqual(["Season"]);
   });
 
   it("list every round of the year, linking only the ones reached, where the round links go", () => {
@@ -376,5 +436,18 @@ describe("the way back to where the run is", () => {
     // An era's overview, opened from its first grid.
     const overview = returnFor(era({ kind: "grid" }), { year: YEAR, beat: { kind: "review" } });
     expect(overview?.link).toEqual(linkTo({ year: YEAR, beat: { kind: "grid" } }));
+  });
+
+  it("is always offered on a people page, which is never the cursor's", () => {
+    for (const beat of beatsOf(ROUNDS)) {
+      for (const run of [season(beat), era(beat)]) {
+        for (const page of ["drivers", "teams", "driver", "team"] as const) {
+          expect(
+            returnFor(run, { page, id: "x" })?.link,
+            `${page} ${JSON.stringify(beat)}`,
+          ).toEqual(linkTo({ year: YEAR, beat }));
+        }
+      }
+    }
   });
 });

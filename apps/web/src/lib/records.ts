@@ -19,8 +19,8 @@
 
 import type { ConstructorStanding, DriverStanding } from "@alt-hist/engine";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
-import type { World } from "../store/season.js";
 import { driverName, teamName } from "./names.js";
+import { isComplete, type TalliedYear } from "./reveal.js";
 
 /** The figures a career and each of its spells both accumulate. */
 interface RecordTotals {
@@ -207,19 +207,22 @@ function add(totals: MutableTotals, row: SeasonRow, champion: boolean): void {
  * started under its last name, and its years as one gapless span.
  */
 function tallyCareers(
-  seasons: readonly World[],
-  rowsOf: (world: World) => readonly SeasonRow[],
+  seasons: readonly TalliedYear[],
+  rowsOf: (world: TalliedYear) => readonly SeasonRow[],
   nameOf: (id: string, year: number) => string,
 ): readonly CareerRecord[] {
   const tallies = new Map<string, Tally>();
   for (const world of [...seasons].sort((a, b) => a.year - b.year)) {
+    // A year still being written has a leader, not a champion.
+    const complete = isComplete(world);
     rowsOf(world).forEach((row, index) => {
+      const champion = complete && index === 0;
       let tally = tallies.get(row.id);
       if (tally === undefined) {
         tally = { id: row.id, lastYear: world.year, spells: [], current: null, ...zeroed() };
         tallies.set(row.id, tally);
       }
-      add(tally, row, index === 0);
+      add(tally, row, champion);
       tally.lastYear = world.year;
 
       const name = nameOf(row.id, world.year);
@@ -245,8 +248,8 @@ function tallyCareers(
         stretch.to = world.year;
       }
       tally.current = name;
-      add(spell, row, index === 0);
-      markScored(spell.scored, row, index === 0, world.year);
+      add(spell, row, champion);
+      markScored(spell.scored, row, champion, world.year);
     });
   }
   return [...tallies.values()];
@@ -272,8 +275,12 @@ function teamRow(standing: ConstructorStanding): SeasonRow {
   };
 }
 
-/** Every career of a run, both lists, derived from the finished seasons. */
-export function careerRecords(seasons: readonly World[]): CareerRecords {
+/**
+ * Every career of a run, both lists, derived from its seasons — whole worlds,
+ * or years cut at the cursor, the last of which may still be in progress and
+ * then crowns nobody.
+ */
+export function careerRecords(seasons: readonly TalliedYear[]): CareerRecords {
   return {
     drivers: tallyCareers(
       seasons,

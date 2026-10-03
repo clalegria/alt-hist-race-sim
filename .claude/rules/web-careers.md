@@ -46,10 +46,14 @@ book lets them share a position.
 was *entered*, and a car that never made a round is not part of what the team did that
 year. It arrives in championship order for free, which is the order the line wants.
 
-**One walk of the run for the whole screen.** `SeasonHistoryProvider` sits around both
-halves of `EraChampions` and tallies once; a panel opened from a record card is opened
-from a tree that already drew forty rows, and tallying seventy-odd worlds per click
-would be forty tallies of the same results. The default is **no run in scope** — the
+**One walk of the run for every page.** `SeasonHistoryProvider` sits in `RunFrame`
+(`App.tsx`) over `revealed(run).years` and tallies once per change to the run; a panel
+opened from a record card is opened from a tree that already drew forty rows, and
+tallying seventy-odd worlds per click would be forty tallies of the same results. The
+cursor's own year is in it, cut at the cursor: **a year in progress crowns nobody**, and
+its line reads "3rd after round 5" (`placeLabel`, `isTitle`). The provider also carries
+`pageOf`, so **every panel ends on *Full page →*** to that driver's or team's page
+(`FullPageLink`; `.claude/rules/web-people-pages.md`). The default is **no run in scope** — the
 same empty default `EntryNames` and `Liveries` carry — and a name with nothing behind
 it renders as **plain text, not as a control that opens an empty panel**. That is what
 every component rendered on its own gets, which is what keeps the existing DOM-less

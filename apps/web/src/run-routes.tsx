@@ -20,7 +20,19 @@ import { useEffect, useRef, useState } from "react";
 import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
 import { NotReached } from "./components/NotReached.js";
+import { DriverPage, TeamPage } from "./components/PersonPages.js";
+import { RosterIndex } from "./components/RosterIndex.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
+import type { IndexSort } from "./lib/roster.js";
+import {
+  driversLink,
+  PAGE_OF,
+  type RosterLocation,
+  type RosterPage,
+  resolveRosterPage,
+  rosterPageOf,
+  teamsLink,
+} from "./lib/roster-places.js";
 import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import {
   isBackPastStart,
@@ -32,6 +44,7 @@ import {
 } from "./lib/run-places.js";
 import { type SeasonTab, seasonTabLinks } from "./lib/season-tabs.js";
 import { roundPages, sessionNav } from "./lib/session-nav.js";
+import type { Place } from "./lib/timeline.js";
 import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
 /**
@@ -136,6 +149,70 @@ export function RunPlacePage({
 }
 
 /**
+ * The `beforeLoad` of the people pages: home when there is no run, the index
+ * when the URL names someone the run has not had — a typo, or a driver only on
+ * a grid still ahead, whose page would give that grid away.
+ */
+export function guardRosterPage(page: RosterPage, id?: string): void {
+  const run = useSeasonStore.getState().run;
+  if (run === null) {
+    throw redirect({ to: "/", replace: true });
+  }
+  const resolved = resolveRosterPage(run, page, id);
+  if (resolved.kind === "redirect") {
+    throw redirect({ ...resolved.to, replace: true });
+  }
+}
+
+/**
+ * A people page: an index, or one driver or team across the run so far.
+ *
+ * Resolved on every render, like `RunPlacePage`, because the store can move
+ * under it — a restart can take a driver out of the run whose page is on
+ * screen — and then it goes to the index rather than drawing someone the run
+ * no longer has.
+ */
+export function RosterPlacePage({
+  page,
+  id,
+  sort = "titles",
+}: {
+  page: RosterPage;
+  id?: string;
+  sort?: IndexSort;
+}) {
+  const run = useSeasonStore((state) => state.run);
+  if (run === null) {
+    return null;
+  }
+  const resolved = resolveRosterPage(run, page, id);
+  if (resolved.kind === "redirect") {
+    return <Navigate {...resolved.to} replace />;
+  }
+  const { years, location } = resolved;
+  switch (location.page) {
+    case "drivers":
+      return (
+        <RosterIndex
+          kind="drivers"
+          years={years}
+          sort={sort}
+          linkFor={driversLink}
+          pageOf={PAGE_OF}
+        />
+      );
+    case "teams":
+      return (
+        <RosterIndex kind="teams" years={years} sort={sort} linkFor={teamsLink} pageOf={PAGE_OF} />
+      );
+    case "driver":
+      return <DriverPage years={years} driverId={location.id ?? ""} />;
+    case "team":
+      return <TeamPage years={years} teamId={location.id ?? ""} />;
+  }
+}
+
+/**
  * The layout around every page inside `/run`: the run bar and its actions,
  * the guard against Back past the run's first page, and an outlet for the page.
  *
@@ -184,12 +261,23 @@ export function RunLayout() {
     return null;
   }
 
-  // The trail is to the page on screen, which the router's deepest match names.
+  // The trail is to the page on screen, which the router's deepest match names:
+  // a beat's page, or a people page.
   const leaf = matches.at(-1);
   const page = leaf === undefined ? null : runPageOf(leaf.routeId);
+  const rosterPage = leaf === undefined ? null : rosterPageOf(leaf.routeId);
   const resolved = page === null ? null : resolveRunPage(run, page, leaf?.params as RunParams);
-  const place =
-    resolved === null || resolved.kind === "redirect" ? cursorPlace(run) : resolved.place;
+  const params = (leaf?.params ?? {}) as { driverId?: string; teamId?: string };
+  const person =
+    rosterPage === null
+      ? null
+      : resolveRosterPage(run, rosterPage, params.driverId ?? params.teamId);
+  const place: Place | RosterLocation =
+    person?.kind === "roster"
+      ? person.location
+      : resolved === null || resolved.kind === "redirect"
+        ? cursorPlace(run)
+        : resolved.place;
 
   /** Moves the URL to wherever the cursor is now. */
   const toCursor = (replace: boolean) => {

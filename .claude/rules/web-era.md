@@ -127,7 +127,7 @@ the row needs the results, the scale and the grid, not just two names.
 **Both champions of a row open their own career**, via `DriverHistory` / `TeamHistory`
 — the year's chevron beside them still opens the season. Two controls next to each
 other answering the two questions a champion's row raises;
-`.claude/rules/web-careers.md` owns that panel and the provider above the screen that
+`.claude/rules/web-careers.md` owns that panel and the provider in the run's frame that
 feeds it.
 
 `EraPicker` is `SeasonPicker` with different copy, not a second component — the same

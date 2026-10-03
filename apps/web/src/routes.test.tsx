@@ -31,7 +31,11 @@ import { Route as GridRoute } from "./routes/run/$year/grid.js";
 import { Route as SeasonRoute } from "./routes/run/$year/index.js";
 import { Route as QualifyingRoute } from "./routes/run/$year/round/$round/qualifying.js";
 import { Route as RaceRoute } from "./routes/run/$year/round/$round/race.js";
+import { Route as DriverRoute } from "./routes/run/driver/$driverId.js";
+import { Route as DriversRoute } from "./routes/run/drivers.js";
 import { Route as ReviewRoute } from "./routes/run/index.js";
+import { Route as TeamRoute } from "./routes/run/team/$teamId.js";
+import { Route as TeamsRoute } from "./routes/run/teams.js";
 import { Route as RunRoute } from "./routes/run.js";
 import { cursorPlace, type Run, useSeasonStore } from "./store/season.js";
 import { inRouter, renderRoute } from "./test-router.js";
@@ -211,6 +215,43 @@ describe("the guards on the pages inside /run", () => {
     for (const page of pages.filter((each) => each.name !== "review")) {
       expect(guardOf(page.route, page.params), page.name).toBeUndefined();
     }
+  });
+});
+
+describe("the guards on the people pages", () => {
+  const pages = [
+    { name: "drivers", route: DriversRoute, params: {} },
+    { name: "teams", route: TeamsRoute, params: {} },
+    { name: "driver", route: DriverRoute, params: { driverId: "x" } },
+    { name: "team", route: TeamRoute, params: { teamId: "x" } },
+  ];
+
+  afterEach(() => {
+    useSeasonStore.getState().exitRun();
+  });
+
+  it("send the reader home from every one when there is no run", () => {
+    for (const page of pages) {
+      const thrown = guardOf(page.route, page.params);
+      expect(isRedirect(thrown) && thrown.options.to, page.name).toBe("/");
+    }
+  });
+
+  it("let the reader through to the lists, and to anyone on the grid", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    const entrant = useSeasonStore.getState().run?.world.field[0];
+    expect(guardOf(DriversRoute, {})).toBeUndefined();
+    expect(guardOf(TeamsRoute, {})).toBeUndefined();
+    expect(guardOf(DriverRoute, { driverId: entrant?.driverId ?? "" })).toBeUndefined();
+    expect(guardOf(TeamRoute, { teamId: entrant?.teamId ?? "" })).toBeUndefined();
+  });
+
+  it("send someone the run has not had to their list", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    const driver = guardOf(DriverRoute, { driverId: "nobody_at_all" });
+    expect(isRedirect(driver) && driver.options.to).toBe("/run/drivers");
+    const team = guardOf(TeamRoute, { teamId: "Not An Id" });
+    expect(isRedirect(team) && team.options.to).toBe("/run/teams");
   });
 });
 

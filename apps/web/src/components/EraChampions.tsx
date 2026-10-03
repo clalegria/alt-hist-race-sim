@@ -12,7 +12,7 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
-import { DriverHistory, SeasonHistoryProvider, TeamHistory } from "./SeasonHistory.js";
+import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
@@ -360,16 +360,12 @@ export function EraChampions({
       </header>
 
       {/*
-        One walk of the run for every panel on the screen. It sits around both
-        halves rather than inside either, because the same driver is named on
-        the roll of honour and on four record cards under it, and a panel
-        opened from any of them is the same career.
+        The panels behind the names come from the run's frame, which walks the
+        run once for every page (`SeasonHistoryProvider` in `RunFrame`).
       */}
-      <SeasonHistoryProvider seasons={run.seasons}>
-        <RollOfHonour seasons={seasons} inProgress={inProgress} seasonLink={seasonLink} />
+      <RollOfHonour seasons={seasons} inProgress={inProgress} seasonLink={seasonLink} />
 
-        {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
-      </SeasonHistoryProvider>
+      {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
     </div>
   );
 }

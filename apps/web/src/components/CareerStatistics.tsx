@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import { isSharedTeamName, teamName } from "../lib/names.js";
 import {
@@ -11,11 +12,12 @@ import {
   spellSpan,
   spellsBy,
 } from "../lib/records.js";
+import { driversLink, teamsLink } from "../lib/roster-places.js";
 import type { World } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Liveries } from "./Liveries.js";
-import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
+import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
@@ -311,10 +313,22 @@ function RecordSection({
   records: readonly CareerRecord[];
   kind: RecordKind;
 }) {
+  // Inside a run, the cards are the top ten and the list behind them is everyone.
+  const inRun = usePageOf() !== null;
   return (
     <section className="flex flex-col gap-3">
       <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">{heading}</h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">{heading}</h2>
+          {inRun ? (
+            <Link
+              {...(kind === "driver" ? driversLink() : teamsLink())}
+              className="text-primary shrink-0 text-xs font-medium hover:underline"
+            >
+              {kind === "driver" ? "All drivers →" : "All teams →"}
+            </Link>
+          ) : null}
+        </div>
         <p className="text-muted-foreground max-w-prose text-sm">{description}</p>
       </header>
       {/* Two by two on anything above a phone, which is the pairing asked for:
