@@ -1,12 +1,15 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, SeasonResult } from "@alt-hist/engine";
 import { Fragment, useState } from "react";
+import { driverName } from "../lib/names.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
+import { useEntryName } from "./EntryNames.js";
 import { RaceByRace } from "./RaceByRace.js";
+import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -83,6 +86,7 @@ export function StandingsTable({
   // the two tables on the summary open independently. Purely view state: it
   // says nothing about the simulation, so it stays here rather than the store.
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const nameOf = useEntryName();
   const columnCount = COLUMNS.length + (car ? 3 : 2);
 
   return (
@@ -90,7 +94,8 @@ export function StandingsTable({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>
-          {description} Select a {nameColumn.toLowerCase()} for their season race by race.
+          {description} The arrow opens a {nameColumn.toLowerCase()}’s season race by race, the name
+          their career.
         </CardDescription>
       </CardHeader>
       <Table>
@@ -123,23 +128,37 @@ export function StandingsTable({
                     {index + 1}
                   </TableCell>
                   <TableCell>
-                    <DisclosureButton
-                      open={isOpen}
-                      onToggle={() => {
-                        setOpenKey(isOpen ? null : key);
-                      }}
-                    >
+                    {/*
+                      Two controls, as on a record card's lineage row: the
+                      chevron opens the season race by race, the name opens the
+                      career panel every name in a run opens. A name cannot be
+                      both a button and the trigger of another one.
+                    */}
+                    <span className="flex items-center gap-1">
+                      <DisclosureButton
+                        open={isOpen}
+                        onToggle={() => {
+                          setOpenKey(isOpen ? null : key);
+                        }}
+                        label={`${
+                          isDriver ? driverName(standing.driverId) : nameOf(standing.teamId)
+                        } race by race`}
+                      />
                       {isDriver ? (
-                        <DriverName
-                          driverId={standing.driverId}
-                          teamId={standing.teamId}
-                          emphasis={index === 0}
-                          badge={badge}
-                        />
+                        <DriverHistory driverId={standing.driverId}>
+                          <DriverName
+                            driverId={standing.driverId}
+                            teamId={standing.teamId}
+                            emphasis={index === 0}
+                            badge={badge}
+                          />
+                        </DriverHistory>
                       ) : (
-                        <TeamName teamId={standing.teamId} emphasis={index === 0} badge={badge} />
+                        <TeamHistory teamId={standing.teamId}>
+                          <TeamName teamId={standing.teamId} emphasis={index === 0} badge={badge} />
+                        </TeamHistory>
                       )}
-                    </DisclosureButton>
+                    </span>
                   </TableCell>
                   {car ? (
                     <TableCell className={CAR_COLUMN}>

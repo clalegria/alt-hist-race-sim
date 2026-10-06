@@ -7,11 +7,13 @@ paths:
 
 # Web app — the career panel
 
-The third reading of an era's finished worlds, and the one that hangs off a *name*.
-The roll of honour says who won each year (`.claude/rules/web-era.md`); the career
-statistics say who won the era (`.claude/rules/web-records.md`); this says what **one**
-name did in **every** year of it. Select a driver or a team anywhere on the champions
-screen and a panel opens listing their seasons:
+The reading of a run that hangs off a *name*. The roll of honour says who won each year
+(`.claude/rules/web-era.md`); the career statistics say who won the era
+(`.claude/rules/web-records.md`); this says what **one** name did in **every** year of
+it. Select a driver or a team anywhere in a run — the champions screen, the standings
+and the sidebar, the classification, the calendar's poles and winners, the qualifying
+grid, a team's race by race, the people pages — and a panel opens listing their
+seasons:
 
 ```
 1986   Williams                    4th
@@ -60,6 +62,19 @@ it renders as **plain text, not as a control that opens an empty panel**. That i
 every component rendered on its own gets, which is what keeps the existing DOM-less
 tests seeing the markup they were written against.
 
+## Wiring a name
+
+Wrap the name's markup in `DriverHistory` / `TeamHistory`. **A driver's block is one
+trigger, its team line included**: it opens the driver, and a team's panel is reached
+from the constructors' table — two triggers per row would double the tab stops on a
+thirty-car sheet.
+
+Outside a run the wrapper renders its children and **drops its `className`**, so a call
+site keeps its own layout box and puts the trigger inside it. Where the name is fitted
+to its room (`FittedName`, `tight`), the trigger takes `HISTORY_FILL`: a button is sized
+to its content, and a fitted name inside one would measure the short form and stay on
+it.
+
 ## Two things the panel must not do
 
 **It must not grow with the career.** An era runs 1950–2026 and a forty-season career
@@ -87,9 +102,10 @@ the middle of a sentence the component was handed pre-joined.
 
 ## The two-control row
 
-A record card's team row already opened into its **spells**, with the name itself as
-the disclosure button. A name cannot be both a button and the trigger of another one,
-so that row now carries **two controls**: the chevron keeps the breakdown by name, the
+A row that opens in place — a record card's lineage row into its **spells**, a
+championship table's row into its race by race — had the name itself as the disclosure
+button. A name cannot be both a button and the trigger of another one, so those rows
+carry **two controls**: the chevron keeps the breakdown by name, the
 name opens the career. The file-tree split, and the only arrangement that leaves both
 reachable.
 

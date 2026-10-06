@@ -3,6 +3,7 @@ import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
+import { DriverHistory, HISTORY_FILL, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
@@ -113,14 +114,18 @@ export function CompactStandings({
                  */}
                 <TableCell className="w-full max-w-0 py-1.5">
                   {isDriverStanding(standing) ? (
-                    <DriverName
-                      driverId={standing.driverId}
-                      teamId={standing.teamId}
-                      emphasis={index === 0}
-                      tight
-                    />
+                    <DriverHistory driverId={standing.driverId} className={HISTORY_FILL}>
+                      <DriverName
+                        driverId={standing.driverId}
+                        teamId={standing.teamId}
+                        emphasis={index === 0}
+                        tight
+                      />
+                    </DriverHistory>
                   ) : (
-                    <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
+                    <TeamHistory teamId={standing.teamId} className={HISTORY_FILL}>
+                      <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
+                    </TeamHistory>
                   )}
                 </TableCell>
                 <TableCell

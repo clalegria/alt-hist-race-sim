@@ -108,6 +108,18 @@ export const HISTORY_TARGET =
   "hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent -mx-1 min-w-0 cursor-pointer rounded px-1 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none";
 
 /**
+ * A trigger that takes the whole width of the box it is in, for a name that is
+ * fitted to its room (`FittedName`): a button is sized to its content, and a
+ * fitted name inside one would measure the short form and never widen back.
+ * The width is the box's plus the two margins `HISTORY_TARGET` hangs the
+ * trigger out by, so the name inside gets exactly the room it had before.
+ *
+ * Pass it to the trigger *inside* the call site's own layout box, never in
+ * place of it: outside a run the trigger is not drawn, and its class with it.
+ */
+export const HISTORY_FILL = "flex w-[calc(100%_+_0.5rem)] min-w-0";
+
+/**
  * One year of a career: the year, what it was spent doing, and where it ended.
  *
  * The championship place is the right-hand column of both panels because it is

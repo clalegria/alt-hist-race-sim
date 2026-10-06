@@ -105,12 +105,8 @@ through a door that cuts the run at the cursor, and passes props to a component.
 
 - **DECIDED** — One affordance everywhere: a driver or team name opens its career
   panel, and the panel ends on *Full page →*. A name never navigates directly — except
-  on the two index lists, which are directories. Built: the panel on every run page, its
-  link, and the same link on the grid's popovers (`.claude/rules/web-careers.md`).
-- Still to do: the names in the standings, the classification, the calendar, qualifying
-  and the race-by-race panels do not open a panel yet. Where a name is already a row's
-  expand button, it becomes the two-control row the record cards use (chevron expands,
-  name opens the panel).
+  on the two index lists, which are directories. A driver's team line belongs to the
+  driver's name. Built, every table of a run included (`.claude/rules/web-careers.md`).
 
 ## 8. Sharing and saving
 
@@ -152,11 +148,9 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Names open their panel everywhere** (§7): the standings, classification,
-   calendar, qualifying and race-by-race names.
-2. **Share.** The link and the `/share` entry route. The reload recipe is its
+1. **Share.** The link and the `/share` entry route. The reload recipe is its
    starting point.
-3. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
+2. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
    check in CI.
 
 Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.

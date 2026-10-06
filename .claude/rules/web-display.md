@@ -75,9 +75,9 @@ them.
 constructors' tables get the expansion from one place — the same reason they share the
 table itself. The **pair** of them is `SeasonStandings`, which the era's roll of honour
 opens a year into as well: one answer to "the championship, as this app draws it", rather
-than a copy per screen. The control is the **name**, via the shared `DisclosureButton` —
-`▶` chevron, `aria-expanded`, the name itself as the button — rather than a separate
-control: one action does not deserve two tab stops. One component for it, because the
+than a copy per screen. The control is the **chevron**, the shared `DisclosureButton`
+drawn alone with a `label`, because the name beside it opens the career panel — the
+two-control row in `.claude/rules/web-careers.md`. One component for it, because the
 calendar and the roll of honour open the same way and three copies of the markup drifted.
 The chevron is a text glyph, not an SVG, because a test counts one flag per row by
 counting `<svg>`.

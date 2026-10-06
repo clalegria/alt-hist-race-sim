@@ -99,7 +99,7 @@ championship's leader as far as the cursor has got, or "on the grid". Muted, nev
 opened, never accented — it is a season still being written. It is there whenever the
 cursor is not on a review, so `/run` is a page from the era's first grid on; with
 nothing crowned it is the only row, and the career statistics (crowned years only) are
-left out.
+left out. Its leaders' names open their careers, as every name does.
 
 **Each row publishes its own season's engine supply**, wrapping its `<tr>` in
 `EntryNames` (a provider renders no DOM, so it nests inside `<tbody>` fine). This is the

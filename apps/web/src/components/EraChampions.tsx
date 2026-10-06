@@ -253,12 +253,19 @@ export function InProgressRow({ world }: { world: RevealedWorld }) {
             </TableCell>
           ) : (
             <>
+              {/* The row never opens; the leaders' names open their careers. */}
               <TableCell>
-                <DriverName
-                  driverId={leaders.driver?.driverId ?? null}
-                  teamId={leaders.driver?.teamId}
-                  badge
-                />
+                {leaders.driver === null ? (
+                  <DriverName driverId={null} />
+                ) : (
+                  <DriverHistory driverId={leaders.driver.driverId}>
+                    <DriverName
+                      driverId={leaders.driver.driverId}
+                      teamId={leaders.driver.teamId}
+                      badge
+                    />
+                  </DriverHistory>
+                )}
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {leaders.driver?.points ?? "—"}
@@ -270,7 +277,9 @@ export function InProgressRow({ world }: { world: RevealedWorld }) {
                 {leaders.team === null ? (
                   <span className="text-muted-foreground">—</span>
                 ) : (
-                  <TeamName teamId={leaders.team.teamId} badge />
+                  <TeamHistory teamId={leaders.team.teamId}>
+                    <TeamName teamId={leaders.team.teamId} badge />
+                  </TeamHistory>
                 )}
               </TableCell>
               <TableCell className="text-right tabular-nums">

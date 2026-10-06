@@ -5,6 +5,7 @@ import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { HomeStar } from "./HomeAdvantage.js";
+import { DriverHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
@@ -128,12 +129,14 @@ export function RaceClassification({
                   rather than as a note on the entry.
                 */}
                 <span className="flex items-end gap-1.5">
-                  <DriverName
-                    driverId={entry.driverId}
-                    teamId={entry.teamId}
-                    emphasis={won}
-                    badge={badge}
-                  />
+                  <DriverHistory driverId={entry.driverId}>
+                    <DriverName
+                      driverId={entry.driverId}
+                      teamId={entry.teamId}
+                      emphasis={won}
+                      badge={badge}
+                    />
+                  </DriverHistory>
                   <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
                 </span>
               </TableCell>

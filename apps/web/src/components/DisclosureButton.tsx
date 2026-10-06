@@ -15,13 +15,15 @@
  * `aria-expanded` is the whole of the accessibility contract here, and it is
  * also what the DOM-less tests read a row's state back out of.
  *
- * **The chevron can stand alone**, and on exactly one table it has to: a record
- * card's team name now opens its own panel, and a name cannot be both a button
- * and the trigger of another one. There the chevron keeps the expansion and the
- * name keeps the panel, which is the file-tree split and the only arrangement
- * that leaves both reachable. It costs the tab stop the note above is about, so
- * it is opted into per call site with `label` — the accessible name the row's
- * text was providing until it stopped being inside the button.
+ * **The chevron can stand alone**, and wherever the row's text is a driver's or
+ * a team's name it has to: a name opens its career panel, and a name cannot be
+ * both a button and the trigger of another one. The championship tables and a
+ * record card's lineage row are those rows. There the chevron keeps the
+ * expansion and the name keeps the panel, which is the file-tree split and the
+ * only arrangement that leaves both reachable. It costs the tab stop the note
+ * above is about, so it is opted into per call site with `label` — the
+ * accessible name the row's text was providing until it stopped being inside
+ * the button.
  */
 
 import { cn } from "../lib/utils.js";

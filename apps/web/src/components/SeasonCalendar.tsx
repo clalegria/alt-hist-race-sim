@@ -8,6 +8,7 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
 import { RaceClassification } from "./RaceClassification.js";
+import { DriverHistory } from "./SeasonHistory.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 import { WeatherBadge } from "./WeatherBadge.js";
@@ -57,6 +58,24 @@ function RoundName({
   );
 }
 
+/** A round's pole-sitter or winner, opening their career panel; a dash for nobody. */
+function RoundDriver({
+  driverId,
+  teamFor,
+}: {
+  driverId: string | null;
+  teamFor: ReadonlyMap<string, string>;
+}) {
+  if (driverId === null) {
+    return <DriverName driverId={null} />;
+  }
+  return (
+    <DriverHistory driverId={driverId}>
+      <DriverName driverId={driverId} teamId={teamFor.get(driverId)} badge />
+    </DriverHistory>
+  );
+}
+
 const PAGE_LINK = "text-primary font-medium whitespace-nowrap underline-offset-4 hover:underline";
 
 /**
@@ -97,14 +116,10 @@ export function CalendarRow({
           </DisclosureButton>
         </TableCell>
         <TableCell>
-          <DriverName driverId={race.poleDriverId} teamId={teamFor.get(race.poleDriverId)} badge />
+          <RoundDriver driverId={race.poleDriverId} teamFor={teamFor} />
         </TableCell>
         <TableCell>
-          <DriverName
-            driverId={race.winnerDriverId}
-            teamId={race.winnerDriverId === null ? undefined : teamFor.get(race.winnerDriverId)}
-            badge
-          />
+          <RoundDriver driverId={race.winnerDriverId} teamFor={teamFor} />
         </TableCell>
         {pages === undefined ? null : (
           <TableCell className="text-right">
@@ -211,11 +226,7 @@ export function SeasonCalendar({
                     <RoundName {...(round === undefined ? {} : { round })} index={index} />
                   </TableCell>
                   <TableCell>
-                    {pole === null ? (
-                      <NotYet />
-                    ) : (
-                      <DriverName driverId={pole} teamId={teamFor.get(pole)} badge />
-                    )}
+                    {pole === null ? <NotYet /> : <RoundDriver driverId={pole} teamFor={teamFor} />}
                   </TableCell>
                   <TableCell>
                     <NotYet />

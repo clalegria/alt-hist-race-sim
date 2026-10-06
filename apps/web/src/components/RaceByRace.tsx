@@ -4,6 +4,7 @@ import { statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
+import { DriverHistory } from "./SeasonHistory.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -76,7 +77,9 @@ export function RaceByRace({
               </TableCell>
               {showDriver ? (
                 <TableCell className={cn(finished || "text-muted-foreground")}>
-                  <DriverName driverId={entry.driverId} emphasis={won} />
+                  <DriverHistory driverId={entry.driverId}>
+                    <DriverName driverId={entry.driverId} emphasis={won} />
+                  </DriverHistory>
                 </TableCell>
               ) : null}
               <TableCell className="text-muted-foreground text-right tabular-nums">

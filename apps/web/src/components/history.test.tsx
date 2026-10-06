@@ -1,5 +1,6 @@
 /**
- * The career panel behind a name on the champions screen.
+ * The career panel behind a name, on the champions screen and every table of a
+ * season.
  *
  * Two levels, because the panel itself is a Radix popover and Radix does not
  * render one while it is shut — the same limit `web-app.md` records. So what a
@@ -26,12 +27,20 @@ import {
 } from "../lib/history.js";
 import type { CareerSpell, RankedRecord } from "../lib/records.js";
 import { careerRecords, rankBy } from "../lib/records.js";
+import { teamRounds } from "../lib/results.js";
 import { revealYear } from "../lib/reveal.js";
+import { seasonSeed } from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
 import { CareerStatistics, RecordRow } from "./CareerStatistics.js";
-import { EraChampions, RollOfHonour } from "./EraChampions.js";
+import { CompactStandings } from "./CompactStandings.js";
+import { EraChampions, InProgressRow, RollOfHonour } from "./EraChampions.js";
+import { QualifyingResults } from "./QualifyingResults.js";
+import { RaceByRace } from "./RaceByRace.js";
+import { RaceClassification } from "./RaceClassification.js";
+import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonHistoryProvider } from "./SeasonHistory.js";
+import { StandingsTable } from "./StandingsTable.js";
 
 /** A run of consecutive seasons, the same fixture shape the era tests use. */
 function runTo(last: number, length: number): EraRun {
@@ -409,5 +418,113 @@ describe("a record row that both expands and opens a panel", () => {
     expect(expander).toHaveLength(1);
     // Its text went with the name, so it has to say what it is out loud.
     expect(expander[0]).toContain("aria-label=");
+  });
+});
+
+/**
+ * The season's own tables, each inside the provider the run's frame supplies.
+ *
+ * One world, finished, so every name on every table has a career behind it.
+ * Each count is taken off the results the table draws — rows, entries, poles
+ * and winners — never written down.
+ */
+describe("names open their panel everywhere", () => {
+  const world = run.seasons.at(-1);
+  if (world === undefined) {
+    throw new Error("the fixture run has no seasons");
+  }
+  const race = world.season.races[0];
+  if (race === undefined) {
+    throw new Error("the fixture season has no races");
+  }
+  const calendar = seasonSeed(world.year).calendar;
+  const drivers = championshipStandings(world.season, world.points);
+  const teams = constructorStandings(world.season, world.points);
+  const inRun = (node: React.ReactNode) =>
+    renderToStaticMarkup(<SeasonHistoryProvider seasons={[world]}>{node}</SeasonHistoryProvider>);
+
+  /** The buttons that open something in place rather than a panel. */
+  const expanders = (markup: string) =>
+    buttons(markup).filter((button) => !button.includes('aria-haspopup="dialog"'));
+
+  it("gives every row of a championship table a name and a chevron", () => {
+    for (const [standings, nameColumn] of [
+      [drivers, "Driver"],
+      [teams, "Team"],
+    ] as const) {
+      const markup = inRun(
+        <StandingsTable
+          title="Championship"
+          description=""
+          nameColumn={nameColumn}
+          standings={standings}
+          season={world.season}
+          points={world.points}
+          calendar={calendar}
+        />,
+      );
+      expect(panelTriggers(markup), nameColumn).toHaveLength(standings.length);
+      // The race-by-race survived the name becoming a panel, and says what it is.
+      expect(expanders(markup), nameColumn).toHaveLength(standings.length);
+      for (const expander of expanders(markup)) {
+        expect(expander).toContain("aria-label=");
+      }
+    }
+  });
+
+  it("opens one from every name in the sidebar", () => {
+    for (const standings of [drivers, teams]) {
+      const markup = inRun(<CompactStandings title="Championship" standings={standings} />);
+      const rows = markup.split("<tr").length - 1;
+      expect(panelTriggers(markup)).toHaveLength(rows);
+    }
+  });
+
+  it("opens one from every car on the classification and the grid", () => {
+    expect(
+      panelTriggers(inRun(<RaceClassification race={race} points={world.points} />)),
+    ).toHaveLength(race.entries.length);
+    expect(panelTriggers(inRun(<QualifyingResults race={race} />))).toHaveLength(
+      race.entries.length,
+    );
+  });
+
+  it("opens one from every pole-sitter and winner on the calendar", () => {
+    const teamFor = new Map(world.field.map((entrant) => [entrant.driverId, entrant.teamId]));
+    const named = world.season.races.reduce(
+      (sum, each) => sum + 1 + (each.winnerDriverId === null ? 0 : 1),
+      0,
+    );
+    const markup = inRun(
+      <SeasonCalendar
+        season={world.season}
+        calendar={calendar}
+        points={world.points}
+        teamFor={teamFor}
+      />,
+    );
+    expect(panelTriggers(markup)).toHaveLength(named);
+  });
+
+  it("opens one from every driver of a team's race by race", () => {
+    const teamId = teams[0]?.teamId ?? "";
+    const rounds = teamRounds(world.season, world.points, teamId);
+    const markup = inRun(<RaceByRace rounds={rounds} calendar={calendar} showDriver />);
+    expect(panelTriggers(markup)).toHaveLength(rounds.length);
+  });
+
+  it("opens one from both leaders of the year in progress", () => {
+    // After the first race: leaders, but nobody crowned.
+    const live = revealYear(world, { kind: "race", round: 0 });
+    const markup = renderToStaticMarkup(
+      <SeasonHistoryProvider seasons={[live]}>
+        <table>
+          <tbody>
+            <InProgressRow world={live} />
+          </tbody>
+        </table>
+      </SeasonHistoryProvider>,
+    );
+    expect(panelTriggers(markup)).toHaveLength(2);
   });
 });

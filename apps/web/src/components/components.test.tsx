@@ -541,7 +541,7 @@ describe("expanding a row of the championship", () => {
   });
 
   it("says what a row does", () => {
-    expect(closed).toContain("Select a driver");
+    expect(closed).toContain("opens a driver");
   });
 
   it("gives a driver one row per round, naming each one", () => {
