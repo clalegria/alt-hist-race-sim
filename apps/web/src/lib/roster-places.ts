@@ -8,12 +8,16 @@
  * untrusted input, and a page is handed the run only as `revealed()` cuts it —
  * so a driver page cannot show a result past the cursor, and a driver who is
  * only on a grid still ahead has no page at all (`lib/roster.ts`).
+ *
+ * **They are an era's.** A record across the run means something only over
+ * several seasons, so in a one-year run every people URL goes to its season.
  */
 
 import { linkOptions } from "@tanstack/react-router";
 import { cursorPlace, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
 import { type IndexSort, type Roster, rosterOf } from "./roster.js";
+import { linkTo, type RunLink } from "./run-places.js";
 import type { Place } from "./timeline.js";
 
 export type RosterPage = "drivers" | "teams" | "driver" | "team";
@@ -79,14 +83,18 @@ export type RosterResolution =
       readonly roster: Roster;
       readonly cursor: Place;
     }
-  | { readonly kind: "redirect"; readonly to: RosterLink };
+  | { readonly kind: "redirect"; readonly to: RosterLink | RunLink };
 
 /**
- * What `page` with `id` may show of `run`. An index always shows. A person's
+ * What `page` with `id` may show of `run`. In a one-year run, nothing: every
+ * page goes to the season's. In an era an index always shows, and a person's
  * page shows only someone on the roster; a malformed id, an unknown one, or
  * one who is only on a grid still ahead goes to that list's index.
  */
 export function resolveRosterPage(run: Run, page: RosterPage, id?: string): RosterResolution {
+  if (run.kind !== "era") {
+    return { kind: "redirect", to: linkTo({ year: run.world.year, beat: { kind: "summary" } }) };
+  }
   const shown = revealed(run);
   const roster = rosterOf(shown.years);
   const found: RosterResolution = {

@@ -22,6 +22,7 @@ import {
   rosterPageOf,
   teamsLink,
 } from "./roster-places.js";
+import { linkTo } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
 import type { Beat } from "./timeline.js";
 
@@ -126,6 +127,22 @@ describe("a people page's URL", () => {
     for (const id of [laterDriver(), "nobody_at_all", "Piquet", "../x", "", undefined]) {
       expect(resolveRosterPage(run, "driver", id)).toEqual({ kind: "redirect", to: driversLink() });
       expect(resolveRosterPage(run, "team", id)).toEqual({ kind: "redirect", to: teamsLink() });
+    }
+  });
+
+  it("sends every one to the season page in a one-year run, at every beat", () => {
+    const summary = linkTo({ year: first.year, beat: { kind: "summary" } });
+    const entrant = first.field[0];
+    for (const cursor of beatsOf(first.season.races.length)) {
+      const run: Run = { kind: "season", world: first, cursor };
+      for (const [page, id] of [
+        ["drivers", undefined],
+        ["teams", undefined],
+        ["driver", entrant?.driverId],
+        ["team", entrant?.teamId],
+      ] as const) {
+        expect(resolveRosterPage(run, page, id), page).toEqual({ kind: "redirect", to: summary });
+      }
     }
   });
 

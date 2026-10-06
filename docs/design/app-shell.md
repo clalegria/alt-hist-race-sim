@@ -66,9 +66,9 @@ breaks every shared link. Built so far: everything below but `/about`, `/report`
 /run/1984/grid                 pre-season grid
 /run/1984/round/3/qualifying   a session
 /run/1984/round/3/race
-/run/drivers   /run/teams      everyone who has appeared in the run
-/run/driver/piquet             a driver, across the whole run
-/run/team/williams             a team, across the whole run
+/run/drivers   /run/teams      everyone who has appeared in the era (an era's only)
+/run/driver/piquet             a driver, across the whole era
+/run/team/williams             a team, across the whole era
 /share?…                       entry only: rebuild the run from the recipe, then redirect
 ```
 
@@ -76,7 +76,8 @@ breaks every shared link. Built so far: everything below but `/about`, `/report`
   Both come from the reader and are validated like any untrusted input.
 - `/run` is singular, no run id: phase 1 has one run at a time. Saved runs (§8) add
   `/run/:id/…` if they ever need more than one open.
-- **A standalone season is a one-year run** — same routes, no overview.
+- **A standalone season is a one-year run** — same routes, no overview and no people
+  pages.
 - **DECIDED** — Team URLs use the lineage id, so today's Mercedes is
   `/run/team/tyrrell`. A name slug that redirects to the id can be added later without
   breaking a link.

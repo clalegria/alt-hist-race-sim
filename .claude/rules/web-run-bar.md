@@ -25,10 +25,11 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   only to a page reached — *Era* to the era's overview, the year to its season page,
   both reached from the year's grid on; the last is the page itself,
   `aria-current="page"`.
-- **The root crumb carries the run's sections** (`sectionsMenu`), the way to the lists
-  of everyone in the run: *Overview · Drivers · Teams* under *Era*, *Season · Drivers ·
-  Teams* under a one-year run's year, the page's own section marked. There are no run
-  tabs; this menu is where they would have been (`.claude/rules/web-people-pages.md`).
+- **An era's root crumb carries its sections** (`sectionsMenu`), the way to the lists
+  of everyone in the run: *Overview · Drivers · Teams* under *Era*, the page's own
+  section marked. There are no run tabs; this menu is where they would have been
+  (`.claude/rules/web-people-pages.md`). A one-year run has no people pages, so its
+  root, the year, has no menu: it is a plain link to the season page.
 - **An era's year and the round are also switchers**: a `▾` beside each (`CrumbMenu`, from
   `crumbsFor`) opens a Radix `DropdownMenu` of its siblings, so the trail moves across
   as well as up. Years: every year reached, each to its season page, once there are two.

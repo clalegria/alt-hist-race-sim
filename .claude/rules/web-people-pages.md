@@ -14,7 +14,10 @@ paths:
 
 # Web app — the people pages
 
-A page per driver and per team, and the two lists of everyone in the run. The router
+A page per driver and per team, and the two lists of everyone in the run. **They are an
+era's**: a record across a run means something only over several seasons, so in a
+one-year run `resolveRosterPage` sends every people URL to the season page, and
+`RunFrame` passes no `pageOf`, so nothing links to one. The router
 and the gate are `.claude/rules/web-routing.md`; the career panel that leads here is
 `.claude/rules/web-careers.md`.
 
@@ -78,7 +81,7 @@ router sees none.
 ## Testing
 
 `lib/roster.test.ts`: the roster against the fields at every beat of an era; the door
-for every roster id, and for a stranger, a typo and a driver searched for on a later
-grid; the sort against synthetic rows. `people-pages.test.tsx`: one season row per year
+for every roster id, for a stranger, a typo and a driver searched for on a later
+grid, and for every page of a one-year run; the sort against synthetic rows. `people-pages.test.tsx`: one season row per year
 on the roster with one open, "after round N" mid-season, every index name a link.
 `routes.test.tsx` runs the four guards.

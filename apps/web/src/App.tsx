@@ -167,7 +167,8 @@ export function RunFrame({
   return (
     <GridEditingContext.Provider value={setEditingGrid}>
       <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
-        <SeasonHistoryProvider seasons={years} pageOf={PAGE_OF}>
+        {/* People pages are an era's, so a one-year run's panels lead to none. */}
+        <SeasonHistoryProvider seasons={years} pageOf={run.kind === "era" ? PAGE_OF : null}>
           <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
         </SeasonHistoryProvider>
         <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">

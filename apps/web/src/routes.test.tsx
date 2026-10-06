@@ -238,7 +238,7 @@ describe("the guards on the people pages", () => {
   });
 
   it("let the reader through to the lists, and to anyone on the grid", () => {
-    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore.getState().startEra(YEAR);
     const entrant = useSeasonStore.getState().run?.world.field[0];
     expect(guardOf(DriversRoute, {})).toBeUndefined();
     expect(guardOf(TeamsRoute, {})).toBeUndefined();
@@ -247,11 +247,26 @@ describe("the guards on the people pages", () => {
   });
 
   it("send someone the run has not had to their list", () => {
-    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore.getState().startEra(YEAR);
     const driver = guardOf(DriverRoute, { driverId: "nobody_at_all" });
     expect(isRedirect(driver) && driver.options.to).toBe("/run/drivers");
     const team = guardOf(TeamRoute, { teamId: "Not An Id" });
     expect(isRedirect(team) && team.options.to).toBe("/run/teams");
+  });
+
+  it("send the reader of a one-year run to its season page from every one", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    const entrant = useSeasonStore.getState().run?.world.field[0];
+    const season = linkTo({ year: YEAR, beat: { kind: "summary" } });
+    for (const [route, params] of [
+      [DriversRoute, {}],
+      [TeamsRoute, {}],
+      [DriverRoute, { driverId: entrant?.driverId ?? "" }],
+      [TeamRoute, { teamId: entrant?.teamId ?? "" }],
+    ] as const) {
+      const thrown = guardOf(route, params);
+      expect(isRedirect(thrown) && thrown.options).toMatchObject(season);
+    }
   });
 });
 

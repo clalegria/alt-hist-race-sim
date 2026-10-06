@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { Run } from "../store/season.js";
+import { cursorPlace, type Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
 import { driverName } from "./names.js";
 import { driversLink, teamsLink } from "./roster-places.js";
@@ -271,13 +271,13 @@ describe("the breadcrumbs", () => {
   it("are the era alone on its roll of honour", () => {
     const run = era({ kind: "review" });
     const crumbs = crumbsFor(run, { year: YEAR, beat: { kind: "review" } });
-    expect(crumbs).toEqual([{ label: "Era", menu: sectionsMenu(run, "overview") }]);
+    expect(crumbs).toEqual([{ label: "Era", menu: sectionsMenu("overview") }]);
   });
 
   it("link the era's overview before anything has been crowned", () => {
     const run = era({ kind: "grid" });
     const crumbs = crumbsFor(run, { year: YEAR, beat: { kind: "grid" } });
-    expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK, menu: sectionsMenu(run, null) });
+    expect(crumbs[0]).toEqual({ label: "Era", link: REVIEW_LINK, menu: sectionsMenu(null) });
   });
 
   it("lead to a person's page from the root, through their list", () => {
@@ -288,11 +288,15 @@ describe("the breadcrumbs", () => {
     expect(crumbs[0]?.link).toEqual(REVIEW_LINK);
     expect(crumbs[1]?.link).toEqual(driversLink());
     expect(crumbs[2]?.link).toBeUndefined();
-    // A list is the last crumb on its own page, and the root is the year in a
-    // one-year run.
-    const list = crumbsFor(season({ kind: "grid" }), { page: "teams" });
-    expect(list.map((crumb) => crumb.label)).toEqual([String(YEAR), "Teams"]);
+    // A list is the last crumb on its own page.
+    const list = crumbsFor(era({ kind: "grid" }), { page: "teams" });
+    expect(list.map((crumb) => crumb.label)).toEqual(["Era", "Teams"]);
     expect(list[1]?.link).toBeUndefined();
+  });
+
+  it("are the cursor's for a people page in a one-year run, which has none", () => {
+    const run = season(raceTwo);
+    expect(crumbsFor(run, { page: "teams" })).toEqual(crumbsFor(run, cursorPlace(run)));
   });
 });
 
@@ -336,8 +340,7 @@ describe("the breadcrumbs' menus", () => {
     ).toBe(false);
   });
 
-  it("put the run's sections on the root, marking the one the page is in", () => {
-    const one = season({ kind: "race", round: 0 });
+  it("put an era's sections on the root, marking the one the page is in", () => {
     const many = secondYear({ kind: "race", round: 0 });
     const sections = (crumbs: readonly Crumb[]) => menuOf(crumbs, "Run sections");
     const current = (crumbs: readonly Crumb[]) =>
@@ -361,16 +364,22 @@ describe("the breadcrumbs' menus", () => {
     expect(current(onYear)).toEqual([]);
     expect(current(crumbsFor(many, { page: "driver", id: "x" }))).toEqual(["Drivers"]);
     expect(current(crumbsFor(many, { page: "teams" }))).toEqual(["Teams"]);
+  });
 
-    // A one-year run's root is its year: the season and the two lists.
-    const oneYear = crumbsFor(one, { year: YEAR, beat: { kind: "race", round: 0 } });
-    expect(oneYear[0]?.menu?.label).toBe("Run sections");
-    expect(sections(oneYear)?.items.map((item) => item.label)).toEqual([
-      "Season",
-      "Drivers",
-      "Teams",
-    ]);
-    expect(current(oneYear)).toEqual(["Season"]);
+  it("give a one-year run's year no menu, only its link to the season page", () => {
+    const summary = linkTo({ year: YEAR, beat: { kind: "summary" } });
+    for (const cursor of beatsOf(ROUNDS)) {
+      for (const page of beatsOf(ROUNDS)) {
+        if (!isReached({ year: YEAR, beat: cursor }, { year: YEAR, beat: page })) {
+          continue;
+        }
+        const crumbs = crumbsFor(season(cursor), { year: YEAR, beat: page });
+        expect(crumbs[0]?.label).toBe(String(YEAR));
+        expect(crumbs[0]?.menu).toBeUndefined();
+        // The season page is the year's own, so there it is the page, unlinked.
+        expect(crumbs[0]?.link).toEqual(page.kind === "summary" ? undefined : summary);
+      }
+    }
   });
 
   it("list every round of the year, linking only the ones reached, where the round links go", () => {
