@@ -86,19 +86,23 @@ themselves. It reaches the model as `withRandomness(level)`, a derived copy of t
 constants; at `UNSCALED_RANDOMNESS_LEVEL` it *is* `RACE_CONSTANTS`, untouched. Nothing on a season screen
 changes it — `setRatingMode`, `setGrid` and `restartSeason` all carry it forward, and an
 era carries `last.randomness` into every following year, so a run is one championship
-under one set of rules. The grid stage states it (`RandomnessNote`) and offers no
+under one set of rules. **`world.settings`** (`RunSettings`, `lib/run-settings.ts`) is
+chosen, carried and remembered exactly the same way, through every action that rebuilds
+a year and into every year of an era; `createWorld` takes it last. The grid stage states
+the level (`RandomnessNote`) and any non-historical setting beneath it, and offers no
 control; the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming
 — adding one is a line in `settingsOf`, not a rewrite of the copy on two screens. Remembered in localStorage beside the ability mode, both being answers the
 *next* run is simulated against rather than ways of reading a table.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, points, ratingMode, randomness, rngState, field, lineup, engines,
-chassis, arrangement, season }`) — one
+(`{ seed, year, points, ratingMode, randomness, settings, rngState, field, lineup,
+engines, chassis, arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's
-championship scale, off its seed file, for the same reason: it is the record of what
+championship scale, off its seed file unless `settings.points` names one for the whole
+run, for the same reason: it is the record of what
 the season was actually scored on. Every table takes it — `championshipStandings`,
 `constructorStandings`, the clinch functions, `pointsFor`, `driverRounds` and
 `teamRounds` all require it, and `RaceClassification`, `StandingsTable` and

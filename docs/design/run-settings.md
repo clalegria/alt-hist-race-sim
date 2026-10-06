@@ -2,9 +2,10 @@
 
 What-if settings chosen on the setup screen before a run starts, beside Randomness: car
 performance, career events, team names, teams and seats, breakdowns, reliability and
-points. Design intent, not a description of code: none of it is built. Where it sits in
-the build order is *run settings* in `docs/ROADMAP.md`; §10 is its own build order, one
-step per session.
+points. Points and the plumbing every setting shares (`World.settings`, the Run settings
+card) are built and documented in `.claude/rules/web-setup.md` and `web-store.md`; the
+rest is design intent. Where it sits in the build order is *run settings* in
+`docs/ROADMAP.md`; §9 is its own build order, one step per session.
 
 Three of these are settings `docs/design/era-advanced.md` §3 decided for the advanced
 era — the frozen grid, historical careers, random car development. They are built here
@@ -19,17 +20,10 @@ first, in `era-basic`, and the advanced era inherits them.
 ## 1. Principles
 
 - **DECIDED** — Car performance, career events, team names, and teams and seats are on
-  the **era setup only**. Breakdowns, reliability and points are on both (§9).
+  the **era setup only**. Breakdowns, reliability and points are on both (§8).
 - **PROPOSED** — Every setting's first option is the historical one, and it is the
   default. All-historical is today's run exactly: no draw is made and no field changes,
-  so saved runs, fingerprints (`.claude/rules/web-persistence.md`), tests and harnesses
-  are untouched until a reader picks something else.
-- **PROPOSED** — Chosen before the run, fixed for the whole of it, kept by both restarts
-  — as Randomness is (`.claude/rules/web-store.md`).
-- **PROPOSED** — **Recorded on each world**, as one `settings` object on `World`: a player
-  input is recorded on the world it shaped, and the recipe picks it up from there. A
-  recipe without `settings` reads as all-historical, so a run saved before this lands
-  still rebuilds.
+  so tests and harnesses are untouched until a reader picks something else.
 - None of these change what a rating *means*. Car performance and career events change
   the ratings a run uses — per-run data, not the authored numbers — and breakdowns and
   reliability are scales over constants, like Randomness. No tuning, no harness run.
@@ -56,16 +50,11 @@ first, in `era-basic`, and the advanced era inherits them.
   Teams and seats   [ As they happened | Keep the starting grid ]
 ```
 
-- **The card is renamed "Run settings"**, the term `era-advanced.md` §3 uses.
-  "Preferences" reads as app options, like the theme.
 - **(b) is "Career events", never "form"**: the market owns *form*
   (`era-advanced.md` §4).
 - **One segmented control per setting**, so every row reads historical-versus-what-if the
   same way, and a third option (random careers, an intermediate grid) is one more
   segment. The Varied sub-controls show only under Varied.
-- The run's settings line (`settingsOf` in `SimulationSettings.tsx`) gains a line per
-  non-historical setting, on the summary and the roll of honour; the grid states them
-  beside `RandomnessNote`.
 
 ## 3. Car performance
 
@@ -166,36 +155,26 @@ and carries almost all of the difference between eras (`.claude/rules/retirement
   year's own / As in ⟨year⟩**, one season's `retirementFactor` for every year of the run.
   The picker defaults to the start year.
 
-## 8. Points
-
-- **DECIDED** — Each year's own / The same for the whole run, the reader choosing which.
-- **PROPOSED** — The choices are the distinct `points` tables in the seed data, labelled by
-  the years that used them and their values ("2010–2026 · 25 18 15 12 10 8 6 4 2 1"),
-  defaulting to the start year's. `world.points` is already per world and read by every
-  table, so the setting only decides what `createWorld` puts there.
-
-## 9. Which screen
+## 8. Which screen
 
 - **DECIDED** — Era setup only: car performance, career events, team names, teams and
   seats.
-- **PROPOSED** — Both setup screens: randomness, breakdowns, reliability, points — each
+- **PROPOSED** — Both setup screens: breakdowns and reliability, beside randomness and points — each
   makes sense for one season (1985 on today's points, 1955 with 2024 reliability).
 - **PROPOSED** — Eight rows on the era screen. If it reads long, *Teams over the years*
   goes behind a *More settings* disclosure that summarises any non-historical choice in
   one line when closed.
 
-## 10. Build order
+## 9. Build order
 
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Plumbing and points**: `World.settings`, the defaults, recipe compatibility, the card
-   renamed and grouped, on both setup screens; then Points, the cheapest real setting.
-2. **Reliability**: *As in ⟨year⟩* and the Breakdowns multiplier.
-3. **Career events.**
-4. **Team names**: the identity year.
-5. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
+1. **Reliability**: *As in ⟨year⟩* and the Breakdowns multiplier.
+2. **Career events.**
+3. **Team names**: the identity year.
+4. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
    and the baseline-not-edit change.
-6. **Car performance from last year's car**: the walk.
-7. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
+5. **Car performance from last year's car**: the walk.
+6. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
    and the jump stopping early.

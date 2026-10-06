@@ -18,6 +18,7 @@ import {
   DEFAULT_RANDOMNESS_LEVEL,
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { HISTORICAL_SETTINGS, pointsTables, samePoints } from "../lib/run-settings.js";
 import { adjacentSeason } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
 import { createWorld, isUntouched, type Run, useSeasonStore, type World } from "./season.js";
@@ -491,6 +492,54 @@ describe("the randomness level", () => {
 
   it("is part of the save file like everything else", () => {
     useSeasonStore.getState().simulate(3, YEAR, "peak", 5);
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
+describe("the points setting", () => {
+  /** A table other than the year's own, so a pass cannot be the default showing through. */
+  const other = pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
+  const fixed = { points: other };
+
+  it("leaves a historical run scored on the year's own table", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    expect(running().world.settings).toEqual(HISTORICAL_SETTINGS);
+    expect(running().world.points).toEqual(SEED.points);
+  });
+
+  it("scores the year on the chosen table, and races the same races", () => {
+    // Points are scoring only: the same seed under another table is the same
+    // season, handed out differently.
+    expect(other.length).toBeGreaterThan(0);
+    const historical = createWorld(3, YEAR);
+    const scored = createWorld(3, YEAR, "peak", null, null, undefined, null, null, fixed);
+
+    expect(scored.points).toEqual(other);
+    expect(scored.settings).toEqual(fixed);
+    expect(scored.field).toEqual(historical.field);
+    expect(scored.season).toEqual(historical.season);
+  });
+
+  it("is fixed for the run, and carried by every action that rebuilds the year", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world.points).toEqual(other);
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.points).toEqual(other);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.points).toEqual(other);
+    const next = adjacentSeason(YEAR, 1);
+    if (next !== null) {
+      useSeasonStore.getState().switchSeasonYear(next);
+      expect(running().world.year).toBe(next);
+      expect(running().world.points).toEqual(other);
+    }
+    expect(running().world.settings).toEqual(fixed);
+  });
+
+  it("is part of the save file like everything else", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });

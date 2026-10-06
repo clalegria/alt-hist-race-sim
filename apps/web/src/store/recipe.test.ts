@@ -20,6 +20,7 @@ import {
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
+import { pointsTables, samePoints } from "../lib/run-settings.js";
 import { FIRST_SEASON, nextEraYear } from "../lib/seasons.js";
 import { nextSeed } from "../lib/seed.js";
 import { fingerprint, RECIPE_VERSION, recipeOf, runFromRecipe } from "./recipe.js";
@@ -125,6 +126,16 @@ describe("a run rebuilt from its recipe", () => {
     expect(roundTrip(run)).toEqual(run);
   });
 
+  it("keeps a points table chosen for the whole era", () => {
+    const other =
+      pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
+    useSeasonStore.getState().simulateEra(9, YEAR, undefined, { points: other });
+    crown(YEAR);
+    useSeasonStore.getState().continueRun();
+    const run = current();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
   it("keeps an era on its review", () => {
     useSeasonStore.getState().simulateEra(5, YEAR);
     crown(YEAR);
@@ -211,6 +222,9 @@ describe("a recipe that is refused", () => {
       { ...recipe, worlds: [{ ...recipe.worlds[0], lineup: "everyone" }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], randomness: 99 }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], ratingMode: "young" }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], settings: undefined }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], settings: "historical" }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], settings: { points: [100, 1] } }] },
       { ...recipe, cursor: { kind: "race", round: -1 } },
       { ...recipe, cursor: { kind: "lap" } },
       // A grid that names nobody real reaches the simulation, which must not take

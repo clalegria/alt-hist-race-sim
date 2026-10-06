@@ -93,7 +93,7 @@ export function RandomnessSlider({
   const steps = Math.max(RANDOMNESS_OPTIONS.length - 1, 1);
 
   return (
-    // No card chrome of its own: it is one setting inside `Preferences`, which
+    // No card chrome of its own: it is one setting inside `RunSettingsGroup`, which
     // draws the panel and the rule between settings. It kept its own name in
     // the row below, though — the name belongs to the control that answers to
     // it, not to whatever happens to be wrapping it today.

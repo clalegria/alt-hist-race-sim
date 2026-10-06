@@ -3,8 +3,8 @@
  *
  * Simulation is deterministic, so a world is a function of the inputs it was
  * built from, and every `World` already records all of them: the seed, the
- * year, the ability mode, the randomness level and the reader's grid (lineup,
- * engines, chassis, arrangement). The recipe is therefore *derived* from the run rather
+ * year, the ability mode, the randomness level, the run settings and the
+ * reader's grid (lineup, engines, chassis, arrangement). The recipe is therefore *derived* from the run rather
  * than kept beside it: one entry per world, plus the cursor. There is no second
  * record of the reader's inputs that could fall out of step with the worlds.
  *
@@ -29,12 +29,13 @@ import {
   type SeasonLineup,
 } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
+import { parseRunSettings, type RunSettings } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
 import { createWorld, type Run, type World } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 2;
+export const RECIPE_VERSION = 3;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -42,6 +43,7 @@ export interface WorldRecipe {
   readonly year: number;
   readonly ratingMode: RatingMode;
   readonly randomness: RandomnessLevel;
+  readonly settings: RunSettings;
   readonly lineup: SeasonLineup | null;
   readonly engines: SeasonEngines | null;
   readonly chassis: SeasonChassis | null;
@@ -90,6 +92,7 @@ function worldRecipe(world: World): WorldRecipe {
     year: world.year,
     ratingMode: world.ratingMode,
     randomness: world.randomness,
+    settings: world.settings,
     lineup: world.lineup,
     engines: world.engines,
     chassis: world.chassis,
@@ -144,18 +147,20 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     return null;
   }
   const { seed, year, ratingMode, randomness, lineup, engines, chassis, arrangement, check } = raw;
+  const settings = parseRunSettings(raw.settings);
   const valid =
     Number.isInteger(seed) &&
     Number.isInteger(year) &&
     isPlayable(year as number) &&
     RATING_MODES.some((mode) => mode === ratingMode) &&
     RANDOMNESS_LEVELS.some((level) => level === randomness) &&
+    settings !== null &&
     isRecordOrNull(lineup) &&
     isRecordOrNull(engines) &&
     isRecordOrNull(chassis) &&
     isRecordOrNull(arrangement) &&
     typeof check === "string";
-  return valid ? (raw as unknown as WorldRecipe) : null;
+  return valid ? { ...(raw as unknown as WorldRecipe), settings } : null;
 }
 
 /** The world a recipe builds, or null when this build would not build the same one. */
@@ -169,6 +174,7 @@ function rebuild(recipe: WorldRecipe): World | null {
     recipe.randomness,
     recipe.arrangement,
     recipe.chassis,
+    recipe.settings,
   );
   return fingerprint(world) === recipe.check ? world : null;
 }

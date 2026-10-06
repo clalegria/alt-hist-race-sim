@@ -11,6 +11,7 @@ import {
 import { useMemo, useState } from "react";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
+import { whatIfsOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
@@ -28,6 +29,7 @@ import { RatingModeToggle } from "./RatingModeToggle.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { RoundLinks, SessionHeader } from "./SessionNav.js";
+import { SimulationSettings } from "./SimulationSettings.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
 
@@ -290,7 +292,14 @@ function SeasonBody({
           />
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <RandomnessNote level={world.randomness} />
+          <div className="flex flex-col gap-1">
+            <RandomnessNote level={world.randomness} />
+            {/* The run's what-ifs, if any: nothing at all for a historical run. */}
+            <SimulationSettings
+              settings={whatIfsOf(world.settings)}
+              className="text-muted-foreground text-xs"
+            />
+          </div>
           {/*
             Beside the randomness note rather than under the buttons: both are
             facts about *which season this is*, and the row reads as one line —

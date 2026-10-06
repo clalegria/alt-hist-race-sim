@@ -51,9 +51,11 @@ import { create } from "zustand";
 import {
   readRandomness,
   readRatingMode,
+  readRunSettings,
   rememberRatingMode,
   rememberSeasonYear,
 } from "../lib/preferences.js";
+import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
@@ -82,8 +84,14 @@ export interface World {
    */
   readonly randomness: RandomnessLevel;
   /**
-   * The championship points scale the year was scored on, straight from its
-   * seed file — 9-6-4-3-2-1 for 1980, 25-18-15-12-10-8-6-4-2-1 for 2010.
+   * The run's what-ifs (`lib/run-settings.ts`), chosen on the setup screen and
+   * carried into every year after, exactly as `randomness` is. A simulation
+   * input for the same reason: the recipe rebuilds a world from what it records.
+   */
+  readonly settings: RunSettings;
+  /**
+   * The championship points scale the year was scored on: its seed file's,
+   * unless the run's `settings` name one table for every year.
    *
    * Held here rather than looked up from the year for the same reason `field`
    * is: this is the record of the season as it was actually run. A save file
@@ -302,6 +310,7 @@ export function createWorld(
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
   arrangement: GridArrangement | null = null,
   chassis: SeasonChassis | null = null,
+  settings: RunSettings = HISTORICAL_SETTINGS,
 ): World {
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
@@ -325,7 +334,9 @@ export function createWorld(
     year: entered.year,
     ratingMode,
     randomness,
-    points: entered.points,
+    settings,
+    // Scoring only: the races above were run before any points were handed out.
+    points: settings.points ?? entered.points,
     rngState: rng.getState(),
     field,
     lineup: edited,
@@ -448,11 +459,16 @@ interface SeasonStore {
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
    *
-   * The randomness level comes from the setup screen, which is the only place
-   * it is ever chosen. Omitted, the remembered one is used — the setup screen
-   * seeds its slider from the same value, so the two cannot disagree.
+   * The randomness level and the run settings come from the setup screen, the
+   * only place they are ever chosen. Omitted, the remembered ones are used — the
+   * setup screen seeds its controls from the same values, so the two cannot
+   * disagree.
    */
-  readonly startSeason: (year: number, randomness?: RandomnessLevel) => void;
+  readonly startSeason: (
+    year: number,
+    randomness?: RandomnessLevel,
+    settings?: RunSettings,
+  ) => void;
   /**
    * The same, from a chosen seed — the reproducible entry point tests use.
    *
@@ -464,6 +480,7 @@ interface SeasonStore {
     year: number,
     ratingMode?: RatingMode,
     randomness?: RandomnessLevel,
+    settings?: RunSettings,
   ) => void;
   /**
    * Starts an era at the given year: its first season, opened at the grid, with
@@ -471,14 +488,20 @@ interface SeasonStore {
    *
    * Always at `ERA_RATING_MODE`, and the reader is not offered the choice.
    *
-   * The randomness level, by contrast, *is* the reader's — but only here. It is
-   * baked into the run at this point and carried by every year that follows, so
-   * an era is one long championship run under one set of rules rather than a
-   * dial the reader can turn the moment a season goes against them.
+   * The randomness level and the run settings, by contrast, *are* the reader's
+   * — but only here. They are baked into the run at this point and carried by
+   * every year that follows, so an era is one long championship run under one
+   * set of rules rather than a dial the reader can turn the moment a season
+   * goes against them.
    */
-  readonly startEra: (year: number, randomness?: RandomnessLevel) => void;
+  readonly startEra: (year: number, randomness?: RandomnessLevel, settings?: RunSettings) => void;
   /** The same from a chosen seed, and for the same reason: tests need one. */
-  readonly simulateEra: (seed: number, year: number, randomness?: RandomnessLevel) => void;
+  readonly simulateEra: (
+    seed: number,
+    year: number,
+    randomness?: RandomnessLevel,
+    settings?: RunSettings,
+  ) => void;
   /**
    * Reveals the next beat — what Continue on the run bar does.
    *
@@ -560,8 +583,8 @@ interface SeasonStore {
    * The shortcut off the grid screen, for the reader who has just finished 1980
    * and wants 1981. It is `startSeason` in every respect but where the settings
    * come from: the *world on screen* rather than the remembered preferences, so
-   * stepping through a decade keeps the ability mode and the randomness level
-   * the reader chose for the first of them, and does not quietly hand them a
+   * stepping through a decade keeps the ability mode, the randomness level and
+   * the run settings the reader chose for the first of them, and does not quietly hand them a
    * different set of rules for the next.
    *
    * What does not carry is the grid: a lineup and a set of supply deals belong
@@ -596,7 +619,7 @@ interface SeasonStore {
    *
    * The era's version of `restartSeason`, and the same promise: a new draw,
    * not a rewind. What carries is how the reader chose to play — the
-   * randomness level, the ability mode — and **the first year's grid**, edits,
+   * randomness level, the run settings, the ability mode — and **the first year's grid**, edits,
    * engines, chassis and bulk rule included (a rule ticked to be kept goes on arranging
    * every year after, as before). Grids edited in later years go with those
    * years: each was a grid for a year this run no longer has.
@@ -628,7 +651,7 @@ function replaceWorld(run: Run, world: World): Run {
  * The year after `last` in an era, built off it: that year's own entry list,
  * the dice continuing `last`'s stream, and whatever the reader chose about how
  * to play — the ability mode, a bulk rule they asked to keep, the randomness
- * level — carried. What they chose about one grid does not carry, because it
+ * level, the run settings — carried. What they chose about one grid does not carry, because it
  * was a grid for a year now behind them.
  *
  * The one step both Continue and a jump forward take, so the two cannot
@@ -647,6 +670,8 @@ function nextEraWorld(last: World, year: number): World {
     // level its first year was started on.
     last.randomness,
     grid.arrangement,
+    null,
+    last.settings,
   );
 }
 
@@ -715,21 +740,53 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   dismissResumeFailed: () => {
     set({ resumeFailed: false });
   },
-  startSeason: (year, randomness = readRandomness()) => {
+  startSeason: (year, randomness = readRandomness(), settings = readRunSettings()) => {
     set({
-      run: openSeason(createWorld(randomSeed(), year, readRatingMode(), null, null, randomness)),
+      run: openSeason(
+        createWorld(
+          randomSeed(),
+          year,
+          readRatingMode(),
+          null,
+          null,
+          randomness,
+          null,
+          null,
+          settings,
+        ),
+      ),
     });
   },
-  simulate: (seed, year, ratingMode, randomness) => {
-    set({ run: openSeason(createWorld(seed, year, ratingMode, null, null, randomness)) });
-  },
-  startEra: (year, randomness = readRandomness()) => {
+  simulate: (seed, year, ratingMode, randomness, settings) => {
     set({
-      run: openEra(createWorld(randomSeed(), year, ERA_RATING_MODE, null, null, randomness)),
+      run: openSeason(
+        createWorld(seed, year, ratingMode, null, null, randomness, null, null, settings),
+      ),
     });
   },
-  simulateEra: (seed, year, randomness) => {
-    set({ run: openEra(createWorld(seed, year, ERA_RATING_MODE, null, null, randomness)) });
+  startEra: (year, randomness = readRandomness(), settings = readRunSettings()) => {
+    set({
+      run: openEra(
+        createWorld(
+          randomSeed(),
+          year,
+          ERA_RATING_MODE,
+          null,
+          null,
+          randomness,
+          null,
+          null,
+          settings,
+        ),
+      ),
+    });
+  },
+  simulateEra: (seed, year, randomness, settings) => {
+    set({
+      run: openEra(
+        createWorld(seed, year, ERA_RATING_MODE, null, null, randomness, null, null, settings),
+      ),
+    });
   },
   continueRun: () => {
     set((state) => {
@@ -772,6 +829,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.randomness,
                 state.run.world.arrangement,
                 state.run.world.chassis,
+                state.run.world.settings,
               ),
             ),
           }
@@ -793,6 +851,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.randomness,
                 arrangement,
                 chassis,
+                state.run.world.settings,
               ),
             ),
           }
@@ -820,6 +879,9 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             null,
             null,
             state.run.world.randomness,
+            null,
+            null,
+            state.run.world.settings,
           ),
         ),
       };
@@ -848,6 +910,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.randomness,
             world.arrangement,
             world.chassis,
+            world.settings,
           ),
         ),
       };
@@ -874,6 +937,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             first.randomness,
             first.arrangement,
             first.chassis,
+            first.settings,
           ),
         ),
       };

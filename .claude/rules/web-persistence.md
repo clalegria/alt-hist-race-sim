@@ -19,8 +19,8 @@ megabytes `localStorage` allows. Simulation is deterministic, so the recipe rebu
 run exactly.
 
 **The recipe is derived from the run, not kept beside it.** Every `World` already records
-the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `lineup`, `engines`,
-`chassis` and `arrangement`, which are exactly `createWorld`'s arguments. `recipeOf(run)` is one
+the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `settings`,
+`lineup`, `engines`, `chassis` and `arrangement`, which are exactly `createWorld`'s arguments. `recipeOf(run)` is one
 entry per world (an era's `run.seasons`, then `world`), plus the kind, the cursor and a
 `version`. Because there is no second record of the reader's inputs, nothing can fall
 out of step with the worlds.
@@ -48,6 +48,7 @@ The stored value comes from storage the reader controls, so `runFromRecipe` take
 
 - the version and the kind;
 - integer seeds, playable years, and a known mode and randomness level;
+- run settings that pass `parseRunSettings` (`lib/run-settings.ts`);
 - one world for a season, and for an era, years chained by `nextEraYear`;
 - the cursor, which must be a beat its last world has. A `review` is allowed in an era
   only.
@@ -77,7 +78,8 @@ This is one slot for the current run. Share links and save files are separate fe
 
 `store/recipe.test.ts` builds runs through the store's own actions (an edited grid
 mid-season, an era with a mid-era restart and a kept rule, a review) and asserts the
-round trip through JSON gives back an equal run. A list of malformed, tampered and stale
+round trip through JSON gives back an equal run, a run with a fixed points table among
+them. A list of malformed, tampered and stale
 recipes must each come back null without throwing. `store/persist.test.ts` stubs
 `localStorage` and covers restore, refusal, save-on-change, removal on exit, and storage
 that is absent or throws.

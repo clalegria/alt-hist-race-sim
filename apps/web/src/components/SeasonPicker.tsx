@@ -2,13 +2,17 @@ import type { RandomnessLevel } from "@alt-hist/engine";
 import { useState } from "react";
 import {
   readRandomness,
+  readRunSettings,
   readSeasonYear,
   rememberRandomness,
+  rememberRunSettings,
   rememberSeasonYear,
 } from "../lib/preferences.js";
+import type { RunSettings } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
-import { Preferences } from "./Preferences.js";
+import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
+import { RunSettingsCard, RunSettingsGroup } from "./RunSettingsCard.js";
 import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
 
@@ -20,15 +24,14 @@ import { YearPicker } from "./YearPicker.js";
  * trap — a reader who reached for a year first, as most will, was into the
  * season before they had seen that randomness was theirs to choose. Every
  * control on this screen now only *answers* something; one button commits all
- * of it at once. That also means the year and the level are handed to `onStart`
- * together, so what was on screen is what gets simulated.
+ * of it at once. That also means the year and the settings are handed to
+ * `onStart` together, so what was on screen is what gets simulated.
  *
  * The year picker itself is `YearPicker` — a rail of decades and the years in
- * one of them, controlled by the selected year alone. Randomness lives in
- * `Preferences`, which is named for the category rather than for its one
- * occupant because it is going to gain others.
+ * one of them, controlled by the selected year alone. Randomness and the run's
+ * what-ifs live in `RunSettingsCard`, in headed groups.
  *
- * Both answers are seeded from the remembered preference and written back the
+ * Every answer is seeded from the remembered preference and written back the
  * moment they move — so they survive a reader who goes back to the menu, or who
  * comes back tomorrow. That includes the year: coming back to try the season
  * after the one just run and being handed 1950 every time is the app forgetting
@@ -50,8 +53,9 @@ export function SeasonPicker({
   yearLead = `Every season from ${FIRST_SEASON} to ${LAST_SEASON}. Pick a decade, then a year in it.`,
   describeYear = (year: number) => `Simulate the ${year} season`,
   describeStart = (year: number) => `Begin the ${year} season`,
+  unit = "season",
 }: {
-  onStart: (year: number, randomness: RandomnessLevel) => void;
+  onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
   title?: string;
   lead?: string;
   /** The year panel's own heading, and the subtitle under it. */
@@ -61,6 +65,8 @@ export function SeasonPicker({
   describeYear?: (year: number) => string;
   /** What the button at the foot of the page says. */
   describeStart?: (year: number) => string;
+  /** What the settings are fixed for: "season" or "era". */
+  unit?: string;
 }) {
   // Read once, on mount: this is the seed for the control, not a live mirror of
   // storage, and nothing else on the screen can change it underneath.
@@ -69,6 +75,11 @@ export function SeasonPicker({
   // against the playable list — a stored year with no seed file behind it would
   // reach `seasonSeed` and throw.
   const [year, setYear] = useState<number>(readSeasonYear);
+  const [settings, setSettings] = useState<RunSettings>(readRunSettings);
+  const changeSettings = (changed: RunSettings) => {
+    setSettings(changed);
+    rememberRunSettings(changed);
+  };
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
@@ -94,15 +105,24 @@ export function SeasonPicker({
         describeYear={describeYear}
       />
 
-      <Preferences>
-        <RandomnessSlider
-          level={randomness}
-          onChange={(level) => {
-            setRandomness(level);
-            rememberRandomness(level);
-          }}
-        />
-      </Preferences>
+      <RunSettingsCard unit={unit}>
+        <RunSettingsGroup title="Races">
+          <RandomnessSlider
+            level={randomness}
+            onChange={(level) => {
+              setRandomness(level);
+              rememberRandomness(level);
+            }}
+          />
+          <PointsSetting
+            points={settings.points}
+            year={year}
+            onChange={(points) => {
+              changeSettings({ ...settings, points });
+            }}
+          />
+        </RunSettingsGroup>
+      </RunSettingsCard>
 
       {/*
         Full width and last on the page, because it is the only thing here that
@@ -113,7 +133,7 @@ export function SeasonPicker({
       <Button
         className="h-12 w-full text-base"
         onClick={() => {
-          onStart(year, randomness);
+          onStart(year, randomness, settings);
         }}
       >
         {describeStart(year)}
@@ -132,7 +152,7 @@ export function SeasonPicker({
 export function EraPicker({
   onStart,
 }: {
-  onStart: (year: number, randomness: RandomnessLevel) => void;
+  onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
 }) {
   return (
     <SeasonPicker
@@ -143,6 +163,7 @@ export function EraPicker({
       yearLead="Where the era begins. Pick a decade, then a year in it — it runs on from there."
       describeYear={(year) => `Start an era in ${year}`}
       describeStart={(year) => `Begin an era from ${year}`}
+      unit="era"
     />
   );
 }

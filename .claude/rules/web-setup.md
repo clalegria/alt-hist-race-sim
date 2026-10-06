@@ -3,7 +3,9 @@ paths:
   - "apps/web/src/components/MainMenu.tsx"
   - "apps/web/src/components/SeasonPicker.tsx"
   - "apps/web/src/components/YearPicker.tsx"
-  - "apps/web/src/components/Preferences.tsx"
+  - "apps/web/src/components/RunSettingsCard.tsx"
+  - "apps/web/src/components/PointsSetting.tsx"
+  - "apps/web/src/lib/run-settings.ts"
   - "apps/web/src/components/RandomnessSlider.tsx"
   - "apps/web/src/components/SimulationSettings.tsx"
   - "apps/web/src/components/SeasonSwitcher.tsx"
@@ -18,11 +20,11 @@ afterwards. The screens themselves and how any of this is tested are
 `.claude/rules/web-app.md`; what a season is built from is `.claude/rules/web-store.md`.
 
 **Nothing is simulated until the button at the foot of the page.** Picking a year used
-to start the run on the spot, which made the preferences above it a trap: a reader who
+to start the run on the spot, which made the settings above it a trap: a reader who
 reached for a year first — as most will — was into the season before they had seen that
 randomness was theirs to choose. Every control on `SeasonPicker` now only *answers*
-something, and one full-width `Begin …` commits the lot, so the year and the level reach
-`onStart` together and what was on screen is what gets simulated.
+something, and one full-width `Begin …` commits the lot, so the year, the level and the
+run settings reach `onStart` together and what was on screen is what gets simulated.
 
 **The year picker is a rail of decades, then the years in one of them**, in
 `YearPicker` — seventy-seven near-identical numbers in one block was a wall rather than
@@ -50,12 +52,25 @@ the seed data an unavailable year cannot occur — assertions about it pass just
 happily with the disabling removed, which is how the test this replaced was passing.
 The two tests that care hand it a range with a gap in it.
 
-**Randomness lives in `Preferences`**, a panel named for the category rather than for
-its one occupant, because it is going to gain others. A setting is a *direct child* —
-the padding and the rules between them are applied by the panel — so adding one is
-adding a child. What does not belong there is anything a reader can still change once a
-season exists; the ability toggle is on the grid for that reason, and moving it would be
-a decision about when it stops being changeable rather than a tidying-up.
+**The run settings card** (`RunSettingsCard`) holds Randomness and the what-ifs of
+`docs/design/run-settings.md`, in headed groups (`RunSettingsGroup`: Races, then the
+era-only Cars, Drivers, Teams over the years as they are built). A setting is a *direct
+child* of its group, which applies the padding and the rules between them, so adding one
+is adding a child. What does not belong there is anything a reader can still change once
+a season exists; the ability toggle is on the grid for that reason.
+
+**A what-if setting** is a segmented control with the historical answer first and the
+default (`PointsSetting` is the pattern, copying `RatingModeToggle`'s button group), and
+its value is **null when historical**, as `lineup` is. The values live in
+`lib/run-settings.ts`: `RunSettings`, `HISTORICAL_SETTINGS`, `parseRunSettings` (the one
+check for both the recipe and the remembered preference, which accepts only values this
+build could offer) and `whatIfsOf`, the settings line's entries for anything not
+historical. Remembered like Randomness (`readRunSettings` / `rememberRunSettings`).
+
+**Points** is *Each year's own* or *Same all run* with a native `select` of
+`pointsTables()`: the distinct tables in the seed data, labelled by their years and
+values, derived rather than listed. Switching to *Same all run* picks the selected year's
+table. Points are scoring only, so the same seed races the same races under any table.
 
 **`max-w-prose` is for paragraphs, not for one-line notes.** The setup screen's lead is
 capped because it runs to two or three lines and is read down. The notes inside the

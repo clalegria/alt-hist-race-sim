@@ -42,6 +42,7 @@ import {
   resolveRunPage,
   runPageOf,
 } from "./lib/run-places.js";
+import type { RunSettings } from "./lib/run-settings.js";
 import { type SeasonTab, seasonTabLinks } from "./lib/season-tabs.js";
 import { roundPages, sessionNav } from "./lib/session-nav.js";
 import type { Place } from "./lib/timeline.js";
@@ -349,16 +350,20 @@ export function SetupPage({
   start,
   picker,
 }: {
-  start: (year: number, randomness: RandomnessLevel) => void;
-  picker: (onStart: (year: number, randomness: RandomnessLevel) => void) => React.ReactNode;
+  start: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
+  picker: (
+    onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void,
+  ) => React.ReactNode;
 }) {
   const navigate = useNavigate();
   const asks = useSeasonStore((state) => state.run !== null && !isUntouched(state.run));
-  const [pending, setPending] = useState<{ year: number; randomness: RandomnessLevel } | null>(
-    null,
-  );
-  const begin = (year: number, randomness: RandomnessLevel) => {
-    start(year, randomness);
+  const [pending, setPending] = useState<{
+    year: number;
+    randomness: RandomnessLevel;
+    settings: RunSettings;
+  } | null>(null);
+  const begin = (year: number, randomness: RandomnessLevel, settings: RunSettings) => {
+    start(year, randomness, settings);
     const run = useSeasonStore.getState().run;
     if (run !== null) {
       void navigate(linkTo(cursorPlace(run)));
@@ -366,11 +371,11 @@ export function SetupPage({
   };
   return (
     <Shell>
-      {picker((year, randomness) => {
+      {picker((year, randomness, settings) => {
         if (asks) {
-          setPending({ year, randomness });
+          setPending({ year, randomness, settings });
         } else {
-          begin(year, randomness);
+          begin(year, randomness, settings);
         }
       })}
       <RunConfirmDialog
@@ -379,7 +384,7 @@ export function SetupPage({
         onConfirm={() => {
           if (pending !== null) {
             setPending(null);
-            begin(pending.year, pending.randomness);
+            begin(pending.year, pending.randomness, pending.settings);
           }
         }}
         onCancel={() => {

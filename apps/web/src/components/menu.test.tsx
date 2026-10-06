@@ -173,9 +173,9 @@ describe("the season picker", () => {
   it("picks a year rather than starting one", () => {
     // The whole point of the commit button: a reader who reaches for a year
     // first — as most will — used to be into the season before they had seen
-    // that the preferences above it were theirs to choose.
+    // that the run settings above it were theirs to choose.
     expect(html).toContain(`Begin the ${DEFAULT_SEASON_YEAR} season`);
-    expect(html).toContain("Preferences");
+    expect(html).toContain("Run settings");
   });
 
   it("says why the rest are dark", () => {

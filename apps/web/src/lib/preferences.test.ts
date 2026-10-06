@@ -12,12 +12,15 @@ import {
   parseRatingMode,
   readRandomness,
   readRatingMode,
+  readRunSettings,
   readSeasonYear,
   rememberRandomness,
   rememberRatingMode,
+  rememberRunSettings,
   rememberSeasonYear,
   STARTING_RANDOMNESS_LEVEL,
 } from "./preferences.js";
+import { HISTORICAL_SETTINGS, pointsTables } from "./run-settings.js";
 import { DEFAULT_SEASON_YEAR, isPlayable, LAST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
 const STORAGE_KEY = "alt-hist-rating-mode";
@@ -224,5 +227,46 @@ describe("remembering the year a picker opens on", () => {
     rememberSeasonYear(PLAYABLE_SEASONS.at(-1) ?? DEFAULT_SEASON_YEAR);
     expect(readRatingMode()).toBe("aged");
     expect(readRandomness()).toBe(5);
+  });
+});
+
+describe("remembering the run settings", () => {
+  const fixed = { points: pointsTables().at(-1)?.scale ?? [] };
+
+  it("survives without any storage at all", () => {
+    expect(typeof localStorage).toBe("undefined");
+    expect(readRunSettings()).toEqual(HISTORICAL_SETTINGS);
+    expect(() => {
+      rememberRunSettings(fixed);
+    }).not.toThrow();
+  });
+
+  it("reads back what it wrote", () => {
+    stubStorage();
+    rememberRunSettings(fixed);
+    expect(readRunSettings()).toEqual(fixed);
+  });
+
+  it("falls back to the historical settings for anything it could not have written", () => {
+    const junk = [
+      "",
+      "{",
+      "null",
+      "[]",
+      JSON.stringify({ points: "own" }),
+      JSON.stringify({ points: [100, 1] }),
+    ];
+    for (const raw of junk) {
+      stubStorage({ key: "alt-hist-run-settings", initial: raw });
+      expect(readRunSettings(), raw).toEqual(HISTORICAL_SETTINGS);
+    }
+  });
+
+  it("shrugs off storage that throws", () => {
+    stubStorage({ throws: true });
+    expect(readRunSettings()).toEqual(HISTORICAL_SETTINGS);
+    expect(() => {
+      rememberRunSettings(fixed);
+    }).not.toThrow();
   });
 });

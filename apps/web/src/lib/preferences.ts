@@ -1,8 +1,8 @@
 /**
  * Choices the reader makes that outlive a season.
  *
- * Three of them so far, and all are *simulation* inputs rather than display
- * ones — which ratings the field is built from, how much the dice decide, and
+ * All of them are *simulation* inputs rather than display ones — which ratings
+ * the field is built from, how much the dice decide, the run settings, and
  * which year a picker opens on.
  * That is what separates this module from `sort-preference.ts`: those are ways
  * of reading a list, these are answers the next season is run against.
@@ -23,6 +23,7 @@
 
 import { DEFAULT_RATING_MODE, RATING_MODES, type RatingMode } from "@alt-hist/data";
 import { parseRandomnessLevel, RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
+import { HISTORICAL_SETTINGS, parseRunSettings, type RunSettings } from "./run-settings.js";
 import { DEFAULT_SEASON_YEAR, isPlayable } from "./seasons.js";
 
 /** Where the choice is remembered between visits. */
@@ -45,6 +46,9 @@ const RANDOMNESS_KEY = "alt-hist-randomness";
  * The engine has no opinion about what is fun.
  */
 export const STARTING_RANDOMNESS_LEVEL: RandomnessLevel = RANDOMNESS_LEVELS[1] ?? 2;
+
+/** The run settings, as JSON. */
+const RUN_SETTINGS_KEY = "alt-hist-run-settings";
 
 /** And for the year a picker opens on — shared by both pickers, see below. */
 const YEAR_KEY = "alt-hist-season-year";
@@ -169,6 +173,38 @@ export function rememberSeasonYear(year: number): void {
   }
   try {
     localStorage.setItem(YEAR_KEY, String(year));
+  } catch {
+    // Remembering is a convenience; failing to is not worth surfacing.
+  }
+}
+
+/**
+ * The run settings the next run's setup screen opens on.
+ *
+ * Remembered for the reason the randomness level is: a reader replaying the
+ * same what-if should not have to choose it again. Checked with
+ * `parseRunSettings`, as the recipe is, so a table that is no longer authored,
+ * or anything else in the slot, falls back to the historical settings.
+ */
+export function readRunSettings(): RunSettings {
+  if (typeof localStorage === "undefined") {
+    return HISTORICAL_SETTINGS;
+  }
+  try {
+    const stored = localStorage.getItem(RUN_SETTINGS_KEY);
+    return (stored === null ? null : parseRunSettings(JSON.parse(stored))) ?? HISTORICAL_SETTINGS;
+  } catch {
+    return HISTORICAL_SETTINGS;
+  }
+}
+
+/** Remembers the run settings for the next season or era started. */
+export function rememberRunSettings(settings: RunSettings): void {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  try {
+    localStorage.setItem(RUN_SETTINGS_KEY, JSON.stringify(settings));
   } catch {
     // Remembering is a convenience; failing to is not worth surfacing.
   }

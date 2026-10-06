@@ -1,3 +1,4 @@
+import { type Setting, whatIfsOf } from "../lib/run-settings.js";
 import type { World } from "../store/season.js";
 import { randomnessLabel } from "./RandomnessSlider.js";
 
@@ -18,14 +19,17 @@ import { randomnessLabel } from "./RandomnessSlider.js";
  * small muted line for the same reason: it has to still fit when there are four.
  */
 
-export interface Setting {
-  readonly name: string;
-  readonly value: string;
-}
+export type { Setting };
 
-/** The settings one world was run under. The only place the list is written. */
-export function settingsOf(world: Pick<World, "randomness">): readonly Setting[] {
-  return [{ name: "Randomness", value: randomnessLabel(world.randomness) }];
+/**
+ * The settings one world was run under: its randomness, then every run setting
+ * that is not historical (`whatIfsOf`). The only place the list is written.
+ */
+export function settingsOf(world: Pick<World, "randomness" | "settings">): readonly Setting[] {
+  return [
+    { name: "Randomness", value: randomnessLabel(world.randomness) },
+    ...whatIfsOf(world.settings),
+  ];
 }
 
 export function SimulationSettings({

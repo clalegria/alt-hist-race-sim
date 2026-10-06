@@ -18,6 +18,7 @@ import {
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
+import { pointsTables, samePoints } from "../lib/run-settings.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Place } from "../lib/timeline.js";
 import {
@@ -451,6 +452,37 @@ describe("restarting the era", () => {
     const before = active();
     useSeasonStore.getState().restartEra();
     expect(active()).toBe(before);
+  });
+});
+
+describe("a points table kept across an era", () => {
+  /** A table other than the first year's own, so a pass cannot be the default showing through. */
+  const other =
+    pointsTables().find((table) => !samePoints(table.scale, seasonSeed(YEAR).points))?.scale ?? [];
+  const fixed = { points: other };
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, fixed);
+  });
+
+  it("scores every following year on it", () => {
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    jumpThrough(running().world.year);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    for (const year of [...run.seasons, world]) {
+      expect(year.settings, `${year.year}`).toEqual(fixed);
+      expect(year.points, `${year.year}`).toEqual(other);
+    }
+  });
+
+  it("survives Restart era", () => {
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().restartEra();
+    expect(running().world.year).toBe(YEAR);
+    expect(running().world.points).toEqual(other);
   });
 });
 
