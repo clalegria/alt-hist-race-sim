@@ -30,8 +30,7 @@ UI: **never the author's own Chrome**, and no browser MCP without asking first.
   browser history through a run and raises the exit dialog past its start — the one
   place the blocker runs in a real browser. A `page.goto()` ahead of the cursor is a
   reload the run survives, onto the "Not reached yet" page; the steps after it reload
-  onto the people pages. Once the Share link lands each `reach` can
-  become a `page.goto()` of one and the runner does not change.
+  onto the people pages.
 - Output is `NN-<step>-<desktop|phone>-<light|dark>.png`. A page error, a console error
   or Vite's error overlay makes the run fail.
 

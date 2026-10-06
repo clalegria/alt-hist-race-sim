@@ -50,22 +50,8 @@ session per step; its open questions live there.
 
 Builds three of the advanced era's run settings early — the frozen grid, historical
 careers, random car development — in `era-basic`, where the advanced era inherits them.
-Before the Share link (*routing and the app shell*), because each setting is a field of
-the recipe a link will carry, and the recipe's format goes public with it.
 
-## 2. Routing and the app shell
-
-Turns the app from one flow into a world the reader can browse: a persistent top
-navigation, a page per driver, team, season and session that stops at the reveal cursor,
-back and forward that move between places but never through time, a run that survives a
-reload, and a Share link. **Designed in `docs/design/app-shell.md`** — the navigation
-model, the URL scheme, each page, how a run ends, how it is ready for the market and game
-mode, and its own build order, one session per step. Its open questions live there.
-
-Before the editor, which adds screens, and before *publish it*, because a shared link
-makes the URL scheme a public contract: change it and every link out there breaks.
-
-## 3. Phone layout
+## 2. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -85,7 +71,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 4. The in-app ratings editor
+## 3. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -114,7 +100,7 @@ chassis for one run (`stepChassis`); this item is the editor that changes the da
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 5. Publish it
+## 4. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -152,16 +138,16 @@ author's address to every scraper, permanently; a hosted form adds a dependency 
 privacy obligations. Whichever it is, **the page's job is to make the report
 reproducible**: pre-fill the seed, the season, the rating mode, the randomness level and
 a build identifier, because a seeded simulation with those five facts reproduces exactly
-and without them a bug report is a ghost story. The Share link from *routing and the app
-shell* carries all of it. That identifier is the reason to put a version stamp in the
-footer here.
+and without them a bug report is a ghost story. The run's recipe
+(`.claude/rules/web-persistence.md`) already holds all but the build identifier, which is
+the reason to put a version stamp in the footer here.
 
 ***Going live.***
 
 - **Hosting.** Any static host works. GitHub Pages needs no new account but serves a
   project site from a subpath, which means setting `base` in `apps/web/vite.config.ts`
-  and a router that agrees, and deep links need a workaround there (*routing and the app
-  shell*); Netlify or Cloudflare Pages avoid both. Pick one — moving
+  and a router that agrees, and deep links (`/run/…` answering with `index.html`) need a
+  workaround there; Netlify or Cloudflare Pages avoid both. Pick one — moving
   later is an afternoon. A domain is optional: every host gives a free subdomain that can
   be replaced later. If buying one, **turn on WHOIS privacy** — without it, registration
   publishes the registrant's real name, address, phone and email.
@@ -191,7 +177,7 @@ footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 6. Historical career records
+## 5. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -216,7 +202,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 7. Seasonal factors
+## 6. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -225,7 +211,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 8. Circuit character
+## 7. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -241,7 +227,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 9. Driver market
+## 8. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -250,12 +236,12 @@ evolution, car development), pre-season testing, and its own build order. Its op
 questions live there, not in `docs/DECISIONS.md`.
 
 Needs ageing and more than one season to move between, hence its place here. Leans on
-*historical career records* for reputations and on *routing and the app shell* for the
-next-season grid and the event feed. This is where the substitution point left clean in
+*historical career records* for reputations and on the app shell
+(`docs/design/app-shell.md`) for the next-season grid and the event feed. This is where the substitution point left clean in
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 10. Game mode
+## 9. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
@@ -263,6 +249,13 @@ multi-season simulation — it is *era-advanced* seen from inside one team, so i
 everything the market needs and a decision loop besides. Its notes — mini-games, what
 the player may see, why its seasons simulate round by round — are in
 `docs/design/era-advanced.md`.
+
+## Someday: the Share link
+
+A link that rebuilds a run on someone else's machine. A nice-to-have, not needed to
+publish, and unscheduled. Designed in `docs/design/app-shell.md` §8; the reload recipe is
+its starting point, and its format waits on *what a saved or shared run replays against*
+(`docs/DECISIONS.md`).
 
 ## Stack for later phases
 

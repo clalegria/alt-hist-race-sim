@@ -33,7 +33,7 @@ tunable numbers live in `packages/engine/src/market/constants.ts` and are the au
   Otherwise adding one market roll shifts every race after it. The engine has no
   substream facility yet, and an era chains each year's seed off the race stream
   (`nextSeed` in `apps/web/src/lib/seed.ts`), so this changes what every era seed
-  produces — cheapest before the Share link is published.
+  produces — cheapest before a save file or a Share link exists.
 - **PROPOSED** — **Deterministic event ordering**: pending events and signing turns are
   processed in a fixed, seeded order, or one seed stops reproducing one grid.
 - **PROPOSED** — **What is stored and what is derived.** *Stored*, as the record of what
@@ -57,8 +57,8 @@ tunable numbers live in `packages/engine/src/market/constants.ts` and are the au
 
 ## 3. Run settings
 
-Chosen before the run starts, like the randomness level, and part of what a Share link
-records. The *historical* options read season files after the run has diverged, so they
+Chosen before the run starts, like the randomness level, and part of the run's recipe
+(`.claude/rules/web-persistence.md`). The *historical* options read season files after the run has diverged, so they
 depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 
 **The frozen grid, career events on or off, and random car development are built first
@@ -218,7 +218,7 @@ What follows is only what stays advanced.
 
 - **DECIDED** — A "next season grid" with open seats, updated as signings happen, and an
   event feed as signings, sackings, retirements and team changes occur. Both are pages in
-  the app shell (*routing and the app shell* in `docs/ROADMAP.md`) and, like every page,
+  the app shell (`docs/design/app-shell.md`) and, like every page,
   show nothing past the reveal cursor.
 - **PROPOSED** — Rumoured seats drawn apart from confirmed ones (dotted, question-marked),
   so the grid visibly firms up through the season.

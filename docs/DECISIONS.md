@@ -30,8 +30,8 @@ than only authored by hand, is open.
 
 A recipe (seed, year, settings, grid edits) reproduces a run only on the same data and
 engine, and the data moves two ways: the author retunes it between builds, and a reader
-edits it in the ratings editor. Blocks the Share link's format (*routing and the app
-shell*) and the editor's export. The options are not exclusive:
+edits it in the ratings editor. Blocks the editor's export, and someday the Share link's
+format (`docs/design/app-shell.md` §8). The options are not exclusive:
 
 - **Stamp a hash** of the data and engine in every link and save; warn on a mismatch.
   The reload recipe already carries a fingerprint of each world it rebuilds

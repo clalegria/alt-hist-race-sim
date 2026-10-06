@@ -7,9 +7,9 @@ gate, the season page and session links, the run bar, the ways out of a run, sur
 a reload, and the driver and team pages — is `.claude/rules/web-routing.md`,
 `.claude/rules/web-season-pages.md`, `.claude/rules/web-run-bar.md`,
 `.claude/rules/web-persistence.md`, `.claude/rules/web-people-pages.md` and
-`.claude/rules/web-app.md`. Where it sits in the
-build order is *routing and the app shell* in `docs/ROADMAP.md`; §10 is its own build
-order, one step per session.
+`.claude/rules/web-app.md`. What is left is the seams the market and game mode
+build on (§2, §9) and the Share link (§8), which is unscheduled (*Someday* in
+`docs/ROADMAP.md`).
 
 - **DECIDED** — the author's decision.
 - **PROPOSED** — a suggested design. Confirm with the author before building on it.
@@ -53,8 +53,8 @@ run's first page, and Start while a run exists (`.claude/rules/web-run-bar.md`).
 ## 4. Routes
 
 **PROPOSED** — the URL scheme. Public once *publish it* ships: renaming a route then
-breaks every shared link. Built so far: everything below but `/about`, `/report` and
-`/share` (`.claude/rules/web-routing.md`).
+breaks every bookmark. Built: everything below but `/about` and `/report` (*publish it*)
+and `/share` (§8) (`.claude/rules/web-routing.md`).
 
 ```
 /                              home: mode cards (+ Resume run while one exists)
@@ -110,11 +110,11 @@ through a door that cuts the run at the cursor, and passes props to a component.
 
 ## 8. Sharing and saving
 
-Four different things, built at different times. **Only the first is in this item.**
+Four different things, built at different times. None is scheduled.
 
 | | What it carries | Survives a new build? | When |
 |---|---|---|---|
-| **Share link** | the recipe and how far through | no — replays | this item |
+| **Share link** | the recipe and how far through | no — replays | someday |
 | **Save file** | recipe *and* every world (snapshot) | yes | the ratings editor |
 | **Read-only view** | a snapshot, opened with no Continue | yes | after save files |
 | **Account / other device** | a save file, uploaded | yes | a backend phase |
@@ -142,15 +142,3 @@ Nothing here builds them; these rules keep them a matter of adding, not reworkin
 4. **Navigation is data** (§5; the top nav's `lib/areas.ts`): Inbox, Market, *Next season's grid*, My team
    (`era-advanced.md` §12) are rows, each with an optional unread count.
 5. **Every page goes through `revealed()`** — events and next season's grid included.
-
-## 10. Build order
-
-One session each, in order; each ends green and documented in `.claude/rules/`, leaving
-this file smaller.
-
-1. **Share.** The link and the `/share` entry route. The reload recipe is its
-   starting point.
-2. **Screenshots from URLs** (`.claude/rules/screenshots.md`), then a candidate visual
-   check in CI.
-
-Deep links on the host (`/run/…` answering with `index.html`) are settled in *publish it*.
