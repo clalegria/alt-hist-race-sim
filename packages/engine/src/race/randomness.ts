@@ -14,8 +14,8 @@
  *
  * **Only pace scatter moves.** The factor scales the two noise sigmas and
  * nothing else. Reliability is deliberately left alone — a chaotic season is an
- * unpredictable one, not a season of blown engines — and is expected to get its
- * own separate setting rather than being folded into this one. Grid advantage,
+ * unpredictable one, not a season of blown engines — and has settings of its own
+ * (`breakdowns.ts`, and the retirement factor). Grid advantage,
  * home advantage, the consistency penalty and the powertrain weights are all
  * untouched for the same reason: they are what a rating *means*, and this is a
  * knob over the noise, not over the field.

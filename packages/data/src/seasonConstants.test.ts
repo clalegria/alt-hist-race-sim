@@ -1,4 +1,5 @@
 import {
+  breakdownScale,
   RACE_CONSTANTS,
   UNSCALED_RANDOMNESS_LEVEL,
   withRandomness,
@@ -70,6 +71,44 @@ describe("seasonConstants", () => {
     // instead of at some arithmetic on a nonsense number.
     for (const factor of [0, 11, 4.5, Number.NaN]) {
       expect(seasonConstants(season(factor), UNSCALED_RANDOMNESS_LEVEL)).toBe(RACE_CONSTANTS);
+    }
+  });
+
+  it("is still the constants themselves with no run settings", () => {
+    expect(seasonConstants(season(5), UNSCALED_RANDOMNESS_LEVEL, undefined, {})).toBe(
+      RACE_CONSTANTS,
+    );
+    expect(
+      seasonConstants(season(5), UNSCALED_RANDOMNESS_LEVEL, undefined, {
+        breakdowns: "realistic",
+      }),
+    ).toBe(RACE_CONSTANTS);
+  });
+
+  it("races its cars on another season's factor, and its drivers on its own", () => {
+    const constants = seasonConstants(season(2), UNSCALED_RANDOMNESS_LEVEL, undefined, {
+      mechanicalFactor: 8,
+    });
+    const other = seasonConstants(season(8), UNSCALED_RANDOMNESS_LEVEL);
+    const own = seasonConstants(season(2), UNSCALED_RANDOMNESS_LEVEL);
+    expect(constants.mechanicalDnfEraScale).toBe(other.mechanicalDnfEraScale);
+    expect(constants.driverErrorDnfAtZeroComposure).toBe(own.driverErrorDnfAtZeroComposure);
+    expect(constants.driverErrorDnfAtFullComposure).toBe(own.driverErrorDnfAtFullComposure);
+    expect(
+      seasonConstants(season(5), UNSCALED_RANDOMNESS_LEVEL, undefined, { mechanicalFactor: 5 }),
+    ).toBe(RACE_CONSTANTS);
+  });
+
+  it("scales the mechanical risk by Breakdowns on top of the factor, and driver error not at all", () => {
+    for (const breakdowns of ["fewer", "none"] as const) {
+      const constants = seasonConstants(season(9), 5, undefined, { breakdowns });
+      const without = seasonConstants(season(9), 5);
+      expect(constants.mechanicalDnfEraScale).toBeCloseTo(
+        without.mechanicalDnfEraScale * breakdownScale(breakdowns),
+      );
+      expect(constants.driverErrorDnfAtZeroComposure).toBe(without.driverErrorDnfAtZeroComposure);
+      expect(constants.driverErrorDnfAtFullComposure).toBe(without.driverErrorDnfAtFullComposure);
+      expect(constants.racingNoise).toBe(without.racingNoise);
     }
   });
 });

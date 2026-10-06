@@ -103,7 +103,7 @@ export {
   withAge,
 } from "./people.js";
 export { carOverall, carRacing, compareByRating, driverOverall, type Rated } from "./rating.js";
-export { seasonConstants } from "./seasonConstants.js";
+export { type SeasonConstantsRun, seasonConstants } from "./seasonConstants.js";
 export {
   authoredSeasons,
   FIRST_AUTHORED_SEASON,

@@ -1,6 +1,7 @@
 ---
 paths:
   - "packages/engine/src/race/retirement.ts"
+  - "packages/engine/src/race/breakdowns.ts"
   - "packages/data/src/seasonConstants.ts"
   - "packages/data/src/seasons/**"
   - "tools/calibrate/src/retirements.ts"
@@ -39,6 +40,22 @@ matter how far it turned.
 
 It does not touch pace. A fragile era is not a random one; that is the randomness
 level, and the two compose because they scale disjoint constants.
+
+## Two run settings over it
+
+The app's Races settings (`docs/design/run-settings.md`, `.claude/rules/web-setup.md`)
+reach the constants through `seasonConstants`'s fourth argument, `run`, built by
+`runConstants` in the web store. Both are identities when historical.
+
+- **Reliability: As in ⟨year⟩** breaks every year's cars down at that season's
+  `retirementFactor` — `withRetirementFactor`'s third argument, `mechanical` — while
+  driver error keeps the year's own. Cars only, so under Breakdowns: None it has
+  nothing to scale: the setup screen greys it out and `createWorld` drops it.
+- **Breakdowns** (`race/breakdowns.ts`) multiplies `mechanicalDnfEraScale` only —
+  Realistic 1, Fewer 0.5, None 0 — on top of the factor, and returns the constants by
+  identity at Realistic. **Driver error is untouched**: composure is a driver rating, so
+  None means no car fails, not that nobody crashes out. The weather multiplies the same
+  field, so a zero stays zero in the wet.
 
 ## The uncomfortable finding: the ratings carry almost none of the era
 

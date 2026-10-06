@@ -6,6 +6,7 @@ import {
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
   reserveDrivers,
+  seasonConstants,
   seasonSeed,
   seasons,
   stepChassis,
@@ -19,9 +20,16 @@ import {
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { HISTORICAL_SETTINGS, pointsTables, samePoints } from "../lib/run-settings.js";
-import { adjacentSeason } from "../lib/seasons.js";
+import { adjacentSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
-import { createWorld, isUntouched, type Run, useSeasonStore, type World } from "./season.js";
+import {
+  createWorld,
+  isUntouched,
+  type Run,
+  runConstants,
+  useSeasonStore,
+  type World,
+} from "./season.js";
 
 /** The year these fixtures run in, and the seats it enters. */
 const YEAR = FIRST_AUTHORED_SEASON;
@@ -500,7 +508,7 @@ describe("the randomness level", () => {
 describe("the points setting", () => {
   /** A table other than the year's own, so a pass cannot be the default showing through. */
   const other = pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
-  const fixed = { points: other };
+  const fixed = { ...HISTORICAL_SETTINGS, points: other };
 
   it("leaves a historical run scored on the year's own table", () => {
     useSeasonStore.getState().simulate(3, YEAR);
@@ -542,6 +550,76 @@ describe("the points setting", () => {
     useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
+describe("the reliability and breakdowns settings", () => {
+  /** A year whose retirement factor is not YEAR's, so a pass cannot be YEAR's own showing through. */
+  const harder = PLAYABLE_SEASONS.find(
+    (year) => seasonSeed(year).retirementFactor !== SEED.retirementFactor,
+  );
+  const level = DEFAULT_RANDOMNESS_LEVEL;
+
+  it("leave a historical run on the year's own constants", () => {
+    expect(runConstants(SEED, level, HISTORICAL_SETTINGS)).toEqual(seasonConstants(SEED, level));
+  });
+
+  it("break the year's cars down at the rate of the year Reliability names, and its drivers at its own", () => {
+    expect(harder).toBeDefined();
+    const year = harder ?? YEAR;
+    const constants = runConstants(SEED, level, { ...HISTORICAL_SETTINGS, reliability: year });
+    const other = seasonConstants(seasonSeed(year), level);
+    const own = seasonConstants(SEED, level);
+    expect(constants.mechanicalDnfEraScale).toBe(other.mechanicalDnfEraScale);
+    expect(constants.mechanicalDnfEraScale).not.toBe(own.mechanicalDnfEraScale);
+    expect(constants.driverErrorDnfAtZeroComposure).toBe(own.driverErrorDnfAtZeroComposure);
+    expect(constants.driverErrorDnfAtFullComposure).toBe(own.driverErrorDnfAtFullComposure);
+  });
+
+  it("record no Reliability under Breakdowns: None, where it changes nothing", () => {
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, {
+      ...HISTORICAL_SETTINGS,
+      breakdowns: "none",
+      reliability: harder ?? YEAR,
+    });
+    expect(world.settings).toEqual({ ...HISTORICAL_SETTINGS, breakdowns: "none" });
+  });
+
+  it("race the same season as history when Reliability names the year itself", () => {
+    const own = createWorld(3, YEAR, "peak", null, null, undefined, null, null, {
+      ...HISTORICAL_SETTINGS,
+      reliability: YEAR,
+    });
+    expect(own.season).toEqual(createWorld(3, YEAR).season);
+  });
+
+  it("break no car down under None", () => {
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, {
+      ...HISTORICAL_SETTINGS,
+      breakdowns: "none",
+    });
+    const mechanical = world.season.races
+      .flatMap((race) => race.entries)
+      .filter((entry) => entry.dnfCause === "mechanical");
+    expect(mechanical).toEqual([]);
+  });
+
+  it("are carried by every action that rebuilds the year", () => {
+    const fixed = {
+      ...HISTORICAL_SETTINGS,
+      breakdowns: "fewer" as const,
+      reliability: harder ?? YEAR,
+    };
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
+    useSeasonStore.getState().setRatingMode("aged");
+    useSeasonStore.getState().setGrid(null, null);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.settings).toEqual(fixed);
+    const next = adjacentSeason(YEAR, 1);
+    if (next !== null) {
+      useSeasonStore.getState().switchSeasonYear(next);
+      expect(running().world.settings).toEqual(fixed);
+    }
   });
 });
 

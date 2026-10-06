@@ -14,10 +14,20 @@
  * Pure: no storage here (`preferences.ts` reads and writes it).
  */
 
-import type { PointsScale } from "@alt-hist/engine";
-import { PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
+import type { Breakdowns, PointsScale } from "@alt-hist/engine";
+import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
+
+/** The Breakdowns answers that are what-ifs; Realistic is null. */
+export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
 export interface RunSettings {
+  /** How often cars break down: fewer, none, or null for as often as each year's did. */
+  readonly breakdowns: FewerBreakdowns | null;
+  /**
+   * The season whose `retirementFactor` every year's cars break down at, or
+   * null for each year's own. Driver error keeps the year's own. A playable year.
+   */
+  readonly reliability: number | null;
   /**
    * The points table every year is scored on, or null for each year's own.
    * Only ever one of `pointsTables()`: the reader picks an authored table,
@@ -27,7 +37,30 @@ export interface RunSettings {
 }
 
 /** Every setting on its historical answer: the run as it happened. */
-export const HISTORICAL_SETTINGS: RunSettings = { points: null };
+export const HISTORICAL_SETTINGS: RunSettings = {
+  breakdowns: null,
+  reliability: null,
+  points: null,
+};
+
+/**
+ * The settings that change a run: Reliability only sets how often cars break
+ * down, so under Breakdowns: None it is dropped. The setup screen keeps the
+ * reader's choice (greyed out) so switching back restores it; a world records
+ * only what is in force.
+ */
+export function settingsInForce(settings: RunSettings): RunSettings {
+  return settings.breakdowns === "none" && settings.reliability !== null
+    ? { ...settings, reliability: null }
+    : settings;
+}
+
+/** What the reader is shown for each Breakdowns answer. */
+export const BREAKDOWNS_LABELS: Readonly<Record<Breakdowns, string>> = {
+  realistic: "Realistic",
+  fewer: "Fewer",
+  none: "None",
+};
 
 /** One line of a run's settings, as `SimulationSettings` draws it. */
 export interface Setting {
@@ -110,26 +143,61 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 
 /**
  * The settings `raw` describes, or null when it is not settings this build
- * could have produced: a missing field, or a points table that is not one of
- * the authored ones. Takes `unknown` because both callers read storage the
- * reader controls.
+ * could have produced: a missing field, a points table that is not one of the
+ * authored ones, a year with no season, or a Breakdowns answer that is not a
+ * what-if. Takes `unknown` because both callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw) || !("points" in raw)) {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return null;
   }
-  const { points } = raw;
+  if (!("points" in raw && "breakdowns" in raw && "reliability" in raw)) {
+    return null;
+  }
+  const points = parsePoints(raw.points);
+  const breakdowns = parseFewerBreakdowns(raw.breakdowns);
+  const reliability = parseReliability(raw.reliability);
+  if (points === undefined || breakdowns === undefined || reliability === undefined) {
+    return null;
+  }
+  return { breakdowns, reliability, points };
+}
+
+/** Each of these is the field's value, or undefined when it is not one this build offers. */
+function parsePoints(points: unknown): PointsScale | null | undefined {
   if (points === null) {
-    return { points: null };
+    return null;
   }
   if (!Array.isArray(points)) {
+    return undefined;
+  }
+  return pointsTables().find((known) => samePoints(known.scale, points))?.scale;
+}
+
+function parseFewerBreakdowns(breakdowns: unknown): FewerBreakdowns | null | undefined {
+  return breakdowns === null || breakdowns === "fewer" || breakdowns === "none"
+    ? breakdowns
+    : undefined;
+}
+
+function parseReliability(year: unknown): number | null | undefined {
+  if (year === null) {
     return null;
   }
-  const table = pointsTables().find((known) => samePoints(known.scale, points));
-  return table === undefined ? null : { points: table.scale };
+  return typeof year === "number" && Number.isInteger(year) && isPlayable(year) ? year : undefined;
 }
 
 /** One line per setting that is not historical, in the order the setup card lists them. */
 export function whatIfsOf(settings: RunSettings): readonly Setting[] {
-  return settings.points === null ? [] : [{ name: "Points", value: pointsValues(settings.points) }];
+  const lines: Setting[] = [];
+  if (settings.breakdowns !== null) {
+    lines.push({ name: "Breakdowns", value: BREAKDOWNS_LABELS[settings.breakdowns] });
+  }
+  if (settings.reliability !== null) {
+    lines.push({ name: "Reliability", value: `as in ${settings.reliability}` });
+  }
+  if (settings.points !== null) {
+    lines.push({ name: "Points", value: pointsValues(settings.points) });
+  }
+  return lines;
 }

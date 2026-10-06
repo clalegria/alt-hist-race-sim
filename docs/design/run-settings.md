@@ -2,10 +2,11 @@
 
 What-if settings chosen on the setup screen before a run starts, beside Randomness: car
 performance, career events, team names, teams and seats, breakdowns, reliability and
-points. Points and the plumbing every setting shares (`World.settings`, the Run settings
-card) are built and documented in `.claude/rules/web-setup.md` and `web-store.md`; the
-rest is design intent. Where it sits in the build order is *run settings* in
-`docs/ROADMAP.md`; §9 is its own build order, one step per session.
+points. The Races group — breakdowns, reliability, points — and the plumbing every
+setting shares (`World.settings`, the Run settings card) are built and documented in
+`.claude/rules/web-setup.md`, `web-store.md` and `retirement-factor.md`; the rest is
+design intent. Where it sits in the build order is *run settings* in `docs/ROADMAP.md`;
+§8 is its own build order, one step per session.
 
 Three of these are settings `docs/design/era-advanced.md` §3 decided for the advanced
 era — the frozen grid, historical careers, random car development. They are built here
@@ -20,7 +21,7 @@ first, in `era-basic`, and the advanced era inherits them.
 ## 1. Principles
 
 - **DECIDED** — Car performance, career events, team names, and teams and seats are on
-  the **era setup only**. Breakdowns, reliability and points are on both (§8).
+  the **era setup only** (§7).
 - **PROPOSED** — Every setting's first option is the historical one, and it is the
   default. All-historical is today's run exactly: no draw is made and no field changes,
   so tests and harnesses are untouched until a reader picks something else.
@@ -34,11 +35,7 @@ first, in `era-basic`, and the advanced era inherits them.
 
 ```
  Run settings                       Chosen now, fixed for the whole era
- ─ Races ──────────────────────────────────────────────────────────────
-  Randomness        Realistic · Balanced · Exciting · … · Chaotic
-  Breakdowns        [ Realistic | Fewer | None ]
-  Reliability       [ Each year's own | As in ⟨1995 ▾⟩ ]
-  Points            [ Each year's own | Same all run: ⟨2010–2026 · 25 18 15 … ▾⟩ ]
+ ─ Races (built) ──────────────────────────────────────────────────────
  ─ Cars ─────────────────────────────── (era only from here down) ─────
   Car performance   [ Historical | Varied | Random ]
     Varied:  up to ±  2 · 5 · 10 · 20 · 30
@@ -52,9 +49,9 @@ first, in `era-basic`, and the advanced era inherits them.
 
 - **(b) is "Career events", never "form"**: the market owns *form*
   (`era-advanced.md` §4).
-- **One segmented control per setting**, so every row reads historical-versus-what-if the
-  same way, and a third option (random careers, an intermediate grid) is one more
-  segment. The Varied sub-controls show only under Varied.
+- **One segmented control per setting** (`SettingSegments`), so every row reads
+  historical-versus-what-if the same way, and a third option (random careers, an
+  intermediate grid) is one more segment. The Varied sub-controls show only under Varied.
 
 ## 3. Car performance
 
@@ -138,43 +135,23 @@ first, in `era-basic`, and the advanced era inherits them.
   carry-over stops only at 55). Accept it in era-basic and leave it to the advanced
   era's Retirement setting?
 
-## 7. Breakdowns and reliability
-
-Each season's `retirementFactor` scales mechanical failure **and** driver error together,
-and carries almost all of the difference between eras (`.claude/rules/retirement-factor.md`).
-
-- **DECIDED** — **Breakdowns**: Realistic / Fewer / None — how often cars fail.
-  - **PROPOSED** — A multiplier on the **mechanical** roll only, on top of the year's
-    factor. Driver error stays: it is a driver rating. None is no mechanical failures,
-    not no retirements.
-  - **PROPOSED** — `packages/engine/src/race/reliability.ts`, shaped like `randomness.ts`:
-    a derived copy of the constants, returned by identity at Realistic, composed in
-    `seasonConstants`.
-  - **OPEN** — The Fewer multiplier: a new number, the author's.
-- **DECIDED** — Whether reliability is era-accurate. **PROPOSED** form: **Reliability: Each
-  year's own / As in ⟨year⟩**, one season's `retirementFactor` for every year of the run.
-  The picker defaults to the start year.
-
-## 8. Which screen
+## 7. Which screen
 
 - **DECIDED** — Era setup only: car performance, career events, team names, teams and
   seats.
-- **PROPOSED** — Both setup screens: breakdowns and reliability, beside randomness and points — each
-  makes sense for one season (1985 on today's points, 1955 with 2024 reliability).
 - **PROPOSED** — Eight rows on the era screen. If it reads long, *Teams over the years*
   goes behind a *More settings* disclosure that summarises any non-historical choice in
   one line when closed.
 
-## 9. Build order
+## 8. Build order
 
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Reliability**: *As in ⟨year⟩* and the Breakdowns multiplier.
-2. **Career events.**
-3. **Team names**: the identity year.
-4. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
+1. **Career events.**
+2. **Team names**: the identity year.
+3. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
    and the baseline-not-edit change.
-5. **Car performance from last year's car**: the walk.
-6. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
+4. **Car performance from last year's car**: the walk.
+5. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
    and the jump stopping early.

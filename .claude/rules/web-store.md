@@ -88,7 +88,8 @@ changes it — `setRatingMode`, `setGrid` and `restartSeason` all carry it forwa
 era carries `last.randomness` into every following year, so a run is one championship
 under one set of rules. **`world.settings`** (`RunSettings`, `lib/run-settings.ts`) is
 chosen, carried and remembered exactly the same way, through every action that rebuilds
-a year and into every year of an era; `createWorld` takes it last. The grid stage states
+a year and into every year of an era; `createWorld` takes it last, and races on
+`runConstants(entered, randomness, settings)` — the one place settings reach the model. The grid stage states
 the level (`RandomnessNote`) and any non-historical setting beneath it, and offers no
 control; the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming

@@ -10,8 +10,10 @@ import {
 } from "../lib/preferences.js";
 import type { RunSettings } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
+import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
+import { ReliabilitySetting } from "./ReliabilitySetting.js";
 import { RunSettingsCard, RunSettingsGroup } from "./RunSettingsCard.js";
 import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
@@ -112,6 +114,20 @@ export function SeasonPicker({
             onChange={(level) => {
               setRandomness(level);
               rememberRandomness(level);
+            }}
+          />
+          <BreakdownsSetting
+            breakdowns={settings.breakdowns}
+            onChange={(breakdowns) => {
+              changeSettings({ ...settings, breakdowns });
+            }}
+          />
+          <ReliabilitySetting
+            reliability={settings.reliability}
+            year={year}
+            disabled={settings.breakdowns === "none"}
+            onChange={(reliability) => {
+              changeSettings({ ...settings, reliability });
             }}
           />
           <PointsSetting

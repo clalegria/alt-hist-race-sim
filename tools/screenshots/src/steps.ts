@@ -168,7 +168,10 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
       await pickYear(page, `Start an era in ${YEAR}`);
-      // A what-if on the era, so its table picker and the line stating it are drawn.
+      // What-ifs on the era, so a picker, a greyed-out setting and the line
+      // stating them are drawn.
+      await button(page, "As in a year").click();
+      await button(page, "None").click();
       await button(page, "Same all run").click();
       await page.getByRole("combobox").waitFor();
     },

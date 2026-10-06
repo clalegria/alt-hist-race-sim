@@ -18,7 +18,12 @@ import {
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
-import { pointsTables, samePoints } from "../lib/run-settings.js";
+import {
+  HISTORICAL_SETTINGS,
+  pointsTables,
+  samePoints,
+  settingsInForce,
+} from "../lib/run-settings.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Place } from "../lib/timeline.js";
 import {
@@ -459,7 +464,7 @@ describe("a points table kept across an era", () => {
   /** A table other than the first year's own, so a pass cannot be the default showing through. */
   const other =
     pointsTables().find((table) => !samePoints(table.scale, seasonSeed(YEAR).points))?.scale ?? [];
-  const fixed = { points: other };
+  const fixed = { ...HISTORICAL_SETTINGS, points: other };
 
   beforeEach(() => {
     useSeasonStore.getState().simulateEra(5, YEAR, undefined, fixed);
@@ -483,6 +488,36 @@ describe("a points table kept across an era", () => {
     useSeasonStore.getState().restartEra();
     expect(running().world.year).toBe(YEAR);
     expect(running().world.points).toEqual(other);
+  });
+});
+
+describe("reliability and breakdowns kept across an era", () => {
+  it("keep a Reliability year in every following year", () => {
+    const fixed = { ...HISTORICAL_SETTINGS, breakdowns: "fewer" as const, reliability: LAST_YEAR };
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, fixed);
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    for (const year of [...run.seasons, world]) {
+      expect(year.settings, `${year.year}`).toEqual(fixed);
+    }
+  });
+
+  it("break no car down in any year under None, and record no Reliability", () => {
+    const fixed = { ...HISTORICAL_SETTINGS, breakdowns: "none" as const, reliability: LAST_YEAR };
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, fixed);
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    jumpThrough(running().world.year);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    for (const year of [...run.seasons, world]) {
+      expect(year.settings, `${year.year}`).toEqual(settingsInForce(fixed));
+      const mechanical = year.season.races
+        .flatMap((race) => race.entries)
+        .filter((entry) => entry.dnfCause === "mechanical");
+      expect(mechanical, `${year.year}`).toEqual([]);
+    }
   });
 });
 

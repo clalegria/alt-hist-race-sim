@@ -5,6 +5,9 @@ paths:
   - "apps/web/src/components/YearPicker.tsx"
   - "apps/web/src/components/RunSettingsCard.tsx"
   - "apps/web/src/components/PointsSetting.tsx"
+  - "apps/web/src/components/BreakdownsSetting.tsx"
+  - "apps/web/src/components/ReliabilitySetting.tsx"
+  - "apps/web/src/components/SettingSegments.tsx"
   - "apps/web/src/lib/run-settings.ts"
   - "apps/web/src/components/RandomnessSlider.tsx"
   - "apps/web/src/components/SimulationSettings.tsx"
@@ -60,12 +63,27 @@ is adding a child. What does not belong there is anything a reader can still cha
 a season exists; the ability toggle is on the grid for that reason.
 
 **A what-if setting** is a segmented control with the historical answer first and the
-default (`PointsSetting` is the pattern, copying `RatingModeToggle`'s button group), and
+default (`SettingSegments`, copying `RatingModeToggle`'s button group), and
 its value is **null when historical**, as `lineup` is. The values live in
 `lib/run-settings.ts`: `RunSettings`, `HISTORICAL_SETTINGS`, `parseRunSettings` (the one
 check for both the recipe and the remembered preference, which accepts only values this
 build could offer) and `whatIfsOf`, the settings line's entries for anything not
 historical. Remembered like Randomness (`readRunSettings` / `rememberRunSettings`).
+
+The Races group reads Randomness, **Breakdowns**, **Reliability**, Points, on both setup
+screens. What the first two do to the constants is `.claude/rules/retirement-factor.md`.
+
+- **Breakdowns** is *Realistic* / *Fewer* / *None*, stored as null / `"fewer"` /
+  `"none"` — `"realistic"` is refused by `parseRunSettings`, so there is one way to say
+  historical. Labels are `BREAKDOWNS_LABELS`.
+- **Reliability** is *Each year's own* or *As in a year*, stored as a playable year. A
+  year rather than the 1–10 factor, which is an authoring dial no reader knows. Switching
+  in picks the selected year; the native `select` lists `PLAYABLE_SEASONS` by decade.
+  It sets how often **cars** break down, so under Breakdowns: None it is greyed out
+  (`SettingSegments`' `disabled`, on the native `fieldset`). The picker and the
+  preference keep the reader's choice, so switching back restores it; `createWorld`
+  records only `settingsInForce`, which drops it, so no world claims a setting that
+  changed nothing.
 
 **Points** is *Each year's own* or *Same all run* with a native `select` of
 `pointsTables()`: the distinct tables in the seed data, labelled by their years and

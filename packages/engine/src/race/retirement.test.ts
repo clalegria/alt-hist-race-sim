@@ -91,6 +91,28 @@ describe("retirementScale", () => {
   });
 });
 
+describe("withRetirementFactor with a mechanical factor of its own", () => {
+  it("scales the mechanical risk by that factor and driver error by the season's", () => {
+    const constants = withRetirementFactor(2, RACE_CONSTANTS, 9);
+    expect(constants.mechanicalDnfEraScale).toBeCloseTo(
+      RACE_CONSTANTS.mechanicalDnfEraScale * retirementScale(9),
+    );
+    expect(constants.driverErrorDnfAtZeroComposure).toBeCloseTo(
+      RACE_CONSTANTS.driverErrorDnfAtZeroComposure * retirementScale(2),
+    );
+    expect(constants.driverErrorDnfAtFullComposure).toBeCloseTo(
+      RACE_CONSTANTS.driverErrorDnfAtFullComposure * retirementScale(2),
+    );
+  });
+
+  it("is the constants themselves when both are neutral, and one factor when they agree", () => {
+    expect(
+      withRetirementFactor(DEFAULT_RETIREMENT_FACTOR, RACE_CONSTANTS, DEFAULT_RETIREMENT_FACTOR),
+    ).toBe(RACE_CONSTANTS);
+    expect(withRetirementFactor(7, RACE_CONSTANTS, 7)).toEqual(withRetirementFactor(7));
+  });
+});
+
 describe("withRetirementFactor, raced", () => {
   it("retires more of the same field as the factor rises", () => {
     // The claim the whole feature rests on: one authored number per season,

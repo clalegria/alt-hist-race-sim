@@ -52,7 +52,7 @@ describe("the points setting", () => {
 });
 
 describe("a run's points, stated", () => {
-  const fixed = { points: other?.scale ?? [] };
+  const fixed = { ...HISTORICAL_SETTINGS, points: other?.scale ?? [] };
 
   it("is left out of the settings line while historical", () => {
     const world = createWorld(3, YEAR);

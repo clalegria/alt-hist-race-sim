@@ -12,8 +12,8 @@ import { randomnessLabel } from "./RandomnessSlider.js";
  * looking at. It is also the line to quote in a bug report.
  *
  * Deliberately a **list of settings, not a sentence about randomness**. The
- * settings are going to multiply — a reliability level of its own is already
- * planned, wet weather and circuit character are on the roadmap — so the shape
+ * settings multiply — Breakdowns, Reliability and Points already, with more to
+ * come — so the shape
  * that has to survive is "name: value, name: value", and adding one is a line in
  * `settingsOf` rather than a rewrite of the copy on two screens. Kept to one
  * small muted line for the same reason: it has to still fit when there are four.

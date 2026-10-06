@@ -23,6 +23,13 @@ export {
   type StepDown,
   seasonDeficits,
 } from "./progression/index.js";
+export {
+  BREAKDOWNS,
+  type Breakdowns,
+  breakdownScale,
+  parseBreakdowns,
+  withBreakdowns,
+} from "./race/breakdowns.js";
 export { driverErrorRisk } from "./race/composure.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./race/constants.js";
 export {

@@ -21,7 +21,7 @@ import {
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
 import { pointsTables, samePoints } from "../lib/run-settings.js";
-import { FIRST_SEASON, nextEraYear } from "../lib/seasons.js";
+import { FIRST_SEASON, nextEraYear, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { nextSeed } from "../lib/seed.js";
 import { fingerprint, RECIPE_VERSION, recipeOf, runFromRecipe } from "./recipe.js";
 import { createWorld, type Run, useSeasonStore } from "./season.js";
@@ -126,10 +126,14 @@ describe("a run rebuilt from its recipe", () => {
     expect(roundTrip(run)).toEqual(run);
   });
 
-  it("keeps a points table chosen for the whole era", () => {
+  it("keeps the run settings chosen for the whole era", () => {
     const other =
       pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
-    useSeasonStore.getState().simulateEra(9, YEAR, undefined, { points: other });
+    useSeasonStore.getState().simulateEra(9, YEAR, undefined, {
+      breakdowns: "fewer",
+      reliability: PLAYABLE_SEASONS.at(-1) ?? null,
+      points: other,
+    });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
     const run = current();

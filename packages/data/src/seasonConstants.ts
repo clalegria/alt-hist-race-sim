@@ -19,11 +19,13 @@
  */
 
 import {
+  type Breakdowns,
   DEFAULT_RANDOMNESS_LEVEL,
   parseRetirementFactor,
   RACE_CONSTANTS,
   type RaceConstants,
   type RandomnessLevel,
+  withBreakdowns,
   withRandomness,
   withRetirementFactor,
 } from "@alt-hist/engine";
@@ -50,14 +52,32 @@ import type { SeasonSeed } from "./types.js";
  * `base` is for a caller racing constants that are not in `constants.ts` yet —
  * the tuner's `--noise` candidates — so they are bent by the season exactly as
  * the written ones would be, rather than composed by hand at the call site.
+ *
+ * `run` is what the app's run settings change: another season's
+ * `retirementFactor` for the mechanical risk, and the Breakdowns multiplier on
+ * top of it. Driver error keeps this season's own factor. Both are identities
+ * when absent.
  */
 export function seasonConstants(
   season: SeasonSeed,
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
   base: RaceConstants = RACE_CONSTANTS,
+  run: SeasonConstantsRun = {},
 ): RaceConstants {
-  return withRetirementFactor(
-    parseRetirementFactor(season.retirementFactor),
-    withRandomness(randomness, base),
+  const factor = parseRetirementFactor(season.retirementFactor);
+  return withBreakdowns(
+    run.breakdowns ?? "realistic",
+    withRetirementFactor(
+      factor,
+      withRandomness(randomness, base),
+      run.mechanicalFactor === undefined ? factor : parseRetirementFactor(run.mechanicalFactor),
+    ),
   );
+}
+
+/** What a run's settings change about a season's constants. */
+export interface SeasonConstantsRun {
+  /** The retirement factor the mechanical risk takes instead of the season's own. */
+  readonly mechanicalFactor?: number;
+  readonly breakdowns?: Breakdowns;
 }

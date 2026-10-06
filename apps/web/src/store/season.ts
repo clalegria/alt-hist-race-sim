@@ -35,12 +35,14 @@ import {
   type SeasonChassis,
   type SeasonEngines,
   type SeasonLineup,
+  type SeasonSeed,
   seasonConstants,
 } from "@alt-hist/data";
 import {
   createRng,
   DEFAULT_RANDOMNESS_LEVEL,
   type PointsScale,
+  type RaceConstants,
   type RaceEntrant,
   type RandomnessLevel,
   type RngState,
@@ -55,7 +57,7 @@ import {
   rememberRatingMode,
   rememberSeasonYear,
 } from "../lib/preferences.js";
-import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
+import { HISTORICAL_SETTINGS, type RunSettings, settingsInForce } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
@@ -288,6 +290,26 @@ function nextEraGrid(
 }
 
 /**
+ * The constants a season races on under a run's settings: its randomness level,
+ * its cars on the retirement factor of the year Reliability names (its drivers
+ * always on the year's own), and the Breakdowns multiplier. Derived copies of the constants, never edits — and
+ * all-historical at the unscaled level, `RACE_CONSTANTS` itself.
+ */
+export function runConstants(
+  season: SeasonSeed,
+  randomness: RandomnessLevel,
+  settings: RunSettings,
+): RaceConstants {
+  return seasonConstants(season, randomness, undefined, {
+    mechanicalFactor:
+      settings.reliability === null
+        ? season.retirementFactor
+        : seasonSeed(settings.reliability).retirementFactor,
+    breakdowns: settings.breakdowns ?? "realistic",
+  });
+}
+
+/**
  * Runs a season from a seed and returns the world it produced.
  *
  * Pure: same seed and year in, same world out, no store involved. The store is
@@ -300,6 +322,9 @@ function nextEraGrid(
  * quietly re-derived the grid from the rule would show them a season they never
  * agreed to. Re-running a rule is `arrangedLineup`, and every caller that wants
  * it does so before calling this.
+ *
+ * `chosen` is kept as `settingsInForce`, so a world never records a setting
+ * that changed nothing about it.
  */
 export function createWorld(
   seed: number,
@@ -310,8 +335,9 @@ export function createWorld(
   randomness: RandomnessLevel = DEFAULT_RANDOMNESS_LEVEL,
   arrangement: GridArrangement | null = null,
   chassis: SeasonChassis | null = null,
-  settings: RunSettings = HISTORICAL_SETTINGS,
+  chosen: RunSettings = HISTORICAL_SETTINGS,
 ): World {
+  const settings = settingsInForce(chosen);
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
@@ -325,9 +351,12 @@ export function createWorld(
   const field = buildField(entered, undefined, ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
   // drivers and teams from it their home advantage.
-  // The level reaches the model as a derived copy of the constants, never as an
-  // edit to them — and at the unscaled level it *is* them, untouched.
-  const season = simulateSeason(field, entered.calendar, rng, seasonConstants(entered, randomness));
+  const season = simulateSeason(
+    field,
+    entered.calendar,
+    rng,
+    runConstants(entered, randomness, settings),
+  );
 
   return {
     seed,

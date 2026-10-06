@@ -118,18 +118,24 @@ export function retirementScale(factor: RetirementFactor): number {
  *
  * `simulateRace` clamps both risks into [0, 1] when it rolls them, so a high
  * factor cannot produce a probability above certainty.
+ *
+ * `mechanical` is for a run that races its cars as another year's (the app's
+ * Reliability setting): the mechanical risk takes that factor while driver
+ * error keeps `factor`. It defaults to `factor`, one multiplier over both.
  */
 export function withRetirementFactor(
   factor: RetirementFactor,
   constants: RaceConstants = RACE_CONSTANTS,
+  mechanical: RetirementFactor = factor,
 ): RaceConstants {
   const scale = retirementScale(factor);
-  if (scale === 1) {
+  const mechanicalScale = retirementScale(mechanical);
+  if (scale === 1 && mechanicalScale === 1) {
     return constants;
   }
   return Object.freeze({
     ...constants,
-    mechanicalDnfEraScale: constants.mechanicalDnfEraScale * scale,
+    mechanicalDnfEraScale: constants.mechanicalDnfEraScale * mechanicalScale,
     driverErrorDnfAtZeroComposure: constants.driverErrorDnfAtZeroComposure * scale,
     driverErrorDnfAtFullComposure: constants.driverErrorDnfAtFullComposure * scale,
   });

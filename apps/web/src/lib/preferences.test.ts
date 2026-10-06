@@ -20,7 +20,7 @@ import {
   rememberSeasonYear,
   STARTING_RANDOMNESS_LEVEL,
 } from "./preferences.js";
-import { HISTORICAL_SETTINGS, pointsTables } from "./run-settings.js";
+import { HISTORICAL_SETTINGS, pointsTables, type RunSettings } from "./run-settings.js";
 import { DEFAULT_SEASON_YEAR, isPlayable, LAST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
 const STORAGE_KEY = "alt-hist-rating-mode";
@@ -231,7 +231,11 @@ describe("remembering the year a picker opens on", () => {
 });
 
 describe("remembering the run settings", () => {
-  const fixed = { points: pointsTables().at(-1)?.scale ?? [] };
+  const fixed: RunSettings = {
+    breakdowns: "fewer",
+    reliability: PLAYABLE_SEASONS[0] ?? null,
+    points: pointsTables().at(-1)?.scale ?? [],
+  };
 
   it("survives without any storage at all", () => {
     expect(typeof localStorage).toBe("undefined");
@@ -255,6 +259,8 @@ describe("remembering the run settings", () => {
       "[]",
       JSON.stringify({ points: "own" }),
       JSON.stringify({ points: [100, 1] }),
+      // Settings from before Breakdowns and Reliability existed.
+      JSON.stringify({ points: null }),
     ];
     for (const raw of junk) {
       stubStorage({ key: "alt-hist-run-settings", initial: raw });

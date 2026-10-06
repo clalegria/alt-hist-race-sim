@@ -67,9 +67,8 @@ noise sits a little above the nominal scale. That is deliberate; it is also why 
 stays at 1 for levels 1-3, so the shape of the randomness only changes once a run has
 already opted out of realism.
 
-Reliability is deliberately untouched: chaotic means unpredictable, not fragile, and a
-separate reliability setting is the author's plan rather than a second thing folded into
-this one. Grid advantage, home advantage, the consistency penalty, the powertrain weights
+Reliability is deliberately untouched: chaotic means unpredictable, not fragile, and
+the Breakdowns and Reliability run settings own it (`.claude/rules/retirement-factor.md`). Grid advantage, home advantage, the consistency penalty, the powertrain weights
 and both form *shares* are untouched for the same reason — they are what a rating
 *means*.
 

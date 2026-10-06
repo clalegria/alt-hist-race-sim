@@ -1,3 +1,10 @@
+export {
+  BREAKDOWNS,
+  type Breakdowns,
+  breakdownScale,
+  parseBreakdowns,
+  withBreakdowns,
+} from "./breakdowns.js";
 export { RACE_CONSTANTS, type RaceConstants } from "./constants.js";
 export { qualifyingGapSeconds, raceGap } from "./gaps.js";
 export {
