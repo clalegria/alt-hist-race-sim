@@ -1,0 +1,148 @@
+/**
+ * The Car performance setting, where a run states it, and how a varied grid
+ * reads. Rendered without a DOM, like the rest of the setup screen; what it
+ * records on a run is the era's store tests, and the roll itself is
+ * unit-tested in `@alt-hist/data`.
+ */
+
+import { type ChassisChange, chassisChanges, stepChassis } from "@alt-hist/data";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import {
+  CAR_VARIATION_SPREADS,
+  HISTORICAL_SETTINGS,
+  type RunSettings,
+} from "../lib/run-settings.js";
+import { seasonWithChassis } from "../lib/seasons.js";
+import { createWorld, ERA_RATING_MODE } from "../store/season.js";
+import { shownAt, YEAR } from "../test-support.js";
+import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
+import { chassisNote } from "./LineupChanges.js";
+import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
+import { SeasonView } from "./SeasonView.js";
+import { settingsOf } from "./SimulationSettings.js";
+
+const noop = () => {};
+
+/** The pressed segments' labels, in order. */
+function pressed(html: string): string[] {
+  return [...html.matchAll(/aria-pressed="true"[^>]*>([^<]*)</g)].map((match) => match[1] ?? "");
+}
+
+/** An era's first year under the given settings, perhaps with the reader's own chassis. */
+function eraYear(settings: RunSettings, chassis: Parameters<typeof createWorld>[7] = null) {
+  return createWorld(3, YEAR, ERA_RATING_MODE, null, null, undefined, null, chassis, settings);
+}
+
+describe("the car performance setting", () => {
+  it("presses one answer, and the spread under Varied", () => {
+    expect(
+      pressed(renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={null} />)),
+    ).toEqual(["Historical"]);
+    expect(
+      pressed(
+        renderToStaticMarkup(
+          <CarPerformanceSetting unit="era" carPerformance={{ kind: "random" }} />,
+        ),
+      ),
+    ).toEqual(["Random"]);
+    for (const spread of CAR_VARIATION_SPREADS) {
+      expect(
+        pressed(
+          renderToStaticMarkup(
+            <CarPerformanceSetting unit="era" carPerformance={{ kind: "varied", spread }} />,
+          ),
+        ),
+      ).toEqual(["Varied", `±${spread}`]);
+    }
+  });
+
+  it("offers the spreads only under Varied", () => {
+    const spreads = 'aria-label="Varies by up to"';
+    expect(
+      renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={null} />),
+    ).not.toContain(spreads);
+    expect(
+      renderToStaticMarkup(
+        <CarPerformanceSetting unit="era" carPerformance={{ kind: "random" }} />,
+      ),
+    ).not.toContain(spreads);
+    expect(
+      renderToStaticMarkup(
+        <CarPerformanceSetting unit="era" carPerformance={{ kind: "varied", spread: 5 }} />,
+      ),
+    ).toContain(spreads);
+  });
+
+  it("is offered on both setup screens, in a Cars group after Races", () => {
+    for (const html of [
+      renderToStaticMarkup(<EraPicker onStart={noop} />),
+      renderToStaticMarkup(<SeasonPicker onStart={noop} />),
+    ]) {
+      const at = (label: string) => html.indexOf(`aria-label="${label}"`);
+      expect(at("Cars")).toBeGreaterThan(at("Points"));
+      expect(at("Car performance")).toBeGreaterThan(at("Cars"));
+    }
+    const era = renderToStaticMarkup(<EraPicker onStart={noop} />);
+    expect(era.indexOf('aria-label="Drivers"')).toBeGreaterThan(
+      era.indexOf('aria-label="Car performance"'),
+    );
+  });
+
+  it("talks about every season on the era's screen and about the one on a season's", () => {
+    const answers = [{ kind: "random" }, { kind: "varied", spread: 5 }] as const;
+    for (const carPerformance of answers) {
+      const draw = (unit: "season" | "era") =>
+        renderToStaticMarkup(<CarPerformanceSetting carPerformance={carPerformance} unit={unit} />);
+      expect(draw("era")).toContain("Every season");
+      expect(draw("season")).not.toContain("Every season");
+      expect(draw("season")).not.toContain("that year");
+    }
+  });
+
+  it("names the historical answer as each screen's other settings do", () => {
+    const draw = (unit: "season" | "era") =>
+      pressed(renderToStaticMarkup(<CarPerformanceSetting carPerformance={null} unit={unit} />));
+    expect(draw("season")).toEqual(["As it was"]);
+    expect(draw("era")).toEqual(["Historical"]);
+  });
+
+  it("is named on the settings line when not historical", () => {
+    const varied = eraYear({
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "varied", spread: 5 },
+    });
+    expect(settingsOf(varied)).toContainEqual({ name: "Car performance", value: "Varied ±5" });
+    expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
+      "Car performance",
+    );
+  });
+});
+
+describe("a grid on rolled cars", () => {
+  const random: RunSettings = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } };
+  const rolled = eraYear(random);
+
+  it("is not an edited grid", () => {
+    const html = renderToStaticMarkup(
+      <SeasonView {...shownAt(rolled, { kind: "summary" })} tab="grid" />,
+    );
+    expect(html).not.toContain("Alternate grid");
+    expect(html).not.toContain("from the season as it was entered");
+  });
+
+  it("counts the reader's own change from the rolled car, not from history", () => {
+    const base = rolled.baselineChassis ?? {};
+    const team = Object.keys(base)[0] ?? "";
+    const weaker = stepChassis(base, team, -1);
+    const edited = weaker === base ? stepChassis(base, team, 1) : weaker;
+    const changes = chassisChanges(seasonWithChassis(YEAR, base), edited);
+    expect(changes).toHaveLength(1);
+
+    const html = renderToStaticMarkup(
+      <SeasonView {...shownAt(eraYear(random, edited), { kind: "summary" })} tab="grid" />,
+    );
+    expect(html).toContain("1 change from the season as it was entered");
+    expect(html).toContain(chassisNote(changes[0] as ChassisChange));
+  });
+});

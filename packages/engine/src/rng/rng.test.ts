@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, createRngFromSource, createRngFromState } from "./index.js";
+import { createRng, createRngFromSource, createRngFromState, deriveSeed } from "./index.js";
 import type { Rng, RngSource } from "./types.js";
 
 function draw(rng: Rng, count: number): number[] {
@@ -263,5 +263,37 @@ describe("the interface seam", () => {
     expect(rng.next()).toBe(0);
     expect(rng.nextInt(0, 10)).toBe(5);
     expect(rng.pick(["a", "b", "c"])).toBe("c");
+  });
+});
+
+describe("deriveSeed", () => {
+  it("gives the same seed for the same seed and key", () => {
+    expect(deriveSeed(1980, "cars")).toBe(deriveSeed(1980, "cars"));
+  });
+
+  it("separates keys and seeds", () => {
+    const seeds = [1, 2, 1980, 1981].flatMap((seed) =>
+      ["cars", "market", "carz"].map((key) => deriveSeed(seed, key)),
+    );
+    expect(new Set(seeds).size).toBe(seeds.length);
+  });
+
+  it("is a uint32", () => {
+    for (const seed of [0, 1, -1, 999_999, 2 ** 40]) {
+      const derived = deriveSeed(seed, "cars");
+      expect(Number.isInteger(derived)).toBe(true);
+      expect(derived).toBeGreaterThanOrEqual(0);
+      expect(derived).toBeLessThan(2 ** 32);
+    }
+  });
+
+  it("starts a stream apart from the seed's own", () => {
+    const own = draw(createRng(1980), 10);
+    const derived = draw(createRng(deriveSeed(1980, "cars")), 10);
+    expect(derived.filter((value) => own.includes(value))).toHaveLength(0);
+  });
+
+  it("rejects a seed that is not finite", () => {
+    expect(() => deriveSeed(Number.NaN, "cars")).toThrow(RangeError);
   });
 });

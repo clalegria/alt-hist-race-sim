@@ -13,7 +13,14 @@
  * plus the JSON — nothing else.
  */
 
-import { authoredSeasons, hasSeason, type SeasonSeed, seasonSeed } from "@alt-hist/data";
+import {
+  applyChassis,
+  authoredSeasons,
+  hasSeason,
+  type SeasonChassis,
+  type SeasonSeed,
+  seasonSeed,
+} from "@alt-hist/data";
 
 /** The earliest and latest years the picker draws. Not what has seed data. */
 export const FIRST_SEASON = 1950;
@@ -68,6 +75,19 @@ export type { SeasonSeed };
  * a year that came out of the picker, and the picker offers no year without it.
  */
 export { seasonSeed };
+
+/**
+ * A season as a run entered it: the seed data, with the run's own chassis in
+ * it when Car performance rolled some (`World.baselineChassis`).
+ *
+ * What every "was this edited?" compares against — the editor's Restore, the
+ * change notices, `createWorld`'s normalising — so a rolled car is the year's
+ * starting point and never reads as the reader's edit.
+ */
+export function seasonWithChassis(year: number, chassis: SeasonChassis | null): SeasonSeed {
+  const season = seasonSeed(year);
+  return chassis === null ? season : applyChassis(season, chassis);
+}
 
 /**
  * The playable years as a phrase, for the picker's subtitle.

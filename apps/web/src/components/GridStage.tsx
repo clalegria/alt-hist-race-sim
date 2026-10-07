@@ -51,7 +51,7 @@ import {
   withAge,
 } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
-import { adjacentSeason, isPlayable, seasonSeed } from "../lib/seasons.js";
+import { adjacentSeason, isPlayable, seasonSeed, seasonWithChassis } from "../lib/seasons.js";
 import { randomSeed } from "../lib/seed.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { useSortOrder } from "../lib/sort-preference.js";
@@ -557,6 +557,7 @@ export function GridStage({
   lineup,
   engines,
   chassis = null,
+  baselineChassis = null,
   arrangement = null,
   inEra = false,
   previousLineup = null,
@@ -575,6 +576,12 @@ export function GridStage({
   engines: SeasonEngines | null;
   /** The applied chassis ratings, or null for the chassis the season was entered with. */
   chassis?: SeasonChassis | null;
+  /**
+   * The run's own chassis for the year (*Car performance*), or null for the
+   * authored ones: what the season was entered with, and so what Restore puts
+   * back and every change is measured from (`World.baselineChassis`).
+   */
+  baselineChassis?: SeasonChassis | null;
   /**
    * The bulk rule the applied grid was arranged by, or null for one nobody
    * rearranged.
@@ -620,7 +627,13 @@ export function GridStage({
    */
   onEditingChange?: (editing: boolean) => void;
 }) {
-  const season = seasonSeed(year);
+  const season = useMemo(() => seasonWithChassis(year, baselineChassis), [year, baselineChassis]);
+  // History's chassis, for the popover to set beside the run's own. Only when
+  // the run rolled its own: otherwise the two are one and there is nothing to show.
+  const historicalChassis = useMemo(
+    () => (baselineChassis === null ? null : authoredChassis(seasonSeed(year))),
+    [year, baselineChassis],
+  );
   const applied = useMemo(() => lineup ?? authoredLineup(season), [lineup, season]);
   const appliedEngines = useMemo(() => engines ?? authoredEngines(season), [engines, season]);
   const appliedChassis = useMemo(() => chassis ?? authoredChassis(season), [chassis, season]);
@@ -1003,6 +1016,7 @@ export function GridStage({
           changes={changes}
           engineChanges={supplyChanges}
           chassisChanges={rerated}
+          historicalChassis={historicalChassis}
           arrangement={shownArrangement}
           openSeats={open.length}
           {...(locked ? {} : { action })}

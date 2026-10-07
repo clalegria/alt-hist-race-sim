@@ -35,7 +35,7 @@ import type { Beat } from "../lib/timeline.js";
 import { createWorld, type Run, type World } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 6;
+export const RECIPE_VERSION = 7;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {

@@ -179,6 +179,11 @@ export const STEPS: readonly Step[] = [
         .getByRole("button", { name: "None", exact: true })
         .click();
       await button(page, "Keep the first").click();
+      await page
+        .getByRole("group", { name: "Car performance" })
+        .getByRole("button", { name: "Varied", exact: true })
+        .click();
+      await button(page, "±20").click();
     },
   },
   {
@@ -201,8 +206,17 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "era-grid-team",
+    reach: async (page) => {
+      // A team's ratings on varied cars: history beside this run's, rating by rating.
+      await page.locator('li button[aria-haspopup="dialog"]').first().click();
+      await page.getByRole("dialog").getByText("History → this run").waitFor();
+    },
+  },
+  {
     name: "era-overview-start",
     reach: async (page) => {
+      await page.keyboard.press("Escape");
       // The overview is there from the era's first grid, the year under way.
       await page
         .getByRole("navigation", { name: "Breadcrumb" })

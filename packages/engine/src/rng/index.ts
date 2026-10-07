@@ -102,3 +102,31 @@ export function createRng(seed: number): Rng {
 export function createRngFromState(state: RngState): Rng {
   return createRngFromSource(restoreSfc32(state));
 }
+
+/**
+ * A seed for a stream of its own, derived from a run's seed and a fixed key.
+ *
+ * Draws that are not the races — a run setting's roll, later the market's —
+ * take their dice from here rather than from the race stream, so adding one
+ * never shifts what a race does, and a run with none of them draws nothing.
+ * The same seed and key always give the same stream; another key gives an
+ * unrelated one.
+ *
+ * FNV-1a over the key, folded into the seed and mixed through splitmix32's
+ * finaliser so neighbouring seeds land far apart. A uint32, which
+ * `createRng` takes as is.
+ */
+export function deriveSeed(seed: number, key: string): number {
+  if (!Number.isFinite(seed)) {
+    throw new RangeError(`Seed must be a finite number, received ${seed}`);
+  }
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i += 1) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  let z = ((Math.trunc(seed) | 0) ^ hash) + 0x9e3779b9;
+  z = Math.imul(z ^ (z >>> 16), 0x21f0aaad);
+  z = Math.imul(z ^ (z >>> 15), 0x735a2d97);
+  return (z ^ (z >>> 15)) >>> 0;
+}

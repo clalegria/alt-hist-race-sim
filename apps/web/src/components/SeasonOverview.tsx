@@ -1,4 +1,4 @@
-import { chassisChanges, engineChanges, lineupChanges } from "@alt-hist/data";
+import { authoredChassis, chassisChanges, engineChanges, lineupChanges } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -6,7 +6,7 @@ import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
-import { seasonSeed } from "../lib/seasons.js";
+import { seasonSeed, seasonWithChassis } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
@@ -199,9 +199,18 @@ export function SeasonOverview({
     () => (world.engines === null ? [] : engineChanges(seed, world.engines)),
     [world.engines, seed],
   );
+  // Against the cars the run entered, which under Car performance are not the
+  // seed file's: a rolled car is the year's starting point, not an edit.
   const rerated = useMemo(
-    () => (world.chassis === null ? [] : chassisChanges(seed, world.chassis)),
-    [world.chassis, seed],
+    () =>
+      world.chassis === null
+        ? []
+        : chassisChanges(seasonWithChassis(year, world.baselineChassis), world.chassis),
+    [world.chassis, world.baselineChassis, year],
+  );
+  const historicalChassis = useMemo(
+    () => (world.baselineChassis === null ? null : authoredChassis(seed)),
+    [world.baselineChassis, seed],
   );
   // The grid tab gets the same switch the opening grid has: by now the
   // pecking order is the point rather than a spoiler. Same switch and the same
@@ -268,6 +277,7 @@ export function SeasonOverview({
             changes={changes}
             engineChanges={supplyChanges}
             chassisChanges={rerated}
+            historicalChassis={historicalChassis}
             arrangement={world.arrangement}
             sort={teamSort}
             onSortChange={setTeamSort}

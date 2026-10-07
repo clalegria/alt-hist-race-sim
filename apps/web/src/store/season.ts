@@ -61,10 +61,11 @@ import {
   driverPoolOf,
   HISTORICAL_SETTINGS,
   type RunSettings,
+  rolledChassisOf,
   seasonSettings,
   settingsInForce,
 } from "../lib/run-settings.js";
-import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
+import { isPlayable, nextEraYear, seasonSeed, seasonWithChassis } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
 
@@ -161,6 +162,17 @@ export interface World {
    */
   readonly chassis: SeasonChassis | null;
   /**
+   * The run's own chassis for this year, rolled under *Car performance*, or null
+   * for the chassis the season was entered with.
+   *
+   * **The year's baseline, not an edit**: `lineup`, `engines` and `chassis`, the
+   * editor and its notices are all measured from the season with these cars in
+   * it (`seasonWithChassis`), so a varied car never reads as the reader's change.
+   * Rolled once, from the world's seed, and kept here rather than re-rolled on
+   * read — the recipe does not record it, since the seed rebuilds it.
+   */
+  readonly baselineChassis: SeasonChassis | null;
+  /**
    * The rule the grid was arranged by, or null for a grid nobody rearranged in
    * one press — the reader's own swaps included, since those are seats and not a
    * rule.
@@ -228,8 +240,9 @@ export const ERA_RATING_MODE: RatingMode = "aged";
  * races are run on — so re-rolling a grid cannot change what a race did with
  * it.
  *
- * The drivers are ranked on the ratings the run races them on, so `settings`
- * comes too: under *Career events: None* a step down no longer counts here.
+ * The drivers are ranked on the ratings the run races them on, and the cars on
+ * the cars it races, so `settings` comes too: under *Career events: None* a step
+ * down no longer counts here, and under *Car performance* the rolled cars do.
  *
  * Falls back to the authored grid if the rule somehow leaves a seat open, since
  * only a filled grid can be raced.
@@ -243,7 +256,7 @@ function arrangedLineup(
   chassis: SeasonChassis | null,
   settings: RunSettings,
 ): SeasonLineup {
-  const season = seasonSeed(year);
+  const season = baselineSeason(year, seed, settings).season;
   const authored = authoredLineup(season);
   const resupplied = engines === null ? season : applyEngines(season, engines);
   const entered = chassis === null ? resupplied : applyChassis(resupplied, chassis);
@@ -310,6 +323,19 @@ function nextEraGrid(
 }
 
 /**
+ * A season as the run enters it — its chassis rolled under *Car performance*
+ * from this seed, or as authored — and the roll itself, for the world to keep.
+ */
+function baselineSeason(
+  year: number,
+  seed: number,
+  settings: RunSettings,
+): { season: SeasonSeed; baselineChassis: SeasonChassis | null } {
+  const baselineChassis = rolledChassisOf(seasonSeed(year), settings, seed);
+  return { season: seasonWithChassis(year, baselineChassis), baselineChassis };
+}
+
+/**
  * The constants a season races on under a run's settings: its randomness level,
  * its cars on the retirement factor of the year Reliability names (its drivers
  * always on the year's own), and the Breakdowns multiplier. Derived copies of the constants, never edits — and
@@ -346,6 +372,11 @@ export function runConstants(
  * `chosen` is kept as `settingsInForce`, so a world never records a setting
  * that changed nothing about it.
  *
+ * Under *Car performance* the season's chassis are rolled first, from the seed,
+ * and everything after is measured against that baseline: an edit that lands
+ * on the rolled car is no edit, and a reader's own chassis are absolute ratings
+ * over it.
+ *
  * `namesKeptFrom` is the era's first year, which a later year of it cannot
  * know; it defaults to this one, the right answer for an era's first year. It
  * is read only under *Team names: Keep the first*, and recorded as null
@@ -365,13 +396,13 @@ export function createWorld(
 ): World {
   const settings = settingsInForce(chosen);
   const namesKeptFrom = settings.teamNames === "first" ? (eraStart ?? year) : null;
-  const authored = seasonSeed(year);
+  const { season: baseline, baselineChassis } = baselineSeason(year, seed, settings);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
-  const edited = lineup !== null && !isAuthoredLineup(authored, lineup) ? lineup : null;
-  const resupplied = engines !== null && !isAuthoredEngines(authored, engines) ? engines : null;
-  const withDrivers = edited === null ? authored : applyLineup(authored, edited);
-  const rerated = chassis !== null && !isAuthoredChassis(authored, chassis) ? chassis : null;
+  const edited = lineup !== null && !isAuthoredLineup(baseline, lineup) ? lineup : null;
+  const resupplied = engines !== null && !isAuthoredEngines(baseline, engines) ? engines : null;
+  const withDrivers = edited === null ? baseline : applyLineup(baseline, edited);
+  const rerated = chassis !== null && !isAuthoredChassis(baseline, chassis) ? chassis : null;
   const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
   const entered = rerated === null ? withEngines : applyChassis(withEngines, rerated);
   const rng = createRng(seed);
@@ -406,6 +437,7 @@ export function createWorld(
     lineup: edited,
     engines: resupplied,
     chassis: rerated,
+    baselineChassis,
     arrangement,
     season,
   };

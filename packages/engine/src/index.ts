@@ -76,7 +76,7 @@ export type {
   RaceResult,
   RoundContext,
 } from "./race/types.js";
-export { createRng, createRngFromSource, createRngFromState } from "./rng/index.js";
+export { createRng, createRngFromSource, createRngFromState, deriveSeed } from "./rng/index.js";
 export type { Rng, RngSource, RngState } from "./rng/types.js";
 export { simulateSeason } from "./season/simulateSeason.js";
 export {

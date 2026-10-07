@@ -91,7 +91,8 @@ chosen, carried and remembered exactly the same way, through every action that r
 a year and into every year of an era; `createWorld` takes it last, and races on
 `runConstants(entered, randomness, settings)` — the one place settings reach the constants; the
 drivers come from `driverPoolOf(settings)`, the one place they reach the ratings, which
-`arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too. **`namesKeptFrom`**
+`arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too; the cars from
+`rolledChassisOf`, kept as `world.baselineChassis` (`car-performance.md`). **`namesKeptFrom`**
 is the era's first year under *Team names: Keep the first*, else null: one year of an era
 cannot know where the era began, so `createWorld` takes it after `settings` (defaulting to
 its own year, right for a first year) and every action that rebuilds a year passes the
@@ -104,7 +105,7 @@ control; the season summary and the roll of honour carry it as one small line
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
 (`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom, rngState, field,
-lineup, engines, chassis, arrangement, season }`) — one
+lineup, engines, chassis, baselineChassis, arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's

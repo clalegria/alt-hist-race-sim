@@ -12,11 +12,16 @@
  * a record of ratings — because it is part of the saved world beside the lineup
  * and the engines.
  *
+ * The *Car performance* run setting rolls one too (`variedChassis`,
+ * `randomChassis`): a run's own cars for a year, which the reader's edits are
+ * then measured from.
+ *
  * Absolute ratings rather than offsets, so a check is a range check and the
  * draft is simply the chassis as it now stands; how far it moved is derived
  * against the season (`chassisChanges`).
  */
 
+import type { Rng } from "@alt-hist/engine";
 import type { ChassisSpec, SeasonSeed } from "./types.js";
 
 /** Chassis ratings per team id: the same keys as the season it overrides. */
@@ -92,9 +97,14 @@ export function applyChassis(season: SeasonSeed, chassis: SeasonChassis): Season
   return { ...season, entries };
 }
 
+/** A rating held inside the scale a step or a roll may reach. */
+function clamped(value: number): number {
+  return Math.min(Math.max(value, CHASSIS_STEP_RANGE.min), CHASSIS_STEP_RANGE.max);
+}
+
 /** One rating moved by a step, held inside the scale. */
 function stepped(value: number, step: 1 | -1): number {
-  return Math.min(Math.max(value + step, CHASSIS_STEP_RANGE.min), CHASSIS_STEP_RANGE.max);
+  return clamped(value + step);
 }
 
 /**
@@ -159,4 +169,49 @@ export function chassisChanges(
     }
   }
   return changes;
+}
+
+/**
+ * Every team's chassis moved by one whole-number offset, uniform in
+ * [−spread, spread], on all four ratings — the car keeps its character, as a
+ * step with no rating named does — each held inside the scale on its own.
+ *
+ * The *Car performance: Varied* roll. Draws one number per team, in entry order.
+ */
+export function variedChassis(season: SeasonSeed, spread: number, rng: Rng): SeasonChassis {
+  const rolled: Record<string, ChassisSpec> = {};
+  for (const entry of season.entries) {
+    const offset = rng.nextInt(-spread, spread + 1);
+    const { racing, qualifying, consistency, reliability } = entry.chassis;
+    rolled[entry.teamId] = {
+      racing: clamped(racing + offset),
+      qualifying: clamped(qualifying + offset),
+      consistency: clamped(consistency + offset),
+      reliability: clamped(reliability + offset),
+    };
+  }
+  return rolled;
+}
+
+/**
+ * Every chassis rating drawn uniformly between that season's weakest and
+ * strongest value of it, each rating on its own.
+ *
+ * The *Car performance: Random* roll. Draws four numbers per team, in entry
+ * order and `CHASSIS_KEYS` order.
+ */
+export function randomChassis(season: SeasonSeed, rng: Rng): SeasonChassis {
+  const ranges = CHASSIS_KEYS.map((key) => {
+    const values = season.entries.map((entry) => entry.chassis[key]);
+    return { key, min: Math.min(...values), max: Math.max(...values) };
+  });
+  const rolled: Record<string, ChassisSpec> = {};
+  for (const entry of season.entries) {
+    let chassis: ChassisSpec = entry.chassis;
+    for (const { key, min, max } of ranges) {
+      chassis = { ...chassis, [key]: rng.nextInt(min, max + 1) };
+    }
+    rolled[entry.teamId] = chassis;
+  }
+  return rolled;
 }

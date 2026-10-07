@@ -232,6 +232,7 @@ describe("remembering the year a picker opens on", () => {
 
 describe("remembering the run settings", () => {
   const fixed: RunSettings = {
+    carPerformance: { kind: "varied", spread: 20 },
     breakdowns: "fewer",
     reliability: PLAYABLE_SEASONS[0] ?? null,
     points: pointsTables().at(-1)?.scale ?? [],

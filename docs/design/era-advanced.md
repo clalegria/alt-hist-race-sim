@@ -30,8 +30,9 @@ tunable numbers live in `packages/engine/src/market/constants.ts` and are the au
 - **PROPOSED** — **Separate PRNG substreams.** Market draws (scouting noise, rumours,
   holdouts, poaching, "new challenge" moves, retirements) come from their own streams,
   derived from the run's seed plus a stream key, apart from race noise and DNF rolls.
-  Otherwise adding one market roll shifts every race after it. The engine has no
-  substream facility yet, and an era chains each year's seed off the race stream
+  Otherwise adding one market roll shifts every race after it. The engine's
+  `deriveSeed(seed, key)` is the facility, already used by *Car performance*
+  (`.claude/rules/car-performance.md`); an era still chains each year's seed off the race stream
   (`nextSeed` in `apps/web/src/lib/seed.ts`), so this changes what every era seed
   produces — cheapest before a save file or a Share link exists.
 - **PROPOSED** — **Deterministic event ordering**: pending events and signing turns are

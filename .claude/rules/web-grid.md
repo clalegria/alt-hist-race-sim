@@ -89,7 +89,8 @@ component state rather than the store is `.claude/rules/web-store.md`.
   the buttons (the popover widens to `w-96` for it). The grid with the editor shut has
   none, and the engine panel never does. A button is disabled once nothing it would
   move can move further. A step is a hand edit and ends a bulk rule, since the rules
-  rank the cars.
+  rank the cars. Under *Car performance* every change is measured from the run's rolled
+  cars, and the popover reads history → this run (`car-performance.md`).
 - **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
   fastest in slowest, shuffled — in their own panel above the cards. **The cast they
   draw on is this editor's own pool filters**, so whoever the "Without a drive" panel is

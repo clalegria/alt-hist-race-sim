@@ -6,6 +6,7 @@ paths:
   - "apps/web/src/components/RunSettingsCard.tsx"
   - "apps/web/src/components/PointsSetting.tsx"
   - "apps/web/src/components/BreakdownsSetting.tsx"
+  - "apps/web/src/components/CarPerformanceSetting.tsx"
   - "apps/web/src/components/ReliabilitySetting.tsx"
   - "apps/web/src/components/CareerEventsSetting.tsx"
   - "apps/web/src/components/TeamNamesSetting.tsx"
@@ -58,8 +59,8 @@ happily with the disabling removed, which is how the test this replaced was pass
 The two tests that care hand it a range with a gap in it.
 
 **The run settings card** (`RunSettingsCard`) holds Randomness and the what-ifs of
-`docs/design/run-settings.md`, in headed groups (`RunSettingsGroup`: Races, then the
-era-only Cars, Drivers, Teams over the years as they are built). A setting is a *direct
+`docs/design/run-settings.md`, in headed groups (`RunSettingsGroup`: Races and Cars,
+then the era-only Drivers and Teams over the years). A setting is a *direct
 child* of its group, which applies the padding and the rules between them, so adding one
 is adding a child. What does not belong there is anything a reader can still change once
 a season exists; the ability toggle is on the grid for that reason.
@@ -99,8 +100,9 @@ era's by default): an era talks about every year and the run, a season about the
 year. The second answer names where the value comes from rather than calling it another
 year's, because switching in starts on the selected year itself.
 
-**The Drivers group is era only**: `SeasonPicker` draws it under `eraSettings`, which
-`EraPicker` passes. It holds **Career events** — *As they happened* / *None*, stored as
+**The Cars group** holds **Car performance**, on both screens
+(`.claude/rules/car-performance.md`). **The Drivers group is era only**: `SeasonPicker`
+draws it under `eraSettings`, which `EraPicker` passes. It holds **Career events** — *As they happened* / *None*, stored as
 null / `"none"`; "Career events", never "form", which the market owns. None races every
 driver without their `stepDown` and `offSeasons` (`driverPoolOf`; the pool is
 `.claude/rules/data-layers.md`); the events only count under `aged`, which an era always runs. One

@@ -12,6 +12,7 @@ import type { RunSettings, RunUnit } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
+import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { ReliabilitySetting } from "./ReliabilitySetting.js";
@@ -145,6 +146,15 @@ export function SeasonPicker({
             unit={unit}
             onChange={(points) => {
               changeSettings({ ...settings, points });
+            }}
+          />
+        </RunSettingsGroup>
+        <RunSettingsGroup title="Cars">
+          <CarPerformanceSetting
+            carPerformance={settings.carPerformance}
+            unit={unit}
+            onChange={(carPerformance) => {
+              changeSettings({ ...settings, carPerformance });
             }}
           />
         </RunSettingsGroup>

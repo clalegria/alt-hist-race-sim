@@ -43,8 +43,8 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ## 1. Run settings
 
-What-if settings chosen before a run, beside Randomness: car performance, career events,
-team names, teams and seats (era only), and breakdowns, reliability and points (both
+What-if settings chosen before a run, beside Randomness: career events, team names,
+teams and seats (era only), and car performance, breakdowns, reliability and points (both
 modes). **Designed in `docs/design/run-settings.md`**, with its own build order, one
 session per step; its open questions live there.
 

@@ -1,3 +1,4 @@
+import { createRng } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { buildField } from "./buildField.js";
 import {
@@ -7,7 +8,9 @@ import {
   canStepChassis,
   chassisChanges,
   isAuthoredChassis,
+  randomChassis,
   stepChassis,
+  variedChassis,
 } from "./chassis.js";
 import { FIRST_AUTHORED_SEASON, seasonSeed } from "./index.js";
 import type { ChassisSpec, SeasonSeed } from "./types.js";
@@ -167,5 +170,102 @@ describe("chassisChanges", () => {
     expect(chassisChanges(SEASON, next)).toEqual([
       { teamId: MIDDLE_TEAM, from: MIDDLE, to: { ...MIDDLE, racing: MIDDLE.racing - 1 } },
     ]);
+  });
+});
+
+/** Synthetic cars spread across the scale, so the rolls have ranges to keep to. */
+const SPREAD_SEASON: SeasonSeed = {
+  ...SEASON,
+  entries: SEASON.entries.map((entry, index) => ({
+    ...entry,
+    chassis:
+      index === 0
+        ? EDGE
+        : {
+            racing: 40 + index,
+            qualifying: 70 - index,
+            consistency: 50 + (index % 3),
+            reliability: 30 + 2 * index,
+          },
+  })),
+};
+
+describe("variedChassis", () => {
+  const SPREAD = 10;
+
+  it("moves each team's four ratings by one offset within the spread, clamped", () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const rolled = variedChassis(SPREAD_SEASON, SPREAD, createRng(seed));
+      expect(Object.keys(rolled)).toEqual(SPREAD_SEASON.entries.map((entry) => entry.teamId));
+      for (const entry of SPREAD_SEASON.entries) {
+        const now = rolled[entry.teamId] as ChassisSpec;
+        // The offset is read off a rating no clamp can reach from 50 or 60.
+        const offset = now.qualifying - entry.chassis.qualifying;
+        expect(Math.abs(offset)).toBeLessThanOrEqual(SPREAD);
+        for (const key of ["racing", "qualifying", "consistency", "reliability"] as const) {
+          const expected = Math.min(
+            Math.max(entry.chassis[key] + offset, CHASSIS_STEP_RANGE.min),
+            CHASSIS_STEP_RANGE.max,
+          );
+          expect(now[key]).toBe(expected);
+        }
+      }
+    }
+  });
+
+  it("reaches both ends of the spread over many teams", () => {
+    const offsets = new Set<number>();
+    for (let seed = 1; seed <= 50; seed += 1) {
+      const rolled = variedChassis(SEASON, 2, createRng(seed));
+      for (const entry of SEASON.entries) {
+        offsets.add((rolled[entry.teamId] as ChassisSpec).qualifying - entry.chassis.qualifying);
+      }
+    }
+    expect([...offsets].sort((a, b) => a - b)).toEqual([-2, -1, 0, 1, 2]);
+  });
+
+  it("is a function of the generator's state", () => {
+    expect(variedChassis(SPREAD_SEASON, SPREAD, createRng(7))).toEqual(
+      variedChassis(SPREAD_SEASON, SPREAD, createRng(7)),
+    );
+  });
+
+  it("lands on ratings applyChassis accepts", () => {
+    const rolled = variedChassis(SPREAD_SEASON, 30, createRng(11));
+    expect(() => applyChassis(SPREAD_SEASON, rolled)).not.toThrow();
+  });
+});
+
+describe("randomChassis", () => {
+  it("draws every rating between the season's weakest and strongest of it", () => {
+    const keys = ["racing", "qualifying", "consistency", "reliability"] as const;
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const rolled = randomChassis(SPREAD_SEASON, createRng(seed));
+      expect(Object.keys(rolled)).toEqual(SPREAD_SEASON.entries.map((entry) => entry.teamId));
+      for (const key of keys) {
+        const authored = SPREAD_SEASON.entries.map((entry) => entry.chassis[key]);
+        for (const entry of SPREAD_SEASON.entries) {
+          const value = (rolled[entry.teamId] as ChassisSpec)[key];
+          expect(Number.isInteger(value)).toBe(true);
+          expect(value).toBeGreaterThanOrEqual(Math.min(...authored));
+          expect(value).toBeLessThanOrEqual(Math.max(...authored));
+        }
+      }
+    }
+  });
+
+  it("draws each rating on its own rather than one car for all four", () => {
+    const rolled = randomChassis(SPREAD_SEASON, createRng(3));
+    const differs = SPREAD_SEASON.entries.some((entry) => {
+      const now = rolled[entry.teamId] as ChassisSpec;
+      return now.racing - entry.chassis.racing !== now.qualifying - entry.chassis.qualifying;
+    });
+    expect(differs).toBe(true);
+  });
+
+  it("is a function of the generator's state", () => {
+    expect(randomChassis(SPREAD_SEASON, createRng(7))).toEqual(
+      randomChassis(SPREAD_SEASON, createRng(7)),
+    );
   });
 });

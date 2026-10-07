@@ -14,8 +14,16 @@
  * Pure: no storage here (`preferences.ts` reads and writes it).
  */
 
-import { type Driver, drivers, driversWithoutCareerEvents } from "@alt-hist/data";
-import type { Breakdowns, PointsScale } from "@alt-hist/engine";
+import {
+  type Driver,
+  drivers,
+  driversWithoutCareerEvents,
+  randomChassis,
+  type SeasonChassis,
+  type SeasonSeed,
+  variedChassis,
+} from "@alt-hist/data";
+import { type Breakdowns, createRng, deriveSeed, type PointsScale } from "@alt-hist/engine";
 import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
 
 /** What a setup screen's settings are fixed for, which is what their copy says. */
@@ -24,7 +32,27 @@ export type RunUnit = "season" | "era";
 /** The Breakdowns answers that are what-ifs; Realistic is null. */
 export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
+/** How far *Car performance: Varied* may move a car, either way: the stops it offers. */
+export const CAR_VARIATION_SPREADS = [2, 5, 10, 20, 30] as const;
+export type CarVariationSpread = (typeof CAR_VARIATION_SPREADS)[number];
+
+/**
+ * The Car performance what-ifs; Historical is null. **Varied** moves each
+ * team's chassis by up to `spread` either way, re-rolled every season off the
+ * authored car; **Random** draws each chassis rating anywhere between the
+ * season's weakest and strongest. Chassis only: an engine is shared by its
+ * customers, so rolling one would move several teams at once.
+ */
+export type CarPerformance =
+  | { readonly kind: "varied"; readonly spread: CarVariationSpread }
+  | { readonly kind: "random" };
+
 export interface RunSettings {
+  /**
+   * Whether the cars are as authored, varied about them, or random. On both
+   * setup screens. Reaches the cars through `rolledChassisOf`.
+   */
+  readonly carPerformance: CarPerformance | null;
   /** How often cars break down: fewer, none, or null for as often as each year's did. */
   readonly breakdowns: FewerBreakdowns | null;
   /**
@@ -54,6 +82,7 @@ export interface RunSettings {
 
 /** Every setting on its historical answer: the run as it happened. */
 export const HISTORICAL_SETTINGS: RunSettings = {
+  carPerformance: null,
   breakdowns: null,
   reliability: null,
   points: null,
@@ -91,6 +120,38 @@ export function seasonSettings(settings: RunSettings): RunSettings {
  */
 export function driverPoolOf(settings: RunSettings): readonly Driver[] {
   return settings.careerEvents === "none" ? driversWithoutCareerEvents() : drivers;
+}
+
+/** The key Car performance's stream is derived under, apart from the races' own. */
+export const CAR_PERFORMANCE_STREAM = "car-performance";
+
+/**
+ * A run's own chassis for a season, or null for the authored ones: the one
+ * place Car performance reaches the cars, as `driverPoolOf` is for drivers.
+ *
+ * Rolled from its own stream (`deriveSeed`), never the races', so the same
+ * seed races the same dice under any answer, and Historical draws nothing.
+ * A function of the season, the settings and the seed alone: `createWorld`
+ * calls it once and keeps the result on the world.
+ */
+export function rolledChassisOf(
+  season: SeasonSeed,
+  settings: RunSettings,
+  seed: number,
+): SeasonChassis | null {
+  const cars = settings.carPerformance;
+  if (cars === null) {
+    return null;
+  }
+  const rng = createRng(deriveSeed(seed, CAR_PERFORMANCE_STREAM));
+  return cars.kind === "varied"
+    ? variedChassis(season, cars.spread, rng)
+    : randomChassis(season, rng);
+}
+
+/** What the reader is shown for a Car performance answer. */
+export function carPerformanceLabel(cars: CarPerformance): string {
+  return cars.kind === "varied" ? `Varied ±${cars.spread}` : "Random";
 }
 
 /** What the reader is shown for each Breakdowns answer. */
@@ -182,8 +243,9 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 /**
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
- * authored ones, a year with no season, or a Breakdowns, Career events or
- * Team names answer that is not a what-if. Takes `unknown` because both
+ * authored ones, a year with no season, a Car performance answer or spread
+ * this build does not offer, or a Breakdowns, Career events or Team names
+ * answer that is not a what-if. Takes `unknown` because both
  * callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
@@ -192,6 +254,7 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   }
   if (
     !(
+      "carPerformance" in raw &&
       "points" in raw &&
       "breakdowns" in raw &&
       "reliability" in raw &&
@@ -201,11 +264,13 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   ) {
     return null;
   }
+  const carPerformance = parseCarPerformance(raw.carPerformance);
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
   const { careerEvents, teamNames } = raw;
   if (
+    carPerformance === undefined ||
     points === undefined ||
     breakdowns === undefined ||
     reliability === undefined ||
@@ -214,7 +279,24 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   ) {
     return null;
   }
-  return { breakdowns, reliability, points, careerEvents, teamNames };
+  return { carPerformance, breakdowns, reliability, points, careerEvents, teamNames };
+}
+
+function parseCarPerformance(cars: unknown): CarPerformance | null | undefined {
+  if (cars === null) {
+    return null;
+  }
+  if (typeof cars !== "object" || Array.isArray(cars) || !("kind" in cars)) {
+    return undefined;
+  }
+  if (cars.kind === "random") {
+    return { kind: "random" };
+  }
+  if (cars.kind !== "varied" || !("spread" in cars)) {
+    return undefined;
+  }
+  const spread = CAR_VARIATION_SPREADS.find((offered) => offered === cars.spread);
+  return spread === undefined ? undefined : { kind: "varied", spread };
 }
 
 /** Each of these is the field's value, or undefined when it is not one this build offers. */
@@ -252,6 +334,9 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   }
   if (settings.points !== null) {
     lines.push({ name: "Points", value: pointsValues(settings.points) });
+  }
+  if (settings.carPerformance !== null) {
+    lines.push({ name: "Car performance", value: carPerformanceLabel(settings.carPerformance) });
   }
   if (settings.careerEvents !== null) {
     lines.push({ name: "Career events", value: "None" });

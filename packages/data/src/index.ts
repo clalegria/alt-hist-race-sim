@@ -55,8 +55,10 @@ export {
   canStepChassis,
   chassisChanges,
   isAuthoredChassis,
+  randomChassis,
   type SeasonChassis,
   stepChassis,
+  variedChassis,
 } from "./chassis.js";
 export {
   applyEngines,

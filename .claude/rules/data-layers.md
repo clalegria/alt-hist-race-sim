@@ -61,6 +61,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     same object when nothing moved. `canStepChassis` says whether a step could move.
   - `authoredChassis`, `isAuthoredChassis` and `chassisChanges` (`{ teamId, from, to }`)
     mirror the engine functions.
+  - `variedChassis` and `randomChassis` are *Car performance*'s rolls
+    (`.claude/rules/car-performance.md`).
 - `rating.ts` holds the display-only overall (`driverOverall`, `carOverall`). The
   weights are `DRIVER_WEIGHTS` / `CAR_WEIGHTS` there, move by hand, and carry their
   reasoning in the doc comments above them — read those, not a copy here. Both put most

@@ -20,7 +20,7 @@ import {
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
-import { pointsTables, samePoints } from "../lib/run-settings.js";
+import { HISTORICAL_SETTINGS, pointsTables, samePoints } from "../lib/run-settings.js";
 import { FIRST_SEASON, nextEraYear, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { nextSeed } from "../lib/seed.js";
 import { fingerprint, RECIPE_VERSION, recipeOf, runFromRecipe } from "./recipe.js";
@@ -130,6 +130,7 @@ describe("a run rebuilt from its recipe", () => {
     const other =
       pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
     useSeasonStore.getState().simulateEra(9, YEAR, undefined, {
+      carPerformance: { kind: "varied", spread: 10 },
       breakdowns: "fewer",
       reliability: PLAYABLE_SEASONS.at(-1) ?? null,
       points: other,
@@ -140,6 +141,17 @@ describe("a run rebuilt from its recipe", () => {
     useSeasonStore.getState().continueRun();
     const run = current();
     expect(run.world.namesKeptFrom).toBe(YEAR);
+    expect(run.world.baselineChassis).not.toBeNull();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("keeps a season on rolled cars", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, {
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "random" },
+    });
+    const run = current();
+    expect(run.world.baselineChassis).not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
   });
 
@@ -232,6 +244,19 @@ describe("a recipe that is refused", () => {
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: undefined }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: "historical" }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: { points: [100, 1] } }] },
+      // A Varied spread the setup screen never offered.
+      {
+        ...recipe,
+        worlds: [
+          {
+            ...recipe.worlds[0],
+            settings: {
+              ...HISTORICAL_SETTINGS,
+              carPerformance: { kind: "varied", spread: 7 },
+            },
+          },
+        ],
+      },
       { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: undefined }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: "first" }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: FIRST_SEASON - 1 }] },

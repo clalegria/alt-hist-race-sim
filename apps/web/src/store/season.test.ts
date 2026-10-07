@@ -19,7 +19,13 @@ import {
   DEFAULT_RANDOMNESS_LEVEL,
 } from "@alt-hist/engine";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { HISTORICAL_SETTINGS, pointsTables, samePoints } from "../lib/run-settings.js";
+import {
+  HISTORICAL_SETTINGS,
+  pointsTables,
+  type RunSettings,
+  rolledChassisOf,
+  samePoints,
+} from "../lib/run-settings.js";
 import { adjacentSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
 import {
@@ -556,6 +562,7 @@ describe("the points setting", () => {
 describe("career events and team names in a standalone season", () => {
   const eraOnly = {
     ...HISTORICAL_SETTINGS,
+    carPerformance: { kind: "random" } as const,
     breakdowns: "fewer" as const,
     careerEvents: "none" as const,
     teamNames: "first" as const,
@@ -567,6 +574,61 @@ describe("career events and team names in a standalone season", () => {
     expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
     useSeasonStore.getState().startSeason(YEAR, undefined, eraOnly);
     expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
+  });
+});
+
+describe("car performance in a standalone season", () => {
+  const answers: readonly RunSettings[] = [
+    { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10 } },
+    { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
+  ];
+
+  /** The world's cars, as rolled from its own year and seed. */
+  function rolledFor(world: World, settings: RunSettings) {
+    return rolledChassisOf(seasonSeed(world.year), settings, world.seed);
+  }
+
+  it("rolls the season's cars from its own seed, whichever way it starts", () => {
+    for (const settings of answers) {
+      useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, settings);
+      let world = running().world;
+      expect(world.settings).toEqual(settings);
+      expect(world.baselineChassis).not.toBeNull();
+      expect(world.baselineChassis).toEqual(rolledFor(world, settings));
+
+      useSeasonStore.getState().startSeason(YEAR, undefined, settings);
+      world = running().world;
+      expect(world.baselineChassis).toEqual(rolledFor(world, settings));
+    }
+  });
+
+  it("keeps the roll through a new grid and an ability switch", () => {
+    const [varied] = answers as [RunSettings];
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, varied);
+    const rolled = running().world.baselineChassis;
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.baselineChassis).toEqual(rolled);
+    useSeasonStore.getState().setRatingMode("aged");
+    expect(running().world.baselineChassis).toEqual(rolled);
+  });
+
+  it("rolls again for a restart and for the year next door, the setting carried", () => {
+    const [varied] = answers as [RunSettings];
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, varied);
+    useSeasonStore.getState().restartSeason();
+    let world = running().world;
+    expect(world.settings).toEqual(varied);
+    expect(world.baselineChassis).toEqual(rolledFor(world, varied));
+
+    const next = adjacentSeason(YEAR, 1);
+    if (next === null) {
+      return;
+    }
+    useSeasonStore.getState().switchSeasonYear(next);
+    world = running().world;
+    expect(world.year).toBe(next);
+    expect(world.settings).toEqual(varied);
+    expect(world.baselineChassis).toEqual(rolledFor(world, varied));
   });
 });
 

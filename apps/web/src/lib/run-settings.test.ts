@@ -3,16 +3,20 @@
  * storage. Every table is read off the seed data rather than written down.
  */
 
-import { drivers, driversWithoutCareerEvents } from "@alt-hist/data";
+import { drivers, driversWithoutCareerEvents, randomChassis, variedChassis } from "@alt-hist/data";
+import { createRng, deriveSeed } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import {
   BREAKDOWNS_LABELS,
+  CAR_PERFORMANCE_STREAM,
+  CAR_VARIATION_SPREADS,
   driverPoolOf,
   HISTORICAL_SETTINGS,
   parseRunSettings,
   pointsTableOf,
   pointsTables,
   pointsValues,
+  rolledChassisOf,
   samePoints,
   seasonSettings,
   settingsInForce,
@@ -71,6 +75,15 @@ describe("parsing stored settings", () => {
     }
   });
 
+  it("accepts Car performance: Random, and Varied at every spread offered", () => {
+    const random = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } };
+    expect(parseRunSettings(random)).toEqual(random);
+    for (const spread of CAR_VARIATION_SPREADS) {
+      const varied = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread } };
+      expect(parseRunSettings(varied)).toEqual(varied);
+    }
+  });
+
   it("accepts Career events: None", () => {
     const settings = { ...HISTORICAL_SETTINGS, careerEvents: "none" };
     expect(parseRunSettings(settings)).toEqual(settings);
@@ -110,6 +123,14 @@ describe("parsing stored settings", () => {
       { breakdowns: null, reliability: null, points: null, careerEvents: null },
       { ...HISTORICAL_SETTINGS, teamNames: "historical" },
       { ...HISTORICAL_SETTINGS, teamNames: true },
+      // Settings from before Car performance, and its answers misspelled.
+      { ...HISTORICAL_SETTINGS, carPerformance: undefined },
+      { ...HISTORICAL_SETTINGS, carPerformance: "random" },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "historical" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 7 } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: "10" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: [] },
     ];
     for (const raw of junk) {
       expect(parseRunSettings(raw), JSON.stringify(raw)).toBeNull();
@@ -138,6 +159,7 @@ describe("a standalone season's settings", () => {
   it("drops Career events and Team names, which only an era offers", () => {
     const era = {
       ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "random" },
       breakdowns: "fewer",
       careerEvents: "none",
       teamNames: "first",
@@ -149,8 +171,13 @@ describe("a standalone season's settings", () => {
   });
 
   it("keeps every setting both screens offer", () => {
-    const settings = { ...HISTORICAL_SETTINGS, breakdowns: "fewer" } as const;
-    expect(seasonSettings(settings)).toBe(settings);
+    for (const settings of [
+      { ...HISTORICAL_SETTINGS, breakdowns: "fewer" },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 5 } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
+    ] as const) {
+      expect(seasonSettings(settings)).toBe(settings);
+    }
   });
 });
 
@@ -160,6 +187,28 @@ describe("the drivers a run is rated from", () => {
     expect(driverPoolOf({ ...HISTORICAL_SETTINGS, careerEvents: "none" })).toBe(
       driversWithoutCareerEvents(),
     );
+  });
+});
+
+describe("the cars a run races", () => {
+  const season = seasonSeed(PLAYABLE_SEASONS[0] ?? 0);
+
+  it("rolls nothing when Historical", () => {
+    expect(rolledChassisOf(season, HISTORICAL_SETTINGS, 5)).toBeNull();
+  });
+
+  it("rolls each answer from its own stream off the seed", () => {
+    const stream = () => createRng(deriveSeed(5, CAR_PERFORMANCE_STREAM));
+    expect(
+      rolledChassisOf(season, { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } }, 5),
+    ).toEqual(randomChassis(season, stream()));
+    expect(
+      rolledChassisOf(
+        season,
+        { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 20 } },
+        5,
+      ),
+    ).toEqual(variedChassis(season, 20, stream()));
   });
 });
 
@@ -187,6 +236,23 @@ describe("the what-ifs a run states", () => {
     ]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" })).toEqual([
       { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
+    ]);
+  });
+
+  it("names Car performance after the Races group and before the Drivers group", () => {
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        breakdowns: "fewer",
+        carPerformance: { kind: "varied", spread: 10 },
+        careerEvents: "none",
+      }).map((line) => line.name),
+    ).toEqual(["Breakdowns", "Car performance", "Career events"]);
+    expect(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10 } }),
+    ).toEqual([{ name: "Car performance", value: "Varied ±10" }]);
+    expect(whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toEqual([
+      { name: "Car performance", value: "Random" },
     ]);
   });
 
