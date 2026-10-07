@@ -7,6 +7,7 @@ paths:
   - "apps/web/src/lib/livery.ts"
   - "apps/web/src/components/Liveries.tsx"
   - "apps/web/src/components/EntryNames.tsx"
+  - "packages/data/src/identity.ts"
 ---
 
 # Team eras
@@ -95,3 +96,24 @@ grid the world has never seen.
 
 `buildField` reads `base` for the season being built, so **home advantage follows the
 era**: the lineage that raced as Toleman is registered in France as Alpine.
+
+## Keeping the first name
+
+An era's *Team names: Keep the first* names each team, and bases it, as in **the first
+season it appears in the run**: the start year, or its debut year for a team that enters
+later. Brawn stays Brawn, registered in GB. **The livery is not kept**: it follows
+history, so Brawn is silver from 2010.
+
+The rule is a **year, not a name**: `identityYear(teamId, year, keptFrom)` in
+`packages/data/src/identity.ts`. It returns `year` itself for `keptFrom` null, for a year
+before the run, and for a team the run has not reached. Everything still resolves through
+`teamIdentityIn`. `keptFrom` is `World.namesKeptFrom`.
+- `buildField` takes it, which keeps the base for home advantage.
+- On screen, `KeptNames` (in `EntryNames.tsx`) carries it from `RunFrame` to every page
+  of the run. Every team name and flag goes through `useNameYear`, which
+  `useEntryName`, `useTeamName`, `useTeamCountry` and the per-row `useTeamNameIn` /
+  `useTeamCountryIn` apply.
+- `SeasonGrid` applies it to the `seasonYear` it is handed, for the name and flag only.
+- Under it, a career has one name, and so one spell (`careerRecords`' `teamNameOf`).
+
+**Never route a livery or a car sprite through it**: both stay on the season itself.

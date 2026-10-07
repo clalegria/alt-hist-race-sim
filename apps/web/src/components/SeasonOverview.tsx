@@ -3,14 +3,14 @@ import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverCountry, driverName, teamCountry } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
-import { useEntryName } from "./EntryNames.js";
+import { useEntryName, useTeamCountry } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { EditedGridBanner } from "./LineupChanges.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
@@ -87,6 +87,7 @@ function Champion({
 /** The season's two champions, side by side. */
 function Champions({ world }: { world: RevealedWorld }) {
   const nameOf = useEntryName();
+  const countryOf = useTeamCountry();
   const { season, points } = world;
   const champion = useMemo(() => championshipStandings(season, points)[0], [season, points]);
   const topTeam = useMemo(() => constructorStandings(season, points)[0], [season, points]);
@@ -106,7 +107,7 @@ function Champions({ world }: { world: RevealedWorld }) {
       <Champion
         label="Constructors&rsquo; champion"
         name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
-        country={topTeam === undefined ? undefined : teamCountry(topTeam.teamId)}
+        country={topTeam === undefined ? undefined : countryOf(topTeam.teamId)}
         {...(topTeam === undefined ? {} : { teamId: topTeam.teamId })}
         detail={
           topTeam === undefined

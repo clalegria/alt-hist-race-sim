@@ -9,7 +9,7 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
-import { driverCountry, driverName, teamCountry } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
 import { driverPoolOf, whatIfsOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
@@ -18,7 +18,7 @@ import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
 import { CompactStandings } from "./CompactStandings.js";
-import { EntryNames, useEntryName } from "./EntryNames.js";
+import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
 import { HomeAdvantage } from "./HomeAdvantage.js";
 import { Liveries } from "./Liveries.js";
@@ -85,6 +85,7 @@ function RaceStage({
   race: RaceResult;
 }) {
   const nameOf = useEntryName();
+  const countryOf = useTeamCountry();
   const soFar = useMemo(() => seasonSoFar(world.season, view.round), [world.season, view.round]);
   const points = world.points;
   const drivers = useMemo(() => championshipStandings(soFar, points), [soFar, points]);
@@ -147,7 +148,7 @@ function RaceStage({
         <TitleBanner
           title="Constructors"
           name={nameOf(titles.team.teamId)}
-          country={teamCountry(titles.team.teamId)}
+          country={countryOf(titles.team.teamId)}
         />
       ) : null}
 

@@ -76,6 +76,11 @@ describe("parsing stored settings", () => {
     expect(parseRunSettings(settings)).toEqual(settings);
   });
 
+  it("accepts Team names: Keep the first", () => {
+    const settings = { ...HISTORICAL_SETTINGS, teamNames: "first" };
+    expect(parseRunSettings(settings)).toEqual(settings);
+  });
+
   it("refuses anything else", () => {
     const table = pointsTables()[0]?.scale ?? [];
     const junk: unknown[] = [
@@ -101,6 +106,10 @@ describe("parsing stored settings", () => {
       { breakdowns: null, reliability: null, points: null },
       { ...HISTORICAL_SETTINGS, careerEvents: "historical" },
       { ...HISTORICAL_SETTINGS, careerEvents: false },
+      // Settings from before Team names, and its historical answer spelled out.
+      { breakdowns: null, reliability: null, points: null, careerEvents: null },
+      { ...HISTORICAL_SETTINGS, teamNames: "historical" },
+      { ...HISTORICAL_SETTINGS, teamNames: true },
     ];
     for (const raw of junk) {
       expect(parseRunSettings(raw), JSON.stringify(raw)).toBeNull();
@@ -126,9 +135,17 @@ describe("the settings in force", () => {
 });
 
 describe("a standalone season's settings", () => {
-  it("drops Career events, which only an era offers", () => {
-    const era = { ...HISTORICAL_SETTINGS, breakdowns: "fewer", careerEvents: "none" } as const;
-    expect(seasonSettings(era)).toEqual({ ...era, careerEvents: null });
+  it("drops Career events and Team names, which only an era offers", () => {
+    const era = {
+      ...HISTORICAL_SETTINGS,
+      breakdowns: "fewer",
+      careerEvents: "none",
+      teamNames: "first",
+    } as const;
+    expect(seasonSettings(era)).toEqual({ ...era, careerEvents: null, teamNames: null });
+    expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamNames: "first" })).toEqual(
+      HISTORICAL_SETTINGS,
+    );
   });
 
   it("keeps every setting both screens offer", () => {
@@ -180,5 +197,14 @@ describe("the what-ifs a run states", () => {
       { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
       { name: "Career events", value: "None" },
     ]);
+  });
+
+  it("names Team names last, after the Drivers group", () => {
+    expect(whatIfsOf({ ...HISTORICAL_SETTINGS, careerEvents: "none", teamNames: "first" })).toEqual(
+      [
+        { name: "Career events", value: "None" },
+        { name: "Team names", value: "Keep the first" },
+      ],
+    );
   });
 });

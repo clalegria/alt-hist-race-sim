@@ -553,18 +553,20 @@ describe("the points setting", () => {
   });
 });
 
-describe("career events in a standalone season", () => {
+describe("career events and team names in a standalone season", () => {
   const eraOnly = {
     ...HISTORICAL_SETTINGS,
     breakdowns: "fewer" as const,
     careerEvents: "none" as const,
+    teamNames: "first" as const,
   };
+  const dropped = { ...eraOnly, careerEvents: null, teamNames: null };
 
-  it("are an era's setting, dropped from a season whichever way it starts", () => {
+  it("are an era's settings, dropped from a season whichever way it starts", () => {
     useSeasonStore.getState().simulate(3, YEAR, "aged", undefined, eraOnly);
-    expect(running().world.settings).toEqual({ ...eraOnly, careerEvents: null });
+    expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
     useSeasonStore.getState().startSeason(YEAR, undefined, eraOnly);
-    expect(running().world.settings).toEqual({ ...eraOnly, careerEvents: null });
+    expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
   });
 });
 

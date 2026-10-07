@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
-import { isSharedTeamName, teamName } from "../lib/names.js";
+import { isSharedTeamName } from "../lib/names.js";
 import {
   type CareerRecord,
   careerRecords,
@@ -16,6 +16,7 @@ import { driversLink, teamsLink } from "../lib/roster-places.js";
 import type { World } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
+import { useTeamNameIn } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
 import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
@@ -244,12 +245,13 @@ export function RecordCard({
   const [expanded, setExpanded] = useState(false);
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const ranked = useMemo(() => rankBy(records, metric), [records, metric]);
+  const teamNameIn = useTeamNameIn();
   // Drivers are never labelled this way: two of them sharing a name is a
   // coincidence, not two eras of one organisation, and neither of them is "the
   // 1954-55 one".
   const labels = useMemo(
-    () => (kind === "team" ? labelsFor(ranked, metric, teamName, isSharedTeamName) : null),
-    [ranked, metric, kind],
+    () => (kind === "team" ? labelsFor(ranked, metric, teamNameIn, isSharedTeamName) : null),
+    [ranked, metric, kind, teamNameIn],
   );
   const canExpand = ranked.length > COLLAPSED_ROWS;
   const rows = expanded || !canExpand ? ranked : ranked.slice(0, COLLAPSED_ROWS);
@@ -360,7 +362,8 @@ function RecordSection({
  * without a store.
  */
 export function CareerStatistics({ seasons }: { seasons: readonly World[] }) {
-  const records = useMemo(() => careerRecords(seasons), [seasons]);
+  const teamNameIn = useTeamNameIn();
+  const records = useMemo(() => careerRecords(seasons, teamNameIn), [seasons, teamNameIn]);
   return (
     <>
       <RecordSection

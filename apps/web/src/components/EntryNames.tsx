@@ -18,16 +18,72 @@
  * `SeasonGrid` deliberately does *not* use this: it is handed a field directly
  * and reads the engine off that, which is what lets the grid editor preview a
  * draft the world has never seen.
+ *
+ * The team half of the name also depends on the run: under an era's *Team
+ * names: Keep the first*, each team keeps the name and base of its first season
+ * in the run. `KeptNames` carries that year down from the run's frame, and every
+ * team name and team flag on screen goes through `useNameYear`.
  */
 
+import { identityYear } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
-import { createContext, useContext, useMemo } from "react";
-import { entryName, teamName } from "../lib/names.js";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { entryName, teamCountry, teamName } from "../lib/names.js";
 import { useSeasonYear } from "./Liveries.js";
 
 const NO_ENGINES: ReadonlyMap<string, string> = new Map();
 
 const EngineSupply = createContext<ReadonlyMap<string, string>>(NO_ENGINES);
+
+/**
+ * The year the run's team names are kept from (`World.namesKeptFrom`), or null
+ * for every team named as it was — the default, so a component rendered on its
+ * own names teams as history did.
+ */
+const KeptFrom = createContext<number | null>(null);
+
+/** The run's frame provides it once, over every page of the run. */
+export function KeptNames({ from, children }: { from: number | null; children: React.ReactNode }) {
+  return <KeptFrom.Provider value={from}>{children}</KeptFrom.Provider>;
+}
+
+/**
+ * The year a team's name and base are read at, for a row of `year`: `year`
+ * itself, or under kept names the team's first season in the run. An undefined
+ * year — no season in hand — stays undefined, the team's most recent name.
+ *
+ * For a name or a flag only: the livery and the car's shape follow the season.
+ */
+export function useNameYear(): (teamId: string, year?: number) => number | undefined {
+  const from = useContext(KeptFrom);
+  return useCallback(
+    (teamId: string, year?: number) =>
+      year === undefined ? undefined : identityYear(teamId, year, from),
+    [from],
+  );
+}
+
+/**
+ * A team's name for a row of `year`, under the run's naming — for a page that
+ * holds a year per row rather than a season in scope: a career, an index, a
+ * record. Stable while the run's naming is, so it can sit in a memo's deps.
+ */
+export function useTeamNameIn(): (teamId: string, year?: number) => string {
+  const nameYear = useNameYear();
+  return useCallback(
+    (teamId: string, year?: number) => teamName(teamId, nameYear(teamId, year)),
+    [nameYear],
+  );
+}
+
+/** Where a team is based in a row of `year`: the flag beside `useTeamNameIn`'s name. */
+export function useTeamCountryIn(): (teamId: string, year?: number) => string | undefined {
+  const nameYear = useNameYear();
+  return useCallback(
+    (teamId: string, year?: number) => teamCountry(teamId, nameYear(teamId, year)),
+    [nameYear],
+  );
+}
 
 /** Which engine each team runs, taken off the grid as it was raced. */
 function engineSupplyOf(field: readonly RaceEntrant[]): ReadonlyMap<string, string> {
@@ -62,11 +118,20 @@ export function EntryNames({
 export function useEntryName(): (teamId: string) => string {
   const supply = useContext(EngineSupply);
   const year = useSeasonYear();
-  return (teamId: string) => entryName(teamId, supply.get(teamId), year);
+  const nameYear = useNameYear();
+  return (teamId: string) => entryName(teamId, supply.get(teamId), nameYear(teamId, year));
 }
 
 /** A team's name alone, for the same season — no engine, no hyphen. */
 export function useTeamName(): (teamId: string) => string {
   const year = useSeasonYear();
-  return (teamId: string) => teamName(teamId, year);
+  const nameYear = useNameYear();
+  return (teamId: string) => teamName(teamId, nameYear(teamId, year));
+}
+
+/** Where a team is based, for its flag beside the name `useTeamName` gives. */
+export function useTeamCountry(): (teamId: string) => string | undefined {
+  const year = useSeasonYear();
+  const nameYear = useNameYear();
+  return (teamId: string) => teamCountry(teamId, nameYear(teamId, year));
 }

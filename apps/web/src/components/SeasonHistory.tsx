@@ -35,10 +35,11 @@ import {
   type SeasonHistories,
   seasonHistories,
 } from "../lib/history.js";
-import { driverCountry, driverName, teamCountry, teamName } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import type { TalliedYear } from "../lib/reveal.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn } from "../lib/utils.js";
+import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
@@ -264,6 +265,7 @@ export function DriverHistory({
   children: React.ReactNode;
 }) {
   const { histories, pageOf } = useContext(Histories);
+  const teamNameIn = useTeamNameIn();
   const seasons = histories.drivers.get(driverId);
   const panel =
     seasons === undefined || seasons.length === 0 ? null : (
@@ -276,7 +278,7 @@ export function DriverHistory({
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            middle={teamName(season.teamId, season.year)}
+            middle={teamNameIn(season.teamId, season.year)}
             season={season}
           />
         ))}
@@ -310,6 +312,8 @@ export function TeamHistory({
   children: React.ReactNode;
 }) {
   const { histories, pageOf } = useContext(Histories);
+  const teamNameIn = useTeamNameIn();
+  const teamCountryIn = useTeamCountryIn();
   const seasons = histories.teams.get(teamId);
   // The team as of its last season in the run — its name, its flag and, on the
   // rows below, a livery would all be eras; the heading has to pick one year.
@@ -317,15 +321,15 @@ export function TeamHistory({
   const panel =
     seasons === undefined || seasons.length === 0 ? null : (
       <HistoryPanel
-        name={teamName(teamId, last)}
-        country={teamCountry(teamId, last)}
+        name={teamNameIn(teamId, last)}
+        country={teamCountryIn(teamId, last)}
         seasons={seasons.length}
         page={pageOf?.team(teamId) ?? null}
       >
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            middle={teamName(teamId, season.year)}
+            middle={teamNameIn(teamId, season.year)}
             season={season}
             lineup={lineupOf(season)}
           />

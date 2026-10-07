@@ -12,6 +12,7 @@
  * **out** (exit the run). Nothing goes back in time.
  */
 
+import { identityYear } from "@alt-hist/data";
 import { cursorPlace, type Run } from "../store/season.js";
 import { driverName, teamName } from "./names.js";
 import { revealed } from "./reveal.js";
@@ -194,9 +195,12 @@ function rosterCrumbs(run: Run, at: RosterLocation): readonly Crumb[] {
     drivers ? { label: "Drivers", link: driversLink() } : { label: "Teams", link: teamsLink() },
   ];
   if (at.id !== undefined) {
-    const lastYear = lastYearOf(rosterOf(revealed(run).years).teams.get(at.id));
+    const lastYear = lastYearOf(rosterOf(revealed(run).years).teams.get(at.id)) ?? run.world.year;
     crumbs.push({
-      label: at.page === "driver" ? driverName(at.id) : teamName(at.id, lastYear ?? run.world.year),
+      label:
+        at.page === "driver"
+          ? driverName(at.id)
+          : teamName(at.id, identityYear(at.id, lastYear, run.world.namesKeptFrom)),
     });
   }
   return endingHere(crumbs);

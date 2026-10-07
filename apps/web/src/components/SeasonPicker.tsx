@@ -16,6 +16,7 @@ import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { ReliabilitySetting } from "./ReliabilitySetting.js";
 import { RunSettingsCard, RunSettingsGroup } from "./RunSettingsCard.js";
+import { TeamNamesSetting } from "./TeamNamesSetting.js";
 import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
 
@@ -151,6 +152,16 @@ export function SeasonPicker({
               careerEvents={settings.careerEvents}
               onChange={(careerEvents) => {
                 changeSettings({ ...settings, careerEvents });
+              }}
+            />
+          </RunSettingsGroup>
+        ) : null}
+        {eraSettings ? (
+          <RunSettingsGroup title="Teams over the years">
+            <TeamNamesSetting
+              teamNames={settings.teamNames}
+              onChange={(teamNames) => {
+                changeSettings({ ...settings, teamNames });
               }}
             />
           </RunSettingsGroup>

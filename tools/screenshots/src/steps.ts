@@ -178,6 +178,7 @@ export const STEPS: readonly Step[] = [
         .getByRole("group", { name: "Career events" })
         .getByRole("button", { name: "None", exact: true })
         .click();
+      await button(page, "Keep the first").click();
     },
   },
   {

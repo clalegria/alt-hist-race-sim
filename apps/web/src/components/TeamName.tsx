@@ -1,6 +1,5 @@
-import { teamCountry } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
-import { useEntryName } from "./EntryNames.js";
+import { useEntryName, useTeamCountry } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { TeamBadge } from "./TeamBadge.js";
 
@@ -26,7 +25,7 @@ export function TeamName({
   /** End the name in an ellipsis rather than widen the column. See `DriverName`. */
   tight?: boolean;
 }) {
-  const base = teamCountry(teamId);
+  const base = useTeamCountry()(teamId);
   const nameOf = useEntryName();
   return (
     <span className={cn("flex items-center gap-1.5", tight && "min-w-0", className)}>

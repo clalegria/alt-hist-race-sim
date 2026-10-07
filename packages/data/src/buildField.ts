@@ -30,6 +30,7 @@
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
 import { teamIdentityIn } from "./eras.js";
+import { identityYear } from "./identity.js";
 import { drivers as driverPool, engines as enginePool, teams as teamPool } from "./index.js";
 import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
 
@@ -101,6 +102,10 @@ export function driverRatingsFor(driver: Driver, season: number, mode: RatingMod
  * The season is required rather than defaulted: a field built from whichever
  * year happened to be the default is the bug this seam exists to prevent, and
  * every caller knows which season it is running.
+ *
+ * `keptFrom` is an era's *Team names: Keep the first* (`identity.ts`): each
+ * team is based where it was in its first season of the run, since the base
+ * moves with the name.
  */
 export function buildField(
   season: SeasonSeed,
@@ -108,15 +113,22 @@ export function buildField(
   mode: RatingMode = DEFAULT_RATING_MODE,
   teams: readonly Team[] = teamPool,
   makers: readonly EngineManufacturer[] = enginePool,
+  keptFrom: number | null = null,
 ): RaceEntrant[] {
   const byId = new Map(pool.map((driver) => [driver.id, driver]));
   // Where each team is based, for the engine's home-advantage term. Read for
   // the season being built, because a base moves with a rename — the team that
   // was Toleman is registered in France as Alpine — and racing at home is a
-  // fact about the year, not about the lineage. A team the pool does not know
+  // fact about the year, not about the lineage — unless the run keeps each
+  // team's first name, and with it the base. A team the pool does not know
   // still races; it simply never races at home, which is the same thing the
   // engine does with a missing code.
-  const baseOf = new Map(teams.map((team) => [team.id, teamIdentityIn(team, season.year).base]));
+  const baseOf = new Map(
+    teams.map((team) => [
+      team.id,
+      teamIdentityIn(team, identityYear(team.id, season.year, keptFrom)).base,
+    ]),
+  );
   const engineOf = new Map(season.engines.map((engine) => [engine.engineId, engine]));
   // Where each engine was built, for the third share of home advantage. Same
   // treatment as a team the pool does not know: no code, so never at home.

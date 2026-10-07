@@ -41,6 +41,12 @@ export interface RunSettings {
    * only**: `seasonSettings` drops it from a standalone season.
    */
   readonly careerEvents: "none" | null;
+  /**
+   * Whether teams are named as they were each year, or each keeps the name and
+   * base of its first season in the run (`identityYear` in `@alt-hist/data`).
+   * The livery still follows history. **Era only**, like `careerEvents`.
+   */
+  readonly teamNames: "first" | null;
 }
 
 /** Every setting on its historical answer: the run as it happened. */
@@ -49,6 +55,7 @@ export const HISTORICAL_SETTINGS: RunSettings = {
   reliability: null,
   points: null,
   careerEvents: null,
+  teamNames: null,
 };
 
 /**
@@ -69,7 +76,9 @@ export function settingsInForce(settings: RunSettings): RunSettings {
  * there while a season records only what it offers.
  */
 export function seasonSettings(settings: RunSettings): RunSettings {
-  return settings.careerEvents === null ? settings : { ...settings, careerEvents: null };
+  return settings.careerEvents === null && settings.teamNames === null
+    ? settings
+    : { ...settings, careerEvents: null, teamNames: null };
 }
 
 /**
@@ -170,29 +179,39 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 /**
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
- * authored ones, a year with no season, or a Breakdowns or Career events
- * answer that is not a what-if. Takes `unknown` because both callers read storage the reader controls.
+ * authored ones, a year with no season, or a Breakdowns, Career events or
+ * Team names answer that is not a what-if. Takes `unknown` because both
+ * callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return null;
   }
-  if (!("points" in raw && "breakdowns" in raw && "reliability" in raw && "careerEvents" in raw)) {
+  if (
+    !(
+      "points" in raw &&
+      "breakdowns" in raw &&
+      "reliability" in raw &&
+      "careerEvents" in raw &&
+      "teamNames" in raw
+    )
+  ) {
     return null;
   }
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
-  const { careerEvents } = raw;
+  const { careerEvents, teamNames } = raw;
   if (
     points === undefined ||
     breakdowns === undefined ||
     reliability === undefined ||
-    (careerEvents !== null && careerEvents !== "none")
+    (careerEvents !== null && careerEvents !== "none") ||
+    (teamNames !== null && teamNames !== "first")
   ) {
     return null;
   }
-  return { breakdowns, reliability, points, careerEvents };
+  return { breakdowns, reliability, points, careerEvents, teamNames };
 }
 
 /** Each of these is the field's value, or undefined when it is not one this build offers. */
@@ -233,6 +252,9 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   }
   if (settings.careerEvents !== null) {
     lines.push({ name: "Career events", value: "None" });
+  }
+  if (settings.teamNames !== null) {
+    lines.push({ name: "Team names", value: "Keep the first" });
   }
   return lines;
 }

@@ -98,6 +98,14 @@ export interface World {
    */
   readonly settings: RunSettings;
   /**
+   * The year the run's team names are kept from — the era's first year, under
+   * *Team names: Keep the first* — or null for every team named as it was that
+   * year. Each team is named, and based, as in its first season at or after it
+   * (`identityYear`). Recorded because one world cannot know where its era
+   * started, and the base is a simulation input: it is where a team is at home.
+   */
+  readonly namesKeptFrom: number | null;
+  /**
    * The championship points scale the year was scored on: its seed file's,
    * unless the run's `settings` name one table for every year.
    *
@@ -337,6 +345,11 @@ export function runConstants(
  *
  * `chosen` is kept as `settingsInForce`, so a world never records a setting
  * that changed nothing about it.
+ *
+ * `namesKeptFrom` is the era's first year, which a later year of it cannot
+ * know; it defaults to this one, the right answer for an era's first year. It
+ * is read only under *Team names: Keep the first*, and recorded as null
+ * otherwise.
  */
 export function createWorld(
   seed: number,
@@ -348,8 +361,10 @@ export function createWorld(
   arrangement: GridArrangement | null = null,
   chassis: SeasonChassis | null = null,
   chosen: RunSettings = HISTORICAL_SETTINGS,
+  eraStart: number | null = null,
 ): World {
   const settings = settingsInForce(chosen);
+  const namesKeptFrom = settings.teamNames === "first" ? (eraStart ?? year) : null;
   const authored = seasonSeed(year);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
@@ -360,7 +375,14 @@ export function createWorld(
   const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
   const entered = rerated === null ? withEngines : applyChassis(withEngines, rerated);
   const rng = createRng(seed);
-  const field = buildField(entered, driverPoolOf(settings), ratingMode);
+  const field = buildField(
+    entered,
+    driverPoolOf(settings),
+    ratingMode,
+    undefined,
+    undefined,
+    namesKeptFrom,
+  );
   // The calendar itself, not its length: the round's country is what gives the
   // drivers and teams from it their home advantage.
   const season = simulateSeason(
@@ -376,6 +398,7 @@ export function createWorld(
     ratingMode,
     randomness,
     settings,
+    namesKeptFrom,
     // Scoring only: the races above were run before any points were handed out.
     points: settings.points ?? entered.points,
     rngState: rng.getState(),
@@ -714,6 +737,7 @@ function nextEraWorld(last: World, year: number): World {
     grid.arrangement,
     null,
     last.settings,
+    last.namesKeptFrom,
   );
 }
 
@@ -882,6 +906,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.arrangement,
                 state.run.world.chassis,
                 state.run.world.settings,
+                state.run.world.namesKeptFrom,
               ),
             ),
           }
@@ -904,6 +929,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 arrangement,
                 chassis,
                 state.run.world.settings,
+                state.run.world.namesKeptFrom,
               ),
             ),
           }
@@ -963,6 +989,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.arrangement,
             world.chassis,
             world.settings,
+            world.namesKeptFrom,
           ),
         ),
       };

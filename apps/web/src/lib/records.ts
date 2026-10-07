@@ -279,8 +279,15 @@ function teamRow(standing: ConstructorStanding): SeasonRow {
  * Every career of a run, both lists, derived from its seasons — whole worlds,
  * or years cut at the cursor, the last of which may still be in progress and
  * then crowns nobody.
+ *
+ * `teamNameOf` names a team's row in a year, which is what splits a lineage
+ * into spells: as history had it by default, or the run's kept names, under
+ * which a team has one name and so one spell.
  */
-export function careerRecords(seasons: readonly TalliedYear[]): CareerRecords {
+export function careerRecords(
+  seasons: readonly TalliedYear[],
+  teamNameOf: (id: string, year: number) => string = teamName,
+): CareerRecords {
   return {
     drivers: tallyCareers(
       seasons,
@@ -290,7 +297,7 @@ export function careerRecords(seasons: readonly TalliedYear[]): CareerRecords {
     teams: tallyCareers(
       seasons,
       (world) => constructorStandings(world.season, world.points).map(teamRow),
-      teamName,
+      teamNameOf,
     ),
   };
 }

@@ -15,8 +15,11 @@ import {
   driversById,
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
+  identityYear,
   seasonSeed,
   stepChassis,
+  teamIdentityIn,
+  teamsById,
   withoutCareerEvents,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -596,6 +599,66 @@ describe("career events dropped for an era", () => {
   it("reaches the same second year by jumping as by stepping", () => {
     const stepped = twoYears(without).at(-1);
     useSeasonStore.getState().simulateEra(5, start ?? YEAR, undefined, without);
+    useSeasonStore.getState().jumpTo({ year: stepped?.year ?? YEAR, beat: { kind: "grid" } });
+    expect(running().world).toEqual(stepped);
+  });
+});
+
+describe("team names kept for an era", () => {
+  const teams = teamsById();
+  const kept = { ...HISTORICAL_SETTINGS, teamNames: "first" as const };
+
+  /** The era's first three years under `settings`, by stepping. */
+  function threeYears(settings: typeof HISTORICAL_SETTINGS): readonly World[] {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, settings);
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    jumpThrough(running().world.year);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    return [...run.seasons, world];
+  }
+
+  it("records the era's first year on every year of it", () => {
+    const years = threeYears(kept);
+    expect(years).toHaveLength(3);
+    for (const year of years) {
+      expect(year.namesKeptFrom, `${year.year}`).toBe(YEAR);
+    }
+  });
+
+  it("bases every team where it was in its first season of the run", () => {
+    for (const year of threeYears(kept)) {
+      for (const entrant of year.field) {
+        const team = teams.get(entrant.teamId);
+        expect(entrant.teamCountry, `${year.year} ${entrant.teamId}`).toBe(
+          team === undefined
+            ? undefined
+            : teamIdentityIn(team, identityYear(team.id, year.year, YEAR)).base,
+        );
+      }
+    }
+  });
+
+  it("records nothing when teams are named as they happened", () => {
+    for (const year of threeYears(HISTORICAL_SETTINGS)) {
+      expect(year.namesKeptFrom, `${year.year}`).toBeNull();
+    }
+  });
+
+  it("keeps the first year through a new grid and both restarts", () => {
+    threeYears(kept);
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.namesKeptFrom).toBe(YEAR);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.namesKeptFrom).toBe(YEAR);
+    useSeasonStore.getState().restartEra();
+    expect(running().world).toMatchObject({ year: YEAR, namesKeptFrom: YEAR });
+  });
+
+  it("reaches the same third year by jumping as by stepping", () => {
+    const stepped = threeYears(kept).at(-1);
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, kept);
     useSeasonStore.getState().jumpTo({ year: stepped?.year ?? YEAR, beat: { kind: "grid" } });
     expect(running().world).toEqual(stepped);
   });

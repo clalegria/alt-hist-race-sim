@@ -12,12 +12,13 @@
 
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { driverCountry, driverName, teamCountry, teamName } from "../lib/names.js";
+import { driverCountry, driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from "../lib/roster.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn } from "../lib/utils.js";
+import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
 import { TeamBadge } from "./TeamBadge.js";
@@ -90,9 +91,14 @@ export function RosterIndex({
   linkFor: (sort: IndexSort) => RosterLink;
   pageOf: PageOf;
 }) {
-  const index = useMemo(() => rosterIndex(rosterOf(years), careerRecords(years)), [years]);
+  const teamNameIn = useTeamNameIn();
+  const teamCountryIn = useTeamCountryIn();
+  const index = useMemo(
+    () => rosterIndex(rosterOf(years), careerRecords(years, teamNameIn)),
+    [years, teamNameIn],
+  );
   const nameOf = (row: IndexRow) =>
-    kind === "drivers" ? driverName(row.id) : teamName(row.id, row.lastYear);
+    kind === "drivers" ? driverName(row.id) : teamNameIn(row.id, row.lastYear);
   const rows = sortIndex(kind === "drivers" ? index.drivers : index.teams, sort, nameOf);
   const noun = kind === "drivers" ? "driver" : "team";
 
@@ -129,7 +135,7 @@ export function RosterIndex({
         <TableBody>
           {rows.map((row) => {
             const country =
-              kind === "drivers" ? driverCountry(row.id) : teamCountry(row.id, row.lastYear);
+              kind === "drivers" ? driverCountry(row.id) : teamCountryIn(row.id, row.lastYear);
             return (
               <TableRow key={row.id}>
                 <TableCell>

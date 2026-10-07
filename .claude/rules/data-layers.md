@@ -22,7 +22,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   the engine's runtime model. **`season` is required** — a field built from whichever
   year happened to be the default is the bug this seam exists to prevent.
   - It stamps each entrant with `driverCountry` (the driver's `nationality`),
-    `teamCountry` (the team's `base` *for that season*, via `teamIdentityIn`) and
+    `teamCountry` (the team's `base` *for that season*, via `teamIdentityIn` — or under
+    a trailing `keptFrom`, at its first season of the run, `identityYear`) and
     `engineCountry` (the manufacturer's `base`), which is how home advantage reaches the
     engine without the engine reading this package. A team or engine missing from its
     pool gets no country and is never at home.

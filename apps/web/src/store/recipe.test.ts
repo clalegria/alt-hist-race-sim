@@ -134,10 +134,12 @@ describe("a run rebuilt from its recipe", () => {
       reliability: PLAYABLE_SEASONS.at(-1) ?? null,
       points: other,
       careerEvents: "none",
+      teamNames: "first",
     });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
     const run = current();
+    expect(run.world.namesKeptFrom).toBe(YEAR);
     expect(roundTrip(run)).toEqual(run);
   });
 
@@ -230,6 +232,9 @@ describe("a recipe that is refused", () => {
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: undefined }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: "historical" }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: { points: [100, 1] } }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: undefined }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: "first" }] },
+      { ...recipe, worlds: [{ ...recipe.worlds[0], namesKeptFrom: FIRST_SEASON - 1 }] },
       // Settings from before Career events.
       {
         ...recipe,

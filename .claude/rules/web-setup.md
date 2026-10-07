@@ -8,6 +8,7 @@ paths:
   - "apps/web/src/components/BreakdownsSetting.tsx"
   - "apps/web/src/components/ReliabilitySetting.tsx"
   - "apps/web/src/components/CareerEventsSetting.tsx"
+  - "apps/web/src/components/TeamNamesSetting.tsx"
   - "apps/web/src/components/SettingSegments.tsx"
   - "apps/web/src/lib/run-settings.ts"
   - "apps/web/src/components/RandomnessSlider.tsx"
@@ -100,6 +101,11 @@ remembered set serves both screens, so the store drops era-only settings from a
 standalone season (`seasonSettings`, in `startSeason` and `simulate`) and no season
 records one. A *random* careers answer (`docs/design/era-advanced.md`) is one more
 segment.
+
+**Teams over the years** is era only too, after Drivers. It holds **Team names**: *As
+they happened* / *Keep the first*, stored as null / `"first"`. Under Keep, each team keeps
+the name and base of its first season in the run, and its livery still changes. The rule
+is `.claude/rules/team-eras.md`, and `seasonSettings` drops it from a season.
 
 **`max-w-prose` is for paragraphs, not for one-line notes.** The setup screen's lead is
 capped because it runs to two or three lines and is read down. The notes inside the

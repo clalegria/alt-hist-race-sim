@@ -20,7 +20,8 @@ run exactly.
 
 **The recipe is derived from the run, not kept beside it.** Every `World` already records
 the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `settings`,
-`lineup`, `engines`, `chassis` and `arrangement`, which are exactly `createWorld`'s arguments. `recipeOf(run)` is one
+`lineup`, `engines`, `chassis`, `arrangement` and `namesKeptFrom`, which are exactly
+`createWorld`'s arguments. `recipeOf(run)` is one
 entry per world (an era's `run.seasons`, then `world`), plus the kind, the cursor and a
 `version`. Because there is no second record of the reader's inputs, nothing can fall
 out of step with the worlds.
@@ -48,7 +49,8 @@ The stored value comes from storage the reader controls, so `runFromRecipe` take
 
 - the version and the kind;
 - integer seeds, playable years, and a known mode and randomness level;
-- run settings that pass `parseRunSettings` (`lib/run-settings.ts`);
+- run settings that pass `parseRunSettings` (`lib/run-settings.ts`), and a
+  `namesKeptFrom` that is null or a playable year;
 - one world for a season, and for an era, years chained by `nextEraYear`;
 - the cursor, which must be a beat its last world has. A `review` is allowed in an era
   only.

@@ -9,7 +9,7 @@
  * same reason `lib/rating.test.ts` invents its drivers.
  */
 
-import { seasonSeed, teamsById } from "@alt-hist/data";
+import { identityYear, seasonSeed, teamsById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { createWorld, type World } from "../store/season.js";
@@ -322,6 +322,23 @@ describe("the names a career was raced under", () => {
     // The years it was called something else belong to another spell of the
     // same career, not to this one.
     expect(spellSpan(split ?? spell("none"))).toContain(", ");
+  });
+
+  it("gives each lineage one spell when the run keeps its first name", () => {
+    // Under Team names: Keep the first a team is called one thing all run, so
+    // there is nothing to break its career into. The same window as above, so
+    // a rename is known to be inside it.
+    const window = renamedBackWindow();
+    const from = window[0] ?? 0;
+    const run = window.map((year, index) => createWorld(index + 1, year));
+    const kept = (id: string, year: number) => teamName(id, identityYear(id, year, from));
+    expect(careerRecords(run).teams.some((record) => record.spells.length > 1)).toBe(true);
+    for (const record of careerRecords(run, kept).teams) {
+      expect(
+        record.spells.map((each) => each.name),
+        record.id,
+      ).toEqual([kept(record.id, record.lastYear)]);
+    }
   });
 
   it("remembers the last season each figure was actually scored in", () => {

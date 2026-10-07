@@ -236,6 +236,7 @@ describe("remembering the run settings", () => {
     reliability: PLAYABLE_SEASONS[0] ?? null,
     points: pointsTables().at(-1)?.scale ?? [],
     careerEvents: "none",
+    teamNames: "first",
   };
 
   it("survives without any storage at all", () => {
@@ -264,6 +265,8 @@ describe("remembering the run settings", () => {
       JSON.stringify({ points: null }),
       // And from before Career events.
       JSON.stringify({ breakdowns: null, reliability: null, points: null }),
+      // And from before Team names.
+      JSON.stringify({ breakdowns: null, reliability: null, points: null, careerEvents: null }),
     ];
     for (const raw of junk) {
       stubStorage({ key: "alt-hist-run-settings", initial: raw });

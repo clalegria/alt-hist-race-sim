@@ -53,8 +53,11 @@ that did not exist for most of it. So a career carries **spells** — `CareerSpe
 per name, with the years and the same six figures — and the row opens into them, biggest
 first.
 
-Four rules, all in `lib/records.ts`:
+Five rules, all in `lib/records.ts`:
 
+- **A spell is a name the row was shown under**, so `careerRecords` names a team through
+  its `teamNameOf`: history's by default, or the run's kept names, under which a lineage
+  has one spell.
 - **One spell per name, not per stretch.** `march` raced as March, then as Leyton House,
   then as March again, and that is *one* March: a name taken back is the same name, and
   two rows of it in one card is a split nobody reading a record book wants. The

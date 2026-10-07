@@ -215,6 +215,35 @@ describe("building a field", () => {
     }
   });
 
+  it("bases a team where it was in its first season of the run, under kept names", () => {
+    // The base moves with the name, so a run that keeps the first name keeps
+    // the first base — and with it, where the team is at home. Found by search:
+    // a team whose base differs between two seasons it entered.
+    const teams = teamsById();
+    const years = [...seasons.keys()];
+    const found = years
+      .flatMap((from) => years.filter((year) => year > from).map((year) => ({ from, year })))
+      .flatMap(({ from, year }) =>
+        (seasons.get(from)?.entries ?? [])
+          .filter((entry) => seasons.get(year)?.entries.some((e) => e.teamId === entry.teamId))
+          .map((entry) => ({ from, year, team: teams.get(entry.teamId) })),
+      )
+      .find(
+        ({ from, year, team }) =>
+          team !== undefined && teamIdentityIn(team, from).base !== teamIdentityIn(team, year).base,
+      );
+    expect(found, "a team that moved base between two seasons it entered").toBeDefined();
+    if (found?.team === undefined) {
+      return;
+    }
+    const { from, year, team } = found;
+    const field = buildField(seasonSeed(year), drivers, "peak", undefined, undefined, from);
+    const entrant = field.find((each) => each.teamId === team.id);
+    expect(entrant?.teamCountry).toBe(teamIdentityIn(team, from).base);
+    const historical = buildField(seasonSeed(year)).find((each) => each.teamId === team.id);
+    expect(historical?.teamCountry).toBe(teamIdentityIn(team, year).base);
+  });
+
   it("carries a car's development trend onto both its entrants, and nothing else's", () => {
     // The trend is a fact about the car, so both sides of the garage get it —
     // and a team without one carries no key at all, which is what keeps a

@@ -23,7 +23,7 @@ import {
   seasonHistories,
   type TeamSeason,
 } from "../lib/history.js";
-import { driverBirthYear, driverCountry, driverName, teamCountry, teamName } from "../lib/names.js";
+import { driverBirthYear, driverCountry, driverName } from "../lib/names.js";
 import { driverOverall } from "../lib/rating.js";
 import { type CareerRecord, careerRecords, spellSpan } from "../lib/records.js";
 import { driverRounds, type RoundEntry, teamRounds } from "../lib/results.js";
@@ -32,7 +32,7 @@ import { rosterOf } from "../lib/roster.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
-import { EntryNames } from "./EntryNames.js";
+import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
 import { RaceByRace } from "./RaceByRace.js";
@@ -44,13 +44,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 /** The run's years with the walks every page here reads, made once per render of the page. */
 function useCareers(years: readonly RevealedWorld[]) {
+  const teamNameIn = useTeamNameIn();
   return useMemo(
     () => ({
       roster: rosterOf(years),
       histories: seasonHistories(years),
-      records: careerRecords(years),
+      records: careerRecords(years, teamNameIn),
     }),
-    [years],
+    [years, teamNameIn],
   );
 }
 
@@ -327,6 +328,8 @@ export function DriverPage({
  */
 export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; teamId: string }) {
   const { roster, histories, records } = useCareers(years);
+  const teamNameIn = useTeamNameIn();
+  const teamCountryIn = useTeamCountryIn();
   const appearances = roster.teams.get(teamId) ?? [];
   const seasons = histories.teams.get(teamId) ?? [];
   const latest = appearances.at(-1);
@@ -379,8 +382,8 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
       <Liveries year={latest.year}>
         <PersonHeader
           badge={<TeamBadge teamId={teamId} />}
-          country={teamCountry(teamId, latest.year)}
-          name={teamName(teamId, latest.year)}
+          country={teamCountryIn(teamId, latest.year)}
+          name={teamNameIn(teamId, latest.year)}
           details={
             spells.length > 1
               ? `Raced as ${spells.map((spell) => `${spell.name} (${spellSpan(spell)})`).join(" · ")}`

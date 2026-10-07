@@ -69,6 +69,7 @@ export {
   type SeasonEngines,
 } from "./engines.js";
 export { eraAt, teamIdentityIn, teamLiveryIn } from "./eras.js";
+export { identityYear } from "./identity.js";
 export {
   applyDraft,
   applyLineup,
