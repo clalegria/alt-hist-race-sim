@@ -11,10 +11,13 @@ import {
   authoredChassis,
   DEFAULT_DRIVER_FILTERS,
   DEFAULT_RATING_MODE,
+  driverRatingsFor,
+  driversById,
   FIRST_AUTHORED_SEASON,
   type GridArrangement,
   seasonSeed,
   stepChassis,
+  withoutCareerEvents,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
@@ -24,7 +27,7 @@ import {
   samePoints,
   settingsInForce,
 } from "../lib/run-settings.js";
-import { PLAYABLE_SEASONS } from "../lib/seasons.js";
+import { nextEraYear, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Place } from "../lib/timeline.js";
 import {
   crowned,
@@ -518,6 +521,83 @@ describe("reliability and breakdowns kept across an era", () => {
         .filter((entry) => entry.dnfCause === "mechanical");
       expect(mechanical, `${year.year}`).toEqual([]);
     }
+  });
+});
+
+describe("career events dropped for an era", () => {
+  const byId = driversById();
+  const without = { ...HISTORICAL_SETTINGS, careerEvents: "none" as const };
+
+  /** Whether a career event moves any seated driver's ratings in `year`. */
+  const eventfulYear = (year: number): boolean =>
+    seasonSeed(year)
+      .entries.flatMap((entry) => entry.drivers)
+      .some((id) => {
+        const driver = byId.get(id);
+        return (
+          driver !== undefined &&
+          JSON.stringify(driverRatingsFor(driver, year, ERA_RATING_MODE)) !==
+            JSON.stringify(driverRatingsFor(withoutCareerEvents(driver), year, ERA_RATING_MODE))
+        );
+      });
+
+  // Searched for rather than named: a start year whose *second* year has an
+  // event that counts, so carrying the setting across a year is what is tested.
+  const start = PLAYABLE_SEASONS.find((year) => {
+    const next = nextEraYear(year);
+    return next !== null && eventfulYear(next);
+  });
+
+  /** The era's first two years under `settings`, by stepping. */
+  function twoYears(settings: typeof HISTORICAL_SETTINGS): readonly World[] {
+    useSeasonStore.getState().simulateEra(5, start ?? YEAR, undefined, settings);
+    jumpThrough(start ?? YEAR);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    return [...run.seasons, world];
+  }
+
+  /** Whether every entrant was rated as `rate` says, for its own year. */
+  function ratedBy(years: readonly World[], rate: (id: string, year: number) => unknown): void {
+    for (const year of years) {
+      for (const entrant of year.field) {
+        expect(entrant.driver, `${year.year} ${entrant.driverId}`).toEqual(
+          rate(entrant.driverId, year.year),
+        );
+      }
+    }
+  }
+
+  it("finds a year to test against", () => {
+    expect(start).toBeDefined();
+  });
+
+  it("rates every driver on the plain curve, in every year", () => {
+    const years = twoYears(without);
+    expect(years).toHaveLength(2);
+    for (const year of years) {
+      expect(year.settings, `${year.year}`).toEqual(without);
+    }
+    ratedBy(years, (id, year) => {
+      const driver = byId.get(id);
+      return driver === undefined
+        ? undefined
+        : driverRatingsFor(withoutCareerEvents(driver), year, ERA_RATING_MODE);
+    });
+  });
+
+  it("keeps them as they happened by default", () => {
+    ratedBy(twoYears(HISTORICAL_SETTINGS), (id, year) => {
+      const driver = byId.get(id);
+      return driver === undefined ? undefined : driverRatingsFor(driver, year, ERA_RATING_MODE);
+    });
+  });
+
+  it("reaches the same second year by jumping as by stepping", () => {
+    const stepped = twoYears(without).at(-1);
+    useSeasonStore.getState().simulateEra(5, start ?? YEAR, undefined, without);
+    useSeasonStore.getState().jumpTo({ year: stepped?.year ?? YEAR, beat: { kind: "grid" } });
+    expect(running().world).toEqual(stepped);
   });
 });
 

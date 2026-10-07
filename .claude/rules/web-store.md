@@ -89,7 +89,9 @@ era carries `last.randomness` into every following year, so a run is one champio
 under one set of rules. **`world.settings`** (`RunSettings`, `lib/run-settings.ts`) is
 chosen, carried and remembered exactly the same way, through every action that rebuilds
 a year and into every year of an era; `createWorld` takes it last, and races on
-`runConstants(entered, randomness, settings)` — the one place settings reach the model. The grid stage states
+`runConstants(entered, randomness, settings)` — the one place settings reach the constants; the
+drivers come from `driverPoolOf(settings)`, the one place they reach the ratings, which
+`arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too. The grid stage states
 the level (`RandomnessNote`) and any non-historical setting beneath it, and offers no
 control; the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming

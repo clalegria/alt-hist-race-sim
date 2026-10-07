@@ -174,6 +174,10 @@ export const STEPS: readonly Step[] = [
       await button(page, "None").click();
       await button(page, "Same all run").click();
       await page.getByRole("combobox").waitFor();
+      await page
+        .getByRole("group", { name: "Career events" })
+        .getByRole("button", { name: "None", exact: true })
+        .click();
     },
   },
   {

@@ -68,6 +68,28 @@ export function driverCareer(driver: Driver): DriverCareer {
   };
 }
 
+/**
+ * The driver with no career events: no `stepDown`, no `offSeasons`, so the
+ * ageing curve runs plain. What the era's *Career events: None* races on.
+ */
+export function withoutCareerEvents(driver: Driver): Driver {
+  const { stepDown: _stepDown, offSeasons: _offSeasons, ...career } = driver;
+  return career;
+}
+
+let eventFree: readonly Driver[] | null = null;
+
+/**
+ * The whole pool without career events, built once so every call hands back
+ * the same array — every function here that reads ratings takes a pool. Built
+ * on first call rather than at import, because this module and `index.ts`
+ * import each other and the pool may not exist yet while this one loads.
+ */
+export function driversWithoutCareerEvents(): readonly Driver[] {
+  eventFree ??= driverPool.map(withoutCareerEvents);
+  return eventFree;
+}
+
 /** A driver's ratings for a season under the given mode. */
 export function driverRatingsFor(driver: Driver, season: number, mode: RatingMode) {
   return mode === "peak"

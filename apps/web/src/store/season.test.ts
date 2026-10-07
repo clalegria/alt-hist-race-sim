@@ -553,6 +553,21 @@ describe("the points setting", () => {
   });
 });
 
+describe("career events in a standalone season", () => {
+  const eraOnly = {
+    ...HISTORICAL_SETTINGS,
+    breakdowns: "fewer" as const,
+    careerEvents: "none" as const,
+  };
+
+  it("are an era's setting, dropped from a season whichever way it starts", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "aged", undefined, eraOnly);
+    expect(running().world.settings).toEqual({ ...eraOnly, careerEvents: null });
+    useSeasonStore.getState().startSeason(YEAR, undefined, eraOnly);
+    expect(running().world.settings).toEqual({ ...eraOnly, careerEvents: null });
+  });
+});
+
 describe("the reliability and breakdowns settings", () => {
   /** A year whose retirement factor is not YEAR's, so a pass cannot be YEAR's own showing through. */
   const harder = PLAYABLE_SEASONS.find(

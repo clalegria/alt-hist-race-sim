@@ -7,6 +7,7 @@ paths:
   - "apps/web/src/components/PointsSetting.tsx"
   - "apps/web/src/components/BreakdownsSetting.tsx"
   - "apps/web/src/components/ReliabilitySetting.tsx"
+  - "apps/web/src/components/CareerEventsSetting.tsx"
   - "apps/web/src/components/SettingSegments.tsx"
   - "apps/web/src/lib/run-settings.ts"
   - "apps/web/src/components/RandomnessSlider.tsx"
@@ -89,6 +90,16 @@ screens. What the first two do to the constants is `.claude/rules/retirement-fac
 `pointsTables()`: the distinct tables in the seed data, labelled by their years and
 values, derived rather than listed. Switching to *Same all run* picks the selected year's
 table. Points are scoring only, so the same seed races the same races under any table.
+
+**The Drivers group is era only**: `SeasonPicker` draws it under `eraSettings`, which
+`EraPicker` passes. It holds **Career events** — *As they happened* / *None*, stored as
+null / `"none"`; "Career events", never "form", which the market owns. None races every
+driver without their `stepDown` and `offSeasons` (`driverPoolOf`; the pool is
+`.claude/rules/data-layers.md`); the events only count under `aged`, which an era always runs. One
+remembered set serves both screens, so the store drops era-only settings from a
+standalone season (`seasonSettings`, in `startSeason` and `simulate`) and no season
+records one. A *random* careers answer (`docs/design/era-advanced.md`) is one more
+segment.
 
 **`max-w-prose` is for paragraphs, not for one-line notes.** The setup screen's lead is
 capped because it runs to two or three lines and is read down. The notes inside the

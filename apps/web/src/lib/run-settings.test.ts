@@ -3,15 +3,18 @@
  * storage. Every table is read off the seed data rather than written down.
  */
 
+import { drivers, driversWithoutCareerEvents } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import {
   BREAKDOWNS_LABELS,
+  driverPoolOf,
   HISTORICAL_SETTINGS,
   parseRunSettings,
   pointsTableOf,
   pointsTables,
   pointsValues,
   samePoints,
+  seasonSettings,
   settingsInForce,
   whatIfsOf,
 } from "./run-settings.js";
@@ -68,6 +71,11 @@ describe("parsing stored settings", () => {
     }
   });
 
+  it("accepts Career events: None", () => {
+    const settings = { ...HISTORICAL_SETTINGS, careerEvents: "none" };
+    expect(parseRunSettings(settings)).toEqual(settings);
+  });
+
   it("refuses anything else", () => {
     const table = pointsTables()[0]?.scale ?? [];
     const junk: unknown[] = [
@@ -89,6 +97,10 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, reliability: FIRST_SEASON - 1 },
       { ...HISTORICAL_SETTINGS, reliability: (PLAYABLE_SEASONS[0] ?? 0) + 0.5 },
       { ...HISTORICAL_SETTINGS, reliability: String(PLAYABLE_SEASONS[0]) },
+      // Settings from before Career events, and its historical answer spelled out.
+      { breakdowns: null, reliability: null, points: null },
+      { ...HISTORICAL_SETTINGS, careerEvents: "historical" },
+      { ...HISTORICAL_SETTINGS, careerEvents: false },
     ];
     for (const raw of junk) {
       expect(parseRunSettings(raw), JSON.stringify(raw)).toBeNull();
@@ -110,6 +122,27 @@ describe("the settings in force", () => {
       const settings = { ...HISTORICAL_SETTINGS, breakdowns, reliability: year };
       expect(settingsInForce(settings)).toBe(settings);
     }
+  });
+});
+
+describe("a standalone season's settings", () => {
+  it("drops Career events, which only an era offers", () => {
+    const era = { ...HISTORICAL_SETTINGS, breakdowns: "fewer", careerEvents: "none" } as const;
+    expect(seasonSettings(era)).toEqual({ ...era, careerEvents: null });
+  });
+
+  it("keeps every setting both screens offer", () => {
+    const settings = { ...HISTORICAL_SETTINGS, breakdowns: "fewer" } as const;
+    expect(seasonSettings(settings)).toBe(settings);
+  });
+});
+
+describe("the drivers a run is rated from", () => {
+  it("is the pool as authored, unless Career events is None", () => {
+    expect(driverPoolOf(HISTORICAL_SETTINGS)).toBe(drivers);
+    expect(driverPoolOf({ ...HISTORICAL_SETTINGS, careerEvents: "none" })).toBe(
+      driversWithoutCareerEvents(),
+    );
   });
 });
 
@@ -137,6 +170,15 @@ describe("the what-ifs a run states", () => {
     ]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" })).toEqual([
       { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
+    ]);
+  });
+
+  it("names Career events after the Races group", () => {
+    expect(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer", careerEvents: "none" }),
+    ).toEqual([
+      { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
+      { name: "Career events", value: "None" },
     ]);
   });
 });

@@ -57,7 +57,13 @@ import {
   rememberRatingMode,
   rememberSeasonYear,
 } from "../lib/preferences.js";
-import { HISTORICAL_SETTINGS, type RunSettings, settingsInForce } from "../lib/run-settings.js";
+import {
+  driverPoolOf,
+  HISTORICAL_SETTINGS,
+  type RunSettings,
+  seasonSettings,
+  settingsInForce,
+} from "../lib/run-settings.js";
 import { isPlayable, nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
@@ -214,6 +220,9 @@ export const ERA_RATING_MODE: RatingMode = "aged";
  * races are run on — so re-rolling a grid cannot change what a race did with
  * it.
  *
+ * The drivers are ranked on the ratings the run races them on, so `settings`
+ * comes too: under *Career events: None* a step down no longer counts here.
+ *
  * Falls back to the authored grid if the rule somehow leaves a seat open, since
  * only a filled grid can be raced.
  */
@@ -224,6 +233,7 @@ function arrangedLineup(
   ratingMode: RatingMode,
   engines: SeasonEngines | null,
   chassis: SeasonChassis | null,
+  settings: RunSettings,
 ): SeasonLineup {
   const season = seasonSeed(year);
   const authored = authoredLineup(season);
@@ -232,6 +242,7 @@ function arrangedLineup(
   const arranged = arrangeLineup(entered, authored, arrangement, {
     mode: ratingMode,
     rng: createRng(seed),
+    pool: driverPoolOf(settings),
   });
   return filledLineup(arranged) ?? authored;
 }
@@ -255,6 +266,7 @@ function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonL
     ratingMode,
     world.engines,
     world.chassis,
+    world.settings,
   );
 }
 
@@ -284,7 +296,7 @@ function nextEraGrid(
   return {
     // No engines and no chassis: an era carries neither a supply deal nor a
     // re-rated car across a year.
-    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null, null),
+    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null, null, last.settings),
     arrangement,
   };
 }
@@ -348,7 +360,7 @@ export function createWorld(
   const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
   const entered = rerated === null ? withEngines : applyChassis(withEngines, rerated);
   const rng = createRng(seed);
-  const field = buildField(entered, undefined, ratingMode);
+  const field = buildField(entered, driverPoolOf(settings), ratingMode);
   // The calendar itself, not its length: the round's country is what gives the
   // drivers and teams from it their home advantage.
   const season = simulateSeason(
@@ -491,7 +503,8 @@ interface SeasonStore {
    * The randomness level and the run settings come from the setup screen, the
    * only place they are ever chosen. Omitted, the remembered ones are used — the
    * setup screen seeds its controls from the same values, so the two cannot
-   * disagree.
+   * disagree. The era-only settings are dropped (`seasonSettings`), here and in
+   * `simulate`, so no standalone season records one.
    */
   readonly startSeason: (
     year: number,
@@ -781,15 +794,25 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
           randomness,
           null,
           null,
-          settings,
+          seasonSettings(settings),
         ),
       ),
     });
   },
-  simulate: (seed, year, ratingMode, randomness, settings) => {
+  simulate: (seed, year, ratingMode, randomness, settings = HISTORICAL_SETTINGS) => {
     set({
       run: openSeason(
-        createWorld(seed, year, ratingMode, null, null, randomness, null, null, settings),
+        createWorld(
+          seed,
+          year,
+          ratingMode,
+          null,
+          null,
+          randomness,
+          null,
+          null,
+          seasonSettings(settings),
+        ),
       ),
     });
   },

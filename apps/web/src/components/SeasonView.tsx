@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from "react";
 import { driverCountry, driverName, teamCountry } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
-import { whatIfsOf } from "../lib/run-settings.js";
+import { driverPoolOf, whatIfsOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
@@ -328,6 +328,7 @@ function SeasonBody({
           arrangement={world.arrangement}
           inEra={inEra}
           previousLineup={previousLineup}
+          pool={driverPoolOf(world.settings)}
           locked={locked}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           onEditingChange={(editing) => {

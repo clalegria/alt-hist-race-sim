@@ -34,6 +34,12 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     aged" in `CLAUDE.md`. `"aged"` calls the engine's `ratingsForSeason`, so this
     package depends on the engine at runtime — one-directionally, which is the
     invariant that matters.
+- **A run setting reaches driver ratings through the pool**, never a flag: `buildField`,
+  `arrangeLineup`, `carryOverLineup` and `reserveDrivers` all take one.
+  `withoutCareerEvents(driver)` drops `stepDown` and `offSeasons`, so the curve runs
+  plain; `driversWithoutCareerEvents()` is the whole pool without them, memoised (one
+  array, for React dependencies) and built lazily, because this module and `index.ts`
+  import each other. The web app picks the pool in `driverPoolOf` (`lib/run-settings.ts`).
 - `engines.ts` is the supply layer over a season seed, and mirrors `lineup.ts`
   deliberately: a `SeasonEngines` is `Record<teamId, engineId>` with the same keys as
   the season it overrides, and `applyEngines(season, engines)` hands back a

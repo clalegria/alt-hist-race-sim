@@ -5,14 +5,17 @@ import {
   DEFAULT_RATING_MODE,
   type Driver,
   driverCareer,
+  driverRatingsFor,
   drivers,
   driversById,
+  driversWithoutCareerEvents,
   FIRST_AUTHORED_SEASON,
   seasonSeed,
   seasons,
   teamIdentityIn,
   teamsById,
   validateSeedData,
+  withoutCareerEvents,
 } from "./index.js";
 
 const byId = driversById();
@@ -314,5 +317,42 @@ describe("building a field", () => {
     expect(seats("aged")).toHaveLength(
       SEED.entries.flatMap((entry: { drivers: readonly string[] }) => entry.drivers).length,
     );
+  });
+});
+
+describe("without career events", () => {
+  const steady = someDriver(
+    (record) => record.stepDown === undefined && record.offSeasons === undefined,
+    "driver with no career events",
+  );
+  // Both events on a career that had none, at its peak, so the only thing that
+  // can tell the two apart is the events themselves.
+  const eventful: Driver = {
+    ...steady,
+    stepDown: { season: steady.peak.season, severity: 0.5 },
+    offSeasons: [{ season: steady.peak.season, severity: 0.5 }],
+  };
+
+  it("drops both events and nothing else", () => {
+    expect(withoutCareerEvents(eventful)).toEqual(steady);
+    expect(withoutCareerEvents(steady)).toEqual(steady);
+  });
+
+  it("ages the driver on the plain curve", () => {
+    const year = steady.peak.season;
+    expect(driverRatingsFor(eventful, year, "aged")).not.toEqual(
+      driverRatingsFor(steady, year, "aged"),
+    );
+    expect(driverRatingsFor(withoutCareerEvents(eventful), year, "aged")).toEqual(
+      driverRatingsFor(steady, year, "aged"),
+    );
+  });
+
+  it("is the whole pool, in order, as one array", () => {
+    const pool = driversWithoutCareerEvents();
+    expect(pool.map((record) => record.id)).toEqual(drivers.map((record) => record.id));
+    expect(pool.some((record) => record.stepDown !== undefined)).toBe(false);
+    expect(pool.some((record) => record.offSeasons !== undefined)).toBe(false);
+    expect(driversWithoutCareerEvents()).toBe(pool);
   });
 });

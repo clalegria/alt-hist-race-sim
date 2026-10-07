@@ -11,6 +11,7 @@ import {
 import type { RunSettings } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
+import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { ReliabilitySetting } from "./ReliabilitySetting.js";
@@ -56,6 +57,7 @@ export function SeasonPicker({
   describeYear = (year: number) => `Simulate the ${year} season`,
   describeStart = (year: number) => `Begin the ${year} season`,
   unit = "season",
+  eraSettings = false,
 }: {
   onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
   title?: string;
@@ -69,6 +71,11 @@ export function SeasonPicker({
   describeStart?: (year: number) => string;
   /** What the settings are fixed for: "season" or "era". */
   unit?: string;
+  /**
+   * Whether to offer the era-only settings. A season's screen hides them, and
+   * the store drops them from a season (`seasonSettings`) whatever is remembered.
+   */
+  eraSettings?: boolean;
 }) {
   // Read once, on mount: this is the seed for the control, not a live mirror of
   // storage, and nothing else on the screen can change it underneath.
@@ -138,6 +145,16 @@ export function SeasonPicker({
             }}
           />
         </RunSettingsGroup>
+        {eraSettings ? (
+          <RunSettingsGroup title="Drivers">
+            <CareerEventsSetting
+              careerEvents={settings.careerEvents}
+              onChange={(careerEvents) => {
+                changeSettings({ ...settings, careerEvents });
+              }}
+            />
+          </RunSettingsGroup>
+        ) : null}
       </RunSettingsCard>
 
       {/*
@@ -180,6 +197,7 @@ export function EraPicker({
       describeYear={(year) => `Start an era in ${year}`}
       describeStart={(year) => `Begin an era from ${year}`}
       unit="era"
+      eraSettings
     />
   );
 }

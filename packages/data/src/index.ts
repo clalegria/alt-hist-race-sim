@@ -37,8 +37,10 @@ export {
   DEFAULT_RATING_MODE,
   driverCareer,
   driverRatingsFor,
+  driversWithoutCareerEvents,
   RATING_MODES,
   type RatingMode,
+  withoutCareerEvents,
 } from "./buildField.js";
 export {
   CARRY_OVER_AGES,

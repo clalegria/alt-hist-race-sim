@@ -15,6 +15,7 @@ import {
   chassisChanges,
   type Driver,
   driverRatingsFor,
+  drivers,
   emptySeats,
   engineChanges,
   exchangePicks,
@@ -479,8 +480,9 @@ export function previewField(
   season: SeasonSeed,
   draft: LineupDraft,
   ratingMode: RatingMode,
+  pool: readonly Driver[] = drivers,
 ): readonly RaceEntrant[] {
-  const built = buildField(applyDraft(season, draft), undefined, ratingMode);
+  const built = buildField(applyDraft(season, draft), pool, ratingMode);
   const seated = new Map<string, RaceEntrant[]>();
   for (const entrant of built) {
     const already = seated.get(entrant.teamId);
@@ -558,6 +560,7 @@ export function GridStage({
   arrangement = null,
   inEra = false,
   previousLineup = null,
+  pool = drivers,
   locked = false,
   onApply,
   onEditingChange,
@@ -595,6 +598,12 @@ export function GridStage({
    * year behind it, so it passes nothing and the button copies history.
    */
   previousLineup?: SeasonLineup | null;
+  /**
+   * The drivers the run rates (`driverPoolOf`), so the preview, the pool's
+   * overalls, the carry-over and the bulk rules all read the ratings the season
+   * will race on.
+   */
+  pool?: readonly Driver[];
   /**
    * A grid that has been raced: drawn as it stood, with no way into the editor.
    * The store would refuse the edit anyway, and a button that does nothing is a
@@ -698,8 +707,8 @@ export function GridStage({
     if (draft === null && engineDraft === null && chassisDraft === null) {
       return field;
     }
-    return previewField(entered, draft ?? applied, ratingMode);
-  }, [draft, engineDraft, chassisDraft, field, entered, applied, ratingMode]);
+    return previewField(entered, draft ?? applied, ratingMode, pool);
+  }, [draft, engineDraft, chassisDraft, field, entered, applied, ratingMode, pool]);
   // What the grid reports: the rule on the draft while the editor is open, the
   // rule the season was run under once it is shut. One value rather than a
   // branch at the call site, so the notice cannot say two different things.
@@ -709,7 +718,7 @@ export function GridStage({
     }
     return chosen === null ? null : { kind: chosen, includeUnemployed, filters, retain };
   }, [draft, arrangement, chosen, includeUnemployed, filters, retain]);
-  const reserve = useMemo(() => reserveDrivers(shown), [shown]);
+  const reserve = useMemo(() => reserveDrivers(shown, pool), [shown, pool]);
   /** The open seats, and therefore whether this grid can be applied at all. */
   const open = useMemo(() => emptySeats(shown), [shown]);
 
@@ -778,7 +787,7 @@ export function GridStage({
     if (draft === null || previous === null) {
       return;
     }
-    setDraft(carryOverLineup(season, previous, draft, { previousLineup, mode: ratingMode }));
+    setDraft(carryOverLineup(season, previous, draft, { previousLineup, mode: ratingMode, pool }));
     setSelected(null);
     // Last season's drivers are their own arrangement of the grid, and not one
     // of the three rules. Whatever was in force is no longer what is on screen.
@@ -815,7 +824,11 @@ export function GridStage({
       retain,
     };
     setDraft(
-      arrangeLineup(entered, draft, rules, { mode: ratingMode, rng: createRng(randomSeed()) }),
+      arrangeLineup(entered, draft, rules, {
+        mode: ratingMode,
+        rng: createRng(randomSeed()),
+        pool,
+      }),
     );
     setChosen(kind);
     setSelected(null);

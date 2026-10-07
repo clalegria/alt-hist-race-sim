@@ -2,11 +2,12 @@
 
 What-if settings chosen on the setup screen before a run starts, beside Randomness: car
 performance, career events, team names, teams and seats, breakdowns, reliability and
-points. The Races group — breakdowns, reliability, points — and the plumbing every
-setting shares (`World.settings`, the Run settings card) are built and documented in
-`.claude/rules/web-setup.md`, `web-store.md` and `retirement-factor.md`; the rest is
-design intent. Where it sits in the build order is *run settings* in `docs/ROADMAP.md`;
-§8 is its own build order, one step per session.
+points. The Races group — breakdowns, reliability, points —, the Drivers group —
+career events — and the plumbing every setting shares (`World.settings`, the Run
+settings card) are built and documented in `.claude/rules/web-setup.md`, `web-store.md`,
+`data-layers.md` and `retirement-factor.md`; the rest is design intent. Where it sits in
+the build order is *run settings* in `docs/ROADMAP.md`; §7 is its own build order, one
+step per session.
 
 Three of these are settings `docs/design/era-advanced.md` §3 decided for the advanced
 era — the frozen grid, historical careers, random car development. They are built here
@@ -21,7 +22,7 @@ first, in `era-basic`, and the advanced era inherits them.
 ## 1. Principles
 
 - **DECIDED** — Car performance, career events, team names, and teams and seats are on
-  the **era setup only** (§7).
+  the **era setup only** (§6).
 - **PROPOSED** — Every setting's first option is the historical one, and it is the
   default. All-historical is today's run exactly: no draw is made and no field changes,
   so tests and harnesses are untouched until a reader picks something else.
@@ -40,15 +41,12 @@ first, in `era-basic`, and the advanced era inherits them.
   Car performance   [ Historical | Varied | Random ]
     Varied:  up to ±  2 · 5 · 10 · 20 · 30
              each year varies from  [ that year's real car | last year's car ]
- ─ Drivers ────────────────────────────────────────────────────────────
-  Career events     [ As they happened | None ]   off-years, late-career drops
+ ─ Drivers (built) ────────────────────────────────────────────────────
  ─ Teams over the years ───────────────────────────────────────────────
   Team names        [ As they happened | Keep the first ]
   Teams and seats   [ As they happened | Keep the starting grid ]
 ```
 
-- **(b) is "Career events", never "form"**: the market owns *form*
-  (`era-advanced.md` §4).
 - **One segmented control per setting** (`SettingSegments`), so every row reads
   historical-versus-what-if the same way, and a third option (random careers, an
   intermediate grid) is one more segment. The Varied sub-controls show only under Varied.
@@ -83,18 +81,7 @@ first, in `era-basic`, and the advanced era inherits them.
   `era-advanced.md` §11). Recommendation: build the plain walk, decide after watching a
   long run.
 
-## 4. Career events
-
-- **DECIDED** — As they happened / None. None drops every `stepDown` and `offSeasons` for
-  the run — the only two career events in `drivers.json` (`.claude/rules/seed-data.md`).
-- **PROPOSED** — In the data layer: `driverCareer` in `packages/data/src/buildField.ts`
-  leaves both out. `ratingsForSeason` is untouched and stays deterministic
-  (`.claude/rules/progression.md`).
-- An era always runs `aged` (`ERA_RATING_MODE`), so the events always count there; under
-  a season's default `peak` they would do nothing, which is why this is era-only. The
-  first slice of `era-advanced.md`'s *Careers* setting; *random* is a later third option.
-
-## 5. Team names
+## 4. Team names
 
 - **DECIDED** — As they happened / Keep the first.
 - **PROPOSED** — Keep freezes the whole identity: **name, base and livery**. Brawn stays
@@ -106,7 +93,7 @@ first, in `era-basic`, and the advanced era inherits them.
   `Liveries` context provides it, so every name and livery still resolves through
   `teamIdentityIn` / `teamLiveryIn` (`.claude/rules/team-eras.md`).
 
-## 6. Teams and seats
+## 5. Teams and seats
 
 - **DECIDED** — As they happened / Keep the starting grid. Keep means every year has the
   start year's teams, each with its start-year seat count. Teams new in history never
@@ -135,7 +122,7 @@ first, in `era-basic`, and the advanced era inherits them.
   carry-over stops only at 55). Accept it in era-basic and leave it to the advanced
   era's Retirement setting?
 
-## 7. Which screen
+## 6. Which screen
 
 - **DECIDED** — Era setup only: car performance, career events, team names, teams and
   seats.
@@ -143,15 +130,14 @@ first, in `era-basic`, and the advanced era inherits them.
   goes behind a *More settings* disclosure that summarises any non-historical choice in
   one line when closed.
 
-## 8. Build order
+## 7. Build order
 
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Career events.**
-2. **Team names**: the identity year.
-3. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
+1. **Team names**: the identity year.
+2. **Car performance**: Historical, Varied from the real car, Random; the seed derivation
    and the baseline-not-edit change.
-4. **Car performance from last year's car**: the walk.
-5. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
+3. **Car performance from last year's car**: the walk.
+4. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
    and the jump stopping early.

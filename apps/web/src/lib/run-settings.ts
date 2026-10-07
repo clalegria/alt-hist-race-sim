@@ -14,6 +14,7 @@
  * Pure: no storage here (`preferences.ts` reads and writes it).
  */
 
+import { type Driver, drivers, driversWithoutCareerEvents } from "@alt-hist/data";
 import type { Breakdowns, PointsScale } from "@alt-hist/engine";
 import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
 
@@ -34,6 +35,12 @@ export interface RunSettings {
    * never writes one.
    */
   readonly points: PointsScale | null;
+  /**
+   * Whether drivers have the career events authored for them — a `stepDown`,
+   * `offSeasons` — or none, every career on the plain ageing curve. **Era
+   * only**: `seasonSettings` drops it from a standalone season.
+   */
+  readonly careerEvents: "none" | null;
 }
 
 /** Every setting on its historical answer: the run as it happened. */
@@ -41,6 +48,7 @@ export const HISTORICAL_SETTINGS: RunSettings = {
   breakdowns: null,
   reliability: null,
   points: null,
+  careerEvents: null,
 };
 
 /**
@@ -53,6 +61,24 @@ export function settingsInForce(settings: RunSettings): RunSettings {
   return settings.breakdowns === "none" && settings.reliability !== null
     ? { ...settings, reliability: null }
     : settings;
+}
+
+/**
+ * The settings a standalone season runs: the era-only ones dropped. One
+ * remembered set serves both setup screens, so the reader's era choice is kept
+ * there while a season records only what it offers.
+ */
+export function seasonSettings(settings: RunSettings): RunSettings {
+  return settings.careerEvents === null ? settings : { ...settings, careerEvents: null };
+}
+
+/**
+ * The drivers a run's ratings come from: the pool, or the pool without career
+ * events. Every data function that rates a driver takes a pool, so this is the
+ * one place the setting reaches them.
+ */
+export function driverPoolOf(settings: RunSettings): readonly Driver[] {
+  return settings.careerEvents === "none" ? driversWithoutCareerEvents() : drivers;
 }
 
 /** What the reader is shown for each Breakdowns answer. */
@@ -144,23 +170,29 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 /**
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
- * authored ones, a year with no season, or a Breakdowns answer that is not a
- * what-if. Takes `unknown` because both callers read storage the reader controls.
+ * authored ones, a year with no season, or a Breakdowns or Career events
+ * answer that is not a what-if. Takes `unknown` because both callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return null;
   }
-  if (!("points" in raw && "breakdowns" in raw && "reliability" in raw)) {
+  if (!("points" in raw && "breakdowns" in raw && "reliability" in raw && "careerEvents" in raw)) {
     return null;
   }
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
-  if (points === undefined || breakdowns === undefined || reliability === undefined) {
+  const { careerEvents } = raw;
+  if (
+    points === undefined ||
+    breakdowns === undefined ||
+    reliability === undefined ||
+    (careerEvents !== null && careerEvents !== "none")
+  ) {
     return null;
   }
-  return { breakdowns, reliability, points };
+  return { breakdowns, reliability, points, careerEvents };
 }
 
 /** Each of these is the field's value, or undefined when it is not one this build offers. */
@@ -198,6 +230,9 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   }
   if (settings.points !== null) {
     lines.push({ name: "Points", value: pointsValues(settings.points) });
+  }
+  if (settings.careerEvents !== null) {
+    lines.push({ name: "Career events", value: "None" });
   }
   return lines;
 }

@@ -80,7 +80,7 @@ What follows is only what stays advanced.
 - **PROPOSED** — The random retirement age depends on the era: fifties drivers raced into
   their forties, modern ones mostly stop in their late thirties.
 - **DECIDED** — **Grid evolution**: *historical*, *frozen* (both in
-  `run-settings.md` §6), or an *intermediate* hybrid. Built on team lineage
+  `run-settings.md` §5), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
   change from the last, `run-settings.md` §3's *last year's car*. Game mode goes much

@@ -133,6 +133,7 @@ describe("a run rebuilt from its recipe", () => {
       breakdowns: "fewer",
       reliability: PLAYABLE_SEASONS.at(-1) ?? null,
       points: other,
+      careerEvents: "none",
     });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
@@ -229,6 +230,16 @@ describe("a recipe that is refused", () => {
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: undefined }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: "historical" }] },
       { ...recipe, worlds: [{ ...recipe.worlds[0], settings: { points: [100, 1] } }] },
+      // Settings from before Career events.
+      {
+        ...recipe,
+        worlds: [
+          {
+            ...recipe.worlds[0],
+            settings: { breakdowns: null, reliability: null, points: null },
+          },
+        ],
+      },
       { ...recipe, cursor: { kind: "race", round: -1 } },
       { ...recipe, cursor: { kind: "lap" } },
       // A grid that names nobody real reaches the simulation, which must not take
