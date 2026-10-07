@@ -1,3 +1,4 @@
+import type { RunUnit } from "../lib/run-settings.js";
 import { decadeOf, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { SETTING_SELECT_CLASS, SettingSegments } from "./SettingSegments.js";
 
@@ -16,6 +17,29 @@ function decades(): readonly { decade: number; years: readonly number[] }[] {
   return groups;
 }
 
+/** The words, which talk about "every year" only where there is more than one. */
+const COPY: Readonly<
+  Record<
+    RunUnit,
+    {
+      readonly own: string;
+      readonly ownNote: (year: number) => string;
+      readonly asInNote: (reliability: number) => string;
+    }
+  >
+> = {
+  season: {
+    own: "As it was",
+    ownNote: (year) => `Cars break down as often as they really did in ${year}.`,
+    asInNote: (reliability) => `Cars break down as often as ${reliability}'s did.`,
+  },
+  era: {
+    own: "Each year's own",
+    ownNote: () => "Every year's cars break down as often as they really did.",
+    asInNote: (reliability) => `Every year's cars break down as often as ${reliability}'s did.`,
+  },
+};
+
 /**
  * How often the run's cars break down: as each year's did, or as one season's
  * did, every year. A year rather than a number, because a season's retirement
@@ -26,6 +50,7 @@ function decades(): readonly { decade: number; years: readonly number[] }[] {
 export function ReliabilitySetting({
   reliability,
   year,
+  unit,
   disabled = false,
   onChange,
 }: {
@@ -33,11 +58,14 @@ export function ReliabilitySetting({
   reliability: number | null;
   /** The year on the picker, which *As in a year* starts from. */
   year: number;
+  /** Which screen it is on, which only changes the words. */
+  unit: RunUnit;
   /** Greyed out under Breakdowns: None, keeping the reader's choice on show. */
   disabled?: boolean;
   /** Absent in tests, where nothing is clicked. */
   onChange?: (reliability: number | null) => void;
 }) {
+  const copy = COPY[unit];
   return (
     <div className="flex flex-col gap-3">
       <SettingSegments
@@ -46,7 +74,7 @@ export function ReliabilitySetting({
         segments={[
           {
             key: "own",
-            label: "Each year's own",
+            label: copy.own,
             selected: reliability === null,
             onPick: () => onChange?.(null),
           },
@@ -64,14 +92,10 @@ export function ReliabilitySetting({
           No car breaks down, so there is no reliability to choose.
         </p>
       ) : reliability === null ? (
-        <p className="text-muted-foreground text-xs">
-          Every year's cars break down as often as they really did.
-        </p>
+        <p className="text-muted-foreground text-xs">{copy.ownNote(year)}</p>
       ) : (
         <label className="flex flex-col gap-1.5 text-xs">
-          <span className="text-muted-foreground">
-            Every year's cars break down as often as {reliability}'s did.
-          </span>
+          <span className="text-muted-foreground">{copy.asInNote(reliability)}</span>
           <select
             value={reliability}
             onChange={(event) => {

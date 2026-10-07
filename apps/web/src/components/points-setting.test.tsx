@@ -27,16 +27,31 @@ const noop = () => {};
 
 describe("the points setting", () => {
   it("offers no table while each year keeps its own", () => {
-    const html = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} />);
+    const html = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="era" />);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Each year/);
     expect(html).not.toContain("<select");
   });
 
   it("offers every table once one is fixed, with the chosen one selected", () => {
-    const html = renderToStaticMarkup(<PointsSetting points={other?.scale ?? []} year={YEAR} />);
+    const html = renderToStaticMarkup(
+      <PointsSetting points={other?.scale ?? []} year={YEAR} unit="era" />,
+    );
     expect(html).toMatch(/aria-pressed="true"[^>]*>Same all run/);
     expect(html.split("<option").length - 1).toBe(pointsTables().length);
     expect(html).toMatch(new RegExp(`selected=""[^>]*>${other?.label ?? ""}<`));
+  });
+
+  it("talks about the one season on a season's screen, not every year or the run", () => {
+    const own = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="season" />);
+    expect(own).toMatch(/aria-pressed="true"[^>]*>As it was</);
+    expect(own).toContain(pointsValues(seasonSeed(YEAR).points));
+    const fixed = renderToStaticMarkup(
+      <PointsSetting points={other?.scale ?? []} year={YEAR} unit="season" />,
+    );
+    expect(fixed).toMatch(/aria-pressed="true"[^>]*>From a year</);
+    for (const html of [own, fixed]) {
+      expect(html).not.toMatch(/each year|every year|all run|the run/i);
+    }
   });
 
   it("sits in the Races group of the run settings, on both setup screens", () => {

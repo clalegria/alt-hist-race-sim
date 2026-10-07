@@ -38,28 +38,49 @@ describe("the breakdowns setting", () => {
 
 describe("the reliability setting", () => {
   it("offers no year while each year keeps its own", () => {
-    const html = renderToStaticMarkup(<ReliabilitySetting reliability={null} year={YEAR} />);
+    const html = renderToStaticMarkup(
+      <ReliabilitySetting reliability={null} year={YEAR} unit="era" />,
+    );
     expect(html).toMatch(/aria-pressed="true"[^>]*>Each year/);
     expect(html).not.toContain("<select");
   });
 
   it("is greyed out when asked, keeping the choice on show but offering no year", () => {
     const html = renderToStaticMarkup(
-      <ReliabilitySetting reliability={OTHER} year={YEAR} disabled />,
+      <ReliabilitySetting reliability={OTHER} year={YEAR} unit="era" disabled />,
     );
     expect(html).toMatch(/<fieldset[^>]*disabled=""/);
     expect(html).toMatch(/aria-pressed="true"[^>]*>As in a year/);
     expect(html).not.toContain("<select");
     expect(
-      renderToStaticMarkup(<ReliabilitySetting reliability={OTHER} year={YEAR} />),
+      renderToStaticMarkup(<ReliabilitySetting reliability={OTHER} year={YEAR} unit="era" />),
     ).not.toContain('disabled=""');
   });
 
   it("offers every playable year once one is chosen, with that year selected", () => {
-    const html = renderToStaticMarkup(<ReliabilitySetting reliability={OTHER} year={YEAR} />);
+    const html = renderToStaticMarkup(
+      <ReliabilitySetting reliability={OTHER} year={YEAR} unit="era" />,
+    );
     expect(html).toMatch(/aria-pressed="true"[^>]*>As in a year/);
     expect(html.split("<option").length - 1).toBe(PLAYABLE_SEASONS.length);
     expect(html).toMatch(new RegExp(`selected=""[^>]*>${OTHER}<`));
+  });
+});
+
+describe("the reliability setting, on a season's screen", () => {
+  it("talks about the one season, not every year", () => {
+    const own = renderToStaticMarkup(
+      <ReliabilitySetting reliability={null} year={YEAR} unit="season" />,
+    );
+    expect(own).toMatch(/aria-pressed="true"[^>]*>As it was</);
+    expect(own).toContain(String(YEAR));
+    const asIn = renderToStaticMarkup(
+      <ReliabilitySetting reliability={OTHER} year={YEAR} unit="season" />,
+    );
+    expect(asIn).toMatch(/aria-pressed="true"[^>]*>As in a year</);
+    for (const html of [own, asIn]) {
+      expect(html).not.toMatch(/each year|every year/i);
+    }
   });
 });
 

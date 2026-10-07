@@ -8,7 +8,7 @@ import {
   rememberRunSettings,
   rememberSeasonYear,
 } from "../lib/preferences.js";
-import type { RunSettings } from "../lib/run-settings.js";
+import type { RunSettings, RunUnit } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
@@ -70,8 +70,8 @@ export function SeasonPicker({
   describeYear?: (year: number) => string;
   /** What the button at the foot of the page says. */
   describeStart?: (year: number) => string;
-  /** What the settings are fixed for: "season" or "era". */
-  unit?: string;
+  /** What the settings are fixed for, which their copy follows. */
+  unit?: RunUnit;
   /**
    * Whether to offer the era-only settings. A season's screen hides them, and
    * the store drops them from a season (`seasonSettings`) whatever is remembered.
@@ -133,6 +133,7 @@ export function SeasonPicker({
           <ReliabilitySetting
             reliability={settings.reliability}
             year={year}
+            unit={unit}
             disabled={settings.breakdowns === "none"}
             onChange={(reliability) => {
               changeSettings({ ...settings, reliability });
@@ -141,6 +142,7 @@ export function SeasonPicker({
           <PointsSetting
             points={settings.points}
             year={year}
+            unit={unit}
             onChange={(points) => {
               changeSettings({ ...settings, points });
             }}

@@ -78,7 +78,8 @@ screens. What the first two do to the constants is `.claude/rules/retirement-fac
 - **Breakdowns** is *Realistic* / *Fewer* / *None*, stored as null / `"fewer"` /
   `"none"` — `"realistic"` is refused by `parseRunSettings`, so there is one way to say
   historical. Labels are `BREAKDOWNS_LABELS`.
-- **Reliability** is *Each year's own* or *As in a year*, stored as a playable year. A
+- **Reliability** is *Each year's own* (*As it was* on a season's screen) or *As in a
+  year*, stored as a playable year. A
   year rather than the 1–10 factor, which is an authoring dial no reader knows. Switching
   in picks the selected year; the native `select` lists `PLAYABLE_SEASONS` by decade.
   It sets how often **cars** break down, so under Breakdowns: None it is greyed out
@@ -87,10 +88,16 @@ screens. What the first two do to the constants is `.claude/rules/retirement-fac
   records only `settingsInForce`, which drops it, so no world claims a setting that
   changed nothing.
 
-**Points** is *Each year's own* or *Same all run* with a native `select` of
+**Points** is *Each year's own* or *Same all run* (*As it was* / *From a year* on a
+season's screen) with a native `select` of
 `pointsTables()`: the distinct tables in the seed data, labelled by their years and
-values, derived rather than listed. Switching to *Same all run* picks the selected year's
+values, derived rather than listed. Switching in picks the selected year's
 table. Points are scoring only, so the same seed races the same races under any table.
+
+**Their words follow the screen** (`unit`, a `RunUnit`, required so no caller gets the
+era's by default): an era talks about every year and the run, a season about the one
+year. The second answer names where the value comes from rather than calling it another
+year's, because switching in starts on the selected year itself.
 
 **The Drivers group is era only**: `SeasonPicker` draws it under `eraSettings`, which
 `EraPicker` passes. It holds **Career events** — *As they happened* / *None*, stored as

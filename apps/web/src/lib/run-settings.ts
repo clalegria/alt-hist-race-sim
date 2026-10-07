@@ -18,6 +18,9 @@ import { type Driver, drivers, driversWithoutCareerEvents } from "@alt-hist/data
 import type { Breakdowns, PointsScale } from "@alt-hist/engine";
 import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
 
+/** What a setup screen's settings are fixed for, which is what their copy says. */
+export type RunUnit = "season" | "era";
+
 /** The Breakdowns answers that are what-ifs; Realistic is null. */
 export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
@@ -170,7 +173,7 @@ export function pointsTables(): readonly PointsTable[] {
   return tables;
 }
 
-/** The table a year was scored on: the one *Same all run* starts from. */
+/** The table a year was scored on: the one *Same all run* (*From a year*) starts from. */
 export function pointsTableOf(year: number): PointsTable | undefined {
   const scale = seasonSeed(year).points;
   return pointsTables().find((table) => samePoints(table.scale, scale));
