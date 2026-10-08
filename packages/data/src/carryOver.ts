@@ -62,33 +62,28 @@ function eligible(driver: Driver, year: number): boolean {
 }
 
 /**
- * Last season's drivers for one team, trimmed to the seats this season has.
- *
- * Strongest first when there are too many, then back into last season's seat
- * order — so a team that dropped a car keeps its lead driver, and one that kept
- * both keeps them the way round they were.
+ * The strongest `seats` of a team's drivers, kept in the order they came in.
  *
  * Strongest is `compareByRating`, the app's one ranking rule: the overall the
  * grid prints, with racing settling a tie, because two team-mates on the same
- * rounded overall is exactly the case a team losing a car is decided by. Last
- * season's seat order has the final word, so an otherwise dead heat keeps the
- * driver the team itself had first.
+ * rounded overall is exactly the case a team losing a car is decided by. The
+ * order the drivers came in has the final word, so an otherwise dead heat keeps
+ * the driver the team itself had first; it is also the order handed back, so a
+ * team that dropped a car keeps its lead driver and one that kept both keeps
+ * them the way round they were. Shared with `keptGrid.ts`, which trims a team
+ * that history gave more cars than the run's first year did.
  */
-function carriedInto(
-  previous: readonly string[],
+export function strongestOf(
+  driverIds: readonly string[],
   seats: number,
   byId: ReadonlyMap<string, Driver>,
   year: number,
   mode: RatingMode,
 ): readonly string[] {
-  const available = previous.filter((driverId) => {
-    const driver = byId.get(driverId);
-    return driver !== undefined && eligible(driver, year);
-  });
-  if (available.length <= seats) {
-    return available;
+  if (driverIds.length <= seats) {
+    return driverIds;
   }
-  const rated = available.map((driverId, seat) => {
+  const rated = driverIds.map((driverId, seat) => {
     const driver = byId.get(driverId);
     const ratings = driver === undefined ? null : driverRatingsFor(driver, year, mode);
     return {
@@ -103,6 +98,21 @@ function carriedInto(
     .slice(0, seats)
     .sort((a, b) => a.seat - b.seat)
     .map((entry) => entry.driverId);
+}
+
+/** Last season's drivers for one team, trimmed to the seats this season has. */
+function carriedInto(
+  previous: readonly string[],
+  seats: number,
+  byId: ReadonlyMap<string, Driver>,
+  year: number,
+  mode: RatingMode,
+): readonly string[] {
+  const available = previous.filter((driverId) => {
+    const driver = byId.get(driverId);
+    return driver !== undefined && eligible(driver, year);
+  });
+  return strongestOf(available, seats, byId, year, mode);
 }
 
 /** Everything the carry-over reads besides the two seasons. */

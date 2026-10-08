@@ -153,6 +153,25 @@ function seatCount(season: SeasonSeed, current: LineupDraft, teamId: string): nu
 }
 
 /**
+ * The season's teams, quickest car first: `compareByRating` on the car with its
+ * engine folded in, team id having the last word. Shared with `keptGrid.ts`,
+ * whose empty seats are filled in this order.
+ */
+export function teamsByCar(season: SeasonSeed): readonly string[] {
+  return season.entries
+    .map((entry) => {
+      const engine = engineSpecOf(season, entry.engineId);
+      return {
+        teamId: entry.teamId,
+        overall: carOverall(entry.chassis, engine),
+        racing: carRacing(entry.chassis, engine),
+      };
+    })
+    .sort((a, b) => compareByRating(a, b) || a.teamId.localeCompare(b.teamId))
+    .map((ranked) => ranked.teamId);
+}
+
+/**
  * Every seat, in the order the rule fills them.
  *
  * Ranked by the car rather than by the seat: both of a team's cars are the same
@@ -171,20 +190,11 @@ function seatsToFill(
   current: LineupDraft,
   kind: ArrangementKind,
 ): readonly SeatRef[] {
-  const ranked = season.entries
-    .map((entry) => {
-      const engine = engineSpecOf(season, entry.engineId);
-      return {
-        teamId: entry.teamId,
-        overall: carOverall(entry.chassis, engine),
-        racing: carRacing(entry.chassis, engine),
-      };
-    })
-    .sort((a, b) => compareByRating(a, b) || a.teamId.localeCompare(b.teamId));
+  const ranked = [...teamsByCar(season)];
   if (kind === "fastest-in-slowest") {
     ranked.reverse();
   }
-  return ranked.flatMap(({ teamId }) =>
+  return ranked.flatMap((teamId) =>
     Array.from({ length: seatCount(season, current, teamId) }, (_, seat) => ({ teamId, seat })),
   );
 }
@@ -239,9 +249,10 @@ function candidates(
  * Racing has to settle it, for the reason the sort switch on the grid gives:
  * ratings are integers on a 1-100 scale, so two drivers on 78 is ordinary, and
  * an overall is a rounded average of five of them. Name then id has the last
- * word, so a pairing cannot change between two identical presses.
+ * word, so a pairing cannot change between two identical presses. Shared with
+ * `keptGrid.ts`, which signs drivers for empty seats in this order.
  */
-function byOverall(
+export function byOverall(
   drivers: readonly Driver[],
   seasonYear: number,
   mode: RatingMode,

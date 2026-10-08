@@ -73,6 +73,16 @@ export {
 export { eraAt, teamIdentityIn, teamLiveryIn } from "./eras.js";
 export { identityYear } from "./identity.js";
 export {
+  type EmptySeatRules,
+  fillSeats,
+  type KeptGridOptions,
+  type KeptYear,
+  keptYear,
+  SEAT_FILLS,
+  type SeatFill,
+  seatedSeason,
+} from "./keptGrid.js";
+export {
   applyDraft,
   applyLineup,
   authoredLineup,
