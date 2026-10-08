@@ -615,6 +615,7 @@ export function SeasonGrid({
   openSeats = 0,
   action,
   edit,
+  onClearEdits,
   sort = DEFAULT_SORT_ORDER,
   onSortChange,
 }: {
@@ -662,6 +663,12 @@ export function SeasonGrid({
   action?: React.ReactNode;
   /** Present while the reader is rearranging the grid. */
   edit?: GridEditing;
+  /**
+   * Puts the grid back as the season entered it, from a link in the edited
+   * grid's notice. Only while the editor is shut, and only where the grid can
+   * still change: absent on a raced grid and on the summary's copy.
+   */
+  onClearEdits?: () => void;
   /**
    * How the team cards are ordered. Controlled, and held by whoever renders
    * this — so every order the grid can be in renders without a click.
@@ -741,9 +748,22 @@ export function SeasonGrid({
         rerated.size === 0 &&
         arrangement === null ? null : (
           <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
-            <span className="text-xs font-semibold tracking-tight">
-              {edit === undefined ? "This grid was edited" : "Changes so far"}
-            </span>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span className="text-xs font-semibold tracking-tight">
+                {edit === undefined ? "This grid was edited" : "Changes so far"}
+              </span>
+              {edit === undefined && onClearEdits !== undefined ? (
+                <button
+                  type="button"
+                  onClick={onClearEdits}
+                  // A fill under the cursor, never an underline: the grid's one
+                  // affordance for "this does something" (`NAME_TARGET`).
+                  className="text-primary hover:bg-accent focus-visible:ring-ring -my-0.5 cursor-pointer rounded px-1.5 py-0.5 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none"
+                >
+                  Clear all edits
+                </button>
+              ) : null}
+            </div>
             {arrangement === null ? null : (
               <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
             )}

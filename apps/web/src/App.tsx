@@ -4,6 +4,7 @@ import { KeptNames } from "./components/EntryNames.js";
 import type { GridEdit } from "./components/GridStage.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
+import type { RunChoice } from "./components/RunSettingsDialog.js";
 import { SeasonHistoryProvider } from "./components/SeasonHistory.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
@@ -161,6 +162,7 @@ export function RunFrame({
       }
     },
     replace: () => {},
+    clearEdits: () => {},
     restartSeason: onRestartSeason,
     restartEra: onRestartEra,
   };
@@ -214,8 +216,9 @@ export function RunFrame({
  * summary, for whichever year of the run the URL names.
  *
  * `run` is present only inside an era, and is the years before this one: it
- * changes whether the ability toggle is offered and what the grid editor's
- * carry-over copies, and nothing else. `locked` is a grid the run has moved
+ * changes whether the ability toggle is offered, which settings the grid's
+ * settings line shows and what the grid editor's carry-over copies, and
+ * nothing else. `locked` is a grid the run has moved
  * past. `onYearChange` is the grid's shortcut to the season next door, which
  * moves the URL and so comes from the route.
  *
@@ -232,6 +235,7 @@ export function SeasonPage({
   view,
   run,
   locked = false,
+  settingsLock = null,
   onYearChange,
   finished,
   tab,
@@ -243,6 +247,8 @@ export function SeasonPage({
   view: View;
   run?: EraRun;
   locked?: boolean;
+  /** Why the run settings can no longer be changed here (`settingsLock`), or null. */
+  settingsLock?: string | null;
   onYearChange?: (year: number) => void;
   /** On the season's page: whether its summary is reached, and its tabs. */
   finished?: boolean;
@@ -255,6 +261,7 @@ export function SeasonPage({
 }) {
   const setRatingMode = useSeasonStore((state) => state.setRatingMode);
   const setGrid = useSeasonStore((state) => state.setGrid);
+  const setRunSettings = useSeasonStore((state) => state.setRunSettings);
   const setEditingGrid = useContext(GridEditingContext);
   // Leaving the grid page mid-edit — browser Back, a breadcrumb — unmounts the
   // editor without it saying it closed, which would leave the bar waiting on it.
@@ -302,6 +309,14 @@ export function SeasonPage({
           }
         : {})}
       onGridEditingChange={setEditingGrid}
+      settingsLock={settingsLock}
+      {...(editable && settingsLock === null
+        ? {
+            onSettingsChange: (choice: RunChoice) => {
+              setRunSettings(choice.randomness, choice.settings);
+            },
+          }
+        : {})}
       {...(finished === undefined ? {} : { finished })}
       {...(tab === undefined ? {} : { tab })}
       {...(tabs === undefined ? {} : { tabs })}

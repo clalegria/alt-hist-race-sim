@@ -12,16 +12,16 @@ import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
+import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld } from "../store/season.js";
 import { shownAt } from "../test-support.js";
 import { EraChampions } from "./EraChampions.js";
-import { RandomnessNote } from "./RandomnessNote.js";
 import { RANDOMNESS_OPTIONS, RandomnessSlider, randomnessLabel } from "./RandomnessSlider.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
+import { RunSettingsForm } from "./RunSettingsDialog.js";
 import { SeasonView } from "./SeasonView.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 
-const noop = () => {};
+const choice = { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS };
 
 describe("the randomness slider", () => {
   it("names every level the engine offers, exactly once", () => {
@@ -83,19 +83,30 @@ describe("the randomness slider", () => {
 describe("where the level is chosen", () => {
   it("is on the setup screen of both modes", () => {
     for (const [name, html] of [
-      ["season", renderToStaticMarkup(<SeasonPicker onStart={noop} />)],
-      ["era", renderToStaticMarkup(<EraPicker onStart={noop} />)],
+      [
+        "season",
+        renderToStaticMarkup(
+          <RunSettingsForm choice={choice} year={FIRST_AUTHORED_SEASON} unit="season" />,
+        ),
+      ],
+      [
+        "era",
+        renderToStaticMarkup(
+          <RunSettingsForm choice={choice} year={FIRST_AUTHORED_SEASON} unit="era" eraSettings />,
+        ),
+      ],
     ] as const) {
       expect(html, name).toContain('aria-label="Randomness"');
       expect(html, name).toContain('type="range"');
     }
   });
 
-  it("is stated but not offered once a season exists", () => {
+  it("is stated on the grid, behind the settings button rather than as a slider", () => {
     const world = createWorld(3, FIRST_AUTHORED_SEASON, "peak", null, null, 5);
-    const html = renderToStaticMarkup(<RandomnessNote level={world.randomness} />);
+    const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} />);
     expect(html).toContain(randomnessLabel(5));
-    expect(html).not.toContain("<input");
+    expect(html).toContain('aria-label="Run settings"');
+    expect(html).not.toContain('type="range"');
   });
 });
 

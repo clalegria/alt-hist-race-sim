@@ -1,6 +1,6 @@
 /**
- * Run settings: the what-ifs chosen on a setup screen, beside Randomness, and
- * fixed for the whole run.
+ * Run settings: the what-ifs chosen in the settings dialog, beside Randomness,
+ * and fixed for the whole run once it is under way.
  *
  * **Every setting's historical answer is null**, the way a null `lineup` is the
  * grid history had: "is this a what-if?" is a property of the value rather than
@@ -148,6 +148,25 @@ export function seasonSettings(settings: RunSettings): RunSettings {
     careerEvents: null,
     teamNames: null,
     teamsAndSeats: null,
+  };
+}
+
+/**
+ * The settings to remember after a standalone season's own were changed on its
+ * grid: the season's answers, over the era-only ones already remembered, which
+ * the season never showed and so must not erase. A Car performance answer the
+ * season only *read* as its own — an era's walk, which a season races off the
+ * real car — stays as remembered.
+ */
+export function rememberedAfterSeason(stored: RunSettings, season: RunSettings): RunSettings {
+  const carsUnchanged =
+    JSON.stringify(seasonSettings(stored).carPerformance) === JSON.stringify(season.carPerformance);
+  return {
+    ...season,
+    carPerformance: carsUnchanged ? stored.carPerformance : season.carPerformance,
+    careerEvents: stored.careerEvents,
+    teamNames: stored.teamNames,
+    teamsAndSeats: stored.teamsAndSeats,
   };
 }
 
@@ -439,7 +458,7 @@ function parseReliability(year: unknown): number | null | undefined {
   return typeof year === "number" && Number.isInteger(year) && isPlayable(year) ? year : undefined;
 }
 
-/** One line per setting that is not historical, in the order the setup card lists them. */
+/** One line per setting that is not historical, in one fixed order. */
 export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   const lines: Setting[] = [];
   if (settings.breakdowns !== null) {

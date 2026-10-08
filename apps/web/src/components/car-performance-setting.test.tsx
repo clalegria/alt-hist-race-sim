@@ -15,14 +15,11 @@ import {
 } from "../lib/run-settings.js";
 import { seasonWithChassis } from "../lib/seasons.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
-import { shownAt, YEAR } from "../test-support.js";
+import { settingsForm, shownAt, YEAR } from "../test-support.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
 import { chassisNote } from "./LineupChanges.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
 import { SeasonView } from "./SeasonView.js";
 import { settingsOf } from "./SimulationSettings.js";
-
-const noop = () => {};
 
 /** The pressed segments' labels, in order, with React's escaped apostrophe read back. */
 function pressed(html: string): string[] {
@@ -96,7 +93,7 @@ describe("the car performance setting", () => {
       />,
     );
     expect(note).toContain("the car it raced the year before");
-    expect(note).toContain("A team new to the run starts from its real car");
+    expect(note).toContain("a team new to the run starts from its real car");
   });
 
   it("offers the spreads only under Varied", () => {
@@ -120,16 +117,13 @@ describe("the car performance setting", () => {
   });
 
   it("is offered on both setup screens, in a Cars group after Races", () => {
-    for (const html of [
-      renderToStaticMarkup(<EraPicker onStart={noop} />),
-      renderToStaticMarkup(<SeasonPicker onStart={noop} />),
-    ]) {
+    for (const html of [settingsForm("era"), settingsForm("season")]) {
       const at = (label: string) => html.indexOf(`aria-label="${label}"`);
       expect(at("Cars")).toBeGreaterThan(at("Points"));
       expect(at("Car performance")).toBeGreaterThan(at("Cars"));
     }
-    const era = renderToStaticMarkup(<EraPicker onStart={noop} />);
-    expect(era.indexOf('aria-label="Drivers"')).toBeGreaterThan(
+    const era = settingsForm("era");
+    expect(era.indexOf('aria-label="Over the years"')).toBeGreaterThan(
       era.indexOf('aria-label="Car performance"'),
     );
   });

@@ -12,7 +12,7 @@ paths:
 *Teams and seats: Keep the starting grid* is an era run setting: every year has the
 start year's teams, each with its start-year seat count, and teams new in history never
 appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
-the setup row is `.claude/rules/web-setup.md`, and the layer it sits in
+the settings row is `.claude/rules/web-setup.md`, and the layer it sits in
 `.claude/rules/data-layers.md`. The fills are `last` and `best` (`SEAT_FILLS`).
 
 ## The entry list: `keptYear(start, season, previous, rules, options)`

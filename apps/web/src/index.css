@@ -231,6 +231,21 @@ body {
     center / contain no-repeat;
 }
 
+/*
+ * The run settings cog (`RunSettingsLine`), drawn the page link's way for the
+ * same reason. Eight teeth are one thick dashed ring — a dash per tooth — over
+ * the solid ring of the wheel, which leaves the hub open.
+ */
+.settings-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  background-color: currentColor;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black'%3E%3Ccircle cx='12' cy='12' r='8.6' stroke-width='3.2' stroke-dasharray='3.4 3.35'/%3E%3Ccircle cx='12' cy='12' r='5.6' stroke-width='3.4'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
 /* Small uppercase labels need air to stay readable at this size. */
 th {
   letter-spacing: 0.06em;

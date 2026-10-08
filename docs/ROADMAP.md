@@ -109,8 +109,9 @@ shows: too many words, and too much of the *design* explained to a reader who ne
 to count. A reader wants to know what they are looking at, not how it was built. Go
 screen by screen and cut. The leads and panel copy on the setup screens (`SeasonPicker`
 — the era lead is three sentences), the option details on `RandomnessSlider` and
-`RatingModeToggle`, `RandomnessNote`, and the section descriptions on `CareerStatistics`
-are where the prose is. What survives should be short, concrete, and about the racing.
+`RatingModeToggle`, the what-if notes in the settings dialog (Teams and seats runs to
+three sentences), and the section descriptions on `CareerStatistics` are where the
+prose is. What survives should be short, concrete, and about the racing.
 
 ***The About page.*** The footer already stubs the destination as a disabled `Pending`
 button. What it carries: what the project is (an alternate history, not a prediction or a

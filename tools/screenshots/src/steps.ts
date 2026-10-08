@@ -50,6 +50,14 @@ async function runAction(page: Page, name: string): Promise<void> {
   await page.getByRole("menuitem", { name, exact: true }).click();
 }
 
+/** Opens the run settings dialog from the settings line, and waits for it. */
+async function openSettings(page: Page): Promise<Locator> {
+  await button(page, "Run settings").click();
+  const dialog = page.getByRole("dialog", { name: "Run settings" });
+  await dialog.waitFor();
+  return dialog;
+}
+
 /** Waits for the run bar to say the run has reached `text`. */
 async function cursorAt(page: Page, text: string | RegExp): Promise<void> {
   await page.getByText(text).first().waitFor();
@@ -71,16 +79,65 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "season-settings",
+    reach: async (page) => {
+      await openSettings(page);
+    },
+  },
+  {
     name: "grid",
     reach: async (page) => {
+      await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
       await button(page, `Begin the ${YEAR} season`).click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
       await cursorAt(page, `${YEAR} · Grid`);
     },
   },
   {
+    name: "grid-settings",
+    reach: async (page) => {
+      // The run is untouched, so its settings can still change from here.
+      const dialog = await openSettings(page);
+      await dialog
+        .getByRole("group", { name: "Breakdowns" })
+        .getByRole("button", { name: "Fewer", exact: true })
+        .click();
+    },
+  },
+  {
+    name: "grid-edited",
+    reach: async (page) => {
+      await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
+      await page.getByText("Breakdowns: Fewer").first().waitFor();
+      // Two drivers on different teams traded, by hand.
+      await button(page, "Edit grid").click();
+      const drivers = page.locator("li li button[aria-pressed]");
+      await drivers.nth(0).click();
+      await drivers.nth(3).click();
+      await button(page, "Apply grid").click();
+      await page.getByText("This grid was edited").waitFor();
+    },
+  },
+  {
+    name: "grid-settings-locked",
+    reach: async (page) => {
+      const dialog = await openSettings(page);
+      await dialog.getByText("Clear all edits to change them").waitFor();
+    },
+  },
+  {
+    name: "clear-edits-dialog",
+    reach: async (page) => {
+      await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+      await button(page, "Clear all edits").click();
+      await page.getByRole("alertdialog", { name: "Clear all grid edits?" }).waitFor();
+    },
+  },
+  {
     name: "qualifying",
     reach: async (page) => {
+      await page.getByRole("alertdialog").getByRole("button", { name: "Clear edits" }).click();
+      await page.getByText("This grid was edited").waitFor({ state: "detached" });
       await button(page, /^Continue/).click();
       await page.waitForURL(`**/run/${YEAR}/round/1/qualifying`);
       await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Qualifying$`));
@@ -168,13 +225,16 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
       await pickYear(page, `Start an era in ${YEAR}`);
-      // What-ifs on the era, so a picker, a greyed-out setting and the line
-      // stating them are drawn.
-      await button(page, "As in a year").click();
-      await button(page, "None").click();
-      await button(page, "Same all run").click();
-      await page.getByRole("combobox").waitFor();
-      await page
+      // What-ifs on the era, set in the dialog and left open, so both columns,
+      // a picker, a greyed-out setting and the sub-options are drawn.
+      const dialog = await openSettings(page);
+      await dialog.getByRole("combobox", { name: "Reliability" }).selectOption("1968");
+      await dialog
+        .getByRole("group", { name: "Breakdowns" })
+        .getByRole("button", { name: "None", exact: true })
+        .click();
+      await dialog.getByRole("combobox", { name: "Points" }).selectOption({ index: 1 });
+      await dialog
         .getByRole("group", { name: "Career events" })
         .getByRole("button", { name: "None", exact: true })
         .click();
@@ -192,6 +252,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "replace-dialog",
     reach: async (page) => {
+      await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
       await button(page, `Begin an era from ${YEAR}`).click();
       await page.getByRole("alertdialog", { name: "Start a new run?" }).waitFor();
     },

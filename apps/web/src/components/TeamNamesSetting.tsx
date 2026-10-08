@@ -1,5 +1,5 @@
 import type { RunSettings } from "../lib/run-settings.js";
-import { SettingSegments } from "./SettingSegments.js";
+import { SettingNote, SettingSegments } from "./SettingSegments.js";
 
 /**
  * Whether teams are named as they were each year, or each keeps the name — and
@@ -16,7 +16,7 @@ export function TeamNamesSetting({
   onChange?: (teamNames: RunSettings["teamNames"]) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <SettingSegments
         name="Team names"
         segments={[
@@ -34,11 +34,12 @@ export function TeamNamesSetting({
           },
         ]}
       />
-      <p className="text-muted-foreground text-xs">
-        {teamNames === null
-          ? "Teams are renamed as they really were: Brawn becomes Mercedes."
-          : "Each team keeps the name and flag of its first season in the run; its colours still change as they really did."}
-      </p>
+      {teamNames === null ? null : (
+        <SettingNote>
+          Each team keeps the name and flag of its first season in the run; its colours still change
+          as they really did.
+        </SettingNote>
+      )}
     </div>
   );
 }

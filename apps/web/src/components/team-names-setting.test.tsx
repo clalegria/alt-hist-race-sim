@@ -16,15 +16,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
+import { settingsForm } from "../test-support.js";
 import { KeptNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
 import { settingsOf } from "./SimulationSettings.js";
 import { badgeBackground } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
 import { TeamNamesSetting } from "./TeamNamesSetting.js";
-
-const noop = () => {};
 
 /**
  * A team entered in `from` and again in a later `year` under another name, a
@@ -63,14 +61,14 @@ describe("the team names setting", () => {
     }
   });
 
-  it("is offered on the era's setup screen, in a group after Drivers, and not on a season's", () => {
-    const era = renderToStaticMarkup(<EraPicker onStart={noop} />);
+  it("is offered on the era's setup screen, in the Over the years group after Career events, and not on a season's", () => {
+    const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Team names")).toBeGreaterThan(at("Teams over the years"));
-    expect(at("Teams over the years")).toBeGreaterThan(at("Career events"));
+    expect(at("Team names")).toBeGreaterThan(at("Over the years"));
+    expect(at("Team names")).toBeGreaterThan(at("Career events"));
 
-    const season = renderToStaticMarkup(<SeasonPicker onStart={noop} />);
-    expect(season).not.toContain('aria-label="Teams over the years"');
+    const season = settingsForm("season");
+    expect(season).not.toContain('aria-label="Over the years"');
     expect(season).not.toContain('aria-label="Team names"');
   });
 

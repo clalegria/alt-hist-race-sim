@@ -22,8 +22,13 @@ import {
   type RatingMode,
   seasonSeed,
 } from "@alt-hist/data";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { RunSettingsForm } from "./components/RunSettingsDialog.js";
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
+import { STARTING_RANDOMNESS_LEVEL } from "./lib/preferences.js";
 import { type RevealedWorld, revealYear } from "./lib/reveal.js";
+import { HISTORICAL_SETTINGS, type RunUnit } from "./lib/run-settings.js";
 import type { View } from "./lib/timeline.js";
 import { createWorld, type World } from "./store/season.js";
 
@@ -55,6 +60,22 @@ export const FOLDING_YEAR: { readonly year: number; readonly teamId: string } = 
 })();
 
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
+/**
+ * The run settings form as a screen draws it — a season's, or an era's with
+ * its era-only group — every setting historical. What the dialog holds; the
+ * dialog itself renders into a portal, out of a static render's reach.
+ */
+export function settingsForm(unit: RunUnit): string {
+  return renderToStaticMarkup(
+    createElement(RunSettingsForm, {
+      choice: { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS },
+      year: YEAR,
+      unit,
+      eraSettings: unit === "era",
+    }),
+  );
+}
+
 export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {
   return mode === undefined ? createWorld(seed, year) : createWorld(seed, year, mode);
 }

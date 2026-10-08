@@ -9,13 +9,10 @@ import { describe, expect, it } from "vitest";
 import type { KeptNotes } from "../lib/kept.js";
 import { HISTORICAL_SETTINGS, OPENING_SEAT_RULES, type RunSettings } from "../lib/run-settings.js";
 import { useSeasonStore } from "../store/season.js";
-import { FOLDING_YEAR, shownAt } from "../test-support.js";
+import { FOLDING_YEAR, settingsForm, shownAt } from "../test-support.js";
 import { keptSentences } from "./LineupChanges.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
 import { SeasonView } from "./SeasonView.js";
 import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
-
-const noop = () => {};
 
 /** An input's attribute, read off the markup rather than matched as one string. */
 function inputValue(html: string, label: string): string | undefined {
@@ -51,8 +48,8 @@ describe("the teams and seats setting", () => {
   });
 
   it("is offered on the era's screen and not a season's", () => {
-    expect(renderToStaticMarkup(<EraPicker onStart={noop} />)).toContain("Teams and seats");
-    expect(renderToStaticMarkup(<SeasonPicker onStart={noop} />)).not.toContain("Teams and seats");
+    expect(settingsForm("era")).toContain("Teams and seats");
+    expect(settingsForm("season")).not.toContain("Teams and seats");
   });
 });
 

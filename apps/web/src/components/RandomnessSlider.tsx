@@ -12,12 +12,11 @@ import { cn } from "../lib/utils.js";
  * of position out of five, and a value a DOM-less test can read back — none of
  * which a set of divs would have without being rebuilt by hand.
  *
- * It lives on the setup screens and nowhere else, in both modes. That is a
- * deliberate asymmetry with the ability toggle, which a standalone season can
- * still change from its grid: ability answers "who is racing", and seeing the
- * grid is exactly when a reader might want the other answer. Randomness answers
- * "under what rules", which is a question about the run as a whole, and a level
- * re-picked once the season is under way would be a different run.
+ * It lives in the run settings dialog, in both modes, and changes only while
+ * the run is untouched — on the setup screen, or from its first grid as
+ * entered. The ability toggle stays changeable on an edited grid; randomness
+ * answers "under what rules", a question about the run as a whole, and a level
+ * re-picked once the run is under way would be a different run.
  */
 
 interface Level {

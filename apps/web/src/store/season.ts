@@ -60,13 +60,16 @@ import {
   readRandomness,
   readRatingMode,
   readRunSettings,
+  rememberRandomness,
   rememberRatingMode,
+  rememberRunSettings,
   rememberSeasonYear,
 } from "../lib/preferences.js";
 import {
   driverPoolOf,
   HISTORICAL_SETTINGS,
   type RunSettings,
+  rememberedAfterSeason,
   rolledChassisOf,
   seasonSettings,
   settingsInForce,
@@ -101,13 +104,14 @@ export interface World {
    * one of the handful of facts a bug report has to carry, since without it a
    * seed reproduces nothing.
    *
-   * Chosen once, on the setup screen, and never changed after: a standalone
-   * season keeps the level it was started on, and an era keeps the level its
-   * first year was started on for every year that follows.
+   * Chosen before the run is under way — on the setup screen, or from the
+   * run's untouched first grid (`setRunSettings`) — and never changed after:
+   * a standalone season keeps its level, and an era keeps its first year's for
+   * every year that follows.
    */
   readonly randomness: RandomnessLevel;
   /**
-   * The run's what-ifs (`lib/run-settings.ts`), chosen on the setup screen and
+   * The run's what-ifs (`lib/run-settings.ts`), chosen when `randomness` is and
    * carried into every year after, exactly as `randomness` is. A simulation
    * input for the same reason: the recipe rebuilds a world from what it records.
    */
@@ -671,9 +675,11 @@ export function cursorPlace(run: Run): Place {
  *
  * Every way out of a run asks first unless this is true, because until then
  * the run is still being set up — going back to change the randomness is not
- * abandoning anything. The ability toggle and the year switcher do not count:
- * the first is remembered as a preference, the second only draws a different
- * season. A grid edit does, and so does anything revealed or any later year.
+ * abandoning anything. The ability toggle, the year switcher and the run
+ * settings do not count: the first and last are remembered as preferences, the
+ * second only draws a different season. A grid edit does, and so does anything
+ * revealed or any later year — which is also when the run settings stop being
+ * changeable (`setRunSettings`).
  */
 export function isUntouched(run: Run): boolean {
   return (
@@ -713,8 +719,8 @@ interface SeasonStore {
    * Simulates a fresh season of the given year and opens it at the grid, using
    * the remembered ability mode.
    *
-   * The randomness level and the run settings come from the setup screen, the
-   * only place they are ever chosen. Omitted, the remembered ones are used — the
+   * The randomness level and the run settings come from the setup screen; the
+   * untouched first grid can change them after (`setRunSettings`). Omitted, the remembered ones are used — the
    * setup screen seeds its controls from the same values, so the two cannot
    * disagree. The era-only settings are dropped (`seasonSettings`), here and in
    * `simulate`, so no standalone season records one.
@@ -804,6 +810,17 @@ interface SeasonStore {
    * remember the choice — see the note on the constant.
    */
   readonly setRatingMode: (mode: RatingMode) => void;
+  /**
+   * Re-runs the run's first season from the same seed under other run settings
+   * — the randomness level and the what-ifs — and remembers them, as the setup
+   * screen would have.
+   *
+   * **Only while the run is untouched** (`isUntouched`): its first grid, as
+   * entered. Past it the reader has seen results, or edited a grid, that the
+   * settings were fixed for. Same seed for the reason `setRatingMode` keeps
+   * it: the same dice under different rules.
+   */
+  readonly setRunSettings: (randomness: RandomnessLevel, settings: RunSettings) => void;
   /**
    * Re-runs the season from the same seed with the reader's own grid: who
    * drives what, what is in the back of it, and how good the chassis is. `null`
@@ -1104,6 +1121,53 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
           }
         : state,
     );
+  },
+  setRunSettings: (randomness, settings) => {
+    const run = get().run;
+    if (run === null || !isUntouched(run)) {
+      return;
+    }
+    const { world } = run;
+    rememberRandomness(randomness);
+    if (run.kind === "season") {
+      const raced = seasonSettings(settings);
+      rememberRunSettings(rememberedAfterSeason(readRunSettings(), raced));
+      set({
+        run: openSeason(
+          createWorld(
+            world.seed,
+            world.year,
+            world.ratingMode,
+            null,
+            null,
+            randomness,
+            null,
+            null,
+            raced,
+          ),
+        ),
+      });
+      return;
+    }
+    rememberRunSettings(settings);
+    // `startEra`'s own build, on the run's seed: what the first year of an era
+    // records about the run (`gridKeptFrom`, `namesKeptFrom`) follows the
+    // settings, and an untouched run has nothing else to carry.
+    set({
+      run: openEra(
+        createWorld(
+          world.seed,
+          world.year,
+          ERA_RATING_MODE,
+          null,
+          null,
+          randomness,
+          null,
+          null,
+          settings,
+        ),
+      ),
+    });
   },
   setGrid: (lineup, engines, arrangement = null, chassis = null) => {
     set((state) =>

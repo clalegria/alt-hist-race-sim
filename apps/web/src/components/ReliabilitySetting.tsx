@@ -1,6 +1,6 @@
 import type { RunUnit } from "../lib/run-settings.js";
 import { decadeOf, PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { SETTING_SELECT_CLASS, SettingSegments } from "./SettingSegments.js";
+import { SettingNote, SettingSelect } from "./SettingSegments.js";
 
 /** The playable years, grouped by decade for the picker. */
 function decades(): readonly { decade: number; years: readonly number[] }[] {
@@ -19,26 +19,20 @@ function decades(): readonly { decade: number; years: readonly number[] }[] {
 
 /** The words, which talk about "every year" only where there is more than one. */
 const COPY: Readonly<
-  Record<
-    RunUnit,
-    {
-      readonly own: string;
-      readonly ownNote: (year: number) => string;
-      readonly asInNote: (reliability: number) => string;
-    }
-  >
+  Record<RunUnit, { readonly own: string; readonly asInNote: (reliability: number) => string }>
 > = {
   season: {
     own: "As it was",
-    ownNote: (year) => `Cars break down as often as they really did in ${year}.`,
     asInNote: (reliability) => `Cars break down as often as ${reliability}'s did.`,
   },
   era: {
     own: "Each year's own",
-    ownNote: () => "Every year's cars break down as often as they really did.",
     asInNote: (reliability) => `Every year's cars break down as often as ${reliability}'s did.`,
   },
 };
+
+/** The historical answer's value in the `select`: no year. */
+const OWN = "";
 
 /**
  * How often the run's cars break down: as each year's did, or as one season's
@@ -46,74 +40,49 @@ const COPY: Readonly<
  * factor is an authored dial a reader has no reason to know; "as unreliable as
  * 1968" is the question they are asking. Cars only: driver error keeps each
  * year's own, so under Breakdowns: None there is nothing left to choose.
+ *
+ * One `select` (`SettingSelect`), the historical answer first, then every
+ * playable year by decade.
  */
 export function ReliabilitySetting({
   reliability,
-  year,
   unit,
   disabled = false,
   onChange,
 }: {
   /** The season whose breakdown rate every year takes, or null for each year's own. */
   reliability: number | null;
-  /** The year on the picker, which *As in a year* starts from. */
-  year: number;
-  /** Which screen it is on, which only changes the words. */
+  /** Which screen it is for, which only changes the words. */
   unit: RunUnit;
   /** Greyed out under Breakdowns: None, keeping the reader's choice on show. */
   disabled?: boolean;
-  /** Absent in tests, where nothing is clicked. */
+  /** Absent in tests, where nothing is chosen. */
   onChange?: (reliability: number | null) => void;
 }) {
   const copy = COPY[unit];
   return (
-    <div className="flex flex-col gap-3">
-      <SettingSegments
+    <div className="flex flex-col gap-2">
+      <SettingSelect
         name="Reliability"
+        value={reliability === null ? OWN : String(reliability)}
         disabled={disabled}
-        segments={[
-          {
-            key: "own",
-            label: copy.own,
-            selected: reliability === null,
-            onPick: () => onChange?.(null),
-          },
-          {
-            key: "as-in",
-            label: "As in a year",
-            selected: reliability !== null,
-            onPick: () => onChange?.(year),
-          },
-        ]}
-      />
-
-      {disabled ? (
-        <p className="text-muted-foreground text-xs">
-          No car breaks down, so there is no reliability to choose.
-        </p>
-      ) : reliability === null ? (
-        <p className="text-muted-foreground text-xs">{copy.ownNote(year)}</p>
-      ) : (
-        <label className="flex flex-col gap-1.5 text-xs">
-          <span className="text-muted-foreground">{copy.asInNote(reliability)}</span>
-          <select
-            value={reliability}
-            onChange={(event) => {
-              onChange?.(Number(event.target.value));
-            }}
-            className={SETTING_SELECT_CLASS}
-          >
-            {decades().map(({ decade, years }) => (
-              <optgroup key={decade} label={`${decade}s`}>
-                {years.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </optgroup>
+        onChange={(value) => onChange?.(value === OWN ? null : Number(value))}
+      >
+        <option value={OWN}>{copy.own}</option>
+        {decades().map(({ decade, years }) => (
+          <optgroup key={decade} label={`${decade}s`}>
+            {years.map((option) => (
+              <option key={option} value={option}>
+                As in {option}
+              </option>
             ))}
-          </select>
-        </label>
+          </optgroup>
+        ))}
+      </SettingSelect>
+      {disabled ? (
+        <SettingNote>No car breaks down, so there is no reliability to choose.</SettingNote>
+      ) : reliability === null ? null : (
+        <SettingNote>{copy.asInNote(reliability)}</SettingNote>
       )}
     </div>
   );

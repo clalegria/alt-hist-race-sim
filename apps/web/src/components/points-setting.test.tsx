@@ -1,11 +1,12 @@
 /**
  * The Points setting, and where a run states it. Rendered without a DOM, like
- * the rest of the setup screen; what a chosen table *does* is the store's tests.
+ * the rest of the settings; what a chosen table *does* is the store's tests.
  */
 
 import { FIRST_AUTHORED_SEASON, seasonSeed } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import {
   HISTORICAL_SETTINGS,
   pointsTables,
@@ -15,7 +16,7 @@ import {
 import { createWorld } from "../store/season.js";
 import { shownAt } from "../test-support.js";
 import { PointsSetting } from "./PointsSetting.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
+import { RunSettingsForm } from "./RunSettingsDialog.js";
 import { SeasonView } from "./SeasonView.js";
 import { settingsOf } from "./SimulationSettings.js";
 
@@ -23,45 +24,46 @@ const YEAR = FIRST_AUTHORED_SEASON;
 const other =
   pointsTables().find((table) => !samePoints(table.scale, seasonSeed(YEAR).points)) ??
   pointsTables()[0];
-const noop = () => {};
 
 describe("the points setting", () => {
-  it("offers no table while each year keeps its own", () => {
+  it("is one select, each year's own first and selected while historical", () => {
     const html = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="era" />);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>Each year/);
-    expect(html).not.toContain("<select");
+    expect(html.match(/<select/g)).toHaveLength(1);
+    expect(html).toMatch(/selected="">Each year/);
+    expect(html.split("<option").length - 1).toBe(pointsTables().length + 1);
   });
 
-  it("offers every table once one is fixed, with the chosen one selected", () => {
+  it("selects the table once one is fixed", () => {
     const html = renderToStaticMarkup(
       <PointsSetting points={other?.scale ?? []} year={YEAR} unit="era" />,
     );
-    expect(html).toMatch(/aria-pressed="true"[^>]*>Same all run/);
-    expect(html.split("<option").length - 1).toBe(pointsTables().length);
     expect(html).toMatch(new RegExp(`selected=""[^>]*>${other?.label ?? ""}<`));
   });
 
-  it("talks about the one season on a season's screen, not every year or the run", () => {
+  it("talks about the one season on a season's screen, naming its own table", () => {
     const own = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="season" />);
-    expect(own).toMatch(/aria-pressed="true"[^>]*>As it was</);
+    expect(own).toMatch(/selected="">As it was/);
     expect(own).toContain(pointsValues(seasonSeed(YEAR).points));
     const fixed = renderToStaticMarkup(
       <PointsSetting points={other?.scale ?? []} year={YEAR} unit="season" />,
     );
-    expect(fixed).toMatch(/aria-pressed="true"[^>]*>From a year</);
     for (const html of [own, fixed]) {
       expect(html).not.toMatch(/each year|every year|all run|the run/i);
     }
   });
 
-  it("sits in the Races group of the run settings, on both setup screens", () => {
+  it("sits in the Races group of the run settings, on both screens", () => {
+    const choice = { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS };
     for (const html of [
-      renderToStaticMarkup(<SeasonPicker onStart={noop} />),
-      renderToStaticMarkup(<EraPicker onStart={noop} />),
+      renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="season" />),
+      renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="era" eraSettings />),
     ]) {
-      expect(html).toContain("Run settings");
-      expect(html).toContain('aria-label="Races"');
-      expect(html).toContain('aria-label="Points"');
+      const races = html.indexOf('aria-label="Races"');
+      const cars = html.indexOf('aria-label="Cars"');
+      const points = html.indexOf('aria-label="Points"');
+      expect(races).toBeGreaterThan(-1);
+      expect(points).toBeGreaterThan(races);
+      expect(cars).toBeGreaterThan(points);
     }
   });
 });
@@ -84,6 +86,6 @@ describe("a run's points, stated", () => {
     const historical = renderToStaticMarkup(
       <SeasonView {...shownAt(createWorld(3, YEAR), { kind: "grid" })} />,
     );
-    expect(historical).not.toContain("Simulation settings");
+    expect(historical).not.toContain("Points:");
   });
 });

@@ -6,46 +6,28 @@ import {
   type RunUnit,
   samePoints,
 } from "../lib/run-settings.js";
-import { SETTING_SELECT_CLASS, SettingSegments } from "./SettingSegments.js";
+import { SettingSelect } from "./SettingSegments.js";
 
-/** The words, which talk about "every year" only where there is more than one. */
-const COPY: Readonly<
-  Record<
-    RunUnit,
-    {
-      readonly own: string;
-      readonly same: string;
-      readonly ownNote: (year: number) => string;
-      readonly sameNote: (values: string) => string;
-    }
-  >
-> = {
-  season: {
-    own: "As it was",
-    same: "From a year",
-    ownNote: (year) => {
-      const table = pointsTableOf(year);
-      return table === undefined
-        ? `Scored on the points ${year} really used.`
-        : `Scored on the points ${year} really used: ${pointsValues(table.scale)}.`;
-    },
-    sameNote: (values) => `The season is scored ${values}.`,
-  },
-  era: {
-    own: "Each year's own",
-    same: "Same all run",
-    ownNote: () => "Every year is scored on the points it really used.",
-    sameNote: (values) => `Every year of the run is scored ${values}.`,
-  },
-};
+/** The historical answer's value in the `select`: no table. */
+const OWN = "own";
+
+/**
+ * The historical answer's words. A season names its own table, since there is
+ * only one year to read it off; an era's differs year by year.
+ */
+function ownLabel(unit: RunUnit, year: number): string {
+  if (unit === "era") {
+    return "Each year's own";
+  }
+  const table = pointsTableOf(year);
+  return table === undefined ? "As it was" : `As it was · ${pointsValues(table.scale)}`;
+}
 
 /**
  * Which points table the run is scored on: each year's own, or one authored
- * table for every year.
- *
- * The table is a native `select` for the reason the grid's engine picker is
- * one: the platform control is keyboard- and screen-reader-complete without
- * being rebuilt by hand.
+ * table for every year — one `select` (`SettingSelect`), the historical answer
+ * first and then every distinct table in the seed data, labelled by its years
+ * and values. No note: the option chosen already says what it scores.
  *
  * Points are scoring, not simulation: the same seed races the same races under
  * any table, and only who the standings put first can change.
@@ -57,62 +39,38 @@ export function PointsSetting({
   onChange,
 }: {
   points: PointsScale | null;
-  /** The year on the picker, whose table *Same all run* starts from. */
+  /** The year on the picker, whose own table a season's historical answer names. */
   year: number;
-  /** Which screen it is on, which only changes the words. */
+  /** Which screen it is for, which only changes the words. */
   unit: RunUnit;
-  /** Absent in tests, where nothing is clicked. */
+  /** Absent in tests, where nothing is chosen. */
   onChange?: (points: PointsScale | null) => void;
 }) {
-  const copy = COPY[unit];
   const tables = pointsTables();
-  const start = pointsTableOf(year)?.scale ?? tables[0]?.scale ?? null;
   const selected =
     points === null ? -1 : tables.findIndex((table) => samePoints(table.scale, points));
 
   return (
-    <div className="flex flex-col gap-3">
-      <SettingSegments
-        name="Points"
-        segments={[
-          {
-            key: "own",
-            label: copy.own,
-            selected: points === null,
-            onPick: () => onChange?.(null),
-          },
-          {
-            key: "same",
-            label: copy.same,
-            selected: points !== null,
-            onPick: () => onChange?.(start),
-          },
-        ]}
-      />
-
-      {points === null ? (
-        <p className="text-muted-foreground text-xs">{copy.ownNote(year)}</p>
-      ) : (
-        <label className="flex flex-col gap-1.5 text-xs">
-          <span className="text-muted-foreground">{copy.sameNote(pointsValues(points))}</span>
-          <select
-            value={selected}
-            onChange={(event) => {
-              const table = tables[Number(event.target.value)];
-              if (table !== undefined) {
-                onChange?.(table.scale);
-              }
-            }}
-            className={SETTING_SELECT_CLASS}
-          >
-            {tables.map((table, index) => (
-              <option key={table.label} value={index}>
-                {table.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-    </div>
+    <SettingSelect
+      name="Points"
+      value={selected === -1 ? OWN : String(selected)}
+      onChange={(value) => {
+        if (value === OWN) {
+          onChange?.(null);
+          return;
+        }
+        const table = tables[Number(value)];
+        if (table !== undefined) {
+          onChange?.(table.scale);
+        }
+      }}
+    >
+      <option value={OWN}>{ownLabel(unit, year)}</option>
+      {tables.map((table, index) => (
+        <option key={table.label} value={index}>
+          {table.label}
+        </option>
+      ))}
+    </SettingSelect>
   );
 }

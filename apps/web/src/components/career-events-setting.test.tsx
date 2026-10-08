@@ -9,11 +9,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
+import { settingsForm } from "../test-support.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
-import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
 import { settingsOf } from "./SimulationSettings.js";
-
-const noop = () => {};
 
 describe("the career events setting", () => {
   it("presses As they happened while historical, and None otherwise", () => {
@@ -26,14 +24,14 @@ describe("the career events setting", () => {
     }
   });
 
-  it("is offered on the era's setup screen, in a Drivers group after Races, and not on a season's", () => {
-    const era = renderToStaticMarkup(<EraPicker onStart={noop} />);
+  it("is offered on the era's setup screen, in the Over the years group after Races, and not on a season's", () => {
+    const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Career events")).toBeGreaterThan(at("Drivers"));
-    expect(at("Drivers")).toBeGreaterThan(at("Points"));
+    expect(at("Career events")).toBeGreaterThan(at("Over the years"));
+    expect(at("Over the years")).toBeGreaterThan(at("Points"));
 
-    const season = renderToStaticMarkup(<SeasonPicker onStart={noop} />);
-    expect(season).not.toContain('aria-label="Drivers"');
+    const season = settingsForm("season");
+    expect(season).not.toContain('aria-label="Over the years"');
     expect(season).not.toContain('aria-label="Career events"');
   });
 

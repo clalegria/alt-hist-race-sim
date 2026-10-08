@@ -58,6 +58,7 @@ import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
 import { ARRANGEMENT_LABELS } from "./LineupChanges.js";
+import { RunConfirmDialog } from "./RunDialogs.js";
 import {
   DriverLabel,
   EMPTY_SEAT,
@@ -663,6 +664,8 @@ export function GridStage({
   const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
   const [chassisDraft, setChassisDraft] = useState<SeasonChassis | null>(null);
   const [selected, setSelected] = useState<GridPick | null>(null);
+  // Whether the reader is being asked to confirm Clear all edits.
+  const [clearing, setClearing] = useState(false);
   // Which bulk rule the draft is currently the product of, and the two settings
   // the rules are applied under. Three pieces rather than one `GridArrangement`
   // because the settings outlive the rule: clearing the rule after a hand edit
@@ -1039,8 +1042,32 @@ export function GridStage({
           sort={sort}
           onSortChange={setSort}
           {...(editing === undefined ? {} : { edit: editing })}
+          {...(locked || onApply === undefined
+            ? {}
+            : {
+                onClearEdits: () => {
+                  setClearing(true);
+                },
+              })}
         />
       </div>
+      {/*
+        Clear all edits asks first: a grid built from forty swaps is one click
+        from gone otherwise, and nothing undoes an applied grid. Every part
+        null is the grid as the season entered it — the run's own cars and
+        kept seats included, since those are the baseline and not edits.
+      */}
+      <RunConfirmDialog
+        open={clearing}
+        variant="clearEdits"
+        onConfirm={() => {
+          setClearing(false);
+          onApply?.({ lineup: null, engines: null, chassis: null, arrangement: null });
+        }}
+        onCancel={() => {
+          setClearing(false);
+        }}
+      />
       {draft === null ? null : (
         // Sticky, because the seat being filled is usually somewhere else on a
         // page fifteen cards long.

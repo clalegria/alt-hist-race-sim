@@ -124,6 +124,12 @@ component state rather than the store is `.claude/rules/web-store.md`.
     open would vanish from the page the reader has to fill it in on. Nothing simulated
     ever sees one: the field is drawn and thrown away, and the draft behind it cannot
     be applied.
+- **`Clear all edits` puts an applied grid back as entered**, from the right of the
+  "This grid was edited" heading: shut editor, unlocked grid only (`SeasonGrid`'s
+  `onClearEdits`). It asks first (`RunConfirmDialog`'s `clearEdits`), then applies every
+  part null; the run's rolled cars and kept seats stay, being the baseline. A fill on
+  hover, never an underline, like every control in the grid. On a first grid it makes
+  the run settings changeable again (`.claude/rules/web-run-settings.md`).
 - **An edited grid says so, in the same muted dashed frame everywhere.** Deliberately
   *not* the `lib/highlight.ts` accent: "the grid was changed" is a caveat on a result,
   not something that was won, and borrowing the accent would also break the test that

@@ -6,7 +6,7 @@ paths:
 # The randomness slider
 
 `race/randomness.ts` is a **scale factor over these constants, never an edit to them**.
-Five levels, chosen once on the setup screen before anything is simulated:
+Five levels, chosen in the run settings before the run is under way:
 
 | level | label | noise scale |
 | ----- | ----------------- | ----------- |

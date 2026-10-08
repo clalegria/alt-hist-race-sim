@@ -10,38 +10,28 @@ import {
 } from "../lib/preferences.js";
 import type { RunSettings, RunUnit } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
-import { BreakdownsSetting } from "./BreakdownsSetting.js";
-import { CareerEventsSetting } from "./CareerEventsSetting.js";
-import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
-import { PointsSetting } from "./PointsSetting.js";
-import { RandomnessSlider } from "./RandomnessSlider.js";
-import { ReliabilitySetting } from "./ReliabilitySetting.js";
-import { RunSettingsCard, RunSettingsGroup } from "./RunSettingsCard.js";
-import { TeamNamesSetting } from "./TeamNamesSetting.js";
-import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
+import type { RunChoice } from "./RunSettingsDialog.js";
+import { RunSettingsLine } from "./RunSettingsLine.js";
 import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
 
 /**
  * The setup screen: which year to run, under what rules, and a button to go.
  *
- * **Nothing is simulated until the button at the foot of the page.** Picking a
- * year used to start the run on the spot, which made the preferences above it a
- * trap — a reader who reached for a year first, as most will, was into the
- * season before they had seen that randomness was theirs to choose. Every
- * control on this screen now only *answers* something; one button commits all
- * of it at once. That also means the year and the settings are handed to
- * `onStart` together, so what was on screen is what gets simulated.
+ * **Nothing is simulated until the button at the foot of the page.** Every
+ * control on this screen only *answers* something; one button commits all of
+ * it at once, so the year and the settings reach `onStart` together and what
+ * was on screen is what gets simulated.
  *
- * The year picker itself is `YearPicker` — a rail of decades and the years in
- * one of them, controlled by the selected year alone. Randomness and the run's
- * what-ifs live in `RunSettingsCard`, in headed groups.
+ * The year picker is `YearPicker` — a rail of decades and the years in one of
+ * them, controlled by the selected year alone. The run settings are a line
+ * under the heading (`RunSettingsLine`) whose ⚙ button opens them in a dialog,
+ * the same line in the same place the grid has.
  *
- * Every answer is seeded from the remembered preference and written back the
- * moment they move — so they survive a reader who goes back to the menu, or who
- * comes back tomorrow. That includes the year: coming back to try the season
- * after the one just run and being handed 1950 every time is the app forgetting
- * something it was told a moment ago. See `readSeasonYear`.
+ * Every answer is seeded from the remembered preference and written back when
+ * it is given — a year on the moment it is picked, the settings when the dialog
+ * is closed with Done — so they survive a reader who goes back to the menu, or
+ * who comes back tomorrow. See `readSeasonYear`.
  *
  * One picker serves both modes. A season and an era ask the same question of
  * the same years and differ only in what the answer starts — which is copy, so
@@ -80,18 +70,16 @@ export function SeasonPicker({
    */
   eraSettings?: boolean;
 }) {
-  // Read once, on mount: this is the seed for the control, not a live mirror of
-  // storage, and nothing else on the screen can change it underneath.
-  const [randomness, setRandomness] = useState<RandomnessLevel>(readRandomness);
+  // Read once, on mount: this is the seed for the controls, not a live mirror
+  // of storage, and nothing else on the screen can change it underneath.
+  const [choice, setChoice] = useState<RunChoice>(() => ({
+    randomness: readRandomness(),
+    settings: readRunSettings(),
+  }));
   // Read once on mount for the same reason, and validated in `readSeasonYear`
   // against the playable list — a stored year with no seed file behind it would
   // reach `seasonSeed` and throw.
   const [year, setYear] = useState<number>(readSeasonYear);
-  const [settings, setSettings] = useState<RunSettings>(readRunSettings);
-  const changeSettings = (changed: RunSettings) => {
-    setSettings(changed);
-    rememberRunSettings(changed);
-  };
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
@@ -106,6 +94,18 @@ export function SeasonPicker({
         <p className="text-muted-foreground max-w-prose text-sm">{lead}</p>
       </header>
 
+      <RunSettingsLine
+        choice={choice}
+        year={year}
+        unit={unit}
+        eraSettings={eraSettings}
+        onCommit={(changed) => {
+          setChoice(changed);
+          rememberRandomness(changed.randomness);
+          rememberRunSettings(changed.settings);
+        }}
+      />
+
       <YearPicker
         year={year}
         onSelect={(picked) => {
@@ -117,76 +117,6 @@ export function SeasonPicker({
         describeYear={describeYear}
       />
 
-      <RunSettingsCard unit={unit}>
-        <RunSettingsGroup title="Races">
-          <RandomnessSlider
-            level={randomness}
-            onChange={(level) => {
-              setRandomness(level);
-              rememberRandomness(level);
-            }}
-          />
-          <BreakdownsSetting
-            breakdowns={settings.breakdowns}
-            onChange={(breakdowns) => {
-              changeSettings({ ...settings, breakdowns });
-            }}
-          />
-          <ReliabilitySetting
-            reliability={settings.reliability}
-            year={year}
-            unit={unit}
-            disabled={settings.breakdowns === "none"}
-            onChange={(reliability) => {
-              changeSettings({ ...settings, reliability });
-            }}
-          />
-          <PointsSetting
-            points={settings.points}
-            year={year}
-            unit={unit}
-            onChange={(points) => {
-              changeSettings({ ...settings, points });
-            }}
-          />
-        </RunSettingsGroup>
-        <RunSettingsGroup title="Cars">
-          <CarPerformanceSetting
-            carPerformance={settings.carPerformance}
-            unit={unit}
-            onChange={(carPerformance) => {
-              changeSettings({ ...settings, carPerformance });
-            }}
-          />
-        </RunSettingsGroup>
-        {eraSettings ? (
-          <RunSettingsGroup title="Drivers">
-            <CareerEventsSetting
-              careerEvents={settings.careerEvents}
-              onChange={(careerEvents) => {
-                changeSettings({ ...settings, careerEvents });
-              }}
-            />
-          </RunSettingsGroup>
-        ) : null}
-        {eraSettings ? (
-          <RunSettingsGroup title="Teams over the years">
-            <TeamNamesSetting
-              teamNames={settings.teamNames}
-              onChange={(teamNames) => {
-                changeSettings({ ...settings, teamNames });
-              }}
-            />
-            <TeamsAndSeatsSetting
-              teamsAndSeats={settings.teamsAndSeats}
-              onChange={(teamsAndSeats) => {
-                changeSettings({ ...settings, teamsAndSeats });
-              }}
-            />
-          </RunSettingsGroup>
-        ) : null}
-      </RunSettingsCard>
-
       {/*
         Full width and last on the page, because it is the only thing here that
         does anything: everything above it is a question, and this is the answer
@@ -196,7 +126,7 @@ export function SeasonPicker({
       <Button
         className="h-12 w-full text-base"
         onClick={() => {
-          onStart(year, randomness, settings);
+          onStart(year, choice.randomness, choice.settings);
         }}
       >
         {describeStart(year)}

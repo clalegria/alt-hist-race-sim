@@ -1,5 +1,5 @@
 import type { RunSettings } from "../lib/run-settings.js";
-import { SettingSegments } from "./SettingSegments.js";
+import { SettingNote, SettingSegments } from "./SettingSegments.js";
 
 /**
  * Whether drivers have the career events authored for them — the off-years and
@@ -16,7 +16,7 @@ export function CareerEventsSetting({
   onChange?: (careerEvents: RunSettings["careerEvents"]) => void;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <SettingSegments
         name="Career events"
         segments={[
@@ -34,11 +34,11 @@ export function CareerEventsSetting({
           },
         ]}
       />
-      <p className="text-muted-foreground text-xs">
-        {careerEvents === null
-          ? "Drivers have the off-years and late-career drops they really had."
-          : "Every career follows the plain ageing curve: no off-years, no late-career drops."}
-      </p>
+      {careerEvents === null ? null : (
+        <SettingNote>
+          Every career follows the plain ageing curve: no off-years, no late-career drops.
+        </SettingNote>
+      )}
     </div>
   );
 }

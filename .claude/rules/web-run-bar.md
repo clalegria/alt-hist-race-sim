@@ -80,12 +80,12 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   waiting. Home's `ResumeRun` card links to the cursor's page, with *Exit run* beside
   the link — not inside it, since an `<a>` cannot hold a button.
 - **One dialog for everything that throws work away** — `RunConfirmDialog` (Radix
-  `AlertDialog`), worded per case in `RUN_CONFIRM_COPY`: the two restarts and the ways
+  `AlertDialog`), worded per case in `RUN_CONFIRM_COPY`: the two restarts, Clear all edits and the ways
   out of a run.
 - **A way out asks only when there is something to lose.** `isUntouched(run)` in the
   store: the cursor still on the run's first grid, and that grid as it was entered.
   Until then the run is still being set up, and going back to change the randomness is
-  not abandoning anything. The ability toggle and the year switcher keep a run
+  not abandoning anything. The ability toggle, the year switcher and the run settings keep a run
   untouched; a grid edit, anything revealed, or a later era year does not. An untouched
   run is left in the store by Back — navigation never discards one — and the setup
   page's Start replaces it without asking.

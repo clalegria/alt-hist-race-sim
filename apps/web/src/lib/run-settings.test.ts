@@ -24,6 +24,7 @@ import {
   pointsTableOf,
   pointsTables,
   pointsValues,
+  rememberedAfterSeason,
   rolledChassisOf,
   samePoints,
   seasonSettings,
@@ -400,5 +401,34 @@ describe("the what-ifs a run states", () => {
         { name: "Team names", value: "Keep the first" },
       ],
     );
+  });
+});
+
+describe("remembering a standalone season's settings", () => {
+  const stored = {
+    ...HISTORICAL_SETTINGS,
+    carPerformance: { kind: "varied", spread: 10, from: "last" },
+    careerEvents: "none",
+    teamNames: "first",
+    teamsAndSeats: OPENING_SEAT_RULES,
+  } as const;
+
+  it("keeps the era-only answers the season never showed", () => {
+    const after = rememberedAfterSeason(stored, { ...seasonSettings(stored), breakdowns: "none" });
+    expect(after.breakdowns).toBe("none");
+    expect(after.careerEvents).toBe("none");
+    expect(after.teamNames).toBe("first");
+    expect(after.teamsAndSeats).toEqual(OPENING_SEAT_RULES);
+  });
+
+  it("keeps an era's walk the season only read as its own real car", () => {
+    expect(rememberedAfterSeason(stored, seasonSettings(stored)).carPerformance).toEqual(
+      stored.carPerformance,
+    );
+  });
+
+  it("takes the season's car answer once the reader changed it", () => {
+    const random = { ...seasonSettings(stored), carPerformance: { kind: "random" } } as const;
+    expect(rememberedAfterSeason(stored, random).carPerformance).toEqual({ kind: "random" });
   });
 });

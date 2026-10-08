@@ -9,7 +9,7 @@ paths:
 
 # Car performance — a run's own cars
 
-A run setting in the setup card's **Cars** group, on both setup screens: *Historical* /
+A run setting in the settings dialog's **Cars** group, on both screens: *Historical* /
 *Varied* / *Random*, stored as `RunSettings.carPerformance` — null,
 `{ kind: "varied", spread, from }` or `{ kind: "random" }`. The setting plumbing every what-if
 shares is `.claude/rules/web-setup.md`. The historical answer is *As it was* on a

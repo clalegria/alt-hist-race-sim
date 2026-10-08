@@ -45,6 +45,7 @@ import {
 import type { RunSettings } from "./lib/run-settings.js";
 import { type SeasonTab, seasonTabLinks } from "./lib/season-tabs.js";
 import { roundPages, sessionNav } from "./lib/session-nav.js";
+import { settingsLock } from "./lib/settings-lock.js";
 import type { Place } from "./lib/timeline.js";
 import { cursorPlace, isUntouched, useSeasonStore } from "./store/season.js";
 
@@ -136,6 +137,7 @@ export function RunPlacePage({
           sessionNav={sessionNav(cursorPlace(run), resolved.place, resolved.world.season.rounds)}
           {...(run.kind === "era" ? { run: run.run } : {})}
           locked={resolved.view.kind === "grid" && !resolved.editable}
+          settingsLock={settingsLock(run)}
           onYearChange={(year) => {
             switchSeasonYear(year);
             // The run is now a different year, so the page it is on is too.

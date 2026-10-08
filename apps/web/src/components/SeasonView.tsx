@@ -12,10 +12,11 @@ import { useMemo, useState } from "react";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
-import { driverPoolOf, whatIfsOf } from "../lib/run-settings.js";
+import { driverPoolOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { enteredSeason, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
+import { EDITING_LOCK } from "../lib/settings-lock.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
 import { CompactStandings } from "./CompactStandings.js";
@@ -25,12 +26,12 @@ import { HomeAdvantage } from "./HomeAdvantage.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { RandomnessNote } from "./RandomnessNote.js";
 import { RatingModeToggle } from "./RatingModeToggle.js";
+import type { RunChoice } from "./RunSettingsDialog.js";
+import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { RoundLinks, SessionHeader } from "./SessionNav.js";
-import { SimulationSettings } from "./SimulationSettings.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
 
@@ -218,6 +219,14 @@ interface SeasonViewProps {
   /** The same, for the grid editor: it draws without one, it just cannot apply. */
   readonly onGridChange?: (edit: GridEdit) => void;
   /**
+   * Why the run settings can no longer be changed from this grid
+   * (`settingsLock`), or null while they can. The settings line opens its
+   * dialog read-only with this reason. Defaults to null, the untouched grid.
+   */
+  readonly settingsLock?: string | null;
+  /** Changes the run settings, while `settingsLock` is null. Absent in tests. */
+  readonly onSettingsChange?: (choice: RunChoice) => void;
+  /**
    * The previous season's grid as this run actually raced it, for the grid
    * editor's carry-over button.
    *
@@ -265,6 +274,8 @@ function SeasonBody({
   onYearChange,
   onGridChange,
   onGridEditingChange,
+  settingsLock = null,
+  onSettingsChange,
   previousLineup = null,
   locked = false,
   finished = true,
@@ -281,6 +292,33 @@ function SeasonBody({
   if (view.kind === "grid") {
     return (
       <div className="flex flex-col gap-6">
+        {/*
+          The run settings first, in the place the setup screen has them, with
+          the years next door beside them: both are facts about *which season
+          this is*.
+
+          The switcher is gone entirely while the grid editor is open, rather
+          than disabled: a draft is a set of seats in *this* year's entry list,
+          and switching year rebuilds the world underneath a half-finished one —
+          which the editor's own preview then throws on. The settings open
+          read-only then, for the same reason.
+        */}
+        <RunSettingsLine
+          choice={{ randomness: world.randomness, settings: world.settings }}
+          year={world.year}
+          unit={inEra ? "era" : "season"}
+          eraSettings={inEra}
+          lock={editingGrid && settingsLock === null ? EDITING_LOCK : settingsLock}
+          {...(onSettingsChange === undefined ? {} : { onCommit: onSettingsChange })}
+          extra={
+            canChooseAbility && !editingGrid && !locked ? (
+              <SeasonSwitcher
+                year={world.year}
+                {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
+              />
+            ) : null
+          }
+        />
         {locked ? (
           <p className="text-muted-foreground text-sm">
             This grid has been raced, so it can no longer be changed.
@@ -293,33 +331,6 @@ function SeasonBody({
             {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
           />
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <RandomnessNote level={world.randomness} />
-            {/* The run's what-ifs, if any: nothing at all for a historical run. */}
-            <SimulationSettings
-              settings={whatIfsOf(world.settings)}
-              className="text-muted-foreground text-xs"
-            />
-          </div>
-          {/*
-            Beside the randomness note rather than under the buttons: both are
-            facts about *which season this is*, and the row reads as one line —
-            what is being raced, and the years next to it.
-
-            Gone entirely while the grid editor is open, rather than disabled: a
-            draft is a set of seats in *this* year's entry list, and switching
-            year rebuilds the world underneath a half-finished one — which the
-            editor's own preview then throws on. The way forward off this stage
-            is put away while editing for the same reason.
-          */}
-          {canChooseAbility && !editingGrid && !locked ? (
-            <SeasonSwitcher
-              year={world.year}
-              {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
-            />
-          ) : null}
-        </div>
         <GridStage
           field={world.field}
           year={world.year}

@@ -18,7 +18,7 @@ import { YearPicker } from "./YearPicker.js";
  * What the confirmation says, by what is about to be thrown away. Exit run and
  * Back past the run's first page are the same question; Start on a setup page
  * is the same consequence reached from the other side; the two restarts throw
- * away results but keep the run.
+ * away results but keep the run; Clear all edits throws away a grid.
  */
 export const RUN_CONFIRM_COPY = {
   exit: {
@@ -36,6 +36,12 @@ export const RUN_CONFIRM_COPY = {
     description:
       "It is raced again from its grid, on new dice. What you have seen of it is discarded; the grid stays as you set it.",
     confirm: "Restart season",
+  },
+  clearEdits: {
+    title: "Clear all grid edits?",
+    description:
+      "Every swap, engine and chassis change is undone, and the season is raced on its grid as entered.",
+    confirm: "Clear edits",
   },
   restartEra: {
     title: "Restart the era?",
