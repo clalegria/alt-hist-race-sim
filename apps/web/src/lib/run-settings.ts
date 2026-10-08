@@ -96,8 +96,7 @@ export interface RunSettings {
    * Whether every year has the teams history gave it, or the run's first year's
    * teams at their first-year seat counts, with the rules for the seats that
    * leaves empty (`keptGrid.ts` in `@alt-hist/data`). **Era only**, like
-   * `careerEvents`. Only the automatic fills are offered: `"reader"` waits for
-   * the pending grid.
+   * `careerEvents`.
    */
   readonly teamsAndSeats: EmptySeatRules | null;
 }
@@ -205,7 +204,7 @@ export const OPENING_SEAT_RULES: EmptySeatRules = {
   activeOnly: true,
 };
 
-/** The fills the setup screen offers, in its order; `"reader"` arrives with the pending grid. */
+/** The fills the setup screen offers, in its order. */
 export const OFFERED_SEAT_FILLS = ["last", "best"] as const;
 
 /** What the reader is shown for each fill on offer. */

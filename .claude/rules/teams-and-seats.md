@@ -12,9 +12,8 @@ paths:
 *Teams and seats: Keep the starting grid* is an era run setting: every year has the
 start year's teams, each with its start-year seat count, and teams new in history never
 appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
-the setup row is `.claude/rules/web-setup.md`. Only the automatic fills are built: *I fill
-them* (`"reader"`, the pending grid) is still design, in `docs/design/run-settings.md`.
-The layer it sits in is `.claude/rules/data-layers.md`.
+the setup row is `.claude/rules/web-setup.md`, and the layer it sits in
+`.claude/rules/data-layers.md`. The fills are `last` and `best` (`SEAT_FILLS`).
 
 ## The entry list: `keptYear(start, season, previous, rules, options)`
 
@@ -29,7 +28,7 @@ The layer it sits in is `.claude/rules/data-layers.md`.
   maps each ghost to the year of the car.
 - **A short seat** is one a real team leaves empty by running fewer cars than in the start
   year. It follows the same rules as a ghost's.
-- **Last year's driver keeps an empty seat** (every `fill` but `best`) at the team they
+- **Last year's driver keeps an empty seat** (under `last`) at the team they
   drove for last year *in this run* (`previous`), unless:
   - **history has seated them elsewhere this year** — history always wins;
   - they are **outside the age band**, read against their real age in the season. Past
@@ -46,8 +45,7 @@ seats `null`.
 
 ## Signing: `fillSeats(season, seats, rules, options)`
 
-- Under `reader` it hands `seats` back unchanged: the reader fills them.
-- Under `last` and `best`, **best car first** — `teamsByCar` (`arrange.ts`, shared), on
+- **Best car first** — `teamsByCar` (`arrange.ts`, shared), on
   the `season` passed in, which is the cars the run races after any *Car performance*
   roll — each empty seat takes the strongest free driver by `byOverall` (`arrange.ts`,
   shared). Free means holding no seat, inside the band, and under `activeOnly` a real
@@ -68,8 +66,8 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   with* (`SEAT_FILL_LABELS`), *Driver ages* (the grid editor's number inputs through
   `withAge`, so they cannot cross) and *Only sign drivers who really raced that year*.
   Switching in opens on `OPENING_SEAT_RULES`; the rows are remembered while the screen
-  is open. `OFFERED_SEAT_FILLS` is `"last"` and `"best"`, so `parseRunSettings` refuses
-  `"reader"` until the pending grid offers it, and an age outside `AGE_RANGE` or crossed.
+  is open. `parseRunSettings` refuses a fill outside `OFFERED_SEAT_FILLS`, and an age
+  outside `AGE_RANGE` or crossed.
 - **The world** (`store/season.ts`) records `gridKeptFrom` (the era's first year),
   `kept` (the `KeptYear`, an input passed on by every in-place rebuild) and `keptSeats`
   (after `fillSeats`, a derived baseline like `baselineChassis`); all null unless Keep,

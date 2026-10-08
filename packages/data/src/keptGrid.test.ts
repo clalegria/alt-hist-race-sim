@@ -97,7 +97,6 @@ const POOL: readonly Driver[] = [
 
 const LAST: EmptySeatRules = { fill: "last", minAge: 18, maxAge: 42, activeOnly: true };
 const BEST: EmptySeatRules = { ...LAST, fill: "best" };
-const READER: EmptySeatRules = { ...LAST, fill: "reader" };
 
 /** Two teams of two in the first year; `blue` is gone by `YEAR` unless a case says otherwise. */
 const FIRST = season(START, [entry("red", ["a", "b"]), entry("blue", ["c", "d"])]);
@@ -129,7 +128,7 @@ function nobodyTwice(seats: LineupDraft): void {
 describe("the teams and their cars", () => {
   it("enters every first-year team at its first-year count, and no team history added", () => {
     const now = season(YEAR, [entry("red", ["a", "b"]), entry("green", ["e", "f"])]);
-    const { seats } = kept(now, {}, READER);
+    const { seats } = kept(now, {}, LAST);
     expect(Object.keys(seats).sort()).toEqual(["blue", "red"]);
     for (const first of FIRST.entries) {
       expect(seats[first.teamId]).toHaveLength(first.drivers.length);
@@ -139,7 +138,7 @@ describe("the teams and their cars", () => {
   it("gives a team with more cars than the first year its strongest drivers", () => {
     const start = season(START, [entry("red", ["a"])]);
     const now = season(YEAR, [entry("red", ["c", "a", "b"])]);
-    const { seats } = keptYear(start, now, {}, READER, options());
+    const { seats } = keptYear(start, now, {}, LAST, options());
     expect(seats.red).toEqual(["a"]);
   });
 
@@ -149,7 +148,7 @@ describe("the teams and their cars", () => {
       entry("blue", ["c", "d"], 77, "common", 4),
     ]);
     const now = season(YEAR, [entry("red", ["a", "b"])]);
-    const { season: entered, ghosts } = kept(now, {}, READER, [before]);
+    const { season: entered, ghosts } = kept(now, {}, LAST, [before]);
     const blue = entered.entries.find((candidate) => candidate.teamId === "blue");
     expect(ghosts).toEqual({ blue: YEAR - 1 });
     expect(blue?.chassis.racing).toBe(77);
@@ -160,7 +159,7 @@ describe("the teams and their cars", () => {
   it("looks back past a year the ghost also missed", () => {
     const gap = season(YEAR - 1, [entry("red", ["a", "b"])]);
     const now = season(YEAR, [entry("red", ["a", "b"])]);
-    expect(kept(now, {}, READER, [gap]).ghosts).toEqual({ blue: START });
+    expect(kept(now, {}, LAST, [gap]).ghosts).toEqual({ blue: START });
   });
 
   it("gives a ghost's engine this year's values when the year rates it", () => {
@@ -170,14 +169,14 @@ describe("the teams and their cars", () => {
       [engine("works", 40)],
     );
     const now = season(YEAR, [entry("red", ["a", "b"])], [engine("common"), engine("works", 60)]);
-    const { season: entered } = kept(now, {}, READER, [before]);
+    const { season: entered } = kept(now, {}, LAST, [before]);
     expect(entered.engines).toEqual(now.engines);
   });
 
   it("adds a ghost's engine with its latest values when the year does not rate it", () => {
     const older = season(YEAR - 1, [entry("blue", ["c", "d"], 50, "works")], [engine("works", 40)]);
     const now = season(YEAR, [entry("red", ["a", "b"])]);
-    const { season: entered } = kept(now, {}, READER, [older]);
+    const { season: entered } = kept(now, {}, LAST, [older]);
     expect(entered.engines).toEqual([...now.engines, engine("works", 40)]);
   });
 });
@@ -192,7 +191,7 @@ describe("last year's drivers", () => {
 
   it("go where history puts them: history always wins", () => {
     const history = season(YEAR, [entry("red", ["a", "c"])]);
-    const { seats } = kept(history, { red: ["a", "b"], blue: ["c", "d"] }, READER);
+    const { seats } = kept(history, { red: ["a", "b"], blue: ["c", "d"] }, LAST);
     expect(seats.red).toEqual(["a", "c"]);
     expect(seats.blue).toEqual(["d", null]);
     nobodyTwice(seats);
@@ -203,20 +202,20 @@ describe("last year's drivers", () => {
     // stronger: c is left over, so c keeps the ghost seat c raced last year.
     const start = season(START, [entry("red", ["a"]), entry("blue", ["c"])]);
     const crowded = season(YEAR, [entry("red", ["c", "a"])]);
-    const year = keptYear(start, crowded, { red: ["a"], blue: ["c"] }, READER, options());
+    const year = keptYear(start, crowded, { red: ["a"], blue: ["c"] }, LAST, options());
     expect(year.seats).toEqual({ red: ["a"], blue: ["c"] });
   });
 
   it("leave the seat once outside the age band", () => {
-    const { seats } = kept(now, { blue: ["old", "young"] }, READER);
+    const { seats } = kept(now, { blue: ["old", "young"] }, LAST);
     expect(seats.blue).toEqual([null, null]);
-    const wider = kept(now, { blue: ["old", "young"] }, { ...READER, minAge: 16, maxAge: 50 });
+    const wider = kept(now, { blue: ["old", "young"] }, { ...LAST, minAge: 16, maxAge: 50 });
     expect(wider.seats.blue).toEqual(["old", "young"]);
   });
 
   it("take a short seat beside history's driver", () => {
     const short = season(YEAR, [entry("red", ["a"]), entry("blue", ["e", "f"])]);
-    const { seats } = kept(short, { red: ["a", "b"] }, READER);
+    const { seats } = kept(short, { red: ["a", "b"] }, LAST);
     expect(seats.red).toEqual(["a", "b"]);
   });
 
@@ -227,12 +226,6 @@ describe("last year's drivers", () => {
 });
 
 describe("filling what is left", () => {
-  it("leaves the seats open for the reader", () => {
-    const now = season(YEAR, [entry("red", ["e", "f"])]);
-    const year = keptYear(FIRST, now, {}, READER, options());
-    expect(fillSeats(year.season, year.seats, READER, options())).toBe(year.seats);
-  });
-
   it("signs the strongest free drivers, best car first", () => {
     const start = season(START, [entry("slow", ["e"]), entry("quick", ["f"])]);
     const before = season(YEAR - 1, [entry("slow", ["e"], 30), entry("quick", ["f"], 80)]);
@@ -277,7 +270,7 @@ describe("filling what is left", () => {
 
   it("never seats anybody twice", () => {
     const now = season(YEAR, [entry("red", ["a", "c"])]);
-    for (const rules of [LAST, BEST, READER]) {
+    for (const rules of [LAST, BEST]) {
       nobodyTwice(kept(now, { red: ["a", "b"], blue: ["c", "d"] }, rules).filled);
     }
   });

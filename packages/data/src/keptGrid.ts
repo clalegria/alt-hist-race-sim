@@ -33,11 +33,10 @@ import { seasons } from "./seasons/index.js";
 import type { Driver, SeasonEngine, SeasonEntry, SeasonSeed } from "./types.js";
 
 /**
- * Who takes an empty seat: the reader, by hand (`reader`); last year's driver,
- * then the strongest free one (`last`); or the strongest free one, picked
- * fresh every year (`best`).
+ * Who takes an empty seat: last year's driver, then the strongest free one
+ * (`last`); or the strongest free one, picked fresh every year (`best`).
  */
-export const SEAT_FILLS = ["reader", "last", "best"] as const;
+export const SEAT_FILLS = ["last", "best"] as const;
 export type SeatFill = (typeof SEAT_FILLS)[number];
 
 /** The reader's answers about empty seats, as the setup screen takes them. */
@@ -219,8 +218,7 @@ export function keptYear(
 }
 
 /**
- * The empty seats signed, under `last` and `best`; under `reader` the seats as
- * they are, for the reader to fill.
+ * The empty seats signed.
  *
  * Best car first (`teamsByCar` over `season`, the cars the run races), each
  * seat takes the strongest driver who holds none, inside the age band and —
@@ -233,9 +231,6 @@ export function fillSeats(
   rules: EmptySeatRules,
   options: KeptGridOptions = {},
 ): LineupDraft {
-  if (rules.fill === "reader") {
-    return seats;
-  }
   const { pool = driverPool, mode = "aged" } = options;
   const seated = new Set(seatedDriverIds(seats));
   const filters = bandFilters(rules, rules.activeOnly);

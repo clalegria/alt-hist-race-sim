@@ -166,12 +166,12 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "first" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: null } },
       { ...HISTORICAL_SETTINGS, carPerformance: [] },
-      // Settings from before Teams and seats, and its rules wrong in turn: the
-      // fill the pending grid will bring, ages outside the range, crossed or
-      // fractional, and a field missing.
+      // Settings from before Teams and seats, and its rules wrong in turn: a
+      // fill nobody offers, ages outside the range, crossed or fractional, and
+      // a field missing.
       beforeTeamsAndSeats,
       { ...HISTORICAL_SETTINGS, teamsAndSeats: "keep" },
-      seats({ fill: "reader" }),
+      seats({ fill: "nobody" }),
       seats({ fill: "Last" }),
       seats({ minAge: AGE_RANGE.min - 1 }),
       seats({ maxAge: AGE_RANGE.max + 1 }),
