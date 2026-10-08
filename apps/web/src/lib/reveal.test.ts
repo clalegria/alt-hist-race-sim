@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 import { crowned, type Run, stepRun } from "../store/season.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import { type BuiltRun, built, pendingRun, seededWorld, YEAR } from "../test-support.js";
 import { qualifyingOf, revealed } from "./reveal.js";
 import { isReached } from "./timeline.js";
 
@@ -22,10 +22,14 @@ const QUALIFYING_KEYS = [
 const SHEET_KEYS = ["entries", "nonQualifiers", "poleDriverId", "weather"];
 
 /** Every cursor a run passes through, from `run` until it ends or leaves `lastYear`. */
-function walk(run: Run, lastYear: number): Run[] {
-  const runs: Run[] = [];
-  for (let at: Run | null = run; at !== null && at.world.year <= lastYear; at = stepRun(at)) {
-    runs.push(at);
+function walk(run: Run, lastYear: number): BuiltRun[] {
+  const runs: BuiltRun[] = [];
+  for (
+    let at: Run | null = run;
+    at !== null && built(at).world.year <= lastYear;
+    at = stepRun(at)
+  ) {
+    runs.push(built(at));
   }
   return runs;
 }
@@ -126,5 +130,20 @@ describe("an earlier round's qualifying", () => {
     }
     const current = revealed(over).years.at(-1);
     expect(current && qualifyingOf(current.season, 0)).toBe(over.world.season.races[0]);
+  });
+});
+
+describe("a run waiting on the reader", () => {
+  it("reveals every year it has built, whole, and nothing of the year it waits on", () => {
+    const run = pendingRun();
+    const shown = revealed(run);
+    expect(shown.cursor).toEqual({ year: run.pending.year, beat: { kind: "grid" } });
+    expect(shown.years.map((year) => year.year)).toEqual(
+      run.run.seasons.map((world) => world.year),
+    );
+    for (const year of shown.years) {
+      expect(year.season.races.length).toBe(year.season.rounds);
+    }
+    expect(shown.crowned).toBe(run.run);
   });
 });

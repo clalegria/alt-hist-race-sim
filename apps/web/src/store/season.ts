@@ -27,8 +27,10 @@ import {
   authoredLineup,
   buildField,
   DEFAULT_RATING_MODE,
+  emptySeats,
   filledLineup,
   fillSeats,
+  fitsSeats,
   type GridArrangement,
   isAuthoredChassis,
   isAuthoredEngines,
@@ -214,8 +216,11 @@ export interface World {
   /**
    * Under Keep, every seat after `fillSeats` — an empty one `null`, left out of
    * the season — or null. **The year's baseline, not an edit**, as
-   * `baselineChassis` is: derived from the inputs and kept so nothing re-derives
-   * it on read (`enteredSeason`).
+   * `baselineChassis` is: kept so nothing re-derives it on read
+   * (`enteredSeason`). Derived from the inputs under the automatic fills; under
+   * *I fill them* it is the seats the reader filled a pending year with, every
+   * one taken — an input, which every in-place rebuild passes on and the recipe
+   * records.
    */
   readonly keptSeats: LineupDraft | null;
   /**
@@ -301,10 +306,9 @@ function arrangedLineup(
   engines: SeasonEngines | null,
   chassis: SeasonChassis | null,
   settings: RunSettings,
-  lastRaced: SeasonChassis | null,
-  kept: KeptYear | null,
+  inputs: YearInputs,
 ): SeasonLineup {
-  const season = baselineSeason(year, seed, settings, lastRaced, kept).season;
+  const season = baselineSeason(year, seed, settings, inputs).season;
   const authored = authoredLineup(season);
   const resupplied = engines === null ? season : applyEngines(season, engines);
   const entered = chassis === null ? resupplied : applyChassis(resupplied, chassis);
@@ -336,8 +340,7 @@ function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonL
     world.engines,
     world.chassis,
     world.settings,
-    world.walkedFrom,
-    world.kept,
+    yearInputsOf(world),
   );
 }
 
@@ -359,7 +362,7 @@ function nextEraGrid(
   last: World,
   year: number,
   seed: number,
-  kept: KeptYear | null,
+  inputs: YearInputs,
 ): { lineup: SeasonLineup | null; arrangement: GridArrangement | null } {
   const { arrangement } = last;
   if (arrangement === null || !arrangement.retain) {
@@ -376,26 +379,67 @@ function nextEraGrid(
       null,
       null,
       last.settings,
-      racedChassis(last),
-      kept,
+      inputs,
     ),
     arrangement,
   };
 }
 
 /**
+ * What a year's baseline is built from besides its year, seed and settings:
+ * the cars the year before raced, for a walk; the kept year, under Keep; and
+ * under *I fill them* the reader's seats for it. Each null when it does not
+ * apply.
+ */
+interface YearInputs {
+  readonly lastRaced: SeasonChassis | null;
+  readonly kept: KeptYear | null;
+  readonly keptSeats: LineupDraft | null;
+}
+
+/** A world's own `YearInputs`, as it was built with them. */
+function yearInputsOf(world: World): YearInputs {
+  return { lastRaced: world.walkedFrom, kept: world.kept, keptSeats: readerSeatsOf(world) };
+}
+
+/** The seats the reader filled a year with under *I fill them*, or null. */
+function readerSeatsOf(world: World): LineupDraft | null {
+  return world.settings.teamsAndSeats?.fill === "reader" ? world.keptSeats : null;
+}
+
+/**
+ * A kept year's cars as the run races them, its seats as `keptYear` left them:
+ * its chassis rolled under *Car performance* from this seed (off `lastRaced`
+ * when they walk), or as authored. What a pending year's grid shows, and what
+ * `baselineSeason` seats drivers in.
+ */
+function keptCars(
+  kept: KeptYear,
+  settings: RunSettings,
+  seed: number,
+  lastRaced: SeasonChassis | null,
+): { cars: SeasonSeed; baselineChassis: SeasonChassis | null } {
+  const baselineChassis = rolledChassisOf(kept.season, settings, seed, lastRaced);
+  return { cars: withChassis(kept.season, baselineChassis), baselineChassis };
+}
+
+/**
  * A season as the run enters it — under Keep, the kept year rather than the
  * seed file; its chassis rolled under *Car performance* from this seed (off
  * `lastRaced` when they walk), or as authored; and under Keep its empty seats
- * signed, best car first on the rolled cars — with the roll and the signings,
- * for the world to keep.
+ * signed, best car first on the rolled cars, or under *I fill them* the
+ * reader's seats — with the roll and the seats, for the world to keep.
+ *
+ * **Under *I fill them* it throws on an empty seat** rather than race the team
+ * short without telling anyone: a year with one is a pending year, which has no
+ * world until the reader fills it. It throws too on seats that do not fit the
+ * kept grid, which can only come from a tampered save.
  */
 function baselineSeason(
   year: number,
   seed: number,
   settings: RunSettings,
-  lastRaced: SeasonChassis | null,
-  kept: KeptYear | null,
+  { lastRaced, kept, keptSeats: readerSeats }: YearInputs,
 ): {
   season: SeasonSeed;
   baselineChassis: SeasonChassis | null;
@@ -410,8 +454,17 @@ function baselineSeason(
       keptSeats: null,
     };
   }
-  const baselineChassis = rolledChassisOf(kept.season, settings, seed, lastRaced);
-  const cars = withChassis(kept.season, baselineChassis);
+  const { cars, baselineChassis } = keptCars(kept, settings, seed, lastRaced);
+  if (rules.fill === "reader") {
+    const keptSeats = readerSeats ?? kept.seats;
+    if (!fitsSeats(kept.seats, keptSeats)) {
+      throw new Error(`The seats given for ${year} do not fit its kept grid`);
+    }
+    if (emptySeats(keptSeats).length > 0) {
+      throw new Error(`${year} has an empty seat for the reader to fill`);
+    }
+    return { season: seatedSeason(cars, keptSeats), baselineChassis, keptSeats };
+  }
   const keptSeats = fillSeats(cars, kept.seats, rules, {
     pool: driverPoolOf(settings),
     mode: ERA_RATING_MODE,
@@ -457,6 +510,12 @@ export interface EraInputs {
   readonly lastRaced?: SeasonChassis | null;
   /** The year as *Keep the starting grid* built it (`keptYearAfter`). */
   readonly kept?: KeptYear | null;
+  /**
+   * Under *I fill them*, the kept year's seats as the reader filled them — or
+   * null for `kept.seats`, which must then have no empty seat. Read under that
+   * fill only.
+   */
+  readonly keptSeats?: LineupDraft | null;
 }
 
 /** The era's first year, when the world recorded it: under either *Keep* setting. */
@@ -466,7 +525,12 @@ export function eraStartOf(world: World): number | null {
 
 /** A world's own era inputs, for an action that rebuilds its year in place. */
 function eraInputsOf(world: World): EraInputs {
-  return { start: eraStartOf(world), lastRaced: world.walkedFrom, kept: world.kept };
+  return {
+    start: eraStartOf(world),
+    lastRaced: world.walkedFrom,
+    kept: world.kept,
+    keptSeats: readerSeatsOf(world),
+  };
 }
 
 /**
@@ -526,7 +590,8 @@ export function runConstants(
  * recorded as `namesKeptFrom` under *Team names: Keep the first* and as
  * `gridKeptFrom` under *Teams and seats: Keep the starting grid*, null
  * otherwise. `lastRaced` is read only when the cars walk from the previous
- * year's, recorded as `walkedFrom`; `kept` only under Keep.
+ * year's, recorded as `walkedFrom`; `kept` only under Keep, and `keptSeats`
+ * only under *I fill them*, where a year with an empty seat throws.
  */
 export function createWorld(
   seed: number,
@@ -550,7 +615,11 @@ export function createWorld(
     season: baseline,
     baselineChassis,
     keptSeats,
-  } = baselineSeason(year, seed, settings, walkedFrom, kept);
+  } = baselineSeason(year, seed, settings, {
+    lastRaced: walkedFrom,
+    kept,
+    keptSeats: era.keptSeats ?? null,
+  });
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
   const edited = lineup !== null && !isAuthoredLineup(baseline, lineup) ? lineup : null;
@@ -645,24 +714,85 @@ export type Run =
       readonly run: EraRun;
       readonly world: World;
       readonly cursor: Beat;
+    }
+  /**
+   * An era stopped at a year's grid until the reader fills its empty seats
+   * (*I fill them*). There is no world for the year until they do, so nothing
+   * past its grid exists; every year before it is in `run.seasons`, crowned.
+   */
+  | {
+      readonly kind: "pending";
+      readonly run: EraRun;
+      readonly pending: PendingYear;
+      readonly cursor: { readonly kind: "grid" };
     };
+
+/** An era waiting on the reader: the `pending` member of `Run`. */
+export type PendingRun = Extract<Run, { kind: "pending" }>;
+
+/**
+ * A year of an era under *I fill them* whose kept seats still have an empty
+ * one after carry-over: what `createWorld` cannot build until the reader fills
+ * them. `seed` is drawn exactly as a world's would be (`nextSeed`), so the cars
+ * the grid shows are the ones the year will race.
+ */
+export interface PendingYear {
+  readonly year: number;
+  readonly seed: number;
+  readonly kept: KeptYear;
+}
 
 /**
  * The years of an era that have been crowned: every one before the cursor's,
- * and the cursor's own once it has reached its review.
+ * and the cursor's own once it has reached its review — or, waiting on the
+ * reader, every year the run has.
  *
  * Derived rather than kept, so a year cannot be crowned twice and the world on
  * the cursor is never stored twice.
  */
-export function crowned(run: Extract<Run, { kind: "era" }>): EraRun {
-  return run.cursor.kind === "review"
+export function crowned(run: Exclude<Run, { kind: "season" }>): EraRun {
+  return run.kind === "era" && run.cursor.kind === "review"
     ? { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] }
     : run.run;
 }
 
 /** Where the cursor is, as a place in the run. */
 export function cursorPlace(run: Run): Place {
-  return { year: run.world.year, beat: run.cursor };
+  return {
+    year: run.kind === "pending" ? run.pending.year : run.world.year,
+    beat: run.cursor,
+  };
+}
+
+/**
+ * The world on the cursor — or, waiting on the reader, the last year built:
+ * what the run's own records (its settings, the year its names are kept from)
+ * are read off where a run might have no world on its cursor.
+ */
+export function latestWorld(run: Run): World {
+  if (run.kind !== "pending") {
+    return run.world;
+  }
+  const last = run.run.seasons.at(-1);
+  if (last === undefined) {
+    throw new Error("A pending year always follows a year of the run");
+  }
+  return last;
+}
+
+/**
+ * A pending year's grid as the reader is shown it: the cars it will race (the
+ * chassis rolled from its seed, off what the year before raced when the cars
+ * walk) and the seats `keptYear` left, empty ones `null`.
+ */
+export function pendingGrid(run: PendingRun): {
+  readonly cars: SeasonSeed;
+  readonly seats: LineupDraft;
+  readonly baselineChassis: SeasonChassis | null;
+} {
+  const last = latestWorld(run);
+  const { kept, seed } = run.pending;
+  return { ...keptCars(kept, last.settings, seed, racedChassis(last)), seats: kept.seats };
 }
 
 /**
@@ -676,6 +806,10 @@ export function cursorPlace(run: Run): Place {
  * season. A grid edit does, and so does anything revealed or any later year.
  */
 export function isUntouched(run: Run): boolean {
+  // A pending year always follows a year already in the run.
+  if (run.kind === "pending") {
+    return false;
+  }
   return (
     run.cursor.kind === "grid" &&
     (run.kind === "season" || run.run.seasons.length === 0) &&
@@ -690,8 +824,8 @@ export function isUntouched(run: Run): boolean {
  * Whether the cursor is on a beat of the season itself rather than the era's
  * review — the beats on which a season can still be started again.
  */
-function isPlaying(run: Run | null): run is Run & { readonly cursor: View } {
-  return run !== null && run.cursor.kind !== "review";
+function isPlaying(run: Run | null): run is Exclude<Run, PendingRun> & { readonly cursor: View } {
+  return run !== null && run.kind !== "pending" && run.cursor.kind !== "review";
 }
 
 interface SeasonStore {
@@ -772,7 +906,8 @@ interface SeasonStore {
    * `createWorld` in `nextEraWorld`, and nothing else about the loop changes.
    *
    * Nothing happens at a beat with nothing after it: a one-year run's summary,
-   * or an era's review once `nextEraYear` says the data has run out.
+   * an era's review once `nextEraYear` says the data has run out, or a pending
+   * year's grid, which waits on `fillPending`.
    */
   readonly continueRun: () => void;
   /**
@@ -790,8 +925,28 @@ interface SeasonStore {
    * a one-year run — is refused outright rather than clamped: a stray target
    * must not quietly run the era to its end. Refused, it returns the state
    * itself, so a press that changes nothing re-renders nothing.
+   *
+   * **It stops at the first pending year on the way** — the one exception to
+   * refusing rather than clamping, since the run cannot go further until the
+   * reader fills its seats. The caller tells the two apart by where the cursor
+   * landed.
    */
   readonly jumpTo: (target: Place) => void;
+  /**
+   * Fills a pending year and opens it at its grid: the year is built on its
+   * own seed with `lineup` as its kept seats — **the year's baseline, not an
+   * edit**, as the automatic signings are — and `engines` and `chassis` as the
+   * reader's edits, as `setGrid` takes them. `arrangement` is the rule the
+   * reader arranged the grid by; without one, a rule kept from the year before
+   * arranges the full grid now. Does nothing off a pending year, or with seats
+   * that do not fit its grid.
+   */
+  readonly fillPending: (
+    lineup: SeasonLineup,
+    engines: SeasonEngines | null,
+    arrangement?: GridArrangement | null,
+    chassis?: SeasonChassis | null,
+  ) => void;
   /**
    * Re-runs the season from the same seed with the other ability model.
    *
@@ -865,7 +1020,9 @@ interface SeasonStore {
    *
    * Inside an era it re-runs the current year only. The seasons already crowned
    * stand: they were read, and this one has not been finished. Refused on the
-   * review, where the year on the cursor has itself been crowned.
+   * review, where the year on the cursor has itself been crowned. A pending
+   * year draws a new seed and stays pending: its seats are the same, its cars
+   * rolled again.
    */
   readonly restartSeason: () => void;
   /**
@@ -898,7 +1055,7 @@ function openEra(world: World): Run {
 }
 
 /** The run it already was, with a different world, back at the grid. */
-function replaceWorld(run: Run, world: World): Run {
+function replaceWorld(run: Exclude<Run, PendingRun>, world: World): Run {
   return { ...run, world, cursor: { kind: "grid" } };
 }
 
@@ -912,35 +1069,103 @@ function replaceWorld(run: Run, world: World): Run {
  *
  * The one step both Continue and a jump forward take, so the two cannot
  * produce different histories.
+ *
+ * **Under *I fill them* a year whose kept seats still have an empty one is
+ * not built**: it comes back as a `PendingYear`, its seed drawn, for the reader
+ * to fill (`filledYear`).
  */
-function nextEraWorld(last: World, year: number): World {
+function nextEraWorld(last: World, year: number): World | PendingYear {
   const seed = nextSeed(last.rngState);
   const kept = keptYearAfter(last, year);
-  const grid = nextEraGrid(last, year, seed, kept);
+  if (
+    kept !== null &&
+    last.settings.teamsAndSeats?.fill === "reader" &&
+    emptySeats(kept.seats).length > 0
+  ) {
+    return { year, seed, kept };
+  }
+  const era = { start: eraStartOf(last), lastRaced: racedChassis(last), kept };
+  return yearAfter(last, year, seed, era, nextEraGrid(last, year, seed, yearInputs(era)), {
+    engines: null,
+    chassis: null,
+  });
+}
+
+/** An era's inputs as the year's baseline reads them. */
+function yearInputs(era: EraInputs): YearInputs {
+  return {
+    lastRaced: era.lastRaced ?? null,
+    kept: era.kept ?? null,
+    keptSeats: era.keptSeats ?? null,
+  };
+}
+
+/**
+ * A year of an era built off the one before it: the dice and how the reader
+ * chose to play carried from `last`, the grid and the cars as given.
+ */
+function yearAfter(
+  last: World,
+  year: number,
+  seed: number,
+  era: EraInputs,
+  grid: { lineup: SeasonLineup | null; arrangement: GridArrangement | null },
+  cars: { engines: SeasonEngines | null; chassis: SeasonChassis | null },
+): World {
   return createWorld(
     seed,
     year,
     last.ratingMode,
     grid.lineup,
-    null,
+    cars.engines,
     // Baked in at the era's setup: every year of a run is raced under the
     // level its first year was started on.
     last.randomness,
     grid.arrangement,
-    null,
+    cars.chassis,
     last.settings,
-    { start: eraStartOf(last), lastRaced: racedChassis(last), kept },
+    era,
   );
 }
 
 /**
+ * A pending year, built with the reader's seats as its kept seats — the
+ * year's baseline, as the automatic signings are, so they are no edit — and
+ * their engines and chassis as edits. A rule the reader arranged the grid by is
+ * recorded; without one, a rule kept from the year before arranges the full
+ * grid now, so it ranks every seat rather than the ones history filled.
+ *
+ * Throws on seats with a hole or that do not fit the year's grid
+ * (`baselineSeason`).
+ */
+export function filledYear(
+  run: PendingRun,
+  lineup: SeasonLineup,
+  engines: SeasonEngines | null,
+  arrangement: GridArrangement | null,
+  chassis: SeasonChassis | null,
+): World {
+  const last = latestWorld(run);
+  const { year, seed, kept } = run.pending;
+  const era = { start: eraStartOf(last), lastRaced: racedChassis(last), kept, keptSeats: lineup };
+  const grid =
+    arrangement === null ? nextEraGrid(last, year, seed, yearInputs(era)) : { lineup, arrangement };
+  return yearAfter(last, year, seed, era, grid, { engines, chassis });
+}
+
+/**
  * The run one Continue further on, or null where there is nowhere further to
- * go: a one-year run's summary, or an era's review once the data runs out.
+ * go: a one-year run's summary, an era's review once the data runs out, or a
+ * pending year's grid.
  *
  * Off a review is onto a new year: the one just crowned joins the run, and the
- * next is simulated from where its dice stopped.
+ * next is simulated from where its dice stopped — or, when the reader has seats
+ * to fill first, the run waits on its grid.
  */
 export function stepRun(run: Run): Run | null {
+  if (run.kind === "pending") {
+    return null;
+  }
   const year = run.kind === "era" ? nextEraYear(run.world.year) : null;
   const next = nextBeat(
     run.cursor,
@@ -952,12 +1177,11 @@ export function stepRun(run: Run): Run | null {
     return null;
   }
   if (run.kind === "era" && run.cursor.kind === "review" && year !== null) {
-    return {
-      kind: "era",
-      run: { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] },
-      world: nextEraWorld(run.world, year),
-      cursor: next,
-    };
+    const seasons = { startYear: run.run.startYear, seasons: [...run.run.seasons, run.world] };
+    const built = nextEraWorld(run.world, year);
+    return "season" in built
+      ? { kind: "era", run: seasons, world: built, cursor: { kind: "grid" } }
+      : { kind: "pending", run: seasons, pending: built, cursor: { kind: "grid" } };
   }
   return { ...run, cursor: next };
 }
@@ -966,6 +1190,10 @@ export function stepRun(run: Run): Run | null {
  * The run at `target`, reached by stepping — or null for a target a jump may
  * not land on: not ahead of the cursor, not a grid or a season's end, or never
  * reached because the run ends first.
+ *
+ * **A pending year on the way stops it there**, short of the target: the run
+ * cannot go further until the reader fills it. Starting on one, nothing is
+ * ahead.
  */
 export function jumpRun(run: Run, target: Place): Run | null {
   if (target.beat.kind !== "grid" && target.beat.kind !== "summary") {
@@ -976,6 +1204,9 @@ export function jumpRun(run: Run, target: Place): Run | null {
   }
   let at = run;
   while (comparePlaces(cursorPlace(at), target) < 0) {
+    if (at.kind === "pending") {
+      return at === run ? null : at;
+    }
     const next = stepRun(at);
     if (next === null) {
       return null;
@@ -1068,11 +1299,27 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       return landed === null ? state : { run: landed };
     });
   },
+  fillPending: (lineup, engines, arrangement = null, chassis = null) => {
+    set((state) => {
+      if (state.run?.kind !== "pending") {
+        return state;
+      }
+      const run = state.run;
+      try {
+        const world = filledYear(run, lineup, engines, arrangement, chassis);
+        return { run: { kind: "era", run: run.run, world, cursor: { kind: "grid" } } };
+      } catch {
+        // Seats with a hole, or for another grid: the editor's Apply cannot
+        // send either, so there is nothing to say but no.
+        return state;
+      }
+    });
+  },
   setRatingMode: (mode) => {
     // An era does not have this choice, and calling it there must not leave a
     // trace: remembering a mode chosen on a screen that never offered it would
     // reach the *next standalone season* the reader starts.
-    if (get().run?.kind === "era") {
+    if (get().run?.kind === "era" || get().run?.kind === "pending") {
       return;
     }
     // Remembered even if the switch itself is a no-op, so the choice survives
@@ -1107,7 +1354,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   setGrid: (lineup, engines, arrangement = null, chassis = null) => {
     set((state) =>
-      state.run !== null && state.run.cursor.kind === "grid"
+      state.run !== null && state.run.kind !== "pending" && state.run.cursor.kind === "grid"
         ? {
             run: replaceWorld(
               state.run,
@@ -1159,6 +1406,10 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   },
   restartSeason: () => {
     set((state) => {
+      if (state.run?.kind === "pending") {
+        // Its seats do not hang on the dice; its cars do, and are rolled again.
+        return { run: { ...state.run, pending: { ...state.run.pending, seed: randomSeed() } } };
+      }
       if (!isPlaying(state.run)) {
         return state;
       }
@@ -1190,10 +1441,10 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
   restartEra: () => {
     set((state) => {
       const run = state.run;
-      if (run?.kind !== "era") {
+      if (run === null || run.kind === "season") {
         return state;
       }
-      const first = run.run.seasons[0] ?? run.world;
+      const first = run.run.seasons[0] ?? latestWorld(run);
       const seed = randomSeed();
       return {
         run: openEra(

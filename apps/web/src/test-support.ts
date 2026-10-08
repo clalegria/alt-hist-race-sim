@@ -17,15 +17,31 @@
  */
 
 import {
+  authoredLineup,
   authoredSeasons,
+  type EmptySeatRules,
+  emptySeats,
   FIRST_AUTHORED_SEASON,
+  filledLineup,
+  keptYear,
+  type LineupDraft,
   type RatingMode,
+  reserveDrivers,
+  type SeasonLineup,
   seasonSeed,
 } from "@alt-hist/data";
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
 import { type RevealedWorld, revealYear } from "./lib/reveal.js";
+import { HISTORICAL_SETTINGS, OPENING_SEAT_RULES, type RunSettings } from "./lib/run-settings.js";
 import type { View } from "./lib/timeline.js";
-import { createWorld, type World } from "./store/season.js";
+import {
+  createWorld,
+  ERA_RATING_MODE,
+  type PendingRun,
+  type Run,
+  stepRun,
+  type World,
+} from "./store/season.js";
 
 /**
  * The year most fixtures here are built from — the earliest authored one, not a
@@ -53,6 +69,88 @@ export const FOLDING_YEAR: { readonly year: number; readonly teamId: string } = 
   }
   throw new Error("no team in the seed data ever folds");
 })();
+
+/** *Keep the starting grid* with the seats history leaves empty filled by the reader. */
+export const READER_RULES: EmptySeatRules = { ...OPENING_SEAT_RULES, fill: "reader" };
+
+/**
+ * The first authored year an era under `READER_RULES` started from stops the
+ * year after, waiting on the reader: `start`, and `year`, the pending one.
+ * Searched for rather than named, through the same data functions the run
+ * uses, off the first year's grid as history entered it.
+ */
+export const PENDING_YEAR: { readonly start: number; readonly year: number } = (() => {
+  for (const start of authoredSeasons) {
+    if (!authoredSeasons.includes(start + 1)) {
+      continue;
+    }
+    const first = seasonSeed(start);
+    const next = keptYear(first, seasonSeed(start + 1), authoredLineup(first), READER_RULES);
+    if (emptySeats(next.seats).length > 0) {
+      return { start, year: start + 1 };
+    }
+  }
+  throw new Error("no kept year in the seed data ever leaves the reader a seat to fill");
+})();
+
+/** An era's settings under `READER_RULES`, everything else historical. */
+export const READER_SETTINGS: RunSettings = { ...HISTORICAL_SETTINGS, teamsAndSeats: READER_RULES };
+
+/**
+ * An era under `READER_SETTINGS` from `PENDING_YEAR.start` on `seed`, stepped
+ * off that year's review: the pending year, waiting on the reader.
+ */
+export function pendingRun(seed = 9): PendingRun {
+  const first = createWorld(
+    seed,
+    PENDING_YEAR.start,
+    ERA_RATING_MODE,
+    null,
+    null,
+    undefined,
+    null,
+    null,
+    READER_SETTINGS,
+  );
+  const next = stepRun({
+    kind: "era",
+    run: { startYear: first.year, seasons: [] },
+    world: first,
+    cursor: { kind: "review" },
+  });
+  if (next?.kind !== "pending") {
+    throw new Error(`expected ${PENDING_YEAR.year} to wait on the reader`);
+  }
+  return next;
+}
+
+/** `seats` with every empty one filled from the drivers holding none, alphabetically. */
+export function filledSeats(seats: LineupDraft): SeasonLineup {
+  const free = reserveDrivers(seats).map((driver) => driver.id);
+  let next = 0;
+  const filled: Record<string, readonly (string | null)[]> = {};
+  for (const [teamId, row] of Object.entries(seats)) {
+    filled[teamId] = row.map((driverId) => driverId ?? free[next++] ?? null);
+  }
+  const lineup = filledLineup(filled);
+  if (lineup === null) {
+    throw new Error("not enough free drivers to fill the seats");
+  }
+  return lineup;
+}
+
+/** A run with a world on its cursor: any but one waiting on the reader. */
+export type BuiltRun = Exclude<Run, PendingRun>;
+
+/** The run, which a test expects to have a world on its cursor; throws on a pending one. */
+export function built(run: Run): BuiltRun {
+  if (run.kind === "pending") {
+    throw new Error(
+      `expected a world on the cursor, found ${run.pending.year} waiting on the reader`,
+    );
+  }
+  return run;
+}
 
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
 export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {

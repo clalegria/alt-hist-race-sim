@@ -16,10 +16,12 @@ import {
   DEFAULT_RATING_MODE,
   driverRatingsFor,
   driversById,
+  emptySeats,
   FIRST_AUTHORED_SEASON,
   filledLineup,
   type GridArrangement,
   identityYear,
+  type LineupDraft,
   seasonSeed,
   stepChassis,
   teamIdentityIn,
@@ -46,14 +48,23 @@ import {
   PLAYABLE_SEASONS,
   seasonWithChassis,
 } from "../lib/seasons.js";
+import { nextSeed } from "../lib/seed.js";
 import type { Place } from "../lib/timeline.js";
-import { FOLDING_YEAR } from "../test-support.js";
 import {
+  built,
+  FOLDING_YEAR,
+  filledSeats,
+  PENDING_YEAR,
+  READER_SETTINGS,
+} from "../test-support.js";
+import {
+  createWorld,
   crowned,
   cursorPlace,
   ERA_RATING_MODE,
   type EraRun,
   isUntouched,
+  type PendingRun,
   type Run,
   racedChassis,
   racedLineup,
@@ -93,7 +104,9 @@ function rollOfHonour(): EraRun {
 function skipToEnd(): void {
   const current = active();
   if (current !== null) {
-    useSeasonStore.getState().jumpTo({ year: current.world.year, beat: { kind: "summary" } });
+    useSeasonStore
+      .getState()
+      .jumpTo({ year: built(current).world.year, beat: { kind: "summary" } });
   }
 }
 
@@ -1284,5 +1297,179 @@ describe("the starting grid kept for an era", () => {
         .entries.map((entry) => entry.teamId)
         .sort(),
     );
+  });
+});
+
+describe("an era whose empty seats the reader fills", () => {
+  const FROM = PENDING_YEAR.start;
+  const NEXT = PENDING_YEAR.year;
+
+  /** The store's run, which a test expects to be waiting on the reader. */
+  function waiting(): PendingRun {
+    const run = active();
+    if (run?.kind !== "pending") {
+      throw new Error(`expected a pending year, found "${run?.kind ?? "no run"}"`);
+    }
+    return run;
+  }
+
+  /** An era from `FROM` under the reader's rules, stepped to the pending year. */
+  function toPending(seed = 5): PendingRun {
+    useSeasonStore.getState().simulateEra(seed, FROM, undefined, READER_SETTINGS);
+    jumpThrough(FROM);
+    useSeasonStore.getState().continueRun();
+    return waiting();
+  }
+
+  it("stops at the grid of a year with a seat history and carry-over leave empty", () => {
+    const run = toPending();
+    expect(cursorPlace(run)).toEqual({ year: NEXT, beat: { kind: "grid" } });
+    expect(emptySeats(run.pending.kept.seats).length).toBeGreaterThan(0);
+    expect(run.run.seasons.map((world) => world.year)).toEqual([FROM]);
+    expect(crowned(run)).toBe(run.run);
+    expect(isUntouched(run)).toBe(false);
+  });
+
+  it("goes nowhere on Continue, and takes no grid edit, until the seats are filled", () => {
+    const run = toPending();
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().setGrid(null, null);
+    useSeasonStore.getState().setRatingMode("peak");
+    expect(active()).toBe(run);
+  });
+
+  it("draws the year's seed as a world would, so its cars are the ones it will race", () => {
+    const run = toPending();
+    expect(run.pending.seed).toBe(nextSeed((run.run.seasons[0] as World).rngState));
+  });
+
+  it("builds the year off the reader's seats, as its baseline rather than an edit", () => {
+    const run = toPending();
+    const seats = filledSeats(run.pending.kept.seats);
+    useSeasonStore.getState().fillPending(seats, null);
+    const { world } = running();
+    expect(cursorPlace(active() as Run)).toEqual({ year: NEXT, beat: { kind: "grid" } });
+    expect(world).toMatchObject({ year: NEXT, seed: run.pending.seed, lineup: null });
+    expect(world.keptSeats).toEqual(seats);
+    expect(world.kept).toEqual(run.pending.kept);
+    expect(racedLineup(world)).toEqual(seats);
+    expect(authoredLineup(enteredSeason(world))).toEqual(seats);
+  });
+
+  it("refuses seats with one still empty, or for another grid", () => {
+    const run = toPending();
+    const seats = filledSeats(run.pending.kept.seats);
+    const [teamId] = Object.keys(seats);
+    useSeasonStore.getState().fillPending({ ...seats, [teamId ?? ""]: [] }, null);
+    useSeasonStore.getState().fillPending({ ...seats, nobodys_team: [] }, null);
+    expect(active()).toBe(run);
+  });
+
+  it("never races a year with an empty seat under the reader's fill", () => {
+    const run = toPending();
+    const last = run.run.seasons[0] as World;
+    const build = (keptSeats: LineupDraft | null) =>
+      createWorld(
+        run.pending.seed,
+        NEXT,
+        ERA_RATING_MODE,
+        null,
+        null,
+        undefined,
+        null,
+        null,
+        READER_SETTINGS,
+        { start: FROM, kept: run.pending.kept, keptSeats, lastRaced: racedChassis(last) },
+      );
+    expect(() => build(null)).toThrow("empty seat");
+    expect(() => build(run.pending.kept.seats)).toThrow("empty seat");
+    expect(build(filledSeats(run.pending.kept.seats)).year).toBe(NEXT);
+  });
+
+  it("keeps the reader's seats through a new grid and a restart of the year", () => {
+    const run = toPending();
+    const seats = filledSeats(run.pending.kept.seats);
+    useSeasonStore.getState().fillPending(seats, null);
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.keptSeats).toEqual(seats);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.keptSeats).toEqual(seats);
+    expect(racedLineup(running().world)).toEqual(seats);
+  });
+
+  it("stays pending on Restart season, its seats the same", () => {
+    const run = toPending();
+    useSeasonStore.getState().restartSeason();
+    const again = waiting();
+    expect(again.run).toBe(run.run);
+    expect(again.pending.kept).toBe(run.pending.kept);
+    expect(again.pending.year).toBe(NEXT);
+  });
+
+  it("goes back to the first year's grid on Restart era", () => {
+    toPending();
+    useSeasonStore.getState().restartEra();
+    const { run, world } = running();
+    expect(run.seasons).toEqual([]);
+    expect(world.year).toBe(FROM);
+  });
+
+  it("reaches the same pending year by jumping as by stepping", () => {
+    const stepped = toPending();
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, READER_SETTINGS);
+    useSeasonStore.getState().jumpTo({ year: NEXT, beat: { kind: "grid" } });
+    expect(waiting()).toEqual(stepped);
+  });
+
+  it("stops a jump past the pending year at its grid", () => {
+    const stepped = toPending();
+    const beyond = nextEraYear(NEXT) ?? NEXT;
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, READER_SETTINGS);
+    useSeasonStore.getState().jumpTo({ year: beyond, beat: { kind: "summary" } });
+    expect(waiting()).toEqual(stepped);
+    // Nothing is ahead of a pending year, so a jump from it is refused.
+    const run = waiting();
+    useSeasonStore.getState().jumpTo({ year: beyond, beat: { kind: "summary" } });
+    expect(active()).toBe(run);
+  });
+
+  it("arranges the filled grid when a bulk rule is kept, not the seats history filled", () => {
+    const rule: GridArrangement = {
+      kind: "fastest-in-fastest",
+      includeUnemployed: false,
+      filters: DEFAULT_DRIVER_FILTERS,
+      retain: true,
+    };
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, READER_SETTINGS);
+    useSeasonStore.getState().setGrid(null, null, rule);
+    jumpThrough(FROM);
+    useSeasonStore.getState().continueRun();
+    const seats = filledSeats(waiting().pending.kept.seats);
+    useSeasonStore.getState().fillPending(seats, null);
+    const { world } = running();
+    expect(world.arrangement).toEqual(rule);
+    expect(world.keptSeats).toEqual(seats);
+    // Every driver the reader placed is still on the grid the rule arranged.
+    expect(new Set(Object.values(racedLineup(world)).flat())).toEqual(
+      new Set(Object.values(seats).flat()),
+    );
+  });
+
+  it("records a rule the reader arranged the pending grid by", () => {
+    const run = toPending();
+    const rule: GridArrangement = {
+      kind: "fastest-in-fastest",
+      includeUnemployed: false,
+      filters: DEFAULT_DRIVER_FILTERS,
+      retain: false,
+    };
+    const seats = filledSeats(run.pending.kept.seats);
+    useSeasonStore.getState().fillPending(seats, null, rule);
+    expect(running().world).toMatchObject({ arrangement: rule, keptSeats: seats });
+  });
+
+  it("is a run as plain as any other", () => {
+    const run = toPending();
+    expect(JSON.parse(JSON.stringify(run))).toEqual(run);
   });
 });

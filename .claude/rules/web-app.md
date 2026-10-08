@@ -15,7 +15,8 @@ they wrap *are* real dependencies (`react-popover`, `react-alert-dialog`,
 **The URL says which page; the store holds the run.** Routes and the top nav are
 `.claude/rules/web-routing.md`, the run bar `.claude/rules/web-run-bar.md`. The store's `run` is null until one is started,
 then a `Run` in `store/season.ts`: `season` for a single year, `era` for a run of them,
-each a world and a cursor. A `World` is a *member of the
+each a world and a cursor, and `pending` for an era waiting on the reader to fill a
+year's seats, which has none yet (`web-era.md`). A `World` is a *member of the
 variants that have one* rather than a nullable field beside them, so nothing reads a
 season nobody started. Nothing is simulated until a mode is chosen: the app opens on the
 menu having run no races at all. **The era half is `.claude/rules/web-era.md`**, which

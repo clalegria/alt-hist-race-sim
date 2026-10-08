@@ -1,7 +1,8 @@
 import { AGE_RANGE, type EmptySeatRules, withAge } from "@alt-hist/data";
 import { useState } from "react";
 import {
-  OFFERED_SEAT_FILLS,
+  AUTOMATIC_SEAT_FILLS,
+  type AutomaticSeatFill,
   OPENING_SEAT_RULES,
   type RunSettings,
   SEAT_FILL_LABELS,
@@ -26,9 +27,11 @@ function note(rules: EmptySeatRules | null): string {
   }
   const band = `aged ${rules.minAge} to ${rules.maxAge}${rules.activeOnly ? " who really raced that year" : ""}`;
   const fill =
-    rules.fill === "last"
-      ? `A seat that history leaves empty keeps the driver it had the year before until they are older than ${rules.maxAge}; otherwise it goes to the strongest free driver ${band}.`
-      : `Every seat that history leaves empty goes to the strongest free driver ${band}, chosen again each year.`;
+    rules.fill === "reader"
+      ? `A seat that history leaves empty keeps the driver it had the year before while they are aged ${rules.minAge} to ${rules.maxAge}; otherwise the run stops at that year's grid until you put a driver in it.`
+      : rules.fill === "last"
+        ? `A seat that history leaves empty keeps the driver it had the year before until they are older than ${rules.maxAge}; otherwise it goes to the strongest free driver ${band}.`
+        : `Every seat that history leaves empty goes to the strongest free driver ${band}, chosen again each year.`;
   return `Every year has the first year's teams, each with as many cars as it ran then; a team that folded races on in its last real car. ${fill}`;
 }
 
@@ -39,8 +42,10 @@ function note(rules: EmptySeatRules | null): string {
  *
  * The rows below Keep appear only under it, as Car performance's do under
  * Varied, and are remembered while the screen is open, so a look at *As they
- * happened* and back keeps them. The age inputs are the grid editor's pool
- * filter's, and cannot cross.
+ * happened* and back keeps them. *I fill them* takes away the two rows only a
+ * signing reads; *Driver ages* stays, since it still decides who is carried,
+ * and *Filled automatically* brings back the automatic fill last chosen. The
+ * age inputs are the grid editor's pool filter's, and cannot cross.
  */
 export function TeamsAndSeatsSetting({
   teamsAndSeats,
@@ -52,8 +57,14 @@ export function TeamsAndSeatsSetting({
   onChange?: (teamsAndSeats: RunSettings["teamsAndSeats"]) => void;
 }) {
   const [rules, setRules] = useState<EmptySeatRules>(teamsAndSeats ?? OPENING_SEAT_RULES);
+  const [automatic, setAutomatic] = useState<AutomaticSeatFill>(() =>
+    rules.fill === "reader" ? "last" : rules.fill,
+  );
   const keep = (to: EmptySeatRules) => {
     setRules(to);
+    if (to.fill !== "reader") {
+      setAutomatic(to.fill);
+    }
     onChange?.(to);
   };
 
@@ -81,16 +92,39 @@ export function TeamsAndSeatsSetting({
       {teamsAndSeats === null ? null : (
         <>
           <SettingSegments
-            name="Empty seats filled with"
-            segments={OFFERED_SEAT_FILLS.map((fill) => ({
-              key: fill,
-              label: SEAT_FILL_LABELS[fill],
-              selected: teamsAndSeats.fill === fill,
-              onPick: () => {
-                keep({ ...teamsAndSeats, fill });
+            name="Empty seats"
+            segments={[
+              {
+                key: "reader",
+                label: "I fill them",
+                selected: teamsAndSeats.fill === "reader",
+                onPick: () => {
+                  keep({ ...teamsAndSeats, fill: "reader" });
+                },
               },
-            }))}
+              {
+                key: "automatic",
+                label: "Filled automatically",
+                selected: teamsAndSeats.fill !== "reader",
+                onPick: () => {
+                  keep({ ...teamsAndSeats, fill: automatic });
+                },
+              },
+            ]}
           />
+          {teamsAndSeats.fill === "reader" ? null : (
+            <SettingSegments
+              name="Empty seats filled with"
+              segments={AUTOMATIC_SEAT_FILLS.map((fill) => ({
+                key: fill,
+                label: SEAT_FILL_LABELS[fill],
+                selected: teamsAndSeats.fill === fill,
+                onPick: () => {
+                  keep({ ...teamsAndSeats, fill });
+                },
+              }))}
+            />
+          )}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm font-semibold tracking-tight">Driver ages</span>
             <div className="flex items-center gap-1.5 text-xs">
@@ -119,17 +153,19 @@ export function TeamsAndSeatsSetting({
               />
             </div>
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={teamsAndSeats.activeOnly}
-              onChange={(event) => {
-                keep({ ...teamsAndSeats, activeOnly: event.target.checked });
-              }}
-              className="accent-primary size-3.5 cursor-pointer"
-            />
-            Only sign drivers who really raced that year
-          </label>
+          {teamsAndSeats.fill === "reader" ? null : (
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={teamsAndSeats.activeOnly}
+                onChange={(event) => {
+                  keep({ ...teamsAndSeats, activeOnly: event.target.checked });
+                }}
+                className="accent-primary size-3.5 cursor-pointer"
+              />
+              Only sign drivers who really raced that year
+            </label>
+          )}
         </>
       )}
       <p className="text-muted-foreground text-xs">{note(teamsAndSeats)}</p>

@@ -7,7 +7,14 @@
 import { seasonSeed } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import { cursorPlace, type Run, stepRun } from "../store/season.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import {
+  type BuiltRun,
+  built,
+  PENDING_YEAR,
+  pendingRun,
+  seededWorld,
+  YEAR,
+} from "../test-support.js";
 import { revealYear } from "./reveal.js";
 import {
   isBackPastStart,
@@ -252,9 +259,9 @@ describe("what a page inside an era shows", () => {
 
 describe("the gate, at the only door pages have", () => {
   /** A two-year era stepped through every beat, so each is the cursor once. */
-  function everyCursor(): Run[] {
-    const runs: Run[] = [];
-    let run: Run | null = {
+  function everyCursor(): BuiltRun[] {
+    const runs: BuiltRun[] = [];
+    let run: BuiltRun | null = {
       kind: "era",
       run: { startYear: YEAR, seasons: [] },
       world: first,
@@ -262,7 +269,8 @@ describe("the gate, at the only door pages have", () => {
     };
     while (run !== null && run.world.year <= YEAR + 1) {
       runs.push(run);
-      run = stepRun(run);
+      const next = stepRun(run);
+      run = next === null ? null : built(next);
     }
     return runs;
   }
@@ -324,5 +332,33 @@ describe("going back past the run's first page", () => {
     expect(isBackPastStart("BACK", "/runner", "/season/new")).toBe(false);
     expect(isBackPastStart("PUSH", `/run/${YEAR}/grid`, "/season/new")).toBe(false);
     expect(isBackPastStart("FORWARD", `/run/${YEAR}/grid`, "/season/new")).toBe(false);
+  });
+});
+
+describe("a year waiting on the reader", () => {
+  const run = pendingRun();
+  const year = String(PENDING_YEAR.year);
+
+  it("shows its grid, for the reader to fill", () => {
+    expect(resolveRunPage(run, "grid", { year })).toEqual({
+      kind: "pending",
+      place: { year: PENDING_YEAR.year, beat: { kind: "grid" } },
+      run,
+    });
+  });
+
+  it("sends its season page to the grid, and has its sessions still ahead", () => {
+    expect(resolveRunPage(run, "season", { year })).toEqual({
+      kind: "redirect",
+      to: linkTo(cursorPlace(run)),
+    });
+    expect(resolveRunPage(run, "race", { year, round: "1" }).kind).toBe("unreached");
+  });
+
+  it("shows the years before it whole, and the era's overview with every one crowned", () => {
+    const before = resolveRunPage(run, "season", { year: String(PENDING_YEAR.start) });
+    expect(before.kind).toBe("season");
+    const review = resolveRunPage(run, "review", {});
+    expect(review).toMatchObject({ kind: "review", run: run.run, inProgress: null });
   });
 });

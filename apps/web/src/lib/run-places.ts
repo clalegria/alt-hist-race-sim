@@ -16,7 +16,7 @@
 
 import { seasonSeed } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
-import { cursorPlace, type EraRun, type Run } from "../store/season.js";
+import { cursorPlace, type EraRun, type PendingRun, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
 import { nextEraYear } from "./seasons.js";
 import { comparePlaces, isReached, type Place, type View } from "./timeline.js";
@@ -97,7 +97,8 @@ export function placeFromParams(page: Exclude<RunPage, "review">, params: RunPar
 
 /**
  * What a URL inside `/run` shows: a season's beat or the era's review, cut at
- * the cursor; a place the run has still to reach; or a redirect.
+ * the cursor; a pending year's grid, waiting on the reader; a place the run has
+ * still to reach; or a redirect.
  */
 export type RunResolution =
   | {
@@ -118,6 +119,12 @@ export type RunResolution =
       /** The cursor's year as far as it has got; null while the cursor is on its review. */
       readonly inProgress: RevealedWorld | null;
     }
+  | {
+      readonly kind: "pending";
+      readonly place: Place;
+      /** The run, waiting on the reader to fill its year's seats. */
+      readonly run: PendingRun;
+    }
   | { readonly kind: "unreached"; readonly place: Place }
   | { readonly kind: "redirect"; readonly to: RunLink };
 
@@ -128,17 +135,22 @@ export type RunResolution =
  */
 export function laterYears(run: Run): readonly number[] {
   const years: number[] = [];
-  if (run.kind === "era") {
-    for (let next = nextEraYear(run.world.year); next !== null; next = nextEraYear(next)) {
+  if (run.kind !== "season") {
+    for (let next = nextEraYear(cursorPlace(run).year); next !== null; next = nextEraYear(next)) {
       years.push(next);
     }
   }
   return years;
 }
 
-/** How many rounds `year` has: the run's own world for its year, the seed data after it. */
+/**
+ * How many rounds `year` has: the run's own world for its year, the seed data
+ * after it — and for a pending year, which has no world yet.
+ */
 function roundsIn(run: Run, year: number): number {
-  return year === run.world.year ? run.world.season.races.length : seasonSeed(year).calendar.length;
+  return run.kind !== "pending" && year === run.world.year
+    ? run.world.season.races.length
+    : seasonSeed(year).calendar.length;
 }
 
 /**
@@ -147,7 +159,7 @@ function roundsIn(run: Run, year: number): number {
  * that year actually has.
  */
 function canReach(run: Run, place: Place): boolean {
-  if (place.year !== run.world.year && !laterYears(run).includes(place.year)) {
+  if (place.year !== cursorPlace(run).year && !laterYears(run).includes(place.year)) {
     return false;
   }
   const beat = place.beat;
@@ -165,6 +177,9 @@ function canReach(run: Run, place: Place): boolean {
  *
  * `/run/1984` is the season's own page, reachable once its grid is: the year
  * as far as the cursor has got, and its summary once that is reached.
+ *
+ * A pending year has only its grid, where the reader fills its seats; its
+ * season page goes there, and its sessions are still ahead.
  */
 export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunResolution {
   const cursor = cursorPlace(run);
@@ -173,22 +188,29 @@ export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunR
 
   if (page === "review") {
     if (shown.crowned === null) {
-      return { kind: "redirect", to: linkTo({ year: run.world.year, beat: { kind: "summary" } }) };
+      return { kind: "redirect", to: linkTo({ year: cursor.year, beat: { kind: "summary" } }) };
     }
     return {
       kind: "review",
       place: {
-        year: shown.crowned.seasons.at(-1)?.year ?? run.world.year,
+        year: shown.crowned.seasons.at(-1)?.year ?? cursor.year,
         beat: { kind: "review" },
       },
       run: shown.crowned,
-      inProgress: run.cursor.kind === "review" ? null : (shown.years.at(-1) ?? null),
+      // A pending year has no world to be under way in; every year shown is crowned.
+      inProgress:
+        run.kind === "pending" || run.cursor.kind === "review"
+          ? null
+          : (shown.years.at(-1) ?? null),
     };
   }
 
   const place = placeFromParams(page, params);
   if (place === null || place.beat.kind === "review") {
     return toCursor;
+  }
+  if (run.kind === "pending" && page === "grid" && place.year === cursor.year) {
+    return { kind: "pending", place, run };
   }
   // The season's page opens with its grid; every other page with its own beat.
   const opens: Place = page === "season" ? { year: place.year, beat: { kind: "grid" } } : place;

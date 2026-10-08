@@ -140,6 +140,25 @@ export function filledLineup(lineup: LineupDraft): SeasonLineup | null {
 }
 
 /**
+ * Whether `lineup` seats the grid `shape` describes: the same teams, each with
+ * the same number of seats, and nobody in two of them. Who sits where is not
+ * checked — any driver may fill any seat. It is the check for a set of seats
+ * from outside, such as a save file, held against the seats of a season whose
+ * entries leave the empty ones out, which `applyLineup` cannot check.
+ */
+export function fitsSeats(shape: LineupDraft, lineup: LineupDraft): boolean {
+  const teamIds = Object.keys(shape);
+  if (Object.keys(lineup).length !== teamIds.length) {
+    return false;
+  }
+  const seated = seatedDriverIds(lineup);
+  return (
+    new Set(seated).size === seated.length &&
+    teamIds.every((teamId) => lineup[teamId]?.length === shape[teamId]?.length)
+  );
+}
+
+/**
  * The drivers left out of the grid, alphabetically.
  *
  * Alphabetical rather than by rating, for the same reason the grid lists teams

@@ -28,7 +28,14 @@ import {
 } from "../lib/run-settings.js";
 import { FIRST_SEASON, nextEraYear, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { nextSeed } from "../lib/seed.js";
-import { FOLDING_YEAR } from "../test-support.js";
+import {
+  type BuiltRun,
+  built,
+  FOLDING_YEAR,
+  filledSeats,
+  PENDING_YEAR,
+  READER_SETTINGS,
+} from "../test-support.js";
 import { fingerprint, RECIPE_VERSION, recipeOf, runFromRecipe } from "./recipe.js";
 import { createWorld, type Run, useSeasonStore } from "./season.js";
 
@@ -36,12 +43,12 @@ const YEAR = FIRST_AUTHORED_SEASON;
 const SEED = seasonSeed(YEAR);
 
 /** The run in the store, or a throw. */
-function current(): Run {
+function current(): BuiltRun {
   const run = useSeasonStore.getState().run;
   if (run === null) {
     throw new Error("expected a run");
   }
-  return run;
+  return built(run);
 }
 
 /** The recipe as storage would hand it back: through JSON, untyped. */
@@ -344,5 +351,76 @@ describe("the fingerprint", () => {
 
   it("tells two different worlds apart", () => {
     expect(fingerprint(createWorld(4, YEAR))).not.toBe(fingerprint(createWorld(3, YEAR)));
+  });
+});
+
+describe("an era whose empty seats the reader fills", () => {
+  /** The era stepped on to its pending year. */
+  function toPending(): Run {
+    useSeasonStore.getState().simulateEra(9, PENDING_YEAR.start, undefined, READER_SETTINGS);
+    crown(PENDING_YEAR.start);
+    useSeasonStore.getState().continueRun();
+    const run = useSeasonStore.getState().run;
+    if (run?.kind !== "pending") {
+      throw new Error("expected a pending year");
+    }
+    return run;
+  }
+
+  it("rebuilds the run waiting on the reader", () => {
+    const run = toPending();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("rebuilds the year the reader filled, with their seats", () => {
+    const run = toPending();
+    if (run.kind !== "pending") {
+      return;
+    }
+    useSeasonStore.getState().fillPending(filledSeats(run.pending.kept.seats), null);
+    expect(current().world.keptSeats).not.toBeNull();
+    expect(roundTrip(current())).toEqual(current());
+  });
+
+  it("refuses a pending year this build would not stop at", () => {
+    const recipe = () =>
+      stored(toPending()) as Record<string, unknown> & {
+        pending: { year: number; seed: number };
+        worlds: Record<string, unknown>[];
+      };
+    const wrongYear = recipe();
+    wrongYear.pending = { ...wrongYear.pending, year: wrongYear.pending.year + 1 };
+    const wrongSeed = recipe();
+    wrongSeed.pending = { ...wrongSeed.pending, seed: 1.5 };
+    const offTheGrid = { ...recipe(), cursor: { kind: "summary" } };
+    const asAnEra = { ...recipe(), kind: "era" };
+    const noPending = { ...recipe(), pending: null };
+    const automatic = recipe();
+    automatic.worlds[0] = {
+      ...automatic.worlds[0],
+      settings: { ...READER_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES },
+    };
+    for (const [name, bad] of Object.entries({
+      wrongYear,
+      wrongSeed,
+      offTheGrid,
+      asAnEra,
+      noPending,
+      automatic,
+    })) {
+      expect(runFromRecipe(bad), name).toBeNull();
+    }
+  });
+
+  it("refuses the reader's seats when they leave one empty", () => {
+    const run = toPending();
+    if (run.kind !== "pending") {
+      return;
+    }
+    useSeasonStore.getState().fillPending(filledSeats(run.pending.kept.seats), null);
+    const recipe = stored(current());
+    const last = recipe.worlds.at(-1) ?? {};
+    recipe.worlds[recipe.worlds.length - 1] = { ...last, keptSeats: run.pending.kept.seats };
+    expect(runFromRecipe(recipe)).toBeNull();
   });
 });

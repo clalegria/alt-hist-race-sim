@@ -30,6 +30,7 @@ import { adjacentSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
 import {
   createWorld,
+  cursorPlace,
   isUntouched,
   type Run,
   runConstants,
@@ -253,7 +254,9 @@ function running(): { world: World; view: Beat } {
 function skipToEnd(): void {
   const current = active();
   if (current !== null) {
-    useSeasonStore.getState().jumpTo({ year: current.world.year, beat: { kind: "summary" } });
+    useSeasonStore
+      .getState()
+      .jumpTo({ year: cursorPlace(current).year, beat: { kind: "summary" } });
   }
 }
 

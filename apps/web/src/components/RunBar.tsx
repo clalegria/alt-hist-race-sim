@@ -184,10 +184,12 @@ export function RunActions(props: RunActionsProps) {
           Back to {away.label}
         </Link>
       )}
-      {state.next === null ? null : (
+      {state.next === null && state.blocked === null ? null : (
         <Button
           onClick={props.onContinue}
-          title={`Next: ${state.next}`}
+          // Held rather than hidden: the way on is there, one thing short.
+          disabled={state.blocked !== null}
+          title={state.blocked ?? `Next: ${state.next}`}
           variant={away === null ? "primary" : "outline"}
           // Away, it is on the ⋯ menu on a phone instead.
           className={away === null ? undefined : "hidden md:inline-flex"}
@@ -197,6 +199,9 @@ export function RunActions(props: RunActionsProps) {
             ▸
           </span>
         </Button>
+      )}
+      {state.blocked === null ? null : (
+        <span className="text-muted-foreground text-xs">{state.blocked}</span>
       )}
       <div className="hidden flex-wrap items-center gap-2 md:flex">
         {forward.map((action) => (

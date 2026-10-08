@@ -12,7 +12,9 @@
  * restart mid-era draws a fresh one that nothing else could reproduce. The cars
  * the year before raced and the kept year are not stored: each world after the
  * first is rebuilt off the world before it (`racedChassis`, `keptYearAfter`),
- * exactly as the run built it.
+ * exactly as the run built it. Under *I fill them* the seats the reader filled
+ * a year with are stored, since they are an input; and an era waiting on the
+ * reader stores its pending year as a year and a seed, with no world to hash.
  *
  * **The fingerprint is the build check.** Beside each world's inputs goes a hash
  * of the world they produced. Resumed on a build whose data or engine would
@@ -24,7 +26,9 @@
  */
 
 import {
+  emptySeats,
   type GridArrangement,
+  type LineupDraft,
   RATING_MODES,
   type RatingMode,
   type SeasonChassis,
@@ -39,13 +43,14 @@ import {
   createWorld,
   eraStartOf,
   keptYearAfter,
+  type PendingYear,
   type Run,
   racedChassis,
   type World,
 } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 8;
+export const RECIPE_VERSION = 9;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -60,15 +65,22 @@ export interface WorldRecipe {
   readonly engines: SeasonEngines | null;
   readonly chassis: SeasonChassis | null;
   readonly arrangement: GridArrangement | null;
+  /** Under *I fill them*, the year's seats as the reader filled them; else null. */
+  readonly keptSeats: LineupDraft | null;
   /** `fingerprint` of the world these inputs built. */
   readonly check: string;
 }
 
-/** A run: its kind, its worlds in order — an era's crowned years, then the cursor's — and the cursor. */
+/**
+ * A run: its kind, its worlds in order — an era's crowned years, then the
+ * cursor's — and the cursor. An era waiting on the reader has its pending year
+ * after the worlds, and its cursor on that year's grid.
+ */
 export interface RunRecipe {
   readonly version: number;
   readonly kind: Run["kind"];
   readonly worlds: readonly WorldRecipe[];
+  readonly pending: { readonly year: number; readonly seed: number } | null;
   readonly cursor: Beat;
 }
 
@@ -110,17 +122,24 @@ function worldRecipe(world: World): WorldRecipe {
     engines: world.engines,
     chassis: world.chassis,
     arrangement: world.arrangement,
+    keptSeats: world.settings.teamsAndSeats?.fill === "reader" ? world.keptSeats : null,
     check: fingerprint(world),
   };
 }
 
 /** The recipe for a run. Plain data, ready for `JSON.stringify`. */
 export function recipeOf(run: Run): RunRecipe {
-  const worlds = run.kind === "era" ? [...run.run.seasons, run.world] : [run.world];
+  const worlds =
+    run.kind === "season"
+      ? [run.world]
+      : run.kind === "era"
+        ? [...run.run.seasons, run.world]
+        : run.run.seasons;
   return {
     version: RECIPE_VERSION,
     kind: run.kind,
     worlds: worlds.map(worldRecipe),
+    pending: run.kind === "pending" ? { year: run.pending.year, seed: run.pending.seed } : null,
     cursor: run.cursor,
   };
 }
@@ -169,6 +188,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     engines,
     chassis,
     arrangement,
+    keptSeats,
     check,
   } = raw;
   const settings = parseRunSettings(raw.settings);
@@ -185,6 +205,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     isRecordOrNull(engines) &&
     isRecordOrNull(chassis) &&
     isRecordOrNull(arrangement) &&
+    isRecordOrNull(keptSeats) &&
     typeof check === "string";
   return valid ? { ...(raw as unknown as WorldRecipe), settings } : null;
 }
@@ -211,9 +232,28 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
           start: eraStartOf(previous),
           lastRaced: racedChassis(previous),
           kept: keptYearAfter(previous, recipe.year),
+          keptSeats: recipe.keptSeats,
         },
   );
   return fingerprint(world) === recipe.check ? world : null;
+}
+
+/**
+ * The pending year a recipe names after `last`, or null when this build would
+ * not stop there: a year that does not follow it, a seed that is not an
+ * integer, or a kept year that is not under *I fill them* or has no empty seat.
+ */
+function rebuildPending(raw: unknown, last: World): PendingYear | null {
+  if (!isRecord(raw) || !Number.isInteger(raw.seed) || raw.year !== nextEraYear(last.year)) {
+    return null;
+  }
+  const year = raw.year as number;
+  const kept = keptYearAfter(last, year);
+  return kept !== null &&
+    last.settings.teamsAndSeats?.fill === "reader" &&
+    emptySeats(kept.seats).length > 0
+    ? { year, seed: raw.seed as number, kept }
+    : null;
 }
 
 /** Whether the cursor names a beat the world actually has. */
@@ -240,7 +280,7 @@ export function runFromRecipe(raw: unknown): Run | null {
       return null;
     }
     const { kind } = raw;
-    if ((kind !== "season" && kind !== "era") || !Array.isArray(raw.worlds)) {
+    if ((kind !== "season" && kind !== "era" && kind !== "pending") || !Array.isArray(raw.worlds)) {
       return null;
     }
     const recipes = raw.worlds.map(parseWorldRecipe);
@@ -269,7 +309,21 @@ export function runFromRecipe(raw: unknown): Run | null {
       worlds.push(world);
     }
     const world = worlds.at(-1);
-    if (world === undefined || !fits(cursor, world, kind)) {
+    if (world === undefined) {
+      return null;
+    }
+    if (kind === "pending") {
+      const pending = rebuildPending(raw.pending, world);
+      return pending === null || cursor.kind !== "grid"
+        ? null
+        : {
+            kind,
+            run: { startYear: worlds[0]?.year ?? world.year, seasons: worlds },
+            pending,
+            cursor: { kind: "grid" },
+          };
+    }
+    if (raw.pending !== null || !fits(cursor, world, kind)) {
       return null;
     }
     if (kind === "season") {

@@ -12,8 +12,8 @@
  * **out** (exit the run). Nothing goes back in time.
  */
 
-import { identityYear } from "@alt-hist/data";
-import { cursorPlace, type Run } from "../store/season.js";
+import { emptySeats, identityYear } from "@alt-hist/data";
+import { cursorPlace, latestWorld, type PendingRun, type Run } from "../store/season.js";
 import { driverName, teamName } from "./names.js";
 import { revealed } from "./reveal.js";
 import { lastYearOf, rosterOf } from "./roster.js";
@@ -30,6 +30,11 @@ export interface RunBarState {
   /** What Continue reveals, in the same words; null where there is nothing next. */
   readonly next: string | null;
   /**
+   * Why Continue is there but cannot be pressed — a pending year's empty seats
+   * ("Two seats need a driver") — or null.
+   */
+  readonly blocked: string | null;
+  /**
    * The shortcut to the end of this season — a jump with its commonest target —
    * worded for where the season is; null where there is no season left to skip.
    */
@@ -43,6 +48,19 @@ export interface RunBarState {
 }
 
 export function runBarFor(run: Run): RunBarState {
+  if (run.kind === "pending") {
+    // Nothing past the grid exists until the reader fills it; only starting
+    // the era again, or leaving, goes anywhere.
+    return {
+      cursor: `${run.pending.year} · ${describeBeat(run.cursor, 0)}`,
+      next: null,
+      blocked: pendingReason(run),
+      skip: null,
+      jump: false,
+      restartSeason: false,
+      restartEra: true,
+    };
+  }
   const { world, cursor } = run;
   const rounds = world.season.races.length;
   const nextYear = run.kind === "era" ? nextEraYear(world.year) : null;
@@ -58,6 +76,7 @@ export function runBarFor(run: Run): RunBarState {
   return {
     cursor: `${world.year} · ${describeBeat(cursor, rounds)}`,
     next: nextLabel,
+    blocked: null,
     skip:
       cursor.kind === "grid"
         ? "Simulate full season"
@@ -69,6 +88,29 @@ export function runBarFor(run: Run): RunBarState {
     restartSeason: cursor.kind !== "grid" && cursor.kind !== "review",
     restartEra: run.kind === "era" && (run.run.seasons.length > 0 || cursor.kind !== "grid"),
   };
+}
+
+const COUNT_WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+
+/** What stops a pending year going on: "Two seats need a driver". */
+export function pendingReason(run: PendingRun): string {
+  const count = emptySeats(run.pending.kept.seats).length;
+  const many = COUNT_WORDS[count] ?? String(count);
+  return count === 1 ? "One seat needs a driver" : `${many} seats need a driver`;
+}
+
+/** What a jump says when a pending year stopped it short: "Stopped at 2010: two seats need a driver." */
+export function jumpStopNote(run: PendingRun): string {
+  const reason = pendingReason(run);
+  return `Stopped at ${run.pending.year}: ${reason.charAt(0).toLowerCase()}${reason.slice(1)}.`;
+}
+
+/**
+ * Whether a jump to `target` stopped short of it at a pending year — the one
+ * place a jump lands other than where it was sent.
+ */
+export function stoppedShort(run: Run, target: Place): boolean {
+  return run.kind === "pending" && comparePlaces(cursorPlace(run), target) < 0;
 }
 
 /** The way back to where the run is, from a page that is somewhere else. */
@@ -97,7 +139,7 @@ export function returnFor(run: Run, at: Place | RosterLocation): ReturnLink | nu
 
 /** What a run is called on the Home page's Resume card. */
 export function runTitle(run: Run): string {
-  return run.kind === "era" ? `Era from ${run.run.startYear}` : `${run.world.year} season`;
+  return run.kind === "season" ? `${run.world.year} season` : `Era from ${run.run.startYear}`;
 }
 
 /** Where a crumb or a menu entry can lead: a beat's page, or a people page. */
@@ -126,20 +168,22 @@ export interface Crumb {
   readonly menu?: CrumbMenu;
 }
 
-/** The years the run has reached, earliest first. */
+/** The years the run has reached that have a season page, earliest first: not a pending one. */
 function yearsReached(run: Run): readonly number[] {
-  return [
-    ...(run.kind === "era" ? run.run.seasons.map((world) => world.year) : []),
-    run.world.year,
-  ];
+  return run.kind === "season"
+    ? [run.world.year]
+    : [
+        ...run.run.seasons.map((world) => world.year),
+        ...(run.kind === "era" ? [run.world.year] : []),
+      ];
 }
 
 /** How many rounds a year the run has reached has, off that year's own world. */
 function roundsOf(run: Run, year: number): number {
   const world =
-    year === run.world.year
+    run.kind !== "pending" && year === run.world.year
       ? run.world
-      : run.kind === "era"
+      : run.kind !== "season"
         ? run.run.seasons.find((each) => each.year === year)
         : undefined;
   return world?.season.races.length ?? 0;
@@ -186,7 +230,7 @@ function endingHere(crumbs: readonly Crumb[]): readonly Crumb[] {
  * people URL to the season), so its trail is the cursor's.
  */
 function rosterCrumbs(run: Run, at: RosterLocation): readonly Crumb[] {
-  if (run.kind !== "era") {
+  if (run.kind === "season") {
     return crumbsFor(run, cursorPlace(run));
   }
   const drivers = at.page === "drivers" || at.page === "driver";
@@ -195,12 +239,13 @@ function rosterCrumbs(run: Run, at: RosterLocation): readonly Crumb[] {
     drivers ? { label: "Drivers", link: driversLink() } : { label: "Teams", link: teamsLink() },
   ];
   if (at.id !== undefined) {
-    const lastYear = lastYearOf(rosterOf(revealed(run).years).teams.get(at.id)) ?? run.world.year;
+    const lastYear =
+      lastYearOf(rosterOf(revealed(run).years).teams.get(at.id)) ?? cursorPlace(run).year;
     crumbs.push({
       label:
         at.page === "driver"
           ? driverName(at.id)
-          : teamName(at.id, identityYear(at.id, lastYear, run.world.namesKeptFrom)),
+          : teamName(at.id, identityYear(at.id, lastYear, latestWorld(run).namesKeptFrom)),
     });
   }
   return endingHere(crumbs);
@@ -233,23 +278,25 @@ export function crumbsFor(run: Run, at: Place | RosterLocation): readonly Crumb[
   const crumbs: Crumb[] = [];
   const beat = place.beat;
   // The era's overview is there from its first grid on.
-  if (run.kind === "era") {
+  if (run.kind !== "season") {
     crumbs.push({
       label: "Era",
       link: REVIEW_LINK,
       menu: sectionsMenu(beat.kind === "review" ? "overview" : null),
     });
   }
-  // The year's page opens with its grid, so any page of a year reached has it.
-  const yearReached = isReached(cursor, { year: place.year, beat: { kind: "grid" } });
+  // The year's page opens with its grid, so any page of a year reached has it
+  // — but a pending year has no page but its grid.
+  const years = yearsReached(run);
+  const yearReached =
+    isReached(cursor, { year: place.year, beat: { kind: "grid" } }) && years.includes(place.year);
   if (beat.kind !== "review") {
-    const years = yearsReached(run);
     crumbs.push({
       label: String(place.year),
       ...(yearReached ? { link: linkTo({ year: place.year, beat: { kind: "summary" } }) } : {}),
       // An era's year carries the other years once there are two; a one-year
       // run's has no siblings, and no sections either.
-      ...(run.kind === "era" && yearReached && years.length > 1
+      ...(run.kind !== "season" && yearReached && years.length > 1
         ? {
             menu: {
               label: "Other years",
@@ -303,7 +350,7 @@ export function jumpPlace(year: number, point: JumpPoint): Place {
  * only its own.
  */
 export function jumpYears(run: Run): readonly number[] {
-  const year = run.world.year;
+  const year = cursorPlace(run).year;
   const thisYear = comparePlaces(jumpPlace(year, "end"), cursorPlace(run)) > 0 ? [year] : [];
   return [...thisYear, ...laterYears(run)];
 }
@@ -322,7 +369,7 @@ export function jumpTarget(
   chosen: { readonly year: number | null; readonly point: JumpPoint },
 ): Place | null {
   const years = jumpYears(run);
-  const later = years.find((year) => year > run.world.year);
+  const later = years.find((year) => year > cursorPlace(run).year);
   const year =
     chosen.year !== null && years.includes(chosen.year) ? chosen.year : (later ?? years[0]);
   if (year === undefined) {

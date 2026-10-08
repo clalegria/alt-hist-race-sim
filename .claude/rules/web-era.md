@@ -60,6 +60,8 @@ previous year's car, the next year's cars walk off what raced, edits included �
 `car-performance.md`.) Under *Teams and seats: Keep the starting grid* the entry list is
 built rather than read: `keptYearAfter(last, year)` hands `createWorld` the first year's
 teams on year N+1's cars, with last year's raced grid carried (`teams-and-seats.md`).
+Under *I fill them* a year still holding an empty seat is not built at all: it is a
+**pending year**, the run's third variant (below).
 The ability mode is carried,
 but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
 switch; see `.claude/rules/web-store.md` for why.
@@ -91,6 +93,25 @@ itself, so a press that changes nothing re-renders nothing.
 `year + 1` only if it is authored — never a year written down, so the run reaches
 further the moment a later season lands. The run bar offers no Continue
 past it, and `continueRun()` is a no-op there rather than a throw.
+
+## A year waiting on the reader
+
+`{ kind: "pending", run, pending, cursor: { kind: "grid" } }`: an era stopped at a
+year's grid until the reader fills its empty seats (`teams-and-seats.md`). It has no
+`world`, so the compiler makes every reader of one choose; `cursorPlace` gives the
+pending year's grid, `latestWorld(run)` the last world built (for the run's settings
+and names), and `crowned` / `revealed` every year in `run.seasons`, whole.
+
+- **Nothing goes on until Apply.** `stepRun` returns null (Continue is a no-op);
+  `setGrid`, `setRatingMode` and a jump from it are refused. `fillPending` builds the
+  year and opens it at its grid as an ordinary `era` run.
+- **A jump stops at the first pending year on the way** — the one exception to a target
+  being refused rather than clamped — and returns the run there. The caller tells by
+  where the cursor landed (`stoppedShort`).
+- Restart season re-seeds and stays pending; Restart era is as from anywhere else.
+- Its pages: `resolveRunPage` answers `pending` for its grid; its season page goes
+  there, its sessions are still ahead, and the overview shows the crowned years with
+  nothing in progress.
 
 ## The roll of honour
 

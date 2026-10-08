@@ -105,7 +105,9 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     check is what catches a save file that shrank.
   - A seat is addressed by `SeatRef` (`teamId` + zero-based `seat`); a `GridPick` is
     either a driver or a seat, which is what lets the editor hold an empty one.
-    `emptySeats`, `driverAt` and `seatRefOf` read them back.
+    `emptySeats`, `driverAt` and `seatRefOf` read them back. `fitsSeats(shape, lineup)`
+    checks seats from outside against a draft's shape (same teams and seat counts,
+    nobody twice), where `applyLineup` cannot: the kept grid's stored fills.
   - `authoredLineup`, `isAuthoredLineup`, `reserveDrivers` (alphabetical, everyone in
     the pool without a seat) and `lineupChanges` round it out. A `SeatChange` has
     `in.length === out.length` and `open` 0 on any *applied* grid — every arrival

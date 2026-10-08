@@ -108,10 +108,11 @@ describe("parsing stored settings", () => {
     expect(parseRunSettings(settings)).toEqual(settings);
   });
 
-  it("accepts Teams and seats: Keep, under both fills, at any ages the range holds", () => {
+  it("accepts Teams and seats: Keep, under every fill, at any ages the range holds", () => {
     for (const teamsAndSeats of [
       OPENING_SEAT_RULES,
       { ...OPENING_SEAT_RULES, fill: "best", activeOnly: false },
+      { ...OPENING_SEAT_RULES, fill: "reader" },
       { ...OPENING_SEAT_RULES, minAge: AGE_RANGE.min, maxAge: AGE_RANGE.max },
       { ...OPENING_SEAT_RULES, minAge: 30, maxAge: 30 },
     ] as const) {
@@ -166,12 +167,12 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "first" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: null } },
       { ...HISTORICAL_SETTINGS, carPerformance: [] },
-      // Settings from before Teams and seats, and its rules wrong in turn: the
-      // fill the pending grid will bring, ages outside the range, crossed or
-      // fractional, and a field missing.
+      // Settings from before Teams and seats, and its rules wrong in turn: a
+      // fill nobody offers, ages outside the range, crossed or fractional, and
+      // a field missing.
       beforeTeamsAndSeats,
       { ...HISTORICAL_SETTINGS, teamsAndSeats: "keep" },
-      seats({ fill: "reader" }),
+      seats({ fill: "nobody" }),
       seats({ fill: "Last" }),
       seats({ minAge: AGE_RANGE.min - 1 }),
       seats({ maxAge: AGE_RANGE.max + 1 }),
@@ -389,6 +390,20 @@ describe("the what-ifs a run states", () => {
       {
         name: "Teams and seats",
         value: `Keep the starting grid · previous year's drivers first · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge} · active drivers only`,
+      },
+    ]);
+  });
+
+  it("names the reader's own fill, which signs nobody, without the active-only rule", () => {
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        teamsAndSeats: { ...OPENING_SEAT_RULES, fill: "reader", activeOnly: true },
+      }),
+    ).toEqual([
+      {
+        name: "Teams and seats",
+        value: `Keep the starting grid · you fill empty seats · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge}`,
       },
     ]);
   });

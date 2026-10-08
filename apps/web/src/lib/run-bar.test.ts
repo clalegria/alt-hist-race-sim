@@ -6,19 +6,22 @@
 
 import { describe, expect, it } from "vitest";
 import { cursorPlace, type Run } from "../store/season.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import { PENDING_YEAR, pendingRun, seededWorld, YEAR } from "../test-support.js";
 import { driverName } from "./names.js";
 import { driversLink, teamsLink } from "./roster-places.js";
 import {
   type Crumb,
   crumbsFor,
   jumpPlace,
+  jumpStopNote,
   jumpTarget,
   jumpYears,
+  pendingReason,
   returnFor,
   runBarFor,
   runTitle,
   sectionsMenu,
+  stoppedShort,
 } from "./run-bar.js";
 import { linkTo, REVIEW_LINK } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
@@ -54,6 +57,7 @@ describe("the run bar's actions", () => {
     expect(runBarFor(season({ kind: "grid" }))).toEqual({
       cursor: `${YEAR} · Grid`,
       next: `${YEAR} · Round 1/${ROUNDS} · Qualifying`,
+      blocked: null,
       skip: "Simulate full season",
       jump: false,
       restartSeason: false,
@@ -458,5 +462,56 @@ describe("the way back to where the run is", () => {
         }
       }
     }
+  });
+});
+
+describe("a year waiting on the reader", () => {
+  const run = pendingRun();
+
+  /** The pending run with `seats` as its kept seats. */
+  function withSeats(seats: Record<string, (string | null)[]>) {
+    return { ...run, pending: { ...run.pending, kept: { ...run.pending.kept, seats } } };
+  }
+
+  it("holds Continue, saying why, and offers only the era's restart and the way out", () => {
+    expect(runBarFor(run)).toEqual({
+      cursor: `${PENDING_YEAR.year} · Grid`,
+      next: null,
+      blocked: pendingReason(run),
+      skip: null,
+      jump: false,
+      restartSeason: false,
+      restartEra: true,
+    });
+    expect(runTitle(run)).toBe(`Era from ${PENDING_YEAR.start}`);
+  });
+
+  it("counts the empty seats in words", () => {
+    expect(pendingReason(withSeats({ a: [null, "x"] }))).toBe("One seat needs a driver");
+    expect(pendingReason(withSeats({ a: [null, null], b: [null] }))).toBe(
+      "Three seats need a driver",
+    );
+    expect(pendingReason(withSeats({ a: Array.from({ length: 12 }, () => null) }))).toBe(
+      "12 seats need a driver",
+    );
+  });
+
+  it("says where a jump stopped short, and only when it did", () => {
+    const grid = cursorPlace(run);
+    const later = { year: PENDING_YEAR.year, beat: { kind: "summary" } } as const;
+    expect(stoppedShort(run, later)).toBe(true);
+    expect(stoppedShort(run, grid)).toBe(false);
+    expect(stoppedShort(era({ kind: "grid" }), later)).toBe(false);
+    expect(jumpStopNote(withSeats({ a: [null, null] }))).toBe(
+      `Stopped at ${PENDING_YEAR.year}: two seats need a driver.`,
+    );
+  });
+
+  it("names the year in the trail without linking to a season page it does not have", () => {
+    expect(crumbsFor(run, cursorPlace(run))).toEqual([
+      { label: "Era", link: REVIEW_LINK, menu: sectionsMenu(null) },
+      { label: String(PENDING_YEAR.year) },
+      { label: "Grid" },
+    ]);
   });
 });

@@ -2,6 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { KeptNames } from "./components/EntryNames.js";
 import type { GridEdit } from "./components/GridStage.js";
+import { PendingGrid } from "./components/PendingGrid.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
 import { SeasonHistoryProvider } from "./components/SeasonHistory.js";
@@ -15,7 +16,15 @@ import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import type { RoundPages, SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
-import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from "./store/season.js";
+import {
+  type EraRun,
+  isUntouched,
+  latestWorld,
+  type PendingRun,
+  type Run,
+  racedLineup,
+  useSeasonStore,
+} from "./store/season.js";
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
@@ -95,6 +104,7 @@ export function RunFrame({
   onRestartEra,
   onExit,
   leaving,
+  notice = null,
   children,
 }: {
   run: Run;
@@ -116,6 +126,8 @@ export function RunFrame({
    * while nothing is being held.
    */
   leaving: { onConfirm: () => void; onCancel: () => void } | null;
+  /** A line about what the run just did, above the page: where a jump stopped short. */
+  notice?: string | null;
   children: React.ReactNode;
 }) {
   const [editingGrid, setEditingGrid] = useState(false);
@@ -167,12 +179,25 @@ export function RunFrame({
 
   return (
     <GridEditingContext.Provider value={setEditingGrid}>
-      <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
+      <Shell
+        seed={run.kind === "pending" ? run.pending.seed : run.world.seed}
+        bar={<RunBar crumbs={crumbs} {...actions} />}
+      >
         {/* Every team on every page of the run is named by the run's own rule. */}
-        <KeptNames from={run.world.namesKeptFrom}>
+        <KeptNames from={latestWorld(run).namesKeptFrom}>
           {/* People pages are an era's, so a one-year run's panels lead to none. */}
-          <SeasonHistoryProvider seasons={years} pageOf={run.kind === "era" ? PAGE_OF : null}>
-            <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+          <SeasonHistoryProvider seasons={years} pageOf={run.kind === "season" ? null : PAGE_OF}>
+            <div className="flex flex-col gap-6 pt-8 lg:pt-10">
+              {notice === null ? null : (
+                <p
+                  role="status"
+                  className="border-border bg-muted rounded-md border px-3 py-2 text-sm"
+                >
+                  {notice}
+                </p>
+              )}
+              {children}
+            </div>
           </SeasonHistoryProvider>
         </KeptNames>
         <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
@@ -307,6 +332,26 @@ export function SeasonPage({
       {...(tabs === undefined ? {} : { tabs })}
       {...(pagesOf === undefined ? {} : { pagesOf })}
       {...(sessionNav === undefined ? {} : { sessionNav })}
+    />
+  );
+}
+
+/**
+ * A pending year's grid, on the cursor's own page: `PendingGrid`, with Apply
+ * filling the year (`fillPending`). The editor is always open, but it does not
+ * raise `GridEditingContext`: the run bar already shows Continue held, and
+ * says why.
+ */
+export function PendingGridPage({ run }: { run: PendingRun }) {
+  const fillPending = useSeasonStore((state) => state.fillPending);
+  return (
+    <PendingGrid
+      run={run}
+      onFill={(edit) => {
+        if (edit.lineup !== null) {
+          fillPending(edit.lineup, edit.engines, edit.arrangement, edit.chassis);
+        }
+      }}
     />
   );
 }
