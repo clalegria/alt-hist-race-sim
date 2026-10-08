@@ -9,6 +9,7 @@ import type {
 } from "@alt-hist/data";
 import { canStepChassis, driversById, type SeasonChassis } from "@alt-hist/data";
 import { DEVELOPMENT_TREND_LIMIT, type EngineSpec, type RaceEntrant } from "@alt-hist/engine";
+import type { KeptNotes } from "../lib/kept.js";
 import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
 import { driverName, engineName, entryName, teamCountry, teamName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
@@ -18,7 +19,7 @@ import { cn } from "../lib/utils.js";
 import { useNameYear } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
-import { ArrangementNote, chassisSummary, GridChanges, signed } from "./LineupChanges.js";
+import { ArrangementNote, chassisSummary, GridChanges, KeptNote, signed } from "./LineupChanges.js";
 import { PageLink } from "./PageLink.js";
 import { usePageOf } from "./SeasonHistory.js";
 import { SortToggle } from "./SortToggle.js";
@@ -369,12 +370,19 @@ function DriverEntry({
   ratingMode,
   edit,
   swappedIn,
+  keptMark = null,
 }: {
   entrant: RaceEntrant;
   seasonYear: number;
   ratingMode: RatingMode;
   edit?: GridEditing;
   swappedIn: boolean;
+  /**
+   * Under *Keep the starting grid*, how a driver who is not history's came to
+   * be in the seat: kept from last year, or signed for an empty one. A word,
+   * not `SWAPPED_IN`, which says the reader moved them.
+   */
+  keptMark?: "kept" | "signed" | null;
 }) {
   const driver = drivers.get(entrant.driverId);
   const age = driver === undefined ? null : ratedAge(driver, seasonYear, ratingMode);
@@ -452,6 +460,7 @@ function DriverEntry({
           />
         </button>
       )}
+      {keptMark === null ? null : <span className="text-subtle shrink-0 text-xs">{keptMark}</span>}
       <Overall value={driverOverall(entrant.driver)} />
     </li>
   );
@@ -602,6 +611,7 @@ export function SeasonGrid({
   chassisChanges,
   historicalChassis = null,
   arrangement = null,
+  kept = null,
   openSeats = 0,
   action,
   edit,
@@ -637,6 +647,12 @@ export function SeasonGrid({
    * the reader is still owed the word that it was pressed.
    */
   arrangement?: GridArrangement | null;
+  /**
+   * What *Keep the starting grid* did to this year (`keptNotes`), or null. Its
+   * own muted notice, not the edited-grid one: a kept seat is the year's
+   * starting point, not a change the reader made.
+   */
+  kept?: KeptNotes | null;
   /**
    * How many cars nobody is in. Only ever above zero mid-edit — an applied grid
    * has none — and it is what the notice at the top of the grid counts.
@@ -713,6 +729,13 @@ export function SeasonGrid({
             </span>
           </div>
         )}
+        {kept === null ? null : (
+          <KeptNote
+            notes={kept}
+            seasonYear={seasonYear}
+            nameOf={(teamId) => teamName(teamId, nameYear(teamId, seasonYear))}
+          />
+        )}
         {edited.length === 0 &&
         resupplied.length === 0 &&
         rerated.size === 0 &&
@@ -750,6 +773,7 @@ export function SeasonGrid({
             const livery = liveryFor(entry.teamId, seasonYear);
             const chassisChange = rerated.get(entry.teamId);
             const historical = historicalChassis?.[entry.teamId];
+            const ghostCar = kept?.ghosts[entry.teamId];
             return (
               <li
                 key={entry.teamId}
@@ -816,6 +840,11 @@ export function SeasonGrid({
                           <LiveryCar livery={livery} year={seasonYear} />
                         )}
                       </div>
+                      {ghostCar === undefined ? null : (
+                        <p className="text-muted-foreground mb-2 text-xs">
+                          Not in the {seasonYear} field: racing on in its {ghostCar} car.
+                        </p>
+                      )}
                       {historical === undefined ? null : (
                         <p className="text-subtle mb-2 text-right text-xs">History → this run</p>
                       )}
@@ -893,6 +922,11 @@ export function SeasonGrid({
                   </Popover>
                   <Overall value={carOverall(entry.chassis, entry.engine)} />
                 </div>
+                {ghostCar === undefined ? null : (
+                  <p className="text-subtle mt-1.5 text-xs">
+                    Not in the {seasonYear} field: its {ghostCar} car
+                  </p>
+                )}
 
                 {edit === undefined ? null : (
                   <>
@@ -946,6 +980,13 @@ export function SeasonGrid({
                         seasonYear={seasonYear}
                         ratingMode={ratingMode}
                         swappedIn={swappedIn.has(entrant.driverId)}
+                        keptMark={
+                          kept?.carried.has(entrant.driverId)
+                            ? "kept"
+                            : kept?.signed.has(entrant.driverId)
+                              ? "signed"
+                              : null
+                        }
                         {...(edit === undefined ? {} : { edit })}
                       />
                     ),

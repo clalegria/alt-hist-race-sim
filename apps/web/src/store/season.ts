@@ -28,16 +28,21 @@ import {
   buildField,
   DEFAULT_RATING_MODE,
   filledLineup,
+  fillSeats,
   type GridArrangement,
   isAuthoredChassis,
   isAuthoredEngines,
   isAuthoredLineup,
+  type KeptYear,
+  keptYear,
+  type LineupDraft,
   type RatingMode,
   type SeasonChassis,
   type SeasonEngines,
   type SeasonLineup,
   type SeasonSeed,
   seasonConstants,
+  seatedSeason,
 } from "@alt-hist/data";
 import {
   createRng,
@@ -67,7 +72,14 @@ import {
   settingsInForce,
   walksFromLastYear,
 } from "../lib/run-settings.js";
-import { isPlayable, nextEraYear, seasonSeed, seasonWithChassis } from "../lib/seasons.js";
+import {
+  enteredSeason,
+  isPlayable,
+  nextEraYear,
+  seasonSeed,
+  seasonWithChassis,
+  withChassis,
+} from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
 import { type Beat, comparePlaces, nextBeat, type Place, type View } from "../lib/timeline.js";
 
@@ -185,6 +197,28 @@ export interface World {
    */
   readonly walkedFrom: SeasonChassis | null;
   /**
+   * The era's first year under *Teams and seats: Keep the starting grid*, whose
+   * teams and seat counts every year keeps — else null. Recorded for the reason
+   * `namesKeptFrom` is: one year cannot see where its era began.
+   */
+  readonly gridKeptFrom: number | null;
+  /**
+   * Under Keep, this year as `keptYear` built it — the first year's teams on
+   * this year's cars, history's drivers, last year's carried back — before any
+   * *Car performance* roll or signing; null otherwise, and in an era's first
+   * year, which has nothing to keep. An input, like `walkedFrom`: every action
+   * that rebuilds the year in place passes it on, and the recipe re-derives it
+   * from the world before (`keptYearAfter`).
+   */
+  readonly kept: KeptYear | null;
+  /**
+   * Under Keep, every seat after `fillSeats` — an empty one `null`, left out of
+   * the season — or null. **The year's baseline, not an edit**, as
+   * `baselineChassis` is: derived from the inputs and kept so nothing re-derives
+   * it on read (`enteredSeason`).
+   */
+  readonly keptSeats: LineupDraft | null;
+  /**
    * The rule the grid was arranged by, or null for a grid nobody rearranged in
    * one press — the reader's own swaps included, since those are seats and not a
    * rule.
@@ -268,8 +302,9 @@ function arrangedLineup(
   chassis: SeasonChassis | null,
   settings: RunSettings,
   lastRaced: SeasonChassis | null,
+  kept: KeptYear | null,
 ): SeasonLineup {
-  const season = baselineSeason(year, seed, settings, lastRaced).season;
+  const season = baselineSeason(year, seed, settings, lastRaced, kept).season;
   const authored = authoredLineup(season);
   const resupplied = engines === null ? season : applyEngines(season, engines);
   const entered = chassis === null ? resupplied : applyChassis(resupplied, chassis);
@@ -302,6 +337,7 @@ function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonL
     world.chassis,
     world.settings,
     world.walkedFrom,
+    world.kept,
   );
 }
 
@@ -323,6 +359,7 @@ function nextEraGrid(
   last: World,
   year: number,
   seed: number,
+  kept: KeptYear | null,
 ): { lineup: SeasonLineup | null; arrangement: GridArrangement | null } {
   const { arrangement } = last;
   if (arrangement === null || !arrangement.retain) {
@@ -340,24 +377,96 @@ function nextEraGrid(
       null,
       last.settings,
       racedChassis(last),
+      kept,
     ),
     arrangement,
   };
 }
 
 /**
- * A season as the run enters it — its chassis rolled under *Car performance*
- * from this seed (off `lastRaced` when they walk), or as authored — and the
- * roll itself, for the world to keep.
+ * A season as the run enters it — under Keep, the kept year rather than the
+ * seed file; its chassis rolled under *Car performance* from this seed (off
+ * `lastRaced` when they walk), or as authored; and under Keep its empty seats
+ * signed, best car first on the rolled cars — with the roll and the signings,
+ * for the world to keep.
  */
 function baselineSeason(
   year: number,
   seed: number,
   settings: RunSettings,
   lastRaced: SeasonChassis | null,
-): { season: SeasonSeed; baselineChassis: SeasonChassis | null } {
-  const baselineChassis = rolledChassisOf(seasonSeed(year), settings, seed, lastRaced);
-  return { season: seasonWithChassis(year, baselineChassis), baselineChassis };
+  kept: KeptYear | null,
+): {
+  season: SeasonSeed;
+  baselineChassis: SeasonChassis | null;
+  keptSeats: LineupDraft | null;
+} {
+  const rules = settings.teamsAndSeats;
+  if (kept === null || rules === null) {
+    const baselineChassis = rolledChassisOf(seasonSeed(year), settings, seed, lastRaced);
+    return {
+      season: seasonWithChassis(year, baselineChassis),
+      baselineChassis,
+      keptSeats: null,
+    };
+  }
+  const baselineChassis = rolledChassisOf(kept.season, settings, seed, lastRaced);
+  const cars = withChassis(kept.season, baselineChassis);
+  const keptSeats = fillSeats(cars, kept.seats, rules, {
+    pool: driverPoolOf(settings),
+    mode: ERA_RATING_MODE,
+  });
+  return { season: seatedSeason(cars, keptSeats), baselineChassis, keptSeats };
+}
+
+/** The grid a world raced, by team, in seat order. */
+export function racedLineup(world: World): SeasonLineup {
+  const lineup: Record<string, string[]> = {};
+  for (const entrant of world.field) {
+    lineup[entrant.teamId] = [...(lineup[entrant.teamId] ?? []), entrant.driverId];
+  }
+  return lineup;
+}
+
+/**
+ * Year `year` of a Keep era, built off the year before: the first year's teams
+ * on `year`'s cars, the grid `last` raced carried into the seats history left
+ * empty. Null when the run does not keep its grid. Continue, a jump and the
+ * recipe's rebuild all build a year through this, so they cannot disagree.
+ */
+export function keptYearAfter(last: World, year: number): KeptYear | null {
+  const rules = last.settings.teamsAndSeats;
+  if (rules === null || last.gridKeptFrom === null) {
+    return null;
+  }
+  return keptYear(seasonSeed(last.gridKeptFrom), seasonSeed(year), racedLineup(last), rules, {
+    pool: driverPoolOf(last.settings),
+    mode: ERA_RATING_MODE,
+  });
+}
+
+/**
+ * What one year of an era cannot know about the run around it, for
+ * `createWorld`. All optional: a standalone season, or an era's first year,
+ * passes nothing.
+ */
+export interface EraInputs {
+  /** The era's first year; the world's own year when absent. */
+  readonly start?: number | null;
+  /** Each team's chassis as raced the year before (`racedChassis`), for a walk. */
+  readonly lastRaced?: SeasonChassis | null;
+  /** The year as *Keep the starting grid* built it (`keptYearAfter`). */
+  readonly kept?: KeptYear | null;
+}
+
+/** The era's first year, when the world recorded it: under either *Keep* setting. */
+export function eraStartOf(world: World): number | null {
+  return world.namesKeptFrom ?? world.gridKeptFrom;
+}
+
+/** A world's own era inputs, for an action that rebuilds its year in place. */
+function eraInputsOf(world: World): EraInputs {
+  return { start: eraStartOf(world), lastRaced: world.walkedFrom, kept: world.kept };
 }
 
 /**
@@ -366,7 +475,7 @@ function baselineSeason(
  * next year off, so a reader's edit is carried by it: it is what raced.
  */
 export function racedChassis(world: World): SeasonChassis {
-  return world.chassis ?? world.baselineChassis ?? authoredChassis(seasonSeed(world.year));
+  return world.chassis ?? world.baselineChassis ?? authoredChassis(enteredSeason(world));
 }
 
 /**
@@ -411,12 +520,13 @@ export function runConstants(
  * on the rolled car is no edit, and a reader's own chassis are absolute ratings
  * over it.
  *
- * `namesKeptFrom` is the era's first year, which a later year of it cannot
- * know; it defaults to this one, the right answer for an era's first year. It
- * is read only under *Team names: Keep the first*, and recorded as null
- * otherwise. `lastRaced` is the same kind of fact: the cars the year before
- * raced (`racedChassis`), null for a run's first year. Read only when the cars
- * walk from the previous year's, and recorded as `walkedFrom`, null otherwise.
+ * `era` is what one year cannot know about the run around it (`EraInputs`),
+ * named fields rather than three more positional arguments. Its `start`
+ * defaults to this year, the right answer for an era's first year, and is
+ * recorded as `namesKeptFrom` under *Team names: Keep the first* and as
+ * `gridKeptFrom` under *Teams and seats: Keep the starting grid*, null
+ * otherwise. `lastRaced` is read only when the cars walk from the previous
+ * year's, recorded as `walkedFrom`; `kept` only under Keep.
  */
 export function createWorld(
   seed: number,
@@ -428,13 +538,19 @@ export function createWorld(
   arrangement: GridArrangement | null = null,
   chassis: SeasonChassis | null = null,
   chosen: RunSettings = HISTORICAL_SETTINGS,
-  eraStart: number | null = null,
-  lastRaced: SeasonChassis | null = null,
+  era: EraInputs = {},
 ): World {
   const settings = settingsInForce(chosen);
-  const namesKeptFrom = settings.teamNames === "first" ? (eraStart ?? year) : null;
-  const walkedFrom = walksFromLastYear(settings) ? lastRaced : null;
-  const { season: baseline, baselineChassis } = baselineSeason(year, seed, settings, walkedFrom);
+  const start = era.start ?? year;
+  const namesKeptFrom = settings.teamNames === "first" ? start : null;
+  const gridKeptFrom = settings.teamsAndSeats === null ? null : start;
+  const kept = settings.teamsAndSeats === null ? null : (era.kept ?? null);
+  const walkedFrom = walksFromLastYear(settings) ? (era.lastRaced ?? null) : null;
+  const {
+    season: baseline,
+    baselineChassis,
+    keptSeats,
+  } = baselineSeason(year, seed, settings, walkedFrom, kept);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
   const edited = lineup !== null && !isAuthoredLineup(baseline, lineup) ? lineup : null;
@@ -477,6 +593,9 @@ export function createWorld(
     chassis: rerated,
     baselineChassis,
     walkedFrom,
+    gridKeptFrom,
+    kept,
+    keptSeats,
     arrangement,
     season,
   };
@@ -796,7 +915,8 @@ function replaceWorld(run: Run, world: World): Run {
  */
 function nextEraWorld(last: World, year: number): World {
   const seed = nextSeed(last.rngState);
-  const grid = nextEraGrid(last, year, seed);
+  const kept = keptYearAfter(last, year);
+  const grid = nextEraGrid(last, year, seed, kept);
   return createWorld(
     seed,
     year,
@@ -809,8 +929,7 @@ function nextEraWorld(last: World, year: number): World {
     grid.arrangement,
     null,
     last.settings,
-    last.namesKeptFrom,
-    racedChassis(last),
+    { start: eraStartOf(last), lastRaced: racedChassis(last), kept },
   );
 }
 
@@ -979,8 +1098,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.arrangement,
                 state.run.world.chassis,
                 state.run.world.settings,
-                state.run.world.namesKeptFrom,
-                state.run.world.walkedFrom,
+                eraInputsOf(state.run.world),
               ),
             ),
           }
@@ -1003,8 +1121,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 arrangement,
                 chassis,
                 state.run.world.settings,
-                state.run.world.namesKeptFrom,
-                state.run.world.walkedFrom,
+                eraInputsOf(state.run.world),
               ),
             ),
           }
@@ -1064,8 +1181,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.arrangement,
             world.chassis,
             world.settings,
-            world.namesKeptFrom,
-            world.walkedFrom,
+            eraInputsOf(world),
           ),
         ),
       };

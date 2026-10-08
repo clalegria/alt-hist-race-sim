@@ -3,10 +3,11 @@ import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
+import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
-import { seasonSeed, seasonWithChassis } from "../lib/seasons.js";
+import { enteredSeason, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
@@ -191,22 +192,21 @@ export function SeasonOverview({
     () => new Map(world.field.map((entrant) => [entrant.driverId, entrant.teamId])),
     [world.field],
   );
+  // Every change is against the season as the run entered it, which under Car
+  // performance or Keep the starting grid is not the seed file's: a rolled car
+  // or a kept seat is the year's starting point, not an edit.
+  const entered = enteredSeason(world);
   const changes = useMemo(
-    () => (world.lineup === null ? [] : lineupChanges(seed, world.lineup)),
-    [world.lineup, seed],
+    () => (world.lineup === null ? [] : lineupChanges(entered, world.lineup)),
+    [world.lineup, entered],
   );
   const supplyChanges = useMemo(
-    () => (world.engines === null ? [] : engineChanges(seed, world.engines)),
-    [world.engines, seed],
+    () => (world.engines === null ? [] : engineChanges(entered, world.engines)),
+    [world.engines, entered],
   );
-  // Against the cars the run entered, which under Car performance are not the
-  // seed file's: a rolled car is the year's starting point, not an edit.
   const rerated = useMemo(
-    () =>
-      world.chassis === null
-        ? []
-        : chassisChanges(seasonWithChassis(year, world.baselineChassis), world.chassis),
-    [world.chassis, world.baselineChassis, year],
+    () => (world.chassis === null ? [] : chassisChanges(entered, world.chassis)),
+    [world.chassis, entered],
   );
   const historicalChassis = useMemo(
     () => (world.baselineChassis === null ? null : authoredChassis(seed)),
@@ -279,6 +279,7 @@ export function SeasonOverview({
             chassisChanges={rerated}
             historicalChassis={historicalChassis}
             arrangement={world.arrangement}
+            kept={keptNotes(world)}
             sort={teamSort}
             onSortChange={setTeamSort}
           />

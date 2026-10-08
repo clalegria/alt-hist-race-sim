@@ -92,13 +92,13 @@ a year and into every year of an era; `createWorld` takes it last, and races on
 `runConstants(entered, randomness, settings)` — the one place settings reach the constants; the
 drivers come from `driverPoolOf(settings)`, the one place they reach the ratings, which
 `arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too; the cars from
-`rolledChassisOf`, kept as `world.baselineChassis` (`car-performance.md`). **`namesKeptFrom`**
-is the era's first year under *Team names: Keep the first*, else null: one year of an era
-cannot know where the era began, so `createWorld` takes it after `settings` (defaulting to
-its own year, right for a first year) and every action that rebuilds a year passes the
-world's own on; `nextEraWorld` passes `last.namesKeptFrom`. **`walkedFrom`**, the cars a
-walk from last year's moves off, follows the same pattern as `createWorld`'s last
-argument (`car-performance.md`). The grid stage states
+`rolledChassisOf`, kept as `world.baselineChassis` (`car-performance.md`). What one year
+of an era cannot know about the run is `createWorld`'s last argument, the options object
+`era: EraInputs` — `start` (defaulting to the world's own year), `lastRaced`, `kept` —
+recorded as **`namesKeptFrom`** / **`gridKeptFrom`** (`eraStartOf` reads either back),
+**`walkedFrom`** (`car-performance.md`) and **`kept`** (`teams-and-seats.md`), each null
+when its setting is off. `nextEraWorld` builds them off the year before; every in-place
+rebuild passes the world's own on (`eraInputsOf`). The grid stage states
 the level (`RandomnessNote`) and any non-historical setting beneath it, and offers no
 control; the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming
@@ -107,7 +107,8 @@ control; the season summary and the roll of honour carry it as one small line
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
 (`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom, rngState, field,
-lineup, engines, chassis, baselineChassis, walkedFrom, arrangement, season }`) — one
+lineup, engines, chassis, baselineChassis, walkedFrom, gridKeptFrom, kept, keptSeats,
+arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's

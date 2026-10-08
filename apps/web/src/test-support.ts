@@ -37,6 +37,23 @@ export const YEAR = FIRST_AUTHORED_SEASON;
 /** The seed data behind `YEAR`: calendar, entries and cars. */
 export const SEED = seasonSeed(YEAR);
 
+/**
+ * The first authored year one of whose teams is gone the year after, and that
+ * team: where an era that keeps its starting grid first races a ghost entry.
+ * Searched for rather than named, so it follows the seed data.
+ */
+export const FOLDING_YEAR: { readonly year: number; readonly teamId: string } = (() => {
+  for (const year of authoredSeasons) {
+    const next = authoredSeasons.includes(year + 1) ? seasonSeed(year + 1) : null;
+    const later = new Set(next?.entries.map((entry) => entry.teamId));
+    const gone = seasonSeed(year).entries.find((entry) => !later.has(entry.teamId));
+    if (next !== null && gone !== undefined) {
+      return { year, teamId: gone.teamId };
+    }
+  }
+  throw new Error("no team in the seed data ever folds");
+})();
+
 /** A season to render. Any seed would do; this one is simply a fixed choice. */
 export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {
   return mode === undefined ? createWorld(seed, year) : createWorld(seed, year, mode);

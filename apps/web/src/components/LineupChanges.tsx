@@ -6,6 +6,7 @@ import type {
   RatingMode,
   SeatChange,
 } from "@alt-hist/data";
+import type { KeptNotes } from "../lib/kept.js";
 import { driverName, engineName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
@@ -92,6 +93,78 @@ export function ArrangementNote({
       <span className="text-muted-foreground text-xs">
         {arrangementNote(arrangement, ratingMode)}
       </span>
+    </div>
+  );
+}
+
+/** "A", "A and B", "A, B and C". */
+function listed(names: readonly string[]): string {
+  return names.length <= 1
+    ? (names[0] ?? "")
+    : `${names.slice(0, -1).join(", ")} and ${names.at(-1) ?? ""}`;
+}
+
+/**
+ * What *Keep the starting grid* did to a year, as sentences: the ghosts and
+ * their cars, how many seats were kept and signed, and who is short of
+ * drivers. Pure, so a test reads the words without a DOM.
+ */
+export function keptSentences(
+  notes: KeptNotes,
+  seasonYear: number,
+  nameOf: (teamId: string) => string,
+): readonly string[] {
+  const sentences: string[] = [];
+  const ghosts = Object.entries(notes.ghosts);
+  if (ghosts.length > 0) {
+    const named = ghosts.map(([teamId, year]) => `${nameOf(teamId)} (${year})`);
+    sentences.push(`Not in the ${seasonYear} field, racing their last real car: ${listed(named)}.`);
+  }
+  const counts = [
+    notes.carried.size === 0 ? null : `${notes.carried.size} kept from last year`,
+    notes.signed.size === 0 ? null : `${notes.signed.size} signed`,
+  ].filter((part): part is string => part !== null);
+  if (counts.length > 0) {
+    sentences.push(`Seats history left empty: ${counts.join(", ")}.`);
+  }
+  const short = notes.short.map(({ teamId, cars }) =>
+    cars === 0
+      ? `${nameOf(teamId)} sits the year out`
+      : `${nameOf(teamId)} runs ${cars === 1 ? "one car" : `${cars} cars`}`,
+  );
+  if (short.length > 0) {
+    sentences.push(`Nobody free to sign: ${listed(short)}.`);
+  }
+  return sentences;
+}
+
+/**
+ * The kept grid's own notice: muted and dashed like the edited-grid one, but
+ * separate from it, since a kept seat is the year's starting point rather than
+ * something the reader changed. Nothing at all for a year Keep left as history
+ * had it.
+ */
+export function KeptNote({
+  notes,
+  seasonYear,
+  nameOf,
+}: {
+  notes: KeptNotes;
+  seasonYear: number;
+  nameOf: (teamId: string) => string;
+}) {
+  const sentences = keptSentences(notes, seasonYear, nameOf);
+  if (sentences.length === 0) {
+    return null;
+  }
+  return (
+    <div className="border-border bg-muted/40 flex flex-col gap-1 rounded-lg border border-dashed px-3 py-2">
+      <span className="text-xs font-semibold tracking-tight">Kept from {notes.from}</span>
+      {sentences.map((sentence) => (
+        <span key={sentence} className="text-muted-foreground text-xs">
+          {sentence}
+        </span>
+      ))}
     </div>
   );
 }

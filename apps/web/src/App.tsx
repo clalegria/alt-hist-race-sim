@@ -15,7 +15,7 @@ import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import type { RoundPages, SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
-import { type EraRun, isUntouched, type Run, useSeasonStore } from "./store/season.js";
+import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from "./store/season.js";
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
@@ -267,13 +267,14 @@ export function SeasonPage({
 
   // The grid the reader actually watched last year, for the editor's carry-over
   // button — the era's own history rather than the seed file's, since inside an
-  // era last season may itself have been rewritten. A standalone season has no
-  // year behind it and gets null, which the editor reads as "copy history".
+  // era last season may itself have been rewritten, or kept. Read off what
+  // raced rather than the year's `lineup`, which is null for any grid the reader
+  // did not edit, the kept one included. A standalone season has no year behind
+  // it and gets null, which the editor reads as "copy history".
   const previousYear = adjacentSeason(world.year, -1);
-  const previousLineup =
-    previousYear === null
-      ? null
-      : (run?.seasons.find((season) => season.year === previousYear)?.lineup ?? null);
+  const previousWorld =
+    previousYear === null ? undefined : run?.seasons.find((season) => season.year === previousYear);
+  const previousLineup = previousWorld === undefined ? null : racedLineup(previousWorld);
   const editable = view.kind === "grid" && !locked;
 
   return (

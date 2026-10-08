@@ -17,8 +17,8 @@ not here.
 
 ## Run settings
 
-Their open questions — a ghost team's car, whether the car walk reverts to the mean — are
-listed in `docs/design/run-settings.md`, not here.
+Their open question — whether the car walk reverts to the mean — is listed in
+`docs/design/run-settings.md`, not here.
 
 ## Should the fitter and tuner move drivers?
 

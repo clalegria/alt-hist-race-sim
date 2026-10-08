@@ -1,0 +1,102 @@
+---
+paths:
+  - "packages/data/src/keptGrid.ts"
+  - "packages/data/src/keptGrid.test.ts"
+  - "apps/web/src/lib/kept.ts"
+  - "apps/web/src/components/TeamsAndSeatsSetting.tsx"
+  - "apps/web/src/components/teams-and-seats-setting.test.tsx"
+---
+
+# Teams and seats — the kept grid
+
+*Teams and seats: Keep the starting grid* is an era run setting: every year has the
+start year's teams, each with its start-year seat count, and teams new in history never
+appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
+the setup row is `.claude/rules/web-setup.md`. Only the automatic fills are built: *I fill
+them* (`"reader"`, the pending grid) is still design, in `docs/design/run-settings.md`.
+The layer it sits in is `.claude/rules/data-layers.md`.
+
+## The entry list: `keptYear(start, season, previous, rules, options)`
+
+- **A team history has in year N** takes its car and its authored drivers. With more
+  drivers than its start-year count, the weakest drop out by `strongestOf`
+  (`carryOver.ts`, shared): the ranking rule, the authored order settling a dead heat.
+- **A ghost entry** — a start-year team history has dropped — races **its last real
+  car**: the latest season before N with the team (the start year always has it), chassis,
+  engine and paint, but no `developmentTrend`, which describes that one year. Its engine
+  has year N's values if N rates it; otherwise its latest authored spec is **appended to
+  the kept season's `engines`**, so `applyEngines` and `buildField` accept it. `ghosts`
+  maps each ghost to the year of the car.
+- **A short seat** is one a real team leaves empty by running fewer cars than in the start
+  year. It follows the same rules as a ghost's.
+- **Last year's driver keeps an empty seat** (every `fill` but `best`) at the team they
+  drove for last year *in this run* (`previous`), unless:
+  - **history has seated them elsewhere this year** — history always wins;
+  - they are **outside the age band**, read against their real age in the season. Past
+    `maxAge` is their retirement from the seat.
+
+  More candidates than seats, and the strongest stay. Nobody held two seats last year,
+  so nobody is carried twice. A driver history moved to a team that has no room for
+  them — it ran fewer cars in the start year — is a leftover, so they can still return
+  to the seat they raced last year.
+
+`KeptYear.season` is year N's calendar, points and factors with the start year's teams on
+these cars, each entry's `drivers` its filled seats; `seats` is the `LineupDraft`, empty
+seats `null`.
+
+## Signing: `fillSeats(season, seats, rules, options)`
+
+- Under `reader` it hands `seats` back unchanged: the reader fills them.
+- Under `last` and `best`, **best car first** — `teamsByCar` (`arrange.ts`, shared), on
+  the `season` passed in, which is the cars the run races after any *Car performance*
+  roll — each empty seat takes the strongest free driver by `byOverall` (`arrange.ts`,
+  shared). Free means holding no seat, inside the band, and under `activeOnly` a real
+  career spanning the season (`matchesFilters` with both career filters on: one rule with
+  the grid editor's pool).
+- `best` carries nobody, so every empty seat is signed fresh each year.
+- **A seat nobody qualifies for stays `null`.** `seatedSeason` leaves it out, and a team
+  with no driver at all sits the year out. Only a very narrow band reaches it.
+
+No dice anywhere: ranking is deterministic, ties settled by name then id. Ratings are
+`aged` by default, as an era always runs; `pool` is the run's (`driverPoolOf`).
+
+## In the run
+
+- **The setting** is `RunSettings.teamsAndSeats`: *As they happened* / *Keep the starting
+  grid*, null / `EmptySeatRules`, era only (`seasonSettings` drops it). Under Keep,
+  `TeamsAndSeatsSetting` draws three rows, Car performance's way: *Empty seats filled
+  with* (`SEAT_FILL_LABELS`), *Driver ages* (the grid editor's number inputs through
+  `withAge`, so they cannot cross) and *Only sign drivers who really raced that year*.
+  Switching in opens on `OPENING_SEAT_RULES`; the rows are remembered while the screen
+  is open. `OFFERED_SEAT_FILLS` is `"last"` and `"best"`, so `parseRunSettings` refuses
+  `"reader"` until the pending grid offers it, and an age outside `AGE_RANGE` or crossed.
+- **The world** (`store/season.ts`) records `gridKeptFrom` (the era's first year),
+  `kept` (the `KeptYear`, an input passed on by every in-place rebuild) and `keptSeats`
+  (after `fillSeats`, a derived baseline like `baselineChassis`); all null unless Keep,
+  and `kept` null in the first year. `keptYearAfter(last, year)` builds the next year off
+  `racedLineup(last)`; `nextEraWorld` and the recipe's `rebuild` both call it, so
+  stepping, jumping and reloading build the same year.
+- **`baselineSeason` is the one place it reaches a season**: the kept season, then the
+  chassis roll over it (a ghost walks off its own raced car with no special case), then
+  `fillSeats` on the rolled cars, then `seatedSeason`. A kept bulk rule arranges that.
+- **Kept seats are the baseline, not edits.** `enteredSeason(world)` (`lib/seasons.ts`,
+  memoised per world) is what Restore and every change notice compare against; the
+  grid editor's *Copy last year's grid* copies `racedLineup` of the year before.
+- **On the grid**, `keptNotes(world)` (`lib/kept.ts`) says what Keep did: a ghost card
+  reads "Not in the {year} field: its {year} car", a seat history did not fill carries a
+  muted *kept* or *signed* (never `SWAPPED_IN`, which means the reader moved someone),
+  and `KeptNote` above the cards — its own notice, not the edited-grid one — names the
+  ghosts, counts the seats and says who is short (`keptSentences`, pure).
+
+## Testing
+
+`keptGrid.test.ts` checks every rule above against synthetic seasons and drivers, and
+chains real seasons from two start years to the last checking rules only (every start
+team at its count, nobody seated twice, every raced engine on the menu). Mutation-checked:
+reversing the driver ranking, the car order, dropping the band from either step, or
+letting carry-over ignore history each fail at least one test. In the app,
+`store/era.test.ts` runs an era from `FOLDING_YEAR` (`test-support.ts`, found by search),
+`recipe.test.ts` reloads a ghost year, and `teams-and-seats-setting.test.tsx` renders the
+row, the ghost and the note; dropping `kept` from `nextEraWorld`, from `rebuild` or from
+an in-place rebuild each fails at least one. `pnpm screenshots` keeps the 1984 grid
+(`era-kept-grid`).

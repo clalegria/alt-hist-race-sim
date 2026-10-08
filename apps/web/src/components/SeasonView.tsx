@@ -9,11 +9,12 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
+import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
 import { driverPoolOf, whatIfsOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
-import { seasonSeed } from "../lib/seasons.js";
+import { enteredSeason, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
@@ -327,6 +328,8 @@ function SeasonBody({
           engines={world.engines}
           chassis={world.chassis}
           baselineChassis={world.baselineChassis}
+          runSeason={world.kept === null ? null : enteredSeason(world)}
+          kept={keptNotes(world)}
           arrangement={world.arrangement}
           inEra={inEra}
           previousLineup={previousLineup}

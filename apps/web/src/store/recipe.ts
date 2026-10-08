@@ -10,8 +10,9 @@
  *
  * Each world's seed is stored rather than re-derived with `nextSeed`, because a
  * restart mid-era draws a fresh one that nothing else could reproduce. The cars
- * the year before raced are not stored: each world after the first is rebuilt
- * off the world before it (`racedChassis`), exactly as the run built it.
+ * the year before raced and the kept year are not stored: each world after the
+ * first is rebuilt off the world before it (`racedChassis`, `keptYearAfter`),
+ * exactly as the run built it.
  *
  * **The fingerprint is the build check.** Beside each world's inputs goes a hash
  * of the world they produced. Resumed on a build whose data or engine would
@@ -34,7 +35,14 @@ import { RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
 import { parseRunSettings, type RunSettings } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
-import { createWorld, type Run, racedChassis, type World } from "./season.js";
+import {
+  createWorld,
+  eraStartOf,
+  keptYearAfter,
+  type Run,
+  racedChassis,
+  type World,
+} from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
 export const RECIPE_VERSION = 8;
@@ -197,8 +205,13 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
     recipe.arrangement,
     recipe.chassis,
     recipe.settings,
-    recipe.namesKeptFrom,
-    previous === null ? null : racedChassis(previous),
+    previous === null
+      ? { start: recipe.namesKeptFrom }
+      : {
+          start: eraStartOf(previous),
+          lastRaced: racedChassis(previous),
+          kept: keptYearAfter(previous, recipe.year),
+        },
   );
   return fingerprint(world) === recipe.check ? world : null;
 }

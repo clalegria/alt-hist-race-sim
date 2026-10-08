@@ -20,7 +20,12 @@ import {
   rememberSeasonYear,
   STARTING_RANDOMNESS_LEVEL,
 } from "./preferences.js";
-import { HISTORICAL_SETTINGS, pointsTables, type RunSettings } from "./run-settings.js";
+import {
+  HISTORICAL_SETTINGS,
+  OPENING_SEAT_RULES,
+  pointsTables,
+  type RunSettings,
+} from "./run-settings.js";
 import { DEFAULT_SEASON_YEAR, isPlayable, LAST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
 const STORAGE_KEY = "alt-hist-rating-mode";
@@ -238,6 +243,7 @@ describe("remembering the run settings", () => {
     points: pointsTables().at(-1)?.scale ?? [],
     careerEvents: "none",
     teamNames: "first",
+    teamsAndSeats: { ...OPENING_SEAT_RULES, fill: "best", activeOnly: false },
   };
 
   it("survives without any storage at all", () => {

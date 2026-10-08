@@ -3,7 +3,13 @@
  * storage. Every table is read off the seed data rather than written down.
  */
 
-import { drivers, driversWithoutCareerEvents, randomChassis, variedChassis } from "@alt-hist/data";
+import {
+  AGE_RANGE,
+  drivers,
+  driversWithoutCareerEvents,
+  randomChassis,
+  variedChassis,
+} from "@alt-hist/data";
 import { createRng, deriveSeed } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import {
@@ -13,6 +19,7 @@ import {
   CAR_VARIATION_SPREADS,
   driverPoolOf,
   HISTORICAL_SETTINGS,
+  OPENING_SEAT_RULES,
   parseRunSettings,
   pointsTableOf,
   pointsTables,
@@ -101,8 +108,25 @@ describe("parsing stored settings", () => {
     expect(parseRunSettings(settings)).toEqual(settings);
   });
 
+  it("accepts Teams and seats: Keep, under both fills, at any ages the range holds", () => {
+    for (const teamsAndSeats of [
+      OPENING_SEAT_RULES,
+      { ...OPENING_SEAT_RULES, fill: "best", activeOnly: false },
+      { ...OPENING_SEAT_RULES, minAge: AGE_RANGE.min, maxAge: AGE_RANGE.max },
+      { ...OPENING_SEAT_RULES, minAge: 30, maxAge: 30 },
+    ] as const) {
+      const settings = { ...HISTORICAL_SETTINGS, teamsAndSeats };
+      expect(parseRunSettings(settings), JSON.stringify(teamsAndSeats)).toEqual(settings);
+    }
+  });
+
   it("refuses anything else", () => {
     const table = pointsTables()[0]?.scale ?? [];
+    const { teamsAndSeats: _new, ...beforeTeamsAndSeats } = HISTORICAL_SETTINGS;
+    const seats = (changes: Record<string, unknown>) => ({
+      ...HISTORICAL_SETTINGS,
+      teamsAndSeats: { ...OPENING_SEAT_RULES, ...changes },
+    });
     const junk: unknown[] = [
       null,
       undefined,
@@ -142,6 +166,19 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "first" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: null } },
       { ...HISTORICAL_SETTINGS, carPerformance: [] },
+      // Settings from before Teams and seats, and its rules wrong in turn: the
+      // fill the pending grid will bring, ages outside the range, crossed or
+      // fractional, and a field missing.
+      beforeTeamsAndSeats,
+      { ...HISTORICAL_SETTINGS, teamsAndSeats: "keep" },
+      seats({ fill: "reader" }),
+      seats({ fill: "Last" }),
+      seats({ minAge: AGE_RANGE.min - 1 }),
+      seats({ maxAge: AGE_RANGE.max + 1 }),
+      seats({ minAge: 40, maxAge: 30 }),
+      seats({ maxAge: 40.5 }),
+      seats({ activeOnly: "yes" }),
+      seats({ activeOnly: undefined }),
     ];
     for (const raw of junk) {
       expect(parseRunSettings(raw), JSON.stringify(raw)).toBeNull();
@@ -177,6 +214,9 @@ describe("a standalone season's settings", () => {
     } as const;
     expect(seasonSettings(era)).toEqual({ ...era, careerEvents: null, teamNames: null });
     expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamNames: "first" })).toEqual(
+      HISTORICAL_SETTINGS,
+    );
+    expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES })).toEqual(
       HISTORICAL_SETTINGS,
     );
   });
@@ -338,6 +378,18 @@ describe("the what-ifs a run states", () => {
     ).toEqual([
       { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
       { name: "Career events", value: "None" },
+    ]);
+  });
+
+  it("names Teams and seats after Team names, with its rules", () => {
+    expect(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, teamNames: "first", teamsAndSeats: OPENING_SEAT_RULES }),
+    ).toEqual([
+      { name: "Team names", value: "Keep the first" },
+      {
+        name: "Teams and seats",
+        value: `Keep the starting grid · previous year's drivers first · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge} · active drivers only`,
+      },
     ]);
   });
 

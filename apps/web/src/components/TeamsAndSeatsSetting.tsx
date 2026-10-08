@@ -1,0 +1,138 @@
+import { AGE_RANGE, type EmptySeatRules, withAge } from "@alt-hist/data";
+import { useState } from "react";
+import {
+  OFFERED_SEAT_FILLS,
+  OPENING_SEAT_RULES,
+  type RunSettings,
+  SEAT_FILL_LABELS,
+} from "../lib/run-settings.js";
+import { SettingSegments } from "./SettingSegments.js";
+import { Input } from "./ui/input.js";
+
+/** The age band as the pool filters hold one, so `withAge` keeps the two ends from crossing. */
+function movedAge(rules: EmptySeatRules, end: "min" | "max", value: number): EmptySeatRules {
+  const { minAge, maxAge } = withAge(
+    { hideRetired: false, hideFuture: false, minAge: rules.minAge, maxAge: rules.maxAge },
+    end,
+    value,
+  );
+  return { ...rules, minAge, maxAge };
+}
+
+/** What the answer does, in one or two sentences. */
+function note(rules: EmptySeatRules | null): string {
+  if (rules === null) {
+    return "Every year has the teams and drivers it really had.";
+  }
+  const band = `aged ${rules.minAge} to ${rules.maxAge}${rules.activeOnly ? " who really raced that year" : ""}`;
+  const fill =
+    rules.fill === "last"
+      ? `A seat that history leaves empty keeps the driver it had the year before until they are older than ${rules.maxAge}; otherwise it goes to the strongest free driver ${band}.`
+      : `Every seat that history leaves empty goes to the strongest free driver ${band}, chosen again each year.`;
+  return `Every year has the first year's teams, each with as many cars as it ran then; a team that folded races on in its last real car. ${fill}`;
+}
+
+/**
+ * Whether every year has the teams history gave it, or the first year's teams
+ * at their first-year seat counts — and under Keep, who takes the seats that
+ * leaves empty (`keptGrid.ts` in `@alt-hist/data`). Era only.
+ *
+ * The rows below Keep appear only under it, as Car performance's do under
+ * Varied, and are remembered while the screen is open, so a look at *As they
+ * happened* and back keeps them. The age inputs are the grid editor's pool
+ * filter's, and cannot cross.
+ */
+export function TeamsAndSeatsSetting({
+  teamsAndSeats,
+  onChange,
+}: {
+  /** Null is As they happened, the historical answer. */
+  teamsAndSeats: RunSettings["teamsAndSeats"];
+  /** Absent in tests, where nothing is clicked. */
+  onChange?: (teamsAndSeats: RunSettings["teamsAndSeats"]) => void;
+}) {
+  const [rules, setRules] = useState<EmptySeatRules>(teamsAndSeats ?? OPENING_SEAT_RULES);
+  const keep = (to: EmptySeatRules) => {
+    setRules(to);
+    onChange?.(to);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <SettingSegments
+        name="Teams and seats"
+        segments={[
+          {
+            key: "historical",
+            label: "As they happened",
+            selected: teamsAndSeats === null,
+            onPick: () => onChange?.(null),
+          },
+          {
+            key: "keep",
+            label: "Keep the starting grid",
+            selected: teamsAndSeats !== null,
+            onPick: () => {
+              keep(rules);
+            },
+          },
+        ]}
+      />
+      {teamsAndSeats === null ? null : (
+        <>
+          <SettingSegments
+            name="Empty seats filled with"
+            segments={OFFERED_SEAT_FILLS.map((fill) => ({
+              key: fill,
+              label: SEAT_FILL_LABELS[fill],
+              selected: teamsAndSeats.fill === fill,
+              onPick: () => {
+                keep({ ...teamsAndSeats, fill });
+              },
+            }))}
+          />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm font-semibold tracking-tight">Driver ages</span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <Input
+                type="number"
+                aria-label="Youngest driver age"
+                min={AGE_RANGE.min}
+                max={AGE_RANGE.max}
+                value={teamsAndSeats.minAge}
+                onChange={(event) => {
+                  keep(movedAge(teamsAndSeats, "min", event.target.valueAsNumber));
+                }}
+                className="h-8 w-14 px-1.5 text-center text-xs"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="number"
+                aria-label="Oldest driver age"
+                min={AGE_RANGE.min}
+                max={AGE_RANGE.max}
+                value={teamsAndSeats.maxAge}
+                onChange={(event) => {
+                  keep(movedAge(teamsAndSeats, "max", event.target.valueAsNumber));
+                }}
+                className="h-8 w-14 px-1.5 text-center text-xs"
+              />
+            </div>
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={teamsAndSeats.activeOnly}
+              onChange={(event) => {
+                keep({ ...teamsAndSeats, activeOnly: event.target.checked });
+              }}
+              className="accent-primary size-3.5 cursor-pointer"
+            />
+            Only sign drivers who really raced that year
+          </label>
+        </>
+      )}
+      <p className="text-muted-foreground text-xs">{note(teamsAndSeats)}</p>
+    </div>
+  );
+}

@@ -15,9 +15,11 @@
  */
 
 import {
+  AGE_RANGE,
   type Driver,
   drivers,
   driversWithoutCareerEvents,
+  type EmptySeatRules,
   randomChassis,
   type SeasonChassis,
   type SeasonSeed,
@@ -90,6 +92,14 @@ export interface RunSettings {
    * The livery still follows history. **Era only**, like `careerEvents`.
    */
   readonly teamNames: "first" | null;
+  /**
+   * Whether every year has the teams history gave it, or the run's first year's
+   * teams at their first-year seat counts, with the rules for the seats that
+   * leaves empty (`keptGrid.ts` in `@alt-hist/data`). **Era only**, like
+   * `careerEvents`. Only the automatic fills are offered: `"reader"` waits for
+   * the pending grid.
+   */
+  readonly teamsAndSeats: EmptySeatRules | null;
 }
 
 /** Every setting on its historical answer: the run as it happened. */
@@ -100,6 +110,7 @@ export const HISTORICAL_SETTINGS: RunSettings = {
   points: null,
   careerEvents: null,
   teamNames: null,
+  teamsAndSeats: null,
 };
 
 /**
@@ -124,7 +135,12 @@ export function settingsInForce(settings: RunSettings): RunSettings {
 export function seasonSettings(settings: RunSettings): RunSettings {
   const cars = settings.carPerformance;
   const walks = cars?.kind === "varied" && cars.from === "last";
-  if (settings.careerEvents === null && settings.teamNames === null && !walks) {
+  if (
+    settings.careerEvents === null &&
+    settings.teamNames === null &&
+    settings.teamsAndSeats === null &&
+    !walks
+  ) {
     return settings;
   }
   return {
@@ -132,6 +148,7 @@ export function seasonSettings(settings: RunSettings): RunSettings {
     carPerformance: walks ? { ...cars, from: "real" } : cars,
     careerEvents: null,
     teamNames: null,
+    teamsAndSeats: null,
   };
 }
 
@@ -176,6 +193,26 @@ export function rolledChassisOf(
   }
   return variedChassis(season, cars.spread, rng, cars.from === "last" ? lastRaced : null);
 }
+
+/**
+ * What *Keep the starting grid* opens on: previous year's drivers first, at the
+ * grid editor's default racing ages, drivers active that year only.
+ */
+export const OPENING_SEAT_RULES: EmptySeatRules = {
+  fill: "last",
+  minAge: 18,
+  maxAge: 42,
+  activeOnly: true,
+};
+
+/** The fills the setup screen offers, in its order; `"reader"` arrives with the pending grid. */
+export const OFFERED_SEAT_FILLS = ["last", "best"] as const;
+
+/** What the reader is shown for each fill on offer. */
+export const SEAT_FILL_LABELS: Readonly<Record<(typeof OFFERED_SEAT_FILLS)[number], string>> = {
+  last: "Previous year's drivers first",
+  best: "Best available",
+};
 
 /** Whether a run's cars walk from the previous year's: the one answer that reads the year before. */
 export function walksFromLastYear(settings: RunSettings): boolean {
@@ -284,8 +321,8 @@ export function pointsTableOf(year: number): PointsTable | undefined {
  * could have produced: a missing field, a points table that is not one of the
  * authored ones, a year with no season, a Car performance answer, spread or base
  * this build does not offer, or a Breakdowns, Career events or Team names
- * answer that is not a what-if. Takes `unknown` because both
- * callers read storage the reader controls.
+ * answer that is not a what-if, or Teams and seats rules this build does not
+ * offer. Takes `unknown` because both callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
@@ -298,7 +335,8 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
       "breakdowns" in raw &&
       "reliability" in raw &&
       "careerEvents" in raw &&
-      "teamNames" in raw
+      "teamNames" in raw &&
+      "teamsAndSeats" in raw
     )
   ) {
     return null;
@@ -307,18 +345,57 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
+  const teamsAndSeats = parseTeamsAndSeats(raw.teamsAndSeats);
   const { careerEvents, teamNames } = raw;
   if (
     carPerformance === undefined ||
     points === undefined ||
     breakdowns === undefined ||
     reliability === undefined ||
+    teamsAndSeats === undefined ||
     (careerEvents !== null && careerEvents !== "none") ||
     (teamNames !== null && teamNames !== "first")
   ) {
     return null;
   }
-  return { carPerformance, breakdowns, reliability, points, careerEvents, teamNames };
+  return {
+    carPerformance,
+    breakdowns,
+    reliability,
+    points,
+    careerEvents,
+    teamNames,
+    teamsAndSeats,
+  };
+}
+
+function parseTeamsAndSeats(rules: unknown): EmptySeatRules | null | undefined {
+  if (rules === null) {
+    return null;
+  }
+  if (typeof rules !== "object" || Array.isArray(rules)) {
+    return undefined;
+  }
+  if (!("fill" in rules && "minAge" in rules && "maxAge" in rules && "activeOnly" in rules)) {
+    return undefined;
+  }
+  const fill = OFFERED_SEAT_FILLS.find((offered) => offered === rules.fill);
+  const { minAge, maxAge, activeOnly } = rules;
+  const age = (value: unknown): value is number =>
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= AGE_RANGE.min &&
+    value <= AGE_RANGE.max;
+  if (
+    fill === undefined ||
+    !age(minAge) ||
+    !age(maxAge) ||
+    minAge > maxAge ||
+    typeof activeOnly !== "boolean"
+  ) {
+    return undefined;
+  }
+  return { fill, minAge, maxAge, activeOnly };
 }
 
 function parseCarPerformance(cars: unknown): CarPerformance | null | undefined {
@@ -384,5 +461,15 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   if (settings.teamNames !== null) {
     lines.push({ name: "Team names", value: "Keep the first" });
   }
+  if (settings.teamsAndSeats !== null) {
+    lines.push({ name: "Teams and seats", value: teamsAndSeatsLabel(settings.teamsAndSeats) });
+  }
   return lines;
+}
+
+/** What the reader is shown for a Teams and seats answer. */
+export function teamsAndSeatsLabel(rules: EmptySeatRules): string {
+  const fill = rules.fill === "best" ? "best available" : "previous year's drivers first";
+  const active = rules.activeOnly ? " · active drivers only" : "";
+  return `Keep the starting grid · ${fill} · ages ${rules.minAge}–${rules.maxAge}${active}`;
 }

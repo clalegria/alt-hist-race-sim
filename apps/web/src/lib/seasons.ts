@@ -20,7 +20,9 @@ import {
   type SeasonChassis,
   type SeasonSeed,
   seasonSeed,
+  seatedSeason,
 } from "@alt-hist/data";
+import type { World } from "../store/season.js";
 
 /** The earliest and latest years the picker draws. Not what has seed data. */
 export const FIRST_SEASON = 1950;
@@ -85,8 +87,36 @@ export { seasonSeed };
  * starting point and never reads as the reader's edit.
  */
 export function seasonWithChassis(year: number, chassis: SeasonChassis | null): SeasonSeed {
-  const season = seasonSeed(year);
+  return withChassis(seasonSeed(year), chassis);
+}
+
+export function withChassis(season: SeasonSeed, chassis: SeasonChassis | null): SeasonSeed {
   return chassis === null ? season : applyChassis(season, chassis);
+}
+
+/** What `enteredSeason` reads: a `World`, or the revealed one a page holds. */
+type EnteredInputs = Pick<World, "year" | "baselineChassis" | "kept" | "keptSeats">;
+
+const enteredSeasons = new WeakMap<EnteredInputs, SeasonSeed>();
+
+/**
+ * The season as the run entered this world's year, which every "was this
+ * edited?" compares against: the editor's Restore, the change notices. The seed
+ * file with any rolled chassis; under Keep, the kept year with its signings.
+ * Memoised per world, since worlds are never mutated, so a component reading it
+ * gets the same object every render.
+ */
+export function enteredSeason(world: EnteredInputs): SeasonSeed {
+  const known = enteredSeasons.get(world);
+  if (known !== undefined) {
+    return known;
+  }
+  const season =
+    world.kept === null || world.keptSeats === null
+      ? seasonWithChassis(world.year, world.baselineChassis)
+      : seatedSeason(withChassis(world.kept.season, world.baselineChassis), world.keptSeats);
+  enteredSeasons.set(world, season);
+  return season;
 }
 
 /**

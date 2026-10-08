@@ -32,14 +32,22 @@ import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import {
   driverPoolOf,
   HISTORICAL_SETTINGS,
+  OPENING_SEAT_RULES,
   pointsTables,
   type RunSettings,
   rolledChassisOf,
   samePoints,
   settingsInForce,
 } from "../lib/run-settings.js";
-import { isPlayable, nextEraYear, PLAYABLE_SEASONS, seasonWithChassis } from "../lib/seasons.js";
+import {
+  enteredSeason,
+  isPlayable,
+  nextEraYear,
+  PLAYABLE_SEASONS,
+  seasonWithChassis,
+} from "../lib/seasons.js";
 import type { Place } from "../lib/timeline.js";
+import { FOLDING_YEAR } from "../test-support.js";
 import {
   crowned,
   cursorPlace,
@@ -48,6 +56,7 @@ import {
   isUntouched,
   type Run,
   racedChassis,
+  racedLineup,
   useSeasonStore,
   type World,
 } from "./season.js";
@@ -1185,5 +1194,95 @@ describe("an untouched era", () => {
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
     useSeasonStore.getState().restartEra();
     expect(untouched()).toBe(true);
+  });
+});
+
+describe("the starting grid kept for an era", () => {
+  const keep: RunSettings = { ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES };
+  const FROM = FOLDING_YEAR.year;
+
+  /** The first three years of an era from the year before a team folds, by stepping. */
+  function threeYears(settings: RunSettings): readonly World[] {
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, settings);
+    jumpThrough(FROM);
+    useSeasonStore.getState().continueRun();
+    jumpThrough(running().world.year);
+    useSeasonStore.getState().continueRun();
+    const { run, world } = running();
+    return [...run.seasons, world];
+  }
+
+  it("enters every year with the first year's teams, at no more than their first-year cars", () => {
+    const years = threeYears(keep);
+    const seats = new Map(seasonSeed(FROM).entries.map((entry) => [entry.teamId, entry.drivers]));
+    for (const world of years) {
+      expect(world.gridKeptFrom, `${world.year}`).toBe(FROM);
+      for (const [teamId, drivers] of Object.entries(racedLineup(world))) {
+        expect(seats.has(teamId), `${world.year} ${teamId}`).toBe(true);
+        expect(drivers.length).toBeLessThanOrEqual(seats.get(teamId)?.length ?? 0);
+      }
+    }
+    expect(years[0]?.kept).toBeNull();
+  });
+
+  it("races a team that folded on as a ghost entry", () => {
+    const [, second] = threeYears(keep);
+    expect(second?.kept?.ghosts).toHaveProperty(FOLDING_YEAR.teamId);
+  });
+
+  it("makes the kept grid the year's starting point, not an edit", () => {
+    for (const world of threeYears(keep)) {
+      expect(world.lineup, `${world.year}`).toBeNull();
+      expect(authoredLineup(enteredSeason(world))).toEqual(racedLineup(world));
+    }
+  });
+
+  it("records nothing when the teams are as they happened", () => {
+    for (const world of threeYears(HISTORICAL_SETTINGS)) {
+      expect(world, `${world.year}`).toMatchObject({
+        gridKeptFrom: null,
+        kept: null,
+        keptSeats: null,
+      });
+    }
+  });
+
+  it("keeps the kept year through a new grid and a restart, and the era's restart drops it", () => {
+    const kept = threeYears(keep).at(-1)?.kept;
+    expect(kept).not.toBeNull();
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.kept).toEqual(kept);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.kept).toEqual(kept);
+    useSeasonStore.getState().restartEra();
+    expect(running().world).toMatchObject({ year: FROM, gridKeptFrom: FROM, kept: null });
+  });
+
+  it("reaches the same third year by jumping as by stepping", () => {
+    const stepped = threeYears(keep).at(-1);
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, keep);
+    useSeasonStore.getState().jumpTo({ year: stepped?.year ?? FROM, beat: { kind: "grid" } });
+    expect(running().world).toEqual(stepped);
+  });
+
+  it("arranges the kept grid when a bulk rule is kept", () => {
+    const rule: GridArrangement = {
+      kind: "fastest-in-fastest",
+      includeUnemployed: false,
+      filters: DEFAULT_DRIVER_FILTERS,
+      retain: true,
+    };
+    useSeasonStore.getState().simulateEra(5, FROM, undefined, keep);
+    useSeasonStore.getState().setGrid(null, null, rule);
+    skipToEnd();
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().continueRun();
+    const next = running().world;
+    expect(next.arrangement).toEqual(rule);
+    expect(Object.keys(next.lineup ?? {}).sort()).toEqual(
+      enteredSeason(next)
+        .entries.map((entry) => entry.teamId)
+        .sort(),
+    );
   });
 });

@@ -107,6 +107,8 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   `car-development.md`.
 - **Retirement factor**: a season's 1–10 dial for how hard the year is on its cars.
   `retirement-factor.md`.
+- **Ghost entry**: under *Keep the starting grid*, a start-year team history has dropped,
+  racing its last real car. `teams-and-seats.md`.
 - **Wetness**: how wet a wet round is, a range not a switch. `wet-weather.md`.
 - **Randomness level**: 1–5, fixed before a run. `DEFAULT_RANDOMNESS_LEVEL` (1) is the
   reference every harness uses; only level 2 is unscaled; the app opens on 2.

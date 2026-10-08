@@ -50,8 +50,8 @@ screen draws no *Varies from* row (the component keeps the era's answer while op
 - `variedChassis(season, spread, rng, from)` takes those cars as `from`, and draws the
   same numbers whatever `from` holds.
 - `World.walkedFrom` records the cars it moved off (null unless walking, and in a first
-  year), the `namesKeptFrom` pattern: `nextEraWorld` passes `racedChassis(last)` to
-  `createWorld`'s last argument, and every action that rebuilds a year in place
+  year), the `namesKeptFrom` pattern: `nextEraWorld` passes `racedChassis(last)` as
+  `createWorld`'s `era.lastRaced`, and every action that rebuilds a year in place
   (`setGrid`, `setRatingMode`, `restartSeason`, `nextLineup`) passes the world's own on.
   `restartEra` passes null. The recipe does not store it: `rebuild` hands each world the
   one rebuilt before it.

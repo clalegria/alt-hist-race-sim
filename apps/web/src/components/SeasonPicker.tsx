@@ -18,6 +18,7 @@ import { RandomnessSlider } from "./RandomnessSlider.js";
 import { ReliabilitySetting } from "./ReliabilitySetting.js";
 import { RunSettingsCard, RunSettingsGroup } from "./RunSettingsCard.js";
 import { TeamNamesSetting } from "./TeamNamesSetting.js";
+import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
 import { Button } from "./ui/button.js";
 import { YearPicker } from "./YearPicker.js";
 
@@ -174,6 +175,12 @@ export function SeasonPicker({
               teamNames={settings.teamNames}
               onChange={(teamNames) => {
                 changeSettings({ ...settings, teamNames });
+              }}
+            />
+            <TeamsAndSeatsSetting
+              teamsAndSeats={settings.teamsAndSeats}
+              onChange={(teamsAndSeats) => {
+                changeSettings({ ...settings, teamsAndSeats });
               }}
             />
           </RunSettingsGroup>

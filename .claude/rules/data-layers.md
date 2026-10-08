@@ -3,6 +3,7 @@ paths:
   - "packages/data/src/buildField.ts"
   - "packages/data/src/lineup.ts"
   - "packages/data/src/carryOver.ts"
+  - "packages/data/src/keptGrid.ts"
   - "packages/data/src/arrange.ts"
   - "packages/data/src/people.ts"
   - "packages/data/src/engines.ts"
@@ -132,3 +133,7 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   one that gained a car fills the rest under (2). `CARRY_OVER_AGES` (16–55, against
   real age in the season, never peak age) is the one judgement in the file — a driver
   outside it is not carried, but can still be placed by hand.
+- `keptGrid.ts` builds a year under *Teams and seats: Keep the starting grid* — the start
+  year's teams on this year's cars, ghost entries, last year's drivers carried and empty
+  seats signed. It shares `strongestOf` with `carryOver.ts` and `teamsByCar` / `byOverall`
+  with `arrange.ts`. `.claude/rules/teams-and-seats.md`.

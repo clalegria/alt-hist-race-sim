@@ -20,9 +20,15 @@ import {
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
-import { HISTORICAL_SETTINGS, pointsTables, samePoints } from "../lib/run-settings.js";
+import {
+  HISTORICAL_SETTINGS,
+  OPENING_SEAT_RULES,
+  pointsTables,
+  samePoints,
+} from "../lib/run-settings.js";
 import { FIRST_SEASON, nextEraYear, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { nextSeed } from "../lib/seed.js";
+import { FOLDING_YEAR } from "../test-support.js";
 import { fingerprint, RECIPE_VERSION, recipeOf, runFromRecipe } from "./recipe.js";
 import { createWorld, type Run, useSeasonStore } from "./season.js";
 
@@ -136,6 +142,7 @@ describe("a run rebuilt from its recipe", () => {
       points: other,
       careerEvents: "none",
       teamNames: "first",
+      teamsAndSeats: OPENING_SEAT_RULES,
     });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
@@ -181,6 +188,27 @@ describe("a run rebuilt from its recipe", () => {
     crown(YEAR);
     expect(current().cursor.kind).toBe("review");
     expect(roundTrip(current())).toEqual(current());
+  });
+});
+
+describe("an era that keeps its starting grid", () => {
+  const keep = { ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES };
+
+  it("rebuilds a year with a ghost entry in it", () => {
+    useSeasonStore.getState().simulateEra(9, FOLDING_YEAR.year, undefined, keep);
+    useSeasonStore.getState().jumpTo({ year: FOLDING_YEAR.year + 1, beat: { kind: "grid" } });
+    expect(current().world.kept?.ghosts).toHaveProperty(FOLDING_YEAR.teamId);
+    expect(roundTrip(current())).toEqual(current());
+  });
+
+  it("refuses rules this build would not offer", () => {
+    useSeasonStore.getState().simulateEra(9, FOLDING_YEAR.year, undefined, keep);
+    const recipe = stored(current());
+    recipe.worlds[0] = {
+      ...recipe.worlds[0],
+      settings: { ...keep, teamsAndSeats: { ...OPENING_SEAT_RULES, maxAge: 99 } },
+    };
+    expect(runFromRecipe(recipe)).toBeNull();
   });
 });
 

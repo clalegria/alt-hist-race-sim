@@ -43,6 +43,7 @@ import {
   readDriverFilters,
   rememberDriverFilters,
 } from "../lib/filter-preference.js";
+import type { KeptNotes } from "../lib/kept.js";
 import {
   AGE_RANGE,
   type DriverFilters,
@@ -558,6 +559,8 @@ export function GridStage({
   engines,
   chassis = null,
   baselineChassis = null,
+  runSeason = null,
+  kept = null,
   arrangement = null,
   inEra = false,
   previousLineup = null,
@@ -582,6 +585,14 @@ export function GridStage({
    * back and every change is measured from (`World.baselineChassis`).
    */
   baselineChassis?: SeasonChassis | null;
+  /**
+   * The season as the run entered it when that is not the seed file with
+   * `baselineChassis` in it — under *Keep the starting grid*, the kept year
+   * with its signings (`enteredSeason`) — or null. Restore puts it back.
+   */
+  runSeason?: SeasonSeed | null;
+  /** What *Keep the starting grid* did to the year (`keptNotes`), or null. */
+  kept?: KeptNotes | null;
   /**
    * The bulk rule the applied grid was arranged by, or null for one nobody
    * rearranged.
@@ -627,7 +638,10 @@ export function GridStage({
    */
   onEditingChange?: (editing: boolean) => void;
 }) {
-  const season = useMemo(() => seasonWithChassis(year, baselineChassis), [year, baselineChassis]);
+  const season = useMemo(
+    () => runSeason ?? seasonWithChassis(year, baselineChassis),
+    [runSeason, year, baselineChassis],
+  );
   // History's chassis, for the popover to set beside the run's own. Only when
   // the run rolled its own: otherwise the two are one and there is nothing to show.
   const historicalChassis = useMemo(
@@ -1018,6 +1032,7 @@ export function GridStage({
           chassisChanges={rerated}
           historicalChassis={historicalChassis}
           arrangement={shownArrangement}
+          kept={kept}
           openSeats={open.length}
           {...(locked ? {} : { action })}
           ratingMode={ratingMode}

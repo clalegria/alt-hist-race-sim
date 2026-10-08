@@ -4,7 +4,7 @@ What-if settings chosen on the setup screen before a run starts, beside Randomne
 performance, career events, team names, teams and seats, breakdowns, reliability and
 points. The Races group — breakdowns, reliability, points —, the Cars group — car
 performance, varied from the real car or the previous year's, or at random —, the Drivers group — career events —,
-team names and the plumbing every setting shares (`World.settings`, the Run settings
+team names, teams and seats filled automatically, and the plumbing every setting shares (`World.settings`, the Run settings
 card) are built and documented in `.claude/rules/web-setup.md`, `web-store.md`,
 `car-performance.md`, `data-layers.md`, `team-eras.md` and `retirement-factor.md`; the
 rest is design intent. Where it sits in the build order is *run settings* in
@@ -33,16 +33,13 @@ first, in `era-basic`, and the advanced era inherits them.
 
 ## 2. Presentation and naming
 
-**PROPOSED** — the era setup's remaining rows:
-
-```
- ─ Teams over the years (Team names built) ────────────────────────────
-  Teams and seats   [ As they happened | Keep the starting grid ]
-```
-
 - **One segmented control per setting** (`SettingSegments`), so every row reads
-  historical-versus-what-if the same way, and a third option (random careers, an
-  intermediate grid) is one more segment.
+  historical-versus-what-if the same way, and a third option is one more segment.
+- **DECIDED** — *Teams and seats* gains one row under Keep, above the built ones:
+  *Empty seats* `[ I fill them | Filled automatically ]`, *I fill them* first. Under
+  *I fill them* the *Filled with* row and the active-only box go; *Driver ages* stays,
+  since it still decides who is carried. The built rows are
+  `.claude/rules/web-setup.md`.
 
 ## 3. Car performance from previous year's car
 
@@ -54,32 +51,18 @@ The walk is built (`.claude/rules/car-performance.md`), as a plain walk.
 
 ## 4. Teams and seats
 
-- **DECIDED** — As they happened / Keep the starting grid. Keep means every year has the
-  start year's teams, each with its start-year seat count. Teams new in history never
-  appear; their drivers are in the pool without a seat.
-- **DECIDED** — Empty seats are filled **by the reader**. Continue is disabled until they
-  are, with the reason on the button. **Jump to… stays, and stops at the first grid with
-  an empty seat** ("Stopped at 2010: two seats need a driver") — a deliberate exception
-  to a jump target being refused rather than clamped (`.claude/rules/web-era.md`).
-- **PROPOSED** — Building year N's entry list, in `packages/data` beside `carryOver.ts`:
-  - A team with a year-N entry takes its chassis, engine and drivers. Over its start
-    seat count, the weakest by the ranking rule drop out; under it, seats are empty.
-  - A team history removed (Toyota in 2010) is a **ghost entry**: last year's raced
-    drivers wherever they are still free, an empty seat otherwise. A seat the reader
-    filled stays filled until history claims that driver elsewhere.
-- **OPEN** — A ghost team's car. Recommendation: **it keeps its place in the pecking
-  order**, taking the chassis and engine of the team at its rank in last season's order,
-  so it neither freezes at its last level nor jumps to the front. Under *previous year's car*
-  it walks from its own last car instead. The alternative, freezing its last raced car,
-  falls behind as the field develops.
-- **PROPOSED** — **A grid waiting for drivers is a new run state.** `createWorld`
-  simulates on the spot and needs a full lineup, so the era variant gains a pending year
-  (year, seed, entry list, draft). The grid page opens the editor on it, Apply builds the
-  world, and nothing past the grid is reachable. The recipe stores a pending year without
-  a `check`. The most invasive step, so it is built last.
-- **OPEN** — A driver in a ghost seat never retires (`finalSeason` is informational, and
-  carry-over stops only at 55). Accept it in era-basic and leave it to the advanced
-  era's Retirement setting?
+Built with its automatic fills (`.claude/rules/teams-and-seats.md`). What is left is
+*I fill them*, the `"reader"` fill `keptYear` and `fillSeats` already support.
+
+- **DECIDED** — Carry-over still runs, and any hole makes the next year a **pending
+  year** (`{ year, seed, kept, draft }`). `createWorld` needs a full lineup, so the grid
+  page opens the editor on it and Apply builds the world; nothing past the grid is
+  reachable. Continue is disabled with the reason on the button; **Jump to… stops at the
+  first pending grid** ("Stopped at 2010: two seats need a driver"), a deliberate
+  exception to a jump target being refused rather than clamped
+  (`.claude/rules/web-era.md`). The recipe stores a pending year without a `check`. A
+  driver placed by hand is never barred by the band.
+- `OFFERED_SEAT_FILLS` gains `"reader"`, so `parseRunSettings` accepts it.
 
 ## 5. Which screen
 
@@ -91,8 +74,7 @@ The walk is built (`.claude/rules/car-performance.md`), as a plain walk.
 
 ## 6. Build order
 
-One session each, in order; each ends green and documented in `.claude/rules/`, leaving
-this file smaller.
+One session; it ends green and documented in `.claude/rules/`, and this file keeps only §3.
 
-1. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
-   and the jump stopping early.
+1. **I fill them**: the *Empty seats* row, the pending year, Continue gated, the jump
+   stopping early.

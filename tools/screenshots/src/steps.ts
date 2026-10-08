@@ -179,6 +179,8 @@ export const STEPS: readonly Step[] = [
         .getByRole("button", { name: "None", exact: true })
         .click();
       await button(page, "Keep the first").click();
+      // Keep the starting grid, so the year jumped to below races ghost entries.
+      await button(page, "Keep the starting grid").click();
       await page
         .getByRole("group", { name: "Car performance" })
         .getByRole("button", { name: "Varied", exact: true })
@@ -257,6 +259,19 @@ export const STEPS: readonly Step[] = [
       await button(page, `Simulate through ${YEAR + 1}`).click();
       await page.waitForURL(`**/run/${YEAR + 1}`);
       await cursorAt(page, `${YEAR + 1} · Season summary`);
+    },
+  },
+  {
+    name: "era-kept-grid",
+    reach: async (page) => {
+      // The year after the start under Keep the starting grid: ghost entries
+      // and the note saying what was kept.
+      await page
+        .getByRole("navigation", { name: "Season" })
+        .getByRole("link", { name: "Grid", exact: true })
+        .click();
+      await page.waitForURL(`**/run/${YEAR + 1}?tab=grid`);
+      await page.getByText(`Kept from ${YEAR}`).first().waitFor();
     },
   },
   {
