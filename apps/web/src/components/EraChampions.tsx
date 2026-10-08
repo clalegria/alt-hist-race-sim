@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import { eraChampions, eraSpan, type SeasonChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
@@ -12,6 +11,7 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
+import { PageLink } from "./PageLink.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
@@ -48,7 +48,7 @@ export function ChampionRow({
   latest: boolean;
   open: boolean;
   onToggle: () => void;
-  /** The season page of a year, for the foot of its panel. Absent in a test without a router. */
+  /** The season page of a year, beside the year. Absent in a test without a router. */
   seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
   return (
@@ -60,9 +60,15 @@ export function ChampionRow({
       <Liveries year={season.year}>
         <TableRow className={cn(latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}>
           <TableCell className="font-semibold tabular-nums">
-            <DisclosureButton open={open} onToggle={onToggle}>
-              {season.year}
-            </DisclosureButton>
+            {/* The year opens the panel; the icon beside it goes to its page. */}
+            <span className="flex items-center gap-1">
+              <DisclosureButton open={open} onToggle={onToggle}>
+                {season.year}
+              </DisclosureButton>
+              {seasonLink === undefined ? null : (
+                <PageLink link={seasonLink(season.year)} label={`${season.year} season page`} />
+              )}
+            </span>
           </TableCell>
           <TableCell>
             {/*
@@ -123,17 +129,6 @@ export function ChampionRow({
                   points={season.world.points}
                   description="Final classification."
                 />
-                {/* The panel first, the page second, as the career panels do. */}
-                {seasonLink === undefined ? null : (
-                  <p className="text-right text-sm">
-                    <Link
-                      {...seasonLink(season.year)}
-                      className="text-primary font-medium underline-offset-4 hover:underline"
-                    >
-                      {season.year} season page →
-                    </Link>
-                  </p>
-                )}
               </div>
             </TableCell>
           </TableRow>
@@ -220,7 +215,9 @@ export function RollOfHonour({
               />
             </Fragment>
           ))}
-          {inProgress === null ? null : <InProgressRow world={inProgress} />}
+          {inProgress === null ? null : (
+            <InProgressRow world={inProgress} seasonLink={seasonLink} />
+          )}
         </TableBody>
       </Table>
     </Card>
@@ -232,7 +229,14 @@ export function RollOfHonour({
  * championship as far as the reader has got. Muted and never opened — it is a
  * season still being written, not a row of the record, so it takes no accent.
  */
-export function InProgressRow({ world }: { world: RevealedWorld }) {
+export function InProgressRow({
+  world,
+  seasonLink,
+}: {
+  world: RevealedWorld;
+  /** The year's season page, beside the year. Absent in a test without a router. */
+  seasonLink?: ((year: number) => RunLink) | undefined;
+}) {
   const leaders = useMemo(() => eraChampions([world])[0], [world]);
   const raced = world.season.races.length;
   return (
@@ -241,7 +245,12 @@ export function InProgressRow({ world }: { world: RevealedWorld }) {
         <TableRow className="hover:bg-transparent">
           <TableCell>
             <span className="flex flex-col leading-tight">
-              <span className="font-semibold tabular-nums">{world.year}</span>
+              <span className="flex items-center gap-1">
+                <span className="font-semibold tabular-nums">{world.year}</span>
+                {seasonLink === undefined ? null : (
+                  <PageLink link={seasonLink(world.year)} label={`${world.year} season page`} />
+                )}
+              </span>
               <span className="text-muted-foreground text-xs">
                 {raced === 0 ? "on the grid" : `in progress, leaders after round ${raced}`}
               </span>

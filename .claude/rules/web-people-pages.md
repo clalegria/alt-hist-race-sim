@@ -72,11 +72,12 @@ the id; *name* is A to Z, then the id.
 
 ## Ways in
 
-The root crumb's **Run sections** menu (`.claude/rules/web-run-bar.md`); *Full page →*
-on every career panel and on the grid's driver and team popovers, the editor shut
-(`usePageOf` in `SeasonHistory.tsx`); *All drivers → / All teams →* over the era's
-career statistics. All of them draw only inside the run's frame, so a test without a
-router sees none.
+The root crumb's **Run sections** menu (`.claude/rules/web-run-bar.md`); the page icon
+(`PageLink`) beside the name in every career panel's heading and in the grid's driver
+and team popovers, the editor shut (`usePageOf` in `SeasonHistory.tsx`); *All drivers →
+/ All teams →* over the era's career statistics. All of them draw only inside the run's
+frame, so a test without a router sees none. The same `pageOf` carries `season(year)`,
+the icon beside each year on these pages and on a panel's year lines.
 
 ## Testing
 

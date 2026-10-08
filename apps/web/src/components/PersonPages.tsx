@@ -35,8 +35,9 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
+import { PageLink } from "./PageLink.js";
 import { RaceByRace } from "./RaceByRace.js";
-import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
+import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -132,6 +133,8 @@ export function CareerSeasons({
   const [open, setOpen] = useState<ReadonlySet<number>>(
     () => new Set(years.length === 0 ? [] : [years[0]?.year ?? 0]),
   );
+  // Each year's season page, inside the run's frame; none in a test without one.
+  const pageOf = usePageOf();
   const columns = 3 + FIGURES.length;
   return (
     <Card>
@@ -160,20 +163,28 @@ export function CareerSeasons({
                 <EntryNames field={each.world.field}>
                   <TableRow className={cn(isOpen && "bg-muted/60")}>
                     <TableCell>
-                      <DisclosureButton
-                        open={isOpen}
-                        onToggle={() => {
-                          const next = new Set(open);
-                          if (isOpen) {
-                            next.delete(each.year);
-                          } else {
-                            next.add(each.year);
-                          }
-                          setOpen(next);
-                        }}
-                      >
-                        <span className="font-medium tabular-nums">{each.year}</span>
-                      </DisclosureButton>
+                      <span className="flex items-center gap-1">
+                        <DisclosureButton
+                          open={isOpen}
+                          onToggle={() => {
+                            const next = new Set(open);
+                            if (isOpen) {
+                              next.delete(each.year);
+                            } else {
+                              next.add(each.year);
+                            }
+                            setOpen(next);
+                          }}
+                        >
+                          <span className="font-medium tabular-nums">{each.year}</span>
+                        </DisclosureButton>
+                        {pageOf === null ? null : (
+                          <PageLink
+                            link={pageOf.season(each.year)}
+                            label={`${each.year} season page`}
+                          />
+                        )}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="flex flex-col gap-0.5">

@@ -20,7 +20,6 @@
  * rendered on its own gets, which is how most of this app is tested.
  */
 
-import { Link } from "@tanstack/react-router";
 import { createContext, useContext, useMemo } from "react";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
@@ -38,9 +37,11 @@ import {
 import { driverCountry, driverName } from "../lib/names.js";
 import type { TalliedYear } from "../lib/reveal.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
+import type { RunLink } from "../lib/run-places.js";
 import { cn } from "../lib/utils.js";
 import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
+import { PageLink } from "./PageLink.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 /** The run's careers, and where each one's page is — null outside a router. */
@@ -83,19 +84,6 @@ export function usePageOf(): PageOf | null {
 }
 
 /**
- * The way from a panel to the page behind it. The panel is the quick look and
- * the page the whole story, so every panel ends on this, at its foot, where a
- * reader who has read it is.
- */
-export function FullPageLink({ link }: { link: RosterLink }) {
-  return (
-    <Link {...link} className="text-primary text-xs font-medium hover:underline">
-      Full page →
-    </Link>
-  );
-}
-
-/**
  * How a name with a panel behind it behaves: nothing at rest, a soft fill under
  * the cursor or the keyboard focus, held open while the panel is.
  *
@@ -132,16 +120,24 @@ function HistoryLine({
   middle,
   season,
   lineup,
+  seasonLink,
 }: {
   middle: string;
   season: SeasonFigures;
   /** Who drove the cars, on a team's panel. Empty everywhere else. */
   lineup?: readonly LineupEntry[];
+  /** The year's season page; absent outside an era. */
+  seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
   return (
     <li className="border-border/60 border-t py-1.5 first:border-t-0 first:pt-0">
       <div className="flex items-baseline gap-2">
-        <span className="w-9 shrink-0 text-xs font-medium tabular-nums">{season.year}</span>
+        <span className="w-14 shrink-0 text-xs">
+          <span className="font-medium tabular-nums">{season.year}</span>
+          {seasonLink === undefined ? null : (
+            <PageLink link={seasonLink(season.year)} label={`${season.year} season page`} />
+          )}
+        </span>
         <span className="min-w-0 flex-1 truncate text-sm">{middle}</span>
         <span
           className={cn(
@@ -156,9 +152,9 @@ function HistoryLine({
         Indented to start under the middle column rather than under the year, so
         a panel reads as two columns and not as ragged prose.
       */}
-      <div className="text-muted-foreground pl-11 text-xs">{figuresLine(season)}</div>
+      <div className="text-muted-foreground pl-16 text-xs">{figuresLine(season)}</div>
       {lineup === undefined || lineup.length === 0 ? null : (
-        <div className="text-muted-foreground pl-11 text-xs">
+        <div className="text-muted-foreground pl-16 text-xs">
           {lineup.map((driver, index) => (
             <span key={driver.label}>
               {index === 0 ? null : " · "}
@@ -212,17 +208,17 @@ function HistoryPanel({
         <span className="flex min-w-0 items-center gap-1.5">
           {country === undefined ? null : <Flag country={country} title={country} />}
           <span className="min-w-0 truncate font-semibold">{name}</span>
+          {/*
+            Beside the name rather than at the panel's foot: the name is whose
+            page it is, and where the reader is looking when they want it.
+          */}
+          {page === null ? null : <PageLink link={page} label={`${name}'s page`} />}
         </span>
         <span className="text-muted-foreground shrink-0 text-xs">
           {count(seasons, "season", "seasons")}
         </span>
       </div>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>
-      {page === null ? null : (
-        <div className="border-border border-t px-4 py-2 text-right">
-          <FullPageLink link={page} />
-        </div>
-      )}
     </PopoverContent>
   );
 }
@@ -280,6 +276,7 @@ export function DriverHistory({
             key={season.year}
             middle={teamNameIn(season.teamId, season.year)}
             season={season}
+            seasonLink={pageOf?.season}
           />
         ))}
       </HistoryPanel>
@@ -332,6 +329,7 @@ export function TeamHistory({
             middle={teamNameIn(teamId, season.year)}
             season={season}
             lineup={lineupOf(season)}
+            seasonLink={pageOf?.season}
           />
         ))}
       </HistoryPanel>

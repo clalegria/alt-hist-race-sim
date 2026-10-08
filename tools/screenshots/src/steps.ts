@@ -370,13 +370,13 @@ export const STEPS: readonly Step[] = [
         .click();
       await page.waitForURL("**/run");
       await page.locator('[aria-haspopup="dialog"]').first().click();
-      await page.getByRole("link", { name: "Full page →" }).waitFor();
+      await page.getByRole("link", { name: /'s page$/ }).waitFor();
     },
   },
   {
     name: "career-full-page",
     reach: async (page) => {
-      await page.getByRole("link", { name: "Full page →" }).click();
+      await page.getByRole("link", { name: /'s page$/ }).click();
       await page.waitForURL(/\/run\/(driver|team)\//);
       await page.getByRole("heading", { name: "Season by season" }).waitFor();
     },

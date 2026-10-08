@@ -17,6 +17,7 @@ import { inRouter } from "../test-router.js";
 import { seededWorld, YEAR } from "../test-support.js";
 import { DriverPage, TeamPage } from "./PersonPages.js";
 import { RosterIndex } from "./RosterIndex.js";
+import { SeasonHistoryProvider } from "./SeasonHistory.js";
 
 const first = seededWorld(3, "aged", YEAR);
 const second = seededWorld(4, "aged", YEAR + 1);
@@ -89,6 +90,22 @@ describe("a driver's page", () => {
     );
     expect(html).toContain("On the grid");
     expect(html).toContain("No races yet");
+  });
+
+  it("links each year's row to that year's season page, inside the run's frame only", async () => {
+    const driverId = twoYears?.driverId ?? "";
+    const years = (rosterOf(midSeason).drivers.get(driverId) ?? []).map((each) => each.year);
+    const html = await inRouter(
+      <SeasonHistoryProvider seasons={midSeason} pageOf={PAGE_OF}>
+        <DriverPage years={midSeason} driverId={driverId} />
+      </SeasonHistoryProvider>,
+    );
+    expect(years.length).toBeGreaterThan(1);
+    for (const year of years) {
+      expect(html.split(`href="/run/${year}"`).length - 1, `${year}`).toBe(1);
+    }
+    const bare = renderToStaticMarkup(<DriverPage years={midSeason} driverId={driverId} />);
+    expect(bare).not.toContain("<a ");
   });
 });
 

@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { eraChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import { revealYear } from "../lib/reveal.js";
-import { linkTo } from "../lib/run-places.js";
+import { PAGE_OF } from "../lib/roster-places.js";
 import { seasonTabLinks } from "../lib/season-tabs.js";
 import { roundPages, sessionNav } from "../lib/session-nav.js";
 import type { Beat } from "../lib/timeline.js";
@@ -205,7 +205,24 @@ describe("the links out of an opened row", () => {
     expect(qualifying).toEqual([MID + 1]);
   });
 
-  it("lead from a crowned year to its season page", async () => {
+  it("lead from every year of the roll of honour to its season page, without opening it", async () => {
+    // The row itself carries the link, so a closed row has it too — the
+    // crowned years and the year in progress alike, one link apiece.
+    const next = seededWorld(4, "aged", YEAR + 1);
+    const html = await inRouter(
+      <EraChampions
+        run={{ startYear: YEAR, seasons: [world] }}
+        inProgress={revealYear(next, { kind: "race", round: 0 })}
+        seasonLink={PAGE_OF.season}
+      />,
+    );
+    expect(html).not.toContain('aria-expanded="true"');
+    for (const year of [YEAR, YEAR + 1]) {
+      expect(count(html, `href="/run/${year}"`), `${year}`).toBe(1);
+    }
+  });
+
+  it("leave an opened year's panel to the tables, the link staying on its row", async () => {
     const champions = eraChampions([world])[0];
     if (champions === undefined) {
       throw new Error("no season to crown");
@@ -218,12 +235,13 @@ describe("the links out of an opened row", () => {
             latest
             open
             onToggle={() => {}}
-            seasonLink={(year) => linkTo({ year, beat: { kind: "summary" } })}
+            seasonLink={PAGE_OF.season}
           />
         </tbody>
       </table>,
     );
-    expect(html).toContain(`href="/run/${YEAR}"`);
+    expect(count(html, `href="/run/${YEAR}"`)).toBe(1);
+    expect(html).not.toContain("season page →");
   });
 
   it("are not drawn without the links, as in a test with no router", () => {

@@ -80,7 +80,10 @@ drawn alone with a `label`, because the name beside it opens the career panel �
 two-control row in `.claude/rules/web-careers.md`. One component for it, because the
 calendar and the roll of honour open the same way and three copies of the markup drifted.
 The chevron is a text glyph, not an SVG, because a test counts one flag per row by
-counting `<svg>`.
+counting `<svg>`. For the same reason **the page icon** (`PageLink`, the one way from a
+name or a year to its page) is drawn by the stylesheet as a mask over `currentColor`
+(`.page-link-icon` in `index.css`), not as markup. It sits beside the chevron, never
+inside it: a link cannot go inside a button.
 
 A driver's panel is a row per round; **a team's is a row per _car_** — one, two or three
 of them — with the round columns written once and blanked on the cars beneath, so a

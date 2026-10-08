@@ -53,13 +53,18 @@ export type RosterLink =
   | ReturnType<typeof driverLink>
   | ReturnType<typeof teamLink>;
 
-/** Where a person's page is, for anything that links to one. */
+/** Where a person's page is, and a year's, for anything that links to one. */
 export interface PageOf {
   readonly driver: (driverId: string) => RosterLink;
   readonly team: (teamId: string) => RosterLink;
+  readonly season: (year: number) => RunLink;
 }
 
-export const PAGE_OF: PageOf = { driver: driverLink, team: teamLink };
+export const PAGE_OF: PageOf = {
+  driver: driverLink,
+  team: teamLink,
+  season: (year) => linkTo({ year, beat: { kind: "summary" } }),
+};
 
 /** Which people page, and whose. */
 export interface RosterLocation {

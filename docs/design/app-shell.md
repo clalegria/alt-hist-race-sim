@@ -104,7 +104,7 @@ through a door that cuts the run at the cursor, and passes props to a component.
 ## 7. Names: panel first, page second
 
 - **DECIDED** — One affordance everywhere: a driver or team name opens its career
-  panel, and the panel ends on *Full page →*. A name never navigates directly — except
+  panel, and the panel's heading carries the page icon to the page. A name never navigates directly — except
   on the two index lists, which are directories. A driver's team line belongs to the
   driver's name. Built, every table of a run included (`.claude/rules/web-careers.md`).
 

@@ -118,8 +118,9 @@ championship tables and the calendar use. The panel is `SeasonStandings`, which 
 year read out of the roll of honour and a year just finished cannot say different
 things. Its calendar comes from `seasonSeed(row.year)`, never a season fixed at import
 time, and each row of it still opens into its own race-by-race — an expansion inside an
-expansion, which is why only one year opens at a time. The panel ends with *1984 season
-page →* (`seasonLink`), the panel first and the page second, as the career panels do.
+expansion, which is why only one year opens at a time. The year's season page is the
+page icon (`PageLink`, from `seasonLink`) beside the chevron, on every row, the year in
+progress included, so it is reached without opening the row.
 
 `ChampionRow` is therefore **controlled** — the open year lives in `RollOfHonour` — so
 both states render without a DOM and without a click, the same split as the grid
