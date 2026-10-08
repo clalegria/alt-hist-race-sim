@@ -2,13 +2,11 @@
 
 What-if settings chosen on the setup screen before a run starts, beside Randomness: car
 performance, career events, team names, teams and seats, breakdowns, reliability and
-points. The Races group — breakdowns, reliability, points —, the Cars group — car
-performance, varied from the real car or the previous year's, or at random —, the Drivers group — career events —,
-team names, teams and seats filled automatically, and the plumbing every setting shares (`World.settings`, the Run settings
-card) are built and documented in `.claude/rules/web-setup.md`, `web-store.md`,
-`car-performance.md`, `data-layers.md`, `team-eras.md` and `retirement-factor.md`; the
-rest is design intent. Where it sits in the build order is *run settings* in
-`docs/ROADMAP.md`; §6 is its own build order, one step per session.
+points. All are built and documented in `.claude/rules/` (`web-setup.md`, `web-store.md`,
+`car-performance.md`, `data-layers.md`, `team-eras.md`, `teams-and-seats.md`,
+`retirement-factor.md`) except **one answer of Teams and seats, *I fill them*** — §2, §4
+and §6 are what is left. Where it sits in the build order is *run settings* in
+`docs/ROADMAP.md`.
 
 Three of these are settings `docs/design/era-advanced.md` §3 decided for the advanced
 era — the frozen grid, historical careers, random car development. They are built here
@@ -37,9 +35,9 @@ first, in `era-basic`, and the advanced era inherits them.
   historical-versus-what-if the same way, and a third option is one more segment.
 - **DECIDED** — *Teams and seats* gains one row under Keep, above the built ones:
   *Empty seats* `[ I fill them | Filled automatically ]`, *I fill them* first. Under
-  *I fill them* the *Filled with* row and the active-only box go; *Driver ages* stays,
-  since it still decides who is carried. The built rows are
-  `.claude/rules/web-setup.md`.
+  *I fill them* the *Empty seats filled with* row and the active-only box go; *Driver
+  ages* stays, since it still decides who is carried. The built rows are in
+  `.claude/rules/teams-and-seats.md`.
 
 ## 3. Car performance from previous year's car
 
@@ -49,20 +47,68 @@ The walk is built (`.claude/rules/car-performance.md`), as a plain walk.
   seasons. Whether the walk pulls back towards the authored car (mean reversion,
   `era-advanced.md` §11). Recommendation: decide after watching a long run.
 
-## 4. Teams and seats
+## 4. Teams and seats: *I fill them*
 
-Built with its automatic fills (`.claude/rules/teams-and-seats.md`). What is left is
-*I fill them*, the `"reader"` fill `keptYear` and `fillSeats` already support.
+Keep the starting grid is built with its two automatic fills — read
+`.claude/rules/teams-and-seats.md` first. What is left is the third fill, `"reader"`:
+seats history leaves empty are filled by hand. The data layer already supports it —
+`keptYear` carries last year's drivers under it, and `fillSeats` hands the seats back
+with their holes — so the work is the setup row and a run that can wait for the reader.
 
-- **DECIDED** — Carry-over still runs, and any hole makes the next year a **pending
-  year** (`{ year, seed, kept, draft }`). `createWorld` needs a full lineup, so the grid
-  page opens the editor on it and Apply builds the world; nothing past the grid is
-  reachable. Continue is disabled with the reason on the button; **Jump to… stops at the
-  first pending grid** ("Stopped at 2010: two seats need a driver"), a deliberate
-  exception to a jump target being refused rather than clamped
-  (`.claude/rules/web-era.md`). The recipe stores a pending year without a `check`. A
-  driver placed by hand is never barred by the band.
-- `OFFERED_SEAT_FILLS` gains `"reader"`, so `parseRunSettings` accepts it.
+**Setup** (`TeamsAndSeatsSetting.tsx`, `lib/run-settings.ts`)
+
+- **DECIDED** — the *Empty seats* row (§2). `OFFERED_SEAT_FILLS` gains `"reader"`, so
+  `parseRunSettings` accepts it; `SEAT_FILL_LABELS`, the note and `teamsAndSeatsLabel`
+  (the settings line) get its words.
+- **PROPOSED** — switching to Keep opens on *I fill them*, the first segment
+  (`OPENING_SEAT_RULES.fill` becomes `"reader"`), following §1's first-is-default.
+
+**The pending year** (`store/season.ts`, `lib/timeline.ts`, `lib/run-bar.ts`, the routes)
+
+- **DECIDED** — carry-over still runs (inside the age band), and a year whose kept seats
+  still have a hole after it becomes a **pending year**: the run stops at that year's
+  grid and the reader fills the holes in the grid editor. `createWorld` needs a full
+  lineup, so there is no world for the year until Apply. Nothing past the grid is
+  reachable.
+- **PROPOSED** — a third `Run` variant beside `season` and `era`: `{ kind: "pending",
+  run: EraRun, pending: { year, seed, kept, draft } }`, the year before already in
+  `run.seasons`. `nextEraWorld` (via `stepRun`) returns it instead of a world when
+  `kept.seats` has an empty seat under `"reader"` (`emptySeats` in `lineup.ts`). The seed
+  is drawn exactly as for a world (`nextSeed`), so the cars are rolled for the editor
+  to show (`baselineSeason`). A new action — `fillPending(seats, engines, chassis)` —
+  builds the world and opens the era on its grid.
+- **PROPOSED** — the reader's fills are the year's **baseline, not edits**, as the
+  automatic signings are: they become the world's `keptSeats`, passed to `createWorld`
+  through `era`. That makes `keptSeats` a player input under `"reader"`, so the recipe
+  stores it for those worlds (`.claude/rules/web-persistence.md`: an input is recorded on
+  the world it shaped). Further swaps on the same grid stay ordinary `lineup` edits.
+- **Guard** — `baselineSeason` under `"reader"` must never reach `seatedSeason` with a
+  hole: it would race the team short without telling anyone. Throw instead.
+- **DECIDED** — Continue is disabled on a pending grid, with the reason on the button
+  ("Two seats need a driver"); `runBarFor` gains that state, tested as data.
+- **DECIDED** — **Jump to… stops at the first pending grid** and says so ("Stopped at
+  2010: two seats need a driver"), a deliberate exception to a jump target being refused
+  rather than clamped (`.claude/rules/web-era.md`). `jumpRun` returns where it stopped;
+  `JumpDialog` (`components/RunDialogs.tsx`) or the page says why.
+- **PROPOSED** — a kept bulk rule (`arrangement.retain`) arranges the year after the
+  reader applies, not before, so it ranks a full grid.
+- Restart season on a pending year draws a new seed and stays pending; Restart era is
+  unchanged.
+- **DECIDED** — a driver placed by hand is never barred by the age band: the band
+  filters the editor's pool list, as everywhere else.
+
+**Reload** (`store/recipe.ts`)
+
+- A pending year is the recipe's last entry, with no `check` (no world to hash), and
+  `runFromRecipe` rebuilds it with `keptYearAfter` off the world before. Bump
+  `RECIPE_VERSION`.
+
+**Tests** — the store (an era under `"reader"` stops at a pending grid the year after a
+team folds — `FOLDING_YEAR` in `test-support.ts`; Continue does nothing there; filling
+and applying builds the year with the reader's drivers as baseline; stepping and jumping
+agree, the jump stopping at the pending grid), `runBarFor`, the recipe round trip of a
+pending run, the parse accepting `"reader"`, the setup row's states, and a
+`pnpm screenshots` shot of a pending grid. Mutation-check the guard and the jump stop.
 
 ## 5. Which screen
 
@@ -74,7 +120,10 @@ Built with its automatic fills (`.claude/rules/teams-and-seats.md`). What is lef
 
 ## 6. Build order
 
-One session; it ends green and documented in `.claude/rules/`, and this file keeps only §3.
+One session; it ends green, with §4's design moved into `.claude/rules/teams-and-seats.md`
+(and `web-era.md`, `web-run-bar.md`, `web-persistence.md` where it touches them). Then:
 
-1. **I fill them**: the *Empty seats* row, the pending year, Continue gated, the jump
-   stopping early.
+1. **I fill them** (§2, §4).
+2. **Close the item.** Teams and seats is the last run setting, so delete *Run settings*
+   from `docs/ROADMAP.md`, move §3's open question (and §5's PROPOSED *More settings*
+   disclosure, if still wanted) to `docs/DECISIONS.md`, and delete this file.
