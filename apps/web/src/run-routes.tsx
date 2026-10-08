@@ -17,7 +17,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { PendingGridPage, RunFrame, SeasonPage, Shell } from "./App.js";
+import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
 import { NotReached } from "./components/NotReached.js";
 import { DriverPage, TeamPage } from "./components/PersonPages.js";
@@ -33,7 +33,7 @@ import {
   rosterPageOf,
   teamsLink,
 } from "./lib/roster-places.js";
-import { crumbsFor, jumpStopNote, returnFor, runBarFor, stoppedShort } from "./lib/run-bar.js";
+import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import {
   isBackPastStart,
   linkTo,
@@ -116,8 +116,6 @@ export function RunPlacePage({
           link={linkTo(cursorPlace(run))}
         />
       );
-    case "pending":
-      return <PendingGridPage run={resolved.run} />;
     case "review":
       return (
         <EraChampions
@@ -233,9 +231,6 @@ export function RunLayout() {
   const exitRun = useSeasonStore((state) => state.exitRun);
   const navigate = useNavigate();
   const matches = useMatches();
-  // The year a jump last stopped short at, waiting on the reader. Said while
-  // the run is still waiting there, and not after.
-  const [stoppedAt, setStoppedAt] = useState<number | null>(null);
 
   // Held until the reader answers the exit dialog. Off once there is no run,
   // so a Back after an exit is just a Back — and never held for an untouched
@@ -304,18 +299,13 @@ export function RunLayout() {
       }}
       onSkip={() => {
         // The skip is a jump to the end of this season.
-        jumpTo({ year: cursorPlace(run).year, beat: { kind: "summary" } });
+        jumpTo({ year: run.world.year, beat: { kind: "summary" } });
         toCursor(false);
       }}
       onJump={(target) => {
         jumpTo(target);
-        const now = useSeasonStore.getState().run;
-        setStoppedAt(
-          now?.kind === "pending" && stoppedShort(now, target) ? now.pending.year : null,
-        );
         toCursor(false);
       }}
-      notice={run.kind === "pending" && run.pending.year === stoppedAt ? jumpStopNote(run) : null}
       onRestartSeason={() => {
         restartSeason();
         toCursor(true);

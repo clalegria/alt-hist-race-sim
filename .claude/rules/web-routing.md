@@ -54,7 +54,7 @@ route fails the typecheck), and `resolveRunPage(run, page, params)` says what a 
 show. **Params are untrusted input**: `parseYear` wants four digits, `parseRound` a
 round from 1 without a leading zero, and the round must exist in that year's world.
 
-`resolveRunPage` gives one of five answers:
+`resolveRunPage` gives one of four answers:
 
 - **season** or **review**: the run has the place and the cursor has **reached** it
   (`isReached`). The page gets it through the gate, below. **The season page opens with
@@ -66,8 +66,6 @@ round from 1 without a leading zero, and the round must exist in that year's wor
   of the cursor's year, or a year in `laterYears(run)` (the `nextEraYear` walk, also
   what Jump to… offers) with a round its calendar has. `NotReached` says so and links to
   the cursor. Continue stays in the run bar.
-- **pending**: a pending year's grid, the only page that year has
-  (`teams-and-seats.md`); its season page redirects there.
 - **redirect** to the cursor: a malformed param, a round the season doesn't have, or a
   year the run will never reach. A one-year run's `/run` goes on to its season page.
 

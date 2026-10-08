@@ -103,12 +103,12 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   cursor, checked by a fingerprint of each world. `web-persistence.md`.
 - **Round context**: where a round is held and how far through the year it is; the seam
   circuit features will hang off.
-- **Development trend**: a car's pace drifting across a season about its authored rating
-  (`car-development.md`). **Retirement factor**: a season's 1–10 dial for how hard the
-  year is on its cars (`retirement-factor.md`).
+- **Development trend**: a car's pace drifting across a season about its authored rating.
+  `car-development.md`.
+- **Retirement factor**: a season's 1–10 dial for how hard the year is on its cars.
+  `retirement-factor.md`.
 - **Ghost entry**: under *Keep the starting grid*, a start-year team history has dropped,
-  racing its last real car. **Pending year**: under *I fill them*, a kept year with a seat
-  still empty, waiting at its grid for the reader. Both `teams-and-seats.md`.
+  racing its last real car. `teams-and-seats.md`.
 - **Wetness**: how wet a wet round is, a range not a switch. `wet-weather.md`.
 - **Randomness level**: 1–5, fixed before a run. `DEFAULT_RANDOMNESS_LEVEL` (1) is the
   reference every harness uses; only level 2 is unscaled; the app opens on 2.

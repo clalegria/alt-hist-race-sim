@@ -4,16 +4,13 @@
  * a run is the era's store tests.
  */
 
-import { emptySeats } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { KeptNotes } from "../lib/kept.js";
-import { pendingReason } from "../lib/run-bar.js";
 import { HISTORICAL_SETTINGS, OPENING_SEAT_RULES, type RunSettings } from "../lib/run-settings.js";
 import { useSeasonStore } from "../store/season.js";
-import { built, FOLDING_YEAR, pendingRun, shownAt } from "../test-support.js";
+import { FOLDING_YEAR, shownAt } from "../test-support.js";
 import { keptSentences } from "./LineupChanges.js";
-import { PendingGrid } from "./PendingGrid.js";
 import { EraPicker, SeasonPicker } from "./SeasonPicker.js";
 import { SeasonView } from "./SeasonView.js";
 import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
@@ -37,8 +34,6 @@ describe("the teams and seats setting", () => {
   it("draws the fill, the ages and the active-only box under Keep", () => {
     const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={OPENING_SEAT_RULES} />);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Keep the starting grid</);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>Filled automatically</);
-    expect(html).toMatch(/aria-pressed="false"[^>]*>I fill them</);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Previous year&#x27;s drivers first</);
     expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_SEAT_RULES.minAge));
     expect(inputValue(html, "Oldest driver age")).toBe(String(OPENING_SEAT_RULES.maxAge));
@@ -53,19 +48,6 @@ describe("the teams and seats setting", () => {
     );
     expect(html).toMatch(/aria-pressed="true"[^>]*>Best available</);
     expect(html).not.toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
-  });
-
-  it("keeps only the ages under I fill them, which signs nobody", () => {
-    const html = renderToStaticMarkup(
-      <TeamsAndSeatsSetting teamsAndSeats={{ ...OPENING_SEAT_RULES, fill: "reader" }} />,
-    );
-    expect(html).toMatch(/aria-pressed="true"[^>]*>I fill them</);
-    expect(html).toMatch(/aria-pressed="false"[^>]*>Filled automatically</);
-    expect(html).not.toContain("Empty seats filled with");
-    expect(html).not.toContain("Best available");
-    expect(html).not.toContain('type="checkbox"');
-    expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_SEAT_RULES.minAge));
-    expect(html).toContain("the run stops at that year&#x27;s grid");
   });
 
   it("is offered on the era's screen and not a season's", () => {
@@ -86,7 +68,7 @@ describe("what the grid says about a kept year", () => {
       throw new Error("expected a run");
     }
     return renderToStaticMarkup(
-      <SeasonView {...shownAt(built(run).world, { kind: "grid" })} inEra tab="grid" />,
+      <SeasonView {...shownAt(run.world, { kind: "grid" })} inEra tab="grid" />,
     );
   }
 
@@ -133,25 +115,5 @@ describe("the kept year's sentences", () => {
       "Seats history left empty: 2 kept from last year, 1 signed.",
       "Nobody free to sign: RED runs one car and GREEN sits the year out.",
     ]);
-  });
-});
-
-describe("a year waiting on the reader", () => {
-  const run = pendingRun();
-  const html = renderToStaticMarkup(<PendingGrid run={run} />);
-  const empty = emptySeats(run.pending.kept.seats).length;
-
-  it("opens the editor on its seats, which cannot be put away until they are filled", () => {
-    expect(html).toContain(pendingReason(run));
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Apply grid</);
-    expect(html).not.toContain(">Cancel<");
-    expect(html).not.toContain(">Edit grid<");
-    expect((html.match(/>Empty seat</g) ?? []).length).toBe(empty);
-  });
-
-  it("says what Keep did to the year, as a kept year's grid does", () => {
-    expect(html).toContain(`Kept from ${run.run.startYear}`);
-    // Its empty seats are the reader's to fill, not a signing nobody was free for.
-    expect(html).not.toContain("Nobody free to sign");
   });
 });

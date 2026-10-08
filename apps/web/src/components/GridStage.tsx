@@ -566,7 +566,6 @@ export function GridStage({
   previousLineup = null,
   pool = drivers,
   locked = false,
-  pendingSeats = null,
   onApply,
   onEditingChange,
 }: {
@@ -629,13 +628,6 @@ export function GridStage({
    * control that lies.
    */
   locked?: boolean;
-  /**
-   * A pending year's seats, empty ones `null` (*I fill them*), or null. The
-   * editor opens on them and cannot be shut — there is no season to fall back
-   * to until they are filled — Restore puts them back, and Apply always hands
-   * over the whole lineup, since it becomes the year's baseline.
-   */
-  pendingSeats?: LineupDraft | null;
   /** Absent in tests, where nothing is clicked. The controls still render. */
   onApply?: (edit: GridEdit) => void;
   /**
@@ -656,10 +648,7 @@ export function GridStage({
     () => (baselineChassis === null ? null : authoredChassis(seasonSeed(year))),
     [year, baselineChassis],
   );
-  const applied = useMemo<LineupDraft>(
-    () => pendingSeats ?? lineup ?? authoredLineup(season),
-    [pendingSeats, lineup, season],
-  );
+  const applied = useMemo(() => lineup ?? authoredLineup(season), [lineup, season]);
   const appliedEngines = useMemo(() => engines ?? authoredEngines(season), [engines, season]);
   const appliedChassis = useMemo(() => chassis ?? authoredChassis(season), [chassis, season]);
   const engineIds = useMemo(
@@ -670,14 +659,9 @@ export function GridStage({
   // Null means "not editing": one flag fewer than a draft plus a boolean, and
   // it cannot get into the state where the editor is open with nothing to edit.
   // The three drafts open and close together, so one null answers for all.
-  // A pending year's grid opens with the editor already open.
-  const [draft, setDraft] = useState<LineupDraft | null>(pendingSeats);
-  const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(() =>
-    pendingSeats === null ? null : appliedEngines,
-  );
-  const [chassisDraft, setChassisDraft] = useState<SeasonChassis | null>(() =>
-    pendingSeats === null ? null : appliedChassis,
-  );
+  const [draft, setDraft] = useState<LineupDraft | null>(null);
+  const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
+  const [chassisDraft, setChassisDraft] = useState<SeasonChassis | null>(null);
   const [selected, setSelected] = useState<GridPick | null>(null);
   // Which bulk rule the draft is currently the product of, and the two settings
   // the rules are applied under. Three pieces rather than one `GridArrangement`
@@ -723,15 +707,14 @@ export function GridStage({
   const rerated = useMemo(() => chassisChanges(season, shownChassis), [season, shownChassis]);
   const untouched = useMemo(
     () =>
-      (draft === null ||
-        (pendingSeats === null ? isAuthoredLineup(season, draft) : draft === pendingSeats)) &&
+      (draft === null || isAuthoredLineup(season, draft)) &&
       (engineDraft === null || isAuthoredEngines(season, engineDraft)) &&
       (chassisDraft === null || isAuthoredChassis(season, chassisDraft)) &&
       // A rule that happened to land back on the authored grid is still a rule
       // in force, and Restore is the way to put it down — so it counts as a
       // change even when no seat did.
       chosen === null,
-    [draft, engineDraft, chassisDraft, season, chosen, pendingSeats],
+    [draft, engineDraft, chassisDraft, season, chosen],
   );
 
   /**
@@ -974,7 +957,7 @@ export function GridStage({
               return;
             }
             onApply?.({
-              lineup: pendingSeats === null && isAuthoredLineup(season, filled) ? null : filled,
+              lineup: isAuthoredLineup(season, filled) ? null : filled,
               engines:
                 engineDraft === null || isAuthoredEngines(season, engineDraft) ? null : engineDraft,
               chassis:
@@ -997,7 +980,7 @@ export function GridStage({
           variant="outline"
           disabled={untouched}
           onClick={() => {
-            setDraft(pendingSeats ?? authoredLineup(season));
+            setDraft(authoredLineup(season));
             setEngineDraft(authoredEngines(season));
             setChassisDraft(authoredChassis(season));
             setSelected(null);
@@ -1009,11 +992,9 @@ export function GridStage({
         >
           Restore {year} grid
         </Button>
-        {pendingSeats === null ? (
-          <Button variant="ghost" onClick={stopEditing}>
-            Cancel
-          </Button>
-        ) : null}
+        <Button variant="ghost" onClick={stopEditing}>
+          Cancel
+        </Button>
       </>
     );
 

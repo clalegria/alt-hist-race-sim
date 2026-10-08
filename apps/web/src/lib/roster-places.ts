@@ -97,7 +97,7 @@ export type RosterResolution =
  * one who is only on a grid still ahead goes to that list's index.
  */
 export function resolveRosterPage(run: Run, page: RosterPage, id?: string): RosterResolution {
-  if (run.kind === "season") {
+  if (run.kind !== "era") {
     return { kind: "redirect", to: linkTo({ year: run.world.year, beat: { kind: "summary" } }) };
   }
   const shown = revealed(run);

@@ -24,7 +24,7 @@ import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
 import { AREAS, type Area, isAvailable } from "./lib/areas.js";
-import { crumbsFor, pendingReason, returnFor, runBarFor } from "./lib/run-bar.js";
+import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import { linkTo } from "./lib/run-places.js";
 import type { Place } from "./lib/timeline.js";
 import { Route as GridRoute } from "./routes/run/$year/grid.js";
@@ -39,7 +39,7 @@ import { Route as TeamsRoute } from "./routes/run/teams.js";
 import { Route as RunRoute } from "./routes/run.js";
 import { cursorPlace, type Run, useSeasonStore } from "./store/season.js";
 import { inRouter, renderRoute } from "./test-router.js";
-import { built, pendingRun, seededWorld, YEAR } from "./test-support.js";
+import { seededWorld, YEAR } from "./test-support.js";
 
 const CREDIT = "Developed by Claudio Alegria";
 
@@ -239,8 +239,7 @@ describe("the guards on the people pages", () => {
 
   it("let the reader through to the lists, and to anyone on the grid", () => {
     useSeasonStore.getState().startEra(YEAR);
-    const started = useSeasonStore.getState().run;
-    const entrant = started === null ? undefined : built(started).world.field[0];
+    const entrant = useSeasonStore.getState().run?.world.field[0];
     expect(guardOf(DriversRoute, {})).toBeUndefined();
     expect(guardOf(TeamsRoute, {})).toBeUndefined();
     expect(guardOf(DriverRoute, { driverId: entrant?.driverId ?? "" })).toBeUndefined();
@@ -257,8 +256,7 @@ describe("the guards on the people pages", () => {
 
   it("send the reader of a one-year run to its season page from every one", () => {
     useSeasonStore.getState().simulate(3, YEAR);
-    const started = useSeasonStore.getState().run;
-    const entrant = started === null ? undefined : built(started).world.field[0];
+    const entrant = useSeasonStore.getState().run?.world.field[0];
     const season = linkTo({ year: YEAR, beat: { kind: "summary" } });
     for (const [route, params] of [
       [DriversRoute, {}],
@@ -297,16 +295,6 @@ describe("the run bar", () => {
     expect(html).toContain('<nav aria-label="Breadcrumb"><ol');
     expect((html.match(/aria-current="page"/g) ?? []).length).toBe(1);
     expect(html).toMatch(/aria-current="page"[^>]*>Race</);
-  });
-
-  it("holds Continue on a pending year, saying why on the button and beside it", async () => {
-    const run = pendingRun();
-    const html = await bar(run);
-    const reason = pendingReason(run);
-    expect(html).toMatch(new RegExp(`<button[^>]*disabled=""[^>]*title="${reason}"[^>]*>Continue`));
-    expect(html).toContain(`>${reason}</span>`);
-    expect(html).not.toContain(">Jump to…</button>");
-    expect(html).toContain(">Restart era</button>");
   });
 
   it("offers Continue while there is somewhere to go, and the menu always", async () => {

@@ -4,7 +4,6 @@ import { drivers, FIRST_AUTHORED_SEASON, seasonSeed } from "./index.js";
 import {
   applyLineup,
   authoredLineup,
-  fitsSeats,
   isAuthoredLineup,
   lineupChanges,
   reserveDrivers,
@@ -194,42 +193,6 @@ describe("applying a lineup to a season", () => {
     const { [seatedTeam]: _removed, ...missing } = authored;
     expect(() => applyLineup(SEED, missing)).toThrow("missing a seat allocation");
     expect(() => applyLineup(SEED, { ...authored, nobodys_team: [] })).toThrow("does not enter");
-  });
-});
-
-describe("checking a set of seats against a grid", () => {
-  it("accepts the grid itself, and any driver in any seat", () => {
-    expect(fitsSeats(authored, authored)).toBe(true);
-    expect(fitsSeats(authored, swapDrivers(authored, seated, reserve))).toBe(true);
-  });
-
-  it("accepts an empty seat where the grid has one, and fills where it has none", () => {
-    const holed = { ...authored, [seatedTeam]: (authored[seatedTeam] ?? []).map(() => null) };
-    expect(fitsSeats(holed, authored)).toBe(true);
-    expect(fitsSeats(authored, holed)).toBe(true);
-  });
-
-  it("rejects a team that gained or lost a seat", () => {
-    expect(fitsSeats(authored, { ...authored, [seatedTeam]: [seated] })).toBe(false);
-    expect(
-      fitsSeats(authored, {
-        ...authored,
-        [otherTeamId]: [...(authored[otherTeamId] ?? []), reserve],
-      }),
-    ).toBe(false);
-  });
-
-  it("rejects a team that is missing, or one the grid does not have", () => {
-    const { [seatedTeam]: _, ...without } = authored;
-    expect(fitsSeats(authored, without)).toBe(false);
-    expect(fitsSeats(authored, { ...without, nobodys_team: authored[seatedTeam] ?? [] })).toBe(
-      false,
-    );
-  });
-
-  it("rejects a driver seated twice", () => {
-    const twice = { ...authored, [otherTeamId]: (authored[otherTeamId] ?? []).map(() => seated) };
-    expect(fitsSeats(authored, twice)).toBe(false);
   });
 });
 

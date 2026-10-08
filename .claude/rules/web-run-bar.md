@@ -41,9 +41,7 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   `1984 · Round 3/16 · Race` says where the cursor is.
 - **Three kinds of action** (`runBarFor(run)` in `lib/run-bar.ts` decides which are
   offered, and is what the tests read):
-  - **Forward** — *Continue* (the primary button; its `title` names the next beat;
-    on a pending year **held**, disabled with `blocked` — "Two seats need a driver" — as
-    its title and beside it, `pendingReason`),
+  - **Forward** — *Continue* (the primary button; its `title` names the next beat),
     the skip to this season's end (*Simulate full season* / *Simulate rest of the
     season*, not after the last race), and *Jump to…* (an era with a later year ahead).
     All three **push**, so Back returns to the page the reader was on.
@@ -66,10 +64,7 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   `jumpTarget(run, chosen)` decides where it lands — a choice the run has overtaken
   falls back to one still ahead; the default is the end of the next year. The store's
   `jumpTo` does the rest (`.claude/rules/web-era.md`); the skip is `jumpTo` with this
-  season's end. A jump a pending year stopped short (`stoppedShort`) is said above the
-  page, `RunFrame`'s `notice` ("Stopped at 2010: two seats need a driver.",
-  `jumpStopNote`), while the run still waits on that year. A pending year offers only
-  Restart era and Exit run.
+  season's end.
 - While the grid editor is open the actions give way to a note: the grid page raises
   it through `GridEditingContext`, since the page is an `<Outlet />` the frame does
   not render, and clears it on unmount.

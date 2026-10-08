@@ -75,10 +75,7 @@ export function isComplete(year: TalliedYear): boolean {
 /** A run, cut at the reader's cursor. */
 export interface RevealedRun {
   readonly cursor: Place;
-  /**
-   * Every year the run has reached, earliest first; the cursor's own last, and
-   * cut. A pending year is not among them: it has no world until it is filled.
-   */
+  /** Every year the run has reached, earliest first; the cursor's own last, and cut. */
   readonly years: readonly RevealedWorld[];
   /** An era's crowned years, each whole; null for a one-year run, which has none. */
   readonly crowned: EraRun | null;
@@ -135,19 +132,17 @@ export function revealYear(world: World, beat: Beat): RevealedWorld {
 
 /**
  * The run as far as the reader has got: every year before the cursor's whole,
- * the cursor's own cut at the cursor — or, waiting on the reader, every year
- * built, whole.
+ * the cursor's own cut at the cursor.
  */
 export function revealed(run: Run): RevealedRun {
-  const past = run.kind === "season" ? [] : run.run.seasons;
+  const past = run.kind === "era" ? run.run.seasons : [];
   return {
     cursor: cursorPlace(run),
     years: [
       ...past.map((world) => revealYear(world, { kind: "summary" })),
-      // A pending year has no world yet, so nothing of it to reveal.
-      ...(run.kind === "pending" ? [] : [revealYear(run.world, run.cursor)]),
+      revealYear(run.world, run.cursor),
     ],
-    crowned: run.kind === "season" ? null : crowned(run),
+    crowned: run.kind === "era" ? crowned(run) : null,
   };
 }
 

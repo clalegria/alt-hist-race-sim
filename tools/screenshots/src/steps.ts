@@ -446,32 +446,4 @@ export const STEPS: readonly Step[] = [
       await page.getByText("after round 1").first().waitFor();
     },
   },
-  {
-    name: "era-setup-reader",
-    reach: async (page) => {
-      // A second era, whose empty seats the reader fills.
-      await page.getByRole("link", { name: "alt-hist", exact: true }).click();
-      await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
-      await pickYear(page, `Start an era in ${YEAR}`);
-      await button(page, "Keep the starting grid").click();
-      await button(page, "I fill them").click();
-      await page.getByRole("button", { name: "I fill them", exact: true, pressed: true }).waitFor();
-    },
-  },
-  {
-    name: "era-pending-grid",
-    reach: async (page) => {
-      await button(page, `Begin an era from ${YEAR}`).click();
-      await button(page, "End it and start").click();
-      await page.waitForURL(`**/run/${YEAR}/grid`);
-      // Sent far ahead, the run stops at the first year with a seat to fill.
-      await runAction(page, "Jump to…");
-      await button(page, "The 2020s").click();
-      await button(page, /^Simulate through/).click();
-      await page
-        .getByText(/^Stopped at \d{4}: /)
-        .first()
-        .waitFor();
-    },
-  },
 ];

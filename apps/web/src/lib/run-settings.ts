@@ -96,7 +96,8 @@ export interface RunSettings {
    * Whether every year has the teams history gave it, or the run's first year's
    * teams at their first-year seat counts, with the rules for the seats that
    * leaves empty (`keptGrid.ts` in `@alt-hist/data`). **Era only**, like
-   * `careerEvents`.
+   * `careerEvents`. Only the automatic fills are offered: `"reader"` waits for
+   * the pending grid.
    */
   readonly teamsAndSeats: EmptySeatRules | null;
 }
@@ -204,15 +205,11 @@ export const OPENING_SEAT_RULES: EmptySeatRules = {
   activeOnly: true,
 };
 
-/** The fills that sign drivers without the reader, in the *Empty seats filled with* row's order. */
-export const AUTOMATIC_SEAT_FILLS = ["last", "best"] as const;
-export type AutomaticSeatFill = (typeof AUTOMATIC_SEAT_FILLS)[number];
+/** The fills the setup screen offers, in its order; `"reader"` arrives with the pending grid. */
+export const OFFERED_SEAT_FILLS = ["last", "best"] as const;
 
-/** Every fill the setup screen offers: the reader's own first, as the *Empty seats* row has it. */
-export const OFFERED_SEAT_FILLS = ["reader", ...AUTOMATIC_SEAT_FILLS] as const;
-
-/** What the reader is shown for each automatic fill. */
-export const SEAT_FILL_LABELS: Readonly<Record<AutomaticSeatFill, string>> = {
+/** What the reader is shown for each fill on offer. */
+export const SEAT_FILL_LABELS: Readonly<Record<(typeof OFFERED_SEAT_FILLS)[number], string>> = {
   last: "Previous year's drivers first",
   best: "Best available",
 };
@@ -472,13 +469,7 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
 
 /** What the reader is shown for a Teams and seats answer. */
 export function teamsAndSeatsLabel(rules: EmptySeatRules): string {
-  const fill =
-    rules.fill === "reader"
-      ? "you fill empty seats"
-      : rules.fill === "best"
-        ? "best available"
-        : "previous year's drivers first";
-  // Only a signing reads it, and the reader's own fill signs nobody.
-  const active = rules.activeOnly && rules.fill !== "reader" ? " · active drivers only" : "";
+  const fill = rules.fill === "best" ? "best available" : "previous year's drivers first";
+  const active = rules.activeOnly ? " · active drivers only" : "";
   return `Keep the starting grid · ${fill} · ages ${rules.minAge}–${rules.maxAge}${active}`;
 }

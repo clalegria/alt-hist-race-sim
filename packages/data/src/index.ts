@@ -91,7 +91,6 @@ export {
   emptySeats,
   exchangePicks,
   filledLineup,
-  fitsSeats,
   type GridPick,
   isAuthoredLineup,
   type LineupDraft,
