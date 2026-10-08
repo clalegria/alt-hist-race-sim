@@ -43,7 +43,7 @@ level, and the two compose because they scale disjoint constants.
 
 ## Two run settings over it
 
-The app's Races settings (`docs/design/run-settings.md`, `.claude/rules/web-setup.md`)
+The app's Races settings (`.claude/rules/web-setup.md`)
 reach the constants through `seasonConstants`'s fourth argument, `run`, built by
 `runConstants` in the web store. Both are identities when historical.
 

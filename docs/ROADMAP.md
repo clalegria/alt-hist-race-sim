@@ -41,17 +41,7 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ---
 
-## 1. Run settings
-
-What-if settings chosen before a run, beside Randomness: career events, team names,
-teams and seats (era only), and car performance, breakdowns, reliability and points (both
-modes). **Designed in `docs/design/run-settings.md`**, with its own build order, one
-session per step; its open questions live there.
-
-Builds three of the advanced era's run settings early — the frozen grid, historical
-careers, random car development — in `era-basic`, where the advanced era inherits them.
-
-## 2. Phone layout
+## 1. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -71,7 +61,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 3. The in-app ratings editor
+## 2. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -100,7 +90,7 @@ chassis for one run (`stepChassis`); this item is the editor that changes the da
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 4. Publish it
+## 3. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -177,7 +167,7 @@ the reason to put a version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 5. Historical career records
+## 4. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -202,7 +192,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 6. Seasonal factors
+## 5. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -211,7 +201,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 7. Circuit character
+## 6. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -227,7 +217,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 8. Driver market
+## 7. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -241,7 +231,7 @@ Needs ageing and more than one season to move between, hence its place here. Lea
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 9. Game mode
+## 8. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working

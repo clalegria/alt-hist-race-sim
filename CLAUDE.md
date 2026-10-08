@@ -145,6 +145,5 @@ In full in `docs/DECISIONS.md`.
 - **The advanced era and game mode**: open questions in `docs/design/era-advanced.md`.
 - **Should the fitter and tuner ever move driver ratings?**
 - **The app shell**: open questions in `docs/design/app-shell.md`.
-- **Run settings**: open questions in `docs/design/run-settings.md`.
 - **What a saved or shared run replays against**, when both the author and the reader
   can change the data under it.

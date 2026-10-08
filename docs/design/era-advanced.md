@@ -63,7 +63,7 @@ Chosen before the run starts, like the randomness level, and part of the run's r
 depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 
 **The frozen grid, career events on or off, and random car development are built first
-in `era-basic`**, designed in `docs/design/run-settings.md`; this mode inherits them.
+in `era-basic`** as run settings (`.claude/rules/web-setup.md`); this mode inherits them.
 What follows is only what stays advanced.
 
 - **DECIDED** — **Randomness** keeps its meaning: how chaotic the *races* are. It does not
@@ -80,8 +80,8 @@ What follows is only what stays advanced.
   each driver retires in their real retirement year.
 - **PROPOSED** — The random retirement age depends on the era: fifties drivers raced into
   their forties, modern ones mostly stop in their late thirties.
-- **DECIDED** — **Grid evolution**: *historical*, *frozen* (both in
-  `run-settings.md` §4), or an *intermediate* hybrid. Built on team lineage
+- **DECIDED** — **Grid evolution**: *historical*, *frozen* (both built as
+  *Teams and seats*, `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
   change from the last, built as *Car performance* from *previous year's car*

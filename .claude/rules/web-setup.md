@@ -59,8 +59,7 @@ the seed data an unavailable year cannot occur — assertions about it pass just
 happily with the disabling removed, which is how the test this replaced was passing.
 The two tests that care hand it a range with a gap in it.
 
-**The run settings card** (`RunSettingsCard`) holds Randomness and the what-ifs of
-`docs/design/run-settings.md`, in headed groups (`RunSettingsGroup`: Races and Cars,
+**The run settings card** (`RunSettingsCard`) holds Randomness and the run's what-ifs, in headed groups (`RunSettingsGroup`: Races and Cars,
 then the era-only Drivers and Teams over the years). A setting is a *direct
 child* of its group, which applies the padding and the rules between them, so adding one
 is adding a child. What does not belong there is anything a reader can still change once

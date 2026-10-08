@@ -57,7 +57,7 @@ screen draws no *Varies from* row (the component keeps the era's answer while op
   one rebuilt before it.
 - Plain walk, no pull back towards the authored car: at ±20 or ±30 ratings reach the
   clamp within a few years. Whether to revert to the mean is open in
-  `docs/design/run-settings.md`.
+  `docs/DECISIONS.md`.
 
 ## The baseline, not an edit
 

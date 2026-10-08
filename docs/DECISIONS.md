@@ -15,10 +15,12 @@ listed in `docs/design/era-advanced.md`, not here.
 Its open question — how events surface — is listed in `docs/design/app-shell.md`,
 not here.
 
-## Run settings
+## Should the car walk revert to the mean?
 
-Their open question — whether the car walk reverts to the mean — is listed in
-`docs/design/run-settings.md`, not here.
+Under *Car performance: Varied* from *previous year's car*, at ±20 or ±30 ratings reach
+the clamp within a few seasons. Whether the walk pulls back towards the authored car
+(mean reversion, `docs/design/era-advanced.md` §11). Recommendation: decide after
+watching a long run.
 
 ## Should the fitter and tuner move drivers?
 
