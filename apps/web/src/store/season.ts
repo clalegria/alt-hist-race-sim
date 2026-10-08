@@ -23,6 +23,7 @@ import {
   applyEngines,
   applyLineup,
   arrangeLineup,
+  authoredChassis,
   authoredLineup,
   buildField,
   DEFAULT_RATING_MODE,
@@ -64,6 +65,7 @@ import {
   rolledChassisOf,
   seasonSettings,
   settingsInForce,
+  walksFromLastYear,
 } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear, seasonSeed, seasonWithChassis } from "../lib/seasons.js";
 import { nextSeed, randomSeed } from "../lib/seed.js";
@@ -173,6 +175,16 @@ export interface World {
    */
   readonly baselineChassis: SeasonChassis | null;
   /**
+   * Each team's chassis as raced the year before in this run (`racedChassis`),
+   * which *Car performance: Varied from previous year's car* walks off — or null
+   * when the cars do not walk, or there was no year before.
+   *
+   * Recorded for the reason `namesKeptFrom` is: one year cannot see the run
+   * behind it, so every action that rebuilds this year in place passes it on.
+   * The recipe does not store it — a rebuild takes it from the world before.
+   */
+  readonly walkedFrom: SeasonChassis | null;
+  /**
    * The rule the grid was arranged by, or null for a grid nobody rearranged in
    * one press — the reader's own swaps included, since those are seats and not a
    * rule.
@@ -255,8 +267,9 @@ function arrangedLineup(
   engines: SeasonEngines | null,
   chassis: SeasonChassis | null,
   settings: RunSettings,
+  lastRaced: SeasonChassis | null,
 ): SeasonLineup {
-  const season = baselineSeason(year, seed, settings).season;
+  const season = baselineSeason(year, seed, settings, lastRaced).season;
   const authored = authoredLineup(season);
   const resupplied = engines === null ? season : applyEngines(season, engines);
   const entered = chassis === null ? resupplied : applyChassis(resupplied, chassis);
@@ -288,6 +301,7 @@ function nextLineup(world: World, seed: number, ratingMode: RatingMode): SeasonL
     world.engines,
     world.chassis,
     world.settings,
+    world.walkedFrom,
   );
 }
 
@@ -316,23 +330,43 @@ function nextEraGrid(
   }
   return {
     // No engines and no chassis: an era carries neither a supply deal nor a
-    // re-rated car across a year.
-    lineup: arrangedLineup(year, seed, arrangement, last.ratingMode, null, null, last.settings),
+    // re-rated car across a year — though a walk moves off the previous year's.
+    lineup: arrangedLineup(
+      year,
+      seed,
+      arrangement,
+      last.ratingMode,
+      null,
+      null,
+      last.settings,
+      racedChassis(last),
+    ),
     arrangement,
   };
 }
 
 /**
  * A season as the run enters it — its chassis rolled under *Car performance*
- * from this seed, or as authored — and the roll itself, for the world to keep.
+ * from this seed (off `lastRaced` when they walk), or as authored — and the
+ * roll itself, for the world to keep.
  */
 function baselineSeason(
   year: number,
   seed: number,
   settings: RunSettings,
+  lastRaced: SeasonChassis | null,
 ): { season: SeasonSeed; baselineChassis: SeasonChassis | null } {
-  const baselineChassis = rolledChassisOf(seasonSeed(year), settings, seed);
+  const baselineChassis = rolledChassisOf(seasonSeed(year), settings, seed, lastRaced);
   return { season: seasonWithChassis(year, baselineChassis), baselineChassis };
+}
+
+/**
+ * Each team's chassis as a world raced it: the reader's own, else the run's
+ * roll, else the authored car. What a walk (*from previous year's car*) moves the
+ * next year off, so a reader's edit is carried by it: it is what raced.
+ */
+export function racedChassis(world: World): SeasonChassis {
+  return world.chassis ?? world.baselineChassis ?? authoredChassis(seasonSeed(world.year));
 }
 
 /**
@@ -380,7 +414,9 @@ export function runConstants(
  * `namesKeptFrom` is the era's first year, which a later year of it cannot
  * know; it defaults to this one, the right answer for an era's first year. It
  * is read only under *Team names: Keep the first*, and recorded as null
- * otherwise.
+ * otherwise. `lastRaced` is the same kind of fact: the cars the year before
+ * raced (`racedChassis`), null for a run's first year. Read only when the cars
+ * walk from the previous year's, and recorded as `walkedFrom`, null otherwise.
  */
 export function createWorld(
   seed: number,
@@ -393,10 +429,12 @@ export function createWorld(
   chassis: SeasonChassis | null = null,
   chosen: RunSettings = HISTORICAL_SETTINGS,
   eraStart: number | null = null,
+  lastRaced: SeasonChassis | null = null,
 ): World {
   const settings = settingsInForce(chosen);
   const namesKeptFrom = settings.teamNames === "first" ? (eraStart ?? year) : null;
-  const { season: baseline, baselineChassis } = baselineSeason(year, seed, settings);
+  const walkedFrom = walksFromLastYear(settings) ? lastRaced : null;
+  const { season: baseline, baselineChassis } = baselineSeason(year, seed, settings, walkedFrom);
   // An edit that puts everyone back where they started is not an edit, and a
   // season that claimed otherwise would carry a notice nobody could explain.
   const edited = lineup !== null && !isAuthoredLineup(baseline, lineup) ? lineup : null;
@@ -438,6 +476,7 @@ export function createWorld(
     engines: resupplied,
     chassis: rerated,
     baselineChassis,
+    walkedFrom,
     arrangement,
     season,
   };
@@ -749,7 +788,8 @@ function replaceWorld(run: Run, world: World): Run {
  * the dice continuing `last`'s stream, and whatever the reader chose about how
  * to play — the ability mode, a bulk rule they asked to keep, the randomness
  * level, the run settings — carried. What they chose about one grid does not carry, because it
- * was a grid for a year now behind them.
+ * was a grid for a year now behind them. The cars `last` raced go along, for a
+ * walk from previous year's car to move off.
  *
  * The one step both Continue and a jump forward take, so the two cannot
  * produce different histories.
@@ -770,6 +810,7 @@ function nextEraWorld(last: World, year: number): World {
     null,
     last.settings,
     last.namesKeptFrom,
+    racedChassis(last),
   );
 }
 
@@ -939,6 +980,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.chassis,
                 state.run.world.settings,
                 state.run.world.namesKeptFrom,
+                state.run.world.walkedFrom,
               ),
             ),
           }
@@ -962,6 +1004,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 chassis,
                 state.run.world.settings,
                 state.run.world.namesKeptFrom,
+                state.run.world.walkedFrom,
               ),
             ),
           }
@@ -1022,6 +1065,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.chassis,
             world.settings,
             world.namesKeptFrom,
+            world.walkedFrom,
           ),
         ),
       };

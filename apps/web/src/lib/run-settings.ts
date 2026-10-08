@@ -37,14 +37,26 @@ export const CAR_VARIATION_SPREADS = [2, 5, 10, 20, 30] as const;
 export type CarVariationSpread = (typeof CAR_VARIATION_SPREADS)[number];
 
 /**
+ * What *Car performance: Varied* moves a car off: **real**, that year's
+ * authored car, re-rolled every season; or **last**, the car the team raced
+ * the year before in this run (a walk), era only.
+ */
+export const CAR_VARIATION_BASES = ["real", "last"] as const;
+export type CarVariationBase = (typeof CAR_VARIATION_BASES)[number];
+
+/**
  * The Car performance what-ifs; Historical is null. **Varied** moves each
- * team's chassis by up to `spread` either way, re-rolled every season off the
- * authored car; **Random** draws each chassis rating anywhere between the
- * season's weakest and strongest. Chassis only: an engine is shared by its
- * customers, so rolling one would move several teams at once.
+ * team's chassis by up to `spread` either way, off the car `from` names;
+ * **Random** draws each chassis rating anywhere between the season's weakest
+ * and strongest. Chassis only: an engine is shared by its customers, so
+ * rolling one would move several teams at once.
  */
 export type CarPerformance =
-  | { readonly kind: "varied"; readonly spread: CarVariationSpread }
+  | {
+      readonly kind: "varied";
+      readonly spread: CarVariationSpread;
+      readonly from: CarVariationBase;
+    }
   | { readonly kind: "random" };
 
 export interface RunSettings {
@@ -103,14 +115,24 @@ export function settingsInForce(settings: RunSettings): RunSettings {
 }
 
 /**
- * The settings a standalone season runs: the era-only ones dropped. One
- * remembered set serves both setup screens, so the reader's era choice is kept
- * there while a season records only what it offers.
+ * The settings a standalone season runs: the era-only ones dropped, and a car
+ * walking from the previous year's varied off the real one instead, since a season has
+ * no last year in the run. One remembered set serves both setup screens, so
+ * the reader's era choice is kept there while a season records only what it
+ * offers.
  */
 export function seasonSettings(settings: RunSettings): RunSettings {
-  return settings.careerEvents === null && settings.teamNames === null
-    ? settings
-    : { ...settings, careerEvents: null, teamNames: null };
+  const cars = settings.carPerformance;
+  const walks = cars?.kind === "varied" && cars.from === "last";
+  if (settings.careerEvents === null && settings.teamNames === null && !walks) {
+    return settings;
+  }
+  return {
+    ...settings,
+    carPerformance: walks ? { ...cars, from: "real" } : cars,
+    careerEvents: null,
+    teamNames: null,
+  };
 }
 
 /**
@@ -131,27 +153,44 @@ export const CAR_PERFORMANCE_STREAM = "car-performance";
  *
  * Rolled from its own stream (`deriveSeed`), never the races', so the same
  * seed races the same dice under any answer, and Historical draws nothing.
- * A function of the season, the settings and the seed alone: `createWorld`
- * calls it once and keeps the result on the world.
+ * A function of the season, the settings, the seed and `lastRaced` alone:
+ * `createWorld` calls it once and keeps the result on the world.
+ *
+ * `lastRaced` is each team's chassis as raced the year before in this run,
+ * which a walk (*from previous year's car*) moves off; every other answer ignores
+ * it, and a team missing from it moves off its own authored car.
  */
 export function rolledChassisOf(
   season: SeasonSeed,
   settings: RunSettings,
   seed: number,
+  lastRaced: SeasonChassis | null = null,
 ): SeasonChassis | null {
   const cars = settings.carPerformance;
   if (cars === null) {
     return null;
   }
   const rng = createRng(deriveSeed(seed, CAR_PERFORMANCE_STREAM));
-  return cars.kind === "varied"
-    ? variedChassis(season, cars.spread, rng)
-    : randomChassis(season, rng);
+  if (cars.kind === "random") {
+    return randomChassis(season, rng);
+  }
+  return variedChassis(season, cars.spread, rng, cars.from === "last" ? lastRaced : null);
+}
+
+/** Whether a run's cars walk from the previous year's: the one answer that reads the year before. */
+export function walksFromLastYear(settings: RunSettings): boolean {
+  const cars = settings.carPerformance;
+  return cars?.kind === "varied" && cars.from === "last";
 }
 
 /** What the reader is shown for a Car performance answer. */
 export function carPerformanceLabel(cars: CarPerformance): string {
-  return cars.kind === "varied" ? `Varied ±${cars.spread}` : "Random";
+  if (cars.kind === "random") {
+    return "Random";
+  }
+  return cars.from === "last"
+    ? `Varied ±${cars.spread} from previous year's car`
+    : `Varied ±${cars.spread}`;
 }
 
 /** What the reader is shown for each Breakdowns answer. */
@@ -243,7 +282,7 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 /**
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
- * authored ones, a year with no season, a Car performance answer or spread
+ * authored ones, a year with no season, a Car performance answer, spread or base
  * this build does not offer, or a Breakdowns, Career events or Team names
  * answer that is not a what-if. Takes `unknown` because both
  * callers read storage the reader controls.
@@ -292,11 +331,12 @@ function parseCarPerformance(cars: unknown): CarPerformance | null | undefined {
   if (cars.kind === "random") {
     return { kind: "random" };
   }
-  if (cars.kind !== "varied" || !("spread" in cars)) {
+  if (cars.kind !== "varied" || !("spread" in cars) || !("from" in cars)) {
     return undefined;
   }
   const spread = CAR_VARIATION_SPREADS.find((offered) => offered === cars.spread);
-  return spread === undefined ? undefined : { kind: "varied", spread };
+  const from = CAR_VARIATION_BASES.find((offered) => offered === cars.from);
+  return spread === undefined || from === undefined ? undefined : { kind: "varied", spread, from };
 }
 
 /** Each of these is the field's value, or undefined when it is not one this build offers. */

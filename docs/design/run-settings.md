@@ -3,7 +3,7 @@
 What-if settings chosen on the setup screen before a run starts, beside Randomness: car
 performance, career events, team names, teams and seats, breakdowns, reliability and
 points. The Races group — breakdowns, reliability, points —, the Cars group — car
-performance, from the real car or at random —, the Drivers group — career events —,
+performance, varied from the real car or the previous year's, or at random —, the Drivers group — career events —,
 team names and the plumbing every setting shares (`World.settings`, the Run settings
 card) are built and documented in `.claude/rules/web-setup.md`, `web-store.md`,
 `car-performance.md`, `data-layers.md`, `team-eras.md` and `retirement-factor.md`; the
@@ -36,27 +36,21 @@ first, in `era-basic`, and the advanced era inherits them.
 **PROPOSED** — the era setup's remaining rows:
 
 ```
- ─ Cars (built) ───────────────────────────────────────────────────────
-    Varied:  each year varies from  [ that year's real car | last year's car ]
  ─ Teams over the years (Team names built) ────────────────────────────
   Teams and seats   [ As they happened | Keep the starting grid ]
 ```
 
 - **One segmented control per setting** (`SettingSegments`), so every row reads
   historical-versus-what-if the same way, and a third option (random careers, an
-  intermediate grid) is one more segment. The Varied sub-controls show only under Varied.
+  intermediate grid) is one more segment.
 
-## 3. Car performance from last year's car
+## 3. Car performance from previous year's car
 
-- **DECIDED** — **Varied** has a second base, the reader's choice beside *that year's
-  real car*: *last year's car*, a random walk off the chassis the team raced last season
-  in this run. A team with no previous season in the run starts from its authored car.
-  This is `era-advanced.md` §3's random car development. It adds a field to the Varied
-  answer (a recipe version), and the roll reads the previous world's chassis.
-- **OPEN** — At ±20 or ±30 from last year's car, ratings reach the clamp within a few
+The walk is built (`.claude/rules/car-performance.md`), as a plain walk.
+
+- **OPEN** — At ±20 or ±30 from previous year's car, ratings reach the clamp within a few
   seasons. Whether the walk pulls back towards the authored car (mean reversion,
-  `era-advanced.md` §11). Recommendation: build the plain walk, decide after watching a
-  long run.
+  `era-advanced.md` §11). Recommendation: decide after watching a long run.
 
 ## 4. Teams and seats
 
@@ -75,7 +69,7 @@ first, in `era-basic`, and the advanced era inherits them.
     filled stays filled until history claims that driver elsewhere.
 - **OPEN** — A ghost team's car. Recommendation: **it keeps its place in the pecking
   order**, taking the chassis and engine of the team at its rank in last season's order,
-  so it neither freezes at its last level nor jumps to the front. Under *last year's car*
+  so it neither freezes at its last level nor jumps to the front. Under *previous year's car*
   it walks from its own last car instead. The alternative, freezing its last raced car,
   falls behind as the field develops.
 - **PROPOSED** — **A grid waiting for drivers is a new run state.** `createWorld`
@@ -89,9 +83,8 @@ first, in `era-basic`, and the advanced era inherits them.
 
 ## 5. Which screen
 
-- **DECIDED** — Era setup only: career events, team names, teams and seats. Car
-  performance is on both; its walk from *last year's car* is an era's alone, since a
-  season has no last year in the run.
+- **DECIDED** — Era setup only: career events, team names, teams and seats, and Car
+  performance's walk from *previous year's car*. The rest of Car performance is on both.
 - **PROPOSED** — Eight rows on the era screen. If it reads long, *Teams over the years*
   goes behind a *More settings* disclosure that summarises any non-historical choice in
   one line when closed.
@@ -101,6 +94,5 @@ first, in `era-basic`, and the advanced era inherits them.
 One session each, in order; each ends green and documented in `.claude/rules/`, leaving
 this file smaller.
 
-1. **Car performance from last year's car**: the walk.
-2. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
+1. **Teams and seats**: the entry list, ghost entries, the pending grid, Continue gated
    and the jump stopping early.

@@ -11,6 +11,7 @@ import {
   arrangeLineup,
   authoredChassis,
   authoredLineup,
+  CHASSIS_STEP_RANGE,
   DEFAULT_DRIVER_FILTERS,
   DEFAULT_RATING_MODE,
   driverRatingsFor,
@@ -37,7 +38,7 @@ import {
   samePoints,
   settingsInForce,
 } from "../lib/run-settings.js";
-import { nextEraYear, PLAYABLE_SEASONS, seasonWithChassis } from "../lib/seasons.js";
+import { isPlayable, nextEraYear, PLAYABLE_SEASONS, seasonWithChassis } from "../lib/seasons.js";
 import type { Place } from "../lib/timeline.js";
 import {
   crowned,
@@ -46,6 +47,7 @@ import {
   type EraRun,
   isUntouched,
   type Run,
+  racedChassis,
   useSeasonStore,
   type World,
 } from "./season.js";
@@ -674,7 +676,7 @@ describe("team names kept for an era", () => {
 describe("car performance across an era", () => {
   const varied: RunSettings = {
     ...HISTORICAL_SETTINGS,
-    carPerformance: { kind: "varied", spread: 30 },
+    carPerformance: { kind: "varied", spread: 30, from: "real" },
   };
   const random: RunSettings = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } };
   const TEAM = seasonSeed(YEAR).entries[0]?.teamId ?? "";
@@ -791,6 +793,164 @@ describe("car performance across an era", () => {
   it("reaches the same third year by jumping as by stepping", () => {
     const stepped = threeYears(varied).at(-1);
     useSeasonStore.getState().simulateEra(5, YEAR, undefined, varied);
+    useSeasonStore.getState().jumpTo({ year: stepped?.year ?? YEAR, beat: { kind: "grid" } });
+    expect(running().world).toEqual(stepped);
+  });
+});
+
+describe("car performance walking from previous year's car", () => {
+  const walk: RunSettings = {
+    ...HISTORICAL_SETTINGS,
+    carPerformance: { kind: "varied", spread: 30, from: "last" },
+  };
+  const real: RunSettings = {
+    ...HISTORICAL_SETTINGS,
+    carPerformance: { kind: "varied", spread: 30, from: "real" },
+  };
+
+  /** The era's first `count` years under `settings`, by stepping, from `start`. */
+  function years(settings: RunSettings, count: number, start = YEAR): readonly World[] {
+    useSeasonStore.getState().simulateEra(5, start, undefined, settings);
+    for (let played = 1; played < count; played += 1) {
+      jumpThrough(running().world.year);
+      useSeasonStore.getState().continueRun();
+    }
+    const { run, world } = running();
+    return [...run.seasons, world];
+  }
+
+  it("starts the run's first year from its real cars", () => {
+    const [first] = years(walk, 1);
+    expect(first?.walkedFrom).toBeNull();
+    expect(first?.baselineChassis).toEqual(
+      rolledChassisOf(seasonSeed(YEAR), real, first?.seed ?? 0),
+    );
+  });
+
+  it("moves every later year off the cars the year before raced", () => {
+    const run = years(walk, 3);
+    expect(run).toHaveLength(3);
+    for (const [index, year] of run.entries()) {
+      const before = run[index - 1];
+      if (before === undefined) {
+        continue;
+      }
+      expect(year.walkedFrom, `${year.year}`).toEqual(racedChassis(before));
+      expect(year.baselineChassis, `${year.year}`).toEqual(
+        rolledChassisOf(seasonSeed(year.year), walk, year.seed, racedChassis(before)),
+      );
+      // The rule itself, not only the same call: a team that raced the year
+      // before moves off that car by one offset within the spread, wherever
+      // the scale's ends leave a rating free to show it.
+      for (const [teamId, last] of Object.entries(racedChassis(before))) {
+        const now = year.baselineChassis?.[teamId];
+        if (now === undefined) {
+          continue;
+        }
+        const offsets = new Set(
+          (["racing", "qualifying", "consistency", "reliability"] as const)
+            .filter((key) => now[key] > CHASSIS_STEP_RANGE.min && now[key] < CHASSIS_STEP_RANGE.max)
+            .map((key) => now[key] - last[key]),
+        );
+        expect(offsets.size, `${year.year} ${teamId}`).toBeLessThanOrEqual(1);
+        for (const offset of offsets) {
+          expect(Math.abs(offset), `${year.year} ${teamId}`).toBeLessThanOrEqual(30);
+        }
+      }
+    }
+  });
+
+  it("walks a team new to the run off its own real car", () => {
+    // A year whose entry list has a team the playable year before it lacks,
+    // searched for rather than named.
+    const teams = (year: number) => new Set(seasonSeed(year).entries.map((entry) => entry.teamId));
+    const newcomerYear = PLAYABLE_SEASONS.find(
+      (year) =>
+        isPlayable(year - 1) && [...teams(year)].some((teamId) => !teams(year - 1).has(teamId)),
+    );
+    expect(newcomerYear).toBeDefined();
+    const [before, year] = years(walk, 2, (newcomerYear ?? YEAR) - 1);
+    if (before === undefined || year === undefined) {
+      throw new Error("expected two years");
+    }
+    const newcomers = seasonSeed(year.year).entries.filter(
+      (entry) => !teams(before.year).has(entry.teamId),
+    );
+    expect(newcomers.length).toBeGreaterThan(0);
+    // The same draw from the real car: a newcomer has nothing else to move off.
+    const fromReal = rolledChassisOf(seasonSeed(year.year), real, year.seed);
+    for (const entry of newcomers) {
+      expect(year.baselineChassis?.[entry.teamId], entry.teamId).toEqual(fromReal?.[entry.teamId]);
+    }
+  });
+
+  it("carries a reader's chassis edit into the next year's walk, as what raced", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, walk);
+    const first = running().world;
+    const team = seasonSeed(YEAR).entries[0]?.teamId ?? "";
+    const base = first.baselineChassis ?? {};
+    const lower = stepChassis(base, team, -1);
+    const edited = lower === base ? stepChassis(base, team, 1) : lower;
+    useSeasonStore.getState().setGrid(null, null, null, edited);
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    expect(running().world.walkedFrom).toEqual(edited);
+  });
+
+  it("keeps the year before's cars through a new grid and a restart of the year", () => {
+    const [, second] = years(walk, 2);
+    const walkedFrom = second?.walkedFrom;
+    expect(walkedFrom).not.toBeNull();
+
+    useSeasonStore.getState().setGrid(null, null, null, second?.baselineChassis);
+    expect(running().world).toEqual(second);
+
+    useSeasonStore.getState().restartSeason();
+    const restarted = running().world;
+    expect(restarted.seed).not.toBe(second?.seed);
+    expect(restarted.walkedFrom).toEqual(walkedFrom);
+    expect(restarted.baselineChassis).toEqual(
+      rolledChassisOf(seasonSeed(restarted.year), walk, restarted.seed, walkedFrom ?? null),
+    );
+
+    useSeasonStore.getState().restartEra();
+    expect(running().world.walkedFrom).toBeNull();
+  });
+
+  it("records no year before when the cars do not walk", () => {
+    for (const settings of [HISTORICAL_SETTINGS, real]) {
+      for (const year of years(settings, 2)) {
+        expect(year.walkedFrom, `${year.year}`).toBeNull();
+      }
+    }
+  });
+
+  it("ranks the walked cars when a kept rule arranges the next year", () => {
+    const kept: GridArrangement = {
+      kind: "fastest-in-fastest",
+      includeUnemployed: false,
+      filters: DEFAULT_DRIVER_FILTERS,
+      retain: true,
+    };
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, walk);
+    useSeasonStore.getState().setGrid(null, null, kept);
+    jumpThrough(YEAR);
+    useSeasonStore.getState().continueRun();
+    const next = running().world;
+
+    const entered = seasonWithChassis(next.year, next.baselineChassis);
+    const authored = authoredLineup(entered);
+    const arranged = arrangeLineup(entered, authored, kept, {
+      mode: ERA_RATING_MODE,
+      rng: createRng(next.seed),
+      pool: driverPoolOf(walk),
+    });
+    expect(next.lineup ?? authored).toEqual(filledLineup(arranged) ?? authored);
+  });
+
+  it("reaches the same third year by jumping as by stepping", () => {
+    const stepped = years(walk, 3).at(-1);
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, walk);
     useSeasonStore.getState().jumpTo({ year: stepped?.year ?? YEAR, beat: { kind: "grid" } });
     expect(running().world).toEqual(stepped);
   });

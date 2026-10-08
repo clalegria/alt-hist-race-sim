@@ -55,7 +55,9 @@ arrange every year after. A grid edited in a later year goes with that year.
 `<year+1>.json`. **This is the seam `era-advanced` replaces** — a mode that simulates
 the grid substitutes what is handed to `createWorld` there, and nothing else about the
 loop changes. Keep it a single call, shared by Continue and the jump. An edited lineup, engine supply or chassis is deliberately
-*not* carried: it was a grid for a year now behind them. The ability mode is carried,
+*not* carried: it was a grid for a year now behind them. (Under *Car performance* from
+previous year's car, the next year's cars walk off what raced, edits included —
+`car-performance.md`.) The ability mode is carried,
 but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
 switch; see `.claude/rules/web-store.md` for why.
 

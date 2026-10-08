@@ -176,13 +176,20 @@ export function chassisChanges(
  * [−spread, spread], on all four ratings — the car keeps its character, as a
  * step with no rating named does — each held inside the scale on its own.
  *
- * The *Car performance: Varied* roll. Draws one number per team, in entry order.
+ * The *Car performance: Varied* roll. Each car moves off `from`'s car for its
+ * team when there is one (*previous year's car*, a walk), else off the season's
+ * own. Draws one number per team, in entry order, whatever `from` holds.
  */
-export function variedChassis(season: SeasonSeed, spread: number, rng: Rng): SeasonChassis {
+export function variedChassis(
+  season: SeasonSeed,
+  spread: number,
+  rng: Rng,
+  from: SeasonChassis | null = null,
+): SeasonChassis {
   const rolled: Record<string, ChassisSpec> = {};
   for (const entry of season.entries) {
     const offset = rng.nextInt(-spread, spread + 1);
-    const { racing, qualifying, consistency, reliability } = entry.chassis;
+    const { racing, qualifying, consistency, reliability } = from?.[entry.teamId] ?? entry.chassis;
     rolled[entry.teamId] = {
       racing: clamped(racing + offset),
       qualifying: clamped(qualifying + offset),

@@ -9,7 +9,9 @@
  * record of the reader's inputs that could fall out of step with the worlds.
  *
  * Each world's seed is stored rather than re-derived with `nextSeed`, because a
- * restart mid-era draws a fresh one that nothing else could reproduce.
+ * restart mid-era draws a fresh one that nothing else could reproduce. The cars
+ * the year before raced are not stored: each world after the first is rebuilt
+ * off the world before it (`racedChassis`), exactly as the run built it.
  *
  * **The fingerprint is the build check.** Beside each world's inputs goes a hash
  * of the world they produced. Resumed on a build whose data or engine would
@@ -32,10 +34,10 @@ import { RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
 import { parseRunSettings, type RunSettings } from "../lib/run-settings.js";
 import { isPlayable, nextEraYear } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
-import { createWorld, type Run, type World } from "./season.js";
+import { createWorld, type Run, racedChassis, type World } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 7;
+export const RECIPE_VERSION = 8;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -179,8 +181,12 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
   return valid ? { ...(raw as unknown as WorldRecipe), settings } : null;
 }
 
-/** The world a recipe builds, or null when this build would not build the same one. */
-function rebuild(recipe: WorldRecipe): World | null {
+/**
+ * The world a recipe builds, or null when this build would not build the same
+ * one. `previous` is the world rebuilt before it in an era, whose cars a walk
+ * moves off; null for a run's first.
+ */
+function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
   const world = createWorld(
     recipe.seed,
     recipe.year,
@@ -192,6 +198,7 @@ function rebuild(recipe: WorldRecipe): World | null {
     recipe.chassis,
     recipe.settings,
     recipe.namesKeptFrom,
+    previous === null ? null : racedChassis(previous),
   );
   return fingerprint(world) === recipe.check ? world : null;
 }
@@ -242,7 +249,7 @@ export function runFromRecipe(raw: unknown): Run | null {
     }
     const worlds: World[] = [];
     for (const recipe of checked) {
-      const world = rebuild(recipe);
+      const world = rebuild(recipe, worlds.at(-1) ?? null);
       if (world === null) {
         return null;
       }

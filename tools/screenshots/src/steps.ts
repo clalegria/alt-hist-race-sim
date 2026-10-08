@@ -184,6 +184,7 @@ export const STEPS: readonly Step[] = [
         .getByRole("button", { name: "Varied", exact: true })
         .click();
       await button(page, "±20").click();
+      await button(page, "Previous year's car").click();
     },
   },
   {

@@ -578,8 +578,20 @@ describe("career events and team names in a standalone season", () => {
 });
 
 describe("car performance in a standalone season", () => {
+  it("varies off the real car when the era's walk is asked for, whichever way it starts", () => {
+    const walk = {
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "varied", spread: 10, from: "last" },
+    } as const;
+    const real = { ...walk, carPerformance: { ...walk.carPerformance, from: "real" } } as const;
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, walk);
+    expect(running().world).toMatchObject({ settings: real, walkedFrom: null });
+    useSeasonStore.getState().startSeason(YEAR, undefined, walk);
+    expect(running().world).toMatchObject({ settings: real, walkedFrom: null });
+  });
+
   const answers: readonly RunSettings[] = [
-    { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10 } },
+    { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "real" } },
     { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
   ];
 

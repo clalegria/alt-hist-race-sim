@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
+  CAR_VARIATION_BASES,
   CAR_VARIATION_SPREADS,
+  type CarVariationBase,
   type CarVariationSpread,
   type RunSettings,
   type RunUnit,
@@ -13,6 +15,12 @@ import { SettingSegments } from "./SettingSegments.js";
  */
 const OPENING_SPREAD: CarVariationSpread = 10;
 
+/** What *Varied* moves a car off, in the era's "Varies from" row: history first. */
+const BASE_LABELS: Readonly<Record<CarVariationBase, string>> = {
+  real: "That year's real car",
+  last: "Previous year's car",
+};
+
 /**
  * The words that follow the screen: the historical answer's label, as the other
  * settings on each screen name theirs, and the notes, which talk about "every
@@ -23,7 +31,7 @@ const COPY: Readonly<
     RunUnit,
     {
       readonly historical: string;
-      readonly varied: (spread: CarVariationSpread) => string;
+      readonly varied: (spread: CarVariationSpread, from: CarVariationBase) => string;
       readonly random: string;
     }
   >
@@ -37,8 +45,10 @@ const COPY: Readonly<
   },
   era: {
     historical: "Historical",
-    varied: (spread) =>
-      `Every season, each team's chassis is up to ${spread} points better or worse than the real one, on all four ratings. Engines are as they were.`,
+    varied: (spread, from) =>
+      from === "last"
+        ? `Every season, each team's chassis is up to ${spread} points better or worse than the car it raced the year before, on all four ratings. A team new to the run starts from its real car. Engines are as they were.`
+        : `Every season, each team's chassis is up to ${spread} points better or worse than the real one, on all four ratings. Engines are as they were.`,
     random:
       "Every season, each chassis rating is drawn anywhere between that year's weakest and strongest car. Engines are as they were.",
   },
@@ -49,8 +59,11 @@ const COPY: Readonly<
  * setup screens; the historical label and the notes follow the screen.
  *
  * Under Varied a second row picks how far, as segments like the first, so the
- * stops read at a glance. The spread is remembered while the screen is open, so
- * a look at Random and back does not lose it.
+ * stops read at a glance, and on the era's screen a third picks what from: that
+ * year's real car, or the previous year's (a walk), which a season has no run behind it
+ * for. Both are remembered while the screen is open, so a look at Random and
+ * back does not lose them; the season's screen keeps the era's base untouched,
+ * and a season races off the real car whatever it says (`seasonSettings`).
  */
 export function CarPerformanceSetting({
   carPerformance,
@@ -67,9 +80,13 @@ export function CarPerformanceSetting({
   const [spread, setSpread] = useState<CarVariationSpread>(
     carPerformance?.kind === "varied" ? carPerformance.spread : OPENING_SPREAD,
   );
-  const vary = (to: CarVariationSpread) => {
-    setSpread(to);
-    onChange?.({ kind: "varied", spread: to });
+  const [from, setFrom] = useState<CarVariationBase>(
+    carPerformance?.kind === "varied" ? carPerformance.from : "real",
+  );
+  const vary = (to: { spread: CarVariationSpread; from: CarVariationBase }) => {
+    setSpread(to.spread);
+    setFrom(to.from);
+    onChange?.({ kind: "varied", ...to });
   };
 
   return (
@@ -88,7 +105,7 @@ export function CarPerformanceSetting({
             label: "Varied",
             selected: carPerformance?.kind === "varied",
             onPick: () => {
-              vary(spread);
+              vary({ spread, from });
             },
           },
           {
@@ -107,7 +124,20 @@ export function CarPerformanceSetting({
             label: `±${each}`,
             selected: carPerformance.spread === each,
             onPick: () => {
-              vary(each);
+              vary({ spread: each, from: carPerformance.from });
+            },
+          }))}
+        />
+      ) : null}
+      {carPerformance?.kind === "varied" && unit === "era" ? (
+        <SettingSegments
+          name="Varies from"
+          segments={CAR_VARIATION_BASES.map((each) => ({
+            key: each,
+            label: BASE_LABELS[each],
+            selected: carPerformance.from === each,
+            onPick: () => {
+              vary({ spread: carPerformance.spread, from: each });
             },
           }))}
         />
@@ -116,7 +146,7 @@ export function CarPerformanceSetting({
         {carPerformance === null
           ? "Every car as it really was."
           : carPerformance.kind === "varied"
-            ? COPY[unit].varied(carPerformance.spread)
+            ? COPY[unit].varied(carPerformance.spread, carPerformance.from)
             : COPY[unit].random}
       </p>
     </div>

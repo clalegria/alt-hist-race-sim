@@ -234,6 +234,45 @@ describe("variedChassis", () => {
     const rolled = variedChassis(SPREAD_SEASON, 30, createRng(11));
     expect(() => applyChassis(SPREAD_SEASON, rolled)).not.toThrow();
   });
+
+  describe("from previous year's cars", () => {
+    // Every team but the last raced last year, on a car of its own unlike this
+    // year's; the last is new and has only this year's to move off.
+    const LAST: ChassisSpec = { racing: 30, qualifying: 30, consistency: 30, reliability: 30 };
+    const [newcomer] = SPREAD_SEASON.entries.slice(-1);
+    const lastYear = Object.fromEntries(
+      SPREAD_SEASON.entries
+        .filter((entry) => entry !== newcomer)
+        .map((entry) => [entry.teamId, LAST]),
+    );
+
+    it("moves a team that raced last year off that car, and a new one off its own", () => {
+      for (const seed of [1, 2, 3, 4, 5]) {
+        const walked = variedChassis(SPREAD_SEASON, SPREAD, createRng(seed), lastYear);
+        const real = variedChassis(SPREAD_SEASON, SPREAD, createRng(seed));
+        for (const entry of SPREAD_SEASON.entries) {
+          const base = entry === newcomer ? entry.chassis : LAST;
+          // The same draw either way, so the offset is the real roll's.
+          const offset = (real[entry.teamId] as ChassisSpec).qualifying - entry.chassis.qualifying;
+          for (const key of ["racing", "qualifying", "consistency", "reliability"] as const) {
+            expect((walked[entry.teamId] as ChassisSpec)[key], `${seed} ${entry.teamId}`).toBe(
+              Math.min(
+                Math.max(base[key] + offset, CHASSIS_STEP_RANGE.min),
+                CHASSIS_STEP_RANGE.max,
+              ),
+            );
+          }
+        }
+      }
+    });
+
+    it("ignores a team from last year that does not enter this one", () => {
+      const withLeaver = { ...lastYear, "not-entered": LAST };
+      expect(variedChassis(SPREAD_SEASON, SPREAD, createRng(3), withLeaver)).toEqual(
+        variedChassis(SPREAD_SEASON, SPREAD, createRng(3), lastYear),
+      );
+    });
+  });
 });
 
 describe("randomChassis", () => {

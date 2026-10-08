@@ -96,7 +96,9 @@ drivers come from `driverPoolOf(settings)`, the one place they reach the ratings
 is the era's first year under *Team names: Keep the first*, else null: one year of an era
 cannot know where the era began, so `createWorld` takes it after `settings` (defaulting to
 its own year, right for a first year) and every action that rebuilds a year passes the
-world's own on; `nextEraWorld` passes `last.namesKeptFrom`. The grid stage states
+world's own on; `nextEraWorld` passes `last.namesKeptFrom`. **`walkedFrom`**, the cars a
+walk from last year's moves off, follows the same pattern as `createWorld`'s last
+argument (`car-performance.md`). The grid stage states
 the level (`RandomnessNote`) and any non-historical setting beneath it, and offers no
 control; the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming
@@ -105,7 +107,7 @@ control; the season summary and the roll of honour carry it as one small line
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
 (`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom, rngState, field,
-lineup, engines, chassis, baselineChassis, arrangement, season }`) — one
+lineup, engines, chassis, baselineChassis, walkedFrom, arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's

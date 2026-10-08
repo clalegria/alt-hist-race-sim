@@ -24,9 +24,11 @@ import { settingsOf } from "./SimulationSettings.js";
 
 const noop = () => {};
 
-/** The pressed segments' labels, in order. */
+/** The pressed segments' labels, in order, with React's escaped apostrophe read back. */
 function pressed(html: string): string[] {
-  return [...html.matchAll(/aria-pressed="true"[^>]*>([^<]*)</g)].map((match) => match[1] ?? "");
+  return [...html.matchAll(/aria-pressed="true"[^>]*>([^<]*)</g)].map((match) =>
+    (match[1] ?? "").replaceAll("&#x27;", "'"),
+  );
 }
 
 /** An era's first year under the given settings, perhaps with the reader's own chassis. */
@@ -50,11 +52,51 @@ describe("the car performance setting", () => {
       expect(
         pressed(
           renderToStaticMarkup(
-            <CarPerformanceSetting unit="era" carPerformance={{ kind: "varied", spread }} />,
+            <CarPerformanceSetting
+              unit="era"
+              carPerformance={{ kind: "varied", spread, from: "real" }}
+            />,
           ),
         ),
-      ).toEqual(["Varied", `±${spread}`]);
+      ).toEqual(["Varied", `±${spread}`, "That year's real car"]);
     }
+    expect(
+      pressed(
+        renderToStaticMarkup(
+          <CarPerformanceSetting
+            unit="era"
+            carPerformance={{ kind: "varied", spread: 5, from: "last" }}
+          />,
+        ),
+      ),
+    ).toEqual(["Varied", "±5", "Previous year's car"]);
+  });
+
+  it("offers previous year's car only on the era's screen, and only under Varied", () => {
+    const base = 'aria-label="Varies from"';
+    const varied = { kind: "varied", spread: 5, from: "real" } as const;
+    expect(
+      renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={varied} />),
+    ).toContain(base);
+    expect(
+      renderToStaticMarkup(<CarPerformanceSetting unit="season" carPerformance={varied} />),
+    ).not.toContain(base);
+    for (const carPerformance of [null, { kind: "random" }] as const) {
+      expect(
+        renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={carPerformance} />),
+      ).not.toContain(base);
+    }
+  });
+
+  it("says what a walk moves off, and where a new team starts", () => {
+    const note = renderToStaticMarkup(
+      <CarPerformanceSetting
+        unit="era"
+        carPerformance={{ kind: "varied", spread: 5, from: "last" }}
+      />,
+    );
+    expect(note).toContain("the car it raced the year before");
+    expect(note).toContain("A team new to the run starts from its real car");
   });
 
   it("offers the spreads only under Varied", () => {
@@ -69,7 +111,10 @@ describe("the car performance setting", () => {
     ).not.toContain(spreads);
     expect(
       renderToStaticMarkup(
-        <CarPerformanceSetting unit="era" carPerformance={{ kind: "varied", spread: 5 }} />,
+        <CarPerformanceSetting
+          unit="era"
+          carPerformance={{ kind: "varied", spread: 5, from: "real" }}
+        />,
       ),
     ).toContain(spreads);
   });
@@ -90,7 +135,7 @@ describe("the car performance setting", () => {
   });
 
   it("talks about every season on the era's screen and about the one on a season's", () => {
-    const answers = [{ kind: "random" }, { kind: "varied", spread: 5 }] as const;
+    const answers = [{ kind: "random" }, { kind: "varied", spread: 5, from: "real" }] as const;
     for (const carPerformance of answers) {
       const draw = (unit: "season" | "era") =>
         renderToStaticMarkup(<CarPerformanceSetting carPerformance={carPerformance} unit={unit} />);
@@ -110,9 +155,17 @@ describe("the car performance setting", () => {
   it("is named on the settings line when not historical", () => {
     const varied = eraYear({
       ...HISTORICAL_SETTINGS,
-      carPerformance: { kind: "varied", spread: 5 },
+      carPerformance: { kind: "varied", spread: 5, from: "real" },
     });
     expect(settingsOf(varied)).toContainEqual({ name: "Car performance", value: "Varied ±5" });
+    const walking = eraYear({
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "varied", spread: 5, from: "last" },
+    });
+    expect(settingsOf(walking)).toContainEqual({
+      name: "Car performance",
+      value: "Varied ±5 from previous year's car",
+    });
     expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
       "Car performance",
     );

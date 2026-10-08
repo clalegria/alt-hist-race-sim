@@ -130,7 +130,7 @@ describe("a run rebuilt from its recipe", () => {
     const other =
       pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
     useSeasonStore.getState().simulateEra(9, YEAR, undefined, {
-      carPerformance: { kind: "varied", spread: 10 },
+      carPerformance: { kind: "varied", spread: 10, from: "real" },
       breakdowns: "fewer",
       reliability: PLAYABLE_SEASONS.at(-1) ?? null,
       points: other,
@@ -142,6 +142,27 @@ describe("a run rebuilt from its recipe", () => {
     const run = current();
     expect(run.world.namesKeptFrom).toBe(YEAR);
     expect(run.world.baselineChassis).not.toBeNull();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("keeps an era walking from previous year's car, through a chassis edit and a restart", () => {
+    useSeasonStore.getState().simulateEra(9, YEAR, undefined, {
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "varied", spread: 20, from: "last" },
+    });
+    // An edit the next year walks off, then a restart the year after keeps.
+    const first = current().world;
+    const team = SEED.entries[0]?.teamId ?? "";
+    const base = first.baselineChassis ?? {};
+    const lower = stepChassis(base, team, -1);
+    useSeasonStore
+      .getState()
+      .setGrid(null, null, null, lower === base ? stepChassis(base, team, 1) : lower);
+    crown(YEAR);
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().restartSeason();
+    const run = current();
+    expect(run.world.walkedFrom).not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
   });
 
@@ -252,7 +273,7 @@ describe("a recipe that is refused", () => {
             ...recipe.worlds[0],
             settings: {
               ...HISTORICAL_SETTINGS,
-              carPerformance: { kind: "varied", spread: 7 },
+              carPerformance: { kind: "varied", spread: 7, from: "real" },
             },
           },
         ],

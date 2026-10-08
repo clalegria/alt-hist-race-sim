@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
   BREAKDOWNS_LABELS,
   CAR_PERFORMANCE_STREAM,
+  CAR_VARIATION_BASES,
   CAR_VARIATION_SPREADS,
   driverPoolOf,
   HISTORICAL_SETTINGS,
@@ -20,6 +21,7 @@ import {
   samePoints,
   seasonSettings,
   settingsInForce,
+  walksFromLastYear,
   whatIfsOf,
 } from "./run-settings.js";
 import { FIRST_SEASON, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
@@ -75,12 +77,17 @@ describe("parsing stored settings", () => {
     }
   });
 
-  it("accepts Car performance: Random, and Varied at every spread offered", () => {
+  it("accepts Car performance: Random, and Varied at every spread and base offered", () => {
     const random = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } };
     expect(parseRunSettings(random)).toEqual(random);
     for (const spread of CAR_VARIATION_SPREADS) {
-      const varied = { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread } };
-      expect(parseRunSettings(varied)).toEqual(varied);
+      for (const from of CAR_VARIATION_BASES) {
+        const varied = {
+          ...HISTORICAL_SETTINGS,
+          carPerformance: { kind: "varied", spread, from },
+        };
+        expect(parseRunSettings(varied)).toEqual(varied);
+      }
     }
   });
 
@@ -128,8 +135,12 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, carPerformance: "random" },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "historical" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied" } },
-      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 7 } },
-      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: "10" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 7, from: "real" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: "10", from: "real" } },
+      // Varied from before its base, and a base it does not offer.
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10 } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "first" } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: null } },
       { ...HISTORICAL_SETTINGS, carPerformance: [] },
     ];
     for (const raw of junk) {
@@ -170,10 +181,22 @@ describe("a standalone season's settings", () => {
     );
   });
 
+  it("varies a walk from previous year's car off the real one, which a season has no year before for", () => {
+    const walk = {
+      ...HISTORICAL_SETTINGS,
+      breakdowns: "fewer",
+      carPerformance: { kind: "varied", spread: 20, from: "last" },
+    } as const;
+    expect(seasonSettings(walk)).toEqual({
+      ...walk,
+      carPerformance: { kind: "varied", spread: 20, from: "real" },
+    });
+  });
+
   it("keeps every setting both screens offer", () => {
     for (const settings of [
       { ...HISTORICAL_SETTINGS, breakdowns: "fewer" },
-      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 5 } },
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 5, from: "real" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
     ] as const) {
       expect(seasonSettings(settings)).toBe(settings);
@@ -205,10 +228,54 @@ describe("the cars a run races", () => {
     expect(
       rolledChassisOf(
         season,
-        { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 20 } },
+        { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 20, from: "real" } },
         5,
       ),
     ).toEqual(variedChassis(season, 20, stream()));
+  });
+
+  it("walks off previous year's cars only when Varied says so", () => {
+    const stream = () => createRng(deriveSeed(5, CAR_PERFORMANCE_STREAM));
+    const lastRaced = rolledChassisOf(
+      season,
+      { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
+      9,
+    );
+    const varied = (from: "real" | "last") => ({
+      ...HISTORICAL_SETTINGS,
+      carPerformance: { kind: "varied", spread: 10, from } as const,
+    });
+    expect(rolledChassisOf(season, varied("last"), 5, lastRaced)).toEqual(
+      variedChassis(season, 10, stream(), lastRaced),
+    );
+    expect(rolledChassisOf(season, varied("real"), 5, lastRaced)).toEqual(
+      variedChassis(season, 10, stream()),
+    );
+    expect(
+      rolledChassisOf(
+        season,
+        { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
+        5,
+        lastRaced,
+      ),
+    ).toEqual(randomChassis(season, stream()));
+    // A run's first year has no year before, and walks off its own cars.
+    expect(rolledChassisOf(season, varied("last"), 5)).toEqual(variedChassis(season, 10, stream()));
+  });
+
+  it("says which answer walks", () => {
+    expect(walksFromLastYear(HISTORICAL_SETTINGS)).toBe(false);
+    expect(walksFromLastYear({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toBe(
+      false,
+    );
+    for (const from of CAR_VARIATION_BASES) {
+      expect(
+        walksFromLastYear({
+          ...HISTORICAL_SETTINGS,
+          carPerformance: { kind: "varied", spread: 5, from },
+        }),
+      ).toBe(from === "last");
+    }
   });
 });
 
@@ -244,13 +311,22 @@ describe("the what-ifs a run states", () => {
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
         breakdowns: "fewer",
-        carPerformance: { kind: "varied", spread: 10 },
+        carPerformance: { kind: "varied", spread: 10, from: "real" },
         careerEvents: "none",
       }).map((line) => line.name),
     ).toEqual(["Breakdowns", "Car performance", "Career events"]);
     expect(
-      whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10 } }),
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        carPerformance: { kind: "varied", spread: 10, from: "real" },
+      }),
     ).toEqual([{ name: "Car performance", value: "Varied ±10" }]);
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        carPerformance: { kind: "varied", spread: 10, from: "last" },
+      }),
+    ).toEqual([{ name: "Car performance", value: "Varied ±10 from previous year's car" }]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toEqual([
       { name: "Car performance", value: "Random" },
     ]);

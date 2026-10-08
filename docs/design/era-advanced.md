@@ -84,8 +84,8 @@ What follows is only what stays advanced.
   `run-settings.md` §4), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
-  change from the last, `run-settings.md` §3's *last year's car*. Game mode goes much
-  deeper (§10).
+  change from the last, built as *Car performance* from *previous year's car*
+  (`.claude/rules/car-performance.md`). Game mode goes much deeper (§10).
 - **OPEN** — The intermediate grid mode; which of a season file's data (car and engine
   ratings, calendar, points) still applies once a team or engine pairing no longer
   matches history; whether the careers and retirement settings should be one setting.
