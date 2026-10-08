@@ -71,7 +71,8 @@ The team share is what stops the dice deciding a teammate battle: both team term
 out of a comparison between two cars in the same garage, so what separates them is
 `sqrt(1 − share)` of the sigma rather than all of it — while the spread across the *field*
 is untouched. `teamFormBoost` (1 by default) is
-the randomness slider's lever on the team half alone.
+the randomness slider's lever on the team half alone. *Team form* is to be renamed: *form*
+belongs to the planned driver market (`docs/design/era-advanced.md`).
 
 The mechanical DNF roll is correlated within a team the same way:
 `mechanicalDnfTeamCorrelation` (0.5) mixes a shared per-team fragility draw with the car's

@@ -25,7 +25,8 @@ Seasons are authored one JSON file per year in `packages/data/src/seasons/`
 
 ## Documentation, and keeping it current
 - `docs/ROADMAP.md` is what to build next, in order; `docs/DECISIONS.md` is what is still
-  open. **Read both before starting new feature work.**
+  open, to confirm with the author rather than assume. **Read both before starting new
+  feature work.**
 - `docs/design/*.md` design a large subsystem before it is built, marking each point
   DECIDED, PROPOSED (confirm first) or OPEN, and own that subsystem's open questions.
   As parts are built they move to `.claude/rules/` and leave the design doc; when
@@ -51,16 +52,10 @@ pnpm test          # Vitest across all packages
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm race [seed]   # ONE race (--phase start|end; --wet 0-1 forces the weather)
-pnpm season [seed] # simulate a full season, print both championships
-pnpm calibrate [n] # run a grid n times (default 5000), print distributions
-pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
-pnpm retirements [n]  # retirement rate per year vs real; --sweep re-fits the factor
-pnpm progression <driver>  # one driver's ageing curve, age 16-55 (no arg lists the pool)
-pnpm tune          # rating tuner (prints proposals, writes nothing)
-pnpm fit <year>    # fit a season's chassis/engines to its real results; --write applies
 pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/rules/screenshots.md)
 ```
+The harnesses in `tools/calibrate` (`pnpm race`, `season`, `calibrate`, `tune`, `fit`, …)
+are listed in `.claude/rules/calibration.md`.
 
 ## Architecture rules (invariants — do not violate)
 - **The engine is pure.** `packages/engine` imports nothing outside itself, does no I/O
@@ -69,13 +64,13 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
 - **No `Math.random()` in the engine.** All randomness comes from an injected seeded PRNG;
   reproducibility is a hard requirement.
 - **Identity is separate from state.** `Driver` and `Team` are immutable; ratings and
-  per-season facts live in per-season records. A team's name, base and livery are eras,
-  read via `teamIdentityIn` / `teamLiveryIn`.
+  per-season facts live in per-season records. A team's name, base and livery are eras
+  (`team-eras.md`).
 - **Results are the source of truth.** Store a result row per (driver, race) and derive
   every statistic on read; never keep running counters as primary data.
 - **One serialisable world-state object**, plain data only, in one store (Zustand), never
-  scattered across component state. The `Rng` holds a closure, so store its `getState()`
-  snapshot and rebuild with `createRngFromState()`.
+  scattered across component state; the `Rng` is kept as its state snapshot
+  (`web-store.md`).
 - **Tunable numbers live in one constants module per subsystem**, never inline in logic
   (pattern: `packages/engine/src/race/constants.ts`).
 - **Never tune a number unless asked.** Engine constants and the authored ratings in
@@ -99,23 +94,9 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   sorted, then DNFs. `.claude/rules/race-engine.md`.
 - **Beat**: one step of a run's reveal — the grid, a session, the summary, an era's
   review. The cursor is the beat reached; each beat is a page. `.claude/rules/web-app.md`.
-- **Recipe**: what rebuilds a run after a reload, each world's own inputs plus the
-  cursor, checked by a fingerprint of each world. `web-persistence.md`.
-- **Round context**: where a round is held and how far through the year it is; the seam
-  circuit features will hang off.
-- **Development trend**: a car's pace drifting across a season about its authored rating.
-  `car-development.md`.
-- **Retirement factor**: a season's 1–10 dial for how hard the year is on its cars.
-  `retirement-factor.md`.
-- **Ghost entry**: under *Keep the starting grid*, a start-year team history has dropped,
-  racing its last real car. `teams-and-seats.md`.
-- **Wetness**: how wet a wet round is, a range not a switch. `wet-weather.md`.
-- **Randomness level**: 1–5, fixed before a run. `DEFAULT_RANDOMNESS_LEVEL` (1) is the
-  reference every harness uses; only level 2 is unscaled; the app opens on 2.
-  `race-randomness.md`.
+- **Randomness level**: 1–5, fixed before a run. `race-randomness.md`.
 - **Team form**: the share of session noise that belongs to the team rather than the car,
-  so it cancels out of a teammate comparison. `race-engine.md`. To be renamed: *form*
-  belongs to the planned driver market (`docs/design/era-advanced.md`).
+  so it cancels out of a teammate comparison. `race-engine.md`.
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
@@ -125,11 +106,10 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
   smoke-render level. Favour property-style checks: finish order is a valid permutation,
   nobody finishes twice, DNFs remove cars.
 - **No test may depend on an authored number or on what a seed produced**; both move.
-  - Assert the *rule* against synthetic ratings (the `driver()` fixture in
-    `apps/web/src/lib/rating.test.ts`), never an authored rating or a comparison of two.
+  - Assert the *rule* against synthetic ratings, never an authored rating or a comparison
+    of two.
   - A fixed seed is a fine fixture; asserting its outcome is not. When a test needs a
-    season of a particular shape, search for one with `findWorld`
-    (`apps/web/src/test-support.ts`).
+    season of a particular shape, search for one (`web-testing.md`).
   - Derive counts (`field.length`, `season.calendar.length`); never hard-code them.
   - Naming a driver or team as an identity is fine; what they are worth is not.
 - **Mutation-check statistical tests**: break the implementation on purpose, confirm the
@@ -139,11 +119,3 @@ pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/
 - **Dependencies:** when pnpm's release-age policy rejects a fresh version, pick the
   previous stable one; never add a `minimumReleaseAgeExclude`. `tools/*` may use dev
   dependencies; the engine takes none. Secrets live only in a gitignored `.env`.
-
-## Open decisions (confirm with the author — do not assume)
-In full in `docs/DECISIONS.md`.
-- **The advanced era and game mode**: open questions in `docs/design/era-advanced.md`.
-- **Should the fitter and tuner ever move driver ratings?**
-- **The app shell**: open questions in `docs/design/app-shell.md`.
-- **What a saved or shared run replays against**, when both the author and the reader
-  can change the data under it.

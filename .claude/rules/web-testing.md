@@ -26,8 +26,9 @@ asserted in the store's own tests.
 — several perfectly clickable buttons carry `disabled:opacity-50` in their class list.
 
 **Nothing here asserts an authored number or what a seed produced** — the rule is in
-`CLAUDE.md`, and `src/test-support.ts` is how it is kept. `seededWorld()` is a fixture
-(a render has to be *of* something); `findWorld(predicate)` searches seeds for a season
+`CLAUDE.md`, and `src/test-support.ts` is how it is kept. A rating rule is asserted
+against synthetic ratings, the `driver()` fixture in `src/lib/rating.test.ts`.
+`seededWorld()` is a fixture (a render has to be *of* something); `findWorld(predicate)` searches seeds for a season
 of the shape a test needs — a title settled with rounds to spare, a place that changed
 hands — instead of pinning the seed that happened to work. Counts come off the grid:
 `world.field.length`, `teamCount`, `starterCount`, `SEED.calendar.length`. `YEAR` and

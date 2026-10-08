@@ -27,6 +27,17 @@ Two harnesses are the exception, because they have real targets and their output
 meant to be acted on: `pnpm retirements` (on a season's `retirementFactor` only) and
 `pnpm fit <year>`.
 
+```
+pnpm race [seed]   # ONE race (--phase start|end; --wet 0-1 forces the weather)
+pnpm season [seed] # simulate a full season, print both championships
+pnpm calibrate [n] # run a grid n times (default 5000), print distributions
+pnpm calibrate-season [n]  # a whole SEASON n times: title%, win%, score%, avg points
+pnpm retirements [n]  # retirement rate per year vs real; --sweep re-fits the factor
+pnpm progression <driver>  # one driver's ageing curve, age 16-55 (no arg lists the pool)
+pnpm tune          # rating tuner (prints proposals, writes nothing)
+pnpm fit <year>    # fit a season's chassis/engines to its real results; --write applies
+```
+
 ## Measure at the reference level, on `aged`
 
 **`DEFAULT_RANDOMNESS_LEVEL` is the reference level** and every harness takes it unless
