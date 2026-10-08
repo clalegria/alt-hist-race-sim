@@ -15,14 +15,14 @@ import { cn } from "../lib/utils.js";
 
 const OPTIONS = [
   {
-    mode: "peak",
-    label: "At their peak",
-    detail: "Every driver at the best they ever were, whatever year it is.",
-  },
-  {
     mode: "aged",
     label: "At their age",
     detail: "Ratings for the season: rookies are raw, veterans are past it.",
+  },
+  {
+    mode: "peak",
+    label: "At their peak",
+    detail: "Every driver at the best they ever were, whatever year it is.",
   },
 ] as const satisfies readonly { mode: RatingMode; label: string; detail: string }[];
 

@@ -13,11 +13,12 @@ reveal cursor and how any of it is tested are in `.claude/rules/web-app.md`, whi
 loads alongside this file.
 
 **Driver ability is a simulation input, not a display filter.** `world.ratingMode` is
-`"peak"` (authored peaks, and the default) or `"aged"` (each
-driver's ability in that season, via the engine's curve). `RatingModeToggle` renders
-**only on the grid stage** — past it the reader has seen results the other field would
-never have produced — and `setRatingMode` re-runs the year *from the same seed*, so
-the two modes are the same dice thrown at different drivers.
+`"aged"` (each driver's ability in that season, via the engine's curve, and the
+default) or `"peak"` (authored peaks, a what-if chosen on the grid).
+`RatingModeToggle` renders **only on the grid stage** — past it the reader has seen
+results the other field would never have produced — and `setRatingMode` re-runs the
+year *from the same seed*, so the two modes are the same dice thrown at different
+drivers.
 
 **And only in a standalone season.** An era is pinned to `ERA_RATING_MODE` (`"aged"`),
 with no switch anywhere in the run: "at their peak" answers a question about *one*

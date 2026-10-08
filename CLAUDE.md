@@ -86,8 +86,8 @@ are listed in `.claude/rules/calibration.md`.
 - **Chassis spec / engine spec**: authored per season; an engine has no consistency. The
   **car spec** is their blend through `powertrain()`, what the model scores and what the
   UI's overall uses. `.claude/rules/race-powertrain.md`.
-- **Peak vs aged**: authored peak, or that season's ability via the ageing curve. The app
-  defaults to peak; **harnesses run `aged`** (`tools/calibrate/src/mode.ts`).
+- **Peak vs aged**: that season's ability via the ageing curve, or authored peak.
+  **`aged` is the default everywhere**; `peak` is a what-if on a season's grid.
 - **Ranking rule**: overall, then racing, then name or id (`compareByRating` in
   `packages/data/src/rating.ts`). One rule for every list on screen and every grid reseat.
 - **Score-and-sort**: the v1 race model behind `RaceModel`: one noisy score per driver,

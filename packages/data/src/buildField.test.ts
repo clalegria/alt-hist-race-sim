@@ -175,9 +175,9 @@ describe("validating career shape", () => {
 });
 
 describe("building a field", () => {
-  it("defaults to peak, the simplest claim a grid can make about a driver", () => {
-    expect(DEFAULT_RATING_MODE).toBe("peak");
-    expect(buildField(SEED)).toEqual(buildField(SEED, drivers, "peak"));
+  it("defaults to aged, each driver as they were that year", () => {
+    expect(DEFAULT_RATING_MODE).toBe("aged");
+    expect(buildField(SEED)).toEqual(buildField(SEED, drivers, "aged"));
   });
 
   it("builds a field for every authored season", () => {

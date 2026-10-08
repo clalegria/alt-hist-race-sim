@@ -121,10 +121,9 @@ function positionals(argv: readonly string[]): string[] {
 }
 
 /**
- * `aged` (the default, as in every harness here) or `peak`.
+ * `aged` (the default, as in every harness here and the app) or `peak`.
  *
- * It differs from the package-wide `DEFAULT_RATING_MODE`, which is `peak` for
- * the app. A season is a year in someone's career: running it with every driver
+ * A season is a year in someone's career: running it with every driver
  * at their authored peak asks what a grid of thirty simultaneous career-bests
  * would do, which is not a year that ever happens. `--mode peak` is still there
  * for reading a grid on its own terms, not for producing a figure (`mode.ts`).

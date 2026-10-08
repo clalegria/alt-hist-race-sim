@@ -32,8 +32,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     **It does not blend** — `powertrain()` in the engine owns that, so the number raced
     and the number the grid page shows come from one place. Hence the entrant carries
     `chassis`, not `car`.
-  - `mode` is `"peak"` (default, and it stays the default) or `"aged"`; see "Peak vs
-    aged" in `CLAUDE.md`. `"aged"` calls the engine's `ratingsForSeason`, so this
+  - `mode` is `"aged"` (the default) or `"peak"`; see "Peak vs aged" in `CLAUDE.md`.
+    `"aged"` calls the engine's `ratingsForSeason`, so this
     package depends on the engine at runtime — one-directionally, which is the
     invariant that matters.
 - **A run setting reaches driver ratings through the pool**, never a flag: `buildField`,

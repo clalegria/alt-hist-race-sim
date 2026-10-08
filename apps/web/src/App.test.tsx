@@ -132,22 +132,23 @@ describe("the driver ability toggle", () => {
   it("offers both modes on the grid, with the world's own marked", () => {
     expect(html).toContain("At their peak");
     expect(html).toContain("At their age");
-    // The seeded world is in peak mode, so exactly one button is pressed and it
-    // is that one.
+    // The seeded world is in aged mode, the default, so exactly one button is
+    // pressed and it is that one.
     expect((html.match(/aria-pressed="true"/g) ?? []).length).toBe(1);
     const fromPressed = html.slice(html.indexOf('aria-pressed="true"'));
-    expect(fromPressed.slice(0, fromPressed.indexOf("</button>"))).toContain("At their peak");
+    expect(fromPressed.slice(0, fromPressed.indexOf("</button>"))).toContain("At their age");
   });
 
   it("says what the chosen mode means, in the season's own year", () => {
-    expect(html).toContain("Every driver at the best they ever were");
-    expect(html).not.toContain("rookies are raw");
+    expect(html).toContain("rookies are raw");
+    expect(html).toContain(String(world.year));
+    expect(html).not.toContain("Every driver at the best they ever were");
   });
 
   it("describes the other mode once it is chosen", () => {
-    const aged = render({ kind: "grid" }, seededWorld(3, "aged"));
-    expect(aged).toContain("rookies are raw");
-    expect(aged).toContain(String(world.year));
+    const peak = render({ kind: "grid" }, seededWorld(3, "peak"));
+    expect(peak).toContain("Every driver at the best they ever were");
+    expect(peak).not.toContain("rookies are raw");
   });
 
   it("is not offered at all inside an era, which fixes the ability model", () => {
@@ -183,20 +184,20 @@ describe("the driver ability toggle", () => {
   it("ages the grid it is showing", () => {
     // Whoever the curve moves most, rather than a driver named here: the two
     // grids must show different numbers for them.
-    const agedWorld = seededWorld(3, "aged");
-    const aged = render({ kind: "grid" }, agedWorld);
-    const agedOverall = new Map(
-      agedWorld.field.map((entrant) => [entrant.driverId, driverOverall(entrant.driver)]),
+    const peakWorld = seededWorld(3, "peak");
+    const peak = render({ kind: "grid" }, peakWorld);
+    const peakOverall = new Map(
+      peakWorld.field.map((entrant) => [entrant.driverId, driverOverall(entrant.driver)]),
     );
     const moved = world.field.find(
-      (entrant) => agedOverall.get(entrant.driverId) !== driverOverall(entrant.driver),
+      (entrant) => peakOverall.get(entrant.driverId) !== driverOverall(entrant.driver),
     );
     if (moved === undefined) {
       throw new Error("no driver on the grid is a different rating at their real age");
     }
 
     expect(html).toContain(`>${driverOverall(moved.driver)}<`);
-    expect(aged).toContain(`>${agedOverall.get(moved.driverId)}<`);
+    expect(peak).toContain(`>${peakOverall.get(moved.driverId)}<`);
   });
 });
 

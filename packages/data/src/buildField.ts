@@ -9,12 +9,12 @@
  *
  * Two rating modes, and the choice belongs to whoever is running the season:
  *
+ * - **`aged`**, the default, runs each driver's career through the engine's
+ *   ageing curve and uses the ratings they held *in that season*. 1980 Prost is
+ *   a rookie again.
  * - **`peak`** feeds every driver's authored peak ratings in, whatever season it
- *   is. A 1980 grid of drivers at the best they ever were. This is the original
- *   behaviour and stays the default, because it is the simplest claim a grid
- *   can make about a driver. The harnesses run `aged` instead.
- * - **`aged`** runs each driver's career through the engine's ageing curve and
- *   uses the ratings they held *in that season*. 1980 Prost is a rookie again.
+ *   is: a 1980 grid of drivers at the best they ever were. A what-if, chosen on
+ *   purpose.
  *
  * Each entrant also carries the driver's nationality, the team's base and the
  * engine manufacturer's, which is how the engine knows who is racing at home
@@ -39,8 +39,8 @@ export type RatingMode = "peak" | "aged";
 
 export const RATING_MODES: readonly RatingMode[] = ["peak", "aged"];
 
-/** The default: authored peaks, fed straight in. */
-export const DEFAULT_RATING_MODE: RatingMode = "peak";
+/** The default: each driver's ability in the season, via the ageing curve. */
+export const DEFAULT_RATING_MODE: RatingMode = "aged";
 
 /**
  * The authored career in the shape the engine's curve wants.

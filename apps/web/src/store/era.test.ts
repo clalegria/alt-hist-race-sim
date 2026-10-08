@@ -13,7 +13,6 @@ import {
   authoredLineup,
   CHASSIS_STEP_RANGE,
   DEFAULT_DRIVER_FILTERS,
-  DEFAULT_RATING_MODE,
   driverRatingsFor,
   driversById,
   FIRST_AUTHORED_SEASON,
@@ -1148,11 +1147,12 @@ describe("a season inside an era", () => {
       },
     });
     try {
-      rememberRatingMode(DEFAULT_RATING_MODE);
-      expect(readRatingMode()).toBe(DEFAULT_RATING_MODE);
+      // Remembered as the mode the era does not run on, so a leak would show.
+      rememberRatingMode("peak");
+      expect(readRatingMode()).toBe("peak");
 
-      useSeasonStore.getState().setRatingMode("aged");
-      expect(readRatingMode()).toBe(DEFAULT_RATING_MODE);
+      useSeasonStore.getState().setRatingMode(ERA_RATING_MODE);
+      expect(readRatingMode()).toBe("peak");
     } finally {
       vi.unstubAllGlobals();
     }

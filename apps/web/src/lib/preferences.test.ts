@@ -75,11 +75,11 @@ describe("parsing a stored mode", () => {
     expect(parseRatingMode("aged")).toBe("aged");
   });
 
-  it("falls back to peak for anything else", () => {
-    // Peak is the default, so a corrupted value must land there rather than on
+  it("falls back to aged for anything else", () => {
+    // Aged is the default, so a corrupted value must land there rather than on
     // whichever mode happens to sort first.
-    for (const raw of [null, "", "PEAK", "young", "[]"]) {
-      expect(parseRatingMode(raw), JSON.stringify(raw)).toBe("peak");
+    for (const raw of [null, "", "AGED", "young", "[]"]) {
+      expect(parseRatingMode(raw), JSON.stringify(raw)).toBe("aged");
     }
   });
 });
@@ -88,9 +88,9 @@ describe("remembering the choice", () => {
   it("survives without any storage at all", () => {
     // No stub installed: this is the Vitest and no-DOM case.
     expect(typeof localStorage).toBe("undefined");
-    expect(readRatingMode()).toBe("peak");
+    expect(readRatingMode()).toBe("aged");
     expect(() => {
-      rememberRatingMode("aged");
+      rememberRatingMode("peak");
     }).not.toThrow();
   });
 
@@ -105,17 +105,17 @@ describe("remembering the choice", () => {
   });
 
   it("picks up a choice made on an earlier visit", () => {
-    stubStorage({ initial: "aged" });
-    expect(readRatingMode()).toBe("aged");
+    stubStorage({ initial: "peak" });
+    expect(readRatingMode()).toBe("peak");
   });
 
   it("shrugs off storage that throws", () => {
     // Safari private browsing and blocked third-party storage both do this. A
     // preference is never worth a blank page.
     stubStorage({ throws: true });
-    expect(readRatingMode()).toBe("peak");
+    expect(readRatingMode()).toBe("aged");
     expect(() => {
-      rememberRatingMode("aged");
+      rememberRatingMode("peak");
     }).not.toThrow();
   });
 });
