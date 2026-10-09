@@ -10,6 +10,7 @@
 
 import { type Livery, seasons } from "@alt-hist/data";
 import { liveryFor } from "./livery.js";
+import { teamName } from "./names.js";
 
 /** How many cars in a pass. */
 export const PARADE_SIZE = 3;
@@ -220,4 +221,46 @@ export function planPass(
     inFront: behind === undefined,
     duration: (viewport.width + CAR_WIDTH_PX) / DRIVE_SPEED_PX_PER_S,
   };
+}
+
+/**
+ * The parade's hidden game, one pass at a time, round and round: press on a car
+ * and the pass stops while held; let go and it drives on; press on a car again
+ * and it turns round. The next press holds it again, the one after turns it back,
+ * and so on until it leaves by either side. A new pass starts at `PARADE_START`.
+ */
+export interface ParadeGame {
+  /** Driving and not yet stopped, held still, or let go and waiting for the press that turns it. */
+  phase: "driving" | "held" | "released";
+  /** Driving right to left, the cars drawn mirrored. */
+  reversed: boolean;
+}
+
+export const PARADE_START: ParadeGame = { phase: "driving", reversed: false };
+
+/** The game after a press on a car or a release anywhere: the same object when nothing changes. */
+export function nextGame(game: ParadeGame, event: "press" | "release"): ParadeGame {
+  if (event === "release") {
+    return game.phase === "held" ? { ...game, phase: "released" } : game;
+  }
+  if (game.phase === "driving") {
+    return { ...game, phase: "held" };
+  }
+  if (game.phase === "released") {
+    return { phase: "driving", reversed: !game.reversed };
+  }
+  return game;
+}
+
+/** Whether a point (px, in the window) is inside any of the boxes, edges included. */
+export function hitsAny(point: { x: number; y: number }, boxes: readonly Box[]): boolean {
+  return boxes.some(
+    (box) =>
+      point.x >= box.left && point.x <= box.right && point.y >= box.top && point.y <= box.bottom,
+  );
+}
+
+/** What the held pass's tooltip says: each car's team as named that year, and the year, lead car first. */
+export function paradeLabel(cars: readonly ParadeCar[]): string[] {
+  return cars.map((car) => `${teamName(car.teamId, car.year)} (${car.year})`);
 }

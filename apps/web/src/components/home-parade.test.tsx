@@ -99,6 +99,17 @@ describe("the parade", () => {
     expect(css).toContain("@keyframes drive");
   });
 
+  it("shows no tooltip until a car is held", () => {
+    const html = renderToStaticMarkup(<Parade pass={pass("file")} />);
+    expect(html).not.toContain("(1950)");
+    expect(html).not.toContain("z-40");
+  });
+
+  it("draws every car the right way round until it is turned", () => {
+    const html = renderToStaticMarkup(<Parade pass={pass("staggered")} />);
+    expect(html).not.toContain("-scale-x-100");
+  });
+
   it("draws nothing until its timer sets a pass off", () => {
     expect(renderToStaticMarkup(<HomeParade />)).toBe("");
   });

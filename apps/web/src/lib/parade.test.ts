@@ -6,6 +6,7 @@
 import { seasonSeed } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
 import { liveryFor } from "./livery.js";
+import { teamName } from "./names.js";
 import {
   type Box,
   CAR_HEIGHT_PX,
@@ -15,9 +16,14 @@ import {
   type Formation,
   FRONT_LANE_BOTTOM,
   FRONT_LANE_TOP,
+  hitsAny,
   MIN_VISIBLE_SHARE,
+  nextGame,
   openLanes,
   PARADE_SIZE,
+  PARADE_START,
+  type ParadeGame,
+  paradeLabel,
   pickParade,
   planPass,
   visibleShare,
@@ -168,6 +174,72 @@ describe("planPass", () => {
       const pass = planPass(seeded(1), { width, height: 800 }, []);
       expect(((width + CAR_WIDTH_PX) / pass.duration).toFixed(6)).toBe(
         DRIVE_SPEED_PX_PER_S.toFixed(6),
+      );
+    }
+  });
+});
+
+describe("the parade's hidden game", () => {
+  const GAMES: ParadeGame[] = [false, true].flatMap((reversed) =>
+    (["driving", "held", "released"] as const).map((phase) => ({ phase, reversed })),
+  );
+
+  it("starts driving the right way round", () => {
+    expect(PARADE_START).toEqual({ phase: "driving", reversed: false });
+  });
+
+  it("holds, lets go and turns, round and round, each way in turn", () => {
+    let game = PARADE_START;
+    for (const reversed of [true, false, true, false]) {
+      game = nextGame(game, "press");
+      expect(game).toEqual({ phase: "held", reversed: !reversed });
+      game = nextGame(game, "release");
+      expect(game).toEqual({ phase: "released", reversed: !reversed });
+      game = nextGame(game, "press");
+      expect(game).toEqual({ phase: "driving", reversed });
+    }
+  });
+
+  it("does nothing else: a release that ends no hold, a press while held", () => {
+    for (const game of GAMES) {
+      if (game.phase !== "held") {
+        expect(nextGame(game, "release")).toBe(game);
+      } else {
+        expect(nextGame(game, "press")).toBe(game);
+      }
+    }
+  });
+});
+
+describe("hitsAny", () => {
+  const box: Box = { top: 10, bottom: 50, left: 100, right: 244 };
+
+  it("is inside a box, edges included", () => {
+    expect(hitsAny({ x: 150, y: 30 }, [box])).toBe(true);
+    expect(hitsAny({ x: 100, y: 10 }, [box])).toBe(true);
+    expect(hitsAny({ x: 244, y: 50 }, [box])).toBe(true);
+  });
+
+  it("is outside on any side, and with no boxes", () => {
+    expect(hitsAny({ x: 99, y: 30 }, [box])).toBe(false);
+    expect(hitsAny({ x: 245, y: 30 }, [box])).toBe(false);
+    expect(hitsAny({ x: 150, y: 9 }, [box])).toBe(false);
+    expect(hitsAny({ x: 150, y: 51 }, [box])).toBe(false);
+    expect(hitsAny({ x: 150, y: 30 }, [])).toBe(false);
+  });
+
+  it("hits any one of several", () => {
+    const far: Box = { top: 200, bottom: 240, left: 0, right: 144 };
+    expect(hitsAny({ x: 10, y: 220 }, [box, far])).toBe(true);
+  });
+});
+
+describe("paradeLabel", () => {
+  it("names each car as its team was called that year, with the year, in the pass's order", () => {
+    for (const seed of SEEDS.slice(0, 20)) {
+      const cars = pickParade(seeded(seed));
+      expect(paradeLabel(cars)).toEqual(
+        cars.map((car) => `${teamName(car.teamId, car.year)} (${car.year})`),
       );
     }
   });
