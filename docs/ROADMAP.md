@@ -151,7 +151,7 @@ app to admit what it cannot do yet. What it waits on is the author being content
 ratings: a wrong rating does not announce itself as unfinished, it reads as a wrong
 opinion about a real driver. Hence its place after the editor that makes the ageing curve
 judgeable — and **deliberately not after the whole authoring pass**, because waiting for
-that means waiting for everything. Moving this item is how that call gets recorded. Four
+that means waiting for everything. Moving this item is how that call gets recorded. Five
 parts, one release.
 
 ***The text pass.*** Every string on screen was written as its feature landed, and it
@@ -171,6 +171,15 @@ the ratings are the author's opinions and mostly first drafts; the AI-collaborat
 the footer already makes; where the historical data came from, with whatever attribution
 that source requires; a link to the repository; and the unofficial/unaffiliated
 disclaimer.
+
+***What's new.*** A dated mini-blog on the About page, newest first: one entry per
+release, written by the author — the first one on publish day ("the site is live"), then
+one per pack of features, listing them. **No database needed: the entries are a JSON file
+in `apps/web`, imported at build time** like the season files. A static site's content
+changes only when it is rebuilt and redeployed, so the entry is committed with the work it
+describes and goes live in the same deploy. Each entry is a date, an optional title and a
+list of short items; validate the file's shape in a test so a typo fails CI, not the page.
+Open: whether an item can carry a link (to a page, or to the commit or issue).
 
 ***The bug report page.*** The other stubbed destination. No backend, so nothing for a
 form to post to. **A pre-filled GitHub issue link** — title and body as query parameters
