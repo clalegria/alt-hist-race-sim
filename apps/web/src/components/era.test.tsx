@@ -20,7 +20,6 @@ import {
   isPlayable,
   nextEraYear,
   PLAYABLE_SEASONS,
-  playableSummary,
   yearsInDecade,
 } from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
@@ -281,7 +280,6 @@ describe("the era picker", () => {
 
   it("says where the era can run to, off the data rather than a fixed year", () => {
     expect(picker).toContain(`until ${LAST_YEAR}`);
-    expect(picker).toContain(playableSummary());
   });
 
   it("offers exactly the years an era can be started from", () => {

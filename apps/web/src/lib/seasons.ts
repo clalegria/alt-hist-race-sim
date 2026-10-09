@@ -120,39 +120,6 @@ export function enteredSeason(world: EnteredInputs): SeasonSeed {
 }
 
 /**
- * The playable years as a phrase, for the picker's subtitle.
- *
- * Contiguous runs collapse to a range, because the end state is forty-odd
- * consecutive years and "1980, 1981, 1982, 1983…" is not a sentence. Written
- * here rather than in the component so the copy cannot fall out of step with
- * which years are actually live — it said "Only 1980" for a while after 1981
- * landed, which is the failure this prevents. It carries its own "so far", so
- * the caller adds nothing.
- */
-export function playableSummary(years: readonly number[] = PLAYABLE_SEASONS): string {
-  if (years.length === 0) {
-    return "No season is playable yet";
-  }
-  const runs: string[] = [];
-  let start = years[0] ?? 0;
-  let previous = start;
-  for (const year of years.slice(1)) {
-    if (year !== previous + 1) {
-      runs.push(start === previous ? `${start}` : `${start}–${previous}`);
-      start = year;
-    }
-    previous = year;
-  }
-  runs.push(start === previous ? `${start}` : `${start}–${previous}`);
-
-  const list =
-    runs.length === 1
-      ? (runs[0] ?? "")
-      : `${runs.slice(0, -1).join(", ")} and ${runs[runs.length - 1]}`;
-  return years.length === 1 ? `Only ${list} is playable so far` : `${list} are playable so far`;
-}
-
-/**
  * The year an era runs on to after this one, or null where it stops.
  *
  * The stop is "the next year has no seed data", not a year written down: an era

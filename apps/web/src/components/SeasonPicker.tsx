@@ -9,7 +9,7 @@ import {
   rememberSeasonYear,
 } from "../lib/preferences.js";
 import type { RunSettings, RunUnit } from "../lib/run-settings.js";
-import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS, playableSummary } from "../lib/seasons.js";
+import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { Button } from "./ui/button.js";
@@ -44,7 +44,7 @@ import { YearPicker } from "./YearPicker.js";
 export function SeasonPicker({
   onStart,
   title = "Simulate a season",
-  lead = `Pick the year to run. ${playableSummary()} — the rest of the grid is what this becomes.`,
+  lead = "Pick the year to run.",
   yearTitle = "Season",
   yearLead = `Every season from ${FIRST_SEASON} to ${LAST_SEASON}. Pick a decade, then a year in it.`,
   describeYear = (year: number) => `Simulate the ${year} season`,
@@ -151,7 +151,7 @@ export function EraPicker({
     <SeasonPicker
       onStart={onStart}
       title="Simulate an era"
-      lead={`Pick the year the era starts from. It runs on from there season by season — each year on the grid that year actually had — for as long as you keep going, or until ${PLAYABLE_SEASONS.at(-1) ?? ""}. ${playableSummary()}.`}
+      lead={`Pick the year the era starts from. It runs on from there, one season at a time, for as long as you keep going or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       yearTitle="Starting season"
       yearLead="Where the era begins. Pick a decade, then a year in it — it runs on from there."
       describeYear={(year) => `Start an era in ${year}`}

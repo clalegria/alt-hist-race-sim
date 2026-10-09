@@ -20,7 +20,6 @@ import {
   DEFAULT_SEASON_YEAR,
   decadeOf,
   isPlayable,
-  playableSummary,
   SEASON_DECADES,
   yearsInDecade,
 } from "../lib/seasons.js";
@@ -176,9 +175,5 @@ describe("the season picker", () => {
     // that the run settings above it were theirs to choose.
     expect(html).toContain(`Begin the ${DEFAULT_SEASON_YEAR} season`);
     expect(html).toContain("Run settings");
-  });
-
-  it("says why the rest are dark", () => {
-    expect(html).toContain(playableSummary());
   });
 });

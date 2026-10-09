@@ -31,10 +31,7 @@ rather than omitting it. **`lib/seasons.ts` holds no list of its own** —
 the UI follows. The split: which years *exist* is a data decision, the `FIRST_SEASON`–
 `LAST_SEASON` *range the picker draws* is a display decision and lives here. Every year
 in the range is authored today, so what still proves the rule is that a year *outside*
-it is not playable. `playableSummary()` writes the picker's
-subtitle from the same source, collapsing runs into ranges — it said "Only 1980 has
-been authored" for a while after 1981 landed, and that is why the copy is derived.
-`createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
+it is not playable. `createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
 year rather than quietly falling back.
 
 ## The reveal: a timeline of beats

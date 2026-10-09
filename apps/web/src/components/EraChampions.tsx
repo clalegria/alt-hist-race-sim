@@ -336,7 +336,7 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
   }
   return eraEnded(seasons, inProgress)
     ? `${run} There is no season after this one to run — the era ends here.`
-    : `${run} Next comes ${yearAfter(seasons)}, on the grid that year actually had.`;
+    : `${run} Next comes ${yearAfter(seasons)}.`;
 }
 
 /**
