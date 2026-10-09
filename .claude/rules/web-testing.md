@@ -52,7 +52,8 @@ the options in every other team's picker.
 
 What this level cannot reach: the click handlers, the scroll-to-top effect, the
 editor's open/closed toggle, the navigation blocker, which layout of the run bar a media
-query shows, and anything Radix renders into a portal — popover contents, the phone's ⋯
-menu, the dialogs. All would need jsdom. What the bar offers is `runBarFor`, tested as data;
+query shows, and anything Radix renders into a portal — popover contents, the run bar's ⋯
+menu, the dialogs. All would need jsdom. What the bar offers is `runBarFor`, and where
+each action goes `runActionsFor`, both tested as data;
 the blocker and the dialogs are exercised in a real browser by `pnpm screenshots`. Where a click *ends
 up* is covered: it ends up in the store, or in `pickUp`.

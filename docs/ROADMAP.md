@@ -45,11 +45,6 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 Independent of each other, each small, each noticed on a first run.
 
-- **Buttons that stay put.** The run bar offers a different set per beat (*Restart
-  season* off the grid, the skip until the last race, *↩ Back to…* away from the cursor),
-  so Continue moves left and right through a season. Give each action a fixed slot —
-  Continue always at the same end, an action not on offer holding its place rather than
-  closing up. `runBarFor` decides the set, `RunBar` lays it out.
 - **Back to defaults in the settings dialog.** One button in `RunSettingsDialog` putting
   the draft back to every historical answer and the default randomness. Draft only: Done
   still commits, Cancel still drops.

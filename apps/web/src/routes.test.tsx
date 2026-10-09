@@ -24,7 +24,7 @@ import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
 import { AREAS, type Area, isAvailable } from "./lib/areas.js";
-import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
+import { CONTINUE_BLOCKED, crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import { linkTo } from "./lib/run-places.js";
 import type { Place } from "./lib/timeline.js";
 import { Route as GridRoute } from "./routes/run/$year/grid.js";
@@ -303,7 +303,7 @@ describe("the run bar", () => {
     expect(html).toContain('aria-label="More run actions"');
   });
 
-  it("puts every action on the bar on a wide screen, and folds them into ⋯ on a phone", async () => {
+  it("puts the ways forward on a wide screen's bar, and the restarts and Exit run in ⋯", async () => {
     const era: Run = {
       kind: "era",
       run: { startYear: YEAR, seasons: [] },
@@ -311,19 +311,39 @@ describe("the run bar", () => {
       cursor: { kind: "race", round: 0 },
     };
     const html = await bar(era);
-    // Both layouts are in the markup and a media query shows one: the buttons
-    // in a row hidden below `md`, the menu's trigger hidden from it.
-    for (const label of [
-      "Simulate rest of the season",
-      "Jump to…",
-      "Restart season",
-      "Restart era",
-      "Exit run",
-    ]) {
+    // The ways forward are buttons in a row hidden below `md`, where ⋯ lists
+    // them instead; ⋯'s entries render into a portal, so the rest are not in
+    // the markup at all (`lib/run-bar.test.ts` has them as data).
+    for (const label of ["Simulate rest of the season", "Jump to…"]) {
       expect(html, label).toContain(`>${label}</button>`);
     }
-    expect(html).toContain('class="hidden flex-wrap items-center gap-2 md:flex"');
-    expect(html).toMatch(/class="md:hidden"><button[^>]*aria-label="More run actions"/);
+    for (const label of ["Restart season", "Restart era", "Exit run"]) {
+      expect(html, label).not.toContain(`>${label}<`);
+    }
+    expect(html).toMatch(/class="hidden flex-1 flex-wrap justify-end gap-2 md:flex"><button/);
+    expect(html).toMatch(/<button[^>]*aria-label="More run actions"/);
+  });
+
+  it("ends on every beat with Continue, ⋯ just before it", async () => {
+    const rounds = world.season.races.length;
+    const beats: Run["cursor"][] = [
+      { kind: "grid" },
+      ...Array.from({ length: rounds }, (_, round) => [
+        { kind: "qualifying", round } as const,
+        { kind: "race", round } as const,
+      ]).flat(),
+      { kind: "summary" },
+    ];
+    for (const cursor of beats) {
+      const html = await bar({ kind: "season", world, cursor });
+      const menu = html.lastIndexOf('aria-label="More run actions"');
+      const end = html.lastIndexOf(">Continue");
+      expect(menu, cursor.kind).toBeGreaterThan(-1);
+      expect(end, cursor.kind).toBeGreaterThan(menu);
+      // Nothing between ⋯ and Continue but Continue's own tag, nothing after.
+      expect(html.slice(menu, end).match(/<button|<a /g), cursor.kind).toHaveLength(1);
+      expect(html.slice(end), cursor.kind).not.toMatch(/<button|<a /);
+    }
   });
 
   it("puts a menu of the other rounds beside the round, and none of other years in one year", async () => {
@@ -334,25 +354,29 @@ describe("the run bar", () => {
     expect(html).not.toContain('aria-label="Other years"');
   });
 
-  it("puts the way back first on a page away from the cursor, Continue beside it", async () => {
+  it("puts the way back first on a page away from the cursor, Continue still at the end", async () => {
     const run: Run = { kind: "season", world, cursor: { kind: "grid" } };
     const away = await bar(run, { year: YEAR, beat: { kind: "summary" } });
-    // A link, since it goes somewhere, styled as the primary button.
-    expect(away).toMatch(
-      new RegExp(`<a[^>]*href="/run/${YEAR}/grid"[^>]*>[^]*?Back to ${YEAR} · Grid`),
-    );
+    // A link, since it goes somewhere, styled as the primary button, naming
+    // the place in full in its tooltip.
+    expect(away).toMatch(new RegExp(`<a[^>]*href="/run/${YEAR}/grid"[^>]*>[^]*?Back to run`));
+    expect(away).toContain(`title="Back to ${YEAR} · Grid"`);
     expect(away).toContain(`Run is at ${YEAR} · Grid`);
-    // Continue is still there, but no longer the primary button.
+    // Continue is still there, but no longer the primary button; on a phone,
+    // the way back has its slot.
     expect(away).toMatch(/<button[^>]*class="[^"]*border-border[^"]*"[^>]*title="Next:/);
+    expect(away.lastIndexOf("Back to run")).toBeGreaterThan(away.lastIndexOf(">Continue"));
 
     const home = await bar(run);
     expect(home).not.toContain("Back to");
     expect(home).not.toContain("Run is at");
   });
 
-  it("offers no Continue at the end of a one-year run, but still the way out", async () => {
+  it("keeps Continue, disabled, at the end of a one-year run, and still the way out", async () => {
     const html = await bar({ kind: "season", world, cursor: { kind: "summary" } });
-    expect(html).not.toContain(">Continue");
+    expect(html).toMatch(
+      new RegExp(`<span[^>]*title="${CONTINUE_BLOCKED.end}"><button[^>]*disabled=""[^>]*>Continue`),
+    );
     expect(html).toContain('aria-label="More run actions"');
   });
 });

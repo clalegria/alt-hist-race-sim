@@ -52,25 +52,33 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
     era* (an era past its first grid). New dice, never a rewind; they **replace** the
     URL with the new grid, since the page left belongs to results that no longer exist.
   - **Out** — *Exit run*.
-- **All of them on the bar from `md` up; on a phone, Continue plus ⋯** (Radix
-  `DropdownMenu`) holding the rest. Both layouts are rendered from one list and a media
-  query shows one, so they cannot offer different things.
+- **Continue is always the bar's right-hand end, ⋯ just left of it**, so neither moves
+  as the set changes from beat to beat. `runActionsFor(state, { away, editingGrid })`
+  says where each action goes, per width, and is what the tests read:
+  - Continue not on offer (nothing next, or the grid being edited) is **disabled in
+    place**, never removed; its reason is a tooltip on a wrapping `<span>`, since a
+    disabled button takes no pointer events.
+  - **⋯** (Radix `DropdownMenu`, every width) holds the restarts and *Exit run*. From
+    `md` up the other ways forward are buttons left of ⋯, the skip beside it; on a
+    phone they are ⋯ entries too, marked `md:hidden`. One list, a media query picks.
+  - The row never wraps under the crumbs (`RunBar` is `items-start`, no wrap): short
+    of room, the crumbs and the buttons left of ⋯ wrap inside themselves.
 - **Away from the cursor's page, the way back comes first** — the "jump to live" a
   stream shows once you scroll back. `returnFor(run, place)` is null on the cursor's
-  own page; elsewhere it gives *↩ Back to 1985 · Grid*, a `Link` wearing the primary
-  button's look (`buttonClass` in `ui/button.tsx`: it navigates, so it is an `<a>`).
-  Continue drops to `outline` beside it, since it acts on the cursor, not on the page
-  on screen; on a phone it moves into ⋯. The cursor line under the crumbs becomes the
-  same link, "Run is at …".
+  own page; elsewhere it gives *↩ Back to run*, the full place in its tooltip, a `Link`
+  wearing the primary button's look (`buttonClass` in `ui/button.tsx`: it navigates, so
+  it is an `<a>`). Continue stays in its slot as `outline`, since it acts on the cursor,
+  not on the page on screen; on a phone the way back takes the slot and Continue moves
+  into ⋯. The cursor line under the crumbs becomes the same link, "Run is at …".
 - **Jump to…** opens `JumpDialog`: a `YearPicker` over `jumpYears(run)` and *Stop at*
   the season's **start** (its grid, to set it up) or **end** (its summary).
   `jumpTarget(run, chosen)` decides where it lands — a choice the run has overtaken
   falls back to one still ahead; the default is the end of the next year. The store's
   `jumpTo` does the rest (`.claude/rules/web-era.md`); the skip is `jumpTo` with this
   season's end.
-- While the grid editor is open the actions give way to a note: the grid page raises
-  it through `GridEditingContext`, since the page is an `<Outlet />` the frame does
-  not render, and clears it on unmount.
+- While the grid editor is open the actions give way to a note beside a disabled
+  Continue: the grid page raises it through `GridEditingContext`, since the page is an
+  `<Outlet />` the frame does not render, and clears it on unmount.
 - The scroll-to-top on every change to the run lives in `RunLayout`; a change of URL
   resets scroll by itself.
 

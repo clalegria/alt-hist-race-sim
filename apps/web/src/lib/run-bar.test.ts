@@ -10,12 +10,17 @@ import { seededWorld, YEAR } from "../test-support.js";
 import { driverName } from "./names.js";
 import { driversLink, teamsLink } from "./roster-places.js";
 import {
+  CONTINUE_BLOCKED,
   type Crumb,
   crumbsFor,
   jumpPlace,
   jumpTarget,
   jumpYears,
   returnFor,
+  type RunActionKey,
+  type RunActionsLayout,
+  type RunBarState,
+  runActionsFor,
   runBarFor,
   runTitle,
   sectionsMenu,
@@ -23,7 +28,7 @@ import {
 import { linkTo, REVIEW_LINK } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
 import { roundLink } from "./session-nav.js";
-import { type Beat, isReached } from "./timeline.js";
+import { type Beat, describeBeat, isReached } from "./timeline.js";
 
 const world = seededWorld(3, "aged", YEAR);
 const ROUNDS = world.season.races.length;
@@ -164,6 +169,122 @@ describe("the run bar's actions", () => {
   it("names the run on the Resume card", () => {
     expect(runTitle(season({ kind: "grid" }))).toBe(`${YEAR} season`);
     expect(runTitle(era({ kind: "grid" }))).toBe(`Era from ${YEAR}`);
+  });
+});
+
+describe("where the bar puts each action", () => {
+  const first = seededWorld(3, "aged", FIRST_PLAYABLE);
+  const last = seededWorld(3, "aged", LAST_PLAYABLE);
+  /**
+   * Every beat of a one-year run and of an era's first year, its review
+   * included, and the review of the era's last year, where nothing is next:
+   * every set of actions the bar can be handed.
+   */
+  const runs: readonly Run[] = [
+    ...beatsOf(ROUNDS).map((beat) => season(beat)),
+    ...[...beatsOf(first.season.races.length), { kind: "review" } as const].map((beat) =>
+      era(beat, first),
+    ),
+    era({ kind: "review" }, last),
+  ];
+  /** Every run, on the cursor's own page and away from it. */
+  const cases = runs.flatMap((run) =>
+    [false, true].map((away) => ({
+      state: runBarFor(run),
+      away,
+      name: `${run.kind} ${describeBeat(run.cursor, run.world.season.races.length)}${away ? " away" : ""}`,
+    })),
+  );
+
+  /** What a wide screen lets the reader press: the bar, Continue if it can be, ⋯. */
+  function wide(layout: RunActionsLayout): RunActionKey[] {
+    return [
+      ...layout.bar,
+      ...(layout.wideSlot.disabled === null ? (["continue"] as const) : []),
+      ...layout.menu.filter((entry) => !entry.phoneOnly).map((entry) => entry.key),
+    ];
+  }
+
+  /** What a phone lets the reader press: the slot, if it can be, and ⋯. */
+  function phone(layout: RunActionsLayout): RunActionKey[] {
+    const slot = layout.phoneSlot;
+    return [
+      ...(slot.kind === "back" ? (["back"] as const) : []),
+      ...(slot.kind === "continue" && slot.disabled === null ? (["continue"] as const) : []),
+      ...layout.menu.map((entry) => entry.key),
+    ];
+  }
+
+  /** Everything `runBarFor` offers, plus the way back away from the cursor. */
+  function offered(state: RunBarState, away: boolean): RunActionKey[] {
+    return [
+      ...(away ? (["back"] as const) : []),
+      ...(state.next === null ? [] : (["continue"] as const)),
+      ...(state.skip === null ? [] : (["skip"] as const)),
+      ...(state.jump ? (["jump"] as const) : []),
+      ...(state.restartSeason ? (["restartSeason"] as const) : []),
+      ...(state.restartEra ? (["restartEra"] as const) : []),
+      "exit",
+    ];
+  }
+
+  it("keeps Continue at a wide screen's end on every beat, disabled only where nothing is next", () => {
+    for (const { state, away, name } of cases) {
+      const { wideSlot } = runActionsFor(state, { away, editingGrid: false });
+      expect(wideSlot.kind, name).toBe("continue");
+      expect(wideSlot.disabled, name).toBe(state.next === null ? CONTINUE_BLOCKED.end : null);
+      expect(wideSlot.primary, name).toBe(!away);
+    }
+  });
+
+  it("offers each action exactly once at each width, and nothing runBarFor withholds", () => {
+    for (const { state, away, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false });
+      const expected = offered(state, away).sort();
+      expect(wide(layout).sort(), `${name} wide`).toEqual(expected);
+      expect(phone(layout).sort(), `${name} phone`).toEqual(expected);
+    }
+  });
+
+  it("keeps the restarts and Exit run in ⋯ at every width, never on the bar", () => {
+    for (const { state, away, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false });
+      for (const key of ["restartSeason", "restartEra", "exit"] as const) {
+        expect(layout.bar, name).not.toContain(key);
+        for (const entry of layout.menu.filter((each) => each.key === key)) {
+          expect(entry.phoneOnly, `${name} ${key}`).toBe(false);
+        }
+      }
+      expect(layout.menu.map((entry) => entry.key), name).toContain("exit");
+    }
+  });
+
+  it("puts the skip beside ⋯ on a wide screen", () => {
+    for (const { state, away, name } of cases.filter((each) => each.state.skip !== null)) {
+      expect(runActionsFor(state, { away, editingGrid: false }).bar.at(-1), name).toBe("skip");
+    }
+  });
+
+  it("leads with the way back away from the cursor, and gives it a phone's slot", () => {
+    for (const { state, away, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false });
+      if (away) {
+        expect(layout.bar[0], name).toBe("back");
+        expect(layout.phoneSlot.kind, name).toBe("back");
+      } else {
+        expect(layout.bar, name).not.toContain("back");
+        expect(layout.phoneSlot, name).toEqual(layout.wideSlot);
+      }
+    }
+  });
+
+  it("holds Continue, disabled, while the grid is being edited, and offers nothing else", () => {
+    const state = runBarFor(season({ kind: "grid" }));
+    const layout = runActionsFor(state, { away: false, editingGrid: true });
+    expect(layout.wideSlot.disabled).toBe(CONTINUE_BLOCKED.editing);
+    expect(layout.phoneSlot).toEqual(layout.wideSlot);
+    expect(layout.bar).toEqual([]);
+    expect(layout.menu).toEqual([]);
   });
 });
 

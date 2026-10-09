@@ -4,8 +4,8 @@
  * Pure and exported because the bar *is* the run's navigation: an action
  * missing from the wrong beat strands the reader with no way on, and one
  * present on the wrong beat reaches a store action that refuses it. Kept apart
- * from `RunBar.tsx` so the whole set is tested without a DOM — the phone's
- * overflow menu renders into a portal, which a static render never draws.
+ * from `RunBar.tsx` so the whole set, and where each goes, is tested without a
+ * DOM — the ⋯ menu renders into a portal, which a static render never draws.
  *
  * The actions come in three kinds: **forward** (Continue one beat, or jump to a
  * later one), **over again** (the season, or the whole era, on new dice), and
@@ -68,6 +68,105 @@ export function runBarFor(run: Run): RunBarState {
     jump: jumpYears(run).some((year) => year > world.year),
     restartSeason: cursor.kind !== "grid" && cursor.kind !== "review",
     restartEra: run.kind === "era" && (run.run.seasons.length > 0 || cursor.kind !== "grid"),
+  };
+}
+
+/** One of the run bar's actions that does something, rather than going somewhere. */
+export type RunCommand = "continue" | "skip" | "jump" | "restartSeason" | "restartEra" | "exit";
+
+/** Any of the run bar's actions: a command, or the way back to the cursor's page. */
+export type RunActionKey = RunCommand | "back";
+
+/** Continue in its slot: disabled, saying why, rather than removed. */
+export interface ContinueSlot {
+  readonly kind: "continue";
+  /** Primary on the cursor's own page; outlined beside the way back. */
+  readonly primary: boolean;
+  /** Why it cannot be pressed, or null while it can. */
+  readonly disabled: string | null;
+}
+
+/** What the bar's right-hand end holds: Continue, or on a phone away from the cursor, the way back. */
+export type RunSlot = ContinueSlot | { readonly kind: "back" };
+
+/** One entry of the ⋯ menu. */
+export interface RunMenuEntry {
+  readonly key: RunCommand;
+  /** A button on the bar from `md` up, so listed on a phone only. */
+  readonly phoneOnly: boolean;
+}
+
+/** Where each of the bar's actions goes, on a wide screen and on a phone. */
+export interface RunActionsLayout {
+  /** The right-hand end from `md` up: always Continue. */
+  readonly wideSlot: ContinueSlot;
+  /** The right-hand end on a phone. */
+  readonly phoneSlot: RunSlot;
+  /** The buttons left of ⋯ from `md` up, in order; a phone shows none. */
+  readonly bar: readonly RunActionKey[];
+  /** ⋯'s entries, in order; empty, and no ⋯ drawn, while the grid is being edited. */
+  readonly menu: readonly RunMenuEntry[];
+}
+
+/** Why Continue cannot be pressed, as its tooltip says. */
+export const CONTINUE_BLOCKED = {
+  end: "Nothing after this",
+  editing: "Apply or cancel the grid edit first",
+} as const;
+
+/**
+ * Lays the bar's actions out. **Continue is always the right-hand end**, with
+ * ⋯ just left of it, so neither moves from beat to beat: an action that comes
+ * and goes is either to their left or inside ⋯. Continue not on offer is
+ * shown disabled rather than removed. The ones that throw work away — the
+ * restarts — and Exit run are in ⋯ at every width; the other ways forward
+ * are buttons from `md` up and ⋯ entries on a phone.
+ *
+ * Away from the cursor's page the way back leads the bar and Continue drops
+ * to outline, since it acts on the cursor, not on the page on screen. A
+ * phone has room for one button beside ⋯, so there the way back takes the
+ * slot and Continue moves into ⋯.
+ *
+ * Pure, so the whole layout is tested without a DOM: ⋯ renders into a portal
+ * a static render never draws.
+ */
+export function runActionsFor(
+  state: RunBarState,
+  { away, editingGrid }: { readonly away: boolean; readonly editingGrid: boolean },
+): RunActionsLayout {
+  const blocked = editingGrid
+    ? CONTINUE_BLOCKED.editing
+    : state.next === null
+      ? CONTINUE_BLOCKED.end
+      : null;
+  const wideSlot: ContinueSlot = { kind: "continue", primary: !away, disabled: blocked };
+  if (editingGrid) {
+    // No way forward, or out, while a grid is half-rearranged: the draft would
+    // go with it.
+    return { wideSlot, phoneSlot: wideSlot, bar: [], menu: [] };
+  }
+  const skip: RunCommand[] = state.skip === null ? [] : ["skip"];
+  const jump: RunCommand[] = state.jump ? ["jump"] : [];
+  // On a phone, Continue joins ⋯ when the way back has its slot.
+  const phoneForward: RunCommand[] = [
+    ...(away && blocked === null ? (["continue"] as const) : []),
+    ...skip,
+    ...jump,
+  ];
+  const over: RunCommand[] = [
+    ...(state.restartSeason ? (["restartSeason"] as const) : []),
+    ...(state.restartEra ? (["restartEra"] as const) : []),
+    "exit",
+  ];
+  return {
+    wideSlot,
+    phoneSlot: away ? { kind: "back" } : wideSlot,
+    // The skip, Continue's bigger brother, is the one beside ⋯.
+    bar: [...(away ? (["back"] as const) : []), ...jump, ...skip],
+    menu: [
+      ...phoneForward.map((key) => ({ key, phoneOnly: true })),
+      ...over.map((key) => ({ key, phoneOnly: false })),
+    ],
   };
 }
 

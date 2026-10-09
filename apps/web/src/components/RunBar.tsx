@@ -1,6 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
-import type { Crumb, CrumbMenu, ReturnLink, RunBarState } from "../lib/run-bar.js";
+import {
+  type ContinueSlot,
+  type Crumb,
+  type CrumbMenu,
+  type ReturnLink,
+  type RunBarState,
+  type RunCommand,
+  runActionsFor,
+} from "../lib/run-bar.js";
+import { cn } from "../lib/utils.js";
 import { Button, buttonClass } from "./ui/button.js";
 import {
   DropdownMenu,
@@ -127,10 +136,60 @@ export interface RunActionsProps {
   readonly returnTo?: ReturnLink | null;
 }
 
-/** One action, as both layouts draw it. */
+/** One action that does something, as the bar and ⋯ draw it. */
 interface Action {
   readonly label: string;
   readonly onSelect: () => void;
+}
+
+/** Continue, in its slot: disabled rather than removed when it cannot be pressed. */
+function ContinueButton({
+  slot,
+  next,
+  onContinue,
+  className,
+}: {
+  slot: ContinueSlot;
+  next: string | null;
+  onContinue: () => void;
+  className?: string;
+}) {
+  return (
+    // A disabled button takes no pointer events (`buttonClass`), so the reason
+    // it cannot be pressed is the wrapper's tooltip.
+    <span
+      className={cn("inline-flex shrink-0", className)}
+      {...(slot.disabled === null ? {} : { title: slot.disabled })}
+    >
+      <Button
+        onClick={onContinue}
+        disabled={slot.disabled !== null}
+        {...(slot.disabled === null && next !== null ? { title: `Next: ${next}` } : {})}
+        variant={slot.primary ? "primary" : "outline"}
+      >
+        Continue
+        <span aria-hidden="true" className="ml-1.5">
+          ▸
+        </span>
+      </Button>
+    </span>
+  );
+}
+
+/** The way back to the cursor's page: it navigates, so a link in a button's clothes. */
+function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
+  return (
+    <Link
+      {...to.link}
+      title={`Back to ${to.label}`}
+      className={buttonClass("primary", cn("shrink-0", className))}
+    >
+      <span aria-hidden="true" className="mr-1.5">
+        ↩
+      </span>
+      Back to run
+    </Link>
+  );
 }
 
 /**
@@ -139,104 +198,92 @@ interface Action {
  * **out** (Exit run). Nothing goes back in time; Back is the browser's, and
  * moves between pages.
  *
- * All of them are on the bar on a wide screen — Continue as the one primary
- * button, the other ways forward beside it, the ones that throw work away
- * quieter at the end. On a phone there is room for Continue alone, so the rest
- * fold into ⋯: the same list, so the two layouts cannot offer different things.
- * Both are rendered and CSS shows one, which keeps the choice in the stylesheet
- * (a media query, `md:`) rather than in script.
+ * **Continue is always the right-hand end, with ⋯ just left of it**, so
+ * neither moves as the set changes from beat to beat (`runActionsFor` decides
+ * where each goes). The other ways forward are buttons to their left on a wide
+ * screen, and the only part of the bar that wraps; the ones that throw work
+ * away, and Exit run, are in ⋯. On a phone there is room for one button beside
+ * ⋯, so the other ways forward fold into it too: one list, its phone-only
+ * entries hidden from `md` up, so the two layouts cannot offer different
+ * things. Both are rendered and CSS shows one, which keeps the choice in the
+ * stylesheet (a media query, `md:`) rather than in script.
  *
  * Drawn twice, in the sticky bar and at the foot of the page, from one set of
  * props, so the two copies always show the same thing.
  */
 export function RunActions(props: RunActionsProps) {
-  if (props.editingGrid) {
-    // No way forward while a grid is half-rearranged: the draft would go with
-    // it, and the season simulated would be the one the reader was replacing.
-    return (
-      <span className="text-muted-foreground text-xs">
-        Editing the grid. Apply or cancel it to carry on.
-      </span>
-    );
-  }
-
   const { state } = props;
-  // Away from the cursor's page, the way back takes the primary slot and
-  // Continue steps aside: it would advance a run the reader is not looking at.
   const away = props.returnTo ?? null;
-  const forward: Action[] = [
-    ...(state.skip === null ? [] : [{ label: state.skip, onSelect: props.onSkip }]),
-    ...(state.jump ? [{ label: "Jump to…", onSelect: props.onJump }] : []),
-  ];
-  // On a phone there is room for one button beside ⋯, so Continue joins the menu.
-  const phoneForward: Action[] =
-    away === null || state.next === null
-      ? forward
-      : [{ label: "Continue", onSelect: props.onContinue }, ...forward];
-  const over: Action[] = [
-    ...(state.restartSeason ? [{ label: "Restart season", onSelect: props.onRestartSeason }] : []),
-    ...(state.restartEra ? [{ label: "Restart era", onSelect: props.onRestartEra }] : []),
-    { label: "Exit run", onSelect: props.onExit },
-  ];
+  const layout = runActionsFor(state, { away: away !== null, editingGrid: props.editingGrid });
+  const actions: Record<RunCommand, Action> = {
+    continue: { label: "Continue", onSelect: props.onContinue },
+    skip: { label: state.skip ?? "", onSelect: props.onSkip },
+    jump: { label: "Jump to…", onSelect: props.onJump },
+    restartSeason: { label: "Restart season", onSelect: props.onRestartSeason },
+    restartEra: { label: "Restart era", onSelect: props.onRestartEra },
+    exit: { label: "Exit run", onSelect: props.onExit },
+  };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {away === null ? null : (
-        <Link {...away.link} className={buttonClass("primary")}>
-          <span aria-hidden="true" className="mr-1.5">
-            ↩
-          </span>
-          Back to {away.label}
-        </Link>
+    // `flex-auto`, not `flex-1`: starting from its own width, a crowded line
+    // shrinks the trail; starting from nothing, it would overflow it instead.
+    <div className="flex flex-auto items-start justify-end gap-2">
+      {props.editingGrid ? (
+        // No way forward while a grid is half-rearranged: the draft would go
+        // with it, and the season simulated would be the one being replaced.
+        <span className="text-muted-foreground self-center text-right text-xs">
+          Editing the grid. Apply or cancel it to carry on.
+        </span>
+      ) : (
+        <div className="hidden flex-1 flex-wrap justify-end gap-2 md:flex">
+          {layout.bar.map((key) =>
+            key === "back" ? (
+              away === null ? null : <BackLink key={key} to={away} />
+            ) : (
+              <Button key={key} variant="outline" onClick={actions[key].onSelect}>
+                {actions[key].label}
+              </Button>
+            ),
+          )}
+        </div>
       )}
-      {state.next === null ? null : (
-        <Button
-          onClick={props.onContinue}
-          title={`Next: ${state.next}`}
-          variant={away === null ? "primary" : "outline"}
-          // Away, it is on the ⋯ menu on a phone instead.
-          className={away === null ? undefined : "hidden md:inline-flex"}
-        >
-          Continue
-          <span aria-hidden="true" className="ml-1.5">
-            ▸
-          </span>
-        </Button>
-      )}
-      <div className="hidden flex-wrap items-center gap-2 md:flex">
-        {forward.map((action) => (
-          <Button key={action.label} variant="outline" onClick={action.onSelect}>
-            {action.label}
-          </Button>
-        ))}
-        {over.map((action) => (
-          <Button key={action.label} variant="ghost" onClick={action.onSelect}>
-            {action.label}
-          </Button>
-        ))}
-      </div>
-      <div className="md:hidden">
+      {layout.menu.length === 0 ? null : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" aria-label="More run actions" className="px-3">
+            <Button variant="outline" aria-label="More run actions" className="shrink-0 px-3">
               <span aria-hidden="true">⋯</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {phoneForward.map((action) => (
-              <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-            {phoneForward.length === 0 ? null : <DropdownMenuSeparator />}
-            {over.map((action) => (
-              <DropdownMenuItem key={action.label} onSelect={action.onSelect}>
-                {action.label}
-              </DropdownMenuItem>
-            ))}
+          <DropdownMenuContent align="end">
+            {layout.menu.map((entry, index) => {
+              const action = actions[entry.key];
+              const firstEverywhere =
+                !entry.phoneOnly && index > 0 && layout.menu[index - 1]?.phoneOnly === true;
+              return (
+                <Fragment key={entry.key}>
+                  {firstEverywhere ? <DropdownMenuSeparator className="md:hidden" /> : null}
+                  <DropdownMenuItem
+                    onSelect={action.onSelect}
+                    {...(entry.phoneOnly ? { className: "md:hidden" } : {})}
+                  >
+                    {action.label}
+                  </DropdownMenuItem>
+                </Fragment>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      )}
+      <ContinueButton
+        slot={layout.wideSlot}
+        next={state.next}
+        onContinue={props.onContinue}
+        // Away, a phone's slot is the way back's.
+        {...(layout.phoneSlot.kind === "back" ? { className: "hidden md:inline-flex" } : {})}
+      />
+      {layout.phoneSlot.kind !== "back" || away === null ? null : (
+        <BackLink to={away} className="md:hidden" />
+      )}
     </div>
   );
 }
@@ -245,10 +292,15 @@ export function RunActions(props: RunActionsProps) {
  * The run bar's contents: the trail to this page on the left, how far the run
  * has got and the way on at the right — navigation is the right-hand end of
  * the bar on every page.
+ *
+ * One line that never wraps, top-aligned, so the actions cannot drop under
+ * the trail and take Continue with them. Short of room, the trail and the
+ * buttons left of ⋯ wrap inside themselves instead: a flex item will not
+ * shrink below its own narrowest layout, so ⋯ and Continue keep their width.
  */
 export function RunBar({ crumbs, ...actions }: RunActionsProps & { crumbs: readonly Crumb[] }) {
   return (
-    <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-1 items-start gap-3">
       <div className="flex flex-col gap-0.5 leading-tight">
         <Breadcrumbs crumbs={crumbs} />
         {actions.returnTo === undefined || actions.returnTo === null ? (
