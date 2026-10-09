@@ -45,11 +45,6 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 Independent of each other, each small, each noticed on a first run.
 
-- **The driver page's header.** It reads "34 in 1984 · Williams · rated 88": the age
-  does not say it is one, and the rating is the latest year's overall, which reads as a
-  verdict on the career. Say "34 years old"; replace the rating with the best overall of
-  their years in the run ("rated 91 at their peak in this run"), or drop it. `DriverPage`
-  in `PersonPages.tsx`.
 - **The era's sections menu.** *Overview · Drivers · Teams* under the *Era* crumb become
   *Era summary · All drivers · All teams*. The `▾` crumb menus — this one, the year's,
   the round's — are small and easy to miss, worse under a thumb: give them a bigger

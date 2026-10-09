@@ -7,12 +7,22 @@
  * synthetic rows.
  */
 
+import type { DriverRatings, RaceEntrant } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import type { Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
+import { driverOverall } from "./rating.js";
 import { careerRecords } from "./records.js";
 import { revealed } from "./reveal.js";
-import { type IndexRow, indexRows, indexSearch, rosterOf, sortIndex } from "./roster.js";
+import {
+  bestOverall,
+  type FieldYear,
+  type IndexRow,
+  indexRows,
+  indexSearch,
+  rosterOf,
+  sortIndex,
+} from "./roster.js";
 import {
   driverLink,
   driversLink,
@@ -102,6 +112,42 @@ describe("the roster", () => {
         0, 0, 0, 0, 0,
       ]);
     }
+  });
+});
+
+describe("a driver's best overall", () => {
+  const rated = (value: number): DriverRatings => ({
+    racing: value,
+    qualifying: value,
+    consistency: value,
+    composure: value,
+    adaptability: value,
+    wetWeather: value,
+  });
+  const chassis = { racing: 50, qualifying: 50, consistency: 50, reliability: 50 };
+  const seat = (driverId: string, value: number): RaceEntrant => ({
+    driverId,
+    teamId: "team",
+    driver: rated(value),
+    chassis,
+  });
+  const year = (at: number, ...field: RaceEntrant[]): FieldYear => ({ year: at, field });
+
+  it("is their highest year, not their latest", () => {
+    expect(driverOverall(rated(80))).toBeGreaterThan(driverOverall(rated(70)));
+    const years = [year(1980, seat("a", 60)), year(1981, seat("a", 80)), year(1982, seat("a", 70))];
+    expect(bestOverall(years, "a")).toEqual({ overall: driverOverall(rated(80)), year: 1981 });
+  });
+
+  it("goes to the first year they reached it, whatever order the years arrive in", () => {
+    const years = [year(1982, seat("a", 80)), year(1980, seat("a", 80)), year(1981, seat("a", 60))];
+    expect(bestOverall(years, "a")?.year).toBe(1980);
+  });
+
+  it("reads only their own seat, and skips the years they were off the grid", () => {
+    const years = [year(1980, seat("a", 60), seat("b", 90)), year(1981, seat("b", 95))];
+    expect(bestOverall(years, "a")).toEqual({ overall: driverOverall(rated(60)), year: 1980 });
+    expect(bestOverall(years, "nobody")).toBeNull();
   });
 });
 

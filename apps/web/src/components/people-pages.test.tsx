@@ -8,10 +8,11 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { driverBirthYear } from "../lib/names.js";
 import { revealed } from "../lib/reveal.js";
-import { rosterOf } from "../lib/roster.js";
+import { bestOverall, rosterOf } from "../lib/roster.js";
 import { driversLink, PAGE_OF, teamsLink } from "../lib/roster-places.js";
-import { PLAYABLE_SEASONS } from "../lib/seasons.js";
+import { isPlayable, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Run } from "../store/season.js";
 import { inRouter } from "../test-router.js";
 import { seededWorld, YEAR } from "../test-support.js";
@@ -90,6 +91,52 @@ describe("a driver's page", () => {
     );
     expect(html).toContain("On the grid");
     expect(html).toContain("No races yet");
+  });
+
+  it("gives the age in the year the run has reached, and their team as their last, off its grid", () => {
+    // Two adjacent seasons where someone with a known birth year drops out —
+    // searched for rather than named.
+    for (const year of PLAYABLE_SEASONS.filter((each) => isPlayable(each + 1))) {
+      const before = seededWorld(3, "aged", year);
+      const after = seededWorld(4, "aged", year + 1);
+      const gone = before.field.find(
+        (entrant) =>
+          !after.field.some((each) => each.driverId === entrant.driverId) &&
+          driverBirthYear(entrant.driverId) !== undefined,
+      );
+      if (gone === undefined) {
+        continue;
+      }
+      const years = revealed({
+        kind: "era",
+        run: { startYear: year, seasons: [before] },
+        world: after,
+        cursor: { kind: "grid" },
+      }).years;
+      const born = driverBirthYear(gone.driverId) ?? 0;
+      const html = renderToStaticMarkup(<DriverPage years={years} driverId={gone.driverId} />);
+      expect(html).toContain(`${year + 1 - born} years old in ${year + 1}`);
+      expect(html).toContain("last with");
+      // Someone still on the grid is simply with their team.
+      const stayed = after.field[0]?.driverId ?? "";
+      expect(renderToStaticMarkup(<DriverPage years={years} driverId={stayed} />)).not.toContain(
+        "last with",
+      );
+      return;
+    }
+    throw new Error("No season loses a driver with a known birth year");
+  });
+
+  it("rates them by their best year of the run, and says which", () => {
+    for (const entrant of second.field) {
+      const best = bestOverall(midSeason, entrant.driverId);
+      const html = renderToStaticMarkup(
+        <DriverPage years={midSeason} driverId={entrant.driverId} />,
+      );
+      expect(html, entrant.driverId).toContain(
+        `rated ${best?.overall} at their peak, in ${best?.year}`,
+      );
+    }
   });
 
   it("links each year's row to that year's season page, inside the run's frame only", async () => {

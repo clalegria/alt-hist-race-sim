@@ -24,11 +24,10 @@ import {
   type TeamSeason,
 } from "../lib/history.js";
 import { driverBirthYear, driverCountry, driverName } from "../lib/names.js";
-import { driverOverall } from "../lib/rating.js";
 import { type CareerRecord, careerRecords, spellSpan } from "../lib/records.js";
 import { driverRounds, type RoundEntry, teamRounds } from "../lib/results.js";
 import type { RevealedWorld } from "../lib/reveal.js";
-import { rosterOf } from "../lib/roster.js";
+import { bestOverall, rosterOf } from "../lib/roster.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
@@ -267,8 +266,8 @@ function worldOf(years: readonly RevealedWorld[], year: number): RevealedWorld {
 }
 
 /**
- * One driver across the run so far: who they are as of their latest year on
- * the grid, what the run adds up to for them, and every year of it.
+ * One driver across the run so far: their age now, their latest team, their
+ * best rating of the run, what the run adds up to for them, and every year of it.
  */
 export function DriverPage({
   years,
@@ -285,22 +284,31 @@ export function DriverPage({
     return null;
   }
   const latestWorld = worldOf(years, latest.year);
-  const entrant = latestWorld.field.find((each) => each.driverId === driverId);
   const born = driverBirthYear(driverId);
-  // Who they are now: as of the latest year they are on the run's grid.
+  // The age is as of the year the run has reached, on the grid or not; the
+  // team is their latest, "last with" once they are off that year's grid; the
+  // rating is their best of the run, not a verdict from whichever year they
+  // were last seen.
+  const now = Math.max(...years.map((each) => each.year));
+  const best = bestOverall(years, driverId);
   const details = (
     <>
       {born === undefined ? null : (
         <span>
-          {latest.year - born} in {latest.year} ·
+          {now - born} years old in {now} ·
         </span>
       )}
+      {latest.year < now ? <span>last with</span> : null}
       <EntryNames field={latestWorld.field}>
         <Liveries year={latest.year}>
           <TeamName teamId={latest.teamId} badge />
         </Liveries>
       </EntryNames>
-      {entrant === undefined ? null : <span>· rated {driverOverall(entrant.driver)}</span>}
+      {best === null ? null : (
+        <span>
+          · rated {best.overall} at their peak, in {best.year}
+        </span>
+      )}
     </>
   );
 

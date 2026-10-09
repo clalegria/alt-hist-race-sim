@@ -14,6 +14,7 @@
  */
 
 import type { RaceEntrant } from "@alt-hist/engine";
+import { driverOverall } from "./rating.js";
 import type { CareerRecord, CareerRecords } from "./records.js";
 
 /** One year a driver was on the grid, and for whom. */
@@ -60,6 +61,32 @@ export function rosterOf(years: readonly FieldYear[]): Roster {
     }
   }
   return { drivers, teams };
+}
+
+/** A driver's best overall in the run, and the first year they were rated it. */
+export interface BestOverall {
+  readonly overall: number;
+  readonly year: number;
+}
+
+/**
+ * The highest overall a driver carried in any year of `years` they were on the
+ * grid, or null for someone never on it. A tie goes to the earlier year: the
+ * peak is when they first got there.
+ */
+export function bestOverall(years: readonly FieldYear[], driverId: string): BestOverall | null {
+  let best: BestOverall | null = null;
+  for (const { year, field } of [...years].sort((a, b) => a.year - b.year)) {
+    const entrant = field.find((each) => each.driverId === driverId);
+    if (entrant === undefined) {
+      continue;
+    }
+    const overall = driverOverall(entrant.driver);
+    if (best === null || overall > best.overall) {
+      best = { overall, year };
+    }
+  }
+  return best;
 }
 
 /** The last year someone is on the run's grid, or null for someone never on it. */
