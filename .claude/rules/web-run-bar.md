@@ -41,7 +41,8 @@ so a read-only view of a run later is these pages with the bar's actions hidden.
   onto the cursor line or left onto the crumb's link. The items render in a
   portal, so they are tested as data. The layout finds the page from the deepest
   match's `routeId` (`runPageOf`). Under them, `1984 · Round 3/16 · Race` says where the
-  cursor is.
+  cursor is; a review reads "Between seasons", or "End of the era" once there is no year
+  after it (`describeBeat`).
 - **Three kinds of action** (`runBarFor(run)` in `lib/run-bar.ts` decides which are
   offered, and is what the tests read):
   - **Forward** — *Continue* (the primary button; its `title` names the next beat),

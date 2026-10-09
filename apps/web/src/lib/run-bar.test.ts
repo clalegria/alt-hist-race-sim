@@ -28,7 +28,7 @@ import {
 import { linkTo, REVIEW_LINK } from "./run-places.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
 import { roundLink } from "./session-nav.js";
-import { type Beat, describeBeat, isReached } from "./timeline.js";
+import { type Beat, isReached } from "./timeline.js";
 
 const world = seededWorld(3, "aged", YEAR);
 const ROUNDS = world.season.races.length;
@@ -148,6 +148,16 @@ describe("the run bar's actions", () => {
     expect(bar.jump).toBe(false);
   });
 
+  it("calls the last authored year's review the end of the era, not a pause", () => {
+    const last = seededWorld(3, "aged", LAST_PLAYABLE);
+    expect(runBarFor(era({ kind: "review" }, last)).cursor).toBe(
+      `${LAST_PLAYABLE} · End of the era`,
+    );
+    expect(runBarFor(era({ kind: "summary" }, last)).next).toBe(
+      `${LAST_PLAYABLE} · End of the era`,
+    );
+  });
+
   it("walks an era's season exactly as a one-year run's, the summary aside", () => {
     // The point of running the era on the season's beats rather than beside
     // them: if Continue, the skip or the season's restart differed, there would
@@ -192,7 +202,7 @@ describe("where the bar puts each action", () => {
     [false, true].map((away) => ({
       state: runBarFor(run),
       away,
-      name: `${run.kind} ${describeBeat(run.cursor, run.world.season.races.length)}${away ? " away" : ""}`,
+      name: `${run.kind} ${runBarFor(run).cursor}${away ? " away" : ""}`,
     })),
   );
 

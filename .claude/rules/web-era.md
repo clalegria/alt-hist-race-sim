@@ -98,6 +98,9 @@ past it, and `continueRun()` is a no-op there rather than a throw.
 earliest first — a record, not a leaderboard. **The year last crowned carries
 `STANDOUT_ROW`**, exactly one row per view, which is the accent rule from
 `web-display.md`: on the review it is the champion of the thing the reader just came off.
+**Except at the era's end** — the review of a year with no `nextEraYear` — where no row is
+accented (`accentLatest` on `RollOfHonour`) and the page is headed "All champions"
+rather than "Champions so far".
 
 **The year in progress follows it** (`InProgressRow`, from `inProgress`): each
 championship's leader as far as the cursor has got, or "on the grid". Muted, never

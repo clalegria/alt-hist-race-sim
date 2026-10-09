@@ -46,17 +46,18 @@ export function runBarFor(run: Run): RunBarState {
   const { world, cursor } = run;
   const rounds = world.season.races.length;
   const nextYear = run.kind === "era" ? nextEraYear(world.year) : null;
-  const next = nextBeat(cursor, rounds, run.kind === "era", nextYear !== null);
+  const hasNextYear = nextYear !== null;
+  const next = nextBeat(cursor, rounds, run.kind === "era", hasNextYear);
   // Off a review the next beat is the *next year's* grid, so it carries that year.
   const nextLabel =
     next === null
       ? null
-      : `${cursor.kind === "review" ? nextYear : world.year} · ${describeBeat(next, rounds)}`;
+      : `${cursor.kind === "review" ? nextYear : world.year} · ${describeBeat(next, rounds, hasNextYear)}`;
   // Nothing is left to skip once the last race has been run: the summary is
   // what Continue does from there anyway.
   const lastRace = cursor.kind === "race" && cursor.round + 1 >= rounds;
   return {
-    cursor: `${world.year} · ${describeBeat(cursor, rounds)}`,
+    cursor: `${world.year} · ${describeBeat(cursor, rounds, hasNextYear)}`,
     next: nextLabel,
     skip:
       cursor.kind === "grid"

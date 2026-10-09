@@ -171,6 +171,20 @@ describe("the roll of honour", () => {
     expect(ended).not.toContain("Next comes");
   });
 
+  it("heads an unfinished era as a tally, and an ended one as the whole record", () => {
+    expect(html).toContain("Champions so far");
+    const ended = renderToStaticMarkup(<EraChampions run={runTo(LAST_YEAR, 2)} />);
+    expect(ended).toContain("All champions");
+    expect(ended).not.toContain("Champions so far");
+  });
+
+  it("accents no year once the era has ended", () => {
+    // The accent marks the year just finished on the way to the next; with no
+    // next, the last year is one row of the record like the others.
+    const ended = renderToStaticMarkup(<EraChampions run={runTo(LAST_YEAR, 2)} />);
+    expect(rows(ended).filter((row) => row.includes(STANDOUT_ROW))).toHaveLength(0);
+  });
+
   it("names each team as the entry it was that season", () => {
     // Every row publishes its **own** season's engine supply, so a team is named
     // as the entry it actually was — "Lotus-Climax", not "Lotus". The roll of

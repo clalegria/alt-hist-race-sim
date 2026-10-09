@@ -117,8 +117,11 @@ export function isReached(cursor: Place, place: Place): boolean {
   return comparePlaces(place, cursor) <= 0;
 }
 
-/** Where in the season a beat is, short enough for the run bar. */
-export function describeBeat(beat: Beat, rounds: number): string {
+/**
+ * Where in the season a beat is, short enough for the run bar. A review with
+ * no year after it is the end of the era rather than a pause between two.
+ */
+export function describeBeat(beat: Beat, rounds: number, hasNextYear: boolean): string {
   switch (beat.kind) {
     case "grid":
       return "Grid";
@@ -129,6 +132,6 @@ export function describeBeat(beat: Beat, rounds: number): string {
     case "summary":
       return "Season summary";
     case "review":
-      return "Between seasons";
+      return hasNextYear ? "Between seasons" : "End of the era";
   }
 }

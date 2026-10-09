@@ -168,11 +168,14 @@ export function ChampionRow({
 export function RollOfHonour({
   seasons,
   inProgress = null,
+  accentLatest = true,
   seasonLink,
 }: {
   seasons: readonly SeasonChampions[];
   /** The year the cursor is in, drawn last; null on the review. */
   inProgress?: RevealedWorld | null;
+  /** Whether the year last crowned carries the accent; not once the era has ended. */
+  accentLatest?: boolean;
   /** A year's season page. Absent in a test without a router. */
   seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
@@ -206,7 +209,7 @@ export function RollOfHonour({
             <Fragment key={season.year}>
               <ChampionRow
                 season={season}
-                latest={season.year === last?.year}
+                latest={accentLatest && season.year === last?.year}
                 open={openYear === season.year}
                 onToggle={() => {
                   setOpenYear(openYear === season.year ? null : season.year);
@@ -305,6 +308,20 @@ export function InProgressRow({
   );
 }
 
+/** The year after the last one crowned, or null where the era has nowhere further to go. */
+function yearAfter(seasons: readonly SeasonChampions[]): number | null {
+  const last = seasons.at(-1);
+  return last === undefined ? null : nextEraYear(last.year);
+}
+
+/**
+ * Whether the era is over: on the review of the last year there is data for,
+ * with no year in progress and none to come.
+ */
+function eraEnded(seasons: readonly SeasonChampions[], inProgress: RevealedWorld | null): boolean {
+  return inProgress === null && yearAfter(seasons) === null;
+}
+
 /** The line under the overview's heading: what has been run, and what comes next. */
 function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld | null): string {
   const span = eraSpan(seasons);
@@ -317,11 +334,9 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
   if (inProgress !== null) {
     return `${run} ${inProgress.year} is under way.`;
   }
-  const last = seasons.at(-1);
-  const nextYear = last === undefined ? null : nextEraYear(last.year);
-  return nextYear === null
+  return eraEnded(seasons, inProgress)
     ? `${run} There is no season after this one to run — the era ends here.`
-    : `${run} Next comes ${nextYear}, on the grid that year actually had.`;
+    : `${run} Next comes ${yearAfter(seasons)}, on the grid that year actually had.`;
 }
 
 /**
@@ -340,9 +355,11 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
  * leaderboard: a reader following an era wants to run their eye down it in the
  * order they played it. The year last crowned is its last row and carries the
  * winner's accent, which is the same accent the summary gave the same two
- * names. The **career statistics** below are the other axis: who won the era
- * rather than who won each year — crowned years only, so they are left out
- * until there is one.
+ * names — until the era has ended, when it is one year of the record like the
+ * rest, and the page is headed as the whole record rather than a tally so far.
+ * The **career statistics** below are the other axis: who won the era rather
+ * than who won each year — crowned years only, so they are left out until
+ * there is one.
  *
  * `inProgress` is the cursor's year as far as it has got, null while the
  * cursor is on the review. Props-driven like every other screen here, so it
@@ -363,11 +380,14 @@ export function EraChampions({
   // are baked in when an era begins. Read off the first season crowned rather
   // than the last, because that is the one that fixed them.
   const first = seasons[0]?.world ?? inProgress;
+  const ended = eraEnded(seasons, inProgress);
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Champions so far</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          {ended ? "All champions" : "Champions so far"}
+        </h1>
         <p className="text-muted-foreground max-w-prose text-sm">{eraLead(seasons, inProgress)}</p>
         {first === null ? null : (
           <SimulationSettings
@@ -381,7 +401,12 @@ export function EraChampions({
         The panels behind the names come from the run's frame, which walks the
         run once for every page (`SeasonHistoryProvider` in `RunFrame`).
       */}
-      <RollOfHonour seasons={seasons} inProgress={inProgress} seasonLink={seasonLink} />
+      <RollOfHonour
+        seasons={seasons}
+        inProgress={inProgress}
+        accentLatest={!ended}
+        seasonLink={seasonLink}
+      />
 
       {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
     </div>
