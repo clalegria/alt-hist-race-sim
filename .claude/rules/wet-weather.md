@@ -90,9 +90,8 @@ status column makes: a column reading "Dry" fourteen times says nothing, and wha
 scans for is the round where the sky changed the result.
 
 **A white-on-blue pill** — `bg-wet text-wet-foreground rounded-full` — and both halves are
-deliberate. It was the accent red first, and red was wrong twice over: `--color-primary`
-already means "won the thing on screen" (`lib/highlight.ts`), so a red wet round competed
-with the winner for one meaning, and red reads as a warning rather than as weather. Blue
+deliberate. Not `--color-primary`, which means "won the thing on screen"
+(`lib/highlight.ts`), and not red, which reads as a warning rather than as weather. Blue
 means rain with no legend. The `rounded-full` is a departure from a house style that runs
 the radius scale tight on purpose, and the departure is the point: everything else on
 these pages is a table cell or a card, so the one fully round thing is unmistakably a tag

@@ -15,8 +15,17 @@ importing a package root ships Cyrillic, Greek and Vietnamese cuts of every weig
 Numerals get the mono face through a single unlayered `.tabular-nums` rule rather than
 a font class threaded through a dozen components; the coupling is deliberate and
 everything currently marked `tabular-nums` is a number. The palette is warm greys
-(hue ~70, almost no chroma) against a deep red at hue 25, with the Tailwind radius
-scale overridden tighter, so corners read as instrument panel rather than consumer app.
+(hue ~70, almost no chroma) against a petrol teal primary at hue 203, with the Tailwind
+radius scale overridden tighter, so corners read as instrument panel rather than
+consumer app.
+
+**Red is never the primary.** It means something went wrong or is about to be thrown
+away: `--color-destructive` (the confirm button of `RunConfirmDialog`, through Button's
+`destructive` variant, and any future error or warning) and `--color-loss` (places
+lost, a retirement's status). The teal is held to moderate chroma because it sits
+between gain green (148) and wet blue (250) and must read as neither. Every primary and
+destructive value clears 4.5:1 both under its foreground and as text on the card, in
+both themes; measure a new value against both before using it.
 
 **Theme is chosen, not inherited.** Dark is the default and lives in plain `@theme`,
 so it needs no attribute and survives a page with JavaScript disabled. Light is an
@@ -60,10 +69,10 @@ through them.
 ## The hues outside the palette
 
 `--color-wet` / `--color-wet-foreground` is a blue, in a palette that is otherwise warm
-greys and a red. It earns the exception by naming a fact about the world rather than an
+greys and a teal. It earns the exception by naming a fact about the world rather than an
 emphasis: `--color-primary` is spent on "won the thing on screen", and a wet round is not
-a winner, so reusing the red made two different meanings share one colour. Blue means rain
-with no legend needed.
+a winner, so reusing it would make two different meanings share one colour. Blue means
+rain with no legend needed.
 
 **Both values were picked by measuring contrast, not by eye**, and the dark one is darker
 than the instinct for a dark theme. The badge is a *filled pill with white text*, so it is

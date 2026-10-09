@@ -105,6 +105,5 @@ among twenty-eight rather than the whole page.
 
 The panel is **deliberately unaccented**: `lib/highlight.ts` means "won the thing on
 screen", and a season with five wins in it would put five of them on a page whose accent
-is the champion. A win is marked by weight. Note when asserting this that `STANDOUT_TEXT`
-("text-primary") is a substring of the `text-primary/80` a retirement's status carries, so
-only the row *fills* can be counted.
+is the champion. A win is marked by weight. A retirement's status is `text-loss`, the red
+of something gone wrong, never the accent (`web-styling.md`).

@@ -101,9 +101,7 @@ export function RaceByRace({
                 the car finished. What a reader is scanning this panel for is
                 the rounds that got away.
               */}
-              <TableCell className="text-primary text-xs">
-                {finished ? "" : statusOf(entry)}
-              </TableCell>
+              <TableCell className="text-loss text-xs">{finished ? "" : statusOf(entry)}</TableCell>
               <TableCell className="text-right font-semibold tabular-nums">
                 {/* Blank rather than a column of zeroes, as in the classification. */}
                 {points === 0 ? "" : points}

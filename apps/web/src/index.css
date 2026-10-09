@@ -5,10 +5,12 @@
  * component references `bg-card` rather than a literal, and a theme swap is a
  * change to these blocks alone.
  *
- * The palette is warm greys against a deep racing red, rather than the cool
- * blue-grey and crimson that every scaffolded app ships with. Neutrals sit
- * around hue 60-70 with almost no chroma — enough to read as charcoal and paper
- * instead of as blue — and the accent is a saturated pillarbox red at hue 25.
+ * The palette is warm greys against a petrol teal. Neutrals sit around hue
+ * 60-70 with almost no chroma — enough to read as charcoal and paper instead of
+ * as blue — and the primary is a teal at hue 203, held to moderate chroma so it
+ * reads as neither the gain green (148) nor the wet blue (250) either side of
+ * it. Red is not the primary: it means something went wrong or is about to be
+ * thrown away (`destructive`, `loss`), and a red winner read as an error.
  *
  * Dark is a mid charcoal, not a void: background at 27%, well clear of the
  * near-black 16% it started at and of the 20.5% it passed through. Below about
@@ -44,20 +46,29 @@
   --color-subtle: oklch(70.5% 0.014 70);
   --color-border: oklch(43% 0.013 60);
   --color-input: oklch(43% 0.013 60);
-  --color-primary: oklch(67.5% 0.195 25);
-  --color-primary-foreground: oklch(19% 0.01 40);
+  /* 7.7:1 under its foreground, 5.5:1 as text on the card. */
+  --color-primary: oklch(72% 0.1 203);
+  --color-primary-foreground: oklch(19% 0.01 203);
   --color-accent: oklch(38% 0.015 60);
-  --color-ring: oklch(67.5% 0.195 25);
+  --color-ring: oklch(72% 0.1 203);
+
+  /*
+   * An action that throws work away, and any error or warning. The same red as
+   * `loss` today, but a separate token because it is a separate meaning. 6.4:1
+   * under its foreground, 4.5:1 as text on the card.
+   */
+  --color-destructive: oklch(70% 0.185 25);
+  --color-destructive-foreground: oklch(19% 0.01 40);
 
   /* Places gained and lost. Paired with different glyphs, never colour alone. */
   --color-gain: oklch(75% 0.15 148);
   --color-loss: oklch(70% 0.185 25);
 
   /*
-   * A wet race. Blue because blue means rain — the one place the app spends a
-   * hue outside its warm-grey-and-red palette, and it earns it by being a fact
-   * about the world rather than an emphasis: the primary red already means
-   * "won the thing on screen", and a wet round is not a winner.
+   * A wet race. Blue because blue means rain — a hue outside the warm-grey-and-
+   * teal palette, and it earns it by being a fact about the world rather than
+   * an emphasis: the primary already means "won the thing on screen", and a wet
+   * round is not a winner.
    *
    * Chosen by measurement, not by eye. `--color-wet-foreground` on this fill is
    * 4.7:1 on dark and 5.6:1 on light, both clear of the 4.5:1 that 12px text
@@ -75,7 +86,7 @@
    * Racing at home — the star a classification puts on an entry whose driver,
    * team or engine supplier is from the country the round is held in.
    *
-   * Pale gold, and a hue nothing else in the app uses: the primary red means
+   * Pale gold, and a hue nothing else in the app uses: the primary teal means
    * "won the thing on screen" and the wet blue means "it rained", so a third
    * mark had to be readable as neither. Gold because a home crowd is a small
    * honour, not a result.
@@ -181,10 +192,13 @@
   --color-subtle: oklch(57.5% 0.014 60);
   --color-border: oklch(90.5% 0.008 70);
   --color-input: oklch(90.5% 0.008 70);
-  --color-primary: oklch(47% 0.2 25);
-  --color-primary-foreground: oklch(98% 0.01 25);
+  /* 5.5:1 under its foreground, 5.8:1 as text on the card. */
+  --color-primary: oklch(50% 0.085 203);
+  --color-primary-foreground: oklch(98% 0.01 203);
   --color-accent: oklch(95% 0.012 70);
-  --color-ring: oklch(47% 0.2 25);
+  --color-ring: oklch(50% 0.085 203);
+  --color-destructive: oklch(54% 0.19 25);
+  --color-destructive-foreground: oklch(98% 0.01 25);
   --color-gain: oklch(54% 0.15 148);
   --color-loss: oklch(54% 0.19 25);
   /* Deeper than dark's, because it sits on a white card rather than a grey one:

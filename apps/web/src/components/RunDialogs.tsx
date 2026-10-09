@@ -98,7 +98,9 @@ export function RunConfirmDialog({
             through `onOpenChange`, which is the Cancel path here. The caller
             closes it by answering.
           */}
-          <Button onClick={onConfirm}>{copy.confirm}</Button>
+          <Button variant="destructive" onClick={onConfirm}>
+            {copy.confirm}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

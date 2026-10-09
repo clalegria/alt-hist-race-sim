@@ -3,6 +3,8 @@ import { cn } from "../../lib/utils.js";
 
 const VARIANTS = {
   primary: "bg-primary text-primary-foreground hover:opacity-90",
+  /** Confirms throwing work away, in the red kept for that and for errors. */
+  destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
   outline: "border-border hover:bg-accent border bg-transparent",
   ghost: "text-muted-foreground hover:text-foreground hover:bg-accent bg-transparent",
 } as const;

@@ -62,7 +62,7 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
 
 /**
  * The Home link's mark: a 4×4 chequered flag, one path per colour, drawn in the
- * theme's red and foreground so it follows the theme. `crispEdges` keeps each
+ * theme's primary and foreground so it follows the theme. `crispEdges` keeps each
  * square sharp, as `TeamCar` does for its pixels; at `size-3` a square is 3px.
  * Decorative, so the link's name is just "Home".
  */

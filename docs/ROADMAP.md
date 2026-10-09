@@ -84,8 +84,6 @@ a token nudged in passing (`web-styling.md`).
 
 - **Dark still clashes**, and the team cards' livery-tinted colours (`web-liveries.md`)
   do not sit well in either theme.
-- **Red is everywhere, in both themes**, and red reads as an error. Reconsider the
-  primary hue, keeping red for what is actually destructive.
 - **The checkered background is too faint in light** to see on a TV. Light is otherwise
   the better balanced of the two.
 

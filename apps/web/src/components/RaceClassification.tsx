@@ -162,7 +162,7 @@ export function RaceClassification({
                 className={cn(
                   CELL,
                   "whitespace-normal text-xs",
-                  finished ? "text-muted-foreground" : "text-primary",
+                  finished ? "text-muted-foreground" : "text-loss",
                 )}
               >
                 {statusOf(entry)}

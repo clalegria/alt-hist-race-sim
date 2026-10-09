@@ -71,14 +71,12 @@ export function RainIcon({ className, title }: { className?: string; title?: str
  *
  * **A filled blue pill, and both halves of that are deliberate.**
  *
- * *Blue*, because blue means rain. It was the accent red first, and red is the
- * wrong signal twice over: this app already spends `--color-primary` on "won the
- * thing on screen" (`lib/highlight.ts`), so a red wet round competed with the
- * winner for the same meaning, and red reads as a warning rather than as
- * weather. `--color-wet` is the one hue outside the warm-grey-and-red palette,
- * and it earns the exception by describing the world rather than emphasising a
- * result. Both tokens are per-theme and were picked by measuring contrast — see
- * the note in `index.css`.
+ * *Blue*, because blue means rain. Not the primary, which this app spends on
+ * "won the thing on screen" (`lib/highlight.ts`), and not red, which reads as a
+ * warning rather than as weather. `--color-wet` is a hue outside the
+ * warm-grey-and-teal palette, and it earns the exception by describing the
+ * world rather than emphasising a result. Both tokens are per-theme and were
+ * picked by measuring contrast — see the note in `index.css`.
  *
  * *A pill*, at `rounded-full`, against a house style that deliberately runs the
  * radius scale tight so corners read as instrument panel. The departure is the
