@@ -10,9 +10,16 @@ import { fileURLToPath } from "node:url";
 import type { Livery } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { MODES } from "../lib/modes.js";
 import { FORMATIONS, type Formation, PARADE_SIZE, type Pass } from "../lib/parade.js";
+import { linkTo } from "../lib/run-places.js";
+import { inRouter } from "../test-router.js";
+import { YEAR } from "../test-support.js";
 import { HomeParade, Parade } from "./HomeParade.js";
+import { MainMenu } from "./MainMenu.js";
+import { ResumeRun, RunNotResumed } from "./ResumeRun.js";
 import { CAR_SIZES } from "./TeamCar.js";
+import { TopNav } from "./TopNav.js";
 
 const LIVERY: Livery = {
   primaryColor: "#aa0000",
@@ -29,7 +36,8 @@ function pass(formation: Formation): Pass {
       livery: LIVERY,
     })),
     formation,
-    lane: 0.4,
+    lane: 200,
+    inFront: false,
     duration: 3,
   };
 }
@@ -55,6 +63,24 @@ describe("the parade", () => {
     }
   });
 
+  it("runs under the page, or over it when its pass says so", () => {
+    const behind = renderToStaticMarkup(<Parade pass={pass("file")} />);
+    const front = renderToStaticMarkup(<Parade pass={{ ...pass("file"), inFront: true }} />);
+    expect(behind).toContain("-z-1");
+    expect(behind).not.toContain("z-30");
+    expect(front).toContain("z-30");
+    expect(front).not.toContain("-z-1");
+  });
+
+  it("puts each car its formation's offset below the lane", () => {
+    for (const formation of formations) {
+      const html = renderToStaticMarkup(<Parade pass={pass(formation)} />);
+      for (const slot of FORMATIONS[formation]) {
+        expect(html).toContain(`top:${200 + slot.offset}px`);
+      }
+    }
+  });
+
   it("is hidden from screen readers and from the pointer", () => {
     const html = renderToStaticMarkup(<Parade pass={pass("file")} />);
     expect(html).toMatch(/^<div aria-hidden="true" class="[^"]*pointer-events-none/);
@@ -75,5 +101,25 @@ describe("the parade", () => {
 
   it("draws nothing until its timer sets a pass off", () => {
     expect(renderToStaticMarkup(<HomeParade />)).toBe("");
+  });
+});
+
+describe("what the parade cannot be seen through", () => {
+  const COVER = 'data-parade-cover=""';
+  const count = (html: string) => html.split(COVER).length - 1;
+
+  it("is marked on every mode card, the resume card, the notice in its place and the top nav", async () => {
+    expect(count(renderToStaticMarkup(<MainMenu onChoose={() => {}} />))).toBe(MODES.length);
+    expect(count(renderToStaticMarkup(<RunNotResumed />))).toBe(1);
+    const resume = await inRouter(
+      <ResumeRun
+        title="Run"
+        detail="Grid"
+        link={linkTo({ year: YEAR, beat: { kind: "grid" } })}
+        onExit={() => {}}
+      />,
+    );
+    expect(count(resume)).toBe(1);
+    expect(count(await inRouter(<TopNav />))).toBe(1);
   });
 });

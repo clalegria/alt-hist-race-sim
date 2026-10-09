@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { PARADE_COVER } from "../lib/parade.js";
 import type { RunLink } from "../lib/run-places.js";
 import { Button } from "./ui/button.js";
 
@@ -26,7 +27,10 @@ export function ResumeRun({
   onExit?: () => void;
 }) {
   return (
-    <div className="bg-card border-primary/60 flex flex-wrap items-center gap-3 rounded-xl border shadow-sm">
+    <div
+      {...PARADE_COVER}
+      className="bg-card border-primary/60 flex flex-wrap items-center gap-3 rounded-xl border shadow-sm"
+    >
       <Link
         {...link}
         className="hover:bg-accent focus-visible:ring-ring flex min-w-0 flex-1 flex-col items-start gap-1 rounded-xl p-5 text-left transition focus-visible:ring-2 focus-visible:outline-none"
@@ -51,7 +55,10 @@ export function ResumeRun({
  */
 export function RunNotResumed({ onDismiss }: { onDismiss?: () => void }) {
   return (
-    <div className="bg-card flex flex-wrap items-center gap-3 rounded-xl border p-5 shadow-sm">
+    <div
+      {...PARADE_COVER}
+      className="bg-card flex flex-wrap items-center gap-3 rounded-xl border p-5 shadow-sm"
+    >
       <p className="text-muted-foreground min-w-0 flex-1 text-sm">
         Your last run couldn't be resumed: it was made on a different version of the simulator.
       </p>

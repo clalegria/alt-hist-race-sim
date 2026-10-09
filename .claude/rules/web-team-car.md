@@ -104,12 +104,20 @@ Every `PASS_INTERVAL_MS` (the first after `FIRST_PASS_MS`), `HomeParade` sends
   livery (`liveryFor`) and decade's sprite. **Every car a different team**: a repeat moves
   the draw on to the next entry, so it ends for any random source.
 - **Two formations, drawn per pass** (`FORMATIONS`): single file in one lane, or
-  staggered across three. The lane is drawn from a band of the window's height.
+  staggered across three. The author likes both, and the switching between them.
 - **A speed, not a duration**: a car's time across is the window's width over
   `DRIVE_SPEED_PX_PER_S`, so the gaps are the same on a phone and a wide screen.
-- **Between the texture and the page**: a fixed layer at the texture's own `z-index: -1`,
-  later in the document, so it paints over the texture and under all content. The opaque
-  mode cards hide a car going behind them, and the dimmed unbuilt ones let it show.
+- **Behind the page where it can be seen, in front where it can't.** When a pass sets
+  off, `HomeParade` measures every element marked `PARADE_COVER` (the mode cards, the
+  resume card or its notice, the top nav), and `openLanes` keeps the lanes where every
+  car of the formation has at least `MIN_VISIBLE_SHARE` of the window's width clear of
+  them. One of those is drawn if there is one. A desktop's card rows qualify through the
+  open sides; a phone's don't, so there it is the heading or the strip above the footer.
+  With none in view (a phone scrolled into the cards), the pass runs **in front**, in
+  the `FRONT_LANE_*` band. A new opaque surface on the home screen needs the mark.
+- **Behind** is a fixed layer at the texture's own `z-index: -1`, later in the document,
+  so it paints over the texture and under all content. **In front** is `z-30`: over the
+  content, under the dialogs (`z-50`). The layer never takes a click.
 - The drive is `--animate-drive` in `index.css`, `motion-safe:`, and the layer is
   `motion-reduce:hidden`. A pass is skipped while the tab is hidden and never overlaps
   the one before. `pnpm screenshots` runs with reduced motion, so it never shows one.

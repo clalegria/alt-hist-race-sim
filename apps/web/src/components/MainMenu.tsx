@@ -1,4 +1,5 @@
 import { MODES, type Mode, type ModeId } from "../lib/modes.js";
+import { PARADE_COVER } from "../lib/parade.js";
 import { cn } from "../lib/utils.js";
 
 /**
@@ -13,6 +14,7 @@ function ModeCard({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => vo
   return (
     <button
       type="button"
+      {...PARADE_COVER}
       disabled={!mode.available}
       onClick={() => {
         onChoose(mode.id);

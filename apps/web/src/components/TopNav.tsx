@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AREAS, type Area, isAvailable } from "../lib/areas.js";
+import { PARADE_COVER } from "../lib/parade.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 
 /**
@@ -24,7 +25,7 @@ import { ThemeToggle } from "./ThemeToggle.js";
  */
 export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
   return (
-    <header className="bg-background/85 border-border border-b backdrop-blur">
+    <header {...PARADE_COVER} className="bg-background/85 border-border border-b backdrop-blur">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
           <span aria-hidden="true" className="bg-primary inline-block size-2.5 rotate-45" />

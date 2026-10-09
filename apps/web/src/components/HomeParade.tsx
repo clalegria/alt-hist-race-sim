@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
-import { FIRST_PASS_MS, FORMATIONS, PASS_INTERVAL_MS, type Pass, planPass } from "../lib/parade.js";
+import {
+  FIRST_PASS_MS,
+  FORMATIONS,
+  PARADE_COVER_SELECTOR,
+  PASS_INTERVAL_MS,
+  type Pass,
+  planPass,
+} from "../lib/parade.js";
+import { cn } from "../lib/utils.js";
 import { LiveryCar } from "./TeamCar.js";
 
 /**
- * A few cars from anywhere in history, driving across the home screen's
- * background now and then (`lib/parade.ts` picks them).
+ * A few cars from anywhere in history, driving across the home screen now and
+ * then (`lib/parade.ts` picks them, and where they run).
  *
- * **Between the page texture and the page.** The texture is `body::before` at
- * `z-index: -1`; this layer is fixed at the same `-1` and comes later in the
- * document, so it paints over the texture, and like any negative layer it paints
- * under the ordinary content — the opaque mode cards hide a car going behind
- * them. The browser moves the cars (a CSS animation on `transform`); React only
- * says when a pass sets off and what is in it.
+ * **Between the page texture and the page**, where there is an open lane. The
+ * texture is `body::before` at `z-index: -1`; this layer is fixed at the same
+ * `-1` and comes later in the document, so it paints over the texture, and like
+ * any negative layer it paints under the ordinary content. **Over the page**
+ * where there is none — a phone scrolled past the heading is all cards — at a
+ * `z-index` above the content but under the dialogs (`z-50`). It never takes a
+ * click either way. The browser moves the cars (a CSS animation on
+ * `transform`); React only says when a pass sets off and what is in it.
  *
  * Gone for a reader who has asked for reduced motion: the layer is not drawn.
  */
@@ -20,7 +30,10 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-1 overflow-hidden motion-reduce:hidden"
+      className={cn(
+        "pointer-events-none fixed inset-0 overflow-hidden motion-reduce:hidden",
+        pass.inFront ? "z-30" : "-z-1",
+      )}
     >
       {pass.cars.map((car, i) => {
         const slot = slots[i] ?? { delay: 0, offset: 0 };
@@ -29,7 +42,7 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
             key={`${car.teamId}-${car.year}`}
             className="absolute left-0 motion-safe:animate-drive"
             style={{
-              top: `calc(${(pass.lane * 100).toFixed(2)}% + ${slot.offset}rem)`,
+              top: `${Math.round(pass.lane + slot.offset)}px`,
               animationDelay: `${slot.delay}s`,
               animationDuration: `${pass.duration.toFixed(2)}s`,
             }}
@@ -57,8 +70,12 @@ export function HomeParade() {
       if (document.hidden) {
         return;
       }
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const covers = [...document.querySelectorAll(PARADE_COVER_SELECTOR)].map((element) =>
+        element.getBoundingClientRect(),
+      );
       setCurrent(
-        (running) => running ?? { pass: planPass(Math.random, window.innerWidth), id: passes++ },
+        (running) => running ?? { pass: planPass(Math.random, viewport, covers), id: passes++ },
       );
     };
     let interval: number | undefined;

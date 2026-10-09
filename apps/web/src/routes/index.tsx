@@ -11,7 +11,7 @@ import { cursorPlace, isUntouched, useSeasonStore } from "../store/season.js";
 
 /**
  * `/` — the opening screen: what this is, which mode to run, and the run in
- * progress, with a parade of cars now and then behind it.
+ * progress, with a parade of cars across it now and then.
  */
 export const Route = createFileRoute("/")({ component: HomePage });
 
