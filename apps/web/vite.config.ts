@@ -12,4 +12,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@alt-hist/engine", "@alt-hist/data"],
   },
+  // Vite answers only requests addressed to a host it knows; `pnpm tunnel`
+  // forwards ones addressed to a random `*.trycloudflare.com` name.
+  server: {
+    allowedHosts: [".trycloudflare.com"],
+  },
 });

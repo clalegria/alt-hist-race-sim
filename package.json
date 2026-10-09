@@ -25,7 +25,8 @@
     "progression": "pnpm --filter @alt-hist/calibrate progression",
     "tune": "pnpm --filter @alt-hist/calibrate tune",
     "fit": "pnpm --filter @alt-hist/calibrate fit",
-    "screenshots": "pnpm --filter @alt-hist/screenshots start"
+    "screenshots": "pnpm --filter @alt-hist/screenshots start",
+    "tunnel": "pnpm --filter @alt-hist/tunnel start"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",

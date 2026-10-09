@@ -53,6 +53,7 @@ pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
 pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/rules/screenshots.md)
+pnpm tunnel        # the dev server on a public https URL, for any device (.claude/rules/tunnel.md)
 ```
 The harnesses in `tools/calibrate` (`pnpm race`, `season`, `calibrate`, `tune`, `fit`, …)
 are listed in `.claude/rules/calibration.md`.

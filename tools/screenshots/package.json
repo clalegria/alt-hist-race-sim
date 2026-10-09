@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "exports": {
+    "./server": "./src/server.ts"
+  },
   "scripts": {
     "start": "playwright install --only-shell chromium && tsx src/main.ts",
     "typecheck": "tsc --noEmit"
