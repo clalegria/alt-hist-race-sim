@@ -77,16 +77,7 @@ Three more what-ifs for the settings dialog, and the grid editor's missing half.
   its three ratings. Open: whether a step moves the engine for every team running it
   (recommended, as with the roll, and the card says so) or only this team's.
 
-## 3. The theme pass
-
-Both palettes looked at with the author's eye on real screens (`pnpm screenshots`), not
-a token nudged in passing (`web-styling.md`).
-
-- **Dark still clashes.**
-- **The checkered background is too faint in light** to see on a TV. Light is otherwise
-  the better balanced of the two.
-
-## 4. Phone layout
+## 3. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -106,7 +97,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 5. The in-app ratings editor
+## 4. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -135,7 +126,7 @@ chassis for one run (`stepChassis`); this item is the editor that changes the da
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 6. The share image
+## 5. The share image
 
 A button on a season's overview (`SeasonOverview`) and an era's review (`EraChampions`)
 that makes a **portrait PNG, 1080×1920**, to send from a phone — the way small games share
@@ -151,7 +142,7 @@ no save format.
   download where there is not.
 - Open: what each card shows, and whether the era card is one image or one per page.
 
-## 7. Publish it
+## 6. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -238,7 +229,7 @@ the reason to put a version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 8. Historical career records
+## 7. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -263,7 +254,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 9. Seasonal factors
+## 8. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -272,7 +263,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 10. Circuit character
+## 9. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -288,7 +279,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 11. Driver market
+## 10. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -302,7 +293,7 @@ Needs ageing and more than one season to move between, hence its place here. Lea
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 12. Game mode
+## 11. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
