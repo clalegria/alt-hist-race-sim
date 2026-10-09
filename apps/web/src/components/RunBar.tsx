@@ -238,7 +238,9 @@ export function RunActions(props: RunActionsProps) {
         <div className="hidden flex-1 flex-wrap justify-end gap-2 md:flex">
           {layout.bar.map((key) =>
             key === "back" ? (
-              away === null ? null : <BackLink key={key} to={away} />
+              away === null ? null : (
+                <BackLink key={key} to={away} />
+              )
             ) : (
               <Button key={key} variant="outline" onClick={actions[key].onSelect}>
                 {actions[key].label}

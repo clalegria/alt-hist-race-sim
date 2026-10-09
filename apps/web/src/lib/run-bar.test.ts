@@ -16,10 +16,10 @@ import {
   jumpPlace,
   jumpTarget,
   jumpYears,
-  returnFor,
   type RunActionKey,
   type RunActionsLayout,
   type RunBarState,
+  returnFor,
   runActionsFor,
   runBarFor,
   runTitle,
@@ -255,7 +255,10 @@ describe("where the bar puts each action", () => {
           expect(entry.phoneOnly, `${name} ${key}`).toBe(false);
         }
       }
-      expect(layout.menu.map((entry) => entry.key), name).toContain("exit");
+      expect(
+        layout.menu.map((entry) => entry.key),
+        name,
+      ).toContain("exit");
     }
   });
 
