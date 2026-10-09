@@ -236,6 +236,8 @@ export function SeasonPage({
   run,
   locked = false,
   settingsLock = null,
+  backToSetupLock,
+  onBackToSetup,
   onYearChange,
   finished,
   tab,
@@ -249,6 +251,9 @@ export function SeasonPage({
   locked?: boolean;
   /** Why the run settings can no longer be changed here (`settingsLock`), or null. */
   settingsLock?: string | null;
+  /** On an era's first grid, why it cannot go back to setup (`backToSetupLock`), or null. */
+  backToSetupLock?: string | null;
+  onBackToSetup?: () => void;
   onYearChange?: (year: number) => void;
   /** On the season's page: whether its summary is reached, and its tabs. */
   finished?: boolean;
@@ -315,6 +320,12 @@ export function SeasonPage({
             onSettingsChange: (choice: RunChoice) => {
               setRunSettings(choice.randomness, choice.settings);
             },
+          }
+        : {})}
+      {...(editable && backToSetupLock !== undefined
+        ? {
+            backToSetupLock,
+            ...(onBackToSetup === undefined ? {} : { onBackToSetup }),
           }
         : {})}
       {...(finished === undefined ? {} : { finished })}

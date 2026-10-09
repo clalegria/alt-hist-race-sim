@@ -22,3 +22,17 @@ export function settingsLock(run: Run): string | null {
     ? "Fixed while the grid is edited. Clear all edits to change them."
     : `Fixed once the ${run.kind} is under way.`;
 }
+
+/**
+ * Whether an era's grid offers the way back to its setup page, and why it is
+ * greyed out: undefined anywhere but the cursor's first grid of an era; null
+ * while that grid is as entered (`isUntouched`); else the reason. Going back
+ * keeps no grid edit, so once there is one it is Exit run that leaves.
+ * Changed settings do not count: the setup page reopens on them.
+ */
+export function backToSetupLock(run: Run): string | null | undefined {
+  if (run.kind !== "era" || run.cursor.kind !== "grid" || run.run.seasons.length > 0) {
+    return undefined;
+  }
+  return isUntouched(run) ? null : "Not once the grid is edited.";
+}

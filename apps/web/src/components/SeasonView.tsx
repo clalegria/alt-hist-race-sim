@@ -19,6 +19,7 @@ import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { EDITING_LOCK } from "../lib/settings-lock.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
+import { BackToSetup } from "./BackToSetup.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
 import { type GridEdit, GridStage } from "./GridStage.js";
@@ -227,6 +228,14 @@ interface SeasonViewProps {
   /** Changes the run settings, while `settingsLock` is null. Absent in tests. */
   readonly onSettingsChange?: (choice: RunChoice) => void;
   /**
+   * On an era's first grid, why it cannot go back to the era's setup page, or
+   * null while it can (`backToSetupLock`). Absent anywhere else, and the button
+   * is not drawn.
+   */
+  readonly backToSetupLock?: string | null;
+  /** Goes back to the era's setup page. Absent in tests. */
+  readonly onBackToSetup?: () => void;
+  /**
    * The previous season's grid as this run actually raced it, for the grid
    * editor's carry-over button.
    *
@@ -276,6 +285,8 @@ function SeasonBody({
   onGridEditingChange,
   settingsLock = null,
   onSettingsChange,
+  backToSetupLock,
+  onBackToSetup,
   previousLineup = null,
   locked = false,
   finished = true,
@@ -315,6 +326,11 @@ function SeasonBody({
               <SeasonSwitcher
                 year={world.year}
                 {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
+              />
+            ) : backToSetupLock !== undefined && !locked ? (
+              <BackToSetup
+                lock={editingGrid && backToSetupLock === null ? EDITING_LOCK : backToSetupLock}
+                {...(onBackToSetup === undefined ? {} : { onBack: onBackToSetup })}
               />
             ) : null
           }

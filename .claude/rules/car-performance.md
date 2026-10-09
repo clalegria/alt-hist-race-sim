@@ -69,8 +69,8 @@ this edited?" compares against it: `createWorld`'s normalising of `lineup`, `eng
 `untouched`, `chassisChanges` on the grid and the summary. A reader's `chassis` stays
 absolute ratings over it.
 
-- `setGrid` and `setRatingMode` keep the seed, so the roll; **both restarts and
-  `switchSeasonYear` draw a new seed and so re-roll**, the setting carried and the
+- `setGrid` and `setRatingMode` keep the seed, so the roll; **both restarts,
+  `switchSeasonYear` and `setRunSettings` draw a new seed and so re-roll**, the setting carried and the
   reader's own chassis carrying as the ratings they are.
 - `arrangedLineup` builds from the baseline season for its seed, so a bulk rule kept
   across an era ranks that year's rolled cars.

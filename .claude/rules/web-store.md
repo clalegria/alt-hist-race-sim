@@ -85,7 +85,7 @@ holds it in component state seeded from `readRandomness()` and hands it to `onSt
 which is why `startSeason`/`startEra` take it as an argument rather than reading storage
 themselves. It reaches the model as `withRandomness(level)`, a derived copy of the
 constants; at `UNSCALED_RANDOMNESS_LEVEL` it *is* `RACE_CONSTANTS`, untouched. Only
-`setRunSettings` changes it after the start, and only while the run is untouched (same
+`setRunSettings` changes it after the start, and only while the run is untouched (a fresh
 seed; `.claude/rules/web-run-settings.md`) — `setRatingMode`, `setGrid` and `restartSeason` all carry it forward, and an
 era carries `last.randomness` into every following year, so a run is one championship
 under one set of rules. **`world.settings`** (`RunSettings`, `lib/run-settings.ts`) is

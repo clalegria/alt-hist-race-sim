@@ -280,8 +280,19 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "era-back-to-setup",
+    reach: async (page) => {
+      // Nothing changed on the first grid, so it goes back to the setup page.
+      await button(page, "Back to setup").click();
+      await page.waitForURL("**/era/new");
+    },
+  },
+  {
     name: "era-grid-team",
     reach: async (page) => {
+      // Begun again from the same setup: the untouched run is replaced unasked.
+      await button(page, `Begin an era from ${YEAR}`).click();
+      await page.waitForURL(`**/run/${YEAR}/grid`);
       // A team's ratings on varied cars: history beside this run's, rating by rating.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
       await page.getByRole("dialog").getByText("History → this run").waitFor();

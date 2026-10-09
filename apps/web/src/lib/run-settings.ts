@@ -125,6 +125,23 @@ export function settingsInForce(settings: RunSettings): RunSettings {
     : settings;
 }
 
+/** A value as JSON with every object's keys sorted, so two equal settings print alike. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonical).join(",")}]`;
+  }
+  if (typeof value === "object" && value !== null) {
+    const entries = Object.entries(value).sort(([a], [b]) => (a < b ? -1 : 1));
+    return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${canonical(item)}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+/** Whether two sets of settings give the same answers, however their objects were built. */
+export function sameSettings(a: RunSettings, b: RunSettings): boolean {
+  return canonical(a) === canonical(b);
+}
+
 /**
  * The settings a standalone season runs: the era-only ones dropped, and a car
  * walking from the previous year's varied off the real one instead, since a season has

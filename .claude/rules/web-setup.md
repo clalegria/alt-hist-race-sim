@@ -4,6 +4,7 @@ paths:
   - "apps/web/src/components/SeasonPicker.tsx"
   - "apps/web/src/components/YearPicker.tsx"
   - "apps/web/src/components/SeasonSwitcher.tsx"
+  - "apps/web/src/components/BackToSetup.tsx"
   - "apps/web/src/lib/preferences.ts"
   - "apps/web/src/App.tsx"
 ---
@@ -78,9 +79,16 @@ The neighbours come from `adjacentSeason(year, ±1)` in `lib/seasons.ts`, which 
 `PLAYABLE_SEASONS` rather than adding one, so a gap in the seed data is skipped rather
 than offered.
 
-**A run has no Back button of its own.** The browser's Back moves between its pages,
-and a Back past its first page — onto the setup page — asks whether to exit the run
-(`.claude/rules/web-run-bar.md`). **A setup page has no sticky bar at all**: the bar
+**A run has no Back button of its own, but for one case.** The browser's Back moves
+between its pages, and a Back past its first page — onto the setup page — asks whether
+to exit the run (`.claude/rules/web-run-bar.md`). The case is **an era's first grid**,
+whose year cannot be switched: `BackToSetup` (`← Back to setup`) rides in the settings
+line's `extra` slot where `SeasonSwitcher` would, and pushes `/era/new`, the run left in
+the store like any untouched one. `backToSetupLock(run)` in `lib/settings-lock.ts` says
+whether it is drawn (undefined) and why it is greyed out: once the grid is edited
+(`isUntouched`), the reason on its wrapper as the disabled Continue has; while the
+editor is open, `EDITING_LOCK`. Changed settings leave it open: the setup page reopens
+on them. **A setup page has no sticky bar at all**: the bar
 is the run's, and starts at its grid. The top nav is the way off a setup page. On every
 page that has a bar, **navigation is its right-hand end**.
 

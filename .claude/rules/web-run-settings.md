@@ -62,9 +62,11 @@ rebuild under a draft is what hides the year switcher too. Every grid page draws
 line, a raced one read-only.
 
 `setRunSettings(randomness, settings)` in the store refuses unless untouched, then
-rebuilds **on the same seed** — `startSeason`'s or `startEra`'s own build, so the era's
+rebuilds **on a fresh seed** — `startSeason`'s or `startEra`'s own build, so the era's
 first-year records (`gridKeptFrom`, `namesKeptFrom`) follow — and the run stays
-untouched. It remembers what it sets; on a standalone season through
+untouched. Fresh because on the same seed *Car performance* turned away and back rolls
+the same cars, so the pecking order never moves. Settings that leave the world as it was
+(`sameSettings` over `settingsInForce`, a Done with nothing changed) rebuild nothing. It remembers what it sets; on a standalone season through
 `rememberedAfterSeason`, which keeps the remembered era-only answers (and an era's walk
 the season only read as the real car) that the season never showed.
 
@@ -119,7 +121,8 @@ The dialog renders into a portal, so its contents are tested through `RunSetting
 (`settingsForm(unit)` in `test-support.ts`) and `RunSettingsFields`; the line, the lock's
 `title` and the Clear link in `run-settings-dialog.test.tsx`; what Restore defaults resets
 in `lib/run-settings.test.ts`; the lock rule in
-`lib/settings-lock.test.ts`; the rebuild in `store/settings.test.ts` (mutation-checked:
-dropping the guard fails three). Opening, committing and the read-only state run in a
+`lib/settings-lock.test.ts`; the rebuild and the no-op in
+`store/settings.test.ts` (mutation-checked: dropping the guard fails three; `Math.random`
+is stubbed there, so the fresh seed is known). Opening, committing and the read-only state run in a
 real browser in `pnpm screenshots` (`season-settings`, `grid-settings`,
 `grid-settings-locked`, `era-setup`).

@@ -126,6 +126,38 @@ describe("the shortcut to the season next door", () => {
   });
 });
 
+describe("the way back to an era's setup", () => {
+  const back = "Back to setup";
+  /** The button, if it is drawn disabled. */
+  const disabledBack = /<button[^>]*disabled=""[^>]*>(?:(?!<\/button>).)*Back to setup/;
+  const inEra = (props: { backToSetupLock?: string | null } = {}) =>
+    renderToStaticMarkup(
+      <SeasonView
+        {...shownAt(world, { kind: "grid" })}
+        canChooseAbility={false}
+        inEra
+        {...props}
+      />,
+    );
+
+  it("is drawn live on an era's first grid", () => {
+    const html = inEra({ backToSetupLock: null });
+    expect(html).toContain(back);
+    expect(html).not.toMatch(disabledBack);
+  });
+
+  it("is greyed out with its reason once something changed", () => {
+    const html = inEra({ backToSetupLock: "Not once the grid is edited." });
+    expect(html).toContain('title="Not once the grid is edited."');
+    expect(html).toMatch(disabledBack);
+  });
+
+  it("is not drawn without a lock to read, as on any other grid", () => {
+    expect(inEra()).not.toContain(back);
+    expect(render({ kind: "grid" })).not.toContain(back);
+  });
+});
+
 describe("the driver ability toggle", () => {
   const html = render({ kind: "grid" });
 

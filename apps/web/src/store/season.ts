@@ -71,6 +71,7 @@ import {
   type RunSettings,
   rememberedAfterSeason,
   rolledChassisOf,
+  sameSettings,
   seasonSettings,
   settingsInForce,
   walksFromLastYear,
@@ -811,14 +812,18 @@ interface SeasonStore {
    */
   readonly setRatingMode: (mode: RatingMode) => void;
   /**
-   * Re-runs the run's first season from the same seed under other run settings
-   * — the randomness level and the what-ifs — and remembers them, as the setup
+   * Re-runs the run's first season on a fresh seed under other run settings —
+   * the randomness level and the what-ifs — and remembers them, as the setup
    * screen would have.
    *
    * **Only while the run is untouched** (`isUntouched`): its first grid, as
    * entered. Past it the reader has seen results, or edited a grid, that the
-   * settings were fixed for. Same seed for the reason `setRatingMode` keeps
-   * it: the same dice under different rules.
+   * settings were fixed for.
+   *
+   * **A fresh seed, unlike `setRatingMode`**: on the same seed, flipping *Car
+   * performance* away and back hands back the very same rolled cars, so the
+   * pecking order never moves however often the reader tries. Settings that
+   * leave the run as it was (a Done with nothing changed) rebuild nothing.
    */
   readonly setRunSettings: (randomness: RandomnessLevel, settings: RunSettings) => void;
   /**
@@ -1129,13 +1134,21 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
     }
     const { world } = run;
     rememberRandomness(randomness);
+    const raced = run.kind === "season" ? seasonSettings(settings) : settings;
     if (run.kind === "season") {
-      const raced = seasonSettings(settings);
       rememberRunSettings(rememberedAfterSeason(readRunSettings(), raced));
+    } else {
+      rememberRunSettings(settings);
+    }
+    if (randomness === world.randomness && sameSettings(settingsInForce(raced), world.settings)) {
+      return;
+    }
+    const seed = randomSeed();
+    if (run.kind === "season") {
       set({
         run: openSeason(
           createWorld(
-            world.seed,
+            seed,
             world.year,
             world.ratingMode,
             null,
@@ -1149,14 +1162,13 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       });
       return;
     }
-    rememberRunSettings(settings);
-    // `startEra`'s own build, on the run's seed: what the first year of an era
-    // records about the run (`gridKeptFrom`, `namesKeptFrom`) follows the
-    // settings, and an untouched run has nothing else to carry.
+    // `startEra`'s own build: what the first year of an era records about the
+    // run (`gridKeptFrom`, `namesKeptFrom`) follows the settings, and an
+    // untouched run has nothing else to carry.
     set({
       run: openEra(
         createWorld(
-          world.seed,
+          seed,
           world.year,
           ERA_RATING_MODE,
           null,
