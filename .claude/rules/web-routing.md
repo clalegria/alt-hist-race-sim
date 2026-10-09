@@ -117,7 +117,8 @@ touch the router and still render through `renderToStaticMarkup` in tests.
 `App` is the root route's component: `TopNav` then `<Outlet />`, the slot where the
 router puts the current page. Each page brings its own `Shell` — the sticky bar (only
 if the page passes one) and the footer. The top nav scrolls away; the sticky bar, where
-the way forward is, stays. The theme toggle lives in the top nav. **Both wear one
+the way forward is, stays. The top nav opens with a Home link marked by a chequered flag
+(the favicon is the same flag) and ends with the theme toggle. **Both wear one
 surface** — the bar's translucent background and blur over the page texture — so they
 read as one header.
 

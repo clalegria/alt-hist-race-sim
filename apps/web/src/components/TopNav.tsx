@@ -4,8 +4,8 @@ import { PARADE_COVER } from "../lib/parade.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 
 /**
- * The bar across the top of every page: the app's name, its areas, and the
- * theme toggle.
+ * The bar across the top of every page: the Home link, the app's areas, and
+ * the theme toggle.
  *
  * Every entry is a `Link` — a real `<a href>`, so it can be opened in a new tab
  * or copied, while a plain click is caught by the router and changes the page
@@ -28,8 +28,8 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
     <header {...PARADE_COVER} className="bg-background/85 border-border border-b backdrop-blur">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span aria-hidden="true" className="bg-primary inline-block size-2.5 rotate-45" />
-          alt-hist
+          <ChequeredFlag />
+          Home
         </Link>
         <nav aria-label="Main" className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1">
           {areas.map((area) =>
@@ -57,5 +57,26 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
         <ThemeToggle />
       </div>
     </header>
+  );
+}
+
+/**
+ * The Home link's mark: a 4×4 chequered flag, one path per colour, drawn in the
+ * theme's red and foreground so it follows the theme. `crispEdges` keeps each
+ * square sharp, as `TeamCar` does for its pixels; at `size-3` a square is 3px.
+ * Decorative, so the link's name is just "Home".
+ */
+function ChequeredFlag() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 4 4" shapeRendering="crispEdges" className="size-3">
+      <path
+        className="fill-primary"
+        d="M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z"
+      />
+      <path
+        className="fill-foreground"
+        d="M1 0h1v1H1zM3 0h1v1H3zM0 1h1v1H0zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM0 3h1v1H0zM2 3h1v1H2z"
+      />
+    </svg>
   );
 }

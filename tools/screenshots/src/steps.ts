@@ -216,7 +216,7 @@ export const STEPS: readonly Step[] = [
     name: "home-resume",
     reach: async (page) => {
       await button(page, "Cancel").click();
-      await page.getByRole("link", { name: "alt-hist", exact: true }).click();
+      await page.getByRole("link", { name: "Home", exact: true }).click();
       await page.getByText("Resume run").waitFor();
     },
   },

@@ -19,7 +19,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 const START_TIMEOUT_MS = 60_000;
 
 /** The app's `<title>`, so a page from something else is not mistaken for this one. */
-const APP_TITLE = "<title>alt-hist-race-sim</title>";
+const APP_TITLE = "<title>Racing history simulator</title>";
 
 export interface DevServer {
   /** `http://localhost:<port>`, the server's own address. */
