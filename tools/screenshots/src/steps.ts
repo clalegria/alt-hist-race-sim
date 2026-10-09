@@ -390,13 +390,13 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // The root crumb lists the run's sections: the way to everyone in it.
       await button(page, "Run sections").click();
-      await page.getByRole("menuitem", { name: "Drivers", exact: true }).waitFor();
+      await page.getByRole("menuitem", { name: "All drivers", exact: true }).waitFor();
     },
   },
   {
     name: "drivers-index",
     reach: async (page) => {
-      await page.getByRole("menuitem", { name: "Drivers", exact: true }).click();
+      await page.getByRole("menuitem", { name: "All drivers", exact: true }).click();
       await page.waitForURL("**/run/drivers");
       await page.getByRole("heading", { name: "Drivers", exact: true }).waitFor();
     },
@@ -422,7 +422,7 @@ export const STEPS: readonly Step[] = [
     name: "teams-index",
     reach: async (page) => {
       await button(page, "Run sections").click();
-      await page.getByRole("menuitem", { name: "Teams", exact: true }).click();
+      await page.getByRole("menuitem", { name: "All teams", exact: true }).click();
       await page.waitForURL("**/run/teams");
       await page.getByRole("heading", { name: "Teams", exact: true }).waitFor();
     },

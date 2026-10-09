@@ -161,9 +161,9 @@ export function sectionsMenu(current: RunSection | null): CrumbMenu {
   return {
     label: "Run sections",
     items: [
-      { label: "Overview", link: REVIEW_LINK, current: current === "overview" },
-      { label: "Drivers", link: driversLink(), current: current === "drivers" },
-      { label: "Teams", link: teamsLink(), current: current === "teams" },
+      { label: "Era summary", link: REVIEW_LINK, current: current === "overview" },
+      { label: "All drivers", link: driversLink(), current: current === "drivers" },
+      { label: "All teams", link: teamsLink(), current: current === "teams" },
     ],
   };
 }

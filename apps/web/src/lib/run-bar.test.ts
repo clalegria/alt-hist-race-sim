@@ -352,9 +352,9 @@ describe("the breadcrumbs' menus", () => {
     const onYear = crumbsFor(many, { year: YEAR, beat: { kind: "grid" } });
     expect(onYear[0]?.menu?.label).toBe("Run sections");
     expect(sections(onYear)?.items.map((item) => item.label)).toEqual([
-      "Overview",
-      "Drivers",
-      "Teams",
+      "Era summary",
+      "All drivers",
+      "All teams",
     ]);
     expect(sections(onYear)?.items.map((item) => item.link)).toEqual([
       REVIEW_LINK,
@@ -362,8 +362,8 @@ describe("the breadcrumbs' menus", () => {
       teamsLink(),
     ]);
     expect(current(onYear)).toEqual([]);
-    expect(current(crumbsFor(many, { page: "driver", id: "x" }))).toEqual(["Drivers"]);
-    expect(current(crumbsFor(many, { page: "teams" }))).toEqual(["Teams"]);
+    expect(current(crumbsFor(many, { page: "driver", id: "x" }))).toEqual(["All drivers"]);
+    expect(current(crumbsFor(many, { page: "teams" }))).toEqual(["All teams"]);
   });
 
   it("give a one-year run's year no menu, only its link to the season page", () => {

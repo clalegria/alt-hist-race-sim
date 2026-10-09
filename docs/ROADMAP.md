@@ -45,10 +45,6 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 Independent of each other, each small, each noticed on a first run.
 
-- **The era's sections menu.** *Overview · Drivers · Teams* under the *Era* crumb become
-  *Era summary · All drivers · All teams*. The `▾` crumb menus — this one, the year's,
-  the round's — are small and easy to miss, worse under a thumb: give them a bigger
-  target (`sectionsMenu`, `CrumbMenu`; `web-run-bar.md`). Overlaps *phone layout*.
 - **Buttons that stay put.** The run bar offers a different set per beat (*Restart
   season* off the grid, the skip until the last race, *↩ Back to…* away from the cursor),
   so Continue moves left and right through a season. Give each action a fixed slot —

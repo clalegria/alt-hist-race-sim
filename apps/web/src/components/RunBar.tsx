@@ -15,13 +15,18 @@ import {
  * rounds of this one. Each is a `Link` inside the menu item (`asChild`), so it
  * is a real anchor — it opens in a new tab — with Radix's keyboard handling
  * around it. One still ahead is listed, disabled, so the season's length shows.
+ *
+ * The trigger is an outlined 24px square, so it reads as a button without a
+ * hover to show it. Its tap area is bigger than what is drawn: an invisible
+ * `::before` reaching up and right, not down onto the cursor line under the
+ * trail nor left onto the crumb's own link.
  */
 function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={menu.label}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded px-0.5 text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        className="text-muted-foreground hover:text-foreground hover:bg-accent data-[state=open]:bg-accent data-[state=open]:text-foreground focus-visible:ring-ring border-border relative -my-0.5 inline-flex size-6 cursor-pointer items-center justify-center rounded-md border text-xs transition-colors before:absolute before:-top-3 before:-right-2.5 before:-bottom-1 before:-left-0.5 focus-visible:ring-2 focus-visible:outline-none"
       >
         ▾
       </DropdownMenuTrigger>
@@ -75,7 +80,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                   ›
                 </li>
               )}
-              <li className="flex items-center gap-0.5">
+              <li className="flex items-center gap-1">
                 {crumb.link !== undefined ? (
                   <Link
                     {...crumb.link}
