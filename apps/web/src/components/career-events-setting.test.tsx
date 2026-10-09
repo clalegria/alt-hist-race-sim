@@ -1,5 +1,5 @@
 /**
- * The Career events setting, and where a run states it. Rendered without a
+ * The Driver career events setting, and where a run states it. Rendered without a
  * DOM, like the rest of the setup screen; what it does to a run's ratings is
  * the era's store tests.
  */
@@ -14,11 +14,11 @@ import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { settingsOf } from "./SimulationSettings.js";
 
 describe("the career events setting", () => {
-  it("presses As they happened while historical, and None otherwise", () => {
+  it("presses Yes while historical, and No otherwise", () => {
     const historical = renderToStaticMarkup(<CareerEventsSetting careerEvents={null} />);
-    expect(historical).toMatch(/aria-pressed="true"[^>]*>As they happened</);
+    expect(historical).toMatch(/aria-pressed="true"[^>]*>Yes</);
     const none = renderToStaticMarkup(<CareerEventsSetting careerEvents="none" />);
-    expect(none).toMatch(/aria-pressed="true"[^>]*>None</);
+    expect(none).toMatch(/aria-pressed="true"[^>]*>No</);
     for (const html of [historical, none]) {
       expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
     }
@@ -27,12 +27,12 @@ describe("the career events setting", () => {
   it("is offered on the era's setup screen, in the Over the years group after Races, and not on a season's", () => {
     const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Career events")).toBeGreaterThan(at("Over the years"));
-    expect(at("Over the years")).toBeGreaterThan(at("Points"));
+    expect(at("Driver career events")).toBeGreaterThan(at("Over the years"));
+    expect(at("Over the years")).toBeGreaterThan(at("Points system"));
 
     const season = settingsForm("season");
     expect(season).not.toContain('aria-label="Over the years"');
-    expect(season).not.toContain('aria-label="Career events"');
+    expect(season).not.toContain('aria-label="Driver career events"');
   });
 
   it("is named on the settings line when dropped", () => {
@@ -50,6 +50,6 @@ describe("the career events setting", () => {
         careerEvents: "none",
       },
     );
-    expect(settingsOf(world)).toContainEqual({ name: "Career events", value: "None" });
+    expect(settingsOf(world)).toContainEqual({ name: "Driver career events", value: "No" });
   });
 });

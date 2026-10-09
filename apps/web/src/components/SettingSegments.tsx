@@ -24,8 +24,13 @@ function SettingName({ name, sub, disabled }: { name: string; sub: boolean; disa
   );
 }
 
-/** The row every setting shares: its name on the left, its control on the right. */
-const ROW = "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between";
+/**
+ * The row every setting shares: its name on the left, its control on the right.
+ * It wraps, so a control too wide to sit beside its name — long answers in a
+ * half-width column — drops under it rather than squeezing the name.
+ */
+const ROW =
+  "flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4";
 
 /**
  * A run setting's name and its segmented control, on one row: the shape every
@@ -38,7 +43,7 @@ const ROW = "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
  * `disabled` greys out a setting another one makes meaningless. It goes on the
  * native `fieldset`, which disables every button inside it, so the pressed
  * segment still shows the reader's choice but nothing can be pressed. `sub` is
- * an option under another one (*Varies by up to* under Varied), drawn smaller.
+ * an option under another one (*Varies by up to* under *Random factor is added*), drawn smaller.
  */
 export function SettingSegments({
   name,
@@ -134,15 +139,14 @@ export function SettingSelect({
 }
 
 /**
- * What a setting's answer does, under it. **Only for a what-if**: the
- * historical answer says what it is in its own label, and a note under every
- * row is what made the settings a page long.
+ * What a setting's answer does, under it. **Only for a what-if**: a note under
+ * every row is what made the settings a page long.
  */
 export function SettingNote({ children }: { children: ReactNode }) {
   return <p className="text-muted-foreground text-xs">{children}</p>;
 }
 
-/** The options under a setting's answer — Varied's spread, Keep's seat rules — set in. */
+/** The options under a setting's answer — the random factor's spread, the kept teams' seat rules — set in. */
 export function SettingSub({ children }: { children: ReactNode }) {
   return <div className="border-border flex flex-col gap-2 border-l-2 pl-3">{children}</div>;
 }

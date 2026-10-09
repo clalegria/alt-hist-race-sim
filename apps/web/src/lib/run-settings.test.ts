@@ -354,22 +354,22 @@ describe("the what-ifs a run states", () => {
   it("names a fixed points table by its values", () => {
     const scale = pointsTables()[0]?.scale ?? [];
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, points: scale })).toEqual([
-      { name: "Points", value: pointsValues(scale) },
+      { name: "Points system", value: pointsValues(scale) },
     ]);
   });
 
-  it("names Breakdowns and Reliability, in the order the card lists them", () => {
+  it("names Mechanical failures and Cars as reliable as, in the order the card lists them", () => {
     const year = PLAYABLE_SEASONS[0] ?? 0;
     expect(
       whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "none", reliability: year }).map(
         (line) => line.name,
       ),
-    ).toEqual(["Breakdowns", "Reliability"]);
+    ).toEqual(["Mechanical failures", "Cars as reliable as"]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, reliability: year })).toEqual([
-      { name: "Reliability", value: `as in ${year}` },
+      { name: "Cars as reliable as", value: String(year) },
     ]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" })).toEqual([
-      { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
+      { name: "Mechanical failures", value: BREAKDOWNS_LABELS.fewer },
     ]);
   });
 
@@ -381,50 +381,50 @@ describe("the what-ifs a run states", () => {
         carPerformance: { kind: "varied", spread: 10, from: "real" },
         careerEvents: "none",
       }).map((line) => line.name),
-    ).toEqual(["Breakdowns", "Car performance", "Career events"]);
+    ).toEqual(["Mechanical failures", "Car performance", "Driver career events"]);
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
         carPerformance: { kind: "varied", spread: 10, from: "real" },
       }),
-    ).toEqual([{ name: "Car performance", value: "Varied ±10" }]);
+    ).toEqual([{ name: "Car performance", value: "Random factor ±10" }]);
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
         carPerformance: { kind: "varied", spread: 10, from: "last" },
       }),
-    ).toEqual([{ name: "Car performance", value: "Varied ±10 from previous year's car" }]);
+    ).toEqual([{ name: "Car performance", value: "Random factor ±10 from previous season's car" }]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toEqual([
-      { name: "Car performance", value: "Random" },
+      { name: "Car performance", value: "Totally random" },
     ]);
   });
 
-  it("names Career events after the Races group", () => {
+  it("names Driver career events after the Races group", () => {
     expect(
       whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer", careerEvents: "none" }),
     ).toEqual([
-      { name: "Breakdowns", value: BREAKDOWNS_LABELS.fewer },
-      { name: "Career events", value: "None" },
+      { name: "Mechanical failures", value: BREAKDOWNS_LABELS.fewer },
+      { name: "Driver career events", value: "No" },
     ]);
   });
 
-  it("names Teams and seats after Team names, with its rules", () => {
+  it("names Keep the first season's teams after Team name changes, with its rules", () => {
     expect(
       whatIfsOf({ ...HISTORICAL_SETTINGS, teamNames: "first", teamsAndSeats: OPENING_SEAT_RULES }),
     ).toEqual([
-      { name: "Team names", value: "Keep the first" },
+      { name: "Team name changes", value: "No" },
       {
-        name: "Teams and seats",
-        value: `Keep the starting grid · previous year's drivers first · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge} · active drivers only`,
+        name: "Keep the first season's teams",
+        value: `Yes · last year's driver first · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge} · real-grid drivers only`,
       },
     ]);
   });
 
-  it("names Team names last, after the Drivers group", () => {
+  it("names Team name changes last, after the Drivers group", () => {
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, careerEvents: "none", teamNames: "first" })).toEqual(
       [
-        { name: "Career events", value: "None" },
-        { name: "Team names", value: "Keep the first" },
+        { name: "Driver career events", value: "No" },
+        { name: "Team name changes", value: "No" },
       ],
     );
   });

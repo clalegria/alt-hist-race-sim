@@ -10,7 +10,7 @@ export function TeamNamesSetting({
   teamNames,
   onChange,
 }: {
-  /** Null is As they happened, the historical answer. */
+  /** Null is Yes, the historical answer. */
   teamNames: RunSettings["teamNames"];
   /** Absent in tests, where nothing is clicked. */
   onChange?: (teamNames: RunSettings["teamNames"]) => void;
@@ -18,17 +18,17 @@ export function TeamNamesSetting({
   return (
     <div className="flex flex-col gap-2">
       <SettingSegments
-        name="Team names"
+        name="Team name changes"
         segments={[
           {
             key: "historical",
-            label: "As they happened",
+            label: "Yes",
             selected: teamNames === null,
             onPick: () => onChange?.(null),
           },
           {
             key: "first",
-            label: "Keep the first",
+            label: "No",
             selected: teamNames === "first",
             onPick: () => onChange?.("first"),
           },
@@ -36,7 +36,7 @@ export function TeamNamesSetting({
       />
       {teamNames === null ? null : (
         <SettingNote>
-          Each team keeps the name and flag of its first season in the run; its colours still change
+          Each team keeps the name and flag of its first season in the run. Its colours still change
           as they really did.
         </SettingNote>
       )}

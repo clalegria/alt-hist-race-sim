@@ -96,7 +96,7 @@ describe("where the level is chosen", () => {
         ),
       ],
     ] as const) {
-      expect(html, name).toContain('aria-label="Randomness"');
+      expect(html, name).toContain('aria-label="Luck on the day"');
       expect(html, name).toContain('type="range"');
     }
   });
@@ -116,7 +116,7 @@ describe("the settings a finished championship was run under", () => {
   it("names each setting and its value", () => {
     // A list rather than a sentence, so a second setting is a line in
     // `settingsOf` rather than a rewrite of the copy on two screens.
-    expect(settingsOf(world)).toEqual([{ name: "Randomness", value: randomnessLabel(5) }]);
+    expect(settingsOf(world)).toEqual([{ name: "Luck on the day", value: randomnessLabel(5) }]);
   });
 
   it("says what it is, not just the value", () => {
@@ -150,5 +150,24 @@ describe("the settings a finished championship was run under", () => {
       <EraChampions run={{ startYear: world.year, seasons: [world] }} />,
     );
     expect(html).toContain(randomnessLabel(5));
+  });
+
+  it("says Default settings, on the summary and the roll of honour, when nothing differs", () => {
+    const plain = createWorld(
+      3,
+      FIRST_AUTHORED_SEASON,
+      "peak",
+      null,
+      null,
+      STARTING_RANDOMNESS_LEVEL,
+    );
+    expect(settingsOf(plain)).toEqual([]);
+    for (const html of [
+      renderToStaticMarkup(<SeasonView {...shownAt(plain, { kind: "summary" })} />),
+      renderToStaticMarkup(<EraChampions run={{ startYear: plain.year, seasons: [plain] }} />),
+    ]) {
+      expect(html).toContain("Default settings");
+      expect(html).not.toContain("Luck on the day:");
+    }
   });
 });

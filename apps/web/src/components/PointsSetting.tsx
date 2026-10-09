@@ -16,15 +16,12 @@ const OWN = "own";
  * only one year to read it off; an era's differs year by year.
  */
 function ownLabel(unit: RunUnit, year: number): string {
-  if (unit === "era") {
-    return "Each year's own";
-  }
-  const table = pointsTableOf(year);
-  return table === undefined ? "As it was" : `As it was · ${pointsValues(table.scale)}`;
+  const table = unit === "era" ? undefined : pointsTableOf(year);
+  return table === undefined ? "Historical" : `Historical · ${pointsValues(table.scale)}`;
 }
 
 /**
- * Which points table the run is scored on: each year's own, or one authored
+ * Which points system the run is scored on: each year's own, or one authored
  * table for every year — one `select` (`SettingSelect`), the historical answer
  * first and then every distinct table in the seed data, labelled by its years
  * and values. No note: the option chosen already says what it scores.
@@ -52,7 +49,7 @@ export function PointsSetting({
 
   return (
     <SettingSelect
-      name="Points"
+      name="Points system"
       value={selected === -1 ? OWN : String(selected)}
       onChange={(value) => {
         if (value === OWN) {

@@ -10,7 +10,7 @@ export function CareerEventsSetting({
   careerEvents,
   onChange,
 }: {
-  /** Null is As they happened, the historical answer. */
+  /** Null is Yes, the historical answer. */
   careerEvents: RunSettings["careerEvents"];
   /** Absent in tests, where nothing is clicked. */
   onChange?: (careerEvents: RunSettings["careerEvents"]) => void;
@@ -18,17 +18,17 @@ export function CareerEventsSetting({
   return (
     <div className="flex flex-col gap-2">
       <SettingSegments
-        name="Career events"
+        name="Driver career events"
         segments={[
           {
             key: "historical",
-            label: "As they happened",
+            label: "Yes",
             selected: careerEvents === null,
             onPick: () => onChange?.(null),
           },
           {
             key: "none",
-            label: "None",
+            label: "No",
             selected: careerEvents === "none",
             onPick: () => onChange?.("none"),
           },

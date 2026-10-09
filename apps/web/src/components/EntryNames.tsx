@@ -20,7 +20,7 @@
  * draft the world has never seen.
  *
  * The team half of the name also depends on the run: under an era's *Team
- * names: Keep the first*, each team keeps the name and base of its first season
+ * name changes: No*, each team keeps the name and base of its first season
  * in the run. `KeptNames` carries that year down from the run's frame, and every
  * team name and team flag on screen goes through `useNameYear`.
  */

@@ -4,13 +4,13 @@ import { SettingNote, SettingSegments } from "./SettingSegments.js";
 
 /** What a what-if answer means, under the control. Realistic says it in its name. */
 const NOTES: Readonly<Record<FewerBreakdowns, string>> = {
-  fewer: "Cars break down half as often as Reliability sets.",
+  fewer: "Cars break down half as often.",
   none: "Cars never break down. Drivers can still crash out.",
 };
 
 /**
- * How often cars break down: as often as Reliability sets, half as often, or
- * never. Mechanical failures only; driver error is a driver rating and stays.
+ * Mechanical failures: as often as *Cars as reliable as* sets, half as often,
+ * or never. Mechanical failures only; driver error is a driver rating and stays.
  */
 export function BreakdownsSetting({
   breakdowns,
@@ -25,7 +25,7 @@ export function BreakdownsSetting({
   return (
     <div className="flex flex-col gap-2">
       <SettingSegments
-        name="Breakdowns"
+        name="Mechanical failures"
         segments={BREAKDOWNS.map((answer) => ({
           key: answer,
           label: BREAKDOWNS_LABELS[answer],

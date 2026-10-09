@@ -19,31 +19,31 @@ function movedAge(rules: EmptySeatRules, end: "min" | "max", value: number): Emp
   return { ...rules, minAge, maxAge };
 }
 
-/** What Keep does, in two short sentences: the teams, then the seats. */
+/** What *Yes* does, in two short sentences: the teams, then the seats. */
 function note(rules: EmptySeatRules): string {
-  const band = `aged ${rules.minAge} to ${rules.maxAge}${rules.activeOnly ? " who really raced that year" : ""}`;
+  const band = `aged ${rules.minAge} to ${rules.maxAge}${rules.activeOnly ? " from that season's real grid" : ""}`;
   const fill =
     rules.fill === "last"
-      ? `An empty seat keeps last year's driver until they are older than ${rules.maxAge}, else goes to the strongest free driver ${band}.`
-      : `Every empty seat goes to the strongest free driver ${band}, chosen again each year.`;
-  return `Every year has the first year's teams and car counts; a team that folded races on in its last real car. ${fill}`;
+      ? `An empty seat keeps last year's driver until they are older than ${rules.maxAge}, else goes to the best free driver ${band}.`
+      : `Every empty seat goes to the best free driver ${band}, chosen again each season.`;
+  return `Every season has the first season's teams and number of cars; a team that folded races on in its last real car. ${fill}`;
 }
 
 /**
  * Whether every year has the teams history gave it, or the first year's teams
- * at their first-year seat counts — and under Keep, who takes the seats that
+ * at their first-year seat counts — and under *Yes*, who takes the seats that
  * leaves empty (`keptGrid.ts` in `@alt-hist/data`). Era only.
  *
- * The rows under Keep are set in beneath it, as Car performance's are under
- * Varied, and are remembered while the dialog is open, so a look at *As they
- * happened* and back keeps them. The age inputs are the grid editor's pool
+ * The rows under *Yes* are set in beneath it, as Car performance's are under
+ * *Random factor is added*, and are remembered while the dialog is open, so a
+ * look at *No* and back keeps them. The age inputs are the grid editor's pool
  * filter's, and cannot cross.
  */
 export function TeamsAndSeatsSetting({
   teamsAndSeats,
   onChange,
 }: {
-  /** Null is As they happened, the historical answer. */
+  /** Null is No, the historical answer. */
   teamsAndSeats: RunSettings["teamsAndSeats"];
   /** Absent in tests, where nothing is clicked. */
   onChange?: (teamsAndSeats: RunSettings["teamsAndSeats"]) => void;
@@ -57,17 +57,17 @@ export function TeamsAndSeatsSetting({
   return (
     <div className="flex flex-col gap-2">
       <SettingSegments
-        name="Teams and seats"
+        name="Keep the first season's teams"
         segments={[
           {
             key: "historical",
-            label: "As they happened",
+            label: "No",
             selected: teamsAndSeats === null,
             onPick: () => onChange?.(null),
           },
           {
             key: "keep",
-            label: "Keep the starting grid",
+            label: "Yes",
             selected: teamsAndSeats !== null,
             onPick: () => {
               keep(rules);
@@ -79,7 +79,7 @@ export function TeamsAndSeatsSetting({
         <>
           <SettingSub>
             <SettingSegments
-              name="Empty seats filled with"
+              name="Empty seats go to"
               sub
               segments={OFFERED_SEAT_FILLS.map((fill) => ({
                 key: fill,
@@ -91,7 +91,7 @@ export function TeamsAndSeatsSetting({
               }))}
             />
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs font-medium">Driver ages</span>
+              <span className="text-xs font-medium">Drivers aged</span>
               <div className="flex items-center gap-1.5 text-xs">
                 <Input
                   type="number"
@@ -127,7 +127,7 @@ export function TeamsAndSeatsSetting({
                 }}
                 className="accent-primary size-3.5 cursor-pointer"
               />
-              Only sign drivers who really raced that year
+              Only sign drivers from that season's real grid
             </label>
           </SettingSub>
           <SettingNote>{note(teamsAndSeats)}</SettingNote>

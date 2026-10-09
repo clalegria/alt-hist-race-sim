@@ -118,7 +118,7 @@ export interface World {
   readonly settings: RunSettings;
   /**
    * The year the run's team names are kept from — the era's first year, under
-   * *Team names: Keep the first* — or null for every team named as it was that
+   * *Team name changes: No* — or null for every team named as it was that
    * year. Each team is named, and based, as in its first season at or after it
    * (`identityYear`). Recorded because one world cannot know where its era
    * started, and the base is a simulation input: it is where a team is at home.
@@ -192,7 +192,7 @@ export interface World {
   readonly baselineChassis: SeasonChassis | null;
   /**
    * Each team's chassis as raced the year before in this run (`racedChassis`),
-   * which *Car performance: Varied from previous year's car* walks off — or null
+   * which *Car performance* from previous season's car walks off — or null
    * when the cars do not walk, or there was no year before.
    *
    * Recorded for the reason `namesKeptFrom` is: one year cannot see the run
@@ -201,7 +201,7 @@ export interface World {
    */
   readonly walkedFrom: SeasonChassis | null;
   /**
-   * The era's first year under *Teams and seats: Keep the starting grid*, whose
+   * The era's first year under *Keep the first season's teams*, whose
    * teams and seat counts every year keeps — else null. Recorded for the reason
    * `namesKeptFrom` is: one year cannot see where its era began.
    */
@@ -291,7 +291,7 @@ export const ERA_RATING_MODE: RatingMode = "aged";
  * it.
  *
  * The drivers are ranked on the ratings the run races them on, and the cars on
- * the cars it races, so `settings` comes too: under *Career events: None* a step
+ * the cars it races, so `settings` comes too: under *Driver career events: No* a step
  * down no longer counts here, and under *Car performance* the rolled cars do.
  *
  * Falls back to the authored grid if the rule somehow leaves a seat open, since
@@ -459,7 +459,7 @@ export interface EraInputs {
   readonly start?: number | null;
   /** Each team's chassis as raced the year before (`racedChassis`), for a walk. */
   readonly lastRaced?: SeasonChassis | null;
-  /** The year as *Keep the starting grid* built it (`keptYearAfter`). */
+  /** The year as *Keep the first season's teams* built it (`keptYearAfter`). */
   readonly kept?: KeptYear | null;
 }
 
@@ -475,7 +475,7 @@ function eraInputsOf(world: World): EraInputs {
 
 /**
  * Each team's chassis as a world raced it: the reader's own, else the run's
- * roll, else the authored car. What a walk (*from previous year's car*) moves the
+ * roll, else the authored car. What a walk (*from previous season's car*) moves the
  * next year off, so a reader's edit is carried by it: it is what raced.
  */
 export function racedChassis(world: World): SeasonChassis {
@@ -527,8 +527,8 @@ export function runConstants(
  * `era` is what one year cannot know about the run around it (`EraInputs`),
  * named fields rather than three more positional arguments. Its `start`
  * defaults to this year, the right answer for an era's first year, and is
- * recorded as `namesKeptFrom` under *Team names: Keep the first* and as
- * `gridKeptFrom` under *Teams and seats: Keep the starting grid*, null
+ * recorded as `namesKeptFrom` under *Team name changes: No* and as
+ * `gridKeptFrom` under *Keep the first season's teams*, null
  * otherwise. `lastRaced` is read only when the cars walk from the previous
  * year's, recorded as `walkedFrom`; `kept` only under Keep.
  */
@@ -925,7 +925,7 @@ function replaceWorld(run: Run, world: World): Run {
  * to play — the ability mode, a bulk rule they asked to keep, the randomness
  * level, the run settings — carried. What they chose about one grid does not carry, because it
  * was a grid for a year now behind them. The cars `last` raced go along, for a
- * walk from previous year's car to move off.
+ * walk from previous season's car to move off.
  *
  * The one step both Continue and a jump forward take, so the two cannot
  * produce different histories.

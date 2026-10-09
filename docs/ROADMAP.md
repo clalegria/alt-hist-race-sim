@@ -57,18 +57,18 @@ Independent of each other, each small, each noticed on a first run.
 
 Three more what-ifs for the settings dialog, and the grid editor's missing half.
 
-- **Keep the first engines.** An era setting beside *Team names: Keep the first*: each
+- **Keep the first engines.** An era setting beside *Team name changes*: each
   team runs its first season's engine for the whole run. Open: an engine the seed data
   stops rating (what it is worth in a year with no spec for it), and a team that arrives
   later (its own year's engine, presumably). A fixed, cheap form of the engine market
   (`docs/design/era-advanced.md` §8), which should be able to replace it.
-- **Engines under *Car performance*.** Varied and Random move the chassis only, because an
+- **Engines under *Car performance*.** *Random factor is added* and *Totally random* move the chassis only, because an
   engine is shared and rolling one moves several teams (`car-performance.md`). Roll them
   too — the same spreads, the same walk — **per supplier**, so every customer moves
   together, on its own stream key so no chassis roll shifts. Open: its own setting, or
   riding with the chassis one.
 - **Keep the first liveries.** An era setting: each team wears its first season's livery
-  for the run. *Team names: Keep the first* deliberately leaves the livery changing; open
+  for the run. *Team name changes: No* deliberately leaves the livery changing; open
   whether this is a second setting or a sub-option of that one. A frozen livery can meet
   a later team in the same colours, so it needs the same-grid clash check
   (`web-liveries.md`).
@@ -170,8 +170,8 @@ shows: too many words, and too much of the *design* explained to a reader who ne
 to count. A reader wants to know what they are looking at, not how it was built. Go
 screen by screen and cut. The leads and panel copy on the setup screens (`SeasonPicker`
 — the era lead is three sentences), the option details on `RandomnessSlider` and
-`RatingModeToggle`, the what-if notes in the settings dialog (Teams and seats runs to
-three sentences), and the section descriptions on `CareerStatistics` are where the
+`RatingModeToggle`, the what-if notes in the settings dialog (Keep the first season's teams
+runs to two sentences), and the section descriptions on `CareerStatistics` are where the
 prose is. What survives should be short, concrete, and about the racing.
 
 ***The About page.*** The footer already stubs the destination as a disabled `Pending`

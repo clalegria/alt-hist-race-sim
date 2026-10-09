@@ -48,22 +48,22 @@ export const RANDOMNESS_OPTIONS: readonly Level[] = [
   {
     level: 2,
     label: "Balanced",
-    detail: "The order holds, but a good day and a bad one can still swap two cars over.",
+    detail: "The order holds, but a good day and a bad one can swap two cars over.",
   },
   {
     level: 3,
     label: "Exciting",
-    detail: "A little more scatter. The order is still the order, but it holds less firmly.",
+    detail: "More scatter. The order still holds, but less firmly.",
   },
   {
     level: 4,
-    label: "More exciting",
-    detail: "Form swings weekend to weekend, and a midfield car can find a race in it.",
+    label: "Chaotic",
+    detail: "Form swings from weekend to weekend, and a midfield car can win.",
   },
   {
     level: 5,
-    label: "Chaotic",
-    detail: "Anyone can win anything. A championship becomes a story about who caught a wave.",
+    label: "Lottery",
+    detail: "Anyone can win anything. A title goes to whoever catches a wave.",
   },
 ];
 
@@ -98,7 +98,7 @@ export function RandomnessSlider({
     // it, not to whatever happens to be wrapping it today.
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="text-sm font-semibold tracking-tight">Randomness</span>
+        <span className="text-sm font-semibold tracking-tight">Luck on the day</span>
         <span className="text-muted-foreground text-xs">
           {active?.label}
           {active?.level === STARTING_RANDOMNESS_LEVEL ? " (default)" : ""}
@@ -127,7 +127,7 @@ export function RandomnessSlider({
           max={last}
           step={1}
           value={level}
-          aria-label="Randomness"
+          aria-label="Luck on the day"
           // The number on its own says nothing; the word is what was chosen.
           aria-valuetext={active?.label ?? ""}
           onChange={(event) => {

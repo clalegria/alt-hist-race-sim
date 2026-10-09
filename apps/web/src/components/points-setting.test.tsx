@@ -1,5 +1,5 @@
 /**
- * The Points setting, and where a run states it. Rendered without a DOM, like
+ * The Points system setting, and where a run states it. Rendered without a DOM, like
  * the rest of the settings; what a chosen table *does* is the store's tests.
  */
 
@@ -26,10 +26,10 @@ const other =
   pointsTables()[0];
 
 describe("the points setting", () => {
-  it("is one select, each year's own first and selected while historical", () => {
+  it("is one select, Historical first and selected while historical", () => {
     const html = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="era" />);
     expect(html.match(/<select/g)).toHaveLength(1);
-    expect(html).toMatch(/selected="">Each year/);
+    expect(html).toMatch(/selected="">Historical</);
     expect(html.split("<option").length - 1).toBe(pointsTables().length + 1);
   });
 
@@ -42,7 +42,7 @@ describe("the points setting", () => {
 
   it("talks about the one season on a season's screen, naming its own table", () => {
     const own = renderToStaticMarkup(<PointsSetting points={null} year={YEAR} unit="season" />);
-    expect(own).toMatch(/selected="">As it was/);
+    expect(own).toMatch(/selected="">Historical · /);
     expect(own).toContain(pointsValues(seasonSeed(YEAR).points));
     const fixed = renderToStaticMarkup(
       <PointsSetting points={other?.scale ?? []} year={YEAR} unit="season" />,
@@ -60,7 +60,7 @@ describe("the points setting", () => {
     ]) {
       const races = html.indexOf('aria-label="Races"');
       const cars = html.indexOf('aria-label="Cars"');
-      const points = html.indexOf('aria-label="Points"');
+      const points = html.indexOf('aria-label="Points system"');
       expect(races).toBeGreaterThan(-1);
       expect(points).toBeGreaterThan(races);
       expect(cars).toBeGreaterThan(points);
@@ -74,18 +74,21 @@ describe("a run's points, stated", () => {
   it("is left out of the settings line while historical", () => {
     const world = createWorld(3, YEAR);
     expect(world.settings).toEqual(HISTORICAL_SETTINGS);
-    expect(settingsOf(world).map((setting) => setting.name)).not.toContain("Points");
+    expect(settingsOf(world).map((setting) => setting.name)).not.toContain("Points system");
   });
 
   it("is named on the settings line, and on the grid, once a table is fixed", () => {
     const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, fixed);
-    expect(settingsOf(world)).toContainEqual({ name: "Points", value: pointsValues(fixed.points) });
+    expect(settingsOf(world)).toContainEqual({
+      name: "Points system",
+      value: pointsValues(fixed.points),
+    });
 
     const grid = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} />);
     expect(grid).toContain(pointsValues(fixed.points));
     const historical = renderToStaticMarkup(
       <SeasonView {...shownAt(createWorld(3, YEAR), { kind: "grid" })} />,
     );
-    expect(historical).not.toContain("Points:");
+    expect(historical).not.toContain("Points system:");
   });
 });

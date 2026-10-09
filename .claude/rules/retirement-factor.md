@@ -47,11 +47,11 @@ The app's Races settings (`.claude/rules/web-setup.md`)
 reach the constants through `seasonConstants`'s fourth argument, `run`, built by
 `runConstants` in the web store. Both are identities when historical.
 
-- **Reliability: As in ⟨year⟩** breaks every year's cars down at that season's
+- **Cars as reliable as ⟨year⟩** breaks every year's cars down at that season's
   `retirementFactor` — `withRetirementFactor`'s third argument, `mechanical` — while
-  driver error keeps the year's own. Cars only, so under Breakdowns: None it has
+  driver error keeps the year's own. Cars only, so under Mechanical failures: None it has
   nothing to scale: the settings dialog greys it out and `createWorld` drops it.
-- **Breakdowns** (`race/breakdowns.ts`) multiplies `mechanicalDnfEraScale` only —
+- **Mechanical failures** (`race/breakdowns.ts`) multiplies `mechanicalDnfEraScale` only —
   Realistic 1, Fewer 0.5, None 0 — on top of the factor, and returns the constants by
   identity at Realistic. **Driver error is untouched**: composure is a driver rating, so
   None means no car fails, not that nobody crashes out. The weather multiplies the same

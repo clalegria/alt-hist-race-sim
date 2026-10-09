@@ -1,5 +1,5 @@
 /**
- * *Teams and seats: Keep the starting grid* — a year's entry list when every
+ * *Keep the first season's teams* — a year's entry list when every
  * year of an era has the teams its first year had.
  *
  * Each team of the first year enters every year, with as many cars as it had
@@ -54,7 +54,7 @@ export interface EmptySeatRules {
   readonly activeOnly: boolean;
 }
 
-/** A year as *Keep the starting grid* enters it, before its empty seats are filled. */
+/** A year as *Keep the first season's teams* enters it, before its empty seats are filled. */
 export interface KeptYear {
   /**
    * The season's calendar, points and factors, with the first year's teams on

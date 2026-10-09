@@ -35,17 +35,15 @@ const RANDOMNESS_KEY = "alt-hist-randomness";
 /**
  * The level the setup screen opens on, for a reader who has never chosen one.
  *
- * **Deliberately not the engine's `DEFAULT_RANDOMNESS_LEVEL`.** That one is the
- * reference level, the setting every measurement of the model is made at; this
- * one answers a different question — what makes a good first season for someone
- * who has not yet met the slider — and the answer is one stop up, where the
- * order still holds but is not a foregone conclusion. A reader who moves the
- * slider is remembered and never sees this again.
+ * Realistic, the lowest stop. It happens to be the engine's
+ * `DEFAULT_RANDOMNESS_LEVEL` too, but it answers a different question — what a
+ * reader who has not met the slider is offered, not what the model is measured
+ * at — so it stays its own constant. A reader who moves the slider is
+ * remembered and never sees this again.
  *
  * It lives here rather than in the engine because it is a claim about the app.
- * The engine has no opinion about what is fun.
  */
-export const STARTING_RANDOMNESS_LEVEL: RandomnessLevel = RANDOMNESS_LEVELS[1] ?? 2;
+export const STARTING_RANDOMNESS_LEVEL: RandomnessLevel = RANDOMNESS_LEVELS[0] ?? 1;
 
 /** The run settings, as JSON. */
 const RUN_SETTINGS_KEY = "alt-hist-run-settings";

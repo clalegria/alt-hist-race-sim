@@ -588,11 +588,11 @@ export function GridStage({
   baselineChassis?: SeasonChassis | null;
   /**
    * The season as the run entered it when that is not the seed file with
-   * `baselineChassis` in it — under *Keep the starting grid*, the kept year
+   * `baselineChassis` in it — under *Keep the first season's teams*, the kept year
    * with its signings (`enteredSeason`) — or null. Restore puts it back.
    */
   runSeason?: SeasonSeed | null;
-  /** What *Keep the starting grid* did to the year (`keptNotes`), or null. */
+  /** What *Keep the first season's teams* did to the year (`keptNotes`), or null. */
   kept?: KeptNotes | null;
   /**
    * The bulk rule the applied grid was arranged by, or null for one nobody

@@ -78,9 +78,9 @@ localStorage: a lineup and a set of engine deals belong to the year they were dr
 for, so starting a season from the menu gets the real grid back.
 
 **Randomness is chosen before the run is under way, and never again.** `world.randomness` is a level 1–5 —
-the setup screen opens on `STARTING_RANDOMNESS_LEVEL` (2), which is the app's opening
-offer and deliberately not the engine's `DEFAULT_RANDOMNESS_LEVEL` (1, the level the
-harnesses measure at) — picked on the setup screen of *both* modes — `SeasonPicker`
+the setup screen opens on `STARTING_RANDOMNESS_LEVEL` (1, Realistic), the app's opening
+offer, kept apart from the engine's `DEFAULT_RANDOMNESS_LEVEL` (the level the harnesses
+measure at) though they are the same level today — picked on the setup screen of *both* modes — `SeasonPicker`
 holds it in component state seeded from `readRandomness()` and hands it to `onStart`,
 which is why `startSeason`/`startEra` take it as an argument rather than reading storage
 themselves. It reaches the model as `withRandomness(level)`, a derived copy of the
@@ -101,7 +101,7 @@ recorded as **`namesKeptFrom`** / **`gridKeptFrom`** (`eraStartOf` reads either 
 **`walkedFrom`** (`car-performance.md`) and **`kept`** (`teams-and-seats.md`), each null
 when its setting is off. `nextEraWorld` builds them off the year before; every in-place
 rebuild passes the world's own on (`eraInputsOf`). The grid states
-the level and any non-historical setting in its settings line (`RunSettingsLine`); the season summary and the roll of honour carry it as one small line
+whatever differs from the defaults in its settings line (`RunSettingsLine`); the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming
 — adding one is a line in `settingsOf`, not a rewrite of the copy on two screens. Remembered in localStorage beside the ability mode, both being answers the
 *next* run is simulated against rather than ways of reading a table.

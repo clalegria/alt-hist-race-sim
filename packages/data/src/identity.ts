@@ -2,8 +2,8 @@
  * Which year a team's name and base are read at in a run.
  *
  * As history had it, that is the season being shown: the lineage that raced as
- * Brawn in 2009 is Mercedes in 2010. Under an era's *Team names: Keep the
- * first*, each team keeps the identity of **the first season it appears in the
+ * Brawn in 2009 is Mercedes in 2010. Under an era's *Team name changes:
+ * No*, each team keeps the identity of **the first season it appears in the
  * run** — the start year for a team on the opening grid, its debut year for one
  * that enters later — so Brawn stays Brawn. The livery is not part of this: it
  * still follows history, read at the season itself.

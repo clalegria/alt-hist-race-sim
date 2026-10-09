@@ -120,7 +120,7 @@ export function retirementScale(factor: RetirementFactor): number {
  * factor cannot produce a probability above certainty.
  *
  * `mechanical` is for a run that races its cars as another year's (the app's
- * Reliability setting): the mechanical risk takes that factor while driver
+ * *Cars as reliable as* setting): the mechanical risk takes that factor while driver
  * error keeps `factor`. It defaults to `factor`, one multiplier over both.
  */
 export function withRetirementFactor(

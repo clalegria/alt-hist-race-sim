@@ -7,9 +7,9 @@ paths:
   - "apps/web/src/components/teams-and-seats-setting.test.tsx"
 ---
 
-# Teams and seats — the kept grid
+# Keep the first season's teams — the kept grid
 
-*Teams and seats: Keep the starting grid* is an era run setting: every year has the
+*Keep the first season's teams: Yes* is an era run setting: every year has the
 start year's teams, each with its start-year seat count, and teams new in history never
 appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
 the settings row is `.claude/rules/web-setup.md`, and the layer it sits in
@@ -60,11 +60,11 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
 
 ## In the run
 
-- **The setting** is `RunSettings.teamsAndSeats`: *As they happened* / *Keep the starting
-  grid*, null / `EmptySeatRules`, era only (`seasonSettings` drops it). Under Keep,
-  `TeamsAndSeatsSetting` draws three rows, Car performance's way: *Empty seats filled
-  with* (`SEAT_FILL_LABELS`), *Driver ages* (the grid editor's number inputs through
-  `withAge`, so they cannot cross) and *Only sign drivers who really raced that year*.
+- **The setting** is `RunSettings.teamsAndSeats`: *No* / *Yes*, null / `EmptySeatRules`,
+  era only (`seasonSettings` drops it). Under Yes, `TeamsAndSeatsSetting` draws three
+  rows, Car performance's way: *Empty seats go to* (`SEAT_FILL_LABELS`), *Drivers aged*
+  (the grid editor's number inputs through `withAge`, so they cannot cross) and *Only
+  sign drivers from that season's real grid* (`activeOnly`).
   Switching in opens on `OPENING_SEAT_RULES`; the rows are remembered while the screen
   is open. `parseRunSettings` refuses a fill outside `OFFERED_SEAT_FILLS`, and an age
   outside `AGE_RANGE` or crossed.

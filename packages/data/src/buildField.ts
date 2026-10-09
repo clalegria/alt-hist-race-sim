@@ -71,7 +71,7 @@ export function driverCareer(driver: Driver): DriverCareer {
 
 /**
  * The driver with no career events: no `stepDown`, no `offSeasons`, so the
- * ageing curve runs plain. What the era's *Career events: None* races on.
+ * ageing curve runs plain. What the era's *Driver career events: No* races on.
  */
 export function withoutCareerEvents(driver: Driver): Driver {
   const { stepDown: _stepDown, offSeasons: _offSeasons, ...career } = driver;
@@ -103,7 +103,7 @@ export function driverRatingsFor(driver: Driver, season: number, mode: RatingMod
  * year happened to be the default is the bug this seam exists to prevent, and
  * every caller knows which season it is running.
  *
- * `keptFrom` is an era's *Team names: Keep the first* (`identity.ts`): each
+ * `keptFrom` is an era's *Team name changes: No* (`identity.ts`): each
  * team is based where it was in its first season of the run, since the base
  * moves with the name.
  */

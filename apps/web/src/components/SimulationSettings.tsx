@@ -1,3 +1,4 @@
+import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { type Setting, whatIfsOf } from "../lib/run-settings.js";
 import type { World } from "../store/season.js";
 import { randomnessLabel } from "./RandomnessSlider.js";
@@ -8,7 +9,7 @@ import { randomnessLabel } from "./RandomnessSlider.js";
  * A finished season and a roll of honour are the two places a reader arrives at
  * a *result* — and a result is meaningless without the rules it was produced
  * under. "Bruno Giacomelli, champion" is a curiosity at Balanced and a shrug at
- * Chaotic, and the page should not make anyone remember which run they are
+ * Lottery, and the page should not make anyone remember which run they are
  * looking at. It is also the line to quote in a bug report.
  *
  * Deliberately a **list of settings, not a sentence about randomness**. The
@@ -17,17 +18,23 @@ import { randomnessLabel } from "./RandomnessSlider.js";
  * that has to survive is "name: value, name: value", and adding one is a line in
  * `settingsOf` rather than a rewrite of the copy on two screens. Kept to one
  * small muted line for the same reason: it has to still fit when there are four.
+ *
+ * It names only what differs from the defaults, and says "Default settings"
+ * when nothing does.
  */
 
 export type { Setting };
 
 /**
- * The settings one world was run under: its randomness, then every run setting
- * that is not historical (`whatIfsOf`). The only place the list is written.
+ * The settings one world was run under that are not the defaults: its luck on
+ * the day off the level the app opens on, then every run setting that is not
+ * historical (`whatIfsOf`). The only place the list is written.
  */
 export function settingsOf(world: Pick<World, "randomness" | "settings">): readonly Setting[] {
   return [
-    { name: "Randomness", value: randomnessLabel(world.randomness) },
+    ...(world.randomness === STARTING_RANDOMNESS_LEVEL
+      ? []
+      : [{ name: "Luck on the day", value: randomnessLabel(world.randomness) }]),
     ...whatIfsOf(world.settings),
   ];
 }
@@ -45,7 +52,7 @@ export function SimulationSettings({
   className?: string;
 }) {
   if (settings.length === 0) {
-    return null;
+    return <p className={className}>Default settings</p>;
   }
 
   return (

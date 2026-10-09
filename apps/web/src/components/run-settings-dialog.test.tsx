@@ -7,6 +7,7 @@
  */
 
 import { authoredLineup, lineupChanges, swapDrivers } from "@alt-hist/data";
+import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
@@ -14,7 +15,7 @@ import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
 import { shownAt, YEAR } from "../test-support.js";
-import { RunSettingsFields } from "./RunSettingsDialog.js";
+import { defaultChoice, RunSettingsFields } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
@@ -33,16 +34,68 @@ describe("the settings line", () => {
         unit="season"
       />,
     );
-    expect(html).toContain("Randomness:");
-    expect(html).toContain("Breakdowns:");
+    expect(html).toContain("Mechanical failures:");
     expect(html).toContain('aria-label="Run settings"');
     expect(html).not.toContain("<svg");
-    expect(html).not.toContain("everything else as it was");
+    // The luck on the day is at its default, so it goes unsaid.
+    expect(html).not.toContain("Luck on the day:");
+    expect(html).not.toContain("Default settings");
   });
 
-  it("says so when every what-if is historical", () => {
+  it("names the luck on the day off its default", () => {
+    const level = RANDOMNESS_LEVELS.find((one) => one !== STARTING_RANDOMNESS_LEVEL);
+    if (level === undefined) {
+      throw new Error("no level but the starting one");
+    }
+    const html = renderToStaticMarkup(
+      <RunSettingsLine
+        choice={{ randomness: level, settings: HISTORICAL_SETTINGS }}
+        year={YEAR}
+        unit="era"
+      />,
+    );
+    expect(html).toContain("Luck on the day:");
+    expect(html).not.toContain("Default settings");
+  });
+
+  it("says Default settings when nothing differs from them", () => {
     const html = renderToStaticMarkup(<RunSettingsLine choice={choice()} year={YEAR} unit="era" />);
-    expect(html).toContain("everything else as it was");
+    expect(html).toContain("Default settings");
+    expect(html).not.toContain("Luck on the day:");
+  });
+
+  it("offers Restore defaults when a setting differs and the settings can change", () => {
+    const changed = choice({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" });
+    const line = (props: Partial<Parameters<typeof RunSettingsLine>[0]>) =>
+      renderToStaticMarkup(
+        <RunSettingsLine choice={changed} year={YEAR} unit="era" onCommit={() => {}} {...props} />,
+      );
+    expect(line({})).toContain("Restore defaults");
+    expect(line({ choice: choice() })).not.toContain("Restore defaults");
+    expect(line({ lock: "Fixed for a test." })).not.toContain("Restore defaults");
+    expect(
+      renderToStaticMarkup(<RunSettingsLine choice={changed} year={YEAR} unit="era" />),
+    ).not.toContain("Restore defaults");
+  });
+
+  it("restores the starting luck and the historical answers", () => {
+    const level = RANDOMNESS_LEVELS.find((one) => one !== STARTING_RANDOMNESS_LEVEL);
+    if (level === undefined) {
+      throw new Error("no level but the starting one");
+    }
+    const changed = {
+      randomness: level,
+      settings: {
+        ...HISTORICAL_SETTINGS,
+        breakdowns: "fewer" as const,
+        teamNames: "first" as const,
+      },
+    };
+    expect(defaultChoice(changed, true)).toEqual(choice());
+    // A season's screen keeps the era-only answer it does not show.
+    expect(defaultChoice(changed, false)).toEqual(
+      choice({ ...HISTORICAL_SETTINGS, teamNames: "first" }),
+    );
   });
 
   it("states only what a season races on a season's screen", () => {
@@ -53,8 +106,8 @@ describe("the settings line", () => {
     const era = renderToStaticMarkup(
       <RunSettingsLine choice={choice(eraOnly)} year={YEAR} unit="era" />,
     );
-    expect(season).not.toContain("Team names:");
-    expect(era).toContain("Team names:");
+    expect(season).not.toContain("Team name changes:");
+    expect(era).toContain("Team name changes:");
   });
 
   it("is the first thing on the grid, and carries the lock as its title", () => {

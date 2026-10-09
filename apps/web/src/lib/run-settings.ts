@@ -1,5 +1,5 @@
 /**
- * Run settings: the what-ifs chosen in the settings dialog, beside Randomness,
+ * Run settings: the what-ifs chosen in the settings dialog, beside the luck on the day,
  * and fixed for the whole run once it is under way.
  *
  * **Every setting's historical answer is null**, the way a null `lineup` is the
@@ -8,7 +8,7 @@
  * exactly the run it was before settings existed.
  *
  * Recorded on each `World` (`settings`), so the recipe picks them up with the
- * rest of a world's inputs, and remembered between visits like Randomness. Both
+ * rest of a world's inputs, and remembered between visits like the luck on the day. Both
  * of those read untrusted storage, so both go through `parseRunSettings`.
  *
  * Pure: no storage here (`preferences.ts` reads and writes it).
@@ -31,15 +31,15 @@ import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
 /** What a setup screen's settings are fixed for, which is what their copy says. */
 export type RunUnit = "season" | "era";
 
-/** The Breakdowns answers that are what-ifs; Realistic is null. */
+/** The Mechanical failures answers that are what-ifs; Realistic is null. */
 export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
-/** How far *Car performance: Varied* may move a car, either way: the stops it offers. */
+/** How far *Car performance: Random factor is added* may move a car, either way: the stops it offers. */
 export const CAR_VARIATION_SPREADS = [2, 5, 10, 20, 30] as const;
 export type CarVariationSpread = (typeof CAR_VARIATION_SPREADS)[number];
 
 /**
- * What *Car performance: Varied* moves a car off: **real**, that year's
+ * What *Car performance: Random factor is added* moves a car off: **real**, that year's
  * authored car, re-rolled every season; or **last**, the car the team raced
  * the year before in this run (a walk), era only.
  */
@@ -47,9 +47,10 @@ export const CAR_VARIATION_BASES = ["real", "last"] as const;
 export type CarVariationBase = (typeof CAR_VARIATION_BASES)[number];
 
 /**
- * The Car performance what-ifs; Historical is null. **Varied** moves each
+ * The Car performance what-ifs; Historical is null. **varied** (*Random factor
+ * is added*) moves each
  * team's chassis by up to `spread` either way, off the car `from` names;
- * **Random** draws each chassis rating anywhere between the season's weakest
+ * **random** (*Totally random*) draws each chassis rating anywhere between the season's weakest
  * and strongest. Chassis only: an engine is shared by its customers, so
  * rolling one would move several teams at once.
  */
@@ -113,8 +114,8 @@ export const HISTORICAL_SETTINGS: RunSettings = {
 };
 
 /**
- * The settings that change a run: Reliability only sets how often cars break
- * down, so under Breakdowns: None it is dropped. The setup screen keeps the
+ * The settings that change a run: *Cars as reliable as* only sets how often
+ * cars break down, so under *Mechanical failures: None* it is dropped. The setup screen keeps the
  * reader's choice (greyed out) so switching back restores it; a world records
  * only what is in force.
  */
@@ -209,7 +210,7 @@ export const CAR_PERFORMANCE_STREAM = "car-performance";
  * `createWorld` calls it once and keeps the result on the world.
  *
  * `lastRaced` is each team's chassis as raced the year before in this run,
- * which a walk (*from previous year's car*) moves off; every other answer ignores
+ * which a walk (*from previous season's car*) moves off; every other answer ignores
  * it, and a team missing from it moves off its own authored car.
  */
 export function rolledChassisOf(
@@ -230,7 +231,7 @@ export function rolledChassisOf(
 }
 
 /**
- * What *Keep the starting grid* opens on: previous year's drivers first, at the
+ * What *Keep the first season's teams: Yes* opens on: last year's driver first, at the
  * grid editor's default racing ages, drivers active that year only.
  */
 export const OPENING_SEAT_RULES: EmptySeatRules = {
@@ -245,8 +246,8 @@ export const OFFERED_SEAT_FILLS = ["last", "best"] as const;
 
 /** What the reader is shown for each fill on offer. */
 export const SEAT_FILL_LABELS: Readonly<Record<(typeof OFFERED_SEAT_FILLS)[number], string>> = {
-  last: "Previous year's drivers first",
-  best: "Best available",
+  last: "Last year's driver, if possible",
+  best: "The best available driver",
 };
 
 /** Whether a run's cars walk from the previous year's: the one answer that reads the year before. */
@@ -258,14 +259,14 @@ export function walksFromLastYear(settings: RunSettings): boolean {
 /** What the reader is shown for a Car performance answer. */
 export function carPerformanceLabel(cars: CarPerformance): string {
   if (cars.kind === "random") {
-    return "Random";
+    return "Totally random";
   }
   return cars.from === "last"
-    ? `Varied ±${cars.spread} from previous year's car`
-    : `Varied ±${cars.spread}`;
+    ? `Random factor ±${cars.spread} from previous season's car`
+    : `Random factor ±${cars.spread}`;
 }
 
-/** What the reader is shown for each Breakdowns answer. */
+/** What the reader is shown for each Mechanical failures answer. */
 export const BREAKDOWNS_LABELS: Readonly<Record<Breakdowns, string>> = {
   realistic: "Realistic",
   fewer: "Fewer",
@@ -355,9 +356,9 @@ export function pointsTableOf(year: number): PointsTable | undefined {
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
  * authored ones, a year with no season, a Car performance answer, spread or base
- * this build does not offer, or a Breakdowns, Career events or Team names
- * answer that is not a what-if, or Teams and seats rules this build does not
- * offer. Takes `unknown` because both callers read storage the reader controls.
+ * this build does not offer, or a Mechanical failures, Driver career events or
+ * Team name changes answer that is not a what-if, or *Keep the first season's
+ * teams* rules this build does not offer. Takes `unknown` because both callers read storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
@@ -479,32 +480,35 @@ function parseReliability(year: unknown): number | null | undefined {
 export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   const lines: Setting[] = [];
   if (settings.breakdowns !== null) {
-    lines.push({ name: "Breakdowns", value: BREAKDOWNS_LABELS[settings.breakdowns] });
+    lines.push({ name: "Mechanical failures", value: BREAKDOWNS_LABELS[settings.breakdowns] });
   }
   if (settings.reliability !== null) {
-    lines.push({ name: "Reliability", value: `as in ${settings.reliability}` });
+    lines.push({ name: "Cars as reliable as", value: String(settings.reliability) });
   }
   if (settings.points !== null) {
-    lines.push({ name: "Points", value: pointsValues(settings.points) });
+    lines.push({ name: "Points system", value: pointsValues(settings.points) });
   }
   if (settings.carPerformance !== null) {
     lines.push({ name: "Car performance", value: carPerformanceLabel(settings.carPerformance) });
   }
   if (settings.careerEvents !== null) {
-    lines.push({ name: "Career events", value: "None" });
+    lines.push({ name: "Driver career events", value: "No" });
   }
   if (settings.teamNames !== null) {
-    lines.push({ name: "Team names", value: "Keep the first" });
+    lines.push({ name: "Team name changes", value: "No" });
   }
   if (settings.teamsAndSeats !== null) {
-    lines.push({ name: "Teams and seats", value: teamsAndSeatsLabel(settings.teamsAndSeats) });
+    lines.push({
+      name: "Keep the first season's teams",
+      value: teamsAndSeatsLabel(settings.teamsAndSeats),
+    });
   }
   return lines;
 }
 
-/** What the reader is shown for a Teams and seats answer. */
+/** What the reader is shown for a *Keep the first season's teams* answer. */
 export function teamsAndSeatsLabel(rules: EmptySeatRules): string {
-  const fill = rules.fill === "best" ? "best available" : "previous year's drivers first";
-  const active = rules.activeOnly ? " · active drivers only" : "";
-  return `Keep the starting grid · ${fill} · ages ${rules.minAge}–${rules.maxAge}${active}`;
+  const fill = rules.fill === "best" ? "best available driver" : "last year's driver first";
+  const active = rules.activeOnly ? " · real-grid drivers only" : "";
+  return `Yes · ${fill} · ages ${rules.minAge}–${rules.maxAge}${active}`;
 }

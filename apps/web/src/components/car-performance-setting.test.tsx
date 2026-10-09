@@ -34,7 +34,7 @@ function eraYear(settings: RunSettings, chassis: Parameters<typeof createWorld>[
 }
 
 describe("the car performance setting", () => {
-  it("presses one answer, and the spread under Varied", () => {
+  it("presses one answer, and the spread under Random factor is added", () => {
     expect(
       pressed(renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={null} />)),
     ).toEqual(["Historical"]);
@@ -44,7 +44,7 @@ describe("the car performance setting", () => {
           <CarPerformanceSetting unit="era" carPerformance={{ kind: "random" }} />,
         ),
       ),
-    ).toEqual(["Random"]);
+    ).toEqual(["Totally random"]);
     for (const spread of CAR_VARIATION_SPREADS) {
       expect(
         pressed(
@@ -55,7 +55,7 @@ describe("the car performance setting", () => {
             />,
           ),
         ),
-      ).toEqual(["Varied", `±${spread}`, "That year's real car"]);
+      ).toEqual(["Random factor is added", `±${spread}`, "The historical car"]);
     }
     expect(
       pressed(
@@ -66,10 +66,10 @@ describe("the car performance setting", () => {
           />,
         ),
       ),
-    ).toEqual(["Varied", "±5", "Previous year's car"]);
+    ).toEqual(["Random factor is added", "±5", "Previous season's car"]);
   });
 
-  it("offers previous year's car only on the era's screen, and only under Varied", () => {
+  it("offers previous season's car only on the era's screen, and only under Random factor is added", () => {
     const base = 'aria-label="Varies from"';
     const varied = { kind: "varied", spread: 5, from: "real" } as const;
     expect(
@@ -93,10 +93,10 @@ describe("the car performance setting", () => {
       />,
     );
     expect(note).toContain("the car it raced the year before");
-    expect(note).toContain("a team new to the run starts from its real car");
+    expect(note).toContain("A team new to the run starts from its historical car");
   });
 
-  it("offers the spreads only under Varied", () => {
+  it("offers the spreads only under Random factor is added", () => {
     const spreads = 'aria-label="Varies by up to"';
     expect(
       renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={null} />),
@@ -119,7 +119,7 @@ describe("the car performance setting", () => {
   it("is offered on both setup screens, in a Cars group after Races", () => {
     for (const html of [settingsForm("era"), settingsForm("season")]) {
       const at = (label: string) => html.indexOf(`aria-label="${label}"`);
-      expect(at("Cars")).toBeGreaterThan(at("Points"));
+      expect(at("Cars")).toBeGreaterThan(at("Points system"));
       expect(at("Car performance")).toBeGreaterThan(at("Cars"));
     }
     const era = settingsForm("era");
@@ -139,10 +139,10 @@ describe("the car performance setting", () => {
     }
   });
 
-  it("names the historical answer as each screen's other settings do", () => {
+  it("names the historical answer the same on both screens", () => {
     const draw = (unit: "season" | "era") =>
       pressed(renderToStaticMarkup(<CarPerformanceSetting carPerformance={null} unit={unit} />));
-    expect(draw("season")).toEqual(["As it was"]);
+    expect(draw("season")).toEqual(["Historical"]);
     expect(draw("era")).toEqual(["Historical"]);
   });
 
@@ -151,14 +151,17 @@ describe("the car performance setting", () => {
       ...HISTORICAL_SETTINGS,
       carPerformance: { kind: "varied", spread: 5, from: "real" },
     });
-    expect(settingsOf(varied)).toContainEqual({ name: "Car performance", value: "Varied ±5" });
+    expect(settingsOf(varied)).toContainEqual({
+      name: "Car performance",
+      value: "Random factor ±5",
+    });
     const walking = eraYear({
       ...HISTORICAL_SETTINGS,
       carPerformance: { kind: "varied", spread: 5, from: "last" },
     });
     expect(settingsOf(walking)).toContainEqual({
       name: "Car performance",
-      value: "Varied ±5 from previous year's car",
+      value: "Random factor ±5 from previous season's car",
     });
     expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
       "Car performance",

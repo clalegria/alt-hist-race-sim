@@ -17,17 +17,17 @@ function decades(): readonly { decade: number; years: readonly number[] }[] {
   return groups;
 }
 
-/** The words, which talk about "every year" only where there is more than one. */
+/** The words, which talk about "every season" only where there is more than one. */
 const COPY: Readonly<
   Record<RunUnit, { readonly own: string; readonly asInNote: (reliability: number) => string }>
 > = {
   season: {
-    own: "As it was",
+    own: "This season",
     asInNote: (reliability) => `Cars break down as often as ${reliability}'s did.`,
   },
   era: {
-    own: "Each year's own",
-    asInNote: (reliability) => `Every year's cars break down as often as ${reliability}'s did.`,
+    own: "Each season",
+    asInNote: (reliability) => `Every season's cars break down as often as ${reliability}'s did.`,
   },
 };
 
@@ -39,7 +39,7 @@ const OWN = "";
  * did, every year. A year rather than a number, because a season's retirement
  * factor is an authored dial a reader has no reason to know; "as unreliable as
  * 1968" is the question they are asking. Cars only: driver error keeps each
- * year's own, so under Breakdowns: None there is nothing left to choose.
+ * year's own, so under *Mechanical failures: None* there is nothing left to choose.
  *
  * One `select` (`SettingSelect`), the historical answer first, then every
  * playable year by decade.
@@ -54,7 +54,7 @@ export function ReliabilitySetting({
   reliability: number | null;
   /** Which screen it is for, which only changes the words. */
   unit: RunUnit;
-  /** Greyed out under Breakdowns: None, keeping the reader's choice on show. */
+  /** Greyed out under *Mechanical failures: None*, keeping the reader's choice on show. */
   disabled?: boolean;
   /** Absent in tests, where nothing is chosen. */
   onChange?: (reliability: number | null) => void;
@@ -63,7 +63,7 @@ export function ReliabilitySetting({
   return (
     <div className="flex flex-col gap-2">
       <SettingSelect
-        name="Reliability"
+        name="Cars as reliable as"
         value={reliability === null ? OWN : String(reliability)}
         disabled={disabled}
         onChange={(value) => onChange?.(value === OWN ? null : Number(value))}
@@ -73,7 +73,7 @@ export function ReliabilitySetting({
           <optgroup key={decade} label={`${decade}s`}>
             {years.map((option) => (
               <option key={option} value={option}>
-                As in {option}
+                {option}
               </option>
             ))}
           </optgroup>

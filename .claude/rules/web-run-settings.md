@@ -20,16 +20,20 @@ paths:
 
 # Web app — the run settings
 
-The randomness level and the run's what-ifs: how they are shown, changed and locked.
+The randomness level (*Luck on the day* on screen) and the run's what-ifs: how they are
+shown, changed and locked.
 The setup screen around them is `.claude/rules/web-setup.md`; what a world keeps of them
 is `.claude/rules/web-store.md`.
 
 ## The line and the dialog
 
 **`RunSettingsLine` is the same row on the setup screen and on the grid**, the first
-thing under the heading on both: the settings in force (`SimulationSettings` over
-`settingsOf`, "everything else as it was" when nothing is a what-if) and a **⚙ Settings**
-button. On the grid the year switcher (`SeasonSwitcher`) rides in its `extra` slot. A
+thing under the heading on both: what differs from the defaults (`SimulationSettings` over
+`settingsOf`: the level off `STARTING_RANDOMNESS_LEVEL`, then each what-if; "Default
+settings" when nothing does, there and on the summary and roll of honour) and a
+**⚙ Settings** button. After a non-empty line, a **Restore defaults** link (styled as the
+grid's Clear all edits) commits `defaultChoice` at once, unasked; not drawn under a lock
+or without `onCommit`. On the grid the year switcher (`SeasonSwitcher`) rides in its `extra` slot. A
 season's screen states `seasonSettings` of what it holds, never an era's answers. The
 cog is `.settings-icon` in `index.css`, a mask over `currentColor` like the page link's,
 because tests count flags by counting `<svg>`.
@@ -67,42 +71,44 @@ the season only read as the real car) that the season never showed.
 ## The form
 
 `RunSettingsForm`, controlled, in groups (`RunSettingsGroup`; a setting is a *direct
-child*, which applies the padding and the rules between): **Races** — Randomness,
-Points; **Cars** — Car performance, Breakdowns, Reliability (together because one greys
-the other out); **Over the years**, era only (`eraSettings`) — Career events, Team names,
-Teams and seats. Two columns from `lg`: an era's Races + Cars beside its years, a
+child*, which applies the padding and the rules between): **Races** — Luck on the day,
+Points system; **Cars** — Car performance, Mechanical failures, Cars as reliable as
+(together because one greys the other out); **Over the years**, era only (`eraSettings`) —
+Driver career events, Team name changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars beside its years, a
 season's Races beside Cars. The form passes the whole remembered set through, so a
 season's screen never drops an era answer it does not show.
 
 **A what-if has its historical answer first**, and its value is **null when
 historical**, as `lineup` is: segments (`SettingSegments`, copying `RatingModeToggle`'s
 button group) or, for an answer picked from a list, one native `select` whose first
-option is historical (`SettingSelect`). **A note only for a what-if** (`SettingNote`):
-the historical label says what it is. Sub-options sit in `SettingSub`, set in under
-their answer, with `sub` segments and no note of their own. The words follow `unit`
-(`RunUnit`): an era talks about every year, a season about the one.
+option is historical (`SettingSelect`). **The historical answer is *Historical*, or *Yes*
+/ *No* for an on-off setting**, the same on both screens. **A note only for a what-if**
+(`SettingNote`). Sub-options sit in `SettingSub`, set in under their answer, with `sub`
+segments and no note of their own. The notes follow `unit` (`RunUnit`): an era talks
+about every season, a season about the one.
 
 The values live in `lib/run-settings.ts`: `RunSettings`, `HISTORICAL_SETTINGS`,
 `parseRunSettings` (the one check for the recipe and the remembered preference, accepting
 only values this build could offer) and `whatIfsOf`, the line's entries.
 
-- **Breakdowns**: *Realistic* / *Fewer* / *None*, null / `"fewer"` / `"none"`
+- **Mechanical failures**: *Realistic* / *Fewer* / *None*, null / `"fewer"` / `"none"`
   (`BREAKDOWNS_LABELS`). What it does to the constants is
   `.claude/rules/retirement-factor.md`.
-- **Reliability**: a `select` of *Each year's own* (*As it was* on a season) then every
-  playable year by decade, stored as the year — not the 1–10 factor, an authoring dial no
-  reader knows. Greyed out under Breakdowns: None; the choice is kept, and `createWorld`
+- **Cars as reliable as**: a `select` of *Each season* (*This season* on a season) then
+  every playable year by decade, stored as the year — not the 1–10 factor, an authoring
+  dial no reader knows. Greyed out under Mechanical failures: None; the choice is kept, and `createWorld`
   records only `settingsInForce`, so no world claims a setting that changed nothing.
-- **Points**: a `select` of the historical answer (a season's names its own table)
+- **Points system**: a `select` of *Historical* (a season's names its own table)
   then `pointsTables()`, the distinct tables in the seed data, derived. Scoring only: the
   same seed races the same races under any table.
 - **Car performance**: `.claude/rules/car-performance.md`.
-- **Career events**: *As they happened* / *None*, null / `"none"` — never "form", which
-  the market owns. None races every driver without `stepDown` and `offSeasons`
+- **Driver career events**: *Yes* / *No*, null / `"none"` — never "form", which
+  the market owns. No races every driver without `stepDown` and `offSeasons`
   (`driverPoolOf`); the events count only under `aged`, which an era always runs.
-- **Team names**: *As they happened* / *Keep the first*, null / `"first"`: each team keeps
+- **Team name changes**: *Yes* / *No*, null / `"first"`: under No each team keeps
   its first season's name and base, its livery still changes (`team-eras.md`).
-- **Teams and seats**: null or `EmptySeatRules` (`teams-and-seats.md`).
+- **Keep the first season's teams**: *No* / *Yes*, null or `EmptySeatRules`
+  (`teams-and-seats.md`).
 
 One remembered set serves both screens; the store drops the era-only ones from a
 standalone season (`seasonSettings`, in `startSeason`, `simulate` and `setRunSettings`).

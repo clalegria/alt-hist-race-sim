@@ -1,5 +1,5 @@
 /**
- * The Breakdowns and Reliability settings, and where a run states them.
+ * The Mechanical failures and Cars as reliable as settings, and where a run states them.
  * Rendered without a DOM, like the rest of the settings; what they *do* to
  * a season is the store's tests.
  */
@@ -50,7 +50,7 @@ describe("the reliability setting", () => {
     const html = renderToStaticMarkup(<ReliabilitySetting reliability={null} unit="era" />);
     expect(html.match(/<select/g)).toHaveLength(1);
     expect(html.split("<option").length - 1).toBe(PLAYABLE_SEASONS.length + 1);
-    expect(html).toMatch(/<option value="" selected="">Each year/);
+    expect(html).toMatch(/<option value="" selected="">Each season</);
     expect(html).not.toContain("<p");
   });
 
@@ -75,10 +75,10 @@ describe("the reliability setting", () => {
 describe("the reliability setting, on a season's screen", () => {
   it("talks about the one season, not every year", () => {
     const own = renderToStaticMarkup(<ReliabilitySetting reliability={null} unit="season" />);
-    expect(own).toMatch(/selected="">As it was</);
+    expect(own).toMatch(/selected="">This season</);
     const asIn = renderToStaticMarkup(<ReliabilitySetting reliability={OTHER} unit="season" />);
     for (const html of [own, asIn]) {
-      expect(html).not.toMatch(/each year|every year/i);
+      expect(html).not.toMatch(/each (year|season)|every (year|season)/i);
     }
   });
 });
@@ -91,9 +91,13 @@ describe("the races and cars groups", () => {
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="season" />),
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="era" eraSettings />),
     ]) {
-      const order = ["Randomness", "Points", "Car performance", "Breakdowns", "Reliability"].map(
-        (name) => html.indexOf(`aria-label="${name}"`),
-      );
+      const order = [
+        "Luck on the day",
+        "Points system",
+        "Car performance",
+        "Mechanical failures",
+        "Cars as reliable as",
+      ].map((name) => html.indexOf(`aria-label="${name}"`));
       expect(order.every((at) => at >= 0)).toBe(true);
       expect([...order].sort((a, b) => a - b)).toEqual(order);
     }
@@ -105,10 +109,13 @@ describe("a run's breakdowns and reliability, stated", () => {
 
   it("are named on the settings line and on the grid", () => {
     const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, fixed);
-    expect(settingsOf(world)).toContainEqual({ name: "Breakdowns", value: "Fewer" });
-    expect(settingsOf(world)).toContainEqual({ name: "Reliability", value: `as in ${OTHER}` });
+    expect(settingsOf(world)).toContainEqual({ name: "Mechanical failures", value: "Fewer" });
+    expect(settingsOf(world)).toContainEqual({
+      name: "Cars as reliable as",
+      value: String(OTHER),
+    });
 
     const grid = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} />);
-    expect(grid).toContain(`as in ${OTHER}`);
+    expect(grid).toContain("Cars as reliable as:");
   });
 });

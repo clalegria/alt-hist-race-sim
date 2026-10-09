@@ -13,8 +13,8 @@ Five levels, chosen in the run settings before the run is under way:
 | 1 | Realistic | 0.85 |
 | 2 | Balanced | **1.0** |
 | 3 | Exciting | 1.25 |
-| 4 | More exciting | 1.65 |
-| 5 | Chaotic | 2.5 |
+| 4 | Chaotic | 1.65 |
+| 5 | Lottery | 2.5 |
 
 **Two levels have names in code, and they are not the same one.**
 
@@ -28,11 +28,10 @@ Five levels, chosen in the run settings before the run is under way:
   copy, not a copy multiplied by 1. Asserted with `toBe` rather than `toEqual`, so no
   rounding can creep in between `constants.ts` and the race.
 
-**The web app opens on level 2 and neither of these is why.** `STARTING_RANDOMNESS_LEVEL`
-in `apps/web/src/lib/preferences.ts` is a claim about what makes a good first season for
-a reader who has not met the slider; it lives in the app because the engine has no
-opinion about what is fun. Do not collapse the three into one number — a test in
-`preferences.test.ts` pins that the app's opening offer is not the reference level.
+**The web app opens on level 1, by the author's choice, not because it is the reference
+level.** `STARTING_RANDOMNESS_LEVEL` in `apps/web/src/lib/preferences.ts` is what a reader
+who has not met the slider is offered; it lives in the app, and stays its own constant
+even while it equals `DEFAULT_RANDOMNESS_LEVEL`.
 
 **Only the reference level means anything about the model.** Do not read a figure off a
 run at level 4 and "correct" a constant with it.
@@ -68,7 +67,7 @@ stays at 1 for levels 1-3, so the shape of the randomness only changes once a ru
 already opted out of realism.
 
 Reliability is deliberately untouched: chaotic means unpredictable, not fragile, and
-the Breakdowns and Reliability run settings own it (`.claude/rules/retirement-factor.md`). Grid advantage, home advantage, the consistency penalty, the powertrain weights
+the Mechanical failures and Cars as reliable as run settings own it (`.claude/rules/retirement-factor.md`). Grid advantage, home advantage, the consistency penalty, the powertrain weights
 and both form *shares* are untouched for the same reason — they are what a rating
 *means*.
 

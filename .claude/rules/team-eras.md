@@ -99,7 +99,7 @@ era**: the lineage that raced as Toleman is registered in France as Alpine.
 
 ## Keeping the first name
 
-An era's *Team names: Keep the first* names each team, and bases it, as in **the first
+An era's *Team name changes: No* names each team, and bases it, as in **the first
 season it appears in the run**: the start year, or its debut year for a team that enters
 later. Brawn stays Brawn, registered in GB. **The livery is not kept**: it follows
 history, so Brawn is silver from 2010.

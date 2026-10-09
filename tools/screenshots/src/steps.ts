@@ -98,7 +98,7 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // The run is untouched, so its settings can still change from here.
       const dialog = await openSettings(page);
-      const breakdowns = dialog.getByRole("group", { name: "Breakdowns" });
+      const breakdowns = dialog.getByRole("group", { name: "Mechanical failures" });
       await breakdowns.getByRole("button", { name: "Fewer", exact: true }).click();
       // Restore defaults takes the draft back, then Fewer again for the steps after.
       await dialog.getByRole("button", { name: "Restore defaults" }).click();
@@ -112,7 +112,7 @@ export const STEPS: readonly Step[] = [
     name: "grid-edited",
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-      await page.getByText("Breakdowns: Fewer").first().waitFor();
+      await page.getByText("Mechanical failures: Fewer").first().waitFor();
       // Two drivers on different teams traded, by hand.
       await button(page, "Edit grid").click();
       const drivers = page.locator("li li button[aria-pressed]");
@@ -232,25 +232,31 @@ export const STEPS: readonly Step[] = [
       // What-ifs on the era, set in the dialog and left open, so both columns,
       // a picker, a greyed-out setting and the sub-options are drawn.
       const dialog = await openSettings(page);
-      await dialog.getByRole("combobox", { name: "Reliability" }).selectOption("1968");
+      await dialog.getByRole("combobox", { name: "Cars as reliable as" }).selectOption("1968");
       await dialog
-        .getByRole("group", { name: "Breakdowns" })
+        .getByRole("group", { name: "Mechanical failures" })
         .getByRole("button", { name: "None", exact: true })
         .click();
-      await dialog.getByRole("combobox", { name: "Points" }).selectOption({ index: 1 });
+      await dialog.getByRole("combobox", { name: "Points system" }).selectOption({ index: 1 });
       await dialog
-        .getByRole("group", { name: "Career events" })
-        .getByRole("button", { name: "None", exact: true })
+        .getByRole("group", { name: "Driver career events" })
+        .getByRole("button", { name: "No", exact: true })
         .click();
-      await button(page, "Keep the first").click();
-      // Keep the starting grid, so the year jumped to below races ghost entries.
-      await button(page, "Keep the starting grid").click();
+      await dialog
+        .getByRole("group", { name: "Team name changes" })
+        .getByRole("button", { name: "No", exact: true })
+        .click();
+      // Keep the first season's teams, so the year jumped to below races ghost entries.
+      await dialog
+        .getByRole("group", { name: "Keep the first season's teams" })
+        .getByRole("button", { name: "Yes", exact: true })
+        .click();
       await page
         .getByRole("group", { name: "Car performance" })
-        .getByRole("button", { name: "Varied", exact: true })
+        .getByRole("button", { name: "Random factor is added", exact: true })
         .click();
       await button(page, "±20").click();
-      await button(page, "Previous year's car").click();
+      await button(page, "Previous season's car").click();
     },
   },
   {
@@ -329,7 +335,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-kept-grid",
     reach: async (page) => {
-      // The year after the start under Keep the starting grid: ghost entries
+      // The year after the start under Keep the first season's teams: ghost entries
       // and the note saying what was kept.
       await page
         .getByRole("navigation", { name: "Season" })

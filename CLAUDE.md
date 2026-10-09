@@ -95,7 +95,7 @@ are listed in `.claude/rules/calibration.md`.
   sorted, then DNFs. `.claude/rules/race-engine.md`.
 - **Beat**: one step of a run's reveal — the grid, a session, the summary, an era's
   review. The cursor is the beat reached; each beat is a page. `.claude/rules/web-app.md`.
-- **Randomness level**: 1–5, fixed before a run. `race-randomness.md`.
+- **Randomness level**: 1–5, fixed before a run; *Luck on the day* on screen. `race-randomness.md`.
 - **Team form**: the share of session noise that belongs to the team rather than the car,
   so it cancels out of a teammate comparison. `race-engine.md`.
 

@@ -1,5 +1,5 @@
 /**
- * The Team names setting, where a run states it, and what it does to a name on
+ * The Team name changes setting, where a run states it, and what it does to a name on
  * screen. Rendered without a DOM, like the rest of the setup screen; what it
  * records on a run is the era's store tests.
  */
@@ -51,25 +51,25 @@ function renamed(): { teamId: string; from: number; year: number } | undefined {
 }
 
 describe("the team names setting", () => {
-  it("presses As they happened while historical, and Keep the first otherwise", () => {
+  it("presses Yes while historical, and No otherwise", () => {
     const historical = renderToStaticMarkup(<TeamNamesSetting teamNames={null} />);
-    expect(historical).toMatch(/aria-pressed="true"[^>]*>As they happened</);
+    expect(historical).toMatch(/aria-pressed="true"[^>]*>Yes</);
     const kept = renderToStaticMarkup(<TeamNamesSetting teamNames="first" />);
-    expect(kept).toMatch(/aria-pressed="true"[^>]*>Keep the first</);
+    expect(kept).toMatch(/aria-pressed="true"[^>]*>No</);
     for (const html of [historical, kept]) {
       expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
     }
   });
 
-  it("is offered on the era's setup screen, in the Over the years group after Career events, and not on a season's", () => {
+  it("is offered on the era's setup screen, in the Over the years group after Driver career events, and not on a season's", () => {
     const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Team names")).toBeGreaterThan(at("Over the years"));
-    expect(at("Team names")).toBeGreaterThan(at("Career events"));
+    expect(at("Team name changes")).toBeGreaterThan(at("Over the years"));
+    expect(at("Team name changes")).toBeGreaterThan(at("Driver career events"));
 
     const season = settingsForm("season");
     expect(season).not.toContain('aria-label="Over the years"');
-    expect(season).not.toContain('aria-label="Team names"');
+    expect(season).not.toContain('aria-label="Team name changes"');
   });
 
   it("is named on the settings line when kept", () => {
@@ -84,7 +84,7 @@ describe("the team names setting", () => {
       null,
       { ...HISTORICAL_SETTINGS, teamNames: "first" },
     );
-    expect(settingsOf(world)).toContainEqual({ name: "Team names", value: "Keep the first" });
+    expect(settingsOf(world)).toContainEqual({ name: "Team name changes", value: "No" });
   });
 });
 

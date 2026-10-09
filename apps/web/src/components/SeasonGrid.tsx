@@ -378,7 +378,7 @@ function DriverEntry({
   edit?: GridEditing;
   swappedIn: boolean;
   /**
-   * Under *Keep the starting grid*, how a driver who is not history's came to
+   * Under *Keep the first season's teams*, how a driver who is not history's came to
    * be in the seat: kept from last year, or signed for an empty one. A word,
    * not `SWAPPED_IN`, which says the reader moved them.
    */
@@ -649,7 +649,7 @@ export function SeasonGrid({
    */
   arrangement?: GridArrangement | null;
   /**
-   * What *Keep the starting grid* did to this year (`keptNotes`), or null. Its
+   * What *Keep the first season's teams* did to this year (`keptNotes`), or null. Its
    * own muted notice, not the edited-grid one: a kept seat is the year's
    * starting point, not a change the reader made.
    */

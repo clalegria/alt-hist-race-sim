@@ -81,10 +81,10 @@ What follows is only what stays advanced.
 - **PROPOSED** — The random retirement age depends on the era: fifties drivers raced into
   their forties, modern ones mostly stop in their late thirties.
 - **DECIDED** — **Grid evolution**: *historical*, *frozen* (both built as
-  *Teams and seats*, `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
+  *Keep the first season's teams*, `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
-  change from the last, built as *Car performance* from *previous year's car*
+  change from the last, built as *Car performance* from *previous season's car*
   (`.claude/rules/car-performance.md`). Game mode goes much deeper (§10).
 - **OPEN** — The intermediate grid mode; which of a season file's data (car and engine
   ratings, calendar, points) still applies once a team or engine pairing no longer

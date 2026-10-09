@@ -193,7 +193,7 @@ export function SeasonOverview({
     [world.field],
   );
   // Every change is against the season as the run entered it, which under Car
-  // performance or Keep the starting grid is not the seed file's: a rolled car
+  // performance or Keep the first season's teams is not the seed file's: a rolled car
   // or a kept seat is the year's starting point, not an edit.
   const entered = enteredSeason(world);
   const changes = useMemo(

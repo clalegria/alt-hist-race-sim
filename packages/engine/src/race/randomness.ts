@@ -45,11 +45,10 @@ export const RANDOMNESS_LEVELS: readonly RandomnessLevel[] = Object.freeze([1, 2
  * asks the model to be a plausible history rather than a good story. The tools
  * take it as their default for exactly that reason.
  *
- * **The web app deliberately opens one stop higher.** A reader arriving at the
- * setup screen is offered `STARTING_RANDOMNESS_LEVEL` (`apps/web/src/lib/
- * preferences.ts`), which is a claim about what makes a good first season and
- * not about what the model is worth. Nothing outside that screen reads it, and
- * nothing inside the engine knows it exists.
+ * **The web app's opening level is its own constant**, `STARTING_RANDOMNESS_LEVEL`
+ * (`apps/web/src/lib/preferences.ts`): a claim about what to offer a reader, not
+ * about what the model is worth, even while the two are the same level. Nothing
+ * inside the engine knows it exists.
  */
 export const DEFAULT_RANDOMNESS_LEVEL: RandomnessLevel = 1;
 

@@ -1,5 +1,5 @@
 /**
- * What *Teams and seats: Keep the starting grid* did to one year, for the grid
+ * What *Keep the first season's teams* did to one year, for the grid
  * to say: which teams are ghosts and whose car they race, who kept a seat from
  * last year, who was signed, and which teams are short of drivers.
  *

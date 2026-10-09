@@ -54,7 +54,7 @@ export interface WorldRecipe {
   readonly ratingMode: RatingMode;
   readonly randomness: RandomnessLevel;
   readonly settings: RunSettings;
-  /** The era's first year under *Team names: Keep the first*, else null. */
+  /** The era's first year under *Team name changes: No*, else null. */
   readonly namesKeptFrom: number | null;
   readonly lineup: SeasonLineup | null;
   readonly engines: SeasonEngines | null;

@@ -10,22 +10,21 @@ paths:
 # Car performance — a run's own cars
 
 A run setting in the settings dialog's **Cars** group, on both screens: *Historical* /
-*Varied* / *Random*, stored as `RunSettings.carPerformance` — null,
+*Random factor is added* / *Totally random*, stored as `RunSettings.carPerformance` — null,
 `{ kind: "varied", spread, from }` or `{ kind: "random" }`. The setting plumbing every what-if
-shares is `.claude/rules/web-setup.md`. The historical answer is *As it was* on a
-season's screen, as its other settings say, and the notes follow `unit` too (`COPY` in
+shares is `.claude/rules/web-setup.md`. The notes follow `unit` (`COPY` in
 `CarPerformanceSetting`), the era's saying "every season".
 
 - **Chassis only.** An engine is shared by its customers, so rolling one would move
   several teams at once.
-- **Varied** (`variedChassis` in `packages/data/src/chassis.ts`): one whole-number offset
+- **Random factor is added**, `"varied"` (`variedChassis` in `packages/data/src/chassis.ts`): one whole-number offset
   per team, uniform in [−spread, spread], on all four chassis ratings, each clamped to
   `CHASSIS_STEP_RANGE`. The spreads are `CAR_VARIATION_SPREADS` (±2, 5, 10, 20, 30); the
   control opens on ±10 and remembers a spread while the screen is open. `from` is what
   the offset moves off (`CAR_VARIATION_BASES`, the era's *Varies from* row): `"real"`,
-  **that year's authored car**, re-rolled each year; or `"last"`, **previous year's car** — a
+  **the historical car**, re-rolled each year; or `"last"`, **previous season's car** — a
   walk (below).
-- **Random** (`randomChassis`): each chassis rating drawn uniformly between that season's
+- **Totally random**, `"random"` (`randomChassis`): each chassis rating drawn uniformly between that season's
   weakest and strongest value of it, each rating on its own.
 
 ## Its own stream

@@ -31,6 +31,18 @@ export interface RunChoice {
 }
 
 /**
+ * What Restore defaults puts a choice back to — the dialog's button and the
+ * settings line's link alike: every setting the screen offers historical
+ * (`historicalSettings`), and the luck on the day the app opens on.
+ */
+export function defaultChoice(choice: RunChoice, eraSettings: boolean): RunChoice {
+  return {
+    randomness: STARTING_RANDOMNESS_LEVEL,
+    settings: historicalSettings(choice.settings, eraSettings),
+  };
+}
+
+/**
  * One headed group of settings. A setting is a *direct child*: the padding and
  * the rule between settings are applied here, so adding one is adding a child.
  */
@@ -261,10 +273,7 @@ function DraftForm({
   onDone: (choice: RunChoice) => void;
 }) {
   const [draft, setDraft] = useState<RunChoice>(choice);
-  const defaults: RunChoice = {
-    randomness: STARTING_RANDOMNESS_LEVEL,
-    settings: historicalSettings(draft.settings, eraSettings),
-  };
+  const defaults = defaultChoice(draft, eraSettings);
   // A reset answer is null and a kept one the draft's own object, so `===` is enough.
   const atDefaults =
     draft.randomness === defaults.randomness &&
@@ -293,7 +302,7 @@ function DraftForm({
             <Button
               variant="ghost"
               className="mr-auto"
-              title="Every what-if as it happened, randomness at its default"
+              title="Every setting historical, luck on the day at its default"
               disabled={atDefaults}
               onClick={() => {
                 setDraft(defaults);

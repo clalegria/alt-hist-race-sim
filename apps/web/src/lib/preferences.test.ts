@@ -6,7 +6,7 @@
  * browser does.
  */
 
-import { DEFAULT_RANDOMNESS_LEVEL, RANDOMNESS_LEVELS } from "@alt-hist/engine";
+import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   parseRatingMode,
@@ -121,11 +121,7 @@ describe("remembering the choice", () => {
 });
 
 describe("remembering the randomness level", () => {
-  it("opens on a level of the app's choosing, not the engine's reference level", () => {
-    // The two answer different questions — what the model is measured at, and
-    // what makes a good first season — and this is the line that says so. If
-    // they are ever meant to be the same number, deleting this is the decision.
-    expect(STARTING_RANDOMNESS_LEVEL).not.toBe(DEFAULT_RANDOMNESS_LEVEL);
+  it("opens on a level the engine offers", () => {
     expect(RANDOMNESS_LEVELS).toContain(STARTING_RANDOMNESS_LEVEL);
   });
 

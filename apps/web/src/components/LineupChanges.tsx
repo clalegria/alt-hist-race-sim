@@ -105,7 +105,7 @@ function listed(names: readonly string[]): string {
 }
 
 /**
- * What *Keep the starting grid* did to a year, as sentences: the ghosts and
+ * What *Keep the first season's teams* did to a year, as sentences: the ghosts and
  * their cars, how many seats were kept and signed, and who is short of
  * drivers. Pure, so a test reads the words without a DOM.
  */
