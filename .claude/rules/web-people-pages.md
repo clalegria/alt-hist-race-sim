@@ -55,7 +55,7 @@ a driver's age in the year the run has reached, retired or not, their latest tea
 ("last with" once off that year's grid), and
 their best overall of the run with its year, `bestOverall`; a team's names as
 `spellSpan`s), the run's totals, then `CareerSeasons`: a row per year, latest first
-and open, each a `DisclosureButton` on the year opening into `RaceByRace`, plus
+and all shut, each a `DisclosureButton` on the year opening into `RaceByRace`, plus
 "N rounds to come" on a year in progress. Each row sits in its year's `Liveries` and
 `EntryNames`. Names inside the page — a driver's team, a team's lineup — are the panel
 triggers every name is, never links.
@@ -86,6 +86,6 @@ the icon beside each year on these pages and on a panel's year lines.
 `lib/roster.test.ts`: the roster against the fields at every beat of an era; the door
 for every roster id, for a stranger, a typo and a driver searched for on a later
 grid, and for every page of a one-year run; the sort against synthetic rows. `bestOverall` against synthetic ratings. `people-pages.test.tsx`: one season row per year
-on the roster with one open, "after round N" mid-season, the age of someone off the
+on the roster, all shut, "after round N" mid-season, the age of someone off the
 grid, every index name a link.
 `routes.test.tsx` runs the four guards.

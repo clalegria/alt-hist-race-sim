@@ -116,8 +116,7 @@ interface CareerYear {
 const FIGURES = ["points", "wins", "podiums", "poles"] as const;
 
 /**
- * Year by year, latest first, each opening into its races. The latest opens
- * by default: it is the year the reader is most likely to have come for.
+ * Year by year, latest first, each opening into its races. All start shut.
  *
  * `teams` switches on the driver column of the races, since a team's rounds
  * are a row per car.
@@ -129,9 +128,7 @@ export function CareerSeasons({
   years: readonly CareerYear[];
   teams?: boolean;
 }) {
-  const [open, setOpen] = useState<ReadonlySet<number>>(
-    () => new Set(years.length === 0 ? [] : [years[0]?.year ?? 0]),
-  );
+  const [open, setOpen] = useState<ReadonlySet<number>>(() => new Set());
   // Each year's season page, inside the run's frame; none in a test without one.
   const pageOf = usePageOf();
   const columns = 3 + FIGURES.length;

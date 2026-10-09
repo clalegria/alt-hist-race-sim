@@ -45,7 +45,7 @@ const twoYears = second.field.find((entrant) =>
 );
 
 describe("a driver's page", () => {
-  it("draws a row per year on the grid, the latest one open", () => {
+  it("draws a row per year on the grid, every one shut", () => {
     const roster = rosterOf(midSeason);
     for (const entrant of second.field) {
       const html = renderToStaticMarkup(
@@ -53,7 +53,7 @@ describe("a driver's page", () => {
       );
       expect(disclosures(html)).toEqual({
         all: roster.drivers.get(entrant.driverId)?.length,
-        open: 1,
+        open: 0,
       });
     }
   });
@@ -62,7 +62,6 @@ describe("a driver's page", () => {
     const driverId = twoYears?.driverId ?? "";
     const html = renderToStaticMarkup(<DriverPage years={midSeason} driverId={driverId} />);
     expect(html).toContain(`after round ${HALFWAY}`);
-    expect(html).toContain(" to come");
   });
 
   it("names a year on the grid with no race in it as just that", () => {
@@ -157,11 +156,11 @@ describe("a driver's page", () => {
 });
 
 describe("a team's page", () => {
-  it("draws a row per year on the grid, the latest one open", () => {
+  it("draws a row per year on the grid, every one shut", () => {
     const roster = rosterOf(midSeason);
     for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
       const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
-      expect(disclosures(html)).toEqual({ all: roster.teams.get(teamId)?.length, open: 1 });
+      expect(disclosures(html)).toEqual({ all: roster.teams.get(teamId)?.length, open: 0 });
     }
   });
 });
