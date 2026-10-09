@@ -91,6 +91,8 @@ squares over it** — two stacked `repeating-conic-gradient`s on a fixed `body::
 at `z-index: -1`, so it stays put while a long classification scrolls over it and no
 component has to know it exists. The periods are commensurate on purpose (six minor
 squares to a major one), so the small grid never drifts across a large square's edge.
+The home screen's parade of cars runs on a layer at the same `-1`, just above it
+(`web-team-car.md`).
 
 **Stacking the two is what makes it read as nested.** Four tone levels come out of two
 layers, and from the base surface they ladder at roughly +1.2, +2.0, +3.1 L\* — small

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../App.js";
+import { HomeParade } from "../components/HomeParade.js";
 import { MainMenu } from "../components/MainMenu.js";
 import { ResumeRun, RunNotResumed } from "../components/ResumeRun.js";
 import { RunConfirmDialog } from "../components/RunDialogs.js";
@@ -8,7 +9,10 @@ import { runBarFor, runTitle } from "../lib/run-bar.js";
 import { linkTo } from "../lib/run-places.js";
 import { cursorPlace, isUntouched, useSeasonStore } from "../store/season.js";
 
-/** `/` — the opening screen: what this is, which mode to run, and the run in progress. */
+/**
+ * `/` — the opening screen: what this is, which mode to run, and the run in
+ * progress, with a parade of cars now and then behind it.
+ */
 export const Route = createFileRoute("/")({ component: HomePage });
 
 function HomePage() {
@@ -20,6 +24,7 @@ function HomePage() {
   const [asking, setAsking] = useState(false);
   return (
     <Shell>
+      <HomeParade />
       <MainMenu
         {...(run === null
           ? resumeFailed

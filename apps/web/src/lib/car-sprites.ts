@@ -1,11 +1,11 @@
 /**
- * The pixel-art cars on the champion cards: one side-on sprite per decade.
+ * The pixel-art team cars: one side-on sprite per decade.
  *
  * **Authored as text, one character per pixel**, so a sprite can be read and
  * redrawn in an editor without a drawing tool. Each character names a *role*
  * rather than a colour — `P` is "the team's primary colour", not red — so one
  * drawing serves every team, and the livery is applied when it is rendered
- * (`ChampionCar.tsx`). Every sprite is the same size, which lets them all be
+ * (`TeamCar.tsx`). Every sprite is the same size, which lets them all be
  * scaled by the same whole number and keeps the pixels square and crisp.
  *
  * The wheels are not in the drawing. They are generated here from a size and

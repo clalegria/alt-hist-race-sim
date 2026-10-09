@@ -132,7 +132,7 @@
   --radius-xl: 0.5rem;
 
   /*
-   * The champion car's wheels (`ChampionCar.tsx`). A quarter turn per step,
+   * A car's wheels (`TeamCar.tsx`). A quarter turn per step,
    * never a smooth spin: a quarter turn lands every pixel of the wheel exactly
    * on another, and anything in between would blur the pixel art.
    */
@@ -141,6 +141,23 @@
   @keyframes wheel-turn {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  /*
+   * A car of the home screen's parade (`HomeParade.tsx`) crossing the window:
+   * from just past the left edge (its own width) to just past the right. The
+   * duration and delay are set per car, inline: the duration follows the
+   * window's width so every car keeps the same speed.
+   */
+  --animate-drive: drive linear both;
+
+  @keyframes drive {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100vw);
     }
   }
 }

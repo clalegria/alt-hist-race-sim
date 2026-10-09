@@ -4,6 +4,10 @@ paths:
   - "apps/web/src/lib/car-sprites.test.ts"
   - "apps/web/src/components/TeamCar.tsx"
   - "apps/web/src/components/team-car.test.tsx"
+  - "apps/web/src/lib/parade.ts"
+  - "apps/web/src/lib/parade.test.ts"
+  - "apps/web/src/components/HomeParade.tsx"
+  - "apps/web/src/components/home-parade.test.tsx"
 ---
 
 # Web app — the team car
@@ -17,18 +21,20 @@ outside a season it uses the newest.
 | Place | Size | Wheels |
 |---|---|---|
 | Both champion cards (season summary) | `large`, 3× | turning |
+| The home screen's parade, behind the menu | `large`, 3× | turning |
 | Every qualifying slot, from `sm` | `small`, 1× | still |
 | Every race-sheet row, on the race screen and in a round opened from the calendar, from `md` | `small`, 1× | still |
 | Every row of both championship tables on the season summary, from `sm` | `small`, 1× | still |
 | The team panel on the grid and the grid editor, in place of the founding year | `small`, 1× | still |
 
 **There are exactly two sizes, both whole multiples of the sprite** (`CAR_SIZES`), so
-the pixels stay square and a car is the same size everywhere except the champion cards.
-To make a car smaller or shorter, redraw it on a smaller canvas; don't scale it.
-**Only the champion cards animate** (`animated`, off by default). The race sheet and
-`SeasonStandings` take a `car` prop, off by default, so each call site has to ask. The
-cars do **not** follow the badge's "nothing opened by a click" rule: a round opened from
-the calendar draws them (the author's call), while the roll of honour's tables do not.
+the pixels stay square and a car is the same size everywhere except the champion cards
+and the parade. To make a car smaller or shorter, redraw it on a smaller canvas; don't
+scale it. **Only the champion cards and the parade animate** (`animated`, off by
+default). The race sheet and `SeasonStandings` take a `car` prop, off by default, so
+each call site has to ask. The cars do **not** follow the badge's "nothing opened by a
+click" rule: a round opened from the calendar draws them (the author's call), while the
+roll of honour's tables do not.
 The cars are hidden on narrow screens, where the name needs the space more.
 
 **A car lines up with the others in its list.** In the race sheet and both standings
@@ -87,3 +93,23 @@ visible on the dark card.
   would blur them. A test requires every wheel to look the same after a quarter turn
   apart from its one spoke, which is what the eye follows. The animation is
   `motion-safe:`, so it stops for a reader who asks for reduced motion.
+
+## The home screen's parade
+
+Every `PASS_INTERVAL_MS` (the first after `FIRST_PASS_MS`), `HomeParade` sends
+`PARADE_SIZE` cars across the home screen, left to right. Constants and picking are
+`lib/parade.ts`; nothing in it touches the world, so it uses `Math.random()`, passed in.
+
+- **Any team in any authored season**, drawn uniformly over every entry, in that season's
+  livery (`liveryFor`) and decade's sprite. **Every car a different team**: a repeat moves
+  the draw on to the next entry, so it ends for any random source.
+- **Two formations, drawn per pass** (`FORMATIONS`): single file in one lane, or
+  staggered across three. The lane is drawn from a band of the window's height.
+- **A speed, not a duration**: a car's time across is the window's width over
+  `DRIVE_SPEED_PX_PER_S`, so the gaps are the same on a phone and a wide screen.
+- **Between the texture and the page**: a fixed layer at the texture's own `z-index: -1`,
+  later in the document, so it paints over the texture and under all content. The opaque
+  mode cards hide a car going behind them, and the dimmed unbuilt ones let it show.
+- The drive is `--animate-drive` in `index.css`, `motion-safe:`, and the layer is
+  `motion-reduce:hidden`. A pass is skipped while the tab is hidden and never overlaps
+  the one before. `pnpm screenshots` runs with reduced motion, so it never shows one.

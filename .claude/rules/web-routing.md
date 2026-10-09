@@ -35,7 +35,7 @@ type-checked: a link to a path with no route fails `pnpm typecheck`.
 
 | URL | Route file | Page |
 |---|---|---|
-| `/` | `index.tsx` | `MainMenu`, with a `ResumeRun` card (resume, or exit) while a run exists |
+| `/` | `index.tsx` | `MainMenu`, with a `ResumeRun` card (resume, or exit) while a run exists, and `HomeParade` behind it |
 | `/season/new`, `/era/new` | `season/new.tsx`, `era/new.tsx` | `SetupPage` around `SeasonPicker` / `EraPicker` |
 | `/run` | `run.tsx` (layout), `run/index.tsx` | an era's overview: the roll of honour (`EraChampions` over `crowned(run)`) and the year in progress |
 | `/run/1984?tab=calendar` | `run/$year/index.tsx` | that year's season page, one tab at a time (`web-season-pages.md`) |
