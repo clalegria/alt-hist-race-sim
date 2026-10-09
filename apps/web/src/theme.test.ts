@@ -55,7 +55,15 @@ describe("the stylesheet", () => {
     // still leave the toggle apparently broken.
     const colourOf = (token: string, from: number): string | undefined =>
       css.slice(from).match(new RegExp(`--color-${token}: *([^;]+);`))?.[1];
-    for (const token of ["background", "foreground", "card", "border", "primary", "destructive"]) {
+    for (const token of [
+      "background",
+      "foreground",
+      "card",
+      "card-header",
+      "border",
+      "primary",
+      "destructive",
+    ]) {
       expect(colourOf(token, 0), `--color-${token} is identical in both themes`).not.toBe(
         colourOf(token, lightStart),
       );

@@ -10,7 +10,7 @@ import type {
 import { canStepChassis, driversById, type SeasonChassis } from "@alt-hist/data";
 import { DEVELOPMENT_TREND_LIMIT, type EngineSpec, type RaceEntrant } from "@alt-hist/engine";
 import type { KeptNotes } from "../lib/kept.js";
-import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
+import { liveryFor } from "../lib/livery.js";
 import { driverName, engineName, entryName, teamCountry, teamName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
 import { carOverall, carRacing, driverOverall } from "../lib/rating.js";
@@ -23,7 +23,7 @@ import { ArrangementNote, chassisSummary, GridChanges, KeptNote, signed } from "
 import { PageLink } from "./PageLink.js";
 import { usePageOf } from "./SeasonHistory.js";
 import { SortToggle } from "./SortToggle.js";
-import { LiveryBadge } from "./TeamBadge.js";
+import { LiveryBadge, LiveryCorner } from "./TeamBadge.js";
 import { LiveryCar } from "./TeamCar.js";
 import { Button } from "./ui/button.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -794,49 +794,54 @@ export function SeasonGrid({
             const chassisChange = rerated.get(entry.teamId);
             const historical = historicalChassis?.[entry.teamId];
             const ghostCar = kept?.ghosts[entry.teamId];
+            const marked = movedEngine.has(entry.teamId) || chassisChange !== undefined;
             return (
               <li
                 key={entry.teamId}
-                className={cn(
-                  "border-border bg-card rounded-xl p-4",
-                  // A team without a livery keeps the plain hairline, so the
-                  // card is never left with no edge at all.
-                  livery === undefined ? "border" : "border-2",
-                )}
-                style={
-                  livery === undefined
-                    ? undefined
-                    : { backgroundImage: cardTint(livery), borderColor: cardOutline(livery) }
-                }
+                // Clipped, so the header band and the corner sash take the card's
+                // rounded corners.
+                className="border-border bg-card overflow-hidden rounded-xl border p-4"
               >
-                <div
-                  className={cn(
-                    "border-border/60 flex items-center gap-2 border-b pb-2",
-                    // The same soft fill a moved driver carries, for the same
-                    // reason: the note at the top and the cards should agree
-                    // without the reader matching names between them.
-                    (movedEngine.has(entry.teamId) || chassisChange !== undefined) &&
-                      cn(SWAPPED_IN, "-mx-1 rounded px-1"),
-                  )}
-                >
-                  <Popover>
-                    <NameTrigger className="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
-                      {base === undefined ? null : <Flag country={base} title={base} />}
-                      {livery === undefined ? null : (
-                        // Sized down from the 1.5em the badge takes elsewhere:
-                        // there it is a mark for a whole row, here it sits in a
-                        // line of text beside a 0.75rem flag, and at its usual
-                        // size it would read as the card's subject rather than
-                        // the team's colours.
-                        <LiveryBadge livery={livery} className="size-3.5" />
-                      )}
-                      <span className="truncate">{name}</span>
-                    </NameTrigger>
-                    {/* A little wider than a driver's panel: its header carries the car beside the name. */}
-                    {/* Wider again in the editor, where each chassis row carries a stepper. */}
-                    <PopoverContent className={edit === undefined ? "w-80" : "w-96"}>
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        {/*
+                {/*
+                  The header band, run out to the card's edges. The sash is its
+                  first child, so it paints over the band and under the
+                  name and the chip, which are relative to sit above it.
+                */}
+                <div className="bg-card-header border-border/60 relative -mx-4 -mt-4 flex items-center gap-2 border-b px-4 pt-3 pb-2.5">
+                  {livery === undefined ? null : <LiveryCorner livery={livery} />}
+                  {/*
+                    A marked team (engine or chassis changed) carries the soft
+                    fill a moved driver's row does, so the note at the top and the
+                    cards agree. On the header band that fill would be lost, so the
+                    name sits on a card-coloured plate and the fill goes on it:
+                    exactly a moved row's colour.
+                  */}
+                  <span
+                    className={cn("relative flex min-w-0 flex-1", marked && "bg-card rounded px-1")}
+                  >
+                    <Popover>
+                      <NameTrigger
+                        className={cn(
+                          "flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold",
+                          marked && SWAPPED_IN,
+                        )}
+                      >
+                        {base === undefined ? null : <Flag country={base} title={base} />}
+                        {livery === undefined ? null : (
+                          // Sized down from the 1.5em the badge takes elsewhere:
+                          // there it is a mark for a whole row, here it sits in a
+                          // line of text beside a 0.75rem flag, and at its usual
+                          // size it would read as the card's subject rather than
+                          // the team's colours.
+                          <LiveryBadge livery={livery} className="size-3.5" />
+                        )}
+                        <span className="truncate">{name}</span>
+                      </NameTrigger>
+                      {/* A little wider than a driver's panel: its header carries the car beside the name. */}
+                      {/* Wider again in the editor, where each chassis row carries a stepper. */}
+                      <PopoverContent className={edit === undefined ? "w-80" : "w-96"}>
+                        <div className="mb-3 flex items-center justify-between gap-2">
+                          {/*
                           Flag, badge, name — the card header this opened out
                           of, read back in the same order, for the reason the
                           driver panel repeats a driver's flag: a name written
@@ -845,102 +850,118 @@ export function SeasonGrid({
                           the documented exception to "nothing that only
                           appears after a click wears a badge".
                         */}
-                        <span className="flex min-w-0 items-center gap-1.5 font-semibold">
-                          {base === undefined ? null : <Flag country={base} title={base} />}
+                          <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+                            {base === undefined ? null : <Flag country={base} title={base} />}
+                            {livery === undefined ? null : (
+                              <LiveryBadge livery={livery} className="size-3.5" />
+                            )}
+                            <span className="truncate">{name}</span>
+                            {/* Not while editing: the editor's popover is for re-rating, not for leaving. */}
+                            {pageOf === null || edit !== undefined ? null : (
+                              <PageLink link={pageOf.team(entry.teamId)} label={`${name}'s page`} />
+                            )}
+                          </span>
                           {livery === undefined ? null : (
-                            <LiveryBadge livery={livery} className="size-3.5" />
+                            <LiveryCar livery={livery} year={seasonYear} />
                           )}
-                          <span className="truncate">{name}</span>
-                          {/* Not while editing: the editor's popover is for re-rating, not for leaving. */}
-                          {pageOf === null || edit !== undefined ? null : (
-                            <PageLink link={pageOf.team(entry.teamId)} label={`${name}'s page`} />
-                          )}
-                        </span>
-                        {livery === undefined ? null : (
-                          <LiveryCar livery={livery} year={seasonYear} />
-                        )}
-                      </div>
-                      {ghostCar === undefined ? null : (
-                        <p className="text-muted-foreground mb-2 text-xs">
-                          Not in the {seasonYear} field: racing on in its {ghostCar} car.
-                        </p>
-                      )}
-                      {historical === undefined ? null : (
-                        <p className="text-subtle mb-2 text-right text-xs">History → this run</p>
-                      )}
-                      <div className="flex flex-col gap-2">
-                        {CHASSIS_RATINGS.map((rating) => (
-                          <Rating
-                            key={rating.key}
-                            label={rating.label}
-                            value={entry.chassis[rating.key]}
-                            {...(historical === undefined ? {} : { was: historical[rating.key] })}
-                            {...(edit === undefined
-                              ? {}
-                              : {
-                                  control: (
-                                    <ChassisStepper
-                                      teamName={name}
-                                      chassis={entry.chassis}
-                                      delta={
-                                        chassisChange === undefined
-                                          ? 0
-                                          : chassisChange.to[rating.key] -
-                                            chassisChange.from[rating.key]
-                                      }
-                                      rating={rating}
-                                      onStep={(step) => {
-                                        edit.onChassisStep(entry.teamId, step, rating.key);
-                                      }}
-                                    />
-                                  ),
-                                })}
-                          />
-                        ))}
-                      </div>
-                      {entry.engine === undefined || entry.engineId === undefined ? null : (
-                        // The chassis above and the engine below it, separately,
-                        // because the headline number is already the two blended
-                        // and a reader who opens this wants the parts.
-                        <>
-                          <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
-                            <span className="text-xs font-semibold">
-                              {engineName(entry.engineId)} engine
-                            </span>
-                            <span className="text-muted-foreground text-xs">{seasonYear} spec</span>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            {ENGINE_RATINGS.map((rating) => (
-                              <Rating
-                                key={rating.key}
-                                label={rating.label}
-                                value={entry.engine?.[rating.key] ?? 0}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                      {entry.developmentTrend === undefined ||
-                      entry.developmentTrend === 0 ? null : (
-                        // Last, and separated, because it is the only thing in
-                        // here that is not a rating: the chassis and the engine
-                        // say what the car *is*, and this says how its year
-                        // went. It is not in the headline number above — see
-                        // `Development`.
-                        <>
-                          <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
-                            <span className="text-xs font-semibold">In-season development</span>
-                            <span className="text-muted-foreground text-xs">not in overall</span>
-                          </div>
-                          <Development trend={entry.developmentTrend} />
-                          <p className="text-muted-foreground mt-2 text-xs">
-                            {developmentNote(entry.developmentTrend)}
+                        </div>
+                        {ghostCar === undefined ? null : (
+                          <p className="text-muted-foreground mb-2 text-xs">
+                            Not in the {seasonYear} field: racing on in its {ghostCar} car.
                           </p>
-                        </>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                  <Overall value={carOverall(entry.chassis, entry.engine)} />
+                        )}
+                        {historical === undefined ? null : (
+                          <p className="text-subtle mb-2 text-right text-xs">History → this run</p>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          {CHASSIS_RATINGS.map((rating) => (
+                            <Rating
+                              key={rating.key}
+                              label={rating.label}
+                              value={entry.chassis[rating.key]}
+                              {...(historical === undefined ? {} : { was: historical[rating.key] })}
+                              {...(edit === undefined
+                                ? {}
+                                : {
+                                    control: (
+                                      <ChassisStepper
+                                        teamName={name}
+                                        chassis={entry.chassis}
+                                        delta={
+                                          chassisChange === undefined
+                                            ? 0
+                                            : chassisChange.to[rating.key] -
+                                              chassisChange.from[rating.key]
+                                        }
+                                        rating={rating}
+                                        onStep={(step) => {
+                                          edit.onChassisStep(entry.teamId, step, rating.key);
+                                        }}
+                                      />
+                                    ),
+                                  })}
+                            />
+                          ))}
+                        </div>
+                        {entry.engine === undefined || entry.engineId === undefined ? null : (
+                          // The chassis above and the engine below it, separately,
+                          // because the headline number is already the two blended
+                          // and a reader who opens this wants the parts.
+                          <>
+                            <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                              <span className="text-xs font-semibold">
+                                {engineName(entry.engineId)} engine
+                              </span>
+                              <span className="text-muted-foreground text-xs">
+                                {seasonYear} spec
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              {ENGINE_RATINGS.map((rating) => (
+                                <Rating
+                                  key={rating.key}
+                                  label={rating.label}
+                                  value={entry.engine?.[rating.key] ?? 0}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+                        {entry.developmentTrend === undefined ||
+                        entry.developmentTrend === 0 ? null : (
+                          // Last, and separated, because it is the only thing in
+                          // here that is not a rating: the chassis and the engine
+                          // say what the car *is*, and this says how its year
+                          // went. It is not in the headline number above — see
+                          // `Development`.
+                          <>
+                            <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                              <span className="text-xs font-semibold">In-season development</span>
+                              <span className="text-muted-foreground text-xs">not in overall</span>
+                            </div>
+                            <Development trend={entry.developmentTrend} />
+                            <p className="text-muted-foreground mt-2 text-xs">
+                              {developmentNote(entry.developmentTrend)}
+                            </p>
+                          </>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </span>
+                  {/*
+                    Over the sash, so on a card-coloured plate: the chip's own
+                    fills are tints, and would take on the team's colours. Flex,
+                    so the plate is exactly the chip's box: an inline plate takes
+                    the line's height and shows a sliver above and below it.
+                  */}
+                  <span
+                    className={cn(
+                      "relative flex shrink-0 rounded",
+                      livery !== undefined && "bg-card ring-border ring-1",
+                    )}
+                  >
+                    <Overall value={carOverall(entry.chassis, entry.engine)} />
+                  </span>
                 </div>
                 {ghostCar === undefined ? null : (
                   <p className="text-subtle mt-1.5 text-xs">

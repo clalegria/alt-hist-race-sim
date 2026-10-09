@@ -70,8 +70,8 @@ The stripes follow the badge's rule: `1` and `2` take the accents only as far as
 `badgeStripes` allows, and otherwise fall back to the primary, so a car never shows an
 accent that its badge hides. The helmet always wears the first accent.
 
-**This is the one place a livery is drawn as authored**, not pulled toward the theme
-(`web-liveries.md`). It is a picture of a car, and a near-black outline, the same colour
+**The livery is drawn as authored**, as the badge and the grid card's corner are, not
+pulled toward the theme as a chart's line is (`web-liveries.md`). It is a picture of a car, and a near-black outline, the same colour
 in both themes, is what keeps a white car visible on the light theme and a black one
 visible on the dark card.
 

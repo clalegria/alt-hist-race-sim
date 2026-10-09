@@ -82,8 +82,7 @@ Three more what-ifs for the settings dialog, and the grid editor's missing half.
 Both palettes looked at with the author's eye on real screens (`pnpm screenshots`), not
 a token nudged in passing (`web-styling.md`).
 
-- **Dark still clashes**, and the team cards' livery-tinted colours (`web-liveries.md`)
-  do not sit well in either theme.
+- **Dark still clashes.**
 - **The checkered background is too faint in light** to see on a TV. Light is otherwise
   the better balanced of the two.
 

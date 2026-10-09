@@ -21,9 +21,10 @@ component state rather than the store is `.claude/rules/web-store.md`.
   through it. Its header is `CardHeader` with `flex-row` overriding the default
   `flex-col` through `cn`, which keeps the sort switch and the Edit/Apply buttons
   opposite the title rather than stacked under the description. The **team tiles inside
-  stay `bg-card` on a `bg-card` panel**, drawn by their borders and liveries and not by
-  a fill step — the qualifying grid nests the same way, and it is the case
-  `.claude/rules/web-styling.md` means when it says the border draws the panel on dark.
+  stay `bg-card` on a `bg-card` panel**, each headed by a `card-header` band with its
+  corner sash (`web-liveries.md`), drawn by their borders and not by a fill step — the
+  qualifying grid nests the same way, and it is the case `.claude/rules/web-styling.md`
+  means when it says the border draws the panel on dark.
 
 - **The grid opens closed.** Teams and drivers with a flag, an age and one overall
   rating; the individual ratings live behind a popover, and teams are listed
@@ -134,10 +135,11 @@ component state rather than the store is `.claude/rules/web-store.md`.
   *not* the `lib/highlight.ts` accent: "the grid was changed" is a caveat on a result,
   not something that was won, and borrowing the accent would also break the test that
   counts exactly two accented cards per summary. A driver who is not where history put
-  them carries the same soft fill (`SWAPPED_IN`) in the grid, and so does the header of
+  them carries the same soft fill (`SWAPPED_IN`) in the grid, and so does the name of
   a team running an engine it was not given, so the note and the cards agree without the
-  reader matching names; a re-rated chassis marks the header the same way. The summary
-  declares it **twice** — `EditedGridBanner` above the champions, because finding out
+  reader matching names; a re-rated chassis marks it the same way. The name sits on a
+  `bg-card` plate in the header band for this, so the fill is exactly a moved row's. The
+  summary declares it **twice** — `EditedGridBanner` above the champions, because finding out
   at the foot of the page is too late, and the full list on the grid at the end.
   **Every kind of change shares one notice**, in `GridChanges`: one row per team, "Alain
   Prost for Jody Scheckter", "Renault engine for Ferrari" and the chassis on the same

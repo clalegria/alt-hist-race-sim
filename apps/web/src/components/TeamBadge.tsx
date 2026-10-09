@@ -57,20 +57,69 @@ const ANGLE = "135deg";
  * rendered `style` attribute means parsing a string out of the markup.
  */
 export function badgeBackground(livery: Livery): string {
+  return sash(livery, ANGLE, CENTRE);
+}
+
+/**
+ * The primary colour with the stripes across it, along `angle`, centred at
+ * `centre` percent of the axis. One rule for the badge and the card corner.
+ */
+function sash(livery: Livery, angle: string, centre: number): string {
   const { primaryColor, secondaryColor1, secondaryColor2, badgeStripes } = livery;
+  const from = centre - HALF_WIDTH;
+  const to = centre + HALF_WIDTH;
   if (badgeStripes === 1) {
-    const from = CENTRE - HALF_WIDTH;
-    const to = CENTRE + HALF_WIDTH;
-    return `linear-gradient(${ANGLE}, ${primaryColor} ${from}%, ${secondaryColor1} ${from}%, ${secondaryColor1} ${to}%, ${primaryColor} ${to}%)`;
+    return `linear-gradient(${angle}, ${primaryColor} ${from}%, ${secondaryColor1} ${from}%, ${secondaryColor1} ${to}%, ${primaryColor} ${to}%)`;
   }
   if (badgeStripes >= 2) {
-    const from = CENTRE - HALF_WIDTH;
-    const to = CENTRE + HALF_WIDTH;
-    return `linear-gradient(${ANGLE}, ${primaryColor} ${from}%, ${secondaryColor1} ${from}%, ${secondaryColor1} ${CENTRE}%, ${secondaryColor2} ${CENTRE}%, ${secondaryColor2} ${to}%, ${primaryColor} ${to}%)`;
+    return `linear-gradient(${angle}, ${primaryColor} ${from}%, ${secondaryColor1} ${from}%, ${secondaryColor1} ${centre}%, ${secondaryColor2} ${centre}%, ${secondaryColor2} ${to}%, ${primaryColor} ${to}%)`;
   }
-  // 0 stripes is a plain disc. The accents stay authored and are simply not
+  // 0 stripes is plain primary. The accents stay authored and are simply not
   // drawn here — they are still the team's colours everywhere else.
   return primaryColor;
+}
+
+/**
+ * The corner's sash runs up to the right, so its axis crosses the diagonal the
+ * corner is cut along; the corner is the far half of that axis, 50 to 100.
+ */
+const CORNER_ANGLE = "45deg";
+const CORNER_CENTRE = 72;
+
+/** A grid card's corner sash: the badge's, along the corner's axis. */
+export function cornerBackground(livery: Livery): string {
+  return sash(livery, CORNER_ANGLE, CORNER_CENTRE);
+}
+
+/**
+ * The corner's shape: a triangle in the card's top-right, 72px on a side, filled
+ * in the card's own border colour. Exported so tests can count corners by it as
+ * they count badges by `BADGE_SHAPE`. The card clips it to its rounded corner.
+ */
+export const CORNER_SHAPE =
+  "bg-border pointer-events-none absolute top-0 right-0 size-18 [clip-path:polygon(0_0,100%_0,100%_100%)]";
+
+/**
+ * The sash inside it: the same triangle with its diagonal moved 1.5px in, so a
+ * line of the border colour about 1px wide shows along the cut, touching the
+ * sash. That line is what draws the corner when the livery matches the card, as
+ * a white one does on the light theme. Two clipped shapes rather than a gradient
+ * line, because both edges then anti-alias the same way and nothing shows
+ * between them.
+ */
+export const CORNER_SASH =
+  "absolute inset-0 [clip-path:polygon(1.5px_0,100%_0,100%_calc(100%-1.5px))]";
+
+/**
+ * A team's colours in the top-right corner of its grid card. Decorative, like
+ * the badge: the team is named on the card.
+ */
+export function LiveryCorner({ livery }: { livery: Livery }) {
+  return (
+    <span aria-hidden="true" className={CORNER_SHAPE}>
+      <span className={CORNER_SASH} style={{ background: cornerBackground(livery) }} />
+    </span>
+  );
 }
 
 /**

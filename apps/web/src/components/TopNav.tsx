@@ -60,21 +60,25 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
   );
 }
 
+/** The flag's two colours, the favicon's: the dark theme's teal and its near-white. */
+const FLAG = { teal: "#48b7c0", white: "#f5f3f0" } as const;
+
 /**
- * The Home link's mark: a 4×4 chequered flag, one path per colour, drawn in the
- * theme's primary and foreground so it follows the theme. `crispEdges` keeps each
- * square sharp, as `TeamCar` does for its pixels; at `size-3` a square is 3px.
- * Decorative, so the link's name is just "Home".
+ * The Home link's mark: a 4×4 chequered flag, one path per colour, in the same
+ * teal and white in both themes, the favicon's (`index.html`). It is the app's
+ * mark, so it does not follow the theme. `crispEdges` keeps each square sharp, as
+ * `TeamCar` does for its pixels; at `size-3` a square is 3px. Decorative, so the
+ * link's name is just "Home".
  */
 function ChequeredFlag() {
   return (
     <svg aria-hidden="true" viewBox="0 0 4 4" shapeRendering="crispEdges" className="size-3">
       <path
-        className="fill-primary"
+        fill={FLAG.teal}
         d="M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z"
       />
       <path
-        className="fill-foreground"
+        fill={FLAG.white}
         d="M1 0h1v1H1zM3 0h1v1H3zM0 1h1v1H0zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM0 3h1v1H0zM2 3h1v1H2z"
       />
     </svg>

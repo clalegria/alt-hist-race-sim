@@ -26,7 +26,7 @@ import { useLivery, useSeasonYear } from "./Liveries.js";
  * wheels — including switching them off for a reader who has asked their
  * system for reduced motion (`motion-safe:`).
  *
- * The livery is used as authored, not pulled toward the theme as a card's wash
+ * The livery is used as authored, not pulled toward the theme as a chart's line
  * is (`.claude/rules/web-liveries.md`): this is a picture of the car, and every
  * pixel of it sits inside a near-black outline, which is what keeps a white car
  * visible on the light theme. The outline is one colour in both themes; dark

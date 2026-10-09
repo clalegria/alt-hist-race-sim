@@ -16,7 +16,7 @@ How a livery reaches the page. What a livery *is* and how a team's eras are inde
 default `primaryColor` / `secondaryColor1` / `secondaryColor2` / `badgeStripes` in
 `teams.json`; a season's entry may override all four, never some — `validateSeedData`
 rejects a partial override rather than merging one. `lib/livery.ts` is the only place
-that rule is applied, so a badge, a card outline and whatever uses colour next cannot
+that rule is applied, so a badge, a card's corner and whatever uses colour next cannot
 disagree about what a team looks like in a given year. It sits beside `names.ts` rather
 than in `@alt-hist/data` because **nothing in the engine reads a livery** — this is
 display, like `entryName` is.
@@ -88,35 +88,33 @@ is the marker, the same way `NAME_TARGET` is in `SeasonGrid`.
 together, a call site that overrode the size through `className` lost the marker to
 tailwind-merge's conflict resolution, and every badge count silently stopped seeing it.
 
-## A team colour never reaches a surface as authored
+## The grid card's corner
 
-**Team colours are mixed against theme tokens, never used raw on a surface.** A livery is
-authored against a racing car, not against this palette, so any colour in it can collide
-with whichever background the reader is on. `cardTint` mixes toward `--color-card` and
-`cardOutline` pulls the accent a fixed distance toward `--color-foreground` — by
-definition the far end of the live theme from its background — so both follow a
-light/dark switch with no JavaScript and no per-theme branch. Keep the mix percentages
-off 100%: at full strength the mix is the raw colour again and the guarantee is gone
-silently, which is why a test asserts it. The one exception is the team car: a
-picture of a car rather than a surface, kept visible by its outline instead
-(`web-team-car.md`).
+**A grid card wears its team's sash in its top-right corner** (`LiveryCorner` in
+`TeamBadge.tsx`), over the tile's header band. It is the badge's own rule (`sash`) laid
+along a 45° axis, so a corner shows exactly the stripes the badge does. Like the badge
+and the car it is **the livery as authored**, a picture of the team's colours rather
+than a surface. It is two clipped triangles, 72px on a side: `CORNER_SHAPE` filled in
+`--color-border`, the card outline's colour, and inside it `CORNER_SASH`, the same
+triangle with its diagonal moved 1.5px in. So a ~1px line of the border colour runs
+along the cut, touching the sash; it is what draws the corner when the livery matches
+the card. **Not a gradient line**: drawn as a hard stop at the clip edge, the two
+anti-alias differently and leave a 1px gap. The overall chip sits over the sash on a
+`bg-card` plate ringed in the border colour, since the chip's own fills are tints.
+Corners are counted by `CORNER_SHAPE`, as badges are by `BADGE_SHAPE`.
 
-Mixing a colour toward a surface it already matches produces no wash at all: white teams
-looked ungradiented on the light theme and near-black ones on the dark theme, both
-reading as a card that had missed its background. Every team colour therefore goes
-through `legible()` — a fixed pull toward `--color-foreground` — before it is used for
-anything, the wash included. That is the same one mechanism the outline uses; there is
-not a second idea here.
+## A team colour drawn as a line goes through `legible()`
+
+A livery is authored against a racing car, not against this palette, so a team colour
+drawn as a line on a theme surface (the standings charts) can vanish: white on the light
+theme, near-black on the dark. `legible()` pulls it a fixed distance toward
+`--color-foreground`, by definition the far end of the live theme from its background, so
+it follows a light/dark switch with no JavaScript and no per-theme branch. Keep the mix
+off 100%: at full strength it is the raw colour again and the guarantee is gone silently,
+which is why a test asserts it.
 
 **Do not reach for `oklch(from ...)` to do this.** Clamping the lightness into a band is
 more precise, keeps chroma and hue intact, and was tried — but relative colour syntax is
 newer than everything else this app relies on, and where it is missing the whole
-declaration is invalid and the wash silently disappears. That is indistinguishable from
-the bug it was meant to fix, and it shipped that way once. A test asserts the string
+declaration is invalid and the colour silently disappears. A test asserts the string
 contains no `oklch(from`. `color-mix` is the same baseline as the rest of the app.
-
-**The grid's card is washed, not ringed**, and is still an experiment rather than a
-convention: a diagonal gradient from the team's primary colour back to the plain card
-surface, outlined in the first accent. The first attempt — a thick primary border with a
-thin accent ring — put raw team colours straight onto the page, and a white outline was
-simply invisible on the light theme.

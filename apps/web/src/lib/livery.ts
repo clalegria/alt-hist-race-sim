@@ -6,7 +6,7 @@
  * where a livery normally comes from. A season's entry may still override the
  * era for that one year, all four fields or none, for a car that was
  * deliberately unlike the seasons either side of it. This module is the one
- * place both are applied, so a badge, a card outline and whatever uses colour
+ * place both are applied, so a badge, a card's corner and whatever uses colour
  * next cannot disagree about what a team looks like in a given year.
  *
  * Display only. Nothing in the engine reads a livery, and nothing here feeds
@@ -97,21 +97,14 @@ export function liveryFor(teamId: string, year?: number): Livery | undefined {
 }
 
 /**
- * How far a card's wash travels from the card colour toward the team's, as a
- * percentage. Bigger than it first was: the wash has to survive being laid over
- * a surface it is only tinting, and 18 was low enough to read as absent.
- */
-const TINT = 32;
-
-/**
  * How far a team colour is pulled toward the theme's own foreground before it
  * is used on anything.
  *
- * This is the whole anti-clash mechanism, and it is used for **both** the wash
- * and the outline. A livery is authored against a racing car, not against this
- * palette, so any colour in it can land on top of whichever background the
- * reader is using — white vanished on the light theme, near-black would on the
- * dark one. `--color-foreground` is by definition the far end of the live theme
+ * This is the anti-clash mechanism for a team colour drawn as a line on the
+ * page's own surfaces (the standings charts). A livery is authored against a
+ * racing car, not against this palette, so any colour in it can land on top of
+ * whichever background the reader is using — white vanishes on the light
+ * theme, near-black on the dark one. `--color-foreground` is by definition the far end of the live theme
  * from its background, so pulling every team colour a fixed distance toward it
  * guarantees separation in both themes, with no JavaScript and no per-theme
  * branch.
@@ -119,7 +112,7 @@ const TINT = 32;
  * The obvious alternative — clamping the colour's lightness into a band with
  * `oklch(from ...)` — is more precise and was tried. It needs relative colour
  * syntax, which is newer than everything else here relies on; where that is
- * missing the whole declaration is invalid and the wash silently disappears,
+ * missing the whole declaration is invalid and the colour silently disappears,
  * which is how it shipped once. `color-mix` is the same baseline as the rest of
  * the app and is already proven in it.
  */
@@ -133,32 +126,11 @@ const CONTRAST_PULL = 28;
  * price of having no way to ask, in CSS, how close a colour is to the surface
  * it is about to sit on.
  *
- * Exported because the standings charts need it too: a line drawn in a raw
- * livery is the same white-on-white problem the team cards had, and there is
- * not a second mechanism for it. A chart cannot pass this string to an SVG
+ * Used by the standings charts, where a line drawn in a raw livery would be
+ * white on white. A chart cannot pass this string to an SVG
  * `stroke` attribute, though — see `StandingsEvolution.tsx` for why it travels
  * as a custom property instead.
  */
 export function legible(color: string): string {
   return `color-mix(in oklab, ${color} ${100 - CONTRAST_PULL}%, var(--color-foreground))`;
-}
-
-/**
- * A card's background: a diagonal wash from the team's primary colour back to
- * the plain card surface.
- *
- * Mixed against `--color-card` rather than laid on as a translucent overlay, so
- * the tint is computed from whichever theme is live — an `rgba` overlay would
- * lighten on dark and do nothing at all on light for a white primary. The
- * primary goes through `legible` first for the same reason: mixing a colour
- * toward a surface it already matches produces no wash whatsoever, which is
- * what made white teams look ungradiented on the light theme.
- */
-export function cardTint(livery: Livery): string {
-  return `linear-gradient(135deg, color-mix(in oklab, var(--color-card) ${100 - TINT}%, ${legible(livery.primaryColor)}) 0%, var(--color-card) 100%)`;
-}
-
-/** A card's outline: the first accent, pulled far enough to stay visible. */
-export function cardOutline(livery: Livery): string {
-  return legible(livery.secondaryColor1);
 }

@@ -13,16 +13,24 @@ import { seasonSeed, seasons, teamLiveryIn, teamsById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardOutline, cardTint, liveryFor } from "../lib/livery.js";
+import { legible, liveryFor } from "../lib/livery.js";
 import type { SeasonTab } from "../lib/season-tabs.js";
-import { SEED, seededWorld, shownAt, teamCount, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { NAME_TARGET, SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
-import { BADGE_SHAPE, badgeBackground, TeamBadge } from "./TeamBadge.js";
+import {
+  BADGE_SHAPE,
+  badgeBackground,
+  CORNER_SASH,
+  CORNER_SHAPE,
+  cornerBackground,
+  LiveryCorner,
+  TeamBadge,
+} from "./TeamBadge.js";
 
 /** A livery whose four values are distinguishable in a gradient string. */
 function livery(badgeStripes: number): Livery {
@@ -242,15 +250,15 @@ describe("where liveries appear", () => {
     expect(grid).not.toContain("row-reverse");
   });
 
-  it("washes every grid card toward its team's primary colour", () => {
-    const cards = teamCount(world);
-    expect(grid.split("background-image:").length - 1).toBe(cards);
+  it("puts its team's sash in the corner of every grid card", () => {
+    // Counted off the field, like the badges: one corner per card with colours.
+    expect(grid.split(CORNER_SHAPE).length - 1).toBe(badgedCards);
     for (const entrant of world.field) {
       const resolved = liveryFor(entrant.teamId, YEAR);
       if (resolved === undefined) {
         continue;
       }
-      expect(grid, entrant.teamId).toContain(resolved.primaryColor);
+      expect(grid, entrant.teamId).toContain(`background:${cornerBackground(resolved)}`);
     }
   });
 
@@ -284,18 +292,6 @@ describe("where liveries appear", () => {
     expect(badgeCount(summaryTab("standings"))).toBe(2 + drivers + teams);
     expect(badgeCount(summaryTab("calendar"))).toBe(2 + 2 * rounds);
     expect(badgeCount(summaryTab("grid"))).toBe(2 + badgedCards);
-  });
-
-  it("outlines every grid card in its team's first accent", () => {
-    const cards = teamCount(world);
-    expect(grid.split("border-color:").length - 1).toBe(cards);
-    for (const entrant of world.field) {
-      const resolved = liveryFor(entrant.teamId, YEAR);
-      if (resolved === undefined) {
-        continue;
-      }
-      expect(grid, entrant.teamId).toContain(resolved.secondaryColor1);
-    }
   });
 });
 
@@ -350,82 +346,60 @@ describe("keeping badges out of what a click opens", () => {
   });
 });
 
-describe("keeping team colours off the theme", () => {
-  // The mechanism, not the numbers: both the wash and the outline are mixed
-  // against a *theme variable* rather than baked, which is what lets them
-  // follow a light/dark switch instead of being computed for one of them.
-  const white: Livery = {
-    primaryColor: "#FFFFFF",
-    secondaryColor1: "#FFFFFF",
-    secondaryColor2: "#FFFFFF",
-    badgeStripes: 0,
-  };
-
-  const black: Livery = {
-    primaryColor: "#000000",
-    secondaryColor1: "#000000",
-    secondaryColor2: "#000000",
-    badgeStripes: 0,
-  };
-
-  it("never washes a card with the team colour as authored", () => {
-    // The bug this replaced: mixing a colour toward a surface it already
-    // matches produces no wash at all — white teams looked ungradiented on the
-    // light theme, near-black ones on the dark theme. Every team colour has to
-    // go through the foreground pull before it reaches a surface, so the raw
-    // value must never appear as a colour stop in its own right.
-    for (const [colour, tinted] of [
-      ["#FFFFFF", cardTint(white)],
-      ["#000000", cardTint(black)],
-    ] as const) {
-      expect([...tinted.matchAll(new RegExp(colour, "g"))]).toHaveLength(1);
-      expect(tinted).toContain(`${colour} ${100 - 28}%, var(--color-foreground)`);
+describe("the grid card's corner", () => {
+  it("draws the badge's sash, with the same stripes", () => {
+    // The badge's rule, along the corner's axis: every colour the badge shows,
+    // and no accent it hides.
+    for (const stripes of [0, 1, 2]) {
+      const corner = cornerBackground(livery(stripes));
+      for (const [colour] of stops(badgeBackground(livery(stripes)))) {
+        expect(corner).toContain(colour);
+      }
+      expect(corner.includes("#222222")).toBe(stripes >= 1);
+      expect(corner.includes("#333333")).toBe(stripes >= 2);
     }
+  });
+
+  it("edges the corner in the card's own border colour, even when it matches the card", () => {
+    // A white sash on the light theme's white card is drawn by this line alone.
+    const white: Livery = {
+      primaryColor: "#FFFFFF",
+      secondaryColor1: "#FFFFFF",
+      secondaryColor2: "#FFFFFF",
+      badgeStripes: 0,
+    };
+    const html = renderToStaticMarkup(<LiveryCorner livery={white} />);
+    // The triangle is filled with the border colour, and the sash sits inside it.
+    expect(CORNER_SHAPE).toContain("bg-border");
+    expect(html.indexOf(CORNER_SASH)).toBeGreaterThan(html.indexOf(CORNER_SHAPE));
+    expect(html.endsWith("</span></span>")).toBe(true);
+    // Its diagonal moved in, so a line of the border colour shows along the cut.
+    const inset = Number(/polygon\(([\d.]+)px_0/.exec(CORNER_SASH)?.[1]);
+    expect(inset).toBeGreaterThan(0);
+  });
+});
+
+describe("a team colour drawn as a line", () => {
+  // The mechanism, not the numbers: the pull is toward a *theme variable*
+  // rather than a baked colour, which is what lets it follow a light/dark switch.
+  it("pulls toward the theme's foreground so it cannot vanish", () => {
+    const line = legible("#FFFFFF");
+    expect(line).toContain("var(--color-foreground)");
+    expect(line).toContain("#FFFFFF");
   });
 
   it("uses only CSS the rest of the app already relies on", () => {
-    // Relative colour syntax (`oklch(from ...)`) clamped the lightness more
-    // precisely and shipped once, but it is newer than this app's baseline:
-    // where it is missing the whole declaration is invalid and the wash simply
-    // vanishes, which is indistinguishable from the bug above.
-    for (const value of [cardTint(white), cardOutline(white)]) {
-      expect(value).not.toContain("oklch(from");
-      expect(value).toContain("color-mix(");
-    }
+    // Relative colour syntax (`oklch(from ...)`) shipped once and is newer than
+    // this app's baseline: where it is missing the declaration is invalid and
+    // the colour silently vanishes.
+    expect(legible("#FFFFFF")).not.toContain("oklch(from");
+    expect(legible("#FFFFFF")).toContain("color-mix(");
   });
 
-  it("mixes a card's wash against the card colour, not a fixed one", () => {
-    // The token has to be inside the `color-mix`, not merely somewhere in the
-    // gradient: the wash ends on `var(--color-card)` regardless, so a plain
-    // `toContain` stayed green when the mix itself was baked to a hex value.
-    expect(cardTint(white)).toMatch(/color-mix\([^)]*var\(--color-card\)/);
-    expect(cardTint(white)).toContain("#FFFFFF");
-  });
-
-  it("pulls an outline toward the theme's foreground so it cannot vanish", () => {
-    // A white outline was invisible on the light theme. `--color-foreground` is
-    // the far end of whichever theme is live, so mixing toward it separates the
-    // outline from the card in both.
-    const outline = cardOutline(white);
-    expect(outline).toContain("var(--color-foreground)");
-    expect(outline).toContain("#FFFFFF");
-    expect(outline).not.toBe("#FFFFFF");
-  });
-
-  it("leaves neither colour at full strength", () => {
-    // At 100% a mix is the raw team colour again and the guarantee is gone,
-    // silently. Read off the mixes themselves rather than the whole string: the
-    // wash legitimately ends on a `100%` gradient stop, which is a position and
-    // not a share, and matching that made this test pass by accident.
-    for (const mixed of [cardTint(white), cardOutline(white)]) {
-      const shares = [...mixed.matchAll(/color-mix\(in oklab, [^,]+? (\d+)%/g)].map((match) =>
-        Number(match[1]),
-      );
-      expect(shares.length).toBeGreaterThan(0);
-      for (const share of shares) {
-        expect(share).toBeGreaterThan(0);
-        expect(share).toBeLessThan(100);
-      }
-    }
+  it("never leaves the team colour at full strength", () => {
+    // At 100% the mix is the raw colour again and the guarantee is gone, silently.
+    const share = Number(/color-mix\(in oklab, [^,]+? (\d+)%/.exec(legible("#FFFFFF"))?.[1]);
+    expect(share).toBeGreaterThan(0);
+    expect(share).toBeLessThan(100);
   });
 });

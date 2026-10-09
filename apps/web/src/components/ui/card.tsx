@@ -16,7 +16,10 @@ export function Card({ className, ...props }: ComponentProps<"section">) {
 export function CardHeader({ className, ...props }: ComponentProps<"header">) {
   return (
     <header
-      className={cn("border-border flex flex-col gap-1 border-b px-5 py-4", className)}
+      className={cn(
+        "bg-card-header border-border flex flex-col gap-1 border-b px-5 py-4",
+        className,
+      )}
       {...props}
     />
   );

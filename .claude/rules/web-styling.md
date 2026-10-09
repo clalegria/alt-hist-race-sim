@@ -24,8 +24,16 @@ away: `--color-destructive` (the confirm button of `RunConfirmDialog`, through B
 `destructive` variant, and any future error or warning) and `--color-loss` (places
 lost, a retirement's status). The teal is held to moderate chroma because it sits
 between gain green (148) and wet blue (250) and must read as neither. Every primary and
-destructive value clears 4.5:1 both under its foreground and as text on the card, in
-both themes; measure a new value against both before using it.
+destructive value clears 4.5:1 both under its foreground and as text on the card and
+the header, in both themes; measure a new value against all three before using it.
+
+**Headers are darker than what they head.** `--color-card-header` is the band at the
+top of a card or a table, a step below `--color-card`: grey over white in light, a
+darker charcoal over a lighter one in dark. `CardHeader` and `TableHeader` in
+`components/ui/` carry it, and so does a grid tile's top row (`SeasonGrid`), so every
+header in the app gets it from one place; never hand-roll a header fill. The dim text
+tokens and the reds are set to hold 4.5:1 on both surfaces. Light `accent` (the hover
+fill) sits below the header too, or a name's hover would vanish on it.
 
 **Theme is chosen, not inherited.** Dark is the default and lives in plain `@theme`,
 so it needs no attribute and survives a page with JavaScript disabled. Light is an
@@ -48,21 +56,20 @@ in `biome.json`.
 
 ## Two rules the dark palette is built on
 
-**Dark's floor is 20.5%, not the near-black it started at.** Below roughly 20%
-lightness the neutrals stop separating from each other: background, card and muted
-sat 1.08:1 and 1.21:1 apart, which is not a step anybody sees, so a card was drawn
-entirely by its border and the page read as one flat unlit sheet. Lifting the floor
-trades a little text contrast for elevation that is actually visible, and `border`
-was raised further still (now ~1.5:1 against card) because on a dark theme it is the
-border, not the fill, that draws a panel. If a surface needs to read as raised,
-raise `border` before reaching further down into `background`.
+**Dark is a mid charcoal, not near-black.** Below roughly 20% lightness the neutrals
+stop separating from each other, so a card is drawn entirely by its border and the page
+reads as one flat unlit sheet. The ladder (background, header, card, muted, accent,
+border) moves together and keeps its steps, listed in `index.css`. `border` sits
+furthest above the card (~1.6:1) because on a dark theme it is the border, not the fill,
+that draws a panel. If a surface needs to read as raised, raise `border` before reaching
+further down into `background`.
 
 **Never fade text with an opacity modifier.** `text-muted-foreground/50` measures
 2.5:1 against the card — not the ~3.1 that halving a 6.2:1 colour suggests, because
 CSS composites alpha in gamma space, and the shortfall is invisible in the source.
 That class was on a good fraction of every table (drivers on zero points, retired
 cars, unselected ratings). De-emphasised text uses `--color-subtle` instead, a real
-token with a floor of ~4.8:1 on card in dark and ~4.4:1 in light. Opacity modifiers
+token with a floor of 4.5:1 on both card and header, in both themes. Opacity modifiers
 are fine on *fills* — `bg-muted/60`, `bg-primary/10` — where nothing has to be read
 through them.
 
