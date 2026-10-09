@@ -4,7 +4,7 @@ import { SettingNote, SettingSegments } from "./SettingSegments.js";
 /**
  * Whether teams are named as they were each year, or each keeps the name — and
  * with it the base — of its first season in the run. Era only: a single season
- * has no later year to rename in. The livery still follows history.
+ * has no later year to rename in. The livery is its own setting (`LiveriesSetting`).
  */
 export function TeamNamesSetting({
   teamNames,
@@ -35,10 +35,7 @@ export function TeamNamesSetting({
         ]}
       />
       {teamNames === null ? null : (
-        <SettingNote>
-          Each team keeps the name and flag of its first season in the run. Its colours still change
-          as they really did.
-        </SettingNote>
+        <SettingNote>Each team keeps the name and flag of its first season in the run.</SettingNote>
       )}
     </div>
   );

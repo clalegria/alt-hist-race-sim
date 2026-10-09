@@ -25,6 +25,7 @@ import {
   pointsTables,
   type RunSettings,
   rolledChassisOf,
+  rolledEnginesOf,
   samePoints,
 } from "../lib/run-settings.js";
 import { adjacentSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
@@ -585,6 +586,36 @@ describe("career events and team names in a standalone season", () => {
     expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
     useSeasonStore.getState().startSeason(YEAR, undefined, eraOnly);
     expect(running().world).toMatchObject({ settings: dropped, namesKeptFrom: null });
+  });
+
+  it("drop kept liveries and engine suppliers too, which only an era offers", () => {
+    const kept = { ...HISTORICAL_SETTINGS, liveries: "first", engineSuppliers: "first" } as const;
+    useSeasonStore.getState().simulate(3, YEAR, "aged", undefined, kept);
+    expect(running().world).toMatchObject({
+      settings: HISTORICAL_SETTINGS,
+      liveriesKeptFrom: null,
+      enginesKeptFrom: null,
+    });
+  });
+});
+
+describe("engine performance in a standalone season", () => {
+  it("varies off the real engine when the era's walk is asked for", () => {
+    const walk = {
+      ...HISTORICAL_SETTINGS,
+      enginePerformance: { kind: "varied", spread: 10, from: "last" },
+    } as const;
+    const real = {
+      ...walk,
+      enginePerformance: { ...walk.enginePerformance, from: "real" },
+    } as const;
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, walk);
+    const world = running().world;
+    expect(world).toMatchObject({ settings: real, engineWalkedFrom: null });
+    expect(world.baselineEngineRatings).not.toBeNull();
+    expect(world.baselineEngineRatings).toEqual(
+      rolledEnginesOf(seasonSeed(world.year), real, world.seed),
+    );
   });
 });
 

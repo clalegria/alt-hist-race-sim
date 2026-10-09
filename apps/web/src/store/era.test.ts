@@ -17,8 +17,8 @@ import {
   driversById,
   FIRST_AUTHORED_SEASON,
   filledLineup,
+  firstYearInRun,
   type GridArrangement,
-  identityYear,
   seasonSeed,
   stepChassis,
   teamIdentityIn,
@@ -651,7 +651,7 @@ describe("team names kept for an era", () => {
         expect(entrant.teamCountry, `${year.year} ${entrant.teamId}`).toBe(
           team === undefined
             ? undefined
-            : teamIdentityIn(team, identityYear(team.id, year.year, YEAR)).base,
+            : teamIdentityIn(team, firstYearInRun(team.id, year.year, YEAR)).base,
         );
       }
     }

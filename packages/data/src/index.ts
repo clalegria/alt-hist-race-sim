@@ -54,6 +54,7 @@ export {
   type ChassisChange,
   canStepChassis,
   chassisChanges,
+  clamped,
   isAuthoredChassis,
   randomChassis,
   type SeasonChassis,
@@ -61,17 +62,32 @@ export {
   variedChassis,
 } from "./chassis.js";
 export {
+  flatTrends,
+  randomTrends,
+  type SeasonTrends,
+  withTrends,
+} from "./development.js";
+export {
+  applyEngineRatings,
   applyEngines,
+  authoredEngineRatings,
   authoredEngines,
   availableEngines,
+  ENGINE_KEYS,
   type EngineChange,
   engineChanges,
   engineSpecOf,
   isAuthoredEngines,
+  latestEngineSpec,
+  randomEngines,
+  type SeasonEngineRatings,
   type SeasonEngines,
+  type SeasonHistory,
+  variedEngines,
+  withFirstEngines,
 } from "./engines.js";
 export { eraAt, teamIdentityIn, teamLiveryIn } from "./eras.js";
-export { identityYear } from "./identity.js";
+export { firstYearInRun } from "./identity.js";
 export {
   type EmptySeatRules,
   fillSeats,

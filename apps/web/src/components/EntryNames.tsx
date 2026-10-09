@@ -25,7 +25,7 @@
  * team name and team flag on screen goes through `useNameYear`.
  */
 
-import { identityYear } from "@alt-hist/data";
+import { firstYearInRun } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { entryName, teamCountry, teamName } from "../lib/names.js";
@@ -52,13 +52,14 @@ export function KeptNames({ from, children }: { from: number | null; children: R
  * itself, or under kept names the team's first season in the run. An undefined
  * year — no season in hand — stays undefined, the team's most recent name.
  *
- * For a name or a flag only: the livery and the car's shape follow the season.
+ * For a name or a flag only: the livery has its own setting (`useLiveryYear`), and
+ * the car's shape follows the season.
  */
 export function useNameYear(): (teamId: string, year?: number) => number | undefined {
   const from = useContext(KeptFrom);
   return useCallback(
     (teamId: string, year?: number) =>
-      year === undefined ? undefined : identityYear(teamId, year, from),
+      year === undefined ? undefined : firstYearInRun(teamId, year, from),
     [from],
   );
 }

@@ -14,7 +14,7 @@ import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
 import { driverPoolOf } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
-import { enteredSeason, seasonSeed } from "../lib/seasons.js";
+import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { EDITING_LOCK } from "../lib/settings-lock.js";
 import { positionsOf } from "../lib/standings.js";
@@ -355,7 +355,8 @@ function SeasonBody({
           engines={world.engines}
           chassis={world.chassis}
           baselineChassis={world.baselineChassis}
-          runSeason={world.kept === null ? null : enteredSeason(world)}
+          historicalEngines={historicalEngineRatings(world)}
+          runSeason={enteredSeason(world)}
           kept={keptNotes(world)}
           arrangement={world.arrangement}
           inEra={inEra}

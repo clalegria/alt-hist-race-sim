@@ -9,7 +9,7 @@
  * same reason `lib/rating.test.ts` invents its drivers.
  */
 
-import { identityYear, seasonSeed } from "@alt-hist/data";
+import { firstYearInRun, seasonSeed } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { createWorld, type World } from "../store/season.js";
@@ -331,7 +331,7 @@ describe("the names a career was raced under", () => {
     const window = renamedBackWindow();
     const from = window[0] ?? 0;
     const run = window.map((year, index) => createWorld(index + 1, year));
-    const kept = (id: string, year: number) => teamName(id, identityYear(id, year, from));
+    const kept = (id: string, year: number) => teamName(id, firstYearInRun(id, year, from));
     expect(careerRecords(run).teams.some((record) => record.spells.length > 1)).toBe(true);
     for (const record of careerRecords(run, kept).teams) {
       expect(

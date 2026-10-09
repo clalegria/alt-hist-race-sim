@@ -7,8 +7,12 @@ import {
   AGE_RANGE,
   drivers,
   driversWithoutCareerEvents,
+  flatTrends,
   randomChassis,
+  randomEngines,
+  randomTrends,
   variedChassis,
+  variedEngines,
 } from "@alt-hist/data";
 import { createRng, deriveSeed } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
@@ -17,7 +21,10 @@ import {
   CAR_PERFORMANCE_STREAM,
   CAR_VARIATION_BASES,
   CAR_VARIATION_SPREADS,
+  DEVELOPMENT_STREAM,
   driverPoolOf,
+  ENGINE_PERFORMANCE_STREAM,
+  enginesWalkFromLastYear,
   HISTORICAL_SETTINGS,
   historicalSettings,
   OPENING_SEAT_RULES,
@@ -25,11 +32,14 @@ import {
   pointsTableOf,
   pointsTables,
   pointsValues,
+  type RunSettings,
   rememberedAfterSeason,
   rolledChassisOf,
+  rolledEnginesOf,
   samePoints,
   seasonSettings,
   settingsInForce,
+  trendsOf,
   walksFromLastYear,
   whatIfsOf,
 } from "./run-settings.js";
@@ -110,6 +120,32 @@ describe("parsing stored settings", () => {
     expect(parseRunSettings(settings)).toEqual(settings);
   });
 
+  it("accepts Livery and Engine supplier changes: No, and both In-season development what-ifs", () => {
+    for (const settings of [
+      { ...HISTORICAL_SETTINGS, liveries: "first" },
+      { ...HISTORICAL_SETTINGS, engineSuppliers: "first" },
+      { ...HISTORICAL_SETTINGS, development: "random" },
+      { ...HISTORICAL_SETTINGS, development: "none" },
+    ]) {
+      expect(parseRunSettings(settings), JSON.stringify(settings)).toEqual(settings);
+    }
+  });
+
+  it("accepts Engine performance: Random, and Varied at every spread and base offered", () => {
+    expect(
+      parseRunSettings({ ...HISTORICAL_SETTINGS, enginePerformance: { kind: "random" } }),
+    ).not.toBeNull();
+    for (const spread of CAR_VARIATION_SPREADS) {
+      for (const from of CAR_VARIATION_BASES) {
+        const settings = {
+          ...HISTORICAL_SETTINGS,
+          enginePerformance: { kind: "varied", spread, from },
+        };
+        expect(parseRunSettings(settings)).toEqual(settings);
+      }
+    }
+  });
+
   it("accepts Teams and seats: Keep, under both fills, at any ages the range holds", () => {
     for (const teamsAndSeats of [
       OPENING_SEAT_RULES,
@@ -125,6 +161,13 @@ describe("parsing stored settings", () => {
   it("refuses anything else", () => {
     const table = pointsTables()[0]?.scale ?? [];
     const { teamsAndSeats: _new, ...beforeTeamsAndSeats } = HISTORICAL_SETTINGS;
+    const {
+      enginePerformance: _engines,
+      development: _development,
+      liveries: _liveries,
+      engineSuppliers: _suppliers,
+      ...beforeEngines
+    } = HISTORICAL_SETTINGS;
     const seats = (changes: Record<string, unknown>) => ({
       ...HISTORICAL_SETTINGS,
       teamsAndSeats: { ...OPENING_SEAT_RULES, ...changes },
@@ -181,6 +224,16 @@ describe("parsing stored settings", () => {
       seats({ maxAge: 40.5 }),
       seats({ activeOnly: "yes" }),
       seats({ activeOnly: undefined }),
+      // Settings from before Engine performance, In-season development, Livery
+      // and Engine supplier changes, and each answer misspelled.
+      beforeEngines,
+      { ...HISTORICAL_SETTINGS, enginePerformance: "random" },
+      { ...HISTORICAL_SETTINGS, enginePerformance: { kind: "varied", spread: 7, from: "real" } },
+      { ...HISTORICAL_SETTINGS, development: "historical" },
+      { ...HISTORICAL_SETTINGS, development: "off" },
+      { ...HISTORICAL_SETTINGS, liveries: "historical" },
+      { ...HISTORICAL_SETTINGS, liveries: true },
+      { ...HISTORICAL_SETTINGS, engineSuppliers: "last" },
     ];
     for (const raw of junk) {
       expect(parseRunSettings(raw), JSON.stringify(raw)).toBeNull();
@@ -221,6 +274,20 @@ describe("a standalone season's settings", () => {
     expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES })).toEqual(
       HISTORICAL_SETTINGS,
     );
+    for (const changes of [{ liveries: "first" }, { engineSuppliers: "first" }] as const) {
+      expect(seasonSettings({ ...HISTORICAL_SETTINGS, ...changes })).toEqual(HISTORICAL_SETTINGS);
+    }
+  });
+
+  it("varies an engine walk off the real engine too", () => {
+    const walk = {
+      ...HISTORICAL_SETTINGS,
+      enginePerformance: { kind: "varied", spread: 10, from: "last" },
+    } as const;
+    expect(seasonSettings(walk)).toEqual({
+      ...walk,
+      enginePerformance: { kind: "varied", spread: 10, from: "real" },
+    });
   });
 
   it("varies a walk from previous year's car off the real one, which a season has no year before for", () => {
@@ -240,6 +307,8 @@ describe("a standalone season's settings", () => {
       { ...HISTORICAL_SETTINGS, breakdowns: "fewer" },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 5, from: "real" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } },
+      { ...HISTORICAL_SETTINGS, enginePerformance: { kind: "random" } },
+      { ...HISTORICAL_SETTINGS, development: "random" },
     ] as const) {
       expect(seasonSettings(settings)).toBe(settings);
     }
@@ -249,11 +318,15 @@ describe("a standalone season's settings", () => {
 describe("restoring the defaults", () => {
   const whatIfs = {
     carPerformance: { kind: "varied", spread: 5, from: "last" },
+    enginePerformance: { kind: "varied", spread: 20, from: "last" },
+    development: "none",
     breakdowns: "fewer",
     reliability: FIRST_SEASON,
     points: [3, 2, 1],
     careerEvents: "none",
     teamNames: "first",
+    liveries: "first",
+    engineSuppliers: "first",
     teamsAndSeats: OPENING_SEAT_RULES,
   } as const;
 
@@ -266,6 +339,8 @@ describe("restoring the defaults", () => {
       ...HISTORICAL_SETTINGS,
       careerEvents: "none",
       teamNames: "first",
+      liveries: "first",
+      engineSuppliers: "first",
       teamsAndSeats: OPENING_SEAT_RULES,
     });
   });
@@ -346,6 +421,56 @@ describe("the cars a run races", () => {
   });
 });
 
+describe("the engines and trends a run races", () => {
+  const season = seasonSeed(PLAYABLE_SEASONS[0] ?? 0);
+  const engines = (enginePerformance: RunSettings["enginePerformance"]): RunSettings => ({
+    ...HISTORICAL_SETTINGS,
+    enginePerformance,
+  });
+
+  it("rolls no engines when Historical", () => {
+    expect(rolledEnginesOf(season, HISTORICAL_SETTINGS, 5)).toBeNull();
+  });
+
+  it("rolls each engine answer from its own stream, apart from the chassis' one", () => {
+    const stream = () => createRng(deriveSeed(5, ENGINE_PERFORMANCE_STREAM));
+    expect(ENGINE_PERFORMANCE_STREAM).not.toBe(CAR_PERFORMANCE_STREAM);
+    expect(rolledEnginesOf(season, engines({ kind: "random" }), 5)).toEqual(
+      randomEngines(season, stream()),
+    );
+    expect(
+      rolledEnginesOf(season, engines({ kind: "varied", spread: 20, from: "real" }), 5),
+    ).toEqual(variedEngines(season, 20, stream()));
+  });
+
+  it("walks off last year's engines only when Varied says so", () => {
+    const stream = () => createRng(deriveSeed(5, ENGINE_PERFORMANCE_STREAM));
+    const lastRaced = rolledEnginesOf(season, engines({ kind: "random" }), 9);
+    expect(
+      rolledEnginesOf(season, engines({ kind: "varied", spread: 10, from: "last" }), 5, lastRaced),
+    ).toEqual(variedEngines(season, 10, stream(), lastRaced));
+    expect(
+      rolledEnginesOf(season, engines({ kind: "varied", spread: 10, from: "real" }), 5, lastRaced),
+    ).toEqual(variedEngines(season, 10, stream()));
+    expect(enginesWalkFromLastYear(engines({ kind: "varied", spread: 5, from: "last" }))).toBe(
+      true,
+    );
+    expect(enginesWalkFromLastYear(engines({ kind: "varied", spread: 5, from: "real" }))).toBe(
+      false,
+    );
+  });
+
+  it("draws trends only under Random, on their own stream, and flattens them under Off", () => {
+    expect(trendsOf(season, HISTORICAL_SETTINGS, 5)).toBeNull();
+    expect(trendsOf(season, { ...HISTORICAL_SETTINGS, development: "none" }, 5)).toEqual(
+      flatTrends(season),
+    );
+    expect(trendsOf(season, { ...HISTORICAL_SETTINGS, development: "random" }, 5)).toEqual(
+      randomTrends(season, createRng(deriveSeed(5, DEVELOPMENT_STREAM))),
+    );
+  });
+});
+
 describe("the what-ifs a run states", () => {
   it("states nothing for a historical run", () => {
     expect(whatIfsOf(HISTORICAL_SETTINGS)).toEqual([]);
@@ -373,7 +498,7 @@ describe("the what-ifs a run states", () => {
     ]);
   });
 
-  it("names Car performance after the Races group and before the Drivers group", () => {
+  it("names Chassis performance after the Races group and before the Drivers group", () => {
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
@@ -381,21 +506,23 @@ describe("the what-ifs a run states", () => {
         carPerformance: { kind: "varied", spread: 10, from: "real" },
         careerEvents: "none",
       }).map((line) => line.name),
-    ).toEqual(["Mechanical failures", "Car performance", "Driver career events"]);
+    ).toEqual(["Mechanical failures", "Chassis performance", "Driver career events"]);
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
         carPerformance: { kind: "varied", spread: 10, from: "real" },
       }),
-    ).toEqual([{ name: "Car performance", value: "Random factor ±10" }]);
+    ).toEqual([{ name: "Chassis performance", value: "Random factor ±10" }]);
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
         carPerformance: { kind: "varied", spread: 10, from: "last" },
       }),
-    ).toEqual([{ name: "Car performance", value: "Random factor ±10 from previous season's car" }]);
+    ).toEqual([
+      { name: "Chassis performance", value: "Random factor ±10 from previous season's chassis" },
+    ]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toEqual([
-      { name: "Car performance", value: "Totally random" },
+      { name: "Chassis performance", value: "Totally random" },
     ]);
   });
 
@@ -420,6 +547,43 @@ describe("the what-ifs a run states", () => {
     ]);
   });
 
+  it("names every what-if in the form's order", () => {
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        carPerformance: { kind: "random" },
+        enginePerformance: { kind: "varied", spread: 5, from: "last" },
+        development: "random",
+        breakdowns: "fewer",
+        careerEvents: "none",
+        teamNames: "first",
+        liveries: "first",
+        engineSuppliers: "first",
+        teamsAndSeats: OPENING_SEAT_RULES,
+      }).map((line) => line.name),
+    ).toEqual([
+      "Mechanical failures",
+      "Chassis performance",
+      "Engine performance",
+      "In-season development",
+      "Driver career events",
+      "Team name changes",
+      "Livery changes",
+      "Engine supplier changes",
+      "Keep the first season's teams",
+    ]);
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        enginePerformance: { kind: "varied", spread: 5, from: "last" },
+        development: "none",
+      }),
+    ).toEqual([
+      { name: "Engine performance", value: "Random factor ±5 from previous season's engine" },
+      { name: "In-season development", value: "Off" },
+    ]);
+  });
+
   it("names Team name changes last, after the Drivers group", () => {
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, careerEvents: "none", teamNames: "first" })).toEqual(
       [
@@ -434,8 +598,11 @@ describe("remembering a standalone season's settings", () => {
   const stored = {
     ...HISTORICAL_SETTINGS,
     carPerformance: { kind: "varied", spread: 10, from: "last" },
+    enginePerformance: { kind: "varied", spread: 5, from: "last" },
     careerEvents: "none",
     teamNames: "first",
+    liveries: "first",
+    engineSuppliers: "first",
     teamsAndSeats: OPENING_SEAT_RULES,
   } as const;
 
@@ -444,13 +611,15 @@ describe("remembering a standalone season's settings", () => {
     expect(after.breakdowns).toBe("none");
     expect(after.careerEvents).toBe("none");
     expect(after.teamNames).toBe("first");
+    expect(after.liveries).toBe("first");
+    expect(after.engineSuppliers).toBe("first");
     expect(after.teamsAndSeats).toEqual(OPENING_SEAT_RULES);
   });
 
   it("keeps an era's walk the season only read as its own real car", () => {
-    expect(rememberedAfterSeason(stored, seasonSettings(stored)).carPerformance).toEqual(
-      stored.carPerformance,
-    );
+    const after = rememberedAfterSeason(stored, seasonSettings(stored));
+    expect(after.carPerformance).toEqual(stored.carPerformance);
+    expect(after.enginePerformance).toEqual(stored.enginePerformance);
   });
 
   it("takes the season's car answer once the reader changed it", () => {

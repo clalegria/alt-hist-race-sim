@@ -1,16 +1,24 @@
-import { powertrain } from "@alt-hist/engine";
+import { createRng, type EngineSpec, powertrain } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { buildField } from "./buildField.js";
+import { CHASSIS_STEP_RANGE } from "./chassis.js";
 import {
+  applyEngineRatings,
   applyEngines,
+  authoredEngineRatings,
   authoredEngines,
   availableEngines,
+  ENGINE_KEYS,
   engineChanges,
   engineSpecOf,
   isAuthoredEngines,
+  randomEngines,
+  type SeasonEngineRatings,
+  variedEngines,
+  withFirstEngines,
 } from "./engines.js";
 import { engines, FIRST_AUTHORED_SEASON, seasonSeed, seasons } from "./index.js";
-import type { SeasonSeed } from "./types.js";
+import type { SeasonEngine, SeasonEntry, SeasonSeed } from "./types.js";
 
 /** One authored season, as a fixture. Which one is not the point. */
 const SEED = seasonSeed(FIRST_AUTHORED_SEASON);
@@ -248,5 +256,238 @@ describe("buildField and engines", () => {
     expect(powertrain(after.chassis, after.engine)).not.toEqual(
       powertrain(before.chassis, before.engine),
     );
+  });
+});
+
+/**
+ * A synthetic season: the first authored one's calendar and points, with its
+ * own engines and entries, so the rolls and the kept supply are asserted as
+ * rules and never against an authored rating.
+ */
+function synthetic(
+  year: number,
+  engineList: readonly SeasonEngine[],
+  entries: readonly (readonly [teamId: string, engineId: string])[],
+): SeasonSeed {
+  return {
+    ...SEED,
+    year,
+    engines: engineList,
+    entries: entries.map(
+      ([teamId, engineId]): SeasonEntry => ({
+        teamId,
+        engineId,
+        chassis: { racing: 60, qualifying: 60, consistency: 60, reliability: 60 },
+        drivers: [],
+      }),
+    ),
+  };
+}
+
+/** The first engine sits on the top of the scale for racing and the bottom for reliability. */
+const EDGE_ENGINE: SeasonEngine = {
+  engineId: "edge",
+  racing: CHASSIS_STEP_RANGE.max,
+  qualifying: 50,
+  reliability: CHASSIS_STEP_RANGE.min,
+};
+const MID_ENGINE: SeasonEngine = { engineId: "mid", racing: 60, qualifying: 60, reliability: 60 };
+const LOW_ENGINE: SeasonEngine = { engineId: "low", racing: 40, qualifying: 30, reliability: 70 };
+const ROLLED = synthetic(
+  2000,
+  [EDGE_ENGINE, MID_ENGINE, LOW_ENGINE],
+  [
+    ["a", "edge"],
+    ["b", "mid"],
+    ["c", "mid"],
+    ["d", "low"],
+  ],
+);
+
+describe("authoredEngineRatings and applyEngineRatings", () => {
+  it("names every engine on the menu, and applies to the season unchanged", () => {
+    const authored = authoredEngineRatings(ROLLED);
+    expect(Object.keys(authored)).toEqual(ROLLED.engines.map((engine) => engine.engineId));
+    expect(applyEngineRatings(ROLLED, authored)).toEqual(ROLLED);
+  });
+
+  it("refuses an engine the season has no rating for, a missing one, or a rating off the scale", () => {
+    const authored = authoredEngineRatings(ROLLED);
+    expect(() => applyEngineRatings(ROLLED, { ...authored, nope: MID_ENGINE })).toThrow(/nope/);
+    const { mid: _dropped, ...missing } = authored;
+    expect(() => applyEngineRatings(ROLLED, missing)).toThrow(/mid/);
+    expect(() =>
+      applyEngineRatings(ROLLED, { ...authored, mid: { ...MID_ENGINE, racing: 101 } }),
+    ).toThrow(/racing/);
+  });
+});
+
+describe("variedEngines", () => {
+  const SPREAD = 10;
+
+  it("moves each engine's three ratings by one offset within the spread, clamped", () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const rolled = variedEngines(ROLLED, SPREAD, createRng(seed));
+      expect(Object.keys(rolled)).toEqual(ROLLED.engines.map((engine) => engine.engineId));
+      for (const engine of ROLLED.engines) {
+        const now = rolled[engine.engineId] as EngineSpec;
+        // Qualifying never reaches the clamp here, so it carries the offset itself.
+        const offset = now.qualifying - engine.qualifying;
+        expect(Math.abs(offset)).toBeLessThanOrEqual(SPREAD);
+        for (const key of ENGINE_KEYS) {
+          const expected = Math.min(
+            Math.max(engine[key] + offset, CHASSIS_STEP_RANGE.min),
+            CHASSIS_STEP_RANGE.max,
+          );
+          expect(now[key], `${engine.engineId} ${key}`).toBe(expected);
+        }
+      }
+    }
+  });
+
+  it("is one roll per engine, so every team running it races the same one", () => {
+    const rated = applyEngineRatings(ROLLED, variedEngines(ROLLED, SPREAD, createRng(9)));
+    const field = buildField({ ...rated, entries: rated.entries.map(withADriver) });
+    const shared = field.filter((entrant) => entrant.engineId === MID_ENGINE.engineId);
+    expect(shared.length).toBeGreaterThan(1);
+    expect(new Set(shared.map((entrant) => JSON.stringify(entrant.engine))).size).toBe(1);
+  });
+
+  it("is the same roll for the same seed", () => {
+    expect(variedEngines(ROLLED, SPREAD, createRng(7))).toEqual(
+      variedEngines(ROLLED, SPREAD, createRng(7)),
+    );
+  });
+
+  it("walks off last year's values, and an engine new to the run off its own", () => {
+    const LAST: EngineSpec = { racing: 50, qualifying: 50, reliability: 50 };
+    const lastYear: SeasonEngineRatings = { edge: LAST, mid: LAST };
+    for (const seed of [1, 2, 3]) {
+      const walked = variedEngines(ROLLED, SPREAD, createRng(seed), lastYear);
+      const real = variedEngines(ROLLED, SPREAD, createRng(seed));
+      for (const engine of ROLLED.engines) {
+        const base = engine === LOW_ENGINE ? engine : LAST;
+        // The same draw either way, so the offset is the real roll's.
+        const offset = (real[engine.engineId] as EngineSpec).qualifying - engine.qualifying;
+        expect((walked[engine.engineId] as EngineSpec).qualifying).toBe(base.qualifying + offset);
+      }
+    }
+  });
+});
+
+/** An entry with one driver from the first authored season, so `buildField` makes it an entrant. */
+function withADriver(entry: SeasonEntry, index: number): SeasonEntry {
+  const driverId = SEED.entries.flatMap((each) => each.drivers)[index];
+  return driverId === undefined ? entry : { ...entry, drivers: [driverId] };
+}
+
+describe("randomEngines", () => {
+  it("draws every rating between the season's weakest and strongest of it", () => {
+    // Enough draws that one past either end would surely turn up.
+    for (let seed = 1; seed <= 50; seed++) {
+      const rolled = randomEngines(ROLLED, createRng(seed));
+      expect(Object.keys(rolled)).toEqual(ROLLED.engines.map((engine) => engine.engineId));
+      for (const key of ENGINE_KEYS) {
+        const authored = ROLLED.engines.map((engine) => engine[key]);
+        for (const spec of Object.values(rolled)) {
+          expect(spec[key]).toBeGreaterThanOrEqual(Math.min(...authored));
+          expect(spec[key]).toBeLessThanOrEqual(Math.max(...authored));
+        }
+      }
+    }
+  });
+
+  it("draws each rating on its own", () => {
+    const rolled = randomEngines(ROLLED, createRng(3));
+    const differs = ROLLED.engines.some((engine) => {
+      const now = rolled[engine.engineId] as EngineSpec;
+      return now.racing - engine.racing !== now.qualifying - engine.qualifying;
+    });
+    expect(differs).toBe(true);
+  });
+});
+
+describe("withFirstEngines", () => {
+  const OLD: SeasonEngine = { engineId: "old", racing: 70, qualifying: 70, reliability: 70 };
+  const OLDER: SeasonEngine = { ...OLD, racing: 65 };
+  // 2000: a runs "old", b "mid". 2001: a moves to "mid", and "old" is still rated.
+  // 2002: c arrives on "low", and nobody rates "old" any more. 2003: c moves to "mid".
+  const YEARS = new Map<number, SeasonSeed>([
+    [
+      2000,
+      synthetic(
+        2000,
+        [OLDER, MID_ENGINE],
+        [
+          ["a", "old"],
+          ["b", "mid"],
+        ],
+      ),
+    ],
+    [
+      2001,
+      synthetic(
+        2001,
+        [OLD, MID_ENGINE],
+        [
+          ["a", "mid"],
+          ["b", "mid"],
+        ],
+      ),
+    ],
+    [
+      2002,
+      synthetic(
+        2002,
+        [MID_ENGINE, LOW_ENGINE],
+        [
+          ["a", "mid"],
+          ["b", "mid"],
+          ["c", "low"],
+        ],
+      ),
+    ],
+    [
+      2003,
+      synthetic(
+        2003,
+        [MID_ENGINE],
+        [
+          ["a", "mid"],
+          ["b", "mid"],
+          ["c", "mid"],
+        ],
+      ),
+    ],
+  ]);
+  const history = (year: number) => YEARS.get(year);
+  const year = (y: number) => YEARS.get(y) as SeasonSeed;
+  const engineOf = (season: SeasonSeed, teamId: string) =>
+    season.entries.find((entry) => entry.teamId === teamId)?.engineId;
+
+  it("is the season untouched when engines are not kept, and in the run's first year", () => {
+    expect(withFirstEngines(year(2001), null, history)).toBe(year(2001));
+    expect(withFirstEngines(year(2000), 2000, history)).toBe(year(2000));
+  });
+
+  it("keeps the first year's engine, at the year's own values while the year rates it", () => {
+    const kept = withFirstEngines(year(2001), 2000, history);
+    expect(engineOf(kept, "a")).toBe("old");
+    expect(engineSpecOf(kept, "old")).toEqual(OLD);
+    expect(kept.engines).toHaveLength(year(2001).engines.length);
+  });
+
+  it("adds an engine the year no longer rates, at its latest authored values", () => {
+    const kept = withFirstEngines(year(2002), 2000, history);
+    expect(engineOf(kept, "a")).toBe("old");
+    expect(engineSpecOf(kept, "old")).toEqual(OLD);
+    expect(() => applyEngines(kept, authoredEngines(kept))).not.toThrow();
+  });
+
+  it("keeps a later arrival on the engine of its own first year in the run", () => {
+    const kept = withFirstEngines(year(2003), 2000, history);
+    expect(engineOf(kept, "c")).toBe("low");
+    expect(engineSpecOf(kept, "low")).toEqual(LOW_ENGINE);
+    expect(engineOf(kept, "b")).toBe("mid");
   });
 });

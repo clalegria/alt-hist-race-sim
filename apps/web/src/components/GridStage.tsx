@@ -30,6 +30,7 @@ import {
   type RatingMode,
   reserveDrivers,
   type SeasonChassis,
+  type SeasonEngineRatings,
   type SeasonEngines,
   type SeasonLineup,
   type SeasonSeed,
@@ -560,6 +561,7 @@ export function GridStage({
   engines,
   chassis = null,
   baselineChassis = null,
+  historicalEngines = null,
   runSeason = null,
   kept = null,
   arrangement = null,
@@ -581,11 +583,17 @@ export function GridStage({
   /** The applied chassis ratings, or null for the chassis the season was entered with. */
   chassis?: SeasonChassis | null;
   /**
-   * The run's own chassis for the year (*Car performance*), or null for the
+   * The run's own chassis for the year (*Chassis performance*), or null for the
    * authored ones: what the season was entered with, and so what Restore puts
    * back and every change is measured from (`World.baselineChassis`).
    */
   baselineChassis?: SeasonChassis | null;
+  /**
+   * Each engine as history rated it when *Engine performance* rolled the run's
+   * own (`historicalEngineRatings`), or null: for the popover's history → this
+   * run.
+   */
+  historicalEngines?: SeasonEngineRatings | null;
   /**
    * The season as the run entered it when that is not the seed file with
    * `baselineChassis` in it — under *Keep the first season's teams*, the kept year
@@ -1034,6 +1042,7 @@ export function GridStage({
           engineChanges={supplyChanges}
           chassisChanges={rerated}
           historicalChassis={historicalChassis}
+          historicalEngines={historicalEngines}
           arrangement={shownArrangement}
           kept={kept}
           openSeats={open.length}

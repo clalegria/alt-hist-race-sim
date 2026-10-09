@@ -7,7 +7,7 @@ import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
-import { enteredSeason, seasonSeed } from "../lib/seasons.js";
+import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
@@ -212,6 +212,7 @@ export function SeasonOverview({
     () => (world.baselineChassis === null ? null : authoredChassis(seed)),
     [world.baselineChassis, seed],
   );
+  const historicalEngines = historicalEngineRatings(world);
   // The grid tab gets the same switch the opening grid has: by now the
   // pecking order is the point rather than a spoiler. Same switch and the same
   // choice — it is shared with every other list on the app.
@@ -278,6 +279,7 @@ export function SeasonOverview({
             engineChanges={supplyChanges}
             chassisChanges={rerated}
             historicalChassis={historicalChassis}
+            historicalEngines={historicalEngines}
             arrangement={world.arrangement}
             kept={keptNotes(world)}
             sort={teamSort}

@@ -242,21 +242,32 @@ export const STEPS: readonly Step[] = [
         .getByRole("group", { name: "Driver career events" })
         .getByRole("button", { name: "No", exact: true })
         .click();
+      for (const kept of ["Team name changes", "Livery changes", "Engine supplier changes"]) {
+        await dialog
+          .getByRole("group", { name: kept })
+          .getByRole("button", { name: "No", exact: true })
+          .click();
+      }
       await dialog
-        .getByRole("group", { name: "Team name changes" })
-        .getByRole("button", { name: "No", exact: true })
+        .getByRole("group", { name: "In-season development" })
+        .getByRole("button", { name: "Random", exact: true })
         .click();
       // Keep the first season's teams, so the year jumped to below races ghost entries.
       await dialog
         .getByRole("group", { name: "Keep the first season's teams" })
         .getByRole("button", { name: "Yes", exact: true })
         .click();
-      await page
-        .getByRole("group", { name: "Car performance" })
-        .getByRole("button", { name: "Random factor is added", exact: true })
-        .click();
-      await button(page, "±20").click();
-      await button(page, "Previous season's car").click();
+      // Both rolls at ±20, the chassis walking: the two sets of sub-rows, in order.
+      for (const roll of ["Chassis performance", "Engine performance"]) {
+        await dialog
+          .getByRole("group", { name: roll })
+          .getByRole("button", { name: "Random factor is added", exact: true })
+          .click();
+      }
+      for (const spreads of await dialog.getByRole("group", { name: "Varies by up to" }).all()) {
+        await spreads.getByRole("button", { name: "±20", exact: true }).click();
+      }
+      await button(page, "Previous season's chassis").click();
     },
   },
   {
@@ -293,9 +304,10 @@ export const STEPS: readonly Step[] = [
       // Begun again from the same setup: the untouched run is replaced unasked.
       await button(page, `Begin an era from ${YEAR}`).click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
-      // A team's ratings on varied cars: history beside this run's, rating by rating.
+      // A team's ratings on varied cars: history beside this run's, rating by
+      // rating, for the chassis and for the engine.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
-      await page.getByRole("dialog").getByText("History → this run").waitFor();
+      await page.getByRole("dialog").getByText("History → this run").nth(1).waitFor();
     },
   },
   {

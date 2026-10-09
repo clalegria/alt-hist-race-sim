@@ -5,6 +5,10 @@ import { historicalSettings, type RunSettings, type RunUnit } from "../lib/run-s
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
+import { DevelopmentSetting } from "./DevelopmentSetting.js";
+import { EnginePerformanceSetting } from "./EnginePerformanceSetting.js";
+import { EngineSuppliersSetting } from "./EngineSuppliersSetting.js";
+import { LiveriesSetting } from "./LiveriesSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { ReliabilitySetting } from "./ReliabilitySetting.js";
@@ -57,8 +61,9 @@ export function RunSettingsGroup({ title, children }: { title: string; children:
 
 /**
  * The settings themselves, grouped by what they are about: **Races** (how much
- * the dice decide, how a result is scored), **Cars** (how quick, how often they
- * break), and the era's **Over the years** (careers, team names, the grid).
+ * the dice decide, how a result is scored), **Cars** (how quick, how they
+ * develop, how often they break), and the era's **Over the years** (careers,
+ * team names, liveries and engines, the grid).
  * Breakdowns and Reliability sit together because one greys the other out.
  *
  * Two columns from `lg` up — an era's Races and Cars beside its years, a
@@ -118,6 +123,20 @@ export function RunSettingsForm({
           set({ carPerformance });
         }}
       />
+      <EnginePerformanceSetting
+        enginePerformance={settings.enginePerformance}
+        unit={unit}
+        onChange={(enginePerformance) => {
+          set({ enginePerformance });
+        }}
+      />
+      <DevelopmentSetting
+        development={settings.development}
+        unit={unit}
+        onChange={(development) => {
+          set({ development });
+        }}
+      />
       <BreakdownsSetting
         breakdowns={settings.breakdowns}
         onChange={(breakdowns) => {
@@ -154,6 +173,18 @@ export function RunSettingsForm({
               teamNames={settings.teamNames}
               onChange={(teamNames) => {
                 set({ teamNames });
+              }}
+            />
+            <LiveriesSetting
+              liveries={settings.liveries}
+              onChange={(liveries) => {
+                set({ liveries });
+              }}
+            />
+            <EngineSuppliersSetting
+              engineSuppliers={settings.engineSuppliers}
+              onChange={(engineSuppliers) => {
+                set({ engineSuppliers });
               }}
             />
             <TeamsAndSeatsSetting

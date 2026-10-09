@@ -34,7 +34,7 @@ function note(rules: EmptySeatRules): string {
  * at their first-year seat counts — and under *Yes*, who takes the seats that
  * leaves empty (`keptGrid.ts` in `@alt-hist/data`). Era only.
  *
- * The rows under *Yes* are set in beneath it, as Car performance's are under
+ * The rows under *Yes* are set in beneath it, as Chassis performance's are under
  * *Random factor is added*, and are remembered while the dialog is open, so a
  * look at *No* and back keeps them. The age inputs are the grid editor's pool
  * filter's, and cannot cross.
@@ -91,7 +91,7 @@ export function TeamsAndSeatsSetting({
               }))}
             />
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs font-medium">Drivers aged</span>
+              <span className="text-xs font-medium">Only sign drivers aged</span>
               <div className="flex items-center gap-1.5 text-xs">
                 <Input
                   type="number"

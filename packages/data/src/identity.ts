@@ -1,12 +1,14 @@
 /**
- * Which year a team's name and base are read at in a run.
+ * Which year a team's name and base, or its livery, are read at in a run.
  *
  * As history had it, that is the season being shown: the lineage that raced as
- * Brawn in 2009 is Mercedes in 2010. Under an era's *Team name changes:
- * No*, each team keeps the identity of **the first season it appears in the
- * run** — the start year for a team on the opening grid, its debut year for one
- * that enters later — so Brawn stays Brawn. The livery is not part of this: it
- * still follows history, read at the season itself.
+ * Brawn in 2009 is Mercedes in 2010. Under an era's *Team name changes: No*,
+ * each team keeps the identity of **the first season it appears in the run** —
+ * the start year for a team on the opening grid, its debut year for one that
+ * enters later — so Brawn stays Brawn. *Livery changes: No* keeps the colours
+ * by the same rule, and *Engine supplier changes: No* the engine
+ * (`withFirstEngines`); each setting is its own, so each passes its own
+ * `keptFrom`.
  *
  * A year, not a name, so every name and base still resolves through
  * `teamIdentityIn` (`eras.ts`), the one place an era list is indexed.
@@ -44,13 +46,14 @@ function firstSeasonsFrom(from: number): ReadonlyMap<string, number> {
 }
 
 /**
- * The year `teamId`'s name and base are read at in `year`, for a run whose team
- * names are kept from `keptFrom` — null for each year's own, which is `year`.
+ * The year `teamId`'s name and base (or livery) are read at in `year`, for a
+ * run that keeps them from `keptFrom` — null for each year's own, which is
+ * `year`.
  *
  * A year before the run, or a team the run has not reached yet, reads at
  * `year` itself: there is no first season in the run to keep.
  */
-export function identityYear(teamId: string, year: number, keptFrom: number | null): number {
+export function firstYearInRun(teamId: string, year: number, keptFrom: number | null): number {
   if (keptFrom === null || year < keptFrom) {
     return year;
   }

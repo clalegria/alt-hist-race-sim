@@ -11,7 +11,7 @@
  * `EmptySeatRules` say who takes them.
  *
  * Two steps, because the drivers are ranked on the cars the run *races*, and
- * *Car performance* rolls those cars in between:
+ * *Chassis performance* rolls those cars in between:
  *
  * 1. `keptYear` — the cars, history's drivers, and last year's drivers carried
  *    back into the seats history left empty;
@@ -26,11 +26,12 @@
 import { byOverall, teamsByCar } from "./arrange.js";
 import type { RatingMode } from "./buildField.js";
 import { strongestOf } from "./carryOver.js";
+import { latestEngineSpec } from "./engines.js";
 import { drivers as driverPool } from "./index.js";
 import { applyDraft, type DraftSeat, type LineupDraft, seatedDriverIds } from "./lineup.js";
 import { type DriverFilters, matchesFilters } from "./people.js";
 import { seasons } from "./seasons/index.js";
-import type { Driver, SeasonEngine, SeasonEntry, SeasonSeed } from "./types.js";
+import type { Driver, SeasonEntry, SeasonSeed } from "./types.js";
 
 /**
  * Who takes an empty seat: last year's driver, then the strongest free one
@@ -109,26 +110,6 @@ function lastEntry(
 }
 
 /**
- * An engine's latest authored values, at or before `year`. Called only for an
- * engine a ghost raced in `last`, which rates it, so the search always ends.
- */
-function latestSpec(
-  engineId: string,
-  year: number,
-  last: SeasonSeed,
-  history: (year: number) => SeasonSeed | undefined,
-): SeasonEngine {
-  for (let before = year; before >= last.year; before--) {
-    const season = before === last.year ? last : history(before);
-    const spec = season?.engines.find((engine) => engine.engineId === engineId);
-    if (spec !== undefined) {
-      return spec;
-    }
-  }
-  throw new Error(`Engine "${engineId}" has no ratings from ${last.year} to ${year}`);
-}
-
-/**
  * Year N with the first year's teams: their cars, history's drivers, and —
  * unless the rule is `best` — last year's drivers back in the seats history
  * left empty.
@@ -178,7 +159,16 @@ export function keptYear(
     const last = lastEntry(teamId, season.year, start, history);
     const { developmentTrend: _trend, ...car } = last.entry;
     if (!engines.some((engine) => engine.engineId === car.engineId)) {
-      engines.push(latestSpec(car.engineId, season.year, last.season, history));
+      // The ghost raced it in `last`, which rates it, so the search always ends.
+      const spec = latestEngineSpec(car.engineId, season.year, last.season.year, (year) =>
+        year === last.season.year ? last.season : history(year),
+      );
+      if (spec === undefined) {
+        throw new Error(
+          `Engine "${car.engineId}" has no ratings from ${last.season.year} to ${season.year}`,
+        );
+      }
+      engines.push(spec);
     }
     entries.push({ ...car, drivers: [] });
     seats[teamId] = [];

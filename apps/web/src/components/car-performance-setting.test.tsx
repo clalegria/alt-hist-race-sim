@@ -1,5 +1,5 @@
 /**
- * The Car performance setting, where a run states it, and how a varied grid
+ * The Chassis performance setting, where a run states it, and how a varied grid
  * reads. Rendered without a DOM, like the rest of the setup screen; what it
  * records on a run is the era's store tests, and the roll itself is
  * unit-tested in `@alt-hist/data`.
@@ -55,7 +55,7 @@ describe("the car performance setting", () => {
             />,
           ),
         ),
-      ).toEqual(["Random factor is added", `±${spread}`, "The historical car"]);
+      ).toEqual(["Random factor is added", `±${spread}`, "The historical chassis"]);
     }
     expect(
       pressed(
@@ -66,7 +66,7 @@ describe("the car performance setting", () => {
           />,
         ),
       ),
-    ).toEqual(["Random factor is added", "±5", "Previous season's car"]);
+    ).toEqual(["Random factor is added", "±5", "Previous season's chassis"]);
   });
 
   it("offers previous season's car only on the era's screen, and only under Random factor is added", () => {
@@ -92,8 +92,8 @@ describe("the car performance setting", () => {
         carPerformance={{ kind: "varied", spread: 5, from: "last" }}
       />,
     );
-    expect(note).toContain("the car it raced the year before");
-    expect(note).toContain("A team new to the run starts from its historical car");
+    expect(note).toContain("the one it raced the year before");
+    expect(note).toContain("A team new to the run starts from its historical chassis");
   });
 
   it("offers the spreads only under Random factor is added", () => {
@@ -120,11 +120,11 @@ describe("the car performance setting", () => {
     for (const html of [settingsForm("era"), settingsForm("season")]) {
       const at = (label: string) => html.indexOf(`aria-label="${label}"`);
       expect(at("Cars")).toBeGreaterThan(at("Points system"));
-      expect(at("Car performance")).toBeGreaterThan(at("Cars"));
+      expect(at("Chassis performance")).toBeGreaterThan(at("Cars"));
     }
     const era = settingsForm("era");
     expect(era.indexOf('aria-label="Over the years"')).toBeGreaterThan(
-      era.indexOf('aria-label="Car performance"'),
+      era.indexOf('aria-label="Chassis performance"'),
     );
   });
 
@@ -152,7 +152,7 @@ describe("the car performance setting", () => {
       carPerformance: { kind: "varied", spread: 5, from: "real" },
     });
     expect(settingsOf(varied)).toContainEqual({
-      name: "Car performance",
+      name: "Chassis performance",
       value: "Random factor ±5",
     });
     const walking = eraYear({
@@ -160,11 +160,11 @@ describe("the car performance setting", () => {
       carPerformance: { kind: "varied", spread: 5, from: "last" },
     });
     expect(settingsOf(walking)).toContainEqual({
-      name: "Car performance",
-      value: "Random factor ±5 from previous season's car",
+      name: "Chassis performance",
+      value: "Random factor ±5 from previous season's chassis",
     });
     expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
-      "Car performance",
+      "Chassis performance",
     );
   });
 });

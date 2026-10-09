@@ -7,7 +7,12 @@ import type {
   RatingMode,
   SeatChange,
 } from "@alt-hist/data";
-import { canStepChassis, driversById, type SeasonChassis } from "@alt-hist/data";
+import {
+  canStepChassis,
+  driversById,
+  type SeasonChassis,
+  type SeasonEngineRatings,
+} from "@alt-hist/data";
 import { DEVELOPMENT_TREND_LIMIT, type EngineSpec, type RaceEntrant } from "@alt-hist/engine";
 import type { KeptNotes } from "../lib/kept.js";
 import { liveryFor } from "../lib/livery.js";
@@ -20,6 +25,7 @@ import { useNameYear } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { ArrangementNote, chassisSummary, GridChanges, KeptNote, signed } from "./LineupChanges.js";
+import { useLiveryYear } from "./Liveries.js";
 import { PageLink } from "./PageLink.js";
 import { usePageOf } from "./SeasonHistory.js";
 import { SortToggle } from "./SortToggle.js";
@@ -113,7 +119,7 @@ function Rating({
   muted?: boolean;
   /**
    * The rating history gave, drawn muted before this run's — a chassis under
-   * *Car performance*. The bar is this run's.
+   * *Chassis performance*. The bar is this run's.
    */
   was?: number;
   /** Drawn after the number — the chassis stepper, in the editor only. */
@@ -264,10 +270,11 @@ function Development({ trend }: { trend: number }) {
 
 /** What a trend means, in a sentence, so the bar above never has to be guessed at. */
 function developmentNote(trend: number): string {
-  const points = Math.abs(trend);
+  const size = Math.abs(trend);
+  const points = `${size} ${size === 1 ? "point" : "points"}`;
   return trend > 0
-    ? `Improves through the year: ${points} points slower than this at the opener, ${points} quicker at the finale.`
-    : `Falls away through the year: ${points} points quicker than this at the opener, ${points} slower at the finale.`;
+    ? `Improves through the year: ${points} slower than this at the opener, ${size} quicker at the finale.`
+    : `Falls away through the year: ${points} quicker than this at the opener, ${size} slower at the finale.`;
 }
 
 /**
@@ -610,6 +617,7 @@ export function SeasonGrid({
   engineChanges,
   chassisChanges,
   historicalChassis = null,
+  historicalEngines = null,
   arrangement = null,
   kept = null,
   openSeats = 0,
@@ -639,6 +647,12 @@ export function SeasonGrid({
    * this run, rating by rating.
    */
   historicalChassis?: SeasonChassis | null;
+  /**
+   * Each engine as history rated it, when *Engine performance* rolled the
+   * run's own (`historicalEngineRatings`), or null. The engine panel then reads
+   * history → this run, as the chassis does.
+   */
+  historicalEngines?: SeasonEngineRatings | null;
   /**
    * The bulk rule the grid was arranged by, or null for one nobody rearranged.
    *
@@ -677,9 +691,10 @@ export function SeasonGrid({
   /** Absent in tests, where nothing is clicked. The switch still renders. */
   onSortChange?: (order: SortOrder) => void;
 }) {
-  // The year each team's name and flag are read at; the livery and the car
-  // stay on the season itself.
+  // The year each team's name and flag, and its colours, are read at; the
+  // car's shape stays on the season itself.
   const nameYear = useNameYear();
+  const liveryYear = useLiveryYear();
   const entries = byTeam(field, sort, (teamId) => teamName(teamId, nameYear(teamId, seasonYear)));
   const pageOf = usePageOf();
   const edited = changes ?? [];
@@ -790,9 +805,11 @@ export function SeasonGrid({
               nameYear(entry.teamId, seasonYear),
             );
             const base = teamCountry(entry.teamId, nameYear(entry.teamId, seasonYear));
-            const livery = liveryFor(entry.teamId, seasonYear);
+            const livery = liveryFor(entry.teamId, liveryYear(entry.teamId, seasonYear));
             const chassisChange = rerated.get(entry.teamId);
             const historical = historicalChassis?.[entry.teamId];
+            const historicalEngine =
+              entry.engineId === undefined ? undefined : historicalEngines?.[entry.engineId];
             const ghostCar = kept?.ghosts[entry.teamId];
             const marked = movedEngine.has(entry.teamId) || chassisChange !== undefined;
             return (
@@ -913,7 +930,9 @@ export function SeasonGrid({
                                 {engineName(entry.engineId)} engine
                               </span>
                               <span className="text-muted-foreground text-xs">
-                                {seasonYear} spec
+                                {historicalEngine === undefined
+                                  ? `${seasonYear} spec`
+                                  : "History → this run"}
                               </span>
                             </div>
                             <div className="flex flex-col gap-2">
@@ -922,6 +941,9 @@ export function SeasonGrid({
                                   key={rating.key}
                                   label={rating.label}
                                   value={entry.engine?.[rating.key] ?? 0}
+                                  {...(historicalEngine === undefined
+                                    ? {}
+                                    : { was: historicalEngine[rating.key] })}
                                 />
                               ))}
                             </div>

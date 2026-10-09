@@ -137,11 +137,15 @@ describe("a run rebuilt from its recipe", () => {
       pointsTables().find((table) => !samePoints(table.scale, SEED.points))?.scale ?? [];
     useSeasonStore.getState().simulateEra(9, YEAR, undefined, {
       carPerformance: { kind: "varied", spread: 10, from: "real" },
+      enginePerformance: { kind: "varied", spread: 10, from: "last" },
+      development: "random",
       breakdowns: "fewer",
       reliability: PLAYABLE_SEASONS.at(-1) ?? null,
       points: other,
       careerEvents: "none",
       teamNames: "first",
+      liveries: "first",
+      engineSuppliers: "first",
       teamsAndSeats: OPENING_SEAT_RULES,
     });
     crown(YEAR);

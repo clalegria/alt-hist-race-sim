@@ -2,6 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { KeptNames } from "./components/EntryNames.js";
 import type { GridEdit } from "./components/GridStage.js";
+import { KeptLiveries } from "./components/Liveries.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
 import type { RunChoice } from "./components/RunSettingsDialog.js";
@@ -172,10 +173,12 @@ export function RunFrame({
       <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
         {/* Every team on every page of the run is named by the run's own rule. */}
         <KeptNames from={run.world.namesKeptFrom}>
-          {/* People pages are an era's, so a one-year run's panels lead to none. */}
-          <SeasonHistoryProvider seasons={years} pageOf={run.kind === "era" ? PAGE_OF : null}>
-            <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
-          </SeasonHistoryProvider>
+          <KeptLiveries from={run.world.liveriesKeptFrom}>
+            {/* People pages are an era's, so a one-year run's panels lead to none. */}
+            <SeasonHistoryProvider seasons={years} pageOf={run.kind === "era" ? PAGE_OF : null}>
+              <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+            </SeasonHistoryProvider>
+          </KeptLiveries>
         </KeptNames>
         <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
           <span className="text-muted-foreground text-xs">{state.cursor}</span>

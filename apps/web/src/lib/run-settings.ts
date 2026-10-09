@@ -20,10 +20,16 @@ import {
   drivers,
   driversWithoutCareerEvents,
   type EmptySeatRules,
+  flatTrends,
   randomChassis,
+  randomEngines,
+  randomTrends,
   type SeasonChassis,
+  type SeasonEngineRatings,
   type SeasonSeed,
+  type SeasonTrends,
   variedChassis,
+  variedEngines,
 } from "@alt-hist/data";
 import { type Breakdowns, createRng, deriveSeed, type PointsScale } from "@alt-hist/engine";
 import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
@@ -34,25 +40,25 @@ export type RunUnit = "season" | "era";
 /** The Mechanical failures answers that are what-ifs; Realistic is null. */
 export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
-/** How far *Car performance: Random factor is added* may move a car, either way: the stops it offers. */
+/** How far *Random factor is added* may move a chassis or an engine, either way: the stops it offers. */
 export const CAR_VARIATION_SPREADS = [2, 5, 10, 20, 30] as const;
 export type CarVariationSpread = (typeof CAR_VARIATION_SPREADS)[number];
 
 /**
- * What *Car performance: Random factor is added* moves a car off: **real**, that year's
- * authored car, re-rolled every season; or **last**, the car the team raced
+ * What *Random factor is added* moves a chassis or an engine off: **real**,
+ * that year's authored one, re-rolled every season; or **last**, the one raced
  * the year before in this run (a walk), era only.
  */
 export const CAR_VARIATION_BASES = ["real", "last"] as const;
 export type CarVariationBase = (typeof CAR_VARIATION_BASES)[number];
 
 /**
- * The Car performance what-ifs; Historical is null. **varied** (*Random factor
- * is added*) moves each
- * team's chassis by up to `spread` either way, off the car `from` names;
- * **random** (*Totally random*) draws each chassis rating anywhere between the season's weakest
- * and strongest. Chassis only: an engine is shared by its customers, so
- * rolling one would move several teams at once.
+ * The *Chassis performance* and *Engine performance* what-ifs, one answer each;
+ * Historical is null. **varied** (*Random factor is added*) moves each team's
+ * chassis, or each engine, by up to `spread` either way, off the one `from`
+ * names; **random** (*Totally random*) draws each rating anywhere between the
+ * season's weakest and strongest. An engine is rolled once for every team that
+ * runs it.
  */
 export type CarPerformance =
   | {
@@ -62,12 +68,27 @@ export type CarPerformance =
     }
   | { readonly kind: "random" };
 
+/** The *In-season development* what-ifs: a random trend for every car, or none at all. */
+export type Development = "random" | "none";
+
 export interface RunSettings {
   /**
-   * Whether the cars are as authored, varied about them, or random. On both
-   * setup screens. Reaches the cars through `rolledChassisOf`.
+   * Whether the chassis are as authored, varied about them, or random —
+   * *Chassis performance* on screen. On both setup screens. Reaches the cars
+   * through `rolledChassisOf`.
    */
   readonly carPerformance: CarPerformance | null;
+  /**
+   * The same answers for the engines — *Engine performance* — rolled per
+   * engine, so every team running one moves together. Reaches them through
+   * `rolledEnginesOf`.
+   */
+  readonly enginePerformance: CarPerformance | null;
+  /**
+   * Which way each car's year runs: as authored, a random trend for every car,
+   * or none (`trendsOf`). On both setup screens.
+   */
+  readonly development: Development | null;
   /** How often cars break down: fewer, none, or null for as often as each year's did. */
   readonly breakdowns: FewerBreakdowns | null;
   /**
@@ -89,10 +110,22 @@ export interface RunSettings {
   readonly careerEvents: "none" | null;
   /**
    * Whether teams are named as they were each year, or each keeps the name and
-   * base of its first season in the run (`identityYear` in `@alt-hist/data`).
-   * The livery still follows history. **Era only**, like `careerEvents`.
+   * base of its first season in the run (`firstYearInRun` in `@alt-hist/data`).
+   * **Era only**, like `careerEvents`.
    */
   readonly teamNames: "first" | null;
+  /**
+   * Whether teams are painted as they were each year, or each keeps the livery
+   * of its first season in the run, by the same rule as the name. Display
+   * only. **Era only**.
+   */
+  readonly liveries: "first" | null;
+  /**
+   * Whether teams run the engine history gave them each year, or each keeps
+   * the supplier of its first season in the run (`withFirstEngines` in
+   * `@alt-hist/data`). **Era only**.
+   */
+  readonly engineSuppliers: "first" | null;
   /**
    * Whether every year has the teams history gave it, or the run's first year's
    * teams at their first-year seat counts, with the rules for the seats that
@@ -105,11 +138,15 @@ export interface RunSettings {
 /** Every setting on its historical answer: the run as it happened. */
 export const HISTORICAL_SETTINGS: RunSettings = {
   carPerformance: null,
+  enginePerformance: null,
+  development: null,
   breakdowns: null,
   reliability: null,
   points: null,
   careerEvents: null,
   teamNames: null,
+  liveries: null,
+  engineSuppliers: null,
   teamsAndSeats: null,
 };
 
@@ -142,29 +179,48 @@ export function sameSettings(a: RunSettings, b: RunSettings): boolean {
   return canonical(a) === canonical(b);
 }
 
+/** The era-only settings, which a standalone season never shows and never runs. */
+const ERA_ONLY = [
+  "careerEvents",
+  "teamNames",
+  "liveries",
+  "engineSuppliers",
+  "teamsAndSeats",
+] as const;
+
+/** Whether a roll walks from the previous year's: the one answer that reads the year before. */
+function walks(roll: CarPerformance | null): boolean {
+  return roll?.kind === "varied" && roll.from === "last";
+}
+
+/** A walk varied off the real one instead, for a season with no year before it in the run. */
+function offTheReal(roll: CarPerformance | null): CarPerformance | null {
+  return roll?.kind === "varied" && roll.from === "last" ? { ...roll, from: "real" } : roll;
+}
+
 /**
- * The settings a standalone season runs: the era-only ones dropped, and a car
- * walking from the previous year's varied off the real one instead, since a season has
- * no last year in the run. One remembered set serves both setup screens, so
- * the reader's era choice is kept there while a season records only what it
- * offers.
+ * The settings a standalone season runs: the era-only ones dropped, and a
+ * chassis or an engine walking from the previous year's varied off the real
+ * one instead, since a season has no last year in the run. One remembered set
+ * serves both setup screens, so the reader's era choice is kept there while a
+ * season records only what it offers.
  */
 export function seasonSettings(settings: RunSettings): RunSettings {
-  const cars = settings.carPerformance;
-  const walks = cars?.kind === "varied" && cars.from === "last";
   if (
-    settings.careerEvents === null &&
-    settings.teamNames === null &&
-    settings.teamsAndSeats === null &&
-    !walks
+    ERA_ONLY.every((key) => settings[key] === null) &&
+    !walks(settings.carPerformance) &&
+    !walks(settings.enginePerformance)
   ) {
     return settings;
   }
   return {
     ...settings,
-    carPerformance: walks ? { ...cars, from: "real" } : cars,
+    carPerformance: offTheReal(settings.carPerformance),
+    enginePerformance: offTheReal(settings.enginePerformance),
     careerEvents: null,
     teamNames: null,
+    liveries: null,
+    engineSuppliers: null,
     teamsAndSeats: null,
   };
 }
@@ -182,6 +238,8 @@ export function historicalSettings(settings: RunSettings, eraSettings: boolean):
     ...HISTORICAL_SETTINGS,
     careerEvents: settings.careerEvents,
     teamNames: settings.teamNames,
+    liveries: settings.liveries,
+    engineSuppliers: settings.engineSuppliers,
     teamsAndSeats: settings.teamsAndSeats,
   };
 }
@@ -189,18 +247,22 @@ export function historicalSettings(settings: RunSettings, eraSettings: boolean):
 /**
  * The settings to remember after a standalone season's own were changed on its
  * grid: the season's answers, over the era-only ones already remembered, which
- * the season never showed and so must not erase. A Car performance answer the
+ * the season never showed and so must not erase. A chassis or engine roll the
  * season only *read* as its own — an era's walk, which a season races off the
- * real car — stays as remembered.
+ * real one — stays as remembered.
  */
 export function rememberedAfterSeason(stored: RunSettings, season: RunSettings): RunSettings {
-  const carsUnchanged =
-    JSON.stringify(seasonSettings(stored).carPerformance) === JSON.stringify(season.carPerformance);
+  const read = seasonSettings(stored);
+  const kept = (key: "carPerformance" | "enginePerformance") =>
+    JSON.stringify(read[key]) === JSON.stringify(season[key]) ? stored[key] : season[key];
   return {
     ...season,
-    carPerformance: carsUnchanged ? stored.carPerformance : season.carPerformance,
+    carPerformance: kept("carPerformance"),
+    enginePerformance: kept("enginePerformance"),
     careerEvents: stored.careerEvents,
     teamNames: stored.teamNames,
+    liveries: stored.liveries,
+    engineSuppliers: stored.engineSuppliers,
     teamsAndSeats: stored.teamsAndSeats,
   };
 }
@@ -214,12 +276,18 @@ export function driverPoolOf(settings: RunSettings): readonly Driver[] {
   return settings.careerEvents === "none" ? driversWithoutCareerEvents() : drivers;
 }
 
-/** The key Car performance's stream is derived under, apart from the races' own. */
+/** The key Chassis performance's stream is derived under, apart from the races' own. */
 export const CAR_PERFORMANCE_STREAM = "car-performance";
+
+/** The key Engine performance's stream is derived under, apart from the chassis roll and the races. */
+export const ENGINE_PERFORMANCE_STREAM = "engine-performance";
+
+/** The key In-season development's stream is derived under, apart from every other roll. */
+export const DEVELOPMENT_STREAM = "development";
 
 /**
  * A run's own chassis for a season, or null for the authored ones: the one
- * place Car performance reaches the cars, as `driverPoolOf` is for drivers.
+ * place Chassis performance reaches the cars, as `driverPoolOf` is for drivers.
  *
  * Rolled from its own stream (`deriveSeed`), never the races', so the same
  * seed races the same dice under any answer, and Historical draws nothing.
@@ -248,6 +316,50 @@ export function rolledChassisOf(
 }
 
 /**
+ * A run's own engine ratings for a season, or null for the authored ones: the
+ * one place Engine performance reaches the engines. Per engine, so every team
+ * running one moves together. On its own stream, so turning it on moves no
+ * chassis and no race; `lastRaced` is each engine as raced the year before,
+ * which a walk moves off.
+ */
+export function rolledEnginesOf(
+  season: SeasonSeed,
+  settings: RunSettings,
+  seed: number,
+  lastRaced: SeasonEngineRatings | null = null,
+): SeasonEngineRatings | null {
+  const roll = settings.enginePerformance;
+  if (roll === null) {
+    return null;
+  }
+  const rng = createRng(deriveSeed(seed, ENGINE_PERFORMANCE_STREAM));
+  if (roll.kind === "random") {
+    return randomEngines(season, rng);
+  }
+  return variedEngines(season, roll.spread, rng, roll.from === "last" ? lastRaced : null);
+}
+
+/**
+ * A run's own development trends for a season, or null for the authored ones:
+ * the one place In-season development reaches the cars. Random draws on its
+ * own stream; Off draws nothing.
+ */
+export function trendsOf(
+  season: SeasonSeed,
+  settings: RunSettings,
+  seed: number,
+): SeasonTrends | null {
+  switch (settings.development) {
+    case null:
+      return null;
+    case "none":
+      return flatTrends(season);
+    case "random":
+      return randomTrends(season, createRng(deriveSeed(seed, DEVELOPMENT_STREAM)));
+  }
+}
+
+/**
  * What *Keep the first season's teams: Yes* opens on: last year's driver first, at the
  * grid editor's default racing ages, drivers active that year only.
  */
@@ -267,21 +379,31 @@ export const SEAT_FILL_LABELS: Readonly<Record<(typeof OFFERED_SEAT_FILLS)[numbe
   best: "The best available driver",
 };
 
-/** Whether a run's cars walk from the previous year's: the one answer that reads the year before. */
+/** Whether a run's chassis walk from the previous year's. */
 export function walksFromLastYear(settings: RunSettings): boolean {
-  const cars = settings.carPerformance;
-  return cars?.kind === "varied" && cars.from === "last";
+  return walks(settings.carPerformance);
 }
 
-/** What the reader is shown for a Car performance answer. */
-export function carPerformanceLabel(cars: CarPerformance): string {
-  if (cars.kind === "random") {
+/** Whether a run's engines walk from the previous year's. */
+export function enginesWalkFromLastYear(settings: RunSettings): boolean {
+  return walks(settings.enginePerformance);
+}
+
+/** What the reader is shown for a Chassis or Engine performance answer: `noun` is which. */
+export function carPerformanceLabel(roll: CarPerformance, noun: "chassis" | "engine"): string {
+  if (roll.kind === "random") {
     return "Totally random";
   }
-  return cars.from === "last"
-    ? `Random factor ±${cars.spread} from previous season's car`
-    : `Random factor ±${cars.spread}`;
+  return roll.from === "last"
+    ? `Random factor ±${roll.spread} from previous season's ${noun}`
+    : `Random factor ±${roll.spread}`;
 }
+
+/** What the reader is shown for each In-season development answer. */
+export const DEVELOPMENT_LABELS: Readonly<Record<Development, string>> = {
+  random: "Random",
+  none: "Off",
+};
 
 /** What the reader is shown for each Mechanical failures answer. */
 export const BREAKDOWNS_LABELS: Readonly<Record<Breakdowns, string>> = {
@@ -372,10 +494,12 @@ export function pointsTableOf(year: number): PointsTable | undefined {
 /**
  * The settings `raw` describes, or null when it is not settings this build
  * could have produced: a missing field, a points table that is not one of the
- * authored ones, a year with no season, a Car performance answer, spread or base
- * this build does not offer, or a Mechanical failures, Driver career events or
- * Team name changes answer that is not a what-if, or *Keep the first season's
- * teams* rules this build does not offer. Takes `unknown` because both callers read storage the reader controls.
+ * authored ones, a year with no season, a Chassis or Engine performance answer,
+ * spread or base this build does not offer, a Mechanical failures, In-season
+ * development, Driver career events, Team name, Livery or Engine supplier
+ * changes answer that is not a what-if, or *Keep the first season's teams*
+ * rules this build does not offer. Takes `unknown` because both callers read
+ * storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
@@ -384,40 +508,53 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   if (
     !(
       "carPerformance" in raw &&
+      "enginePerformance" in raw &&
+      "development" in raw &&
       "points" in raw &&
       "breakdowns" in raw &&
       "reliability" in raw &&
       "careerEvents" in raw &&
       "teamNames" in raw &&
+      "liveries" in raw &&
+      "engineSuppliers" in raw &&
       "teamsAndSeats" in raw
     )
   ) {
     return null;
   }
   const carPerformance = parseCarPerformance(raw.carPerformance);
+  const enginePerformance = parseCarPerformance(raw.enginePerformance);
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
   const teamsAndSeats = parseTeamsAndSeats(raw.teamsAndSeats);
-  const { careerEvents, teamNames } = raw;
+  const { careerEvents, teamNames, liveries, engineSuppliers, development } = raw;
   if (
     carPerformance === undefined ||
+    enginePerformance === undefined ||
     points === undefined ||
     breakdowns === undefined ||
     reliability === undefined ||
     teamsAndSeats === undefined ||
     (careerEvents !== null && careerEvents !== "none") ||
-    (teamNames !== null && teamNames !== "first")
+    (teamNames !== null && teamNames !== "first") ||
+    (liveries !== null && liveries !== "first") ||
+    (engineSuppliers !== null && engineSuppliers !== "first") ||
+    (development !== null && development !== "random" && development !== "none")
   ) {
     return null;
   }
   return {
     carPerformance,
+    enginePerformance,
+    development,
     breakdowns,
     reliability,
     points,
     careerEvents,
     teamNames,
+    liveries,
+    engineSuppliers,
     teamsAndSeats,
   };
 }
@@ -506,13 +643,31 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
     lines.push({ name: "Points system", value: pointsValues(settings.points) });
   }
   if (settings.carPerformance !== null) {
-    lines.push({ name: "Car performance", value: carPerformanceLabel(settings.carPerformance) });
+    lines.push({
+      name: "Chassis performance",
+      value: carPerformanceLabel(settings.carPerformance, "chassis"),
+    });
+  }
+  if (settings.enginePerformance !== null) {
+    lines.push({
+      name: "Engine performance",
+      value: carPerformanceLabel(settings.enginePerformance, "engine"),
+    });
+  }
+  if (settings.development !== null) {
+    lines.push({ name: "In-season development", value: DEVELOPMENT_LABELS[settings.development] });
   }
   if (settings.careerEvents !== null) {
     lines.push({ name: "Driver career events", value: "No" });
   }
   if (settings.teamNames !== null) {
     lines.push({ name: "Team name changes", value: "No" });
+  }
+  if (settings.liveries !== null) {
+    lines.push({ name: "Livery changes", value: "No" });
+  }
+  if (settings.engineSuppliers !== null) {
+    lines.push({ name: "Engine supplier changes", value: "No" });
   }
   if (settings.teamsAndSeats !== null) {
     lines.push({

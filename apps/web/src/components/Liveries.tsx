@@ -18,7 +18,7 @@
  * editor preview a draft the world has never seen.
  */
 
-import type { Livery } from "@alt-hist/data";
+import { firstYearInRun, type Livery } from "@alt-hist/data";
 import { createContext, useCallback, useContext } from "react";
 import { liveryFor } from "../lib/livery.js";
 
@@ -26,6 +26,39 @@ const SeasonYear = createContext<number | undefined>(undefined);
 
 export function Liveries({ year, children }: { year: number; children: React.ReactNode }) {
   return <SeasonYear.Provider value={year}>{children}</SeasonYear.Provider>;
+}
+
+/**
+ * The year the run's liveries are kept from (`World.liveriesKeptFrom`), or null
+ * for every team painted as it was — the default, so a component rendered on
+ * its own paints teams as history did.
+ */
+const KeptFrom = createContext<number | null>(null);
+
+/** The run's frame provides it once, over every page of the run, beside `KeptNames`. */
+export function KeptLiveries({
+  from,
+  children,
+}: {
+  from: number | null;
+  children: React.ReactNode;
+}) {
+  return <KeptFrom.Provider value={from}>{children}</KeptFrom.Provider>;
+}
+
+/**
+ * The year a team's livery is read at, for a row of `year`: `year` itself, or
+ * under kept liveries the team's first season in the run (`firstYearInRun`).
+ * An undefined year stays undefined, the team's most recent colours. For the
+ * colours only: a car's sprite still follows the season.
+ */
+export function useLiveryYear(): (teamId: string, year?: number) => number | undefined {
+  const from = useContext(KeptFrom);
+  return useCallback(
+    (teamId: string, year?: number) =>
+      year === undefined ? undefined : firstYearInRun(teamId, year, from),
+    [from],
+  );
 }
 
 /**
@@ -41,8 +74,15 @@ export function useSeasonYear(): number | undefined {
   return useContext(SeasonYear);
 }
 
-/** A team's colours for the season in scope, or its default outside one. */
+/**
+ * A team's colours for the season in scope, or its default outside one — under
+ * *Livery changes: No*, its first season in the run's.
+ */
 export function useLivery(): (teamId: string) => Livery | undefined {
   const year = useContext(SeasonYear);
-  return useCallback((teamId: string) => liveryFor(teamId, year), [year]);
+  const liveryYear = useLiveryYear();
+  return useCallback(
+    (teamId: string) => liveryFor(teamId, liveryYear(teamId, year)),
+    [year, liveryYear],
+  );
 }

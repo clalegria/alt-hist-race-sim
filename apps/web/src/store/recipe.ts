@@ -10,9 +10,9 @@
  *
  * Each world's seed is stored rather than re-derived with `nextSeed`, because a
  * restart mid-era draws a fresh one that nothing else could reproduce. The cars
- * the year before raced and the kept year are not stored: each world after the
- * first is rebuilt off the world before it (`racedChassis`, `keptYearAfter`),
- * exactly as the run built it.
+ * and engines the year before raced and the kept year are not stored: each
+ * world after the first is rebuilt off the world before it (`racedChassis`,
+ * `racedEngineRatings`, `keptYearAfter`), exactly as the run built it.
  *
  * **The fingerprint is the build check.** Beside each world's inputs goes a hash
  * of the world they produced. Resumed on a build whose data or engine would
@@ -41,11 +41,12 @@ import {
   keptYearAfter,
   type Run,
   racedChassis,
+  racedEngineRatings,
   type World,
 } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 8;
+export const RECIPE_VERSION = 9;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -210,6 +211,7 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
       : {
           start: eraStartOf(previous),
           lastRaced: racedChassis(previous),
+          lastRacedEngines: racedEngineRatings(previous),
           kept: keptYearAfter(previous, recipe.year),
         },
   );

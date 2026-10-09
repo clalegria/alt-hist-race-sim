@@ -94,7 +94,9 @@ describe("the races and cars groups", () => {
       const order = [
         "Luck on the day",
         "Points system",
-        "Car performance",
+        "Chassis performance",
+        "Engine performance",
+        "In-season development",
         "Mechanical failures",
         "Cars as reliable as",
       ].map((name) => html.indexOf(`aria-label="${name}"`));

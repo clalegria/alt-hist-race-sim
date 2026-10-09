@@ -15,12 +15,17 @@
 
 import {
   applyChassis,
+  applyEngineRatings,
+  authoredEngineRatings,
   authoredSeasons,
   hasSeason,
   type SeasonChassis,
+  type SeasonEngineRatings,
   type SeasonSeed,
   seasonSeed,
   seatedSeason,
+  withFirstEngines,
+  withTrends,
 } from "@alt-hist/data";
 import type { World } from "../store/season.js";
 
@@ -80,7 +85,7 @@ export { seasonSeed };
 
 /**
  * A season as a run entered it: the seed data, with the run's own chassis in
- * it when Car performance rolled some (`World.baselineChassis`).
+ * it when Chassis performance rolled some (`World.baselineChassis`).
  *
  * What every "was this edited?" compares against — the editor's Restore, the
  * change notices, `createWorld`'s normalising — so a rolled car is the year's
@@ -94,17 +99,64 @@ export function withChassis(season: SeasonSeed, chassis: SeasonChassis | null): 
   return chassis === null ? season : applyChassis(season, chassis);
 }
 
+/** What the run's settings made of a year's cars, as a world records it. */
+export type RunCars = Pick<
+  World,
+  "enginesKeptFrom" | "baselineChassis" | "baselineEngineRatings" | "baselineTrends"
+>;
+
+/**
+ * A season with the run's own cars in it: each team's first engine under
+ * *Engine supplier changes: No*, then the rolled chassis, the rolled engines and
+ * the drawn trends — each only where the run has one. The one order both
+ * `createWorld` and `enteredSeason` apply them in, so the two cannot disagree.
+ */
+export function withRunCars(season: SeasonSeed, cars: RunCars): SeasonSeed {
+  const supplied = withFirstEngines(season, cars.enginesKeptFrom);
+  const chassis = withChassis(supplied, cars.baselineChassis);
+  const engines = withEngineRatings(chassis, cars.baselineEngineRatings);
+  return cars.baselineTrends === null ? engines : withTrends(engines, cars.baselineTrends);
+}
+
+function withEngineRatings(season: SeasonSeed, ratings: SeasonEngineRatings | null): SeasonSeed {
+  return ratings === null ? season : applyEngineRatings(season, ratings);
+}
+
+type HistoricalInputs = Pick<World, "year" | "kept" | "enginesKeptFrom" | "baselineEngineRatings">;
+
+const historicalEngines = new WeakMap<HistoricalInputs, SeasonEngineRatings>();
+
+/**
+ * Each engine as history rated it for this year — under *Engine supplier
+ * changes: No*, the kept engines' too — when the run rolled its own, or null.
+ * What the team popover sets beside the run's engine, as the authored chassis
+ * is beside a rolled one. Memoised per world, as `enteredSeason` is.
+ */
+export function historicalEngineRatings(world: HistoricalInputs): SeasonEngineRatings | null {
+  if (world.baselineEngineRatings === null) {
+    return null;
+  }
+  const known = historicalEngines.get(world);
+  if (known !== undefined) {
+    return known;
+  }
+  const entered = world.kept?.season ?? seasonSeed(world.year);
+  const ratings = authoredEngineRatings(withFirstEngines(entered, world.enginesKeptFrom));
+  historicalEngines.set(world, ratings);
+  return ratings;
+}
+
 /** What `enteredSeason` reads: a `World`, or the revealed one a page holds. */
-type EnteredInputs = Pick<World, "year" | "baselineChassis" | "kept" | "keptSeats">;
+type EnteredInputs = Pick<World, "year" | "kept" | "keptSeats"> & RunCars;
 
 const enteredSeasons = new WeakMap<EnteredInputs, SeasonSeed>();
 
 /**
  * The season as the run entered this world's year, which every "was this
  * edited?" compares against: the editor's Restore, the change notices. The seed
- * file with any rolled chassis; under Keep, the kept year with its signings.
- * Memoised per world, since worlds are never mutated, so a component reading it
- * gets the same object every render.
+ * file with the run's own cars (`withRunCars`); under Keep, the kept year with
+ * them and its signings. Memoised per world, since worlds are never mutated,
+ * so a component reading it gets the same object every render.
  */
 export function enteredSeason(world: EnteredInputs): SeasonSeed {
   const known = enteredSeasons.get(world);
@@ -113,8 +165,8 @@ export function enteredSeason(world: EnteredInputs): SeasonSeed {
   }
   const season =
     world.kept === null || world.keptSeats === null
-      ? seasonWithChassis(world.year, world.baselineChassis)
-      : seatedSeason(withChassis(world.kept.season, world.baselineChassis), world.keptSeats);
+      ? withRunCars(seasonSeed(world.year), world)
+      : seatedSeason(withRunCars(world.kept.season, world), world.keptSeats);
   enteredSeasons.set(world, season);
   return season;
 }

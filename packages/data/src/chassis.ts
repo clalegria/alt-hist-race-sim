@@ -12,7 +12,7 @@
  * a record of ratings — because it is part of the saved world beside the lineup
  * and the engines.
  *
- * The *Car performance* run setting rolls one too (`variedChassis`,
+ * The *Chassis performance* run setting rolls one too (`variedChassis`,
  * `randomChassis`): a run's own cars for a year, which the reader's edits are
  * then measured from.
  *
@@ -97,8 +97,11 @@ export function applyChassis(season: SeasonSeed, chassis: SeasonChassis): Season
   return { ...season, entries };
 }
 
-/** A rating held inside the scale a step or a roll may reach. */
-function clamped(value: number): number {
+/**
+ * A rating held inside the scale a step or a roll may reach. Shared with the
+ * engine rolls (`variedEngines`), which move on the same scale.
+ */
+export function clamped(value: number): number {
   return Math.min(Math.max(value, CHASSIS_STEP_RANGE.min), CHASSIS_STEP_RANGE.max);
 }
 
@@ -176,7 +179,7 @@ export function chassisChanges(
  * [−spread, spread], on all four ratings — the car keeps its character, as a
  * step with no rating named does — each held inside the scale on its own.
  *
- * The *Car performance: Random factor is added* roll. Each car moves off `from`'s car for its
+ * The *Chassis performance: Random factor is added* roll. Each car moves off `from`'s car for its
  * team when there is one (*previous season's car*, a walk), else off the season's
  * own. Draws one number per team, in entry order, whatever `from` holds.
  */
@@ -204,7 +207,7 @@ export function variedChassis(
  * Every chassis rating drawn uniformly between that season's weakest and
  * strongest value of it, each rating on its own.
  *
- * The *Car performance: Random* roll. Draws four numbers per team, in entry
+ * The *Chassis performance: Random* roll. Draws four numbers per team, in entry
  * order and `CHASSIS_KEYS` order.
  */
 export function randomChassis(season: SeasonSeed, rng: Rng): SeasonChassis {

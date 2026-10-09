@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { identityYear } from "./identity.js";
+import { firstYearInRun } from "./identity.js";
 import { authoredSeasons, seasonSeed } from "./index.js";
 
 /** Whether `teamId` has an entry in `year`. */
@@ -31,11 +31,11 @@ function laterDebut(): { teamId: string; debut: number } | undefined {
   return undefined;
 }
 
-describe("identityYear", () => {
+describe("firstYearInRun", () => {
   it("reads every team at the year itself when names are not kept", () => {
     for (const teamId of OPENING_TEAMS) {
       for (const year of LATER) {
-        expect(identityYear(teamId, year, null), `${teamId} ${year}`).toBe(year);
+        expect(firstYearInRun(teamId, year, null), `${teamId} ${year}`).toBe(year);
       }
     }
   });
@@ -43,7 +43,7 @@ describe("identityYear", () => {
   it("keeps a team on the opening grid at the start year, every year after", () => {
     for (const teamId of OPENING_TEAMS) {
       for (const year of LATER) {
-        expect(identityYear(teamId, year, START), `${teamId} ${year}`).toBe(START);
+        expect(firstYearInRun(teamId, year, START), `${teamId} ${year}`).toBe(START);
       }
     }
   });
@@ -55,7 +55,7 @@ describe("identityYear", () => {
       return;
     }
     for (const year of LATER) {
-      expect(identityYear(found.teamId, year, START), String(year)).toBe(
+      expect(firstYearInRun(found.teamId, year, START), String(year)).toBe(
         year < found.debut ? year : found.debut,
       );
     }
@@ -64,11 +64,13 @@ describe("identityYear", () => {
   it("reads a year before the run as itself", () => {
     const from = LATER[0] ?? START;
     for (const teamId of OPENING_TEAMS) {
-      expect(identityYear(teamId, START, from), teamId).toBe(START);
+      expect(firstYearInRun(teamId, START, from), teamId).toBe(START);
     }
   });
 
   it("reads a team the seasons never enter as the year itself", () => {
-    expect(identityYear("no-such-team", LATER.at(-1) ?? START, START)).toBe(LATER.at(-1) ?? START);
+    expect(firstYearInRun("no-such-team", LATER.at(-1) ?? START, START)).toBe(
+      LATER.at(-1) ?? START,
+    );
   });
 });

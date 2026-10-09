@@ -30,7 +30,7 @@
 
 import { type DriverCareer, type RaceEntrant, ratingsForSeason } from "@alt-hist/engine";
 import { teamIdentityIn } from "./eras.js";
-import { identityYear } from "./identity.js";
+import { firstYearInRun } from "./identity.js";
 import { drivers as driverPool, engines as enginePool, teams as teamPool } from "./index.js";
 import type { Driver, EngineManufacturer, SeasonSeed, Team } from "./types.js";
 
@@ -126,7 +126,7 @@ export function buildField(
   const baseOf = new Map(
     teams.map((team) => [
       team.id,
-      teamIdentityIn(team, identityYear(team.id, season.year, keptFrom)).base,
+      teamIdentityIn(team, firstYearInRun(team.id, season.year, keptFrom)).base,
     ]),
   );
   const engineOf = new Map(season.engines.map((engine) => [engine.engineId, engine]));

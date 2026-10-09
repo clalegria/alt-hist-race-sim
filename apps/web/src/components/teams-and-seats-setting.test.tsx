@@ -24,7 +24,7 @@ describe("the teams and seats setting", () => {
   it("presses No while historical, with nothing below it", () => {
     const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={null} />);
     expect(html).toMatch(/aria-pressed="true"[^>]*>No</);
-    expect(html).not.toContain("Drivers aged");
+    expect(html).not.toContain("Only sign drivers aged");
     expect(html).not.toContain("The best available driver");
   });
 
@@ -32,6 +32,7 @@ describe("the teams and seats setting", () => {
     const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={OPENING_SEAT_RULES} />);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Yes</);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Last year&#x27;s driver, if possible</);
+    expect(html).toContain("Only sign drivers aged");
     expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_SEAT_RULES.minAge));
     expect(inputValue(html, "Oldest driver age")).toBe(String(OPENING_SEAT_RULES.maxAge));
     expect(html).toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
