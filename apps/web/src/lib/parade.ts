@@ -224,32 +224,34 @@ export function planPass(
 }
 
 /**
- * The parade's hidden game, one pass at a time, round and round: press on a car
- * and the pass stops while held; let go and it drives on; press on a car again
- * and it turns round. The next press holds it again, the one after turns it back,
- * and so on until it leaves by either side. A new pass starts at `PARADE_START`.
+ * The parade's hidden game, one pass at a time. Pointing at a car names the pass
+ * (the tooltip, which is the component's); a press on a car stops the pass and
+ * pins that tooltip where it was pressed, and letting go turns the cars round. Every press and
+ * release turns them again, until they leave by either side. A press that is
+ * cancelled (the page scrolled, the window lost focus) turns nothing. A new pass
+ * starts at `PARADE_START`.
  */
 export interface ParadeGame {
-  /** Driving and not yet stopped, held still, or let go and waiting for the press that turns it. */
-  phase: "driving" | "held" | "released";
+  /** A press that began on a car and has not yet been let go. */
+  pressed: boolean;
   /** Driving right to left, the cars drawn mirrored. */
   reversed: boolean;
 }
 
-export const PARADE_START: ParadeGame = { phase: "driving", reversed: false };
+export const PARADE_START: ParadeGame = { pressed: false, reversed: false };
 
-/** The game after a press on a car or a release anywhere: the same object when nothing changes. */
-export function nextGame(game: ParadeGame, event: "press" | "release"): ParadeGame {
-  if (event === "release") {
-    return game.phase === "held" ? { ...game, phase: "released" } : game;
+/**
+ * The game after a press on a car, a release anywhere, or a cancelled press:
+ * the same object when nothing changes.
+ */
+export function nextGame(game: ParadeGame, event: "press" | "release" | "cancel"): ParadeGame {
+  if (event === "press") {
+    return game.pressed ? game : { ...game, pressed: true };
   }
-  if (game.phase === "driving") {
-    return { ...game, phase: "held" };
+  if (!game.pressed) {
+    return game;
   }
-  if (game.phase === "released") {
-    return { phase: "driving", reversed: !game.reversed };
-  }
-  return game;
+  return { pressed: false, reversed: event === "release" ? !game.reversed : game.reversed };
 }
 
 /** Whether a point (px, in the window) is inside any of the boxes, edges included. */
@@ -260,7 +262,7 @@ export function hitsAny(point: { x: number; y: number }, boxes: readonly Box[]):
   );
 }
 
-/** What the held pass's tooltip says: each car's team as named that year, and the year, lead car first. */
+/** What the parade's tooltip says: each car's team as named that year, and the year, lead car first. */
 export function paradeLabel(cars: readonly ParadeCar[]): string[] {
   return cars.map((car) => `${teamName(car.teamId, car.year)} (${car.year})`);
 }

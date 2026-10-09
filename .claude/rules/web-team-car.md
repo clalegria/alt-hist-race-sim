@@ -118,17 +118,18 @@ Every `PASS_INTERVAL_MS` (the first after `FIRST_PASS_MS`), `HomeParade` sends
 - **Behind** is a fixed layer at the texture's own `z-index: -1`, later in the document,
   so it paints over the texture and under all content. **In front** is `z-30`: over the
   content, under the dialogs (`z-50`). The layer never takes a click.
-- **A hidden game** (`ParadeGame`, `nextGame`): press on a car and the whole pass stops,
-  wheels too, with a tooltip of each car's `teamName` and year (`paradeLabel`) while
-  held; let go and it drives on; press again and the cars flip and drive the other way.
-  Round and round, each way in turn, until it leaves by either side; a new pass starts
-  over. `Parade` listens on the window, not the layer, and
-  **the page wins every press**: a cover, anything pressable or with a role, any text
-  under the pointer, or an open dialog (`claimedByPage`). The drive stays the CSS
-  animation, steered through `getAnimations()` (pause, play, `reverse()` from where it
-  is); the flip is on a wrapper inside the moving element. The pass ends on every
-  drive's `finished`. Pointer behaviour needs a real browser; the tests reach the state
-  machine, the hit test and the label.
+- **A hidden game** (`ParadeGame`, `nextGame`), an experiment: a pointer on a car shows
+  a tooltip of each car's `teamName` and year (`paradeLabel`), following the pointer; a
+  press on a car stops the whole pass, wheels too, and pins it where pressed; the
+  release flips the cars and turns them round, every time, until they leave by either
+  side. A cancelled press resumes without turning; a new
+  pass starts over. `Parade` watches the window, not the layer, checking the pointer
+  every frame (cars move under a still one), and **the page wins the pointer**: a
+  cover, anything clickable or with a role, any text under it, or an open dialog
+  (`claimedByPage`). The drive stays the CSS animation, paused, played and turned
+  (`reverse()`) through `getAnimations()` from where it is; the flip is on a wrapper
+  inside the moving element. The pass ends on every drive's `finished`. Pointer behaviour needs a real
+  browser; the tests reach the state machine, the hit test and the label.
 - The drive is `--animate-drive` in `index.css`, `motion-safe:`, and the layer is
   `motion-reduce:hidden`. A pass is skipped while the tab is hidden and never overlaps
   the one before. `pnpm screenshots` runs with reduced motion, so it never shows one.

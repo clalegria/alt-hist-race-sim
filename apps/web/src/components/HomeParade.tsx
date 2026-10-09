@@ -18,16 +18,22 @@ import { LiveryCar } from "./TeamCar.js";
 /** The keyframes that carry a car across (`--animate-drive` in `index.css`). */
 const DRIVE = "drive";
 
-/** What a press lands on that the page keeps for itself, whatever car is under or over it. */
+/** What the page keeps the pointer for, whatever car is under or over it. */
 const PAGE_CLAIMS = `${PARADE_COVER_SELECTOR}, a, button, input, select, textarea, label, [role], [tabindex]`;
+
+/** A place in the window, in px. */
+interface Point {
+  x: number;
+  y: number;
+}
 
 /** How far the tooltip sits from the pointer, in px. */
 const TOOLTIP_GAP_PX = 14;
 
 /**
- * Whether the page has a press at this point before the cars do: anything
- * marked as a cover or meant to be pressed, anything while a dialog is open,
- * and any text of the element pressed. Only bare page is left for the cars.
+ * Whether the page has the pointer at this point before the cars do: anything
+ * marked as a cover or meant to be clicked, anything while a dialog is open,
+ * and any text of the element under it. Only bare page is left for the cars.
  */
 function claimedByPage(target: Element, x: number, y: number): boolean {
   if (
@@ -61,11 +67,13 @@ function claimedByPage(target: Element, x: number, y: number): boolean {
  * the cars (a CSS animation on `transform`); React only says when a pass sets
  * off and what is in it.
  *
- * **The layer never takes a click**, so the page keeps every one. The hidden
- * game (`ParadeGame`) listens on the window instead, and takes a press only
- * where the page has none (`claimedByPage`) and a car is. It steers the drive
- * through the animations' own objects (`getAnimations()`), which pause and turn
- * round from wherever the car is.
+ * **The layer never takes the pointer**, so the page keeps every click and
+ * hover. The hidden game (`ParadeGame`) watches the window instead, and counts
+ * the pointer as on a car only where the page has nothing there
+ * (`claimedByPage`). The cars move under a still pointer, so where it is is
+ * checked every frame, not only when it moves. A hold and a turn steer the
+ * drive through the animations' own objects (`getAnimations()`), which pause
+ * and run backwards from wherever the car is.
  *
  * Gone for a reader who has asked for reduced motion: the layer is not drawn.
  */
@@ -77,7 +85,9 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
     done.current = onDone;
   });
   const [game, setGame] = useState<ParadeGame>(PARADE_START);
-  const [pressedAt, setPressedAt] = useState<{ x: number; y: number } | null>(null);
+  // Where the tooltip is: pinned where a car was pressed, else following a pointer over a car.
+  const [pressedAt, setPressedAt] = useState<Point | null>(null);
+  const [hoverAt, setHoverAt] = useState<Point | null>(null);
 
   useEffect(() => {
     const element = layer.current;
@@ -85,9 +95,31 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
       return;
     }
     let state = PARADE_START;
-    // The animations a hold paused, and only those: one already finished would
+    // The pointer's last place in the window, or null when it has left it (or a finger lifted).
+    let pointer: Point | null = null;
+    let frame = 0;
+    // The animations a press paused, and only those: one already finished would
     // start over if played again.
     let paused: Animation[] = [];
+    const onCar = (target: Element | null, { x, y }: Point) =>
+      target !== null &&
+      !claimedByPage(target, x, y) &&
+      hitsAny(
+        { x, y },
+        [...element.children]
+          .map((car) => car.getBoundingClientRect())
+          .filter((box) => box.width > 0),
+      );
+    // Every frame, since a car can drive under a pointer that is not moving. The
+    // same `pointer` object while it stays put, so React skips the re-render.
+    const track = () => {
+      setHoverAt(
+        pointer !== null && onCar(document.elementFromPoint(pointer.x, pointer.y), pointer)
+          ? pointer
+          : null,
+      );
+      frame = requestAnimationFrame(track);
+    };
     // Bumped each time the drive changes direction, so only the latest wait ends the pass.
     let waits = 0;
     const animations = () => element.getAnimations({ subtree: true });
@@ -112,70 +144,92 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
       );
     };
 
+    const move = (event: PointerEvent) => {
+      pointer = { x: event.clientX, y: event.clientY };
+    };
+    const leave = () => {
+      pointer = null;
+    };
     const press = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0 || nextGame(state, "press") === state) {
-        return;
-      }
-      const { clientX: x, clientY: y, target } = event;
-      if (!(target instanceof Element) || claimedByPage(target, x, y)) {
-        return;
-      }
-      const cars = [...element.children]
-        .map((car) => car.getBoundingClientRect())
-        .filter((box) => box.width > 0);
-      if (!hitsAny({ x, y }, cars)) {
+      const at = { x: event.clientX, y: event.clientY };
+      if (
+        !event.isPrimary ||
+        event.button !== 0 ||
+        state.pressed ||
+        !onCar(event.target instanceof Element ? event.target : null, at)
+      ) {
         return;
       }
       event.preventDefault();
       state = nextGame(state, "press");
-      if (state.phase === "held") {
-        paused = animations().filter((a) => a.playState === "running");
-        for (const a of paused) {
-          a.pause();
-        }
-        setPressedAt({ x, y });
-      } else {
-        // Turned round, either way: each drive runs on from where it is, in the other direction.
+      // The whole pass stops while held, wheels too.
+      paused = animations().filter((a) => a.playState === "running");
+      for (const a of paused) {
+        a.pause();
+      }
+      setPressedAt(at);
+    };
+    const end = (event: "release" | "cancel") => {
+      const next = nextGame(state, event);
+      if (next === state) {
+        return;
+      }
+      for (const a of paused) {
+        a.play();
+      }
+      paused = [];
+      if (next.reversed !== state.reversed) {
+        // Each drive runs on from where it is, in the other direction.
         for (const a of drives()) {
           a.reverse();
         }
         waitForExit();
       }
-      setGame(state);
-    };
-    const release = () => {
-      if (state.phase !== "held") {
-        return;
-      }
-      state = nextGame(state, "release");
-      for (const a of paused) {
-        a.play();
-      }
-      paused = [];
+      state = next;
       setPressedAt(null);
       setGame(state);
     };
-    // Holding still must not start a text selection across the page.
+    const release = (event: PointerEvent) => {
+      end("release");
+      // A finger lifted is no longer anywhere; a mouse still is.
+      if (event.pointerType !== "mouse") {
+        pointer = null;
+      }
+    };
+    const cancel = () => {
+      end("cancel");
+      pointer = null;
+    };
+    // Pressing and holding must not start a text selection across the page.
     const noSelecting = (event: Event) => {
-      if (state.phase === "held") {
+      if (state.pressed) {
         event.preventDefault();
       }
     };
 
     waitForExit();
+    frame = requestAnimationFrame(track);
+    const root = document.documentElement;
+    window.addEventListener("pointermove", move);
+    root.addEventListener("pointerleave", leave);
     window.addEventListener("pointerdown", press);
     window.addEventListener("pointerup", release);
-    window.addEventListener("pointercancel", release);
-    window.addEventListener("blur", release);
+    window.addEventListener("pointercancel", cancel);
+    window.addEventListener("blur", cancel);
     document.addEventListener("selectstart", noSelecting);
     return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", move);
+      root.removeEventListener("pointerleave", leave);
       window.removeEventListener("pointerdown", press);
       window.removeEventListener("pointerup", release);
-      window.removeEventListener("pointercancel", release);
-      window.removeEventListener("blur", release);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("blur", cancel);
       document.removeEventListener("selectstart", noSelecting);
     };
   }, []);
+
+  const tooltipAt = pressedAt ?? hoverAt;
 
   return (
     <>
@@ -207,18 +261,16 @@ export function Parade({ pass, onDone }: { pass: Pass; onDone?: () => void }) {
           );
         })}
       </div>
-      {game.phase === "held" && pressedAt !== null ? (
-        <ParadeTooltip lines={paradeLabel(pass.cars)} at={pressedAt} />
-      ) : null}
+      {tooltipAt === null ? null : <ParadeTooltip lines={paradeLabel(pass.cars)} at={tooltipAt} />}
     </>
   );
 }
 
 /**
- * Who the held cars are, beside the pointer on the side with more room. Over
+ * Who the cars are, beside the pointer on the side with more room. Over
  * the page and an in-front pass, under the dialogs.
  */
-function ParadeTooltip({ lines, at }: { lines: readonly string[]; at: { x: number; y: number } }) {
+function ParadeTooltip({ lines, at }: { lines: readonly string[]; at: Point }) {
   const leftward = at.x > window.innerWidth / 2;
   const upward = at.y > window.innerHeight / 2;
   return (

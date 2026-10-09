@@ -99,7 +99,7 @@ describe("the parade", () => {
     expect(css).toContain("@keyframes drive");
   });
 
-  it("shows no tooltip until a car is held", () => {
+  it("shows no tooltip until the pointer is on a car", () => {
     const html = renderToStaticMarkup(<Parade pass={pass("file")} />);
     expect(html).not.toContain("(1950)");
     expect(html).not.toContain("z-40");

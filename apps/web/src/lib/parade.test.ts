@@ -181,31 +181,38 @@ describe("planPass", () => {
 
 describe("the parade's hidden game", () => {
   const GAMES: ParadeGame[] = [false, true].flatMap((reversed) =>
-    (["driving", "held", "released"] as const).map((phase) => ({ phase, reversed })),
+    [false, true].map((pressed) => ({ pressed, reversed })),
   );
 
-  it("starts driving the right way round", () => {
-    expect(PARADE_START).toEqual({ phase: "driving", reversed: false });
+  it("starts unpressed, the right way round", () => {
+    expect(PARADE_START).toEqual({ pressed: false, reversed: false });
   });
 
-  it("holds, lets go and turns, round and round, each way in turn", () => {
+  it("turns on each release of a press, each way in turn", () => {
     let game = PARADE_START;
     for (const reversed of [true, false, true, false]) {
       game = nextGame(game, "press");
-      expect(game).toEqual({ phase: "held", reversed: !reversed });
+      expect(game).toEqual({ pressed: true, reversed: !reversed });
       game = nextGame(game, "release");
-      expect(game).toEqual({ phase: "released", reversed: !reversed });
-      game = nextGame(game, "press");
-      expect(game).toEqual({ phase: "driving", reversed });
+      expect(game).toEqual({ pressed: false, reversed });
     }
   });
 
-  it("does nothing else: a release that ends no hold, a press while held", () => {
+  it("does not turn on the press itself, nor on a press that is cancelled", () => {
+    for (const reversed of [false, true]) {
+      const pressed = nextGame({ pressed: false, reversed }, "press");
+      expect(pressed.reversed).toBe(reversed);
+      expect(nextGame(pressed, "cancel")).toEqual({ pressed: false, reversed });
+    }
+  });
+
+  it("does nothing else: a release or cancel with no press, a press while pressed", () => {
     for (const game of GAMES) {
-      if (game.phase !== "held") {
-        expect(nextGame(game, "release")).toBe(game);
-      } else {
+      if (game.pressed) {
         expect(nextGame(game, "press")).toBe(game);
+      } else {
+        expect(nextGame(game, "release")).toBe(game);
+        expect(nextGame(game, "cancel")).toBe(game);
       }
     }
   });
