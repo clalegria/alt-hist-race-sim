@@ -16,11 +16,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import { liveryFor } from "../lib/livery.js";
-import { driverName, entryName, isSharedTeamName, teamName } from "../lib/names.js";
+import { driverName, entryName, teamName } from "../lib/names.js";
 import {
   type CareerRecord,
   type CareerSpell,
   careerRecords,
+  labelsFor,
   type RankedRecord,
   rankBy,
 } from "../lib/records.js";
@@ -108,7 +109,7 @@ describe("the career statistics", () => {
     expect(driver).toBeDefined();
     expect(team).toBeDefined();
     expect(html).toContain(driverName(driver?.id ?? ""));
-    expect(html).toContain(teamName(team?.id ?? "", team?.lastYear));
+    expect(html).toContain(labelsFor(records.teams, teamName).get(team?.id ?? "")?.name);
   });
 
   it("names a team as itself, not as an entry", () => {
@@ -159,9 +160,6 @@ describe("a driver on a record card", () => {
     expect(drawn).not.toContain("aria-expanded");
   });
 });
-
-/** Arbitrary years for a synthetic career; nothing reads them but the label. */
-const SPAN = { from: 1990, to: 1999 };
 
 /** The 1954-55 works team, and the lineage that races as Mercedes today. */
 const worksMercedes = career("mercedes", {
@@ -265,9 +263,51 @@ describe("naming a lineage on a card", () => {
     expect(drawn).not.toContain(teamName("tyrrell", 2026));
   });
 
+  it("gives a lineage the same name and colours on every card", () => {
+    // Its titles taken under the first name, most of its wins under the
+    // second: a card per figure would otherwise name it twice, as two teams.
+    const split = career(repainted.id, {
+      titles: 1,
+      wins: 6,
+      podiums: 6,
+      poles: 6,
+      lastYear: repainted.late,
+      spells: [
+        spell("First", {
+          titles: 1,
+          wins: 1,
+          firstYear: repainted.early,
+          lastYear: repainted.early,
+          scored: { titles: repainted.early, wins: repainted.early, podiums: null, poles: null },
+        }),
+        spell("Second", {
+          wins: 5,
+          podiums: 6,
+          poles: 6,
+          firstYear: repainted.late,
+          lastYear: repainted.late,
+          scored: {
+            titles: null,
+            wins: repainted.late,
+            podiums: repainted.late,
+            poles: repainted.late,
+          },
+        }),
+      ],
+    });
+    for (const metric of ["titles", "wins", "podiums", "poles"] as const) {
+      const drawn = renderToStaticMarkup(
+        <RecordCard title={metric} records={[split]} metric={metric} kind="team" />,
+      );
+      expect(drawn, metric).toContain(teamName(repainted.id, repainted.early));
+      expect(drawn, metric).toContain(repainted.earlyBackground);
+      expect(drawn, metric).not.toContain(repainted.lateBackground);
+    }
+  });
+
   it("tells two teams of the same name apart by their years", () => {
-    // There are two Mercedes, two Renaults and three Lotuses in the seed data,
-    // and a card listing two of them is otherwise the same word twice.
+    // Two lineages of one name in the same run, and a card listing both is
+    // otherwise the same word twice.
     const name = teamName("mercedes", 1955);
     const [first, second] = rows(card([modernMercedes, worksMercedes], "team"));
     expect(first).toContain(name);
@@ -277,30 +317,22 @@ describe("naming a lineage on a card", () => {
   });
 
   it("shows the years even when the other holder is nowhere on the card", () => {
-    // A card of one Mercedes is still ambiguous: the reader cannot tell which
-    // of the two lineages it is, and the other one is in the same database.
-    expect(card([modernMercedes], "team")).toContain("(2010–2026)");
+    // The other Mercedes won nothing, so the wins card leaves it out — but it
+    // raced in the run under that name, and a bare "Mercedes" is one of two.
+    const winless = career("mercedes", {
+      lastYear: 1955,
+      spells: [spell("Mercedes", { firstYear: 1954, lastYear: 1955 })],
+    });
+    const drawn = card([modernMercedes, winless], "team");
+    expect(rows(drawn)).toHaveLength(1);
+    expect(drawn).toContain("(2010–2026)");
   });
 
-  it("leaves the years off a name no second lineage ever held", () => {
-    // Searched for, because which names collide is data: any team whose name
-    // this season belongs to it alone.
-    const soleId = [...teamsById().keys()].find((id) => !isSharedTeamName(teamName(id, SPAN.to)));
-    expect(soleId, "every team in the data shares its name").toBeDefined();
-    const sole = career(soleId ?? "", {
-      wins: 4,
-      lastYear: SPAN.to,
-      spells: [
-        spell(teamName(soleId ?? "", SPAN.to), {
-          wins: 4,
-          firstYear: SPAN.from,
-          lastYear: SPAN.to,
-        }),
-      ],
-    });
-    const drawn = card([sole], "team");
-    expect(drawn).toContain(teamName(soleId ?? "", SPAN.to));
-    expect(drawn).not.toContain(`(${SPAN.from}–${SPAN.to})`);
+  it("leaves the years off a name no other lineage of the run held", () => {
+    // Whoever else held it in the database, the reader never met them here.
+    const drawn = card([modernMercedes], "team");
+    expect(drawn).toContain(teamName("tyrrell", 2026));
+    expect(drawn).not.toContain("(2010–2026)");
   });
 });
 

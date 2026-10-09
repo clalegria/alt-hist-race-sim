@@ -383,7 +383,8 @@ export function EraChampions({
   const ended = eraEnded(seasons, inProgress);
 
   return (
-    <div className="flex flex-col gap-6 py-6 sm:py-10">
+    // No padding of its own: the run's frame spaces every page under the bar.
+    <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           {ended ? "All champions" : "Champions so far"}

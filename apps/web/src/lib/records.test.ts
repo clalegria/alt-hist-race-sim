@@ -9,11 +9,11 @@
  * same reason `lib/rating.test.ts` invents its drivers.
  */
 
-import { identityYear, seasonSeed, teamsById } from "@alt-hist/data";
+import { identityYear, seasonSeed } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { createWorld, type World } from "../store/season.js";
-import { isSharedTeamName, teamName } from "./names.js";
+import { teamName } from "./names.js";
 import {
   type CareerRecord,
   type CareerSpell,
@@ -411,15 +411,9 @@ describe("the names a career was raced under", () => {
   });
 });
 
-/** A spell whose wins were all taken in 2006, years before it stopped racing. */
-const SCORED_2006 = { titles: 2006, wins: 2006, podiums: 2006, poles: 2006 };
-
-describe("what a card calls a row", () => {
-  const ranked = (records: readonly CareerRecord[]) => rankBy(records, "wins");
-  /** An invented collision, so the rule is tested without the seed data. */
-  const shared = (name: string) => name === "Mercedes";
+describe("what the cards call a lineage", () => {
   const label = (records: readonly CareerRecord[], id: string) =>
-    labelsFor(ranked(records), "wins", () => "fallback", shared).get(id);
+    labelsFor(records, () => "fallback").get(id);
 
   const modern = career("tyrrell", {
     wins: 90,
@@ -435,12 +429,9 @@ describe("what a card calls a row", () => {
     spells: [spell("Mercedes", { wins: 5, firstYear: 1954, lastYear: 1955 })],
   });
 
-  it("names a lineage by the name it won the most under", () => {
-    // Not the most recent, which answers a different question: eighty wins as
-    // Mercedes belong at the top of a wins card as Mercedes.
+  it("names a lineage by its most successful name, not its latest", () => {
     expect(label([modern], "tyrrell")?.name).toBe("Mercedes");
-    // And the other way round, which is the half a "most recent name" rule
-    // would get wrong: the same lineage, most of it won under the older name.
+    // And the other way round, which a "most recent name" rule would get wrong.
     const early = career("tyrrell", {
       wins: 90,
       lastYear: 2026,
@@ -450,97 +441,91 @@ describe("what a card calls a row", () => {
       ],
     });
     expect(label([early], "tyrrell")?.name).toBe("Tyrrell");
-    expect(label([early], "tyrrell")?.year).toBe(1998);
-    // And a metric it only ever scored under an older name says that name.
-    const titles = labelsFor(
-      rankBy(
-        [career("tyrrell", { titles: 2, spells: [spell("Tyrrell", { titles: 2 })] })],
-        "titles",
-      ),
-      "titles",
-      () => "fallback",
-      shared,
-    );
-    expect(titles.get("tyrrell")?.name).toBe("Tyrrell");
   });
 
-  it("draws the row as of the last season the figure was scored in", () => {
+  it("ranks the names on titles, then wins, podiums and poles", () => {
+    // Each name beats the next on one figure and loses on everything after it.
+    const ladder = [
+      spell("Poles", { poles: 9, firstYear: 2004, lastYear: 2004 }),
+      spell("Podiums", { podiums: 9, poles: 1, firstYear: 2003, lastYear: 2003 }),
+      spell("Wins", { wins: 9, podiums: 1, poles: 1, firstYear: 2002, lastYear: 2002 }),
+      spell("Titles", {
+        titles: 1,
+        wins: 1,
+        podiums: 1,
+        poles: 1,
+        firstYear: 2001,
+        lastYear: 2001,
+      }),
+    ];
+    for (let top = 0; top < ladder.length; top += 1) {
+      const spells = ladder.slice(0, ladder.length - top);
+      const expected = spells.at(-1)?.name;
+      expect(label([career("team", { spells })], "team")?.name).toBe(expected);
+    }
+  });
+
+  it("gives a full tie to the more recent name", () => {
+    const tied = career("team", {
+      spells: [
+        spell("Later", { wins: 3, firstYear: 1990, lastYear: 1995 }),
+        spell("Earlier", { wins: 3, firstYear: 1980, lastYear: 1985 }),
+      ],
+    });
+    expect(label([tied], "team")?.name).toBe("Later");
+    expect(label([{ ...tied, spells: [...tied.spells].reverse() }], "team")?.name).toBe("Later");
+  });
+
+  it("draws the row as of the last season its deciding figure was scored in", () => {
     // The colours of a record are the colours it was won in: a lineage that
-    // won as Renault in 2006 and went on racing under that name until 2020
-    // must not wear the livery of the years it won nothing. The year resolves
-    // the label as well, and stays inside the spell, so the name is unchanged.
+    // won its titles as Renault in 2006 and raced under that name until 2020
+    // must not wear the livery of the years it won nothing.
     const renault = career("toleman", {
+      titles: 1,
       wins: 20,
       lastYear: 2026,
       spells: [
-        spell("Renault", { wins: 20, firstYear: 2002, lastYear: 2020, scored: SCORED_2006 }),
+        spell("Renault", {
+          titles: 1,
+          wins: 20,
+          firstYear: 2002,
+          lastYear: 2020,
+          scored: { titles: 2006, wins: 2008, podiums: 2010, poles: 2009 },
+        }),
       ],
     });
-    expect(label([renault], "toleman")?.year).toBe(2006);
-    expect(label([renault], "toleman")?.name).toBe("Renault");
+    expect(label([renault], "toleman")).toMatchObject({ name: "Renault", year: 2006 });
   });
 
-  it("falls back to the end of the spell where nothing says otherwise", () => {
+  it("falls back to the end of the spell where nothing was scored", () => {
     expect(label([modern], "tyrrell")?.year).toBe(2026);
     expect(label([works], "mercedes")?.year).toBe(1955);
   });
 
-  it("adds the years to a name a second lineage ever held", () => {
+  it("adds the years to a name another lineage of the run held", () => {
     const both = [modern, works];
     expect(label(both, "tyrrell")?.span).toBe("2010–2026");
     expect(label(both, "mercedes")?.span).toBe("1954–1955");
   });
 
-  it("adds them even when the other holder is nowhere on the card", () => {
-    // The question is asked of the database, not of the rows on show: the other
-    // Mercedes having won nothing does not make this one identifiable, and a
-    // reader cannot tell which of the two a bare "Mercedes" is.
-    expect(label([modern], "tyrrell")?.span).toBe("2010–2026");
-    expect(label([works], "mercedes")?.span).toBe("1954–1955");
-  });
-
-  it("leaves them off a name nobody else ever held", () => {
-    const ferrari = career("ferrari", {
-      wins: 9,
-      spells: [spell("Ferrari", { wins: 9, firstYear: 1950, lastYear: 2026 })],
+  it("adds them for a holder that scored nothing, which no card shows", () => {
+    // It was still on the grid under the name, so a bare "Mercedes" is still
+    // one of two the reader has met.
+    const nothing = career("mercedes", {
+      lastYear: 1955,
+      spells: [spell("Mercedes", { firstYear: 1954, lastYear: 1955 })],
     });
-    expect(label([ferrari, modern], "ferrari")?.span).toBeNull();
+    expect(label([modern, nothing], "tyrrell")?.span).toBe("2010–2026");
   });
 
-  it("labels every row of the list it was given", () => {
-    const labels = labelsFor(ranked([modern, works]), "wins", () => "fallback", shared);
+  it("leaves them off a name only one lineage of the run held", () => {
+    // Whoever else held it outside the run, the reader never met them.
+    expect(label([modern], "tyrrell")?.span).toBeNull();
+    expect(label([works], "mercedes")?.span).toBeNull();
+  });
+
+  it("labels every career of the list it was given", () => {
+    const labels = labelsFor([modern, works], () => "fallback");
     expect([...labels.keys()].sort()).toEqual(["mercedes", "tyrrell"]);
-  });
-});
-
-describe("the names two lineages share", () => {
-  // Searched in the seed data rather than written down: which lineages collide
-  // is data — `lotus` is Team Lotus while `caterham` and `toleman` both raced
-  // as Lotus — and the rule is what a shared name *means*, not who holds one.
-  const holders = new Map<string, Set<string>>();
-  for (const [id, team] of teamsById()) {
-    for (const era of team.identity) {
-      holders.set(era.name, (holders.get(era.name) ?? new Set<string>()).add(id));
-    }
-  }
-  const collisions = [...holders].filter(([, ids]) => ids.size > 1);
-  const alone = [...holders].filter(([, ids]) => ids.size === 1);
-
-  it("knows every name more than one lineage raced under", () => {
-    expect(collisions.length, "no two lineages in the seed data share a name").toBeGreaterThan(0);
-    for (const [name] of collisions) {
-      expect(isSharedTeamName(name), name).toBe(true);
-    }
-  });
-
-  it("leaves the names only one lineage ever used alone", () => {
-    expect(alone.length).toBeGreaterThan(0);
-    for (const [name] of alone) {
-      expect(isSharedTeamName(name), name).toBe(false);
-    }
-  });
-
-  it("says nothing about a name no team ever had", () => {
-    expect(isSharedTeamName("Not A Team")).toBe(false);
   });
 });

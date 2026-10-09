@@ -398,20 +398,71 @@ export function spellRange(spell: CareerSpell): string {
   return rangeSpan({ from: spell.firstYear, to: spell.lastYear });
 }
 
+/** The order a lineage's spells are ranked in to find its most successful name. */
+const SUCCESS: readonly RecordMetric[] = ["titles", "wins", "podiums", "poles"];
+
 /**
- * The name a career is *known* by on one card: the one it won the most under.
+ * The name a lineage is *known* by on every card: its most successful one.
  *
- * Not the most recent, which is the answer to a different question. A lineage
- * that took eighty wins as Mercedes and ten as Tyrrell belongs at the top of a
- * wins card as Mercedes whatever it is called today, and a card of a metric it
- * only ever scored under an older name says that older name. Null for a career
- * with none of the thing counted, which no card ever shows.
+ * Titles first, then wins, podiums and poles, and on a full tie the more recent
+ * name. **One answer per lineage, not one per card**: a row reading "Renault" on
+ * the championships card and "Benetton" on the wins card is the same team
+ * twice under two names, which reads as two teams. Null for a career with no
+ * spells, which `careerRecords` never makes.
  */
-export function bestSpellBy(record: CareerRecord, metric: RecordMetric): CareerSpell | null {
-  return spellsBy(record, metric)[0] ?? null;
+export function bestSpell(record: CareerRecord): CareerSpell | null {
+  const ordered = [...record.spells].sort((a, b) => {
+    for (const metric of SUCCESS) {
+      const difference = b[metric] - a[metric];
+      if (difference !== 0) {
+        return difference;
+      }
+    }
+    return b.lastYear - a.lastYear;
+  });
+  return ordered[0] ?? null;
 }
 
-/** How a card labels one row: the name, and the years if it needs them. */
+/**
+ * The season a spell is drawn as of: the last one it scored the figure that
+ * made it the best — its last title, else its last win, and so on — or the
+ * spell's own end where it scored nothing.
+ *
+ * The colours of a record are the colours it was won in. `toleman` raced as
+ * Renault until 2020 and took its titles in the middle of that, and drawn as of
+ * 2020 the row wears a livery that never won anything. The year stays inside
+ * the spell, so the name it resolves to is the same either way.
+ */
+function drawnAsOf(spell: CareerSpell): number {
+  for (const metric of SUCCESS) {
+    const year = spell.scored[metric];
+    if (year !== null) {
+      return year;
+    }
+  }
+  return spell.lastYear;
+}
+
+/**
+ * The names more than one career of the list raced under.
+ *
+ * Asked of the **run**, not of the database: a Mercedes is only ambiguous if the
+ * reader has met two of them. The list is every team that raced, scorers or
+ * not, so the other Mercedes never having won anything still counts — it was
+ * on the grid under that name. And it is named by the run's own rule, so under
+ * kept names each lineage has one name and collisions are rarer.
+ */
+export function sharedNames(records: readonly CareerRecord[]): ReadonlySet<string> {
+  const holders = new Map<string, Set<string>>();
+  for (const record of records) {
+    for (const spell of record.spells) {
+      holders.set(spell.name, (holders.get(spell.name) ?? new Set<string>()).add(record.id));
+    }
+  }
+  return new Set([...holders].filter(([, ids]) => ids.size > 1).map(([name]) => name));
+}
+
+/** How the cards label one lineage: the name, and the years if it needs them. */
 export interface RecordLabel {
   readonly name: string;
   /**
@@ -420,51 +471,36 @@ export interface RecordLabel {
    * is noise around the collisions that matter.
    */
   readonly span: string | null;
-  /**
-   * The season the row is drawn as of, which resolves both the label and the
-   * livery: **the last one this figure was scored in under that name**, not the
-   * last one the name was used.
-   *
-   * The colours of a record are the colours it was won in. `toleman`'s title as
-   * Renault was taken in the middle of a stretch that ran to 2020, and drawn as
-   * of 2020 the row wears a livery that never won anything; the name is the
-   * same either way, since the year is inside the spell.
-   */
+  /** The season the row is drawn as of, which resolves the name and the livery. */
   readonly year: number;
 }
 
 /**
- * What each row of a card is called, keyed by career id.
+ * What each lineage is called on every card, keyed by career id.
  *
- * **Two lineages can hold the same name**, in different eras and occasionally
- * in the same season — there are two Lotuses, two Renaults, two Mercedes — and
- * a name one of them shares is ambiguous on its own however short the card is.
- * The question is asked of the **whole database**, through `shared`, rather than
- * of the rows on show: the other Mercedes not having won anything does not make
- * this one identifiable, and a reader who knows the seed data has no way to
- * tell which of the two a bare "Mercedes" is. Where a name is shared, the row
- * carries the years of the spell it is named for; where it is not, the name
- * alone is the whole answer and years beside it are noise.
+ * Takes the **whole list**, not one card's rows, for both halves of the
+ * answer: the label is a fact about the lineage, so the four cards agree, and
+ * whether a name needs its years depends on who else in the run held it, on a
+ * card or not.
  *
- * Nothing here reads the seed data itself — both `nameOf` and `shared` come in
- * — so the rule is testable against invented names.
+ * Nothing here reads the seed data itself — `nameOf` comes in — so the rule is
+ * testable against invented names.
  */
 export function labelsFor(
-  ranked: readonly RankedRecord[],
-  metric: RecordMetric,
+  records: readonly CareerRecord[],
   nameOf: (id: string, year: number) => string,
-  shared: (name: string) => boolean,
 ): ReadonlyMap<string, RecordLabel> {
+  const shared = sharedNames(records);
   return new Map(
-    ranked.map(({ record }) => {
-      const best = bestSpellBy(record, metric);
+    records.map((record) => {
+      const best = bestSpell(record);
       const name = best?.name ?? nameOf(record.id, record.lastYear);
       return [
         record.id,
         {
           name,
-          span: best === null || !shared(name) ? null : spellRange(best),
-          year: best?.scored[metric] ?? best?.lastYear ?? record.lastYear,
+          span: best === null || !shared.has(name) ? null : spellRange(best),
+          year: best === null ? record.lastYear : drawnAsOf(best),
         },
       ];
     }),

@@ -38,12 +38,11 @@ the last one attributes a decade of somebody else's cars to whoever was running 
 the end. `TEAM_LINE`, exported from `DriverName.tsx` beside `BADGE_SHAPE`, is how the
 test asks whether the second line was drawn at all.
 
-**A team is named as of the last season it appears in** — `lastYear` on the record. Its
-name and its livery are eras, so a row spanning 1980 to 1994 has to be labelled as of
-*some* year, and the one the reader has most recently seen it under is the least
-surprising; that is a `Liveries` provider per row, as the roll of honour does per season.
-There is deliberately **no `EntryNames`**: "Williams-Ford" names an entry and an entry is
-a season, so a career that crossed three engine deals shows the plain team name.
+**A team is drawn as of one year**, the label's (below). Its name and its livery are
+eras, so a row spanning 1980 to 1994 has to be labelled as of *some* year; that is a
+`Liveries` provider per row, as the roll of honour does per season. There is
+deliberately **no `EntryNames`**: "Williams-Ford" names an entry and an entry is a
+season, so a career that crossed three engine deals shows the plain team name.
 
 ## A lineage is one row that opens into its names
 
@@ -53,7 +52,7 @@ that did not exist for most of it. So a career carries **spells** — `CareerSpe
 per name, with the years and the same six figures — and the row opens into them, biggest
 first.
 
-Five rules, all in `lib/records.ts`:
+Six rules, all in `lib/records.ts`:
 
 - **A spell is a name the row was shown under**, so `careerRecords` names a team through
   its `teamNameOf`: history's by default, or the run's kept names, under which a lineage
@@ -68,32 +67,23 @@ Five rules, all in `lib/records.ts`:
   than being exact about the middle of one career. The tally therefore walks the seasons
   in **year order** and tracks which spell last season belonged to, since that is what a
   segment continues.
-- **A row is named by the spell that won the most of the thing counted**, via
-  `bestSpellBy` — not by the lineage's current name, which answers a different question.
-  Eighty wins as Mercedes put the row at the top of a wins card as Mercedes; three titles
-  taken as Tyrrell put the same lineage on the championships card as Tyrrell, whatever is
-  painted on the garage today. The component never receives a name string: `labelsFor`
-  returns a **year**, the row hands it to `Liveries`, and `TeamName` resolves both the
-  name and the livery off it — one source for both.
-- **That year is the last season the figure was actually *scored* in**, not the last
-  season under the name — `scored` on the spell, one year per metric, set only by a
-  season that moved that figure. The colours of a record are the colours it was won in:
-  `toleman` raced as Renault from 2002 to 2011 and again from 2016 to 2020, and took its
-  title in the middle of the first stretch, so a championships row drawn as of 2020 wears
-  the livery of years it won nothing. The name is unaffected — the year stays inside the
-  spell, so it resolves to the same name either way — and a spell that never scored the
-  metric falls back to its own end, which no card shows anyway.
-- **A name a second lineage ever held carries its years.** There are two Mercedes, two
-  Renaults, two Hondas, two Aston Martins and three Lotuses in the seed data, and a row
-  reading just "Mercedes" is ambiguous **whether or not the other one is on the same
-  card**: the reader cannot tell which lineage it is by looking at it, and the other one
-  existing is what makes the question live. So the test is against the *database* —
-  `isSharedTeamName` in `lib/names.ts`, a set built once at module load from every
-  identity era, so a lineage renaming itself into a collision is caught by authoring the
-  season rather than by anyone remembering this rule. `labelsFor` takes it as a
-  predicate and reads no seed data itself, which is what keeps its own tests synthetic.
-  Not applied to drivers: two people sharing a name is a coincidence, not two eras of one
-  organisation, and neither of them is "the 1954-55 one".
+- **A lineage has one label on all four cards: its most successful spell** (`bestSpell`),
+  ranked on titles, then wins, podiums and poles, a full tie going to the more recent
+  name. Not one per card: "Renault" on championships and "Benetton" on wins reads as two
+  teams. Not the current name either: three titles as Tyrrell beat none as Mercedes.
+  `labelsFor` takes the whole list, not a card's rows, and returns a **year**; the row
+  hands it to `Liveries`, and `TeamName` resolves both name and livery off it.
+- **That year is the last season the spell scored the figure that made it best** —
+  `scored` on the spell, one year per metric, set only by a season that moved it; the
+  spell's own end if it scored nothing. The colours of a record are the colours it was
+  won in: `toleman` was Renault 2002–11 and 2016–20 and took its titles in the first
+  stretch, so drawn as of 2020 it wears a livery that won nothing. The year stays inside
+  the spell, so the name is the same either way.
+- **A name a second lineage of the run held carries its years** (`sharedNames`, over the
+  run's careers). Asked of the run, not the database: a Mercedes is ambiguous only if the
+  reader met two. Every team that raced counts, scorers or not, and names follow the
+  run's rule, so under kept names collisions are rarer. Not applied to drivers: two
+  people sharing a name is a coincidence, not two eras of one organisation.
 - **`spellsBy(record, metric)` drops the spells that contributed nothing**, for the same
   reason a card drops a career on zero: "as BAR, 0" is not a record. What is left still
   adds up to the row above it, and a lineage with one scoring name comes back as a single

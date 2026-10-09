@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
-import { isSharedTeamName } from "../lib/names.js";
 import {
   type CareerRecord,
   careerRecords,
@@ -104,14 +103,15 @@ function Career({
  * the row with the last one would attribute a decade of somebody else's cars to
  * whoever happened to be running them at the end.
  *
- * **A team is named as of the last season it appears in**, which is what
- * `lastYear` carries — its name and its livery are eras, so a row spanning 1980
- * to 1994 has to be labelled as of *some* year, and the one a reader has most
- * recently seen it under is the least surprising. That is a `Liveries` provider
- * per row, the same trick the roll of honour uses to give each year its own
- * colours; a provider renders no DOM, so it nests inside `<tbody>` fine. There
- * is deliberately **no `EntryNames`**: "Williams-Ford" names an entry and an
- * entry is a season, so a career shows the plain team name.
+ * **A team is named by its most successful spell** — `label`, the same on
+ * every card (`labelsFor`). Its name and its livery are eras, so a row spanning
+ * 1980 to 1994 has to be drawn as of *some* year, and the label's year decides
+ * both. That is a `Liveries` provider per row, the same trick the roll of
+ * honour uses to give each year its own colours; a provider renders no DOM, so
+ * it nests inside `<tbody>` fine. Without a label the row is drawn as of the
+ * last season it appears in. There is deliberately **no `EntryNames`**:
+ * "Williams-Ford" names an entry and an entry is a season, so a career shows
+ * the plain team name.
  *
  * A lineage that scored under more than one name **opens into its spells**, and
  * says so twice over: the chevron the rest of the app uses for a row that
@@ -133,7 +133,7 @@ export function RecordRow({
   ranked: RankedRecord;
   kind: RecordKind;
   metric: RecordMetric;
-  /** How the card decided to name this row. Teams only; see `labelsFor`. */
+  /** How the cards name this lineage. Teams only; see `labelsFor`. */
   label?: RecordLabel | undefined;
   open: boolean;
   onToggle: () => void;
@@ -143,8 +143,9 @@ export function RecordRow({
   const many = spells.length > 1;
   const leader = position === 1;
   // The year the row is drawn as of decides both the name and the livery, so
-  // setting it is the whole of "name it by its best spell": `TeamName` resolves
-  // the same name off the same year rather than being handed a string.
+  // setting it is the whole of "name it by its most successful spell":
+  // `TeamName` resolves the same name off the same year rather than being
+  // handed a string.
   const year = label?.year ?? record.lastYear;
   const name =
     kind === "driver" ? (
@@ -246,12 +247,13 @@ export function RecordCard({
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const ranked = useMemo(() => rankBy(records, metric), [records, metric]);
   const teamNameIn = useTeamNameIn();
-  // Drivers are never labelled this way: two of them sharing a name is a
-  // coincidence, not two eras of one organisation, and neither of them is "the
-  // 1954-55 one".
+  // Off the whole list rather than this card's rows, so every card of the
+  // section names a lineage the same way. Drivers are never labelled this way:
+  // two of them sharing a name is a coincidence, not two eras of one
+  // organisation, and neither of them is "the 1954-55 one".
   const labels = useMemo(
-    () => (kind === "team" ? labelsFor(ranked, metric, teamNameIn, isSharedTeamName) : null),
-    [ranked, metric, kind, teamNameIn],
+    () => (kind === "team" ? labelsFor(records, teamNameIn) : null),
+    [records, kind, teamNameIn],
   );
   const canExpand = ranked.length > COLLAPSED_ROWS;
   const rows = expanded || !canExpand ? ranked : ranked.slice(0, COLLAPSED_ROWS);
@@ -306,12 +308,10 @@ export function RecordCard({
 /** Four cards over one list of careers — the drivers' half, or the teams'. */
 function RecordSection({
   heading,
-  description,
   records,
   kind,
 }: {
   heading: string;
-  description: string;
   records: readonly CareerRecord[];
   kind: RecordKind;
 }) {
@@ -319,19 +319,16 @@ function RecordSection({
   const inRun = usePageOf() !== null;
   return (
     <section className="flex flex-col gap-3">
-      <header className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">{heading}</h2>
-          {inRun ? (
-            <Link
-              {...(kind === "driver" ? driversLink() : teamsLink())}
-              className="text-primary shrink-0 text-xs font-medium hover:underline"
-            >
-              {kind === "driver" ? "All drivers →" : "All teams →"}
-            </Link>
-          ) : null}
-        </div>
-        <p className="text-muted-foreground max-w-prose text-sm">{description}</p>
+      <header className="flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight">{heading}</h2>
+        {inRun ? (
+          <Link
+            {...(kind === "driver" ? driversLink() : teamsLink())}
+            className="text-primary shrink-0 text-xs font-medium hover:underline"
+          >
+            {kind === "driver" ? "All drivers →" : "All teams →"}
+          </Link>
+        ) : null}
       </header>
       {/* Two by two on anything above a phone, which is the pairing asked for:
           championships beside wins, podiums beside poles. */}
@@ -366,18 +363,8 @@ export function CareerStatistics({ seasons }: { seasons: readonly World[] }) {
   const records = useMemo(() => careerRecords(seasons, teamNameIn), [seasons, teamNameIn]);
   return (
     <>
-      <RecordSection
-        heading="Driver statistics"
-        description="The best of the era, added up across every season run."
-        records={records.drivers}
-        kind="driver"
-      />
-      <RecordSection
-        heading="Team statistics"
-        description="The same four, by constructor — both cars count, and a lineage counts under every name it raced under."
-        records={records.teams}
-        kind="team"
-      />
+      <RecordSection heading="Driver statistics" records={records.drivers} kind="driver" />
+      <RecordSection heading="Team statistics" records={records.teams} kind="team" />
     </>
   );
 }
