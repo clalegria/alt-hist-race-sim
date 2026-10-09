@@ -10,6 +10,7 @@ coverage/
 .vite/
 .turbo/
 .claude/settings.local.json
+.claude/worktrees/
 tools/screenshots/out/
 .claude/skills/livery-research/out/
 
