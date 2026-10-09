@@ -55,9 +55,9 @@ arrange every year after. A grid edited in a later year goes with that year.
 `<year+1>.json`. **This is the seam `era-advanced` replaces** — a mode that simulates
 the grid substitutes what is handed to `createWorld` there, and nothing else about the
 loop changes. Keep it a single call, shared by Continue and the jump. An edited lineup, engine supply or chassis is deliberately
-*not* carried: it was a grid for a year now behind them. (Under *Car performance* from
-previous season's car, the next year's cars walk off what raced, edits included —
-`car-performance.md`.) Under *Keep the first season's teams* the entry list is
+*not* carried: it was a grid for a year now behind them. (Under *Chassis* or *Engine
+performance* from previous season's, the next year's cars walk off what raced, edits
+included — `car-performance.md`.) Under *Keep the first season's teams* the entry list is
 built rather than read: `keptYearAfter(last, year)` hands `createWorld` the first year's
 teams on year N+1's cars, with last year's raced grid carried (`teams-and-seats.md`).
 The ability mode is carried,

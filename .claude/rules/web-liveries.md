@@ -27,7 +27,8 @@ wraps its body in `Liveries year={world.year}` and components call `useLivery()`
 default is "no season", which resolves every team to its default livery — a sensible
 answer outside a season, and what keeps every DOM-less test renderable. `SeasonGrid`
 again does not use the context: it is handed `seasonYear` and calls `liveryFor`
-directly.
+directly. Under *Livery changes: No* both read the colours at the team's first season in
+the run instead (`KeptLiveries` / `useLiveryYear`, `team-eras.md`).
 
 ## The badge
 

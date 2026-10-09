@@ -46,7 +46,7 @@ seats `null`.
 ## Signing: `fillSeats(season, seats, rules, options)`
 
 - **Best car first** — `teamsByCar` (`arrange.ts`, shared), on
-  the `season` passed in, which is the cars the run races after any *Car performance*
+  the `season` passed in, which is the cars the run races after any *Chassis performance*
   roll — each empty seat takes the strongest free driver by `byOverall` (`arrange.ts`,
   shared). Free means holding no seat, inside the band, and under `activeOnly` a real
   career spanning the season (`matchesFilters` with both career filters on: one rule with
@@ -62,9 +62,9 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
 
 - **The setting** is `RunSettings.teamsAndSeats`: *No* / *Yes*, null / `EmptySeatRules`,
   era only (`seasonSettings` drops it). Under Yes, `TeamsAndSeatsSetting` draws three
-  rows, Car performance's way: *Empty seats go to* (`SEAT_FILL_LABELS`), *Drivers aged*
-  (the grid editor's number inputs through `withAge`, so they cannot cross) and *Only
-  sign drivers from that season's real grid* (`activeOnly`).
+  rows, Chassis performance's way: *Empty seats go to* (`SEAT_FILL_LABELS`), *Only sign
+  drivers aged* (the grid editor's number inputs through `withAge`, so they cannot cross)
+  and *Only sign drivers from that season's real grid* (`activeOnly`).
   Switching in opens on `OPENING_SEAT_RULES`; the rows are remembered while the screen
   is open. `parseRunSettings` refuses a fill outside `OFFERED_SEAT_FILLS`, and an age
   outside `AGE_RANGE` or crossed.
@@ -75,8 +75,10 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   `racedLineup(last)`; `nextEraWorld` and the recipe's `rebuild` both call it, so
   stepping, jumping and reloading build the same year.
 - **`baselineSeason` is the one place it reaches a season**: the kept season, then the
-  chassis roll over it (a ghost walks off its own raced car with no special case), then
-  `fillSeats` on the rolled cars, then `seatedSeason`. A kept bulk rule arranges that.
+  run's own cars over it (`withRunCars`: kept engine suppliers, which give a ghost its
+  first-season engine too, the chassis and engine rolls and the trends — a ghost walks
+  off its own raced car with no special case), then `fillSeats` on those cars, then
+  `seatedSeason`. A kept bulk rule arranges that.
 - **Kept seats are the baseline, not edits.** `enteredSeason(world)` (`lib/seasons.ts`,
   memoised per world) is what Restore and every change notice compare against; the
   grid editor's *Copy last year's grid* copies `racedLineup` of the year before.

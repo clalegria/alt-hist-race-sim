@@ -7,6 +7,7 @@ paths:
   - "packages/data/src/arrange.ts"
   - "packages/data/src/people.ts"
   - "packages/data/src/engines.ts"
+  - "packages/data/src/development.ts"
   - "packages/data/src/rating.ts"
 ---
 
@@ -24,7 +25,7 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
   year happened to be the default is the bug this seam exists to prevent.
   - It stamps each entrant with `driverCountry` (the driver's `nationality`),
     `teamCountry` (the team's `base` *for that season*, via `teamIdentityIn` — or under
-    a trailing `keptFrom`, at its first season of the run, `identityYear`) and
+    a trailing `keptFrom`, at its first season of the run, `firstYearInRun`) and
     `engineCountry` (the manufacturer's `base`), which is how home advantage reaches the
     engine without the engine reading this package. A team or engine missing from its
     pool gets no country and is never at home.
@@ -62,8 +63,17 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     same object when nothing moved. `canStepChassis` says whether a step could move.
   - `authoredChassis`, `isAuthoredChassis` and `chassisChanges` (`{ teamId, from, to }`)
     mirror the engine functions.
-  - `variedChassis` and `randomChassis` are *Car performance*'s rolls
-    (`.claude/rules/car-performance.md`).
+  - `variedChassis` and `randomChassis` are *Chassis performance*'s rolls
+    (`.claude/rules/car-performance.md`); `clamped` is the 1–100 clamp both rolls share.
+- `engines.ts` also holds the engine what-ifs: a `SeasonEngineRatings` is
+  `Record<engineId, EngineSpec>` over the season's menu, so a re-rating moves every team
+  running that engine; `applyEngineRatings` validates it, and `variedEngines` /
+  `randomEngines` are *Engine performance*'s rolls. `withFirstEngines(season, keptFrom)`
+  is *Engine supplier changes: No*: each team on its first season in the run's engine
+  (`firstYearInRun`'s rule), any the year does not rate added at its latest authored
+  values (`latestEngineSpec`, which `keptGrid.ts` shares).
+- `development.ts` is *In-season development*'s layer: `SeasonTrends`, `randomTrends`,
+  `flatTrends`, `withTrends` (`.claude/rules/car-development.md`).
 - `rating.ts` holds the display-only overall (`driverOverall`, `carOverall`). The
   weights are `DRIVER_WEIGHTS` / `CAR_WEIGHTS` there, move by hand, and carry their
   reasoning in the doc comments above them — read those, not a copy here. Both put most

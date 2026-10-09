@@ -8,8 +8,12 @@ paths:
   - "apps/web/src/components/BreakdownsSetting.tsx"
   - "apps/web/src/components/ReliabilitySetting.tsx"
   - "apps/web/src/components/CarPerformanceSetting.tsx"
+  - "apps/web/src/components/EnginePerformanceSetting.tsx"
+  - "apps/web/src/components/DevelopmentSetting.tsx"
   - "apps/web/src/components/CareerEventsSetting.tsx"
   - "apps/web/src/components/TeamNamesSetting.tsx"
+  - "apps/web/src/components/LiveriesSetting.tsx"
+  - "apps/web/src/components/EngineSuppliersSetting.tsx"
   - "apps/web/src/components/TeamsAndSeatsSetting.tsx"
   - "apps/web/src/components/SimulationSettings.tsx"
   - "apps/web/src/components/ui/dialog.tsx"
@@ -64,7 +68,7 @@ line, a raced one read-only.
 `setRunSettings(randomness, settings)` in the store refuses unless untouched, then
 rebuilds **on a fresh seed** — `startSeason`'s or `startEra`'s own build, so the era's
 first-year records (`gridKeptFrom`, `namesKeptFrom`) follow — and the run stays
-untouched. Fresh because on the same seed *Car performance* turned away and back rolls
+untouched. Fresh because on the same seed *Chassis performance* turned away and back rolls
 the same cars, so the pecking order never moves. Settings that leave the world as it was
 (`sameSettings` over `settingsInForce`, a Done with nothing changed) rebuild nothing. It remembers what it sets; on a standalone season through
 `rememberedAfterSeason`, which keeps the remembered era-only answers (and an era's walk
@@ -74,9 +78,10 @@ the season only read as the real car) that the season never showed.
 
 `RunSettingsForm`, controlled, in groups (`RunSettingsGroup`; a setting is a *direct
 child*, which applies the padding and the rules between): **Races** — Luck on the day,
-Points system; **Cars** — Car performance, Mechanical failures, Cars as reliable as
-(together because one greys the other out); **Over the years**, era only (`eraSettings`) —
-Driver career events, Team name changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars beside its years, a
+Points system; **Cars** — Chassis performance, Engine performance, In-season development,
+Mechanical failures, Cars as reliable as (the last two together because one greys the
+other out); **Over the years**, era only (`eraSettings`) — Driver career events, Team name
+changes, Livery changes, Engine supplier changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars beside its years, a
 season's Races beside Cars. The form passes the whole remembered set through, so a
 season's screen never drops an era answer it does not show.
 
@@ -103,12 +108,16 @@ only values this build could offer) and `whatIfsOf`, the line's entries.
 - **Points system**: a `select` of *Historical* (a season's names its own table)
   then `pointsTables()`, the distinct tables in the seed data, derived. Scoring only: the
   same seed races the same races under any table.
-- **Car performance**: `.claude/rules/car-performance.md`.
+- **Chassis performance** and **Engine performance**: `.claude/rules/car-performance.md`.
+- **In-season development**: *Historical* / *Random* / *Off*, null / `"random"` /
+  `"none"` (`DEVELOPMENT_LABELS`): `.claude/rules/car-development.md`.
 - **Driver career events**: *Yes* / *No*, null / `"none"` — never "form", which
   the market owns. No races every driver without `stepDown` and `offSeasons`
   (`driverPoolOf`); the events count only under `aged`, which an era always runs.
-- **Team name changes**: *Yes* / *No*, null / `"first"`: under No each team keeps
-  its first season's name and base, its livery still changes (`team-eras.md`).
+- **Team name changes**, **Livery changes**, **Engine supplier changes**: *Yes* / *No*,
+  null / `"first"`, each its own: under No each team keeps the name and base, the livery,
+  or the engine supplier of its first season in the run (`team-eras.md`; the engines are
+  `withFirstEngines`, `data-layers.md`).
 - **Keep the first season's teams**: *No* / *Yes*, null or `EmptySeatRules`
   (`teams-and-seats.md`).
 

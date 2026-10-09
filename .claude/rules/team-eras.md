@@ -101,10 +101,11 @@ era**: the lineage that raced as Toleman is registered in France as Alpine.
 
 An era's *Team name changes: No* names each team, and bases it, as in **the first
 season it appears in the run**: the start year, or its debut year for a team that enters
-later. Brawn stays Brawn, registered in GB. **The livery is not kept**: it follows
-history, so Brawn is silver from 2010.
+later. Brawn stays Brawn, registered in GB. **The livery is its own setting**: under
+*Livery changes: Yes* it follows history, so Brawn is silver from 2010; under *No* it is
+kept by the same rule (below).
 
-The rule is a **year, not a name**: `identityYear(teamId, year, keptFrom)` in
+The rule is a **year, not a name**: `firstYearInRun(teamId, year, keptFrom)` in
 `packages/data/src/identity.ts`. It returns `year` itself for `keptFrom` null, for a year
 before the run, and for a team the run has not reached. Everything still resolves through
 `teamIdentityIn`. `keptFrom` is `World.namesKeptFrom`.
@@ -116,4 +117,13 @@ before the run, and for a team the run has not reached. Everything still resolve
 - `SeasonGrid` applies it to the `seasonYear` it is handed, for the name and flag only.
 - Under it, a career has one name, and so one spell (`careerRecords`' `teamNameOf`).
 
-**Never route a livery or a car sprite through it**: both stay on the season itself.
+**Never route a car sprite through it**: a car's shape stays on the season itself.
+
+## Keeping the first livery
+
+*Livery changes: No* paints each team as in its first season in the run, through the
+same `firstYearInRun`, with `World.liveriesKeptFrom` as its `keptFrom`. Display only:
+nothing simulated reads a livery. `KeptLiveries` (in `Liveries.tsx`) carries it from
+`RunFrame` beside `KeptNames`, and `useLivery` and `SeasonGrid` (through
+`useLiveryYear`) read the colours at that year. A kept livery can meet a later team in
+the same colours; that is accepted, and the setting's note says so.

@@ -31,7 +31,7 @@ tunable numbers live in `packages/engine/src/market/constants.ts` and are the au
   holdouts, poaching, "new challenge" moves, retirements) come from their own streams,
   derived from the run's seed plus a stream key, apart from race noise and DNF rolls.
   Otherwise adding one market roll shifts every race after it. The engine's
-  `deriveSeed(seed, key)` is the facility, already used by *Car performance*
+  `deriveSeed(seed, key)` is the facility, already used by *Chassis performance*
   (`.claude/rules/car-performance.md`); an era still chains each year's seed off the race stream
   (`nextSeed` in `apps/web/src/lib/seed.ts`), so this changes what every era seed
   produces — cheapest before a save file or a Share link exists.
@@ -84,7 +84,7 @@ What follows is only what stays advanced.
   *Keep the first season's teams*, `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
-  change from the last, built as *Car performance* from *previous season's car*
+  change from the last, built as *Chassis performance* from *previous season's chassis*
   (`.claude/rules/car-performance.md`). Game mode goes much deeper (§10).
 - **OPEN** — The intermediate grid mode; which of a season file's data (car and engine
   ratings, calendar, points) still applies once a team or engine pairing no longer

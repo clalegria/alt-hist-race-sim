@@ -17,9 +17,9 @@ not here.
 
 ## Should the car walk revert to the mean?
 
-Under *Car performance: Random factor is added* from *previous season's car*, at ±20 or ±30 ratings reach
-the clamp within a few seasons. Whether the walk pulls back towards the authored car
-(mean reversion, `docs/design/era-advanced.md` §11). Recommendation: decide after
+Under *Chassis* or *Engine performance: Random factor is added* from *previous season's*,
+at ±20 or ±30 ratings reach the clamp within a few seasons. Whether the walk pulls back
+towards the authored car (mean reversion, `docs/design/era-advanced.md` §11). Recommendation: decide after
 watching a long run.
 
 ## Should the fitter and tuner move drivers?

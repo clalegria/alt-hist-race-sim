@@ -96,10 +96,11 @@ drivers come from `driverPoolOf(settings)`, the one place they reach the ratings
 `arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too; the cars from
 `rolledChassisOf`, kept as `world.baselineChassis` (`car-performance.md`). What one year
 of an era cannot know about the run is `createWorld`'s last argument, the options object
-`era: EraInputs` — `start` (defaulting to the world's own year), `lastRaced`, `kept` —
-recorded as **`namesKeptFrom`** / **`gridKeptFrom`** (`eraStartOf` reads either back),
-**`walkedFrom`** (`car-performance.md`) and **`kept`** (`teams-and-seats.md`), each null
-when its setting is off. `nextEraWorld` builds them off the year before; every in-place
+`era: EraInputs` — `start` (defaulting to the world's own year), `lastRaced`,
+`lastRacedEngines`, `kept` — recorded as **`namesKeptFrom`** / **`liveriesKeptFrom`** /
+**`enginesKeptFrom`** / **`gridKeptFrom`** (`eraStartOf` reads any back), **`walkedFrom`** /
+**`engineWalkedFrom`** (`car-performance.md`) and **`kept`** (`teams-and-seats.md`), each
+null when its setting is off. `nextEraWorld` builds them off the year before; every in-place
 rebuild passes the world's own on (`eraInputsOf`). The grid states
 whatever differs from the defaults in its settings line (`RunSettingsLine`); the season summary and the roll of honour carry it as one small line
 (`SimulationSettings`), which is written as a *list* of settings because more are coming
@@ -107,9 +108,10 @@ whatever differs from the defaults in its settings line (`RunSettingsLine`); the
 *next* run is simulated against rather than ways of reading a table.
 
 **One store, one plain object.** `store/season.ts` holds a single `World`
-(`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom, rngState, field,
-lineup, engines, chassis, baselineChassis, walkedFrom, gridKeptFrom, kept, keptSeats,
-arrangement, season }`) — one
+(`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom,
+liveriesKeptFrom, enginesKeptFrom, rngState, field, lineup, engines, chassis,
+baselineChassis, walkedFrom, baselineEngineRatings, engineWalkedFrom, baselineTrends,
+gridKeptFrom, kept, keptSeats, arrangement, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's

@@ -6,6 +6,8 @@ paths:
   - "packages/data/src/types.ts"
   - "packages/data/src/buildField.ts"
   - "tools/calibrate/src/phase.ts"
+  - "packages/data/src/development.ts"
+  - "apps/web/src/components/DevelopmentSetting.tsx"
 ---
 
 # In-season car development
@@ -87,6 +89,18 @@ is, and a trend rotates its pace about mid-season — so what the overall alread
 *is* the average of the year. Folding a trend in would double-count the rating in one
 direction and libel the car in the other. A web test renders the same grid with a trend
 on every car and asserts the markup is byte-identical.
+
+## In the run
+
+*In-season development* is a run setting on both screens: *Historical* / *Random* /
+*Off*, `RunSettings.development` null / `"random"` / `"none"`. `trendsOf` in
+`lib/run-settings.ts` is the one place it reaches the cars: Off is `flatTrends` (every
+car flat), Random is `randomTrends` (`packages/data/src/development.ts`), a whole number
+per car uniform in ±`DEVELOPMENT_TREND_LIMIT`, drawn on its own `DEVELOPMENT_STREAM` so
+no other roll or race moves. `withTrends` writes them into the season; the result is
+`World.baselineTrends`, the year's baseline like `baselineChassis` (`car-performance.md`),
+rebuilt from the seed rather than recorded. Under Random every car has a trend, so the
+whole grid gets property 2's small points gain: an effect of the what-if, not a tuning.
 
 ## Authoring one
 

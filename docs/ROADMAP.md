@@ -53,29 +53,12 @@ Independent of each other, each small, each noticed on a first run.
   panel triggers (`web-people-pages.md`); the icon is the way to the page. A one-year run
   has no people pages.
 
-## 2. Engines and liveries over a run
+## 2. Edit engines in the grid editor
 
-Three more what-ifs for the settings dialog, and the grid editor's missing half.
-
-- **Keep the first engines.** An era setting beside *Team name changes*: each
-  team runs its first season's engine for the whole run. Open: an engine the seed data
-  stops rating (what it is worth in a year with no spec for it), and a team that arrives
-  later (its own year's engine, presumably). A fixed, cheap form of the engine market
-  (`docs/design/era-advanced.md` §8), which should be able to replace it.
-- **Engines under *Car performance*.** *Random factor is added* and *Totally random* move the chassis only, because an
-  engine is shared and rolling one moves several teams (`car-performance.md`). Roll them
-  too — the same spreads, the same walk — **per supplier**, so every customer moves
-  together, on its own stream key so no chassis roll shifts. Open: its own setting, or
-  riding with the chassis one.
-- **Keep the first liveries.** An era setting: each team wears its first season's livery
-  for the run. *Team name changes: No* deliberately leaves the livery changing; open
-  whether this is a second setting or a sub-option of that one. A frozen livery can meet
-  a later team in the same colours, so it needs the same-grid clash check
-  (`web-liveries.md`).
-- **Edit engines in the grid editor.** The chassis has steppers (`stepChassis`); the
-  engine only its supplier picker, and the popover's engine panel none. Add steppers for
-  its three ratings. Open: whether a step moves the engine for every team running it
-  (recommended, as with the roll, and the card says so) or only this team's.
+The chassis has steppers (`stepChassis`); the engine only its supplier picker, and the
+popover's engine panel none. Add steppers for its three ratings. Open: whether a step
+moves the engine for every team running it (recommended, as *Engine performance* rolls
+it, and the card says so) or only this team's.
 
 ## 3. Phone layout
 
