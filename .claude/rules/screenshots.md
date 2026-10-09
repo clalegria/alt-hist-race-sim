@@ -11,10 +11,11 @@ UI: **never the author's own Chrome**, and no browser MCP without asking first.
 
 ## How it works
 
-- **Server** (`src/server.ts`): reuses a dev server already on :5173 if it serves this
-  app, otherwise starts Vite with `node` directly (not `pnpm dev`, whose child survives
-  a kill on Windows) and stops it at the end. `pnpm tunnel` uses it too
-  (`.claude/rules/tunnel.md`).
+- **Server** (`src/server.ts`, `startDevServer`): always its own Vite, on a free port,
+  from the checkout the tool runs in, never one found running, which may serve another
+  worktree's files. So the pictures show this checkout's files, committed or not.
+  Started with `node` directly (not `pnpm dev`, whose child survives a kill on
+  Windows) and stopped at the end. `pnpm tunnel` uses it too (`.claude/rules/tunnel.md`).
 - **Privacy**: Playwright's bundled Chromium headless shell (never `channel: "chrome"`),
   a fresh context per variant with no user-data dir, and every request for a host other
   than localhost aborted. `start` runs `playwright install --only-shell chromium` first,

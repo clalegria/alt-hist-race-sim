@@ -2,8 +2,8 @@
  * Puts the dev server on a public https address, so the app can be opened from
  * any device: a Cloudflare quick tunnel, which needs no account.
  *
- * The dev server is reused if one is already on :5173, otherwise started here
- * (`ensureDevServer`, shared with the screenshots). `cloudflared` connects
+ * The dev server is this checkout's own (`startDevServer`, shared with the
+ * screenshots), so the tunnel shows exactly what is on disk here, committed or not. `cloudflared` connects
  * outward to Cloudflare and prints a random `*.trycloudflare.com` address that
  * forwards to it. Anyone holding that address can open the app until this stops.
  */
@@ -12,7 +12,7 @@ import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { BASE_URL, ensureDevServer } from "@alt-hist/screenshots/server";
+import { startDevServer } from "@alt-hist/screenshots/server";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 const WEB_DIR = join(ROOT, "apps/web");
@@ -48,10 +48,10 @@ async function main(): Promise<void> {
     return;
   }
 
-  const stopServer = await ensureDevServer(WEB_DIR);
+  const server = await startDevServer(WEB_DIR);
   const tunnel: ChildProcess = spawn(
     cloudflared,
-    ["tunnel", "--no-autoupdate", "--url", BASE_URL],
+    ["tunnel", "--no-autoupdate", "--url", server.baseUrl],
     {
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     console.error(`cloudflared gave no address:\n${log}`);
     process.exitCode = 1;
   }
-  await stopServer();
+  await server.stop();
 }
 
 await main();

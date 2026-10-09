@@ -18,7 +18,7 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { type Browser, type BrowserContext, chromium, type Page } from "playwright";
-import { BASE_URL, ensureDevServer } from "./server.js";
+import { startDevServer } from "./server.js";
 import { STEPS } from "./steps.js";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
@@ -47,10 +47,11 @@ async function openContext(
   browser: Browser,
   device: (typeof VIEWPORTS)[keyof typeof VIEWPORTS],
   theme: Theme,
+  baseUrl: string,
 ): Promise<BrowserContext> {
   const context = await browser.newContext({
     ...device,
-    baseURL: BASE_URL,
+    baseURL: baseUrl,
     colorScheme: theme,
     reducedMotion: "reduce",
   });
@@ -99,7 +100,7 @@ async function main(): Promise<void> {
   rmSync(OUT_DIR, { recursive: true, force: true });
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const stopServer = await ensureDevServer(WEB_DIR);
+  const server = await startDevServer(WEB_DIR);
   const written: string[] = [];
   const problems: string[] = [];
   const browser = await chromium.launch({ headless: true });
@@ -108,7 +109,7 @@ async function main(): Promise<void> {
       for (const theme of THEMES) {
         const variant = `${deviceName}-${theme}`;
         console.log(`Capturing ${variant}…`);
-        const context = await openContext(browser, device, theme);
+        const context = await openContext(browser, device, theme, server.baseUrl);
         const page = await context.newPage();
         page.on("pageerror", (error) => {
           problems.push(`${variant}: page error: ${error.message}`);
@@ -137,7 +138,7 @@ async function main(): Promise<void> {
     }
   } finally {
     await browser.close();
-    await stopServer();
+    await server.stop();
   }
 
   console.log(`\n${written.length} screenshots in ${OUT_DIR}:`);

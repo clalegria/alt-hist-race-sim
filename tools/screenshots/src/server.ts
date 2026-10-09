@@ -1,6 +1,7 @@
 /**
- * The Vite dev server the screenshots are taken against: reused if one is
- * already running, otherwise started here and stopped again afterwards.
+ * A Vite dev server of this checkout's own, on a free port, for a tool to run
+ * against and stop again afterwards. Never one found running: that may be
+ * serving another worktree's files, so the tool would show the wrong code.
  *
  * Vite is started directly with `node`, not through `pnpm dev`: on Windows
  * killing a `pnpm` process leaves the server it spawned running, and a single
@@ -10,44 +11,56 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { once } from "node:events";
 import { createRequire } from "node:module";
+import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-
-export const PORT = 5173;
-export const BASE_URL = `http://localhost:${PORT}`;
 
 /** How long a cold Vite start may take before giving up. */
 const START_TIMEOUT_MS = 60_000;
 
-/** The app's `<title>`, so a different project on the same port is not mistaken for this one. */
+/** The app's `<title>`, so a page from something else is not mistaken for this one. */
 const APP_TITLE = "<title>alt-hist-race-sim</title>";
 
-async function probe(): Promise<"ours" | "other" | "down"> {
+export interface DevServer {
+  /** `http://localhost:<port>`, the server's own address. */
+  readonly baseUrl: string;
+  readonly port: number;
+  stop(): Promise<void>;
+}
+
+/** A port nothing is listening on: the OS picks one for a moment's listener. */
+async function freePort(): Promise<number> {
+  const server = createServer();
+  server.listen(0, "localhost");
+  await once(server, "listening");
+  const address = server.address();
+  server.close();
+  await once(server, "close");
+  if (address === null || typeof address === "string") {
+    throw new Error("Could not find a free port.");
+  }
+  return address.port;
+}
+
+async function servesApp(baseUrl: string): Promise<boolean> {
   try {
-    const response = await fetch(BASE_URL, { signal: AbortSignal.timeout(1_000) });
-    return (await response.text()).includes(APP_TITLE) ? "ours" : "other";
+    const response = await fetch(baseUrl, { signal: AbortSignal.timeout(1_000) });
+    return (await response.text()).includes(APP_TITLE);
   } catch {
-    return "down";
+    return false;
   }
 }
 
-/** Makes sure the app is being served, and returns how to undo whatever that took. */
-export async function ensureDevServer(webDir: string): Promise<() => Promise<void>> {
-  const found = await probe();
-  if (found === "ours") {
-    console.log(`Reusing the dev server already on ${BASE_URL}.`);
-    return async () => {};
-  }
-  if (found === "other") {
-    throw new Error(`Something other than this app is serving ${BASE_URL}.`);
-  }
-
+/** Starts the app's dev server from `webDir` and waits until it answers. */
+export async function startDevServer(webDir: string): Promise<DevServer> {
+  const port = await freePort();
+  const baseUrl = `http://localhost:${port}`;
   const require = createRequire(join(webDir, "package.json"));
   const vite = join(dirname(require.resolve("vite/package.json")), "bin", "vite.js");
-  console.log(`Starting the dev server on ${BASE_URL}…`);
+  console.log(`Starting the dev server on ${baseUrl}…`);
   const child: ChildProcess = spawn(
     process.execPath,
-    [vite, "--port", String(PORT), "--strictPort"],
+    [vite, "--port", String(port), "--strictPort"],
     { cwd: webDir, stdio: ["ignore", "pipe", "pipe"] },
   );
   let output = "";
@@ -67,7 +80,7 @@ export async function ensureDevServer(webDir: string): Promise<() => Promise<voi
   };
 
   const deadline = Date.now() + START_TIMEOUT_MS;
-  while ((await probe()) !== "ours") {
+  while (!(await servesApp(baseUrl))) {
     if (child.exitCode !== null) {
       throw new Error(`The dev server exited during start-up:\n${output}`);
     }
@@ -79,5 +92,5 @@ export async function ensureDevServer(webDir: string): Promise<() => Promise<voi
     }
     await sleep(250);
   }
-  return stop;
+  return { baseUrl, port, stop };
 }
