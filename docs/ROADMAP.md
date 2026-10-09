@@ -41,7 +41,72 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ---
 
-## 1. Phone layout
+## 1. Small fixes
+
+Independent of each other, each small, each noticed on a first run.
+
+- **The driver page's header.** It reads "34 in 1984 · Williams · rated 88": the age
+  does not say it is one, and the rating is the latest year's overall, which reads as a
+  verdict on the career. Say "34 years old"; replace the rating with the best overall of
+  their years in the run ("rated 91 at their peak in this run"), or drop it. `DriverPage`
+  in `PersonPages.tsx`.
+- **The era's sections menu.** *Overview · Drivers · Teams* under the *Era* crumb become
+  *Era summary · All drivers · All teams*. The `▾` crumb menus — this one, the year's,
+  the round's — are small and easy to miss, worse under a thumb: give them a bigger
+  target (`sectionsMenu`, `CrumbMenu`; `web-run-bar.md`). Overlaps *phone layout*.
+- **Buttons that stay put.** The run bar offers a different set per beat (*Restart
+  season* off the grid, the skip until the last race, *↩ Back to…* away from the cursor),
+  so Continue moves left and right through a season. Give each action a fixed slot —
+  Continue always at the same end, an action not on offer holding its place rather than
+  closing up. `runBarFor` decides the set, `RunBar` lays it out.
+- **Back to defaults in the settings dialog.** One button in `RunSettingsDialog` putting
+  the draft back to every historical answer and the default randomness. Draft only: Done
+  still commits, Cancel still drops.
+- **A way to every page, the same way everywhere.** Which names lead to a driver, team,
+  season or race page is inconsistent: the page icon (`PageLink`) is in career panel
+  headings, the grid's popovers and the people pages' year rows, and missing from most
+  other places a name appears (classifications, standings, calendar, records). Audit
+  every place one is named and give it the icon wherever its page exists. Names stay
+  panel triggers (`web-people-pages.md`); the icon is the way to the page. A one-year run
+  has no people pages.
+
+## 2. Engines and liveries over a run
+
+Three more what-ifs for the settings dialog, and the grid editor's missing half.
+
+- **Keep the first engines.** An era setting beside *Team names: Keep the first*: each
+  team runs its first season's engine for the whole run. Open: an engine the seed data
+  stops rating (what it is worth in a year with no spec for it), and a team that arrives
+  later (its own year's engine, presumably). A fixed, cheap form of the engine market
+  (`docs/design/era-advanced.md` §8), which should be able to replace it.
+- **Engines under *Car performance*.** Varied and Random move the chassis only, because an
+  engine is shared and rolling one moves several teams (`car-performance.md`). Roll them
+  too — the same spreads, the same walk — **per supplier**, so every customer moves
+  together, on its own stream key so no chassis roll shifts. Open: its own setting, or
+  riding with the chassis one.
+- **Keep the first liveries.** An era setting: each team wears its first season's livery
+  for the run. *Team names: Keep the first* deliberately leaves the livery changing; open
+  whether this is a second setting or a sub-option of that one. A frozen livery can meet
+  a later team in the same colours, so it needs the same-grid clash check
+  (`web-liveries.md`).
+- **Edit engines in the grid editor.** The chassis has steppers (`stepChassis`); the
+  engine only its supplier picker, and the popover's engine panel none. Add steppers for
+  its three ratings. Open: whether a step moves the engine for every team running it
+  (recommended, as with the roll, and the card says so) or only this team's.
+
+## 3. The theme pass
+
+Both palettes looked at with the author's eye on real screens (`pnpm screenshots`), not
+a token nudged in passing (`web-styling.md`).
+
+- **Dark still clashes**, and the team cards' livery-tinted colours (`web-liveries.md`)
+  do not sit well in either theme.
+- **Red is everywhere, in both themes**, and red reads as an error. Reconsider the
+  primary hue, keeping red for what is actually destructive.
+- **The checkered background is too faint in light** to see on a TV. Light is otherwise
+  the better balanced of the two.
+
+## 4. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -61,7 +126,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 2. The in-app ratings editor
+## 5. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -90,7 +155,7 @@ chassis for one run (`stepChassis`); this item is the editor that changes the da
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 3. Publish it
+## 6. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -168,7 +233,7 @@ the reason to put a version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 4. Historical career records
+## 7. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -193,7 +258,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 5. Seasonal factors
+## 8. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -202,7 +267,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 6. Circuit character
+## 9. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -218,7 +283,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 7. Driver market
+## 10. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -232,7 +297,7 @@ Needs ageing and more than one season to move between, hence its place here. Lea
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 8. Game mode
+## 11. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
