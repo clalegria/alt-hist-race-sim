@@ -45,9 +45,6 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 Independent of each other, each small, each noticed on a first run.
 
-- **Back to defaults in the settings dialog.** One button in `RunSettingsDialog` putting
-  the draft back to every historical answer and the default randomness. Draft only: Done
-  still commits, Cancel still drops.
 - **A way to every page, the same way everywhere.** Which names lead to a driver, team,
   season or race page is inconsistent: the page icon (`PageLink`) is in career panel
   headings, the grid's popovers and the people pages' year rows, and missing from most

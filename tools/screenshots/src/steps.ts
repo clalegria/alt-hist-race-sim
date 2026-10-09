@@ -98,10 +98,14 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // The run is untouched, so its settings can still change from here.
       const dialog = await openSettings(page);
-      await dialog
-        .getByRole("group", { name: "Breakdowns" })
-        .getByRole("button", { name: "Fewer", exact: true })
-        .click();
+      const breakdowns = dialog.getByRole("group", { name: "Breakdowns" });
+      await breakdowns.getByRole("button", { name: "Fewer", exact: true }).click();
+      // Restore defaults takes the draft back, then Fewer again for the steps after.
+      await dialog.getByRole("button", { name: "Restore defaults" }).click();
+      await breakdowns
+        .getByRole("button", { name: "Realistic", exact: true, pressed: true })
+        .waitFor();
+      await breakdowns.getByRole("button", { name: "Fewer", exact: true }).click();
     },
   },
   {

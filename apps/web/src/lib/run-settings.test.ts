@@ -19,6 +19,7 @@ import {
   CAR_VARIATION_SPREADS,
   driverPoolOf,
   HISTORICAL_SETTINGS,
+  historicalSettings,
   OPENING_SEAT_RULES,
   parseRunSettings,
   pointsTableOf,
@@ -242,6 +243,31 @@ describe("a standalone season's settings", () => {
     ] as const) {
       expect(seasonSettings(settings)).toBe(settings);
     }
+  });
+});
+
+describe("restoring the defaults", () => {
+  const whatIfs = {
+    carPerformance: { kind: "varied", spread: 5, from: "last" },
+    breakdowns: "fewer",
+    reliability: FIRST_SEASON,
+    points: [3, 2, 1],
+    careerEvents: "none",
+    teamNames: "first",
+    teamsAndSeats: OPENING_SEAT_RULES,
+  } as const;
+
+  it("puts every setting an era offers back on its historical answer", () => {
+    expect(historicalSettings(whatIfs, true)).toEqual(HISTORICAL_SETTINGS);
+  });
+
+  it("keeps the era-only answers a season's screen does not show", () => {
+    expect(historicalSettings(whatIfs, false)).toEqual({
+      ...HISTORICAL_SETTINGS,
+      careerEvents: "none",
+      teamNames: "first",
+      teamsAndSeats: OPENING_SEAT_RULES,
+    });
   });
 });
 

@@ -152,6 +152,23 @@ export function seasonSettings(settings: RunSettings): RunSettings {
 }
 
 /**
+ * The settings a screen offers, back on their historical answers: the settings
+ * dialog's Restore defaults. A season's screen keeps the era-only answers it
+ * does not show, as its form passes them through untouched.
+ */
+export function historicalSettings(settings: RunSettings, eraSettings: boolean): RunSettings {
+  if (eraSettings) {
+    return HISTORICAL_SETTINGS;
+  }
+  return {
+    ...HISTORICAL_SETTINGS,
+    careerEvents: settings.careerEvents,
+    teamNames: settings.teamNames,
+    teamsAndSeats: settings.teamsAndSeats,
+  };
+}
+
+/**
  * The settings to remember after a standalone season's own were changed on its
  * grid: the season's answers, over the era-only ones already remembered, which
  * the season never showed and so must not erase. A Car performance answer the

@@ -1,6 +1,7 @@
 import type { RandomnessLevel } from "@alt-hist/engine";
 import { type ReactNode, useState } from "react";
-import type { RunSettings, RunUnit } from "../lib/run-settings.js";
+import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
+import { historicalSettings, type RunSettings, type RunUnit } from "../lib/run-settings.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
@@ -201,7 +202,8 @@ export function RunSettingsFields({
  * **A draft, then Done.** The controls change a copy held here; Done hands it
  * to `onCommit` and Cancel (or Escape, or a click outside) drops it. On the
  * grid a commit re-simulates the season, which is a question worth asking once
- * rather than on every click.
+ * rather than on every click. Restore defaults puts the draft, and only the
+ * draft, back to the historical answers and the starting randomness.
  *
  * **`lock` makes it read-only** (`RunSettingsFields`), with Close in place of
  * Cancel and Done.
@@ -259,6 +261,16 @@ function DraftForm({
   onDone: (choice: RunChoice) => void;
 }) {
   const [draft, setDraft] = useState<RunChoice>(choice);
+  const defaults: RunChoice = {
+    randomness: STARTING_RANDOMNESS_LEVEL,
+    settings: historicalSettings(draft.settings, eraSettings),
+  };
+  // A reset answer is null and a kept one the draft's own object, so `===` is enough.
+  const atDefaults =
+    draft.randomness === defaults.randomness &&
+    Object.entries(defaults.settings).every(
+      ([key, value]) => draft.settings[key as keyof RunSettings] === value,
+    );
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -278,6 +290,17 @@ function DraftForm({
       <DialogFooter className="border-border border-t pt-4">
         {lock === null ? (
           <>
+            <Button
+              variant="ghost"
+              className="mr-auto"
+              title="Every what-if as it happened, randomness at its default"
+              disabled={atDefaults}
+              onClick={() => {
+                setDraft(defaults);
+              }}
+            >
+              Restore defaults
+            </Button>
             <DialogClose asChild>
               <Button variant="ghost">Cancel</Button>
             </DialogClose>

@@ -39,7 +39,9 @@ time it opens — Radix unmounts the content on close, so `DraftForm`'s state is
 Done hands it to `onCommit`; Cancel, Escape or a click outside drop it. On the grid a
 commit re-simulates the season, which is worth asking once rather than on every click.
 On setup, `SeasonPicker`'s commit remembers it (`rememberRandomness`,
-`rememberRunSettings`).
+`rememberRunSettings`). **Restore defaults**, on the footer's left, sets the draft to
+`historicalSettings` and `STARTING_RANDOMNESS_LEVEL`; a season's keeps the era-only
+answers it does not show. Disabled when there is nothing to restore, absent under a lock.
 
 **Read-only under a `lock`** (`RunSettingsFields`): the reason above the form, the form in
 one disabled native `fieldset` (which disables every control inside it at once while
@@ -109,7 +111,8 @@ standalone season (`seasonSettings`, in `startSeason`, `simulate` and `setRunSet
 
 The dialog renders into a portal, so its contents are tested through `RunSettingsForm`
 (`settingsForm(unit)` in `test-support.ts`) and `RunSettingsFields`; the line, the lock's
-`title` and the Clear link in `run-settings-dialog.test.tsx`; the lock rule in
+`title` and the Clear link in `run-settings-dialog.test.tsx`; what Restore defaults resets
+in `lib/run-settings.test.ts`; the lock rule in
 `lib/settings-lock.test.ts`; the rebuild in `store/settings.test.ts` (mutation-checked:
 dropping the guard fails three). Opening, committing and the read-only state run in a
 real browser in `pnpm screenshots` (`season-settings`, `grid-settings`,
