@@ -52,8 +52,8 @@ it, and the card says so) or only this team's.
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
-the session reveal assumes room beside the table, and the app shell's navigation and
-breadcrumbs need a phone form of their own.
+the session reveal assumes room beside the table, and the top nav needs a phone form
+(a menu); the run bar's is built (`.claude/rules/web-run-bar.md`).
 
 Detect by **viewport width via CSS media queries, not user-agent sniffing** — it handles
 narrow desktop windows and tablets for free and keeps the decision in the stylesheet
@@ -260,8 +260,8 @@ evolution, car development), pre-season testing, and its own build order. Its op
 questions live there, not in `docs/DECISIONS.md`.
 
 Needs ageing and more than one season to move between, hence its place here. Leans on
-*historical career records* for reputations and on the app shell
-(`docs/design/app-shell.md`) for the next-season grid and the event feed. This is where the substitution point left clean in
+*historical career records* for reputations; its next-season grid and event feed are new
+beats and pages of the run (`docs/design/era-advanced.md` §12). This is where the substitution point left clean in
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
@@ -277,9 +277,26 @@ the player may see, why its seasons simulate round by round — are in
 ## Someday: the Share link
 
 A link that rebuilds a run on someone else's machine. A nice-to-have, not needed to
-publish, and unscheduled. Designed in `docs/design/app-shell.md` §8; the reload recipe is
-its starting point, and its format waits on *what a saved or shared run replays against*
-(`docs/DECISIONS.md`).
+publish, and unscheduled. The reload recipe (`.claude/rules/web-persistence.md`) is its
+starting point, and its format waits on *what a saved or shared run replays against*
+(`docs/DECISIONS.md`). A **Share** button in the run bar beside Continue; `/share?…` is
+an entry-only route that rebuilds the run from the recipe and the cursor, then redirects.
+
+It is one of four ways to keep or pass on a run, built at different times:
+
+| | What it carries | Survives a new build? | When |
+|---|---|---|---|
+| **Share link** | the recipe and how far through | no — replays | someday |
+| **Save file** | recipe *and* every world (snapshot) | yes | the ratings editor |
+| **Read-only view** | a snapshot, opened with no Continue | yes | after save files |
+| **Account / other device** | a save file, uploaded | yes | a backend phase |
+
+- A snapshot can be **continued**, not just read: each world carries its `rngState`, so
+  the next season draws from where the saved one stopped.
+- The read-only view is the run's pages with the run bar's actions hidden, which holds
+  only while pages never act on the run (`.claude/rules/web-run-bar.md`).
+- A game-mode run is the seed plus the player's decision log, which can outgrow a URL, so
+  sharing one is a save file.
 
 ## Stack for later phases
 

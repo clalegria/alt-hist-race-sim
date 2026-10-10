@@ -218,9 +218,17 @@ What follows is only what stays advanced.
 ## 12. UI
 
 - **DECIDED** — A "next season grid" with open seats, updated as signings happen, and an
-  event feed as signings, sackings, retirements and team changes occur. Both are pages in
-  the app shell (`docs/design/app-shell.md`) and, like every page,
-  show nothing past the reveal cursor.
+  event feed as signings, sackings, retirements and team changes occur. Both are pages
+  of the run and, like every page, go through the gate (`revealed()`), showing nothing
+  past the reveal cursor.
+- **PROPOSED** — A market event stamped with its round (§2) is a new kind of beat
+  (`.claude/rules/web-app.md`); in game mode a **decision** beat blocks Continue until
+  answered, the button turning into "Respond to …". Their entries in the top nav (Inbox,
+  Market, *Next season's grid*, My team) are rows in `lib/areas.ts`, each with an
+  optional unread count.
+- **OPEN** — Whether an event *stops* Continue (an interstitial the reader must pass, FM's
+  news pop-up) or only lands in the feed with an unread badge. Probably both, per event
+  importance.
 - **PROPOSED** — Rumoured seats drawn apart from confirmed ones (dotted, question-marked),
   so the grid visibly firms up through the season.
 

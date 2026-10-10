@@ -78,7 +78,7 @@ guard looks. The store module never touches storage, which keeps its tests free 
   the run carries on and only the reload is lost.
 
 This is one slot for the current run. Share links and save files are separate features
-(`docs/design/app-shell.md` §8).
+(*Someday: the Share link* in `docs/ROADMAP.md`).
 
 ## Testing
 

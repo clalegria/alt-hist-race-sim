@@ -10,11 +10,6 @@ decision; it lives in the rule file for that constant.
 Their open questions — the market, the run settings, `adaptability`, engine deals — are
 listed in `docs/design/era-advanced.md`, not here.
 
-## The app shell
-
-Its open question — how events surface — is listed in `docs/design/app-shell.md`,
-not here.
-
 ## Should the car walk revert to the mean?
 
 Under *Chassis* or *Engine performance: Random factor is added* from *previous season's*,
@@ -33,7 +28,7 @@ than only authored by hand, is open.
 A recipe (seed, year, settings, grid edits) reproduces a run only on the same data and
 engine, and the data moves two ways: the author retunes it between builds, and a reader
 edits it in the ratings editor. Blocks the editor's export, and someday the Share link's
-format (`docs/design/app-shell.md` §8). The options are not exclusive:
+format (*Someday: the Share link* in `docs/ROADMAP.md`). The options are not exclusive:
 
 - **Stamp a hash** of the data and engine in every link and save; warn on a mismatch.
   The reload recipe already carries a fingerprint of each world it rebuilds

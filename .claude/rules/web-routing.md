@@ -16,7 +16,8 @@ paths:
 # Web app — routing and the frame
 
 Which page the reader is on is the URL's; what the run is, is the store's
-(`.claude/rules/web-app.md`). What is still to build is `docs/design/app-shell.md`.
+(`.claude/rules/web-app.md`). **Route names are public once *publish it* ships**:
+renaming one then breaks every bookmark, so add routes rather than rename them.
 
 ## The router
 
