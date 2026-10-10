@@ -16,7 +16,7 @@ import { teamName } from "./names.js";
 export const PARADE_SIZE = 3;
 
 /** How long after the home screen opens the first pass sets off, in ms. */
-export const FIRST_PASS_MS = 4_000;
+export const FIRST_PASS_MS = 30_000;
 
 /** How often a pass sets off after that, in ms. */
 export const PASS_INTERVAL_MS = 30_000;
