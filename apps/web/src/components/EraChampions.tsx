@@ -126,6 +126,7 @@ export function ChampionRow({
                 <SeasonStandings
                   season={season.world.season}
                   calendar={seasonSeed(season.year).calendar}
+                  year={season.year}
                   points={season.world.points}
                   description="Final classification."
                 />

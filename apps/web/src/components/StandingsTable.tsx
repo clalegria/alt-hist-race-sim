@@ -61,6 +61,7 @@ export function StandingsTable({
   season,
   points,
   calendar,
+  year,
   badge = false,
   car = false,
 }: {
@@ -81,6 +82,8 @@ export function StandingsTable({
   points: PointsScale;
   /** Names the rounds inside an expansion. From the world's year, not a fixed one. */
   calendar: readonly CalendarRace[];
+  /** The season's year, so an expansion's rounds link to their races. */
+  year?: number | undefined;
 }) {
   // Which row is expanded, or null for none — keyed by driver or team id, so
   // the two tables on the summary open independently. Purely view state: it
@@ -189,6 +192,7 @@ export function StandingsTable({
                               : teamRounds(season, points, standing.teamId)
                           }
                           calendar={calendar}
+                          year={year}
                           showDriver={!isDriver}
                         />
                       </div>

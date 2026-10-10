@@ -1,12 +1,12 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, RaceResult, SeasonResult } from "@alt-hist/engine";
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { RoundPages } from "../lib/session-nav.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
+import { PageLink } from "./PageLink.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { DriverHistory } from "./SeasonHistory.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -26,23 +26,55 @@ function NotYet() {
   );
 }
 
-/** The words under a round's name: its circuit, and the weather once it has been run. */
+/**
+ * A round's name and, under it, its circuit and the weather once it has been
+ * run.
+ *
+ * Only the name line is the button, when the row opens (`disclosure`), so the
+ * page icon (`link`) can sit right after the name rather than past the end of
+ * whichever line is longer — a link cannot go inside a button. The line under
+ * it starts behind an invisible chevron, so it stays aligned with the name.
+ */
 function RoundName({
   round,
   index,
   race,
+  disclosure,
+  link,
+  dim = false,
 }: {
-  round?: CalendarRace;
+  round: CalendarRace | undefined;
   index: number;
-  race?: RaceResult;
+  race?: RaceResult | undefined;
+  disclosure?: { readonly open: boolean; readonly onToggle: () => void } | undefined;
+  link?: React.ReactNode;
+  /** A round not reached: its words greyed, its link (if any) not. */
+  dim?: boolean;
 }) {
+  const name = (
+    <span className={cn("flex items-center gap-1.5 font-medium", dim && "opacity-70")}>
+      {round === undefined ? null : <Flag country={round.country} title={round.country} />}
+      {roundLabel(round, index)}
+    </span>
+  );
   return (
     <span className="flex flex-col leading-tight">
-      <span className="flex items-center gap-1.5 font-medium">
-        {round === undefined ? null : <Flag country={round.country} title={round.country} />}
-        {round?.name ?? `Round ${index + 1}`}
+      <span className="flex items-center gap-1">
+        {disclosure === undefined ? (
+          name
+        ) : (
+          <DisclosureButton open={disclosure.open} onToggle={disclosure.onToggle}>
+            {name}
+          </DisclosureButton>
+        )}
+        {link}
       </span>
-      <span className="flex items-center gap-2">
+      <span className={cn("flex items-center gap-2", dim && "opacity-70")}>
+        {disclosure === undefined ? null : (
+          <span aria-hidden="true" className="invisible text-xs">
+            ▶
+          </span>
+        )}
         {round === undefined ? null : (
           <span className="text-muted-foreground text-xs">{round.circuit}</span>
         )}
@@ -76,16 +108,20 @@ function RoundDriver({
   );
 }
 
-const PAGE_LINK = "text-primary font-medium whitespace-nowrap underline-offset-4 hover:underline";
+/** A round's name for a link's label: the Grand Prix, or its number without one. */
+function roundLabel(round: CalendarRace | undefined, index: number): string {
+  return round?.name ?? `Round ${index + 1}`;
+}
 
 /**
  * One round the reader has seen, and — opened — its classification.
  *
  * **Controlled**, like the roll of honour's `ChampionRow`: whether it is open
  * comes from the table, so an opened row renders on its own without a DOM and
- * without a click. `pages` adds a last cell linking the round's race page:
- * the name opens the quick look in place, the link goes to the page. Absent in
- * a test without a router, and the cell with it.
+ * without a click. `pages` puts the page icon beside the name, as the roll of
+ * honour does beside a year: the name opens the quick look in place, the icon
+ * goes to the race's page. Absent in a test without a router, and the icon
+ * with it.
  */
 export function CalendarRow({
   index,
@@ -111,9 +147,17 @@ export function CalendarRow({
       <TableRow className={cn(open && "bg-muted/60")}>
         <TableCell className="text-muted-foreground text-right tabular-nums">{index + 1}</TableCell>
         <TableCell>
-          <DisclosureButton open={open} onToggle={onToggle}>
-            <RoundName {...(round === undefined ? {} : { round })} index={index} race={race} />
-          </DisclosureButton>
+          <RoundName
+            round={round}
+            index={index}
+            race={race}
+            disclosure={{ open, onToggle }}
+            link={
+              pages === undefined ? null : (
+                <PageLink link={pages.race} label={`${roundLabel(round, index)} race page`} />
+              )
+            }
+          />
         </TableCell>
         <TableCell>
           <RoundDriver driverId={race.poleDriverId} teamFor={teamFor} />
@@ -121,17 +165,10 @@ export function CalendarRow({
         <TableCell>
           <RoundDriver driverId={race.winnerDriverId} teamFor={teamFor} />
         </TableCell>
-        {pages === undefined ? null : (
-          <TableCell className="text-right">
-            <Link {...pages.race} className={PAGE_LINK}>
-              Race →
-            </Link>
-          </TableCell>
-        )}
       </TableRow>
       {open ? (
         <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={pages === undefined ? 4 : 5} className="p-0">
+          <TableCell colSpan={4} className="p-0">
             <div className="bg-muted/40 border-border border-y px-3 py-3">
               {/*
                 The round's own country, so an entry racing at home is starred
@@ -156,8 +193,8 @@ export function CalendarRow({
  * `rounds` says how many there are in all; `pending` is the round whose
  * qualifying is revealed and whose race is not, which shows its pole only.
  *
- * `pagesOf` gives a round's pages, and with it the table gains a last column
- * of links: *Race →* on a round raced, *Qualifying →* on the pending round,
+ * `pagesOf` gives a round's pages, and with it each name gains the page icon:
+ * to its race on a round raced, to its qualifying on the pending round,
  * nothing on a round ahead. It is the season's table of contents, so each
  * entry leads to its page; opening the row is the quick look.
  */
@@ -204,11 +241,6 @@ export function SeasonCalendar({
             <TableHead>Grand Prix</TableHead>
             <TableHead>Pole</TableHead>
             <TableHead>Winner</TableHead>
-            {pagesOf === undefined ? null : (
-              <TableHead>
-                <span className="sr-only">Page</span>
-              </TableHead>
-            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -221,9 +253,22 @@ export function SeasonCalendar({
               return (
                 <TableRow key={key} className="text-muted-foreground hover:bg-transparent">
                   <TableCell className="text-right tabular-nums">{index + 1}</TableCell>
-                  {/* Not a button: there is nothing yet to open. */}
-                  <TableCell className="opacity-70">
-                    <RoundName {...(round === undefined ? {} : { round })} index={index} />
+                  <TableCell>
+                    {/* Not a button: there is nothing yet to open. */}
+                    <RoundName
+                      round={round}
+                      index={index}
+                      dim
+                      link={
+                        // Its qualifying is the one page of this round reached.
+                        pagesOf === undefined || pole === null ? null : (
+                          <PageLink
+                            link={pagesOf(index).qualifying}
+                            label={`${roundLabel(round, index)} qualifying page`}
+                          />
+                        )
+                      }
+                    />
                   </TableCell>
                   <TableCell>
                     {pole === null ? <NotYet /> : <RoundDriver driverId={pole} teamFor={teamFor} />}
@@ -231,16 +276,6 @@ export function SeasonCalendar({
                   <TableCell>
                     <NotYet />
                   </TableCell>
-                  {pagesOf === undefined ? null : (
-                    <TableCell className="text-right">
-                      {/* Its qualifying is the one page of this round reached. */}
-                      {pole === null ? null : (
-                        <Link {...pagesOf(index).qualifying} className={PAGE_LINK}>
-                          Qualifying →
-                        </Link>
-                      )}
-                    </TableCell>
-                  )}
                 </TableRow>
               );
             }

@@ -15,7 +15,7 @@ import { PAGE_OF } from "./lib/roster-places.js";
 import { type Crumb, type ReturnLink, runBarFor } from "./lib/run-bar.js";
 import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
-import type { RoundPages, SessionNav } from "./lib/session-nav.js";
+import { type RoundPages, racePage, type SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
 import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from "./store/season.js";
 
@@ -174,8 +174,15 @@ export function RunFrame({
         {/* Every team on every page of the run is named by the run's own rule. */}
         <KeptNames from={run.world.namesKeptFrom}>
           <KeptLiveries from={run.world.liveriesKeptFrom}>
-            {/* People pages are an era's, so a one-year run's panels lead to none. */}
-            <SeasonHistoryProvider seasons={years} pageOf={run.kind === "era" ? PAGE_OF : null}>
+            {/*
+              People pages are an era's, so a one-year run's panels lead to none;
+              race pages are every run's.
+            */}
+            <SeasonHistoryProvider
+              seasons={years}
+              pageOf={run.kind === "era" ? PAGE_OF : null}
+              racePage={racePage}
+            >
               <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
             </SeasonHistoryProvider>
           </KeptLiveries>

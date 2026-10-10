@@ -232,6 +232,7 @@ export function CareerSeasons({
                           <RaceByRace
                             rounds={each.rounds}
                             calendar={seasonSeed(each.year).calendar}
+                            year={each.year}
                             showDriver={teams}
                           />
                           {toCome > 0 ? (

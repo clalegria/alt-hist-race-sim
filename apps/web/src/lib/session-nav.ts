@@ -100,3 +100,8 @@ export function roundPages(year: number, round: number): RoundPages {
     race: linkTo({ year, beat: { kind: "race", round } }),
   };
 }
+
+/** The race page of `round` (zero-based) of `year`: where a race by race's round leads. */
+export function racePage(year: number, round: number): RunLink {
+  return roundPages(year, round).race;
+}

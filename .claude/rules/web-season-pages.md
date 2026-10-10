@@ -28,9 +28,10 @@ After round 3 of 16" before, then the settings line; under them **one tab at a t
   the races revealed. A round not reached is greyed, does not open, and shows `NOT_YET`
   in place of its pole and winner; the cursor's qualifying-only round (`pending`) shows
   its pole and nothing more. **It is the season's table of contents, so each row links
-  its page** in a last column (`pagesOf`, from `roundPages`): *Race →* on a round raced,
-  *Qualifying →* on the pending round, nothing ahead. The name still opens the
-  classification in place, the quick look. `CalendarRow` is **controlled** like the
+  its page** with the page icon beside the name (`pagesOf`, from `roundPages`), as the
+  roll of honour does beside a year: its race on a round raced, its qualifying on the
+  pending round, nothing ahead. The name still opens the classification in place, the
+  quick look. `CalendarRow` is **controlled** like the
   roll of honour's `ChampionRow`, so an opened row renders in a test.
 - **Grid** — `SeasonGrid` with the shared sort switch.
 

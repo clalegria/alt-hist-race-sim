@@ -10,9 +10,10 @@ paths:
 The reading of a run that hangs off a *name*. The roll of honour says who won each year
 (`.claude/rules/web-era.md`); the career statistics say who won the era
 (`.claude/rules/web-records.md`); this says what **one** name did in **every** year of
-it. Select a driver or a team anywhere in a run — the champions screen, the standings
-and the sidebar, the classification, the calendar's poles and winners, the qualifying
-grid, a team's race by race, the people pages — and a panel opens listing their
+it. Select a driver or a team anywhere in a run — the champions screen, the season
+page's champion cards, the standings and the sidebar, the classification, the calendar's
+poles and winners, the qualifying grid, a team's race by race, the people pages — and a
+panel opens listing their
 seasons:
 
 ```
@@ -57,7 +58,8 @@ its line reads "3rd after round 5" (`placeLabel`, `isTitle`). The provider also 
 `pageOf`, so **in an era the panel's heading carries the page icon** (`PageLink`) to that
 driver's or team's page, and each year line one to that year's season page
 (`.claude/rules/web-people-pages.md`); a one-year run has no people
-pages and passes none. The default is **no run in scope** — the
+pages and passes none. It carries `racePage` too, in either kind of run, for a race by
+race's rounds (`.claude/rules/web-display.md`). The default is **no run in scope** — the
 same empty default `EntryNames` and `Liveries` carry — and a name with nothing behind
 it renders as **plain text, not as a control that opens an empty panel**. That is what
 every component rendered on its own gets, which is what keeps the existing DOM-less

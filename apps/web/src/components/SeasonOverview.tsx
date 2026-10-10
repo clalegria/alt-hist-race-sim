@@ -16,6 +16,7 @@ import { Flag } from "./Flag.js";
 import { EditedGridBanner } from "./LineupChanges.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
+import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamBadge } from "./TeamBadge.js";
@@ -39,7 +40,8 @@ function Champion({
   teamId,
 }: {
   label: string;
-  name: string;
+  /** The name, opening its career as every name in a run does. */
+  name: React.ReactNode;
   detail: string;
   country?: string | undefined;
   /**
@@ -96,7 +98,15 @@ function Champions({ world }: { world: RevealedWorld }) {
     <div className="flex flex-col gap-4 sm:flex-row">
       <Champion
         label="Drivers&rsquo; champion"
-        name={champion === undefined ? "—" : driverName(champion.driverId)}
+        name={
+          champion === undefined ? (
+            "—"
+          ) : (
+            <DriverHistory driverId={champion.driverId}>
+              {driverName(champion.driverId)}
+            </DriverHistory>
+          )
+        }
         country={champion === undefined ? undefined : driverCountry(champion.driverId)}
         {...(champion === undefined ? {} : { teamId: champion.teamId })}
         detail={
@@ -107,7 +117,13 @@ function Champions({ world }: { world: RevealedWorld }) {
       />
       <Champion
         label="Constructors&rsquo; champion"
-        name={topTeam === undefined ? "—" : nameOf(topTeam.teamId)}
+        name={
+          topTeam === undefined ? (
+            "—"
+          ) : (
+            <TeamHistory teamId={topTeam.teamId}>{nameOf(topTeam.teamId)}</TeamHistory>
+          )
+        }
         country={topTeam === undefined ? undefined : countryOf(topTeam.teamId)}
         {...(topTeam === undefined ? {} : { teamId: topTeam.teamId })}
         detail={
@@ -293,6 +309,7 @@ export function SeasonOverview({
           <SeasonStandings
             season={season}
             calendar={seed.calendar}
+            year={year}
             points={points}
             description={finished ? "Final classification." : progress}
             badge

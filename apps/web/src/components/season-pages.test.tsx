@@ -8,15 +8,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { eraChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
+import { teamRounds } from "../lib/results.js";
 import { revealYear } from "../lib/reveal.js";
 import { PAGE_OF } from "../lib/roster-places.js";
 import { seasonTabLinks } from "../lib/season-tabs.js";
-import { roundPages, sessionNav } from "../lib/session-nav.js";
+import { racePage, roundPages, sessionNav } from "../lib/session-nav.js";
 import type { Beat } from "../lib/timeline.js";
 import { inRouter } from "../test-router.js";
 import { SEED, seededWorld, YEAR } from "../test-support.js";
 import { ChampionRow, EraChampions } from "./EraChampions.js";
+import { RaceByRace } from "./RaceByRace.js";
 import { CalendarRow, NOT_YET } from "./SeasonCalendar.js";
+import { SeasonHistoryProvider } from "./SeasonHistory.js";
 import { SeasonView } from "./SeasonView.js";
 
 const world = seededWorld(3, "aged", YEAR);
@@ -242,6 +245,26 @@ describe("the links out of an opened row", () => {
     );
     expect(count(html, `href="/run/${YEAR}"`)).toBe(1);
     expect(html).not.toContain("season page →");
+  });
+
+  it("lead from each round of a race by race to its race, once a round, inside a run only", async () => {
+    // A team's, so a round with two cars in it still links once; cut partway,
+    // so only the rounds the reader has reached are there to link.
+    const live = revealYear(world, { kind: "race", round: MID });
+    const teamId = world.field[0]?.teamId ?? "";
+    const rounds = teamRounds(live.season, live.points, teamId);
+    const raced = [...new Set(rounds.map((each) => each.round + 1))];
+    expect(raced.length).toBeGreaterThan(0);
+    const panel = <RaceByRace rounds={rounds} calendar={SEED.calendar} year={YEAR} showDriver />;
+    const html = await inRouter(
+      <SeasonHistoryProvider seasons={[live]} racePage={racePage}>
+        {panel}
+      </SeasonHistoryProvider>,
+    );
+    const linked = [...html.matchAll(/href="\/run\/(\d+)\/round\/(\d+)\/race"/g)];
+    expect(linked.map((m) => Number(m[1]))).toEqual(raced.map(() => YEAR));
+    expect(linked.map((m) => Number(m[2]))).toEqual(raced);
+    expect(renderToStaticMarkup(panel)).not.toContain("<a ");
   });
 
   it("are not drawn without the links, as in a test with no router", () => {

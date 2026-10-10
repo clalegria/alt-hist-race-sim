@@ -44,33 +44,45 @@ import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
+/** A race's page, by year and zero-based round. */
+export type RacePage = (year: number, round: number) => RunLink;
+
 /** The run's careers, and where each one's page is — null outside a router. */
 interface HistoryScope {
   readonly histories: SeasonHistories;
   readonly pageOf: PageOf | null;
+  /** Unlike `pageOf`, a one-year run has these too. */
+  readonly racePage: RacePage | null;
 }
 
-const Histories = createContext<HistoryScope>({ histories: NO_HISTORIES, pageOf: null });
+const Histories = createContext<HistoryScope>({
+  histories: NO_HISTORIES,
+  pageOf: null,
+  racePage: null,
+});
 
 /**
  * Every career of a run, tallied once for every panel on the screen.
  *
  * The run's frame provides it over every year the reader has reached, the
  * cursor's own cut at the cursor, so a panel opened anywhere in the run says
- * the same thing. `pageOf` is how a panel links on to the person's page; a
- * test with no router leaves it out and the panel draws no link.
+ * the same thing. `pageOf` is how a panel links on to the person's page, and
+ * `racePage` how a race by race links a round to its race; a test with no
+ * router leaves them out and nothing draws a link.
  */
 export function SeasonHistoryProvider({
   seasons,
   pageOf = null,
+  racePage = null,
   children,
 }: {
   seasons: readonly TalliedYear[];
   pageOf?: PageOf | null;
+  racePage?: RacePage | null;
   children: React.ReactNode;
 }) {
   const histories = useMemo(() => seasonHistories(seasons), [seasons]);
-  const scope = useMemo(() => ({ histories, pageOf }), [histories, pageOf]);
+  const scope = useMemo(() => ({ histories, pageOf, racePage }), [histories, pageOf, racePage]);
   return <Histories.Provider value={scope}>{children}</Histories.Provider>;
 }
 
@@ -81,6 +93,11 @@ export function SeasonHistoryProvider({
  */
 export function usePageOf(): PageOf | null {
   return useContext(Histories).pageOf;
+}
+
+/** Where a race's page is, inside a run's frame of either kind; null outside one. */
+export function useRacePage(): RacePage | null {
+  return useContext(Histories).racePage;
 }
 
 /**

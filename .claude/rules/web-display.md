@@ -97,6 +97,9 @@ the same result rows the standings do — a test asserts the panel's points add 
 total on the row above it, since two walks over one set of results have no excuse to
 disagree.
 
+**Each round's name carries the page icon to its race** (`useRacePage`, given a `year`),
+once per round and in a one-year run too: every round listed is one the gate revealed.
+
 **The status column speaks only when something went wrong.** A season is mostly finishes,
 and a column reading "Finished" fourteen times says nothing the position beside it has
 not; retirements, their cause, and non-qualifications are what a reader opens the panel

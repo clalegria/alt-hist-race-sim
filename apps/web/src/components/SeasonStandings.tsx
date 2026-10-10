@@ -24,6 +24,7 @@ import { StandingsTable } from "./StandingsTable.js";
 export function SeasonStandings({
   season,
   calendar,
+  year,
   points,
   description,
   badge = false,
@@ -33,6 +34,8 @@ export function SeasonStandings({
   season: SeasonResult;
   /** Names the rounds inside a row's expansion. From the season's own year. */
   calendar: readonly CalendarRace[];
+  /** The season's year, so an expansion's rounds link to their races. */
+  year?: number | undefined;
   /** The scale the year was scored on, never assumed. */
   points: PointsScale;
   /** What the table is of — "Final classification.", or a round count. */
@@ -66,6 +69,7 @@ export function SeasonStandings({
         season={season}
         points={points}
         calendar={calendar}
+        year={year}
         badge={badge}
         car={car}
       />
@@ -89,6 +93,7 @@ export function SeasonStandings({
         season={season}
         points={points}
         calendar={calendar}
+        year={year}
         badge={badge}
         car={car}
       />

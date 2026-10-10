@@ -4,7 +4,8 @@ import { statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
-import { DriverHistory } from "./SeasonHistory.js";
+import { PageLink } from "./PageLink.js";
+import { DriverHistory, useRacePage } from "./SeasonHistory.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -23,18 +24,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
  * left blank on the cars beneath, and the driver column is switched on. Those
  * cars arrive in a **fixed order**, the same one every round; `teamRounds` owns
  * that rule and says why.
+ *
+ * Inside a run each round's name carries the page icon to its race. Every
+ * round listed is one the gate revealed, so its race page is reached.
  */
 export function RaceByRace({
   rounds,
   calendar,
+  year,
   showDriver = false,
 }: {
   rounds: readonly RoundEntry[];
   /** Names the rounds. Comes from the world's own year, never a fixed season. */
   calendar: readonly CalendarRace[];
+  /** Whose rounds these are, for the links to their races; none without it. */
+  year?: number | undefined;
   /** True for a team, whose rows are cars rather than rounds. */
   showDriver?: boolean;
 }) {
+  const racePage = useRacePage();
   if (rounds.length === 0) {
     return <p className="text-muted-foreground px-3 py-2 text-xs">Entered no rounds.</p>;
   }
@@ -72,6 +80,12 @@ export function RaceByRace({
                       <Flag country={race.country} title={race.country} />
                     )}
                     {race?.name ?? `Round ${round + 1}`}
+                    {racePage === null || year === undefined ? null : (
+                      <PageLink
+                        link={racePage(year, round)}
+                        label={`${year} ${race?.name ?? `round ${round + 1}`} page`}
+                      />
+                    )}
                   </span>
                 )}
               </TableCell>

@@ -402,7 +402,10 @@ export const STEPS: readonly Step[] = [
     name: "past-race",
     reach: async (page) => {
       // A past season's race, straight from its calendar row.
-      await page.getByRole("link", { name: "Race →" }).first().click();
+      await page
+        .getByRole("link", { name: / race page$/ })
+        .first()
+        .click();
       await page.waitForURL(`**/run/${YEAR}/round/1/race`);
     },
   },
