@@ -41,26 +41,14 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ---
 
-## 1. Small fixes
-
-Independent of each other, each small, each noticed on a first run.
-
-- **A way to every page, the same way everywhere.** Which names lead to a driver, team,
-  season or race page is inconsistent: the page icon (`PageLink`) is in career panel
-  headings, the grid's popovers and the people pages' year rows, and missing from most
-  other places a name appears (classifications, standings, calendar, records). Audit
-  every place one is named and give it the icon wherever its page exists. Names stay
-  panel triggers (`web-people-pages.md`); the icon is the way to the page. A one-year run
-  has no people pages.
-
-## 2. Edit engines in the grid editor
+## 1. Edit engines in the grid editor
 
 The chassis has steppers (`stepChassis`); the engine only its supplier picker, and the
 popover's engine panel none. Add steppers for its three ratings. Open: whether a step
 moves the engine for every team running it (recommended, as *Engine performance* rolls
 it, and the card says so) or only this team's.
 
-## 3. Phone layout
+## 2. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -80,36 +68,7 @@ not solved.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 4. The in-app ratings editor
-
-Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
-someone who disagrees that a driver was worth what the data says should be able to change
-it and run their own what-if, in the browser. Drivers, teams/chassis, engines, and
-circuits once *circuit character* lands. The grid editor already re-rates one season's
-chassis for one run (`stepChassis`); this item is the editor that changes the data itself.
-
-- **The driver editor shows that driver's whole career progression, as a table and a
-  chart** — it *is* the screen, because a driver is a curve rather than a set of numbers
-  for one year. Age along the bottom, ratings up the side, the authored peak marked. This
-  is `pnpm progression` brought into the UI, on the charting groundwork in
-  `StandingsEvolution.tsx` (`.claude/rules/web-charts.md`).
-- **It edits the curve, not the year — decided.** A driver is a `peak` block plus a career
-  shape (`peakSeasons`, `developmentSpeed`, `declineSpeed`, `stepDown`), and what the app
-  shows for a year is *derived* by the ageing curve, so "make Piquet an 88 in 1982" has no
-  direct representation in `drivers.json`. The editor therefore edits peak-and-curve and
-  shows the derived rating for each season; it does not take a per-year edit and solve
-  back to a curve. Teams, engines and circuits are authored per season already and have
-  no equivalent problem.
-- **Edits apply to the user's run and survive the sitting.** File-based export/import is
-  the phase-1 form of local persistence (*stack for later phases*, below); Dexie/IndexedDB
-  is later. An imported file is untrusted input — validate it. How a run on edited data
-  is saved and shared is open (`docs/DECISIONS.md`).
-- **Export in the authored seed format** — `drivers.json`, `teams.json`, `engines.json`,
-  `seasons/<year>.json`, exactly as the repo writes them. This is the half that also
-  serves the author, and it makes a user's tuning something that can be sent in as data.
-  Always on or behind a flag is open.
-
-## 5. The share image
+## 3. The share image
 
 A button on a season's overview (`SeasonOverview`) and an era's review (`EraChampions`)
 that makes a **portrait PNG, 1080×1920**, to send from a phone — the way small games share
@@ -125,7 +84,7 @@ no save format.
   download where there is not.
 - Open: what each card shows, and whether the era card is one image or one per page.
 
-## 6. Publish it
+## 4. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -133,9 +92,9 @@ Put the app on the public internet, unfinished, and keep it there.
 unfinished modes already render as greyed-out cards, which is the right way for a public
 app to admit what it cannot do yet. What it waits on is the author being content with the
 ratings: a wrong rating does not announce itself as unfinished, it reads as a wrong
-opinion about a real driver. Hence its place after the editor that makes the ageing curve
-judgeable — and **deliberately not after the whole authoring pass**, because waiting for
-that means waiting for everything. Moving this item is how that call gets recorded. Five
+opinion about a real driver. It is **deliberately not after the whole authoring pass**,
+because waiting for that means waiting for everything, nor after the ratings editor, which
+can arrive on the live site. Moving this item is how that call gets recorded. Five
 parts, one release.
 
 ***The text pass.*** Every string on screen was written as its feature landed, and it
@@ -212,7 +171,37 @@ the reason to put a version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 7. Historical career records
+## 5. The in-app ratings editor
+
+Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
+someone who disagrees that a driver was worth what the data says should be able to change
+it and run their own what-if, in the browser. Drivers, teams/chassis, engines, and
+circuits once *circuit character* lands. The grid editor already re-rates one season's
+chassis for one run (`stepChassis`); this item is the editor that changes the data itself.
+After *publish it*: not needed for launch.
+
+- **The driver editor shows that driver's whole career progression, as a table and a
+  chart** — it *is* the screen, because a driver is a curve rather than a set of numbers
+  for one year. Age along the bottom, ratings up the side, the authored peak marked. This
+  is `pnpm progression` brought into the UI, on the charting groundwork in
+  `StandingsEvolution.tsx` (`.claude/rules/web-charts.md`).
+- **It edits the curve, not the year — decided.** A driver is a `peak` block plus a career
+  shape (`peakSeasons`, `developmentSpeed`, `declineSpeed`, `stepDown`), and what the app
+  shows for a year is *derived* by the ageing curve, so "make Piquet an 88 in 1982" has no
+  direct representation in `drivers.json`. The editor therefore edits peak-and-curve and
+  shows the derived rating for each season; it does not take a per-year edit and solve
+  back to a curve. Teams, engines and circuits are authored per season already and have
+  no equivalent problem.
+- **Edits apply to the user's run and survive the sitting.** File-based export/import is
+  the phase-1 form of local persistence (*stack for later phases*, below); Dexie/IndexedDB
+  is later. An imported file is untrusted input — validate it. How a run on edited data
+  is saved and shared is open (`docs/DECISIONS.md`).
+- **Export in the authored seed format** — `drivers.json`, `teams.json`, `engines.json`,
+  `seasons/<year>.json`, exactly as the repo writes them. This is the half that also
+  serves the author, and it makes a user's tuning something that can be sent in as data.
+  Always on or behind a flag is open.
+
+## 6. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -237,7 +226,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 8. Seasonal factors
+## 7. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -246,7 +235,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 9. Circuit character
+## 8. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -262,7 +251,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 10. Driver market
+## 9. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -276,7 +265,7 @@ Needs ageing and more than one season to move between, hence its place here. Lea
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 11. Game mode
+## 10. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
