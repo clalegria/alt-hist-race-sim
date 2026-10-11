@@ -958,9 +958,8 @@ export function SeasonGrid({
                           // went. It is not in the headline number above — see
                           // `Development`.
                           <>
-                            <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                            <div className="border-border/60 mt-3 mb-2 border-t pt-3">
                               <span className="text-xs font-semibold">In-season development</span>
-                              <span className="text-muted-foreground text-xs">not in overall</span>
                             </div>
                             <Development trend={entry.developmentTrend} />
                             <p className="text-muted-foreground mt-2 text-xs">
