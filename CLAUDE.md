@@ -17,6 +17,13 @@ follow them.
 TypeScript, React and web development.** When making a design decision, explain it with
 that in mind: name the web-dev convention or framework idea involved and why it fits.
 
+**The player is a casually curious motorsport fan**, not technical, who has never seen how
+the model works and does not want to. Every word on screen (a setting's name and caption,
+a page's intro, a tooltip) is written for them: what they will see happen, in plain racing
+words, one short sentence where one will do. Leave out mechanics, edge cases and
+exceptions; what only matters to someone reading the code belongs in a rule file, not on
+screen. When in doubt, cut.
+
 ## Current phase
 **Phase 1: browser-only. No backend, no database, no user accounts.** The engine runs
 client-side. Do NOT introduce a server, an HTTP API, or a database in this phase.
@@ -52,7 +59,7 @@ pnpm test          # Vitest across all packages
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm screenshots   # the main screens to PNGs in tools/screenshots/out (.claude/rules/screenshots.md)
+pnpm screenshots   # screens to PNGs; pass step names, --phone/--desktop, --light/--dark
 pnpm tunnel        # the dev server on a public https URL, for any device (.claude/rules/tunnel.md)
 ```
 The harnesses in `tools/calibrate` (`pnpm race`, `season`, `calibrate`, `tune`, `fit`, …)
@@ -100,6 +107,9 @@ are listed in `.claude/rules/calibration.md`.
   so it cancels out of a teammate comparison. `race-engine.md`.
 
 ## Conventions
+- **Screenshots only for a visible change, and only of what changed**: name the steps
+  and one variant (`pnpm screenshots era-setup --phone --light`, `screenshots.md`).
+  Never the whole set to check a small change; the tests check logic.
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
 - **No build step.** Packages export TypeScript source (`"exports": "./src/index.ts"`);
   `tsc --noEmit` is the correctness check.

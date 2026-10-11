@@ -9,6 +9,12 @@ paths:
 (gitignored, emptied each run), for Claude to open with Read. It is how Claude sees the
 UI: **never the author's own Chrome**, and no browser MCP without asking first.
 
+**Capture only what a change touched** (`CLAUDE.md`). Arguments narrow the run: step
+names from `src/steps.ts` (an unknown one lists them all) and `--desktop`/`--phone`,
+`--light`/`--dark`. The walk still clicks through the steps before the first one named,
+since each is reached from the last, and stops after the last one named. One variant is
+enough unless the change is about width or theme.
+
 ## How it works
 
 - **Server** (`src/server.ts`, `startDevServer`): always its own Vite, on a free port,

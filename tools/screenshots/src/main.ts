@@ -2,7 +2,10 @@
  * Renders the app's main screens to PNGs, for Claude to read and look at.
  *
  * Every variant — viewport × theme — gets its own fresh browser context and
- * walks the whole of `STEPS`, capturing each screen full-page.
+ * walks `STEPS`, capturing each screen full-page. Arguments narrow it: step
+ * names capture only those (the walk still clicks through the steps before
+ * them, and stops after the last), and `--desktop`, `--phone`, `--light` or
+ * `--dark` only those variants.
  *
  * **Privacy is the hard rule here.** The browser is Playwright's own bundled
  * Chromium (never an installed Chrome: no `channel`), every context is a
@@ -96,7 +99,32 @@ async function settle(page: Page): Promise<void> {
   }
 }
 
+/** What the command line asks for: which steps, viewports and themes. */
+function selection(args: readonly string[]) {
+  const flags = args.filter((arg) => arg.startsWith("--") && arg !== "--");
+  const names = args.filter((arg) => !arg.startsWith("--"));
+  const known = new Set(STEPS.map((step) => step.name));
+  const unknown = [
+    ...names.filter((name) => !known.has(name)),
+    ...flags.filter((flag) => !["--desktop", "--phone", "--light", "--dark"].includes(flag)),
+  ];
+  if (unknown.length > 0) {
+    throw new Error(`Unknown: ${unknown.join(", ")}. Steps: ${[...known].join(", ")}.`);
+  }
+  const pick = <T extends string>(all: readonly T[]) => {
+    const asked = all.filter((each) => flags.includes(`--${each}`));
+    return asked.length > 0 ? asked : all;
+  };
+  return {
+    steps: names.length > 0 ? new Set(names) : known,
+    devices: pick(Object.keys(VIEWPORTS) as (keyof typeof VIEWPORTS)[]),
+    themes: pick(THEMES),
+  };
+}
+
 async function main(): Promise<void> {
+  const wanted = selection(process.argv.slice(2));
+  const last = STEPS.findLastIndex((step) => wanted.steps.has(step.name));
   rmSync(OUT_DIR, { recursive: true, force: true });
   mkdirSync(OUT_DIR, { recursive: true });
 
@@ -105,8 +133,9 @@ async function main(): Promise<void> {
   const problems: string[] = [];
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const [deviceName, device] of Object.entries(VIEWPORTS)) {
-      for (const theme of THEMES) {
+    for (const deviceName of wanted.devices) {
+      const device = VIEWPORTS[deviceName];
+      for (const theme of wanted.themes) {
         const variant = `${deviceName}-${theme}`;
         console.log(`Capturing ${variant}…`);
         const context = await openContext(browser, device, theme, server.baseUrl);
@@ -120,8 +149,11 @@ async function main(): Promise<void> {
           }
         });
         try {
-          for (const [index, step] of STEPS.entries()) {
+          for (const [index, step] of STEPS.slice(0, last + 1).entries()) {
             await step.reach(page);
+            if (!wanted.steps.has(step.name)) {
+              continue;
+            }
             await settle(page);
             const file = `${String(index + 1).padStart(2, "0")}-${step.name}-${variant}.png`;
             await page.screenshot({
