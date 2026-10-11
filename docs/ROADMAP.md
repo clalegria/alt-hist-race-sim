@@ -63,7 +63,8 @@ engine), with the full row on tap; **restack the row** into a card; or **let the
 scroll horizontally** inside its own container, which is the honest answer for a
 classification where every column is a result. The **standings evolution charts** need
 their own answer: a six-series legend and twenty-four round labels on a 360px axis is
-not solved.
+not solved. **The per-screen items are in `docs/design/ui-review.md`, tagged *Phone
+layout***: what each screen loses at 390px today and the move proposed for it.
 
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
@@ -105,7 +106,9 @@ screen by screen and cut. The leads and panel copy on the setup screens (`Season
 — the era lead is three sentences), the option details on `RandomnessSlider` and
 `RatingModeToggle`, the what-if notes in the settings dialog (Keep the first season's teams
 runs to two sentences), and the section descriptions on `CareerStatistics` are where the
-prose is. What survives should be short, concrete, and about the racing.
+prose is. What survives should be short, concrete, and about the racing. The wording items
+of the UI consistency pass (`docs/design/ui-review.md`, tagged *The text pass*) belong to
+this pass.
 
 ***The About page.*** The footer already stubs the destination as a disabled `Pending`
 button. What it carries: what the project is (an alternate history, not a prediction or a
