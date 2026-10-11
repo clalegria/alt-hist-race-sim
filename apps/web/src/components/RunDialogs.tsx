@@ -33,20 +33,18 @@ export const RUN_CONFIRM_COPY = {
   },
   restartSeason: {
     title: "Restart this season?",
-    description:
-      "It is raced again from its grid, on new dice. What you have seen of it is discarded; the grid stays as you set it.",
+    description: "The season is raced again from the same grid, with new results.",
     confirm: "Restart season",
   },
   clearEdits: {
     title: "Clear all grid edits?",
-    description:
-      "Every swap, engine and chassis change is undone, and the season is raced on its grid as entered.",
+    description: "All your changes are undone and the grid goes back to the real one.",
     confirm: "Clear edits",
   },
   restartEra: {
     title: "Restart the era?",
     description:
-      "Every season so far is discarded, and the era starts again from its first grid, on new dice. That grid stays as you set it.",
+      "Every season so far is thrown away and the era starts again from its first grid, with new results.",
     confirm: "Restart era",
   },
 } as const;
@@ -154,8 +152,8 @@ export function JumpDialog({
       <AlertDialogContent className="max-w-3xl">
         <AlertDialogTitle>Jump to…</AlertDialogTitle>
         <AlertDialogDescription>
-          Every season up to the one you pick is simulated in one go. Stop at its start to set up
-          its grid, or at its end.
+          Every season up to the one you pick is raced in one go. Stop at its start, to change its
+          grid, or at its end.
         </AlertDialogDescription>
         {target === null ? null : (
           <>
@@ -165,7 +163,7 @@ export function JumpDialog({
                 setChosen((current) => ({ ...current, year }));
               }}
               title="Season"
-              lead="Only seasons still ahead of the run."
+              lead="Only seasons you haven't reached yet."
               describeYear={(year) => `Jump to ${year}`}
               playable={(year) => years.includes(year)}
             />

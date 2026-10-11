@@ -60,7 +60,7 @@ export function RunNotResumed({ onDismiss }: { onDismiss?: () => void }) {
       className="bg-card flex flex-wrap items-center gap-3 rounded-xl border p-5 shadow-sm"
     >
       <p className="text-muted-foreground min-w-0 flex-1 text-sm">
-        Your last run couldn't be resumed: it was made on a different version of the simulator.
+        Your last run couldn't be reopened, because the app has been updated since.
       </p>
       <Button variant="ghost" onClick={onDismiss}>
         Dismiss

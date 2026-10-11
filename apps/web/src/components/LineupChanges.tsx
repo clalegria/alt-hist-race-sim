@@ -63,11 +63,10 @@ export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
 export function arrangementNote(arrangement: GridArrangement, mode: RatingMode): string {
   const { filters } = arrangement;
   const band = `${mode === "peak" ? "peak age" : "aged"} ${filters.minAge} to ${filters.maxAge}`;
-  const era = filters.hideRetired && filters.hideFuture ? ", racing that season" : "";
   const cast = arrangement.includeUnemployed
-    ? `Drivers without a drive were in the running — ${band}${era}.`
-    : "Only the drivers the season entered.";
-  return arrangement.retain ? `${cast} Kept for every season of the era.` : cast;
+    ? `Drivers without a seat could be picked too, ${band}.`
+    : "Only that season's drivers.";
+  return arrangement.retain ? `${cast} Repeated every season.` : cast;
 }
 
 /**
@@ -118,14 +117,20 @@ export function keptSentences(
   const ghosts = Object.entries(notes.ghosts);
   if (ghosts.length > 0) {
     const named = ghosts.map(([teamId, year]) => `${nameOf(teamId)} (${year})`);
-    sentences.push(`Not in the ${seasonYear} field, racing their last real car: ${listed(named)}.`);
+    sentences.push(
+      `Gone by ${seasonYear} in real life, still racing their last real car: ${listed(named)}.`,
+    );
   }
   const counts = [
-    notes.carried.size === 0 ? null : `${notes.carried.size} kept from last year`,
-    notes.signed.size === 0 ? null : `${notes.signed.size} signed`,
+    notes.carried.size === 0 ? null : `${notes.carried.size} kept last year's driver`,
+    notes.signed.size === 0
+      ? null
+      : notes.signed.size === 1
+        ? "1 new signing"
+        : `${notes.signed.size} new signings`,
   ].filter((part): part is string => part !== null);
   if (counts.length > 0) {
-    sentences.push(`Seats history left empty: ${counts.join(", ")}.`);
+    sentences.push(`Seats that were empty in real life: ${counts.join(", ")}.`);
   }
   const short = notes.short.map(({ teamId, cars }) =>
     cars === 0
@@ -133,7 +138,7 @@ export function keptSentences(
       : `${nameOf(teamId)} runs ${cars === 1 ? "one car" : `${cars} cars`}`,
   );
   if (short.length > 0) {
-    sentences.push(`Nobody free to sign: ${listed(short)}.`);
+    sentences.push(`No free driver to sign, so ${listed(short)}.`);
   }
   return sentences;
 }
@@ -332,8 +337,8 @@ export function EditedGridBanner({
       <div className="flex flex-wrap items-baseline gap-x-2">
         <span className="text-sm font-semibold tracking-tight">Alternate grid</span>
         <span className="text-muted-foreground text-xs">
-          This season was run on an edited grid —{" "}
-          {changeCount(changes, engineChanges, chassisChanges)} from the season as it was entered.
+          This season was raced on an edited grid:{" "}
+          {changeCount(changes, engineChanges, chassisChanges)} from the real one.
         </span>
       </div>
       {arrangement === null ? null : (

@@ -189,8 +189,7 @@ export function RollOfHonour({
       <CardHeader>
         <CardTitle>Roll of honour</CardTitle>
         <CardDescription>
-          Every title of this era, in the order it was won. Select a year for its full championship
-          tables.
+          Every champion of this era. Pick a year to see its full standings.
         </CardDescription>
       </CardHeader>
       <Table>
@@ -336,7 +335,7 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
     return `${run} ${inProgress.year} is under way.`;
   }
   return eraEnded(seasons, inProgress)
-    ? `${run} There is no season after this one to run — the era ends here.`
+    ? `${run} That's the last season there is, so the era ends here.`
     : `${run} Next comes ${yearAfter(seasons)}.`;
 }
 

@@ -151,9 +151,9 @@ export function EraPicker({
     <SeasonPicker
       onStart={onStart}
       title="Simulate an era"
-      lead={`Pick the year the era starts from. It runs on from there, one season at a time, for as long as you keep going or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
+      lead={`Pick the year to start from. The era carries on one season at a time, for as long as you like or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       yearTitle="Starting season"
-      yearLead="Where the era begins. Pick a decade, then a year in it — it runs on from there."
+      yearLead="Pick a decade, then a year."
       describeYear={(year) => `Start an era in ${year}`}
       describeStart={(year) => `Begin an era from ${year}`}
       unit="era"

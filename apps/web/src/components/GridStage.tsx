@@ -249,9 +249,7 @@ export function GridArrangements({
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold tracking-tight">Rearrange the whole grid</h3>
         <p className="text-muted-foreground text-xs">
-          One press instead of forty swaps. Each of these reseats every car, and the grid says which
-          one is in force until you move a driver by hand — an edit of your own is the end of the
-          rule.
+          Reseat every driver at once. Moving a driver by hand afterwards undoes it.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -370,9 +368,9 @@ export function ReserveList({
         </div>
         <p className="text-muted-foreground text-xs">
           {shown.length === drivers.length
-            ? `${drivers.length} in the pool.`
-            : `${shown.length} of ${drivers.length} in the pool.`}{" "}
-          Select one to put them in the selected seat.
+            ? `${drivers.length} drivers available.`
+            : `${shown.length} of ${drivers.length} drivers available.`}{" "}
+          Pick one to put them in the seat.
         </p>
       </div>
       <ReserveFilters
@@ -383,7 +381,7 @@ export function ReserveList({
       />
       {shown.length === 0 ? (
         <p className="text-muted-foreground text-xs">
-          Nobody in the pool matches. Widen the filters above.
+          No driver matches. Try widening the filters.
         </p>
       ) : null}
       <ul className="flex flex-col gap-1">

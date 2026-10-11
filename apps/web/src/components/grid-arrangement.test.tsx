@@ -107,9 +107,9 @@ describe("what the rules are called", () => {
   });
 
   it("says which cast a rule drew on", () => {
-    expect(arrangementNote(rules("random"), MODE)).toContain("the season entered");
+    expect(arrangementNote(rules("random"), MODE)).toContain("Only that season");
     expect(arrangementNote(rules("random", { includeUnemployed: true }), MODE)).toContain(
-      "without a drive",
+      "without a seat",
     );
   });
 
@@ -119,7 +119,6 @@ describe("what the rules are called", () => {
     const wide: DriverFilters = { ...DEFAULT_DRIVER_FILTERS, maxAge: 45 };
     const note = arrangementNote(rules("random", { includeUnemployed: true, filters: wide }), MODE);
     expect(note).toContain(`to ${wide.maxAge}`);
-    expect(note).toContain("racing that season");
   });
 
   it("names the age band with the word the filter panel uses", () => {
@@ -130,24 +129,9 @@ describe("what the rules are called", () => {
     expect(arrangementNote(open, "aged")).not.toContain("peak age");
   });
 
-  it("drops the career clause when the reader has widened past it", () => {
-    const anyEra: DriverFilters = {
-      ...DEFAULT_DRIVER_FILTERS,
-      hideRetired: false,
-      hideFuture: false,
-    };
-    const note = arrangementNote(
-      rules("random", { includeUnemployed: true, filters: anyEra }),
-      MODE,
-    );
-    expect(note).not.toContain("racing that season");
-  });
-
   it("says so when the rule is being kept for the rest of an era", () => {
-    expect(arrangementNote(rules("random"), MODE)).not.toContain("era");
-    expect(arrangementNote(rules("random", { retain: true }), MODE)).toContain(
-      "every season of the era",
-    );
+    expect(arrangementNote(rules("random"), MODE)).not.toContain("every season");
+    expect(arrangementNote(rules("random", { retain: true }), MODE)).toContain("every season");
   });
 });
 
@@ -246,7 +230,7 @@ describe("what the grid says about a rule in force", () => {
   it("draws the note on its own, with no change list beside it", () => {
     const note = renderToStaticMarkup(<ArrangementNote arrangement={RANKED} ratingMode={MODE} />);
     expect(note).toContain(RANKED_LABEL);
-    expect(note).toContain(arrangementNote(RANKED, MODE));
+    expect(note).toContain(arrangementNote(RANKED, MODE).replaceAll("'", "&#x27;"));
   });
 });
 

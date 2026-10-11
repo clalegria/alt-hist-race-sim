@@ -198,7 +198,7 @@ describe("a re-supplied grid", () => {
 
     expect(html).toContain("Alternate grid");
     expect(html.split(said).length - 1).toBe(2);
-    expect(html).toContain("1 change from the season as it was entered");
+    expect(html).toContain("1 change from the real one");
   });
 
   it("says none of it when the supply was left alone", () => {

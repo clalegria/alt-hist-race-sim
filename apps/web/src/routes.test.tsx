@@ -424,7 +424,7 @@ describe("the Resume run card", () => {
 
   it("gives way to a notice when the saved run could not be resumed", () => {
     const html = renderToStaticMarkup(<RunNotResumed />);
-    expect(html).toContain("couldn&#x27;t be resumed");
+    expect(html).toContain("couldn&#x27;t be reopened");
     expect(html).toContain(">Dismiss</button>");
   });
 });

@@ -114,7 +114,7 @@ and its editor; both load together in `src/components/`.
   pool on the same terms as everyone else, and a list that quietly excused some of its
   rows would be a list whose counts lie. Reaching such a driver again is the same move
   as reaching anyone else the filters hide — widen the filters — which is why the panel
-  always states both counts ("18 of 23 in the pool"): a list that silently shrinks reads
+  always states both counts ("18 of 23 drivers available"): a list that silently shrinks reads
   as an app that lost half its drivers. An empty result says so in words rather than
   showing a blank panel.
   The filters are **controlled** — held in `GridStage` beside the lineup draft, passed

@@ -307,7 +307,7 @@ export const STEPS: readonly Step[] = [
       // A team's ratings on varied cars: history beside this run's, rating by
       // rating, for the chassis and for the engine.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
-      await page.getByRole("dialog").getByText("History → this run").nth(1).waitFor();
+      await page.getByRole("dialog").getByText("Real → this run").nth(1).waitFor();
     },
   },
   {

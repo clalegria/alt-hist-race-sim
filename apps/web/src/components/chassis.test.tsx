@@ -201,6 +201,6 @@ describe("a grid with a re-rated chassis", () => {
     );
     expect(html).toContain("Alternate grid");
     expect(count(html, chassisNote(changes[0] as ChassisChange))).toBe(2);
-    expect(html).toContain("1 change from the season as it was entered");
+    expect(html).toContain("1 change from the real one");
   });
 });

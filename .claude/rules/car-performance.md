@@ -91,7 +91,7 @@ absolute ratings over it.
   carried and the reader's own chassis carrying as the ratings they are.
 - `arrangedLineup` builds from the baseline season for its seed, so a bulk rule kept
   across an era ranks that year's rolled cars.
-- The team popover reads *History → this run*: `SeasonGrid`'s `historicalChassis`
+- The team popover reads *Real → this run*: `SeasonGrid`'s `historicalChassis`
   (authored, passed only when the run rolled its own) puts the authored rating muted
   before each chassis bar, and `historicalEngines` (`historicalEngineRatings(world)`)
   does the same for the engine panel, whose header then says so in place of "spec".

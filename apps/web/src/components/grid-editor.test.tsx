@@ -203,8 +203,8 @@ describe("the grid in edit mode", () => {
     />,
   );
 
-  it("explains that every change is a swap", () => {
-    expect(html).toContain("teams keep the number of cars they entered");
+  it("says how to make a change", () => {
+    expect(html).toContain("then who takes their seat");
   });
 
   it("turns every driver into something to select, and marks the one picked up", () => {
@@ -241,7 +241,7 @@ describe("the drivers without a drive", () => {
     // screen is out of the band, and out of the band is out of the list.
     const shown = reserve.filter((driver) => matchesFilters(driver, YEAR, SHOW_ALL, MODE));
     expect(shown.length).toBeGreaterThan(0);
-    expect(html).toContain(`${SPARE} in the pool`);
+    expect(html).toContain(`${SPARE} drivers available`);
     for (const driver of shown) {
       expect(html, `missing ${driver.id}`).toContain(escaped(driver.name));
     }
@@ -339,7 +339,7 @@ describe("filtering the drivers without a drive", () => {
     const filters = DEFAULT_DRIVER_FILTERS;
     const left = survivors(filters);
     expect(left.length).toBeLessThan(reserve.length);
-    expect(render(filters)).toContain(`${left.length} of ${reserve.length} in the pool`);
+    expect(render(filters)).toContain(`${left.length} of ${reserve.length} drivers available`);
   });
 
   it("says nothing of the sort when it is hiding nobody", () => {
@@ -357,8 +357,8 @@ describe("filtering the drivers without a drive", () => {
         filters={SHOW_ALL}
       />,
     );
-    expect(html).toContain(`${shown.length} in the pool`);
-    expect(html).not.toContain(`of ${shown.length} in the pool`);
+    expect(html).toContain(`${shown.length} drivers available`);
+    expect(html).not.toContain(`of ${shown.length} drivers available`);
   });
 
   it("holds the age range against the season on screen", () => {
@@ -436,8 +436,8 @@ describe("filtering the drivers without a drive", () => {
     for (const driver of reserve) {
       expect(listed(html, driver), `${driver.id} unreachable`).toBe(true);
     }
-    expect(html).toContain(`${reserve.length} in the pool`);
-    expect(html).not.toContain(`of ${reserve.length} in the pool`);
+    expect(html).toContain(`${reserve.length} drivers available`);
+    expect(html).not.toContain(`of ${reserve.length} drivers available`);
 
     // And the same range against the season scale cannot: this is a real
     // difference, not a filter that stopped filtering.
@@ -465,7 +465,7 @@ describe("filtering the drivers without a drive", () => {
         filters={{ ...SHOW_ALL, minAge: spare ?? 0, maxAge: spare ?? 0 }}
       />,
     );
-    expect(html).toContain("Widen the filters");
+    expect(html).toContain("widening the filters");
   });
 });
 
@@ -491,7 +491,7 @@ describe("what the season summary says about an edited grid", () => {
   });
 
   it("counts the changes rather than just admitting to some", () => {
-    expect(html).toContain("1 change from the season as it was entered");
+    expect(html).toContain("1 change from the real one");
   });
 
   it("says none of it when the grid was left alone", () => {

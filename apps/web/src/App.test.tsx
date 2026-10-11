@@ -172,7 +172,7 @@ describe("the driver ability toggle", () => {
   });
 
   it("says what the chosen mode means, in the season's own year", () => {
-    expect(html).toContain("rookies are raw");
+    expect(html).toContain("young ones still learning");
     expect(html).toContain(String(world.year));
     expect(html).not.toContain("Every driver at the best they ever were");
   });
@@ -180,7 +180,7 @@ describe("the driver ability toggle", () => {
   it("describes the other mode once it is chosen", () => {
     const peak = render({ kind: "grid" }, seededWorld(3, "peak"));
     expect(peak).toContain("Every driver at the best they ever were");
-    expect(peak).not.toContain("rookies are raw");
+    expect(peak).not.toContain("young ones still learning");
   });
 
   it("is not offered at all inside an era, which fixes the ability model", () => {

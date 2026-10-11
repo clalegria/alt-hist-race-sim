@@ -57,9 +57,8 @@ export function MainMenu({
           Rewrite motorsport history
         </h1>
         <p className="text-muted-foreground max-w-prose text-sm">
-          Start from a real season, then let it run somewhere else. Every result is simulated from
-          the drivers and cars as they were, so the history you get is plausible — and never the one
-          that happened in real life.
+          Pick a real season and race it again. The drivers and cars are the real ones; the results
+          are new every time.
         </p>
       </header>
 

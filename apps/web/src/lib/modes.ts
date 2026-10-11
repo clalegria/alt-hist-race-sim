@@ -29,35 +29,34 @@ export const MODES: readonly Mode[] = [
     id: "season",
     title: "Simulate a season",
     blurb:
-      "One year, as it unfolds race by race until a champion is crowned. The grid starts as the one in real life, but you're allowed to swap drivers to simulate what-if scenarios.",
+      "Race one season, round by round, until a champion is crowned. Start from the real grid, or swap drivers around to see what might have been.",
     available: true,
   },
   {
     id: "era-basic",
     title: "Simulate an era (basic version)",
     blurb:
-      "The extension of simulate a season mode, but for multiple years. Grid changes year after year as per real life, but again, can be edited manually any year if you so wish.",
+      "Keep going, year after year. Each season brings its real grid, and you can still swap drivers whenever you like.",
     available: true,
   },
   {
     id: "era-advanced",
     title: "Simulate an era (advanced version)",
     blurb:
-      "Simulate multiple years, as the computer automatically moves drivers across teams according to a system of contractual commitments, events, and whichever market forces are swayed by the events that happen.",
+      "Keep going, year after year, while drivers change teams on their own as contracts end and teams chase the best.",
     available: false,
   },
   {
     id: "game",
     title: "Game mode",
     blurb:
-      "Control one team and manage it through the years. Navigate driver contracts, engine deals and car development directions.",
+      "Run one team through the years: sign the drivers, pick the engine and decide where to develop the car.",
     available: false,
   },
   {
     id: "edit-ratings",
     title: "Edit ratings",
-    blurb:
-      "Don't agree with the ratings presented that give life to the simulation? Edit them yourself.",
+    blurb: "Disagree with a driver's or a car's rating? Change it yourself.",
     available: false,
   },
 ];

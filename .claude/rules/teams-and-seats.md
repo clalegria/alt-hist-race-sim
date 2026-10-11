@@ -83,7 +83,7 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   memoised per world) is what Restore and every change notice compare against; the
   grid editor's *Copy last year's grid* copies `racedLineup` of the year before.
 - **On the grid**, `keptNotes(world)` (`lib/kept.ts`) says what Keep did: a ghost card
-  reads "Not in the {year} field: its {year} car", a seat history did not fill carries a
+  reads "Gone in real life, racing its {year} car", a seat history did not fill carries a
   muted *kept* or *signed* (never `SWAPPED_IN`, which means the reader moved someone),
   and `KeptNote` above the cards — its own notice, not the edited-grid one — names the
   ghosts, counts the seats and says who is short (`keptSentences`, pure).

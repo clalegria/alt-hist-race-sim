@@ -73,7 +73,7 @@ describe("what the grid says about a kept year", () => {
 
   it("marks the ghost and says what Keep did", () => {
     const html = ghostYear();
-    expect(html).toContain(`Not in the ${FOLDING_YEAR.year + 1} field`);
+    expect(html).toContain(`Gone by ${FOLDING_YEAR.year + 1} in real life`);
     expect(html).toContain(`Kept from ${FOLDING_YEAR.year}`);
   });
 
@@ -110,9 +110,9 @@ describe("the kept year's sentences", () => {
       ],
     };
     expect(keptSentences(notes, 2001, name)).toEqual([
-      "Not in the 2001 field, racing their last real car: RED (2000) and BLUE (1999).",
-      "Seats history left empty: 2 kept from last year, 1 signed.",
-      "Nobody free to sign: RED runs one car and GREEN sits the year out.",
+      "Gone by 2001 in real life, still racing their last real car: RED (2000) and BLUE (1999).",
+      "Seats that were empty in real life: 2 kept last year's driver, 1 new signing.",
+      "No free driver to sign, so RED runs one car and GREEN sits the year out.",
     ]);
   });
 });

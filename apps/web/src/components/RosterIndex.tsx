@@ -107,8 +107,8 @@ export function RosterIndex({
       <CardHeader>
         <CardTitle>{kind === "drivers" ? "Drivers" : "Teams"}</CardTitle>
         <CardDescription>
-          Every {noun} on the grid of the run so far — {rows.length} of them. Select a heading to
-          sort, a name for their page.
+          Every {noun} in this run so far: {rows.length} of them. Pick a heading to sort, or a name
+          to open their page.
         </CardDescription>
       </CardHeader>
       <Table>

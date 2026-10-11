@@ -17,7 +17,7 @@ const OPTIONS = [
   {
     mode: "aged",
     label: "At their age",
-    detail: "Ratings for the season: rookies are raw, veterans are past it.",
+    detail: "Drivers as they were that year: young ones still learning, old ones past their best.",
   },
   {
     mode: "peak",
@@ -42,7 +42,7 @@ export function RatingModeToggle({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-semibold tracking-tight">Driver ability</span>
         <span className="text-muted-foreground text-xs">
-          {active.detail.replace("the season", `${year}`)}
+          {active.detail.replace("that year", `in ${year}`)}
         </span>
       </div>
 

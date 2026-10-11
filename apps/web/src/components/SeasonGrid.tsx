@@ -273,8 +273,8 @@ function developmentNote(trend: number): string {
   const size = Math.abs(trend);
   const points = `${size} ${size === 1 ? "point" : "points"}`;
   return trend > 0
-    ? `Improves through the year: ${points} slower than this at the opener, ${size} quicker at the finale.`
-    : `Falls away through the year: ${points} quicker than this at the opener, ${size} slower at the finale.`;
+    ? `Gets faster through the year: ${points} slower than this at the first race, ${size} quicker by the last.`
+    : `Gets slower through the year: ${points} quicker than this at the first race, ${size} slower by the last.`;
 }
 
 /**
@@ -722,7 +722,7 @@ export function SeasonGrid({
           <CardDescription>
             {edit === undefined
               ? `${field.length} cars, ${entries.length} teams. Select any name for its full ratings.`
-              : "Select a driver, then whoever takes the seat — teams keep the number of cars they entered, so every change is a swap. An empty seat can be selected the same way. Each team can be given any engine the season ran, and its chassis made stronger or weaker — all four ratings beside the overall, one at a time from the team's name."}
+              : "Pick a driver, then who takes their seat. Pick a team's name to change its engine or make its car faster or slower."}
           </CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -746,8 +746,8 @@ export function SeasonGrid({
               {openSeats === 1 ? "1 empty seat" : `${openSeats} empty seats`}
             </span>
             <span className="text-muted-foreground text-xs">
-              Put a driver in {openSeats === 1 ? "it" : "each of them"} before applying the grid —
-              select the seat, then a name.
+              Fill {openSeats === 1 ? "it" : "them"} before you apply the grid: pick the seat, then
+              a driver.
             </span>
           </div>
         )}
@@ -884,11 +884,12 @@ export function SeasonGrid({
                         </div>
                         {ghostCar === undefined ? null : (
                           <p className="text-muted-foreground mb-2 text-xs">
-                            Not in the {seasonYear} field: racing on in its {ghostCar} car.
+                            Gone by {seasonYear} in real life, so it races on with its {ghostCar}{" "}
+                            car.
                           </p>
                         )}
                         {historical === undefined ? null : (
-                          <p className="text-subtle mb-2 text-right text-xs">History → this run</p>
+                          <p className="text-subtle mb-2 text-right text-xs">Real → this run</p>
                         )}
                         <div className="flex flex-col gap-2">
                           {CHASSIS_RATINGS.map((rating) => (
@@ -932,7 +933,7 @@ export function SeasonGrid({
                               <span className="text-muted-foreground text-xs">
                                 {historicalEngine === undefined
                                   ? `${seasonYear} spec`
-                                  : "History → this run"}
+                                  : "Real → this run"}
                               </span>
                             </div>
                             <div className="flex flex-col gap-2">
@@ -987,7 +988,7 @@ export function SeasonGrid({
                 </div>
                 {ghostCar === undefined ? null : (
                   <p className="text-subtle mt-1.5 text-xs">
-                    Not in the {seasonYear} field: its {ghostCar} car
+                    Gone in real life, racing its {ghostCar} car
                   </p>
                 )}
 
