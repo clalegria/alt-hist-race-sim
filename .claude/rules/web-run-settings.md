@@ -6,7 +6,6 @@ paths:
   - "apps/web/src/components/RandomnessSlider.tsx"
   - "apps/web/src/components/PointsSetting.tsx"
   - "apps/web/src/components/BreakdownsSetting.tsx"
-  - "apps/web/src/components/ReliabilitySetting.tsx"
   - "apps/web/src/components/CarPerformanceSetting.tsx"
   - "apps/web/src/components/EnginePerformanceSetting.tsx"
   - "apps/web/src/components/DevelopmentSetting.tsx"
@@ -79,10 +78,10 @@ the season only read as the real car) that the season never showed.
 `RunSettingsForm`, controlled, in groups (`RunSettingsGroup`; a setting is a *direct
 child*, which applies the padding and the rules between): **Races** — Luck on the day,
 Points system; **Cars** — Chassis performance, Engine performance, In-season development,
-Mechanical failures, Cars as reliable as (the last two together because one greys the
-other out); **Over the years**, era only (`eraSettings`) — Driver career events, Team name
-changes, Livery changes, Engine supplier changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars beside its years, a
-season's Races beside Cars. The form passes the whole remembered set through, so a
+Mechanical failures (with Cars as reliable as under it); **Over the years**, era only
+(`eraSettings`) — Driver career events, Team name changes, Livery changes, Engine supplier
+changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars
+beside its years, a season's Races beside Cars. The form passes the whole remembered set through, so a
 season's screen never drops an era answer it does not show.
 
 **A what-if has its historical answer first**, and its value is **null when
@@ -91,8 +90,9 @@ button group) or, for an answer picked from a list, one native `select` whose fi
 option is historical (`SettingSelect`). **The historical answer is *Historical*, or *Yes*
 / *No* for an on-off setting**, the same on both screens. **A note only for a what-if**
 (`SettingNote`). Sub-options sit in `SettingSub`, set in under their answer, with `sub`
-segments and no note of their own. The notes follow `unit` (`RunUnit`): an era talks
-about every season, a season about the one.
+segments or select and no note of their own: the setting's one note says what the pair
+does together. The notes follow `unit` (`RunUnit`): an era talks about every season, a
+season about the one.
 
 The values live in `lib/run-settings.ts`: `RunSettings`, `HISTORICAL_SETTINGS`,
 `parseRunSettings` (the one check for the recipe and the remembered preference, accepting
@@ -100,11 +100,12 @@ only values this build could offer) and `whatIfsOf`, the line's entries.
 
 - **Mechanical failures**: *Realistic* / *Fewer* / *None*, null / `"fewer"` / `"none"`
   (`BREAKDOWNS_LABELS`). What it does to the constants is
-  `.claude/rules/retirement-factor.md`.
-- **Cars as reliable as**: a `select` of *Each season* (*This season* on a season) then
+  `.claude/rules/retirement-factor.md`. Its sub-option **Cars as reliable as**, under
+  Realistic and Fewer, is a `select` of *Each season* (*This season* on a season) then
   every playable year by decade, stored as the year — not the 1–10 factor, an authoring
-  dial no reader knows. Greyed out under Mechanical failures: None; the choice is kept, and `createWorld`
-  records only `settingsInForce`, so no world claims a setting that changed nothing.
+  dial no reader knows. Hidden under None; the choice is kept, and `createWorld` records
+  only `settingsInForce`, so no world claims a setting that changed nothing. One note for
+  the pair (`BreakdownsSetting`); the settings line still names each.
 - **Points system**: a `select` of *Historical* (a season's names its own table)
   then `pointsTables()`, the distinct tables in the seed data, derived. Scoring only: the
   same seed races the same races under any table.

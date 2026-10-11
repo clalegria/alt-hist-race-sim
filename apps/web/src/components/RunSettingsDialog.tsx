@@ -11,7 +11,6 @@ import { EngineSuppliersSetting } from "./EngineSuppliersSetting.js";
 import { LiveriesSetting } from "./LiveriesSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
-import { ReliabilitySetting } from "./ReliabilitySetting.js";
 import { TeamNamesSetting } from "./TeamNamesSetting.js";
 import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
 import { Button } from "./ui/button.js";
@@ -64,7 +63,6 @@ export function RunSettingsGroup({ title, children }: { title: string; children:
  * the dice decide, how a result is scored), **Cars** (how quick, how they
  * develop, how often they break), and the era's **Over the years** (careers,
  * team names, liveries and engines, the grid).
- * Breakdowns and Reliability sit together because one greys the other out.
  *
  * Two columns from `lg` up — an era's Races and Cars beside its years, a
  * season's Races beside its Cars — one below it.
@@ -139,17 +137,9 @@ export function RunSettingsForm({
       />
       <BreakdownsSetting
         breakdowns={settings.breakdowns}
-        onChange={(breakdowns) => {
-          set({ breakdowns });
-        }}
-      />
-      <ReliabilitySetting
         reliability={settings.reliability}
         unit={unit}
-        disabled={settings.breakdowns === "none"}
-        onChange={(reliability) => {
-          set({ reliability });
-        }}
+        onChange={set}
       />
     </RunSettingsGroup>
   );

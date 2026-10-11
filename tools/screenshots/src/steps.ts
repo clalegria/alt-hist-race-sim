@@ -230,13 +230,13 @@ export const STEPS: readonly Step[] = [
       await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
       await pickYear(page, `Start an era in ${YEAR}`);
       // What-ifs on the era, set in the dialog and left open, so both columns,
-      // a picker, a greyed-out setting and the sub-options are drawn.
+      // a picker and the sub-options are drawn.
       const dialog = await openSettings(page);
-      await dialog.getByRole("combobox", { name: "Cars as reliable as" }).selectOption("1968");
       await dialog
         .getByRole("group", { name: "Mechanical failures" })
-        .getByRole("button", { name: "None", exact: true })
+        .getByRole("button", { name: "Fewer", exact: true })
         .click();
+      await dialog.getByRole("combobox", { name: "Cars as reliable as" }).selectOption("1968");
       await dialog.getByRole("combobox", { name: "Points system" }).selectOption({ index: 1 });
       await dialog
         .getByRole("group", { name: "Driver career events" })

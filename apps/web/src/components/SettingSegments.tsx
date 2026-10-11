@@ -11,14 +11,9 @@ export interface Segment {
 }
 
 /** A setting's name, at the head of its row; smaller for a sub-option. */
-function SettingName({ name, sub, disabled }: { name: string; sub: boolean; disabled: boolean }) {
+function SettingName({ name, sub }: { name: string; sub: boolean }) {
   return (
-    <span
-      className={cn(
-        sub ? "text-xs font-medium" : "text-sm font-semibold tracking-tight",
-        disabled && "text-muted-foreground",
-      )}
-    >
+    <span className={sub ? "text-xs font-medium" : "text-sm font-semibold tracking-tight"}>
       {name}
     </span>
   );
@@ -40,28 +35,22 @@ const ROW =
  * A button group with `aria-pressed`, copying `RatingModeToggle`, rather than
  * radio inputs: each segment is an action that commits at once.
  *
- * `disabled` greys out a setting another one makes meaningless. It goes on the
- * native `fieldset`, which disables every button inside it, so the pressed
- * segment still shows the reader's choice but nothing can be pressed. `sub` is
- * an option under another one (*Varies by up to* under *Random factor is added*), drawn smaller.
+ * `sub` is an option under another one (*Varies by up to* under *Random factor is added*), drawn smaller.
  */
 export function SettingSegments({
   name,
   segments,
-  disabled = false,
   sub = false,
 }: {
   name: string;
   segments: readonly Segment[];
-  disabled?: boolean;
   sub?: boolean;
 }) {
   return (
     <div className={ROW}>
-      <SettingName name={name} sub={sub} disabled={disabled} />
+      <SettingName name={name} sub={sub} />
       <fieldset
         aria-label={name}
-        disabled={disabled}
         className="border-border inline-flex shrink-0 self-start rounded-md border p-0.5 disabled:opacity-50 sm:self-auto"
       >
         {segments.map((segment) => (
@@ -109,28 +98,28 @@ export function SettingSelect({
   name,
   value,
   onChange,
-  disabled = false,
+  sub = false,
   children,
 }: {
   name: string;
   value: string;
   /** Absent in tests, where nothing is chosen. */
   onChange?: (value: string) => void;
-  disabled?: boolean;
+  /** An option under another one (*Cars as reliable as* under *Mechanical failures*), drawn smaller. */
+  sub?: boolean;
   /** The `option`s, the historical one first. */
   children: ReactNode;
 }) {
   return (
     <div className={ROW}>
-      <SettingName name={name} sub={false} disabled={disabled} />
+      <SettingName name={name} sub={sub} />
       <select
         aria-label={name}
         value={value}
-        disabled={disabled}
         onChange={(event) => {
           onChange?.(event.target.value);
         }}
-        className={cn(SETTING_SELECT_CLASS, "h-8 sm:w-60 sm:max-w-none")}
+        className={cn(SETTING_SELECT_CLASS, sub ? "h-7" : "h-8", "sm:w-60 sm:max-w-none")}
       >
         {children}
       </select>
@@ -146,7 +135,7 @@ export function SettingNote({ children }: { children: ReactNode }) {
   return <p className="text-muted-foreground text-xs">{children}</p>;
 }
 
-/** The options under a setting's answer — the random factor's spread, the kept teams' seat rules — set in. */
+/** The options under a setting's answer — the random factor's spread, the year cars are as reliable as, the kept teams' seat rules — set in. */
 export function SettingSub({ children }: { children: ReactNode }) {
   return <div className="border-border flex flex-col gap-2 border-l-2 pl-3">{children}</div>;
 }
