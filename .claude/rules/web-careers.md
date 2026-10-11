@@ -58,7 +58,7 @@ its line reads "3rd after round 5" (`placeLabel`, `isTitle`). The provider also 
 `pageOf`, so **in an era the panel's heading carries the page icon** (`PageLink`) to that
 driver's or team's page, and each year line one to that year's season page
 (`.claude/rules/web-people-pages.md`); a one-year run has no people
-pages and passes none. It carries `racePage` too, in either kind of run, for a race by
+pages and passes none, and its panel heading drops the "N seasons" count (always one). It carries `racePage` too, in either kind of run, for a race by
 race's rounds (`.claude/rules/web-display.md`). The default is **no run in scope** — the
 same empty default `EntryNames` and `Liveries` carry — and a name with nothing behind
 it renders as **plain text, not as a control that opens an empty panel**. That is what

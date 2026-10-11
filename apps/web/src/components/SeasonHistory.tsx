@@ -214,7 +214,8 @@ function HistoryPanel({
   name: string;
   /** A driver's nationality, a team's base — the flag every table names them with. */
   country: string | undefined;
-  seasons: number;
+  /** How many seasons the career spans; null in a one-year run, where it is always one. */
+  seasons: number | null;
   /** Their page, where the panel leads on to; null where there is none to link. */
   page: RosterLink | null;
   children: React.ReactNode;
@@ -231,9 +232,11 @@ function HistoryPanel({
           */}
           {page === null ? null : <PageLink link={page} label={`${name}'s page`} />}
         </span>
-        <span className="text-muted-foreground shrink-0 text-xs">
-          {count(seasons, "season", "seasons")}
-        </span>
+        {seasons === null ? null : (
+          <span className="text-muted-foreground shrink-0 text-xs">
+            {count(seasons, "season", "seasons")}
+          </span>
+        )}
       </div>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>
     </PopoverContent>
@@ -285,7 +288,7 @@ export function DriverHistory({
       <HistoryPanel
         name={driverName(driverId)}
         country={driverCountry(driverId)}
-        seasons={seasons.length}
+        seasons={pageOf === null ? null : seasons.length}
         page={pageOf?.driver(driverId) ?? null}
       >
         {seasons.map((season) => (
@@ -337,7 +340,7 @@ export function TeamHistory({
       <HistoryPanel
         name={teamNameIn(teamId, last)}
         country={teamCountryIn(teamId, last)}
-        seasons={seasons.length}
+        seasons={pageOf === null ? null : seasons.length}
         page={pageOf?.team(teamId) ?? null}
       >
         {seasons.map((season) => (
