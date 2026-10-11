@@ -206,7 +206,7 @@ export interface World {
   readonly baselineChassis: SeasonChassis | null;
   /**
    * Each team's chassis as raced the year before in this run (`racedChassis`),
-   * which *Chassis performance* from previous season's car walks off — or null
+   * which *Chassis performance* from last year's car walks off — or null
    * when the cars do not walk, or there was no year before.
    *
    * Recorded for the reason `namesKeptFrom` is: one year cannot see the run
@@ -223,7 +223,7 @@ export interface World {
   readonly baselineEngineRatings: SeasonEngineRatings | null;
   /**
    * Each engine as raced the year before in this run (`racedEngineRatings`),
-   * which *Engine performance* from previous season's engine walks off — or
+   * which *Engine performance* from last year's engine walks off — or
    * null, as `walkedFrom` is for the chassis.
    */
   readonly engineWalkedFrom: SeasonEngineRatings | null;
@@ -546,7 +546,7 @@ function eraInputsOf(world: World): EraInputs {
 
 /**
  * Each team's chassis as a world raced it: the reader's own, else the run's
- * roll, else the authored car. What a walk (*from previous season's car*) moves the
+ * roll, else the authored car. What a walk (*from last year's car*) moves the
  * next year off, so a reader's edit is carried by it: it is what raced.
  */
 export function racedChassis(world: World): SeasonChassis {
@@ -555,7 +555,7 @@ export function racedChassis(world: World): SeasonChassis {
 
 /**
  * Each engine as a world raced it: the run's roll, else the values the year
- * entered with. What a walk (*from previous season's engine*) moves the next
+ * entered with. What a walk (*from last year's engine*) moves the next
  * year off.
  */
 export function racedEngineRatings(world: World): SeasonEngineRatings {
@@ -1027,7 +1027,7 @@ function replaceWorld(run: Run, world: World): Run {
  * to play — the ability mode, a bulk rule they asked to keep, the randomness
  * level, the run settings — carried. What they chose about one grid does not carry, because it
  * was a grid for a year now behind them. The cars `last` raced go along, for a
- * walk from previous season's car to move off.
+ * walk from last year's car to move off.
  *
  * The one step both Continue and a jump forward take, so the two cannot
  * produce different histories.

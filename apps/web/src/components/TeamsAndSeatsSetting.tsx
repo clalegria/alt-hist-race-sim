@@ -19,15 +19,9 @@ function movedAge(rules: EmptySeatRules, end: "min" | "max", value: number): Emp
   return { ...rules, minAge, maxAge };
 }
 
-/** What *Yes* does, in two short sentences: the teams, then the seats. */
-function note(rules: EmptySeatRules): string {
-  const band = `aged ${rules.minAge} to ${rules.maxAge}${rules.activeOnly ? " from that season's real grid" : ""}`;
-  const fill =
-    rules.fill === "last"
-      ? `An empty seat keeps last year's driver until they are older than ${rules.maxAge}, else goes to the best free driver ${band}.`
-      : `Every empty seat goes to the best free driver ${band}, chosen again each season.`;
-  return `Every season has the first season's teams and number of cars; a team that folded races on in its last real car. ${fill}`;
-}
+/** What *Yes* does. Who gets the seats is the rows above it, so it is not said again. */
+const NOTE =
+  "The first year's teams race every year, even ones that closed down in real life, and new drivers are signed to fill their seats.";
 
 /**
  * Whether every year has the teams history gave it, or the first year's teams
@@ -130,7 +124,7 @@ export function TeamsAndSeatsSetting({
               Only sign drivers from that season's real grid
             </label>
           </SettingSub>
-          <SettingNote>{note(teamsAndSeats)}</SettingNote>
+          <SettingNote>{NOTE}</SettingNote>
         </>
       )}
     </div>

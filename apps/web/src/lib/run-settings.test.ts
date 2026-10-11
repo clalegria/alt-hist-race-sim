@@ -519,7 +519,7 @@ describe("the what-ifs a run states", () => {
         carPerformance: { kind: "varied", spread: 10, from: "last" },
       }),
     ).toEqual([
-      { name: "Chassis performance", value: "Random factor ±10 from previous season's chassis" },
+      { name: "Chassis performance", value: "Random factor ±10 from last year's chassis" },
     ]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, carPerformance: { kind: "random" } })).toEqual([
       { name: "Chassis performance", value: "Totally random" },
@@ -579,7 +579,7 @@ describe("the what-ifs a run states", () => {
         development: "none",
       }),
     ).toEqual([
-      { name: "Engine performance", value: "Random factor ±5 from previous season's engine" },
+      { name: "Engine performance", value: "Random factor ±5 from last year's engine" },
       { name: "In-season development", value: "Off" },
     ]);
   });

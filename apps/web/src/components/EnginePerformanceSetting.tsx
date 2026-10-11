@@ -1,27 +1,27 @@
 import type { CarVariationBase, RunSettings, RunUnit } from "../lib/run-settings.js";
 import { type PerformanceCopy, PerformanceSetting } from "./PerformanceSetting.js";
 
-/** What *Random factor is added* moves an engine off, in the era's "Varies from" row: history first. */
+/** What *Random factor is added* moves an engine off, in the era's "Each year starts from" row: history first. */
 const BASE_LABELS: Readonly<Record<CarVariationBase, string>> = {
-  real: "The historical engine",
-  last: "Previous season's engine",
+  real: "The real engine",
+  last: "Last year's engine",
 };
 
-/** Said once at the end of every note: the engine is rolled per supplier, not per team. */
-const SHARED = "the same for every team that runs it.";
+/** Said in every note: the engine is rolled per supplier, not per team. */
+const SHARED = "the same for every team that uses it";
 
 const COPY: PerformanceCopy = {
   season: {
     varied: (spread) =>
-      `Each engine is moved up to ±${spread} off its historical rating, ${SHARED}`,
-    random: `Each engine rating is drawn at random between the season's weakest and strongest engine, ${SHARED}`,
+      `Each engine is randomly made better or worse than the real one, by up to ${spread} rating points, ${SHARED}.`,
+    random: `Each engine is picked at random, ${SHARED}, so any team can have the best engine.`,
   },
   era: {
     varied: (spread, from) =>
       from === "last"
-        ? `Each season, each engine moves up to ±${spread} off the one raced the year before, ${SHARED} An engine new to the run starts from its historical rating.`
-        : `Every season, each engine is moved up to ±${spread} off its historical rating, ${SHARED}`,
-    random: `Every season, each engine rating is drawn at random between that year's weakest and strongest engine, ${SHARED}`,
+        ? `Each engine starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year, ${SHARED}.`
+        : `Every year, each engine is randomly made better or worse than the real one, by up to ${spread} rating points, ${SHARED}.`,
+    random: `Every year, each engine is picked at random, ${SHARED}, so any team can have the best engine.`,
   },
 };
 

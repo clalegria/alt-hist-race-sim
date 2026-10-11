@@ -36,7 +36,8 @@ export function CareerEventsSetting({
       />
       {careerEvents === null ? null : (
         <SettingNote>
-          Every career follows the plain ageing curve: no off-years, no late-career drops.
+          Drivers never have an off year or a sudden late-career drop; they simply rise and fade
+          with age.
         </SettingNote>
       )}
     </div>

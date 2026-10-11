@@ -35,10 +35,7 @@ export function LiveriesSetting({
         ]}
       />
       {liveries === null ? null : (
-        <SettingNote>
-          Each team keeps the colours of its first season in the run, so two teams can end up
-          looking alike.
-        </SettingNote>
+        <SettingNote>Every team keeps the colours it had in the first year.</SettingNote>
       )}
     </div>
   );

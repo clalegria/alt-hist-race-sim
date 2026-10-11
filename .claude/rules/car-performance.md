@@ -18,8 +18,9 @@ answers: *Historical* / *Random factor is added* / *Totally random*, stored as
 (*Engine performance*) — each null, `{ kind: "varied", spread, from }` or
 `{ kind: "random" }`. The setting plumbing every what-if shares is
 `.claude/rules/web-run-settings.md`. One control, `PerformanceSetting`, draws both;
-`CarPerformanceSetting` and `EnginePerformanceSetting` bring the name, the *Varies from*
-answers and the notes (`COPY`, following `unit`: the era's say "every season").
+`CarPerformanceSetting` and `EnginePerformanceSetting` bring the name, the *Each year starts from*
+answers and the notes (`COPY`, following `unit`: the era's say "every year"). The notes
+say what the reader sees, in rating points, not how a roll is drawn.
 
 - **Random factor is added**, `"varied"`: one whole-number offset, uniform in
   [−spread, spread], on every rating, each clamped to `CHASSIS_STEP_RANGE`
@@ -27,8 +28,8 @@ answers and the notes (`COPY`, following `unit`: the era's say "every season").
   `variedEngines` in `engines.ts`, three per engine). The spreads are
   `CAR_VARIATION_SPREADS` (±2, 5, 10, 20, 30); the control opens on ±10 and remembers a
   spread while the screen is open. `from` is what the offset moves off
-  (`CAR_VARIATION_BASES`, the era's *Varies from* row): `"real"`, **the historical
-  chassis / engine**, re-rolled each year; or `"last"`, **previous season's** — a walk
+  (`CAR_VARIATION_BASES`, the era's *Each year starts from* row): `"real"`, **the real
+  chassis / engine**, re-rolled each year; or `"last"`, **last year's** — a walk
   (below).
 - **Totally random**, `"random"` (`randomChassis`, `randomEngines`): each rating drawn
   uniformly between that season's weakest and strongest value of it, on its own.
@@ -47,10 +48,10 @@ Historical draws nothing, and turning one on moves neither the other roll nor an
 seed through splitmix32's finaliser) is the start of the substreams
 `docs/design/era-advanced.md` §2 proposes.
 
-## Previous season's: the walk
+## Last year's: the walk
 
 Era only: `seasonSettings` turns `"last"` into `"real"` for a standalone season, and its
-screen draws no *Varies from* row (the component keeps the era's answer while open).
+screen draws no *Each year starts from* row (the component keeps the era's answer while open).
 
 - Each team moves off the chassis it **raced** the year before in this run —
   `racedChassis(world)` in the store: the reader's `chassis`, else the roll, else the

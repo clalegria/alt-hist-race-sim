@@ -295,7 +295,7 @@ export const DEVELOPMENT_STREAM = "development";
  * `createWorld` calls it once and keeps the result on the world.
  *
  * `lastRaced` is each team's chassis as raced the year before in this run,
- * which a walk (*from previous season's car*) moves off; every other answer ignores
+ * which a walk (*from last year's car*) moves off; every other answer ignores
  * it, and a team missing from it moves off its own authored car.
  */
 export function rolledChassisOf(
@@ -395,7 +395,7 @@ export function carPerformanceLabel(roll: CarPerformance, noun: "chassis" | "eng
     return "Totally random";
   }
   return roll.from === "last"
-    ? `Random factor ±${roll.spread} from previous season's ${noun}`
+    ? `Random factor ±${roll.spread} from last year's ${noun}`
     : `Random factor ±${roll.spread}`;
 }
 

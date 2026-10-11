@@ -55,7 +55,7 @@ describe("the car performance setting", () => {
             />,
           ),
         ),
-      ).toEqual(["Random factor is added", `±${spread}`, "The historical chassis"]);
+      ).toEqual(["Random factor is added", `±${spread}`, "The real chassis"]);
     }
     expect(
       pressed(
@@ -66,11 +66,11 @@ describe("the car performance setting", () => {
           />,
         ),
       ),
-    ).toEqual(["Random factor is added", "±5", "Previous season's chassis"]);
+    ).toEqual(["Random factor is added", "±5", "Last year's chassis"]);
   });
 
-  it("offers previous season's car only on the era's screen, and only under Random factor is added", () => {
-    const base = 'aria-label="Varies from"';
+  it("offers last year's car only on the era's screen, and only under Random factor is added", () => {
+    const base = 'aria-label="Each year starts from"';
     const varied = { kind: "varied", spread: 5, from: "real" } as const;
     expect(
       renderToStaticMarkup(<CarPerformanceSetting unit="era" carPerformance={varied} />),
@@ -85,15 +85,15 @@ describe("the car performance setting", () => {
     }
   });
 
-  it("says what a walk moves off, and where a new team starts", () => {
+  it("says a walk moves every year, by up to the spread chosen", () => {
     const note = renderToStaticMarkup(
       <CarPerformanceSetting
         unit="era"
         carPerformance={{ kind: "varied", spread: 5, from: "last" }}
       />,
     );
-    expect(note).toContain("the one it raced the year before");
-    expect(note).toContain("A team new to the run starts from its historical chassis");
+    expect(note).toContain("every year");
+    expect(note).toContain("up to 5 rating points a year");
   });
 
   it("offers the spreads only under Random factor is added", () => {
@@ -128,13 +128,13 @@ describe("the car performance setting", () => {
     );
   });
 
-  it("talks about every season on the era's screen and about the one on a season's", () => {
+  it("talks about every year on the era's screen and about the one on a season's", () => {
     const answers = [{ kind: "random" }, { kind: "varied", spread: 5, from: "real" }] as const;
     for (const carPerformance of answers) {
       const draw = (unit: "season" | "era") =>
         renderToStaticMarkup(<CarPerformanceSetting carPerformance={carPerformance} unit={unit} />);
-      expect(draw("era")).toContain("Every season");
-      expect(draw("season")).not.toContain("Every season");
+      expect(draw("era")).toContain("Every year");
+      expect(draw("season")).not.toMatch(/every (year|season)/i);
       expect(draw("season")).not.toContain("that year");
     }
   });
@@ -161,7 +161,7 @@ describe("the car performance setting", () => {
     });
     expect(settingsOf(walking)).toContainEqual({
       name: "Chassis performance",
-      value: "Random factor ±5 from previous season's chassis",
+      value: "Random factor ±5 from last year's chassis",
     });
     expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
       "Chassis performance",

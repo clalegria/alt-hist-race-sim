@@ -267,7 +267,7 @@ export const STEPS: readonly Step[] = [
       for (const spreads of await dialog.getByRole("group", { name: "Varies by up to" }).all()) {
         await spreads.getByRole("button", { name: "±20", exact: true }).click();
       }
-      await button(page, "Previous season's chassis").click();
+      await button(page, "Last year's chassis").click();
     },
   },
   {

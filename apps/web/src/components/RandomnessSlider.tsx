@@ -43,27 +43,27 @@ export const RANDOMNESS_OPTIONS: readonly Level[] = [
   {
     level: 1,
     label: "Realistic",
-    detail: "The quick cars win. Upsets happen, but they take a real slice of luck.",
+    detail: "The quickest cars win. An upset takes real luck.",
   },
   {
     level: 2,
     label: "Balanced",
-    detail: "The order holds, but a good day and a bad one can swap two cars over.",
+    detail: "The quickest cars win most often, but a good or bad day can swap them around.",
   },
   {
     level: 3,
     label: "Exciting",
-    detail: "More scatter. The order still holds, but less firmly.",
+    detail: "More surprises, but the quickest cars still win most of the time.",
   },
   {
     level: 4,
     label: "Chaotic",
-    detail: "Form swings from weekend to weekend, and a midfield car can win.",
+    detail: "Results swing from weekend to weekend, and a midfield car can win.",
   },
   {
     level: 5,
     label: "Lottery",
-    detail: "Anyone can win anything. A title goes to whoever catches a wave.",
+    detail: "Anyone can win anything, and the title goes to whoever gets lucky.",
   },
 ];
 

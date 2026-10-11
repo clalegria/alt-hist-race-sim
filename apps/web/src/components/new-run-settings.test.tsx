@@ -52,25 +52,25 @@ describe("the engine performance setting", () => {
     expect(draw({ kind: "varied", spread: 20, from: "real" })).toEqual([
       "Random factor is added",
       "±20",
-      "The historical engine",
+      "The real engine",
     ]);
     expect(draw({ kind: "varied", spread: 5, from: "last" })).toEqual([
       "Random factor is added",
       "±5",
-      "Previous season's engine",
+      "Last year's engine",
     ]);
   });
 
-  it("says every team running an engine moves with it, every season only on the era's screen", () => {
+  it("says every team running an engine moves with it, every year only on the era's screen", () => {
     const answers = [{ kind: "random" }, { kind: "varied", spread: 5, from: "real" }] as const;
     for (const value of answers) {
       const draw = (unit: "season" | "era") =>
         renderToStaticMarkup(<EnginePerformanceSetting enginePerformance={value} unit={unit} />);
       for (const unit of ["season", "era"] as const) {
-        expect(draw(unit)).toContain("the same for every team that runs it");
+        expect(draw(unit)).toContain("the same for every team that uses it");
       }
-      expect(draw("era")).toContain("Every season");
-      expect(draw("season")).not.toContain("Every season");
+      expect(draw("era")).toContain("Every year");
+      expect(draw("season")).not.toMatch(/every (year|season)/i);
     }
   });
 
@@ -90,7 +90,7 @@ describe("the engine performance setting", () => {
     });
     expect(settingsOf(walking)).toContainEqual({
       name: "Engine performance",
-      value: "Random factor ±5 from previous season's engine",
+      value: "Random factor ±5 from last year's engine",
     });
     expect(settingsOf(eraYear(HISTORICAL_SETTINGS)).map((line) => line.name)).not.toContain(
       "Engine performance",
@@ -109,11 +109,11 @@ describe("the in-season development setting", () => {
     expect(draw("none")).toContain("same pace all season");
   });
 
-  it("talks about every season on the era's screen and about the one on a season's", () => {
+  it("talks about every year on the era's screen and about the one on a season's", () => {
     const draw = (unit: "season" | "era") =>
       renderToStaticMarkup(<DevelopmentSetting development="random" unit={unit} />);
-    expect(draw("era")).toContain("Every season");
-    expect(draw("season")).not.toContain("Every season");
+    expect(draw("era")).toContain("Every year");
+    expect(draw("season")).not.toMatch(/every (year|season)/i);
   });
 
   it("is named on the settings line when not historical", () => {

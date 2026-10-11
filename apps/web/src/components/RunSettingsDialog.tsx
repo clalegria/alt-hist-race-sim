@@ -306,7 +306,7 @@ function DraftForm({
       <div className="flex flex-col gap-1">
         <DialogTitle>Run settings</DialogTitle>
         <DialogDescription>
-          Chosen before the {unit} starts, and fixed once it is under way.
+          Set these before you start. They can't be changed once the racing begins.
         </DialogDescription>
       </div>
       <RunSettingsFields
@@ -323,7 +323,7 @@ function DraftForm({
             <Button
               variant="ghost"
               className="mr-auto"
-              title="Every setting historical, luck on the day at its default"
+              title="Back to real history and the default luck"
               disabled={atDefaults}
               onClick={() => {
                 setDraft(defaults);

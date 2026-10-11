@@ -29,7 +29,7 @@ export type PerformanceCopy = Readonly<
 /**
  * *Chassis performance* or *Engine performance*: as authored, varied about it,
  * or random. One control for both, so the two read alike answer for answer;
- * each wrapper brings its name, its "Varies from" answers and its notes.
+ * each wrapper brings its name, its "Each year starts from" answers and its notes.
  *
  * Under *Random factor is added*, set in beneath it, a row picks how far, as segments like the
  * first, and on the era's screen another picks what from: that year's real one,
@@ -47,7 +47,7 @@ export function PerformanceSetting({
   onChange,
 }: {
   name: string;
-  /** The *Varies from* answers, history first. */
+  /** The *Each year starts from* answers, history first. */
   baseLabels: Readonly<Record<CarVariationBase, string>>;
   copy: PerformanceCopy;
   /** Null is Historical. */
@@ -112,7 +112,7 @@ export function PerformanceSetting({
           />
           {unit === "era" ? (
             <SettingSegments
-              name="Varies from"
+              name="Each year starts from"
               sub
               segments={CAR_VARIATION_BASES.map((each) => ({
                 key: each,

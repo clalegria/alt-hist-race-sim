@@ -1,4 +1,3 @@
-import { DEVELOPMENT_TREND_LIMIT } from "@alt-hist/engine";
 import {
   DEVELOPMENT_LABELS,
   type Development,
@@ -10,17 +9,14 @@ import { SettingNote, SettingSegments } from "./SettingSegments.js";
 /** The answers, history first. */
 const ANSWERS = ["historical", "random", "none"] as const;
 
-/** What Random does to one car's year, after the era's "Every season," or on its own. */
-const RANDOM = `improves or falls back over the year by a random amount: up to ${DEVELOPMENT_TREND_LIMIT} below its rating at the start and as far above it at the end, or the reverse.`;
-
-/** What a what-if answer means, under the control; the era's says "every season". */
+/** What a what-if answer means, under the control; the era's says "every year". */
 const NOTES: Readonly<Record<RunUnit, Readonly<Record<Development, string>>>> = {
   season: {
-    random: `Each car ${RANDOM}`,
+    random: "Each car gets randomly faster or slower as the season goes on.",
     none: "Every car keeps the same pace all season.",
   },
   era: {
-    random: `Every season, each car ${RANDOM}`,
+    random: "Every year, each car gets randomly faster or slower as the season goes on.",
     none: "Every car keeps the same pace all season.",
   },
 };

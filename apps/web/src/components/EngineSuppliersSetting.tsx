@@ -35,10 +35,7 @@ export function EngineSuppliersSetting({
         ]}
       />
       {engineSuppliers === null ? null : (
-        <SettingNote>
-          Each team keeps the engine supplier of its first season in the run. A supplier with no
-          rating that year races its latest one.
-        </SettingNote>
+        <SettingNote>Every team keeps the engine it had in the first year.</SettingNote>
       )}
     </div>
   );

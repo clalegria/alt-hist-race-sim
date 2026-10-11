@@ -35,7 +35,7 @@ export function TeamNamesSetting({
         ]}
       />
       {teamNames === null ? null : (
-        <SettingNote>Each team keeps the name and flag of its first season in the run.</SettingNote>
+        <SettingNote>Every team keeps the name and flag it had in the first year.</SettingNote>
       )}
     </div>
   );

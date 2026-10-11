@@ -1,25 +1,25 @@
 import type { CarVariationBase, RunSettings, RunUnit } from "../lib/run-settings.js";
 import { type PerformanceCopy, PerformanceSetting } from "./PerformanceSetting.js";
 
-/** What *Random factor is added* moves a chassis off, in the era's "Varies from" row: history first. */
+/** What *Random factor is added* moves a chassis off, in the era's "Each year starts from" row: history first. */
 const BASE_LABELS: Readonly<Record<CarVariationBase, string>> = {
-  real: "The historical chassis",
-  last: "Previous season's chassis",
+  real: "The real chassis",
+  last: "Last year's chassis",
 };
 
 const COPY: PerformanceCopy = {
   season: {
-    varied: (spread) => `Each chassis is moved up to ±${spread} off its historical rating.`,
-    random:
-      "Each chassis rating is drawn at random between the season's weakest and strongest car.",
+    varied: (spread) =>
+      `Each team's chassis is randomly made better or worse than the real one, by up to ${spread} rating points.`,
+    random: "Each team's chassis is picked at random, so any team can have the best car.",
   },
   era: {
     varied: (spread, from) =>
       from === "last"
-        ? `Each season, each chassis moves up to ±${spread} off the one it raced the year before, so cars drift over the years. A team new to the run starts from its historical chassis.`
-        : `Every season, each chassis is moved up to ±${spread} off its historical rating.`,
+        ? `Each chassis starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year.`
+        : `Every year, each team's chassis is randomly made better or worse than the real one, by up to ${spread} rating points.`,
     random:
-      "Every season, each chassis rating is drawn at random between that year's weakest and strongest car.",
+      "Every year, each team's chassis is picked at random, so any team can have the best car.",
   },
 };
 
