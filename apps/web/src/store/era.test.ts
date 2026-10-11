@@ -11,6 +11,7 @@ import {
   arrangeLineup,
   authoredChassis,
   authoredLineup,
+  CHASSIS_KEYS,
   CHASSIS_STEP_RANGE,
   DEFAULT_DRIVER_FILTERS,
   driverRatingsFor,
@@ -19,6 +20,7 @@ import {
   filledLineup,
   firstYearInRun,
   type GridArrangement,
+  pulled,
   seasonSeed,
   stepChassis,
   teamIdentityIn,
@@ -848,17 +850,21 @@ describe("car performance walking from previous year's car", () => {
         rolledChassisOf(seasonSeed(year.year), walk, year.seed, racedChassis(before)),
       );
       // The rule itself, not only the same call: a team that raced the year
-      // before moves off that car by one offset within the spread, wherever
-      // the scale's ends leave a rating free to show it.
+      // before moves off that car, pulled towards the field's average, by one
+      // offset within the spread, wherever the scale's ends leave a rating
+      // free to show it.
+      const entries = seasonSeed(year.year).entries;
+      const averageOf = (key: (typeof CHASSIS_KEYS)[number]): number =>
+        entries.reduce((sum, entry) => sum + entry.chassis[key], 0) / entries.length;
       for (const [teamId, last] of Object.entries(racedChassis(before))) {
         const now = year.baselineChassis?.[teamId];
         if (now === undefined) {
           continue;
         }
         const offsets = new Set(
-          (["racing", "qualifying", "consistency", "reliability"] as const)
-            .filter((key) => now[key] > CHASSIS_STEP_RANGE.min && now[key] < CHASSIS_STEP_RANGE.max)
-            .map((key) => now[key] - last[key]),
+          CHASSIS_KEYS.filter(
+            (key) => now[key] > CHASSIS_STEP_RANGE.min && now[key] < CHASSIS_STEP_RANGE.max,
+          ).map((key) => now[key] - pulled(last[key], averageOf(key))),
         );
         expect(offsets.size, `${year.year} ${teamId}`).toBeLessThanOrEqual(1);
         for (const offset of offsets) {

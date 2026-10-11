@@ -16,7 +16,7 @@ const COPY: PerformanceCopy = {
   era: {
     varied: (spread, from) =>
       from === "last"
-        ? `Each chassis starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year.`
+        ? `Each chassis starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year. Over time it drifts back towards the pack.`
         : `Every year, each team's chassis is randomly made better or worse than the real one, by up to ${spread} rating points.`,
     random:
       "Every year, each team's chassis is picked at random, so any team can have the best car.",

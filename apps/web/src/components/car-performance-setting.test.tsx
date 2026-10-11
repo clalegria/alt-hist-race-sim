@@ -85,7 +85,7 @@ describe("the car performance setting", () => {
     }
   });
 
-  it("says a walk moves every year, by up to the spread chosen", () => {
+  it("says a walk moves every year, by up to the spread chosen, and drifts back", () => {
     const note = renderToStaticMarkup(
       <CarPerformanceSetting
         unit="era"
@@ -94,6 +94,7 @@ describe("the car performance setting", () => {
     );
     expect(note).toContain("every year");
     expect(note).toContain("up to 5 rating points a year");
+    expect(note).toContain("drifts back towards the pack");
   });
 
   it("offers the spreads only under Random factor is added", () => {

@@ -209,7 +209,8 @@ What follows is only what stays advanced.
 - **PROPOSED** — The core failure of decades-long sports sims: best car, best results,
   best drivers, better car, forever. The pecking order amplifies the top on purpose, so
   the dampers are chosen, not discovered: contract locks and ageing (decided), regression
-  to the mean in random car development, budget and salary limits (later), divergence
+  to the mean in random car development (built: the walk's pull,
+  `.claude/rules/car-performance.md`), budget and salary limits (later), divergence
   noise.
 - **OPEN** — Which dampers, and how to check them: a multi-season harness in
   `tools/calibrate` reporting dynasty length and how concentrated titles are across teams

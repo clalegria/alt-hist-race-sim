@@ -4,10 +4,12 @@ import { buildField } from "./buildField.js";
 import {
   applyChassis,
   authoredChassis,
+  CHASSIS_KEYS,
   CHASSIS_STEP_RANGE,
   canStepChassis,
   chassisChanges,
   isAuthoredChassis,
+  pulled,
   randomChassis,
   stepChassis,
   variedChassis,
@@ -236,6 +238,9 @@ describe("variedChassis", () => {
   });
 
   describe("from previous year's cars", () => {
+    const averageOf = (key: keyof ChassisSpec): number =>
+      SPREAD_SEASON.entries.reduce((sum, entry) => sum + entry.chassis[key], 0) /
+      SPREAD_SEASON.entries.length;
     // Every team but the last raced last year, on a car of its own unlike this
     // year's; the last is new and has only this year's to move off.
     const LAST: ChassisSpec = { racing: 30, qualifying: 30, consistency: 30, reliability: 30 };
@@ -251,19 +256,50 @@ describe("variedChassis", () => {
         const walked = variedChassis(SPREAD_SEASON, SPREAD, createRng(seed), lastYear);
         const real = variedChassis(SPREAD_SEASON, SPREAD, createRng(seed));
         for (const entry of SPREAD_SEASON.entries) {
-          const base = entry === newcomer ? entry.chassis : LAST;
           // The same draw either way, so the offset is the real roll's.
           const offset = (real[entry.teamId] as ChassisSpec).qualifying - entry.chassis.qualifying;
-          for (const key of ["racing", "qualifying", "consistency", "reliability"] as const) {
+          for (const key of CHASSIS_KEYS) {
+            const base =
+              entry === newcomer ? entry.chassis[key] : pulled(LAST[key], averageOf(key));
             expect((walked[entry.teamId] as ChassisSpec)[key], `${seed} ${entry.teamId}`).toBe(
-              Math.min(
-                Math.max(base[key] + offset, CHASSIS_STEP_RANGE.min),
-                CHASSIS_STEP_RANGE.max,
-              ),
+              Math.min(Math.max(base + offset, CHASSIS_STEP_RANGE.min), CHASSIS_STEP_RANGE.max),
             );
           }
         }
       }
+    });
+
+    it("pulls a walked car part of the way towards the field's average, and no further", () => {
+      // Spread 0: the pull is the only thing moving a car.
+      const above = { racing: 95, qualifying: 95, consistency: 95, reliability: 95 };
+      const below = { racing: 5, qualifying: 5, consistency: 5, reliability: 5 };
+      const [high, low] = SPREAD_SEASON.entries.map((entry) => entry.teamId);
+      const walked = variedChassis(SPREAD_SEASON, 0, createRng(1), {
+        [high as string]: above,
+        [low as string]: below,
+      });
+      for (const key of CHASSIS_KEYS) {
+        const average = averageOf(key);
+        const down = (walked[high as string] as ChassisSpec)[key];
+        const up = (walked[low as string] as ChassisSpec)[key];
+        expect(down).toBeLessThan(above[key]);
+        expect(down).toBeGreaterThan(average);
+        expect(up).toBeGreaterThan(below[key]);
+        expect(up).toBeLessThan(average);
+      }
+    });
+
+    it("leaves a car at the field's average where it is", () => {
+      const average = Object.fromEntries(
+        CHASSIS_KEYS.map((key) => [key, Math.round(averageOf(key))]),
+      ) as unknown as ChassisSpec;
+      const [teamId] = SPREAD_SEASON.entries.map((entry) => entry.teamId);
+      const walked = variedChassis(SPREAD_SEASON, 0, createRng(1), { [teamId as string]: average });
+      expect(walked[teamId as string]).toEqual(average);
+    });
+
+    it("pulls nothing when the car starts from the real one", () => {
+      expect(variedChassis(SPREAD_SEASON, 0, createRng(1))).toEqual(authoredChassis(SPREAD_SEASON));
     });
 
     it("ignores a team from last year that does not enter this one", () => {

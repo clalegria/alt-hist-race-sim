@@ -1,7 +1,7 @@
 import { createRng, type EngineSpec, powertrain } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { buildField } from "./buildField.js";
-import { CHASSIS_STEP_RANGE } from "./chassis.js";
+import { CHASSIS_STEP_RANGE, pulled } from "./chassis.js";
 import {
   applyEngineRatings,
   applyEngines,
@@ -324,6 +324,8 @@ describe("authoredEngineRatings and applyEngineRatings", () => {
 
 describe("variedEngines", () => {
   const SPREAD = 10;
+  const averageOf = (key: keyof EngineSpec): number =>
+    ROLLED.engines.reduce((sum, engine) => sum + engine[key], 0) / ROLLED.engines.length;
 
   it("moves each engine's three ratings by one offset within the spread, clamped", () => {
     for (const seed of [1, 2, 3, 4, 5]) {
@@ -366,12 +368,35 @@ describe("variedEngines", () => {
       const walked = variedEngines(ROLLED, SPREAD, createRng(seed), lastYear);
       const real = variedEngines(ROLLED, SPREAD, createRng(seed));
       for (const engine of ROLLED.engines) {
-        const base = engine === LOW_ENGINE ? engine : LAST;
+        const base =
+          engine === LOW_ENGINE
+            ? engine.qualifying
+            : pulled(LAST.qualifying, averageOf("qualifying"));
         // The same draw either way, so the offset is the real roll's.
         const offset = (real[engine.engineId] as EngineSpec).qualifying - engine.qualifying;
-        expect((walked[engine.engineId] as EngineSpec).qualifying).toBe(base.qualifying + offset);
+        expect((walked[engine.engineId] as EngineSpec).qualifying).toBe(base + offset);
       }
     }
+  });
+
+  it("pulls a walked engine part of the way towards the menu's average, and no further", () => {
+    // Spread 0: the pull is the only thing moving an engine.
+    const above: EngineSpec = { racing: 95, qualifying: 95, reliability: 95 };
+    const below: EngineSpec = { racing: 5, qualifying: 5, reliability: 5 };
+    const walked = variedEngines(ROLLED, 0, createRng(1), { edge: above, mid: below });
+    for (const key of ENGINE_KEYS) {
+      const average = averageOf(key);
+      const down = (walked.edge as EngineSpec)[key];
+      const up = (walked.mid as EngineSpec)[key];
+      expect(down).toBeLessThan(above[key]);
+      expect(down).toBeGreaterThan(average);
+      expect(up).toBeGreaterThan(below[key]);
+      expect(up).toBeLessThan(average);
+    }
+  });
+
+  it("pulls nothing when the engine starts from the real one", () => {
+    expect(variedEngines(ROLLED, 0, createRng(1))).toEqual(authoredEngineRatings(ROLLED));
   });
 });
 

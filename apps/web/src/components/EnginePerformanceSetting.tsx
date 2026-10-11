@@ -19,7 +19,7 @@ const COPY: PerformanceCopy = {
   era: {
     varied: (spread, from) =>
       from === "last"
-        ? `Each engine starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year, ${SHARED}.`
+        ? `Each engine starts as the real one, then gets randomly better or worse every year, by up to ${spread} rating points a year, ${SHARED}. Over time it drifts back towards the pack.`
         : `Every year, each engine is randomly made better or worse than the real one, by up to ${spread} rating points, ${SHARED}.`,
     random: `Every year, each engine is picked at random, ${SHARED}, so any team can have the best engine.`,
   },

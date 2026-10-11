@@ -19,7 +19,7 @@
  */
 
 import type { EngineSpec, Rng } from "@alt-hist/engine";
-import { clamped } from "./chassis.js";
+import { clamped, pulled } from "./chassis.js";
 import { engines as enginePool } from "./index.js";
 import { seasons } from "./seasons/index.js";
 import type { EngineManufacturer, SeasonEngine, SeasonSeed } from "./types.js";
@@ -252,8 +252,9 @@ export function applyEngineRatings(season: SeasonSeed, ratings: SeasonEngineRati
  * team**, so every team running one moves together.
  *
  * Each moves off `from`'s values for it when there are some (*previous
- * season's engine*, a walk), else off the season's own. Draws one number per
- * engine, in the season's `engines` order, whatever `from` holds.
+ * season's engine*, a walk), first pulled towards the average of the season's
+ * menu rating by rating (`pulled`), else off the season's own. Draws one number
+ * per engine, in the season's `engines` order, whatever `from` holds.
  */
 export function variedEngines(
   season: SeasonSeed,
@@ -261,14 +262,22 @@ export function variedEngines(
   rng: Rng,
   from: SeasonEngineRatings | null = null,
 ): SeasonEngineRatings {
+  const average = Object.fromEntries(
+    ENGINE_KEYS.map((key) => [
+      key,
+      season.engines.reduce((sum, engine) => sum + engine[key], 0) / season.engines.length,
+    ]),
+  ) as Record<keyof EngineSpec, number>;
   const rolled: Record<string, EngineSpec> = {};
   for (const engine of season.engines) {
     const offset = rng.nextInt(-spread, spread + 1);
-    const { racing, qualifying, reliability } = from?.[engine.engineId] ?? engine;
+    const last = from?.[engine.engineId];
+    const base = (key: keyof EngineSpec): number =>
+      last === undefined ? engine[key] : pulled(last[key], average[key]);
     rolled[engine.engineId] = {
-      racing: clamped(racing + offset),
-      qualifying: clamped(qualifying + offset),
-      reliability: clamped(reliability + offset),
+      racing: clamped(base("racing") + offset),
+      qualifying: clamped(base("qualifying") + offset),
+      reliability: clamped(base("reliability") + offset),
     };
   }
   return rolled;

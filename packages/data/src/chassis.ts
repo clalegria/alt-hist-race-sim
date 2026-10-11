@@ -38,6 +38,13 @@ export const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability
  */
 export const CHASSIS_STEP_RANGE = { min: 1, max: 100 } as const;
 
+/**
+ * The share of the way a walked car moves towards the field's average each
+ * year, before its roll: the pull that stops a walk (*last year's car*)
+ * spreading the grid out for ever. Shared with the engine walk.
+ */
+export const CAR_WALK_PULL = 0.1;
+
 /** The chassis ratings as authored — the override every edit starts from. */
 export function authoredChassis(season: SeasonSeed): SeasonChassis {
   const chosen: Record<string, ChassisSpec> = {};
@@ -103,6 +110,14 @@ export function applyChassis(season: SeasonSeed, chassis: SeasonChassis): Season
  */
 export function clamped(value: number): number {
   return Math.min(Math.max(value, CHASSIS_STEP_RANGE.min), CHASSIS_STEP_RANGE.max);
+}
+
+/**
+ * Last year's rating moved `CAR_WALK_PULL` of the way towards the field's
+ * average for it, rounded to a whole number. Shared with `variedEngines`.
+ */
+export function pulled(last: number, average: number): number {
+  return Math.round(last + CAR_WALK_PULL * (average - last));
 }
 
 /** One rating moved by a step, held inside the scale. */
@@ -180,7 +195,8 @@ export function chassisChanges(
  * step with no rating named does — each held inside the scale on its own.
  *
  * The *Chassis performance: Random factor is added* roll. Each car moves off `from`'s car for its
- * team when there is one (*previous season's car*, a walk), else off the season's
+ * team when there is one (*previous season's car*, a walk), first pulled towards
+ * the season's field average rating by rating (`pulled`), else off the season's
  * own. Draws one number per team, in entry order, whatever `from` holds.
  */
 export function variedChassis(
@@ -189,15 +205,23 @@ export function variedChassis(
   rng: Rng,
   from: SeasonChassis | null = null,
 ): SeasonChassis {
+  const average = Object.fromEntries(
+    CHASSIS_KEYS.map((key) => [
+      key,
+      season.entries.reduce((sum, entry) => sum + entry.chassis[key], 0) / season.entries.length,
+    ]),
+  ) as Record<keyof ChassisSpec, number>;
   const rolled: Record<string, ChassisSpec> = {};
   for (const entry of season.entries) {
     const offset = rng.nextInt(-spread, spread + 1);
-    const { racing, qualifying, consistency, reliability } = from?.[entry.teamId] ?? entry.chassis;
+    const last = from?.[entry.teamId];
+    const base = (key: keyof ChassisSpec): number =>
+      last === undefined ? entry.chassis[key] : pulled(last[key], average[key]);
     rolled[entry.teamId] = {
-      racing: clamped(racing + offset),
-      qualifying: clamped(qualifying + offset),
-      consistency: clamped(consistency + offset),
-      reliability: clamped(reliability + offset),
+      racing: clamped(base("racing") + offset),
+      qualifying: clamped(base("qualifying") + offset),
+      consistency: clamped(base("consistency") + offset),
+      reliability: clamped(base("reliability") + offset),
     };
   }
   return rolled;

@@ -68,9 +68,13 @@ screen draws no *Each year starts from* row (the component keeps the era's answe
   `setRatingMode`, `restartSeason`, `nextLineup`) passes the world's own on. `restartEra`
   passes null. The recipe does not store them: `rebuild` hands each world the one
   rebuilt before it.
-- Plain walk, no pull back towards the authored values: at ±20 or ±30 ratings reach the
-  clamp within a few years. Whether to revert to the mean is open in
-  `docs/DECISIONS.md`.
+- **The pull back to the pack.** Before its roll, a walked car's every rating moves
+  `CAR_WALK_PULL` of the way towards that season's authored field average for it
+  (`pulled` in `chassis.ts`; an engine towards its menu's average), rounded. Without it
+  the grid spreads out for ever, the front and back teams stay put and ratings pile up
+  against the clamp; with it a car's shape fades towards the field's too. The anchor is
+  the field, not the team's real car, so history stays alternate. A car moving off its
+  own authored values is not pulled, and the pull draws nothing.
 
 ## The baseline, not an edit
 
@@ -100,7 +104,8 @@ absolute ratings over it.
 
 `chassis.test.ts` and `engines.test.ts` check the rolls against synthetic seasons (one
 offset within the spread, the clamp, Random inside each rating's range, a walk off `from`
-and a newcomer off its own values, every customer of an engine alike);
+pulled towards the average and a newcomer off its own values, every customer of an engine
+alike);
 `run-settings.test.ts` the parse, the line, the streams and the season dropping the walk;
 `store/era.test.ts` (chassis) and `store/run-settings-era.test.ts` (engines) every year
 rolled from its own seed, no edit on a rolled grid, the restarts, the walk, and jumping
