@@ -14,7 +14,7 @@
  * reason to throw away an answer the reader gave: someone who narrows the pool
  * and then flips to peak ratings to see the same people at their best has not
  * asked for their filters back. The mode picks what the panel opens on;
- * `GridStage` re-lays that default only while nothing has ever been stored, and
+ * `useReserveFilters` re-lays that default only while nothing has ever been stored, and
  * `hasStoredDriverFilters` is how it knows.
  *
  * `localStorage` rather than the session, and that is the difference from

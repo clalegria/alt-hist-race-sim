@@ -38,10 +38,12 @@ import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
-import { GridStage, pickUp, previewField, ReserveList } from "./GridStage.js";
+import { GridStage } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
+import { ReserveList } from "./ReserveList.js";
 import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
+import { pickUp, previewField } from "./useGridDraft.js";
 
 const authored = authoredLineup(SEED);
 
@@ -466,6 +468,30 @@ describe("filtering the drivers without a drive", () => {
       />,
     );
     expect(html).toContain("widening the filters");
+    // Nothing to pick, so it does not ask for a pick.
+    expect(html).not.toContain("Pick one");
+    expect(render(SHOW_ALL)).toContain("Pick one");
+  });
+
+  it("counts a single driver in the singular", () => {
+    const one = (filters: DriverFilters) =>
+      renderToStaticMarkup(
+        <ReserveList
+          drivers={[FREE]}
+          seasonYear={YEAR}
+          ratingMode={MODE}
+          selectedDriverId={null}
+          onSelect={() => {}}
+          filters={filters}
+        />,
+      );
+    expect(one(SHOW_ALL)).toContain("1 driver available.");
+    // An age band the one driver is outside, so the list is empty.
+    const age = ratedAge(FREE, YEAR, MODE);
+    const other = age === AGE_RANGE.min ? AGE_RANGE.max : AGE_RANGE.min;
+    expect(one({ ...SHOW_ALL, minAge: other, maxAge: other })).toContain(
+      "0 of 1 driver available.",
+    );
   });
 });
 

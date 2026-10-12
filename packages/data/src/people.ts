@@ -7,11 +7,11 @@
  * driver is hidden from a list, not barred from a seat.
  *
  * It lived in `apps/web/src/lib/people.ts` while the only thing that narrowed a
- * list was a list. `arrange.ts` changed that: the grid's bulk rules draw on
- * "the drivers without a drive, as the reader has filtered them", so the
- * *filter* is now an input to a rule that a season is run on, and it has to be
- * readable by the package that owns the rule. Two copies of `matchesFilters`
- * would be two answers to which drivers someone is playing with.
+ * list was a list. The run's reseat (`arrange.ts`) and its empty-seat signings
+ * (`keptGrid.ts`) draw on a pool narrowed the same way, so the *filter* is an
+ * input to rules a season is run on, and it has to be readable by the package
+ * that owns them. Two copies of `matchesFilters` would be two answers to which
+ * drivers may take a seat.
  *
  * The same move `rating.ts` made, and for the same reason — and like that one,
  * `apps/web/src/lib/people.ts` re-exports it, so the app still reads as though
@@ -68,7 +68,7 @@ export function ratedAge(driver: Driver, seasonYear: number, mode: RatingMode): 
  * How the list of drivers without a drive is narrowed.
  *
  * Plain data, held above the list and passed down, so every state it can be in
- * renders on its own — the same reason the lineup draft lives in `GridStage`
+ * renders on its own — the same reason the lineup draft lives in `useGridDraft`
  * rather than in the components that draw it.
  *
  * All three read facts the seed data already carries: `finalSeason`,

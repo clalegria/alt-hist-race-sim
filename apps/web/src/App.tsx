@@ -1,7 +1,6 @@
 import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { KeptNames } from "./components/EntryNames.js";
-import type { GridEdit } from "./components/GridStage.js";
 import { KeptLiveries } from "./components/Liveries.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
@@ -10,6 +9,7 @@ import { SeasonHistoryProvider } from "./components/SeasonHistory.js";
 import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
+import type { GridEdit } from "./components/useGridDraft.js";
 import { type RevealedWorld, revealed } from "./lib/reveal.js";
 import { PAGE_OF } from "./lib/roster-places.js";
 import { type Crumb, type ReturnLink, runBarFor } from "./lib/run-bar.js";

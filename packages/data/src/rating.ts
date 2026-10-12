@@ -191,7 +191,7 @@ export interface Rated {
  *
  * One rule, wherever drivers or teams are put in order of how good they are —
  * the sort switch on the grid, a team card's own two cars, the pool of drivers
- * without a drive, the editor's bulk rearrangements. A list ordered some other
+ * without a drive, the run's reseat. A list ordered some other
  * way would be the app disagreeing with itself about who is quicker.
  *
  * Racing breaks the tie because overall is a *rounded* weighted average of five

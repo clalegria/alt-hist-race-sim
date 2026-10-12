@@ -5,9 +5,17 @@ paths:
   - "apps/web/src/lib/kept.ts"
   - "apps/web/src/components/TeamsSetting.tsx"
   - "apps/web/src/components/teams-setting.test.tsx"
+  - "apps/web/src/components/WhoDrivesSetting.tsx"
+  - "apps/web/src/components/LineupChanges.tsx"
+  - "apps/web/src/components/grid-arrangement.test.tsx"
+  - "apps/web/src/store/season.ts"
 ---
 
-# The first season's teams — the kept grid
+# Teams and seats — the kept grid and the reseat
+
+Two run settings decide who sits where before a wheel turns: *Teams* (below) and *Who
+drives where* (the reseat, last section). The reseat's rules themselves are
+`.claude/rules/grid-arrangements.md`.
 
 *Teams: The first season's teams* is an era run setting: every year has the
 start year's teams, each with its start-year seat count, and teams new in history never
@@ -90,6 +98,34 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   and `KeptNote` above the cards — its own notice, not the edited-grid one — names the
   ghosts, counts the seats and says who is short (`keptSentences`, pure).
 
+## Who drives where: the reseat
+
+`RunSettings.seating` (null or `{ kind, includeUnemployed }`, season and era) reseats
+every year's grid; `seatingArrangement(settings)` turns it into a `GridArrangement`
+whose filters are the run's signing pool (`driverPool`, `signingFilters`), the pool the
+empty seats above sign from too.
+
+- **The reseat is the starting grid, not an edit.** `reseat` is `baselineSeason`'s last
+  step: the rule over the season's grid after any signings, on the cars it races, ranking
+  drivers in the world's rating mode. `world.reseated` keeps the result, a derived
+  baseline like `keptSeats`; `enteredSeason` applies it, so Restore, Clear all edits and
+  every change notice measure hand edits from it, and `isUntouched` holds on it.
+- **A hand edit sits on top of it and never ends it.** Next year is reseated again on
+  that year's own entry list; an era carries the setting, never a lineup. The grid
+  editor only changes this grid and offers no rule of its own (`web-grid.md`).
+- **The dice are `createRng(seed)`**, apart from the races', so a random reseat is
+  reproducible from the season's seed: `setGrid` keeps it; both restarts,
+  `switchSeasonYear` and `setRunSettings` throw it again. A ranked rule comes back the
+  same on any seed. A rule that leaves a seat open falls back to the season's grid.
+- **Saying so.** `ARRANGEMENT_LABELS` (`lib/run-settings.ts`) names each rule for the
+  setting, the settings line and the note. `arrangementNote` spells out the cast, the age
+  band with "peak age" under `peak`; `ArrangementNote` draws it as its own line on
+  `SeasonGrid` (the grid screen and the summary's grid tab). The summary's banner lists
+  only hand edits.
+
+A recipe from before this stored an `arrangement` beside each world's lineup;
+`parseWorldRecipe` ignores it (`web-persistence.md`).
+
 ## Testing
 
 `keptGrid.test.ts` checks every rule above against synthetic seasons and drivers, and
@@ -102,3 +138,13 @@ letting carry-over ignore history each fail at least one test. In the app,
 row, the ghost and the note; dropping `kept` from `nextEraWorld`, from `rebuild` or from
 an in-place rebuild each fails at least one. `pnpm screenshots` keeps the 1984 grid
 (`era-kept-grid`).
+
+The reseat: `store/season.test.ts` (a season) and `store/era.test.ts` (every year by
+stepping and by jumping, a hand edit not stopping next year's reseat, Restart keeping a
+ranked reseat and re-rolling a random one, kept teams under a reseat seated in full with
+nobody twice); `lib/run-settings.test.ts` the in-force rules and the parse;
+`recipe.test.ts` an old recipe's `arrangement` ignored. Mutation-checked: dropping the
+reseat, drawing its dice off a fixed seed, ranking on a fixed mode, `enteredSeason`
+ignoring it, and the in-force fill or pool each fail at least one.
+`grid-arrangement.test.tsx` covers what the reader is told: the label map, the note's
+cast, the note with no hand edit at all.

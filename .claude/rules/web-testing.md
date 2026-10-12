@@ -38,9 +38,9 @@ this by perturbing every rating in the seed data and by adding an entry to a sea
 stays green through both.
 
 The grid editor is split the same way, and for the same reason. `SeasonGrid` and
-`ReserveList` are **controlled** — the draft lives in `GridStage` above them — so every
+`ReserveList` are **controlled** — the draft lives in `useGridDraft` above them — so every
 state they can be in renders on its own, and the interaction itself is the pure
-`pickUp(lineup, selected, driverId)` in `GridStage.tsx`, which is where the
+`pickUp(lineup, selected, driverId)` in `useGridDraft.ts`, which is where the
 select-then-swap rule is tested. The swap rules underneath it are unit-tested in
 `@alt-hist/data`; where an applied grid ends up is tested in the store.
 

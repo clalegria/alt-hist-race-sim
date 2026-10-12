@@ -22,7 +22,7 @@ import type { View } from "../lib/timeline.js";
 import { BackToSetup } from "./BackToSetup.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
-import { type GridEdit, GridStage } from "./GridStage.js";
+import { GridStage } from "./GridStage.js";
 import { HomeAdvantage } from "./HomeAdvantage.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
@@ -34,6 +34,7 @@ import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { RoundLinks, SessionHeader } from "./SessionNav.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
+import type { GridEdit } from "./useGridDraft.js";
 
 /** Where a round is held, for home advantage; empty if the calendar is short. */
 function roundCountry(calendar: readonly CalendarRace[], round: number): string {

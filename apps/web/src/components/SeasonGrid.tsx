@@ -67,7 +67,7 @@ const ENGINE_RATINGS = [
  * Editing mode: which driver has been picked up, what happens when one is
  * chosen, which engines a team may be given, and how its chassis is re-rated.
  *
- * Controlled, with the draft living in `GridStage` above — so this component
+ * Controlled, with the draft living in `useGridDraft` above — so this component
  * stays a pure function of what it is handed, and every state the editor can be
  * in renders on its own without a DOM.
  */
@@ -87,7 +87,7 @@ export interface GridEditing {
  *
  * A seat with no driver still has a team, a chassis and an engine, so the grid
  * draws it as an entrant like any other rather than as a special case
- * threaded through every layout above it — `previewField` in `GridStage` is
+ * threaded through every layout above it — `previewField` in `useGridDraft` is
  * what mints them. Not a driver id anything could collide with, and nothing
  * simulated ever sees one: a draft holding an open seat cannot be applied.
  */
@@ -654,12 +654,12 @@ export function SeasonGrid({
    */
   historicalEngines?: SeasonEngineRatings | null;
   /**
-   * The bulk rule the grid was arranged by, or null for one nobody rearranged.
+   * The rule the run's settings reseat the grid by, or null for none.
    *
    * Drawn in the same dashed notice the swaps are, above them, because it is the
    * reason the swaps look like that. It renders on its own too: a rule can land
    * on the grid the season was entered with — a shuffle that happens to — and
-   * the reader is still owed the word that it was pressed.
+   * the reader is still owed the word that it is in force.
    */
   arrangement?: GridArrangement | null;
   /**

@@ -123,8 +123,8 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     counts empty seats and `out` runs longer, printing "Y out, seat empty".
 - `arrange.ts` reseats the whole grid by **rule** — fastest drivers in fastest cars,
   fastest in slowest, or shuffled. It moves drivers only and has **no eligibility rule
-  of its own**: who may come out of the pool is `matchesFilters` against the reserve
-  list's filters, which travel inside the `GridArrangement`.
+  of its own**: who may come out of the pool is `matchesFilters` against the run's
+  signing pool, which travels inside the `GridArrangement`.
   `.claude/rules/grid-arrangements.md` has all of it.
 - `people.ts` holds ages (`ratedAge`: peak age under `peak`, season age under `aged`)
   and the pool filters (`DriverFilters`, `defaultDriverFilters`, `matchesFilters`,

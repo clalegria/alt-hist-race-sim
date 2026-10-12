@@ -24,8 +24,8 @@ export const DEFAULT_SORT_ORDER: SortOrder = "name";
  * "sorted by rating" means "show me the front of the grid".
  *
  * By rating is `compareByRating`, the app's one ranking rule: **overall first,
- * racing second**. The same rule the editor's bulk rearrangements reseat a grid
- * by, so a list and a rearrangement of it cannot disagree about who is quicker.
+ * racing second**. The same rule the run's settings reseat a grid by
+ * (*Who drives where*), so a list and a reseat of it cannot disagree about who is quicker.
  * Racing breaks the tie because an overall is a rounded weighted average and
  * racing is most of its weight — ratings are integers on a 1-100 scale, so two
  * cars on 84 are ordinary rather than exotic, and the one with the racing rating

@@ -64,7 +64,7 @@ asked. `chassis` is last (in `createWorld` too) only so earlier callers stay unc
 
 All three are measured from the year's baseline, which under *Who drives where* is
 already reseated (`world.reseated`): a hand edit sits on top of the reseat — see
-`.claude/rules/grid-arrangements-app.md`, which loads on this file.
+`.claude/rules/teams-and-seats.md`, which loads on this file.
 
 `setGrid` is **grid stage only**, re-runs the year *from the same seed*, and
 `restartSeason` carries it — an edited grid is something the reader chose. Unlike the

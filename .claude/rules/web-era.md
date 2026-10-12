@@ -68,7 +68,7 @@ switch; see `.claude/rules/web-store.md` for why.
 **A reseat does, as a setting.** Under *Who drives where* every year's starting grid is
 reseated by the rule, on that year's own entry list, in `baselineSeason` — never last
 year's lineup carried. A hand edit in one year does not stop it the next.
-`.claude/rules/grid-arrangements-app.md` owns the rest.
+`.claude/rules/teams-and-seats.md` owns the rest.
 
 **The dice do.** The next year's seed is `nextSeed(world.rngState)` — drawn from where
 the last season's generator stopped, in `lib/seed.ts`. So an era is reproducible end to

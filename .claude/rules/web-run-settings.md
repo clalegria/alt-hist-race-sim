@@ -108,7 +108,7 @@ only values this build could offer) and `whatIfsOf`, the line's entries.
   rather than a setting, carried in `RunChoice` (`web-store.md`). Season only.
 - **Who drives where**: `seating`, null or `{ kind, includeUnemployed }`, both screens:
   a `select` of *Historical* then `ARRANGEMENT_LABELS`, with *Drivers without a drive can
-  take a seat* under a rule. Every year's grid reseated (`grid-arrangements-app.md`).
+  take a seat* under a rule. Every year's grid reseated (`teams-and-seats.md`).
 - **Drivers who can be signed**: `driverPool`, a `SigningPool`, never null: an age range
   (`AgeRangeInput`, "Peak age" at their best) and *Only drivers racing that year*. Shown
   only while something signs (`signsDrivers`: a reseat taking drivers without a drive, or

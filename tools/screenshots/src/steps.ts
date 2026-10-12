@@ -109,15 +109,22 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
-    name: "grid-edited",
+    name: "grid-editor",
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
       await page.getByText("Mechanical failures: Fewer").first().waitFor();
-      // Two drivers on different teams traded, by hand.
+      // The editor open, two drivers on different teams traded by hand, and the
+      // drivers without a drive beside the grid.
       await button(page, "Edit grid").click();
       const drivers = page.locator("li li button[aria-pressed]");
       await drivers.nth(0).click();
       await drivers.nth(3).click();
+      await page.getByRole("heading", { name: "Without a drive" }).waitFor();
+    },
+  },
+  {
+    name: "grid-edited",
+    reach: async (page) => {
       await button(page, "Apply grid").click();
       await page.getByText("This grid was edited").waitFor();
     },

@@ -7,8 +7,8 @@
  * an arrangement is a pure function of a season and a cast; **where the
  * settings' reseat ends up is tested in the store**, every year of an era
  * included; and what is left for this level is what the reader is *told* —
- * which rule the panel says is chosen, and what the grid says about the season
- * afterwards.
+ * what the rules are called, and what the grid says about the season they
+ * reseated.
  */
 
 import {
@@ -28,7 +28,6 @@ import { ARRANGEMENT_LABELS, HISTORICAL_SETTINGS, type RunSettings } from "../li
 import { enteredSeason } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
-import { GridArrangements } from "./GridStage.js";
 import { ArrangementNote, arrangementNote } from "./LineupChanges.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
@@ -75,33 +74,10 @@ const arrangedWorld = createWorld(
 );
 const plainWorld = seededWorld(3, MODE);
 
-/** Whether a button in the markup is pressed, by the label inside it. */
-function pressed(html: string, label: string): boolean {
-  const at = html.indexOf(label);
-  if (at === -1) {
-    throw new Error(`no button labelled "${label}"`);
-  }
-  // Back to the opening tag of the button this label sits in, then read the
-  // attribute off it. React writes `aria-pressed="true"` or `"false"`, so the
-  // absent case is a missing attribute and not a silent pass.
-  const tag = html.slice(html.lastIndexOf("<button", at), at);
-  return tag.includes('aria-pressed="true"');
-}
-
-/** The `checked` state of a checkbox, by the label text beside it. */
-function ticked(html: string, label: string): boolean {
-  const at = html.indexOf(label);
-  if (at === -1) {
-    throw new Error(`no checkbox labelled "${label}"`);
-  }
-  const input = html.slice(html.lastIndexOf("<input", at), at);
-  return input.includes('checked=""');
-}
-
 describe("what the rules are called", () => {
   it("names every rule there is", () => {
     // A fourth rule added to the data package without a label here would render
-    // an empty button, which is why this counts the map against the list.
+    // an empty option, which is why this counts the map against the list.
     for (const kind of ARRANGEMENT_KINDS) {
       expect(ARRANGEMENT_LABELS[kind], kind).not.toBe("");
     }
@@ -132,42 +108,6 @@ describe("what the rules are called", () => {
   });
 });
 
-describe("the panel of rules", () => {
-  const html = renderToStaticMarkup(<GridArrangements chosen={null} includeUnemployed={false} />);
-
-  it("offers all three, and says what pressing one costs", () => {
-    for (const kind of ARRANGEMENT_KINDS) {
-      expect(html, kind).toContain(ARRANGEMENT_LABELS[kind]);
-    }
-    expect(html).toContain("Rearrange the whole grid");
-    expect(html).toContain("by hand");
-  });
-
-  it("presses none of them until one is chosen", () => {
-    for (const kind of ARRANGEMENT_KINDS) {
-      expect(pressed(html, ARRANGEMENT_LABELS[kind]), kind).toBe(false);
-    }
-  });
-
-  it("marks exactly the chosen rule, whichever it is", () => {
-    for (const chosen of ARRANGEMENT_KINDS) {
-      const drawn = renderToStaticMarkup(
-        <GridArrangements chosen={chosen} includeUnemployed={false} />,
-      );
-      for (const kind of ARRANGEMENT_KINDS) {
-        expect(pressed(drawn, ARRANGEMENT_LABELS[kind]), `${chosen}/${kind}`).toBe(kind === chosen);
-      }
-    }
-  });
-
-  it("offers the pool, unticked by default", () => {
-    expect(html).toContain("Include unemployed drivers");
-    expect(ticked(html, "Include unemployed drivers")).toBe(false);
-    const wide = renderToStaticMarkup(<GridArrangements chosen={null} includeUnemployed />);
-    expect(ticked(wide, "Include unemployed drivers")).toBe(true);
-  });
-});
-
 describe("what the grid says about a rule in force", () => {
   const html = renderToStaticMarkup(<SeasonView {...shownAt(arrangedWorld, { kind: "grid" })} />);
   const plain = renderToStaticMarkup(<SeasonView {...shownAt(plainWorld, { kind: "grid" })} />);
@@ -180,13 +120,6 @@ describe("what the grid says about a rule in force", () => {
   it("says nothing about a rule when nobody pressed one", () => {
     expect(plain).not.toContain(RANKED_LABEL);
     expect(plain).not.toContain("This grid was edited");
-  });
-
-  it("keeps the panel of rules out of the way until the editor is opened", () => {
-    // The rules are part of the editor, not of the page: the grid opens as
-    // something to read.
-    expect(html).not.toContain("Rearrange the whole grid");
-    expect(html).toContain("Edit grid");
   });
 
   it("says it with no hand edit at all, since the reseat is the starting grid", () => {

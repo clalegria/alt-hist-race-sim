@@ -9,7 +9,7 @@ It found mostly **drift**: the same thing drawn, named or placed in several ways
 
 **The file reads in priority order: take the items top to bottom.**
 - **The author has not sorted it yet** (*Sort the UI review*, `docs/ROADMAP.md`). Until an item is kept there, it is a suggestion, not a to-do.
-- **Take one item per chat**, by its id (for example, do `drivers-plural`).
+- **Take one item per chat**, by its id (for example, do `qualifying-gap-overflow`).
 - Each item names its files and the screenshot step that shows it.
 - Line numbers marked `~` are approximate.
 - When an item is built, its rule moves to the owning `.claude/rules/web-*.md` and the item is deleted here.
@@ -74,11 +74,6 @@ Things a fan meets on an ordinary first run: a dead end, a click that throws the
 
 Each is a small, sure commit.
 
-- **`drivers-plural`** (PROPOSED)
-  - The reserve pool says "1 drivers available." (`GridStage.tsx:~370`).
-  - With an empty pool it still says "Pick one to put them in the seat." next to "No driver matches."
-  - Fix: use `count()` from `lib/history.ts:~180`, and drop the "Pick one" sentence when nothing is shown.
-  - Screenshot step: `era-grid-team`.
 - **`qualifying-gap-overflow`** (PROPOSED)
   - A qualifying gap over a minute ("+1:17.230s", 10 characters) overflows its `w-[9ch]` box (`QualifyingResults.tsx:~83`).
   - `formatSeconds` (`lib/format.ts:~18`) also writes "s" after an m:ss time.
@@ -139,7 +134,6 @@ Page structure, navigation, and the phone screens after the two in tier 1.
 
   - Flags beside an h1 are sized `h-4 w-6` in one place and default in another.
   - Lower headings are out of order:
-    - on the grid page, `GridStage`'s h3 comes before the card's h2;
     - `CareerStatistics` nests h2 card titles under an h2.
   - Fix:
     - a shared `PageHeading` (title, optional flag or badge, subtitle) on every page except Home's hero;
@@ -163,9 +157,9 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Fix: pin the header and footer, and scroll only the body.
   - Screenshot step: `era-setup --phone`.
 - **`grid-editor-pool-phone`** (PROPOSED; *Phone layout*)
-  - The "Without a drive" pool is a sticky sidebar only from `lg` (`GridStage.tsx:~1014,1081`). On a phone it sits below about fifteen team cards, so filling one seat means scrolling the whole page and back.
+  - The "Without a drive" pool is a sticky sidebar only from `lg` (`GridStage.tsx:~225`). On a phone it sits below about fifteen team cards, so filling one seat means scrolling the whole page and back.
   - Fix: a bottom sheet, or a sticky "Pick a driver" bar.
-  - Screenshot step: `era-grid-team --phone`.
+  - Screenshot step: `grid-editor --phone`.
 - **`raced-grid-unreachable`** (PROPOSED)
   - Once raced, a grid page ("This grid has been raced, so it can no longer be changed.") has no link pointing to it. Only browser Back or a typed URL reaches it.
   - The season page's Grid tab (`lib/season-tabs.ts:~20`) shows the grid inside the season page instead.
@@ -242,7 +236,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
   - Fix: one treatment on `text-subtle`, used everywhere.
   - Screenshot steps: `era-jump`, `menu`.
 - **`rating-chip-accent`** (OPEN)
-  - The overall chip turns teal at 85 and above (`SeasonGrid.tsx:~224`, also the reserve pool at `GridStage.tsx:~408`), so a grid shows a dozen teal chips.
+  - The overall chip turns teal at 85 and above (`SeasonGrid.tsx:~224`, also the reserve pool at `ReserveList.tsx:~246`), so a grid shows a dozen teal chips.
   - The accent is reserved for "won the thing on screen" (`lib/highlight.ts`). The open-seats notice's `border-primary/50 bg-primary/5` (`SeasonGrid.tsx:~744`) is the same clash.
   - The thresholds are also unexplained colour bands.
   - Proposed: weight or ink steps instead of the accent.
@@ -261,7 +255,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
     |---|---|
     | Uppercase label | 7 variants of tracking, colour and weight (`MainMenu.tsx:~53`, `ResumeRun.tsx:~38`, `QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
     | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
-    | Card shell | `GridStage.tsx:~248,358`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
+    | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
     | Small button, `h-8 gap-1.5 px-3 text-xs` | 4 files |
     | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |
 
@@ -316,7 +310,7 @@ Mostly OPEN: the author picks the wording.
     | Season page | the crumb "1984" / "1984 season page" / "Season summary" (an unseen title) |
     | Not yet | Not reached yet / not yet / (not yet) / Not yet / Not available yet / Not raced yet |
     | Grid-edit lock | "Finish or cancel the grid edit first." (`settings-lock.ts:~4`) / "Apply or cancel the grid edit first" (`run-bar.ts:~115`) / "Editing the grid. Apply or cancel it to carry on." (`RunBar.tsx:~235`) |
-    | Drivers without a seat | Without a drive / unemployed / without a seat (`GridStage.tsx:~271,361`, `LineupChanges.tsx:~66`) |
+    | Drivers without a seat | Without a drive / unemployed / without a seat (`ReserveList.tsx:~199`, `LineupChanges.tsx:~66`) |
     | Age | (34y) / 34 years old. The grid and its popover show the rated age (the peak age in peak mode, unlabelled); the driver page shows the calendar age. |
     | Settings | Run settings / Settings / Default settings / Simulation settings |
     | Clearing edits | "Clear all edits" / "Clear all grid edits?" / "Clear edits" |
@@ -359,9 +353,6 @@ No visible change.
   - `SeasonGrid.tsx` is about 1065 lines. Its team card and popover are about 260 lines inline in `entries.map` (`~801-1060`).
   - `ChassisStepper` closures are created per rating per card, and `byTeam` / the `Map` / the `Set` (`~698-706`) are rebuilt every render.
   - Fix: extract `TeamCard`, and memoise the lookups.
-- **`split-grid-stage`** (PROPOSED)
-  - `GridStage.tsx` is about 1100 lines. `GridStage()` alone is about 545 lines with ten `useState`s.
-  - Fix: split the editor state into a hook, and the arrangements and pool panels into their own files.
 
 ---
 

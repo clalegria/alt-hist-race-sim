@@ -188,8 +188,8 @@ describe("carRacing", () => {
 });
 
 describe("compareByRating", () => {
-  // The one ranking rule: every list of drivers or teams, and the editor's bulk
-  // rearrangements, order by this.
+  // The one ranking rule: every list of drivers or teams, and the reseat, order
+  // by this.
   const ahead = (a: { overall: number; racing: number }, b: typeof a) => compareByRating(a, b) < 0;
 
   it("puts the higher overall first", () => {

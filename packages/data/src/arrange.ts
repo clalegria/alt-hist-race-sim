@@ -1,16 +1,14 @@
 /**
- * The whole grid, rearranged in one press.
+ * The whole grid, reseated by rule — the run setting *Who drives where*.
  *
- * Three *rules* rather than three edits: pair the best drivers with the best
- * cars, pair them with the worst, or throw the field in the air. They answer the
- * questions the seat-by-seat editor makes tedious — what would a season look like
- * if talent and machinery agreed, if they were exactly at odds, if neither had
- * anything to do with the other — and they are the fun end of the editor rather
- * than the careful end.
+ * Three *rules* rather than edits: pair the best drivers with the best cars,
+ * pair them with the worst, or throw the field in the air. They answer what a
+ * season would look like if talent and machinery agreed, if they were exactly at
+ * odds, or if neither had anything to do with the other.
  *
- * Like `carryOver.ts` beside it, this moves drivers and **nothing else**: teams
- * and seat counts are the season's, engines are the other half of the editor,
- * and a rename is invisible because a team is its id.
+ * Like `carryOver.ts` beside it, this moves drivers and **nothing else**: teams,
+ * seat counts and engines are the season's, and a rename is invisible because a
+ * team is its id.
  *
  * Two orderings, paired index for index:
  *
@@ -21,8 +19,8 @@
  *   it prints, with racing settling a tie — best first, or shuffled for `random`.
  *
  * The cast is whoever holds a seat on the grid being rearranged, plus — if the
- * reader ticked the box — the drivers without a drive, narrowed by the very
- * filters the panel beside the grid is narrowed by. See `arrangeable`.
+ * run allows it — the drivers without a drive, narrowed by the run's signing
+ * pool. See `arrangeable`.
  *
  * Whoever the pairing runs out of goes without: more drivers than seats and the
  * remainder are unemployed, more seats than drivers and the rest stay open. Only
@@ -32,7 +30,7 @@
  *
  * It is a rule, not a rating: nothing here is tuned, and the overall it reads is
  * the display heuristic in `rating.ts` — the number on screen beside each name,
- * so the result agrees with what the reader was looking at when they pressed it.
+ * so the result agrees with what the reader sees on the grid.
  */
 
 import type { Rng } from "@alt-hist/engine";
@@ -47,7 +45,7 @@ import type { Driver, SeasonSeed } from "./types.js";
 /** Which of the three rules to apply. */
 export type ArrangementKind = "fastest-in-fastest" | "fastest-in-slowest" | "random";
 
-/** In the order the editor offers them. */
+/** In the order the settings offer them. */
 export const ARRANGEMENT_KINDS: readonly ArrangementKind[] = [
   "fastest-in-fastest",
   "fastest-in-slowest",
@@ -56,14 +54,13 @@ export const ARRANGEMENT_KINDS: readonly ArrangementKind[] = [
 
 /**
  * A rearrangement: the rule, and the pool it draws on. Plain data — the run
- * settings' *Who drives where* and *Drivers who can be signed* as one value, or
- * a press of one of the editor's buttons.
+ * settings' *Who drives where* and *Drivers who can be signed* as one value.
  */
 export interface GridArrangement {
   readonly kind: ArrangementKind;
   /** Whether drivers without a seat may take one at all. */
   readonly includeUnemployed: boolean;
-  /** Which of them, when they may: the run's signing pool, or the editor's list filters. */
+  /** Which of them, when they may: the run's signing pool. */
   readonly filters: DriverFilters;
 }
 
@@ -73,18 +70,13 @@ export function isArrangementKind(value: unknown): value is ArrangementKind {
 }
 
 /**
- * Whether a driver with no seat may be given one: **the pool filters, and only
- * them.**
+ * Whether a driver with no seat may be given one: **the run's signing pool, and
+ * only that.**
  *
- * Deliberately not a rule of this file's own. The reader is already looking at
- * the list of drivers without a drive, already narrowed the way they want it,
- * with both counts printed at the top of it — so "include unemployed drivers"
- * can only sensibly mean *those* drivers. A separate eligibility rule here would
- * be the app quietly disagreeing with the panel next to it: widening the age
- * range to 45 would add three names to the list and none to the grid.
- *
- * That is why the filters travel *inside* the arrangement rather than being read
- * off the screen when a rule is re-run — see `GridArrangement.filters`. It also
+ * Deliberately not a rule of this file's own: the same pool fills the kept
+ * teams' empty seats (`keptGrid.ts`), so the run has one answer to who may be
+ * signed. The filters travel *inside* the arrangement, as a snapshot, so every
+ * year of an era reads the same band — see `GridArrangement.filters`. It also
  * makes the two rating modes fall out for free, since `defaultDriverFilters`
  * already opens the career filters off in `peak` mode (a grid of authored peaks
  * is out of time on purpose) and on in `aged` mode, and `matchesFilters` reads
@@ -92,8 +84,7 @@ export function isArrangementKind(value: unknown): value is ArrangementKind {
  * describe in either mode.
  *
  * Nothing here *bars* anyone from a seat — a driver the filters hide can still
- * be put in a car by hand, one name at a time, which is what the rest of the
- * editor is for.
+ * be put in a car by hand in the grid editor.
  */
 function arrangeable(
   driver: Driver,
@@ -155,13 +146,13 @@ export function teamsByCar(season: SeasonSeed): readonly string[] {
  * Ranked by the car rather than by the seat: both of a team's cars are the same
  * machinery, so they sit together in the ranking and the best pairing on the
  * grid is the best *two* drivers. The engine is folded in through `carOverall`,
- * which means a team given somebody else's engine in the editor is ranked on the
- * car it will actually race.
+ * which means a team running somebody else's engine is ranked on the car it
+ * will actually race.
  *
  * Which car is ahead is `compareByRating` — overall first, racing second — the
  * one rule the grid on screen is ordered by, so the car the reader can see at the
  * front is the car the rule fills first. Team id has the last word, so two cars
- * equal on both cannot trade places between two presses of the same button.
+ * equal on both cannot trade places between two runs of the same rule.
  */
 function seatsToFill(
   season: SeasonSeed,
@@ -181,10 +172,9 @@ function seatsToFill(
  * Who is in the running: whoever holds a seat on the grid being rearranged,
  * plus — if the reader asked — everyone eligible who holds none.
  *
- * The seated half comes from the grid on screen rather than from the season, so
- * this composes with the swaps already made: a driver the reader has already put
- * in the pool is in the pool, and pressing a rule twice means the same thing the
- * second time.
+ * The seated half comes from the grid being rearranged rather than from the
+ * season, so the kept teams' signings are in the cast, and running a rule twice
+ * means the same thing the second time.
  */
 function candidates(
   season: SeasonSeed,
@@ -212,8 +202,8 @@ function candidates(
   }
   // The seated half is never filtered: they are on the grid, and a filter that
   // could empty a seat would make "include the pool" a way of *shrinking* the
-  // field. Only the drivers being brought in are narrowed — which is exactly
-  // what the panel beside the grid is showing.
+  // field. Only the drivers being brought in are narrowed, by the run's
+  // signing pool.
   const free = [...byId.values()].filter(
     (driver) => !held.has(driver.id) && arrangeable(driver, season.year, arrangement.filters, mode),
   );
@@ -227,7 +217,7 @@ function candidates(
  * Racing has to settle it, for the reason the sort switch on the grid gives:
  * ratings are integers on a 1-100 scale, so two drivers on 78 is ordinary, and
  * an overall is a rounded average of five of them. Name then id has the last
- * word, so a pairing cannot change between two identical presses. Shared with
+ * word, so a pairing cannot change between two identical runs. Shared with
  * `keptGrid.ts`, which signs drivers for empty seats in this order.
  */
 export function byOverall(
@@ -252,17 +242,17 @@ export function byOverall(
 /**
  * The grid one of the three rules produces.
  *
- * `current` is what is being rearranged — the draft on screen, an applied
- * lineup, or the authored one — and it supplies both the seat counts and, with
+ * `current` is what is being rearranged — the season's grid after any kept
+ * teams' signings, or the authored one — and it supplies both the seat counts and, with
  * `includeUnemployed` off, the entire cast. The season supplies the cars.
  *
  * Returns a draft: usually a full one, since an applied grid seats exactly as
- * many drivers as it has seats, but a rule pressed over a grid that already had
+ * many drivers as it has seats, but a rule run over a grid that already had
  * a hole in it cannot invent somebody to fill it.
  *
  * @throws Error for `random` with no generator — a shuffle has to come from the
  * seeded stream, and silently falling back to an unshuffled grid would look like
- * the button doing nothing.
+ * the setting doing nothing.
  */
 export function arrangeLineup(
   season: SeasonSeed,

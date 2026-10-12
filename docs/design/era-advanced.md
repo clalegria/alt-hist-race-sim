@@ -62,8 +62,8 @@ Chosen before the run starts, like the randomness level, and part of the run's r
 (`.claude/rules/web-persistence.md`). The *historical* options read season files after the run has diverged, so they
 depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 
-**The frozen grid, career events on or off, and random car development are built first
-in `era-basic`** as run settings (`.claude/rules/web-setup.md`); this mode inherits them.
+**The first season's teams, the reseat, career events on or off, and random car
+development are built first in `era-basic`** as run settings (`.claude/rules/web-setup.md`); this mode inherits them.
 What follows is only what stays advanced.
 
 - **DECIDED** — **Randomness** keeps its meaning: how chaotic the *races* are. It does not
@@ -80,9 +80,12 @@ What follows is only what stays advanced.
   each driver retires in their real retirement year.
 - **PROPOSED** — The random retirement age depends on the era: fifties drivers raced into
   their forties, modern ones mostly stop in their late thirties.
-- **DECIDED** — **Grid evolution**: *historical*, *frozen* (both built as
-  *Keep the first season's teams*, `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
+- **DECIDED** — **Teams**: *Historical*, *The first season's teams* (both built,
+  `.claude/rules/teams-and-seats.md`), or an *intermediate* hybrid. Built on team lineage
   (`.claude/rules/team-eras.md`): a team's id is permanent across its names.
+- **DECIDED** — **The market is an answer of *Who drives where***, beside *Historical*
+  and the three reseat rules (`.claude/rules/teams-and-seats.md`), not a setting of its
+  own.
 - **DECIDED** — **Car development**: *historical* or *random* — each year's car a random
   change from the last, built as *Chassis performance* from *previous season's chassis*
   (`.claude/rules/car-performance.md`). Game mode goes much deeper (§10).

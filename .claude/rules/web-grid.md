@@ -1,6 +1,8 @@
 ---
 paths:
   - "apps/web/src/components/GridStage.tsx"
+  - "apps/web/src/components/useGridDraft.ts"
+  - "apps/web/src/components/ReserveList.tsx"
   - "apps/web/src/components/SeasonGrid.tsx"
   - "apps/web/src/components/LineupChanges.tsx"
   - "apps/web/src/lib/rating.ts"
@@ -88,15 +90,12 @@ component state rather than the store is `.claude/rules/web-store.md`.
   popover gives each chassis rating its own stepper with that rating's change between
   the buttons (the popover widens to `w-96` for it). The grid with the editor shut has
   none, and the engine panel never does. A button is disabled once nothing it would
-  move can move further. A step is a hand edit and ends a bulk rule, since the rules
-  rank the cars. Under *Chassis* or *Engine performance* every change is measured from
-  the run's rolled cars, and the popover reads history → this run (`car-performance.md`).
-- **Three buttons reseat the whole field at once** — fastest drivers in fastest teams,
-  fastest in slowest, shuffled — in their own panel above the cards. **The cast they
-  draw on is this editor's own pool filters**, so whoever the "Without a drive" panel is
-  showing is whoever may be promoted. `.claude/rules/grid-arrangements-app.md` (which
-  loads here too) has the panel and why a hand edit ends a rule;
-  `.claude/rules/grid-arrangements.md` has the rules themselves.
+  move can move further. Under *Chassis* or *Engine performance* every change is
+  measured from the run's rolled cars, and the popover reads history → this run (`car-performance.md`).
+- **The editor only changes this grid.** A choice about the whole run is a setting:
+  *Who drives where* is already in the grid the editor opens on, and a hand edit sits on
+  top of it (`teams-and-seats.md`). `GridStage` lays the editor out; the drafts and every
+  action on them are `useGridDraft`, the pool beside the grid `ReserveList`.
 - **`Copy <year> grid` puts last season's drivers over this one**, and is the reason
   the editor has an empty-seat state at all. It reads the *previous playable* season —
   `adjacentSeason(year, -1)`, so a gap in the seed data is skipped — and is not drawn
@@ -118,7 +117,7 @@ component state rather than the store is `.claude/rules/web-store.md`.
   they left, so the count is unchanged — which is why the fixture in
   `grid-editor.test.tsx` writes one out rather than clicking it into existence.
   - `buildField` cannot make an entrant with no driver, so **`previewField` in
-    `GridStage` splices placeholder entrants in**: the team's own chassis and engine,
+    `useGridDraft` splices placeholder entrants in**: the team's own chassis and engine,
     the `EMPTY_SEAT` sentinel as the driver id, zeroed ratings. That is what keeps
     `SeasonGrid` a plain function of a field — otherwise a team whose every seat was
     open would vanish from the page the reader has to fill it in on. Nothing simulated
@@ -127,7 +126,7 @@ component state rather than the store is `.claude/rules/web-store.md`.
 - **`Clear all edits` puts an applied grid back as entered**, from the right of the
   "This grid was edited" heading: shut editor, unlocked grid only (`SeasonGrid`'s
   `onClearEdits`). It asks first (`RunConfirmDialog`'s `clearEdits`), then applies every
-  part null; the run's rolled cars and kept seats stay, being the baseline. A fill on
+  part null; the run's rolled cars, kept seats and reseat stay, being the baseline. A fill on
   hover, never an underline, like every control in the grid. On a first grid it makes
   the run settings changeable again (`.claude/rules/web-run-settings.md`).
 - **An edited grid says so, in the same muted dashed frame everywhere.** Deliberately
