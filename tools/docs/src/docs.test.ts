@@ -12,20 +12,7 @@ const RULES = join(ROOT, ".claude/rules");
 const LIMITS = { claude: 80, rule: 60, roadmap: 120 };
 
 /** Rule files not yet cut to the limit. Remove each as it is rewritten; never add one. */
-const OVER_LIMIT = new Set([
-  "web-careers",
-  "web-charts",
-  "web-display",
-  "web-grid",
-  "web-lists",
-  "web-liveries",
-  "web-names",
-  "web-people-pages",
-  "web-records",
-  "web-season-pages",
-  "web-styling",
-  "web-team-car",
-]);
+const OVER_LIMIT = new Set<string>([]);
 
 const lineCount = (path: string) => readFileSync(path, "utf8").trimEnd().split("\n").length;
 
