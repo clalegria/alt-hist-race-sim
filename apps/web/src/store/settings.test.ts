@@ -6,7 +6,7 @@
 
 import { authoredChassis, type SeasonChassis, stepChassis } from "@alt-hist/data";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HISTORICAL_SETTINGS, OPENING_SEAT_RULES, type RunSettings } from "../lib/run-settings.js";
+import { HISTORICAL_SETTINGS, OPENING_TEAMS, type RunSettings } from "../lib/run-settings.js";
 import { nextEraYear, seasonSeed } from "../lib/seasons.js";
 import { backToSetupLock } from "../lib/settings-lock.js";
 import { YEAR } from "../test-support.js";
@@ -79,7 +79,7 @@ describe("changing a season's settings from its grid", () => {
   });
 
   it("is refused once the grid is edited", () => {
-    useSeasonStore.getState().setGrid(null, null, null, editedChassis());
+    useSeasonStore.getState().setGrid(null, null, editedChassis());
     const before = world();
     useSeasonStore.getState().setRunSettings(5, FEWER);
     expect(world()).toBe(before);
@@ -99,7 +99,7 @@ describe("changing an era's settings from its first grid", () => {
   });
 
   it("rebuilds the era as starting it with them would, era-only settings and all", () => {
-    const kept: RunSettings = { ...FEWER, teamsAndSeats: OPENING_SEAT_RULES, teamNames: "first" };
+    const kept: RunSettings = { ...FEWER, teams: OPENING_TEAMS, teamNames: "first" };
     useSeasonStore.getState().setRunSettings(4, kept);
     const changed = world();
     expect(changed.seed).not.toBe(3);
@@ -125,7 +125,7 @@ describe("changing an era's settings from its first grid", () => {
   it("leaves the way back to its setup open, as only a grid edit closes it", () => {
     useSeasonStore.getState().setRunSettings(5, FEWER);
     expect(backToSetupLock(current())).toBeNull();
-    useSeasonStore.getState().setGrid(null, null, null, editedChassis());
+    useSeasonStore.getState().setGrid(null, null, editedChassis());
     expect(backToSetupLock(current())).not.toBeNull();
   });
 });

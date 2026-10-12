@@ -153,6 +153,27 @@ export function withAge(filters: DriverFilters, end: "min" | "max", value: numbe
     : { ...filters, maxAge: age, minAge: Math.min(age, filters.minAge) };
 }
 
+/**
+ * Who a run may sign for a seat: an age band, and whether only drivers whose
+ * real career spans the season. The run settings' *Drivers who can be signed*,
+ * read by the kept grid's signings and by the reseat's pool.
+ */
+export interface SigningPool {
+  readonly minAge: number;
+  readonly maxAge: number;
+  readonly activeOnly: boolean;
+}
+
+/** A signing pool as the list's filters: both career filters follow `activeOnly`. */
+export function signingFilters(pool: SigningPool): DriverFilters {
+  return {
+    hideRetired: pool.activeOnly,
+    hideFuture: pool.activeOnly,
+    minAge: pool.minAge,
+    maxAge: pool.maxAge,
+  };
+}
+
 /** Whether one driver survives the filters, ignoring who is exempt. */
 export function matchesFilters(
   driver: Driver,

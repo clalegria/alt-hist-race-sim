@@ -12,7 +12,7 @@ import { useMemo, useState } from "react";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
-import { driverPoolOf } from "../lib/run-settings.js";
+import { driverPoolOf, seatingArrangement } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
@@ -358,8 +358,7 @@ function SeasonBody({
           historicalEngines={historicalEngineRatings(world)}
           runSeason={enteredSeason(world)}
           kept={keptNotes(world)}
-          arrangement={world.arrangement}
-          inEra={inEra}
+          arrangement={seatingArrangement(world.settings)}
           previousLineup={previousLineup}
           pool={driverPoolOf(world.settings)}
           locked={locked}

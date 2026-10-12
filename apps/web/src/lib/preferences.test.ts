@@ -22,7 +22,7 @@ import {
 } from "./preferences.js";
 import {
   HISTORICAL_SETTINGS,
-  OPENING_SEAT_RULES,
+  OPENING_DRIVER_POOL,
   pointsTables,
   type RunSettings,
 } from "./run-settings.js";
@@ -243,7 +243,9 @@ describe("remembering the run settings", () => {
     teamNames: "first",
     liveries: "first",
     engineSuppliers: "first",
-    teamsAndSeats: { ...OPENING_SEAT_RULES, fill: "best", activeOnly: false },
+    teams: { fill: "best" },
+    seating: { kind: "random", includeUnemployed: true },
+    driverPool: { ...OPENING_DRIVER_POOL, activeOnly: false },
   };
 
   it("survives without any storage at all", () => {

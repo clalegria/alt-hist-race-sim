@@ -78,7 +78,7 @@ describe("a run's points, stated", () => {
   });
 
   it("is named on the settings line, and on the grid, once a table is fixed", () => {
-    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, fixed);
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, fixed);
     expect(settingsOf(world)).toContainEqual({
       name: "Points system",
       value: pointsValues(fixed.points),

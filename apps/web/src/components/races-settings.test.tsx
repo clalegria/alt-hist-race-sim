@@ -144,7 +144,7 @@ describe("a run's breakdowns and reliability, stated", () => {
   const fixed = { ...HISTORICAL_SETTINGS, breakdowns: "fewer" as const, reliability: OTHER };
 
   it("are named on the settings line and on the grid", () => {
-    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, fixed);
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, fixed);
     expect(settingsOf(world)).toContainEqual({ name: "Mechanical failures", value: "Fewer" });
     expect(settingsOf(world)).toContainEqual({
       name: "Cars as reliable as",

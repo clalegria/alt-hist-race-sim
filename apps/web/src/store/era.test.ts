@@ -13,7 +13,6 @@ import {
   authoredLineup,
   CHASSIS_KEYS,
   CHASSIS_STEP_RANGE,
-  DEFAULT_DRIVER_FILTERS,
   driverRatingsFor,
   driversById,
   FIRST_AUTHORED_SEASON,
@@ -21,8 +20,11 @@ import {
   firstYearInRun,
   type GridArrangement,
   pulled,
+  reserveDrivers,
+  type SeasonLineup,
   seasonSeed,
   stepChassis,
+  swapDrivers,
   teamIdentityIn,
   teamsById,
   withoutCareerEvents,
@@ -33,11 +35,12 @@ import { readRatingMode, rememberRatingMode } from "../lib/preferences.js";
 import {
   driverPoolOf,
   HISTORICAL_SETTINGS,
-  OPENING_SEAT_RULES,
+  OPENING_TEAMS,
   pointsTables,
   type RunSettings,
   rolledChassisOf,
   samePoints,
+  seatingArrangement,
   settingsInForce,
 } from "../lib/run-settings.js";
 import {
@@ -102,6 +105,29 @@ function skipToEnd(): void {
 function jumpThrough(year: number): void {
   useSeasonStore.getState().jumpTo({ year, beat: { kind: "summary" } });
   useSeasonStore.getState().continueRun();
+}
+
+/** An era whose settings reseat every grid by the ranked rule. */
+const RANKED = {
+  ...HISTORICAL_SETTINGS,
+  seating: { kind: "fastest-in-fastest" as const, includeUnemployed: false },
+};
+
+/** The rule a run's settings reseat by, or a throw. */
+function ruleOf(settings: RunSettings): GridArrangement {
+  const rule = seatingArrangement(settings);
+  if (rule === null) {
+    throw new Error("expected a reseat");
+  }
+  return rule;
+}
+
+/** A world's raced grid with one hand swap: its first seat for a driver without a drive. */
+function swapped(world: World): SeasonLineup {
+  const lineup = racedLineup(world);
+  const seated = Object.values(lineup)[0]?.[0] ?? "";
+  const reserve = reserveDrivers(lineup, driverPoolOf(world.settings))[0]?.id ?? "";
+  return swapDrivers(lineup, seated, reserve);
 }
 
 /** Plays `years` seasons of an era from a seed, and hands back what it crowned. */
@@ -223,7 +249,7 @@ describe("running on to the next year", () => {
     const seed = seasonSeed(YEAR);
     const rerated = stepChassis(authoredChassis(seed), seed.entries[0]?.teamId ?? "", -1);
     useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "grid" } });
     expect(running().world.chassis).toBeNull();
     const entered = seasonSeed(YEAR + 1).entries;
@@ -437,43 +463,41 @@ describe("restarting the era", () => {
   });
 
   it("keeps the first year's grid as the reader set it", () => {
-    const kept: GridArrangement = {
-      kind: "fastest-in-fastest",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: true,
-    };
     useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().setGrid(null, null, kept);
+    const edited = swapped(running().world);
+    useSeasonStore.getState().setGrid(edited, null);
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
     useSeasonStore.getState().restartEra();
-    expect(running().world.arrangement).toEqual(kept);
-    expect(running().world.lineup).not.toBeNull();
+    expect(running().world.lineup).toEqual(edited);
+  });
+
+  it("re-runs a ranked reseat on fresh dice to the same first grid", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, RANKED);
+    const { seed, reseated } = running().world;
+    useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
+    useSeasonStore.getState().restartEra();
+    expect(running().world.seed).not.toBe(seed);
+    expect(running().world.reseated).toEqual(reseated);
+    expect(running().world.lineup).toBeNull();
   });
 
   it("keeps the first year's re-rated chassis", () => {
     const seed = seasonSeed(YEAR);
     const rerated = stepChassis(authoredChassis(seed), seed.entries[0]?.teamId ?? "", -1);
     useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "summary" } });
     useSeasonStore.getState().restartEra();
     expect(running().world.chassis).toEqual(rerated);
   });
 
   it("drops a grid edited in a later year, which this run no longer has", () => {
-    const once: GridArrangement = {
-      kind: "fastest-in-fastest",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: false,
-    };
     useSeasonStore.getState().simulateEra(5, YEAR);
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "grid" } });
-    useSeasonStore.getState().setGrid(null, null, once);
+    useSeasonStore.getState().setGrid(swapped(running().world), null);
+    expect(running().world.lineup).not.toBeNull();
     useSeasonStore.getState().restartEra();
     useSeasonStore.getState().jumpTo({ year: YEAR + 1, beat: { kind: "grid" } });
-    expect(running().world.arrangement).toBeNull();
     expect(running().world.lineup).toBeNull();
   });
 
@@ -744,7 +768,7 @@ describe("car performance across an era", () => {
     expect(isUntouched(active() as Run)).toBe(true);
 
     // The rolled cars handed back as the reader's own are no edit at all.
-    useSeasonStore.getState().setGrid(null, null, null, rolled.baselineChassis);
+    useSeasonStore.getState().setGrid(null, null, rolled.baselineChassis);
     expect(running().world).toEqual(rolled);
   });
 
@@ -752,7 +776,7 @@ describe("car performance across an era", () => {
     useSeasonStore.getState().simulateEra(5, YEAR, undefined, varied);
     const before = running().world;
     const edited = editedFrom(before);
-    useSeasonStore.getState().setGrid(null, null, null, edited);
+    useSeasonStore.getState().setGrid(null, null, edited);
     const after = running().world;
     expect(after.seed).toBe(before.seed);
     expect(after.baselineChassis).toEqual(before.baselineChassis);
@@ -763,7 +787,7 @@ describe("car performance across an era", () => {
   it("re-rolls on both restarts, carrying a reader's edit as the ratings it is", () => {
     useSeasonStore.getState().simulateEra(5, YEAR, undefined, varied);
     const edited = editedFrom(running().world);
-    useSeasonStore.getState().setGrid(null, null, null, edited);
+    useSeasonStore.getState().setGrid(null, null, edited);
 
     for (const restart of [
       useSeasonStore.getState().restartSeason,
@@ -776,15 +800,9 @@ describe("car performance across an era", () => {
     }
   });
 
-  it("ranks the rolled cars when a kept rule arranges the next year", () => {
-    const kept: GridArrangement = {
-      kind: "fastest-in-fastest",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: true,
-    };
-    useSeasonStore.getState().simulateEra(5, YEAR, undefined, varied);
-    useSeasonStore.getState().setGrid(null, null, kept);
+  it("ranks the rolled cars when a reseat seats the next year", () => {
+    const settings = { ...varied, seating: RANKED.seating };
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, settings);
     skipToEnd();
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().continueRun();
@@ -792,12 +810,12 @@ describe("car performance across an era", () => {
 
     const entered = seasonWithChassis(next.year, next.baselineChassis);
     const authored = authoredLineup(entered);
-    const arranged = arrangeLineup(entered, authored, kept, {
+    const arranged = arrangeLineup(entered, authored, ruleOf(settings), {
       mode: ERA_RATING_MODE,
       rng: createRng(next.seed),
-      pool: driverPoolOf(varied),
+      pool: driverPoolOf(settings),
     });
-    expect(next.lineup ?? authored).toEqual(filledLineup(arranged) ?? authored);
+    expect(next.reseated).toEqual(filledLineup(arranged) ?? authored);
   });
 
   it("reaches the same third year by jumping as by stepping", () => {
@@ -905,7 +923,7 @@ describe("car performance walking from previous year's car", () => {
     const base = first.baselineChassis ?? {};
     const lower = stepChassis(base, team, -1);
     const edited = lower === base ? stepChassis(base, team, 1) : lower;
-    useSeasonStore.getState().setGrid(null, null, null, edited);
+    useSeasonStore.getState().setGrid(null, null, edited);
     jumpThrough(YEAR);
     useSeasonStore.getState().continueRun();
     expect(running().world.walkedFrom).toEqual(edited);
@@ -916,7 +934,7 @@ describe("car performance walking from previous year's car", () => {
     const walkedFrom = second?.walkedFrom;
     expect(walkedFrom).not.toBeNull();
 
-    useSeasonStore.getState().setGrid(null, null, null, second?.baselineChassis);
+    useSeasonStore.getState().setGrid(null, null, second?.baselineChassis);
     expect(running().world).toEqual(second);
 
     useSeasonStore.getState().restartSeason();
@@ -939,27 +957,21 @@ describe("car performance walking from previous year's car", () => {
     }
   });
 
-  it("ranks the walked cars when a kept rule arranges the next year", () => {
-    const kept: GridArrangement = {
-      kind: "fastest-in-fastest",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: true,
-    };
-    useSeasonStore.getState().simulateEra(5, YEAR, undefined, walk);
-    useSeasonStore.getState().setGrid(null, null, kept);
+  it("ranks the walked cars when a reseat seats the next year", () => {
+    const settings = { ...walk, seating: RANKED.seating };
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, settings);
     jumpThrough(YEAR);
     useSeasonStore.getState().continueRun();
     const next = running().world;
 
     const entered = seasonWithChassis(next.year, next.baselineChassis);
     const authored = authoredLineup(entered);
-    const arranged = arrangeLineup(entered, authored, kept, {
+    const arranged = arrangeLineup(entered, authored, ruleOf(settings), {
       mode: ERA_RATING_MODE,
       rng: createRng(next.seed),
-      pool: driverPoolOf(walk),
+      pool: driverPoolOf(settings),
     });
-    expect(next.lineup ?? authored).toEqual(filledLineup(arranged) ?? authored);
+    expect(next.reseated).toEqual(filledLineup(arranged) ?? authored);
   });
 
   it("reaches the same third year by jumping as by stepping", () => {
@@ -970,84 +982,43 @@ describe("car performance walking from previous year's car", () => {
   });
 });
 
-describe("a bulk rule kept across an era", () => {
-  /** One of the editor's rules, with the era's own checkbox ticked. */
-  const kept: GridArrangement = {
-    kind: "fastest-in-fastest",
-    includeUnemployed: false,
-    filters: DEFAULT_DRIVER_FILTERS,
-    retain: true,
+describe("a reseat across an era", () => {
+  const SHUFFLED: RunSettings = {
+    ...HISTORICAL_SETTINGS,
+    seating: { kind: "random", includeUnemployed: false },
   };
-  const once: GridArrangement = { ...kept, retain: false };
 
-  /** Applies a rule to the year on screen, then crowns it and runs the next. */
-  function applyAndRunOn(arrangement: GridArrangement): void {
-    useSeasonStore.getState().setGrid(null, null, arrangement);
+  /** Crowns the year on screen and runs on to the next one's grid. */
+  function nextYear(): void {
     skipToEnd();
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().continueRun();
   }
 
-  beforeEach(() => {
-    useSeasonStore.getState().simulateEra(5, YEAR);
-  });
-
-  it("arranges the next year the same way, on that year's own entry list", () => {
-    applyAndRunOn(kept);
-    const next = running().world;
-
-    expect(next.year).toBe(YEAR + 1);
-    expect(next.arrangement).toEqual(kept);
-    expect(next.lineup).not.toBeNull();
-    // Still that year's teams and that year's seats: the rule moves drivers
-    // and the entry list is history's.
-    const entered = seasonSeed(YEAR + 1);
-    expect(Object.keys(next.lineup ?? {}).sort()).toEqual(
-      entered.entries.map((entry) => entry.teamId).sort(),
-    );
-    expect(next.field).toHaveLength(entered.entries.flatMap((entry) => entry.drivers).length);
-  });
-
-  it("does not arrange the next year when the box was left unticked", () => {
-    applyAndRunOn(once);
-    expect(running().world.arrangement).toBeNull();
-    expect(running().world.lineup).toBeNull();
-  });
-
-  it("keeps arranging for every year that follows, not just the next one", () => {
-    applyAndRunOn(kept);
-    for (let year = 0; year < 2; year += 1) {
-      skipToEnd();
-      useSeasonStore.getState().continueRun();
-      useSeasonStore.getState().continueRun();
-      expect(running().world.arrangement, String(running().world.year)).toEqual(kept);
-      expect(running().world.lineup, String(running().world.year)).not.toBeNull();
+  it("reseats every year it steps to, on that year's own entry list", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, RANKED);
+    for (let step = 0; step < 3; step += 1) {
+      const { world } = running();
+      const label = String(world.year);
+      const entered = seasonSeed(world.year);
+      expect(world.reseated, label).not.toBeNull();
+      expect(world.lineup, label).toBeNull();
+      expect(Object.keys(racedLineup(world)).sort(), label).toEqual(
+        entered.entries.map((entry) => entry.teamId).sort(),
+      );
+      expect(world.field, label).toHaveLength(entered.entries.flatMap((e) => e.drivers).length);
+      nextYear();
     }
   });
 
-  it("keeps arranging through a jump to the end as well as stepping", () => {
-    // The rule every skip is under: jumping must produce exactly the history
-    // stepping through would have.
-    useSeasonStore.getState().setGrid(null, null, kept);
-    skipToEnd();
-    useSeasonStore.getState().continueRun();
-    jumpThrough(YEAR + 3);
-    const seasons = rollOfHonour().seasons;
-
-    expect(seasons).toHaveLength(4);
-    expect(seasons.map((world) => world.arrangement)).toEqual(seasons.map(() => kept));
-    expect(seasons.slice(1).every((world) => world.lineup !== null)).toBe(true);
-  });
-
-  it("gives the same history stepped through as jumped", () => {
-    useSeasonStore.getState().setGrid(null, null, kept);
-    skipToEnd();
-    useSeasonStore.getState().continueRun();
+  it("reseats every year a jump passes, and jumping writes the history stepping does", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, SHUFFLED);
     jumpThrough(YEAR + 2);
     const jumped = rollOfHonour().seasons;
+    expect(jumped).toHaveLength(3);
+    expect(jumped.every((world) => world.reseated !== null && world.lineup === null)).toBe(true);
 
-    useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().setGrid(null, null, kept);
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, SHUFFLED);
     for (let year = 0; year < 3; year += 1) {
       skipToEnd();
       useSeasonStore.getState().continueRun();
@@ -1058,8 +1029,36 @@ describe("a bulk rule kept across an era", () => {
     expect(rollOfHonour().seasons).toEqual(jumped);
   });
 
+  it("goes on reseating the year after a hand edit", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, SHUFFLED);
+    useSeasonStore.getState().setGrid(swapped(running().world), null);
+    expect(running().world.lineup).not.toBeNull();
+    nextYear();
+    expect(running().world.year).toBe(YEAR + 1);
+    expect(running().world.reseated).not.toBeNull();
+    expect(running().world.lineup).toBeNull();
+  });
+
+  it("keeps a ranked reseat through Restart season, and re-rolls a random one", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, RANKED);
+    nextYear();
+    const ranked = running().world.reseated;
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.reseated).toEqual(ranked);
+
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, SHUFFLED);
+    nextYear();
+    const grids = new Set([JSON.stringify(running().world.reseated)]);
+    for (let go = 0; go < 8; go += 1) {
+      useSeasonStore.getState().restartSeason();
+      grids.add(JSON.stringify(running().world.reseated));
+    }
+    expect(grids.size).toBeGreaterThan(1);
+  });
+
   it("is a save file like the rest of a run", () => {
-    applyAndRunOn(kept);
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, SHUFFLED);
+    nextYear();
     const run = running().run;
     expect(JSON.parse(JSON.stringify(run))).toEqual(run);
   });
@@ -1204,7 +1203,7 @@ describe("an untouched era", () => {
 });
 
 describe("the starting grid kept for an era", () => {
-  const keep: RunSettings = { ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES };
+  const keep: RunSettings = { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS };
   const FROM = FOLDING_YEAR.year;
 
   /** The first three years of an era from the year before a team folds, by stepping. */
@@ -1271,24 +1270,25 @@ describe("the starting grid kept for an era", () => {
     expect(running().world).toEqual(stepped);
   });
 
-  it("arranges the kept grid when a bulk rule is kept", () => {
-    const rule: GridArrangement = {
-      kind: "fastest-in-fastest",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: true,
-    };
-    useSeasonStore.getState().simulateEra(5, FROM, undefined, keep);
-    useSeasonStore.getState().setGrid(null, null, rule);
-    skipToEnd();
-    useSeasonStore.getState().continueRun();
-    useSeasonStore.getState().continueRun();
-    const next = running().world;
-    expect(next.arrangement).toEqual(rule);
-    expect(Object.keys(next.lineup ?? {}).sort()).toEqual(
-      enteredSeason(next)
-        .entries.map((entry) => entry.teamId)
-        .sort(),
-    );
+  it("under a reseat, seats every kept team in full, nobody twice", () => {
+    // Under a reseat the empty seats go to the best available whatever the
+    // fill says, so ask for last year's driver and check it was overridden.
+    const years = threeYears({
+      ...keep,
+      seating: { kind: "random", includeUnemployed: true },
+    });
+    for (const world of years) {
+      const label = `${world.year}`;
+      const raced = racedLineup(world);
+      const drivers = Object.values(raced).flat();
+      expect(world.reseated, label).not.toBeNull();
+      expect(world.settings.teams, label).toEqual({ fill: "best" });
+      expect(new Set(drivers).size, label).toBe(drivers.length);
+      for (const [teamId, seats] of Object.entries(world.keptSeats ?? {})) {
+        const filled = seats.filter((seat) => seat !== null).length;
+        expect(raced[teamId]?.length ?? 0, `${label} ${teamId}`).toBe(filled);
+      }
+    }
+    expect(years.slice(1).every((world) => world.keptSeats !== null)).toBe(true);
   });
 });

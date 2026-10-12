@@ -29,7 +29,7 @@ import { strongestOf } from "./carryOver.js";
 import { latestEngineSpec } from "./engines.js";
 import { drivers as driverPool } from "./index.js";
 import { applyDraft, type DraftSeat, type LineupDraft, seatedDriverIds } from "./lineup.js";
-import { type DriverFilters, matchesFilters } from "./people.js";
+import { matchesFilters, type SigningPool, signingFilters } from "./people.js";
 import { seasons } from "./seasons/index.js";
 import type { Driver, SeasonEntry, SeasonSeed } from "./types.js";
 
@@ -40,19 +40,14 @@ import type { Driver, SeasonEntry, SeasonSeed } from "./types.js";
 export const SEAT_FILLS = ["last", "best"] as const;
 export type SeatFill = (typeof SEAT_FILLS)[number];
 
-/** The reader's answers about empty seats, as the setup screen takes them. */
-export interface EmptySeatRules {
+/**
+ * Who takes an empty seat: the fill, and the run's signing pool. The pool's
+ * ages are read against a driver's real age in the season: last year's driver
+ * past `maxAge` leaves the seat — their retirement from it — and nobody outside
+ * the band is signed for one. A driver placed by hand is never barred.
+ */
+export interface EmptySeatRules extends SigningPool {
   readonly fill: SeatFill;
-  /**
-   * The ages a driver may hold an empty seat at, read against his real age in
-   * the season. Last year's driver past `maxAge` leaves the seat — their
-   * retirement from it — and nobody outside the band is signed for one. A
-   * driver placed by hand is never barred.
-   */
-  readonly minAge: number;
-  readonly maxAge: number;
-  /** Whether a signing must be a driver whose real career spans the season. */
-  readonly activeOnly: boolean;
 }
 
 /** A year as *Keep the first season's teams* enters it, before its empty seats are filled. */
@@ -77,16 +72,6 @@ export interface KeptGridOptions {
   readonly mode?: RatingMode;
   /** The authored season for a year, or undefined. Defaults to the seed data. */
   readonly history?: (year: number) => SeasonSeed | undefined;
-}
-
-/** The band as a pool filter, the same check the grid editor's list makes. */
-function bandFilters(rules: EmptySeatRules, activeOnly: boolean): DriverFilters {
-  return {
-    hideRetired: activeOnly,
-    hideFuture: activeOnly,
-    minAge: rules.minAge,
-    maxAge: rules.maxAge,
-  };
 }
 
 /**
@@ -176,7 +161,7 @@ export function keptYear(
   }
 
   const seated = new Set(Object.values(seats).flat());
-  const band = bandFilters(rules, false);
+  const band = signingFilters({ ...rules, activeOnly: false });
   const draft: Record<string, readonly DraftSeat[]> = {};
   for (const first of start.entries) {
     const { teamId } = first;
@@ -208,7 +193,7 @@ export function keptYear(
 }
 
 /**
- * The empty seats signed.
+ * The empty seats signed from the signing pool.
  *
  * Best car first (`teamsByCar` over `season`, the cars the run races), each
  * seat takes the strongest driver who holds none, inside the age band and —
@@ -218,12 +203,12 @@ export function keptYear(
 export function fillSeats(
   season: SeasonSeed,
   seats: LineupDraft,
-  rules: EmptySeatRules,
+  signing: SigningPool,
   options: KeptGridOptions = {},
 ): LineupDraft {
   const { pool = driverPool, mode = "aged" } = options;
   const seated = new Set(seatedDriverIds(seats));
-  const filters = bandFilters(rules, rules.activeOnly);
+  const filters = signingFilters(signing);
   const free = byOverall(
     pool.filter(
       (driver) => !seated.has(driver.id) && matchesFilters(driver, season.year, filters, "aged"),

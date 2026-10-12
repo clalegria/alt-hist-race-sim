@@ -11,9 +11,7 @@ import {
   authoredChassis,
   authoredEngines,
   authoredLineup,
-  DEFAULT_DRIVER_FILTERS,
   FIRST_AUTHORED_SEASON,
-  type GridArrangement,
   reserveDrivers,
   seasonSeed,
   stepChassis,
@@ -22,7 +20,8 @@ import {
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   HISTORICAL_SETTINGS,
-  OPENING_SEAT_RULES,
+  OPENING_DRIVER_POOL,
+  OPENING_TEAMS,
   pointsTables,
   samePoints,
 } from "../lib/run-settings.js";
@@ -59,13 +58,6 @@ function crown(year: number): void {
   useSeasonStore.getState().continueRun();
 }
 
-const kept: GridArrangement = {
-  kind: "fastest-in-fastest",
-  includeUnemployed: false,
-  filters: DEFAULT_DRIVER_FILTERS,
-  retain: true,
-};
-
 beforeEach(() => {
   useSeasonStore.setState({ run: null });
 });
@@ -79,9 +71,7 @@ describe("a run rebuilt from its recipe", () => {
   it("keeps a re-rated chassis", () => {
     const team = SEED.entries[0]?.teamId ?? "";
     useSeasonStore.getState().simulate(3, YEAR);
-    useSeasonStore
-      .getState()
-      .setGrid(null, null, null, stepChassis(authoredChassis(SEED), team, -1));
+    useSeasonStore.getState().setGrid(null, null, stepChassis(authoredChassis(SEED), team, -1));
     const run = current();
     expect(run.world.chassis, "the chassis was re-rated").not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
@@ -108,9 +98,11 @@ describe("a run rebuilt from its recipe", () => {
     expect(roundTrip(run)).toEqual(run);
   });
 
-  it("keeps an era's every year, a mid-era restart and a kept rule included", () => {
-    useSeasonStore.getState().simulateEra(5, YEAR);
-    useSeasonStore.getState().setGrid(null, null, kept);
+  it("keeps an era's every year, a mid-era restart and a reseat included", () => {
+    useSeasonStore.getState().simulateEra(5, YEAR, undefined, {
+      ...HISTORICAL_SETTINGS,
+      seating: { kind: "random", includeUnemployed: false },
+    });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().continueRun();
@@ -128,8 +120,22 @@ describe("a run rebuilt from its recipe", () => {
     const [firstWorld] = run.run.seasons;
     expect(run.run.seasons).toHaveLength(2);
     expect(second.seed).not.toBe(nextSeed(firstWorld?.rngState ?? []));
-    expect(run.world.arrangement).toEqual(kept);
+    expect(run.world.reseated).not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("ignores the rule a recipe from before Who drives where stored beside its lineup", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    const run = current();
+    const recipe = recipeOf(run);
+    const older = {
+      ...recipe,
+      worlds: recipe.worlds.map((world) => ({
+        ...world,
+        arrangement: { kind: "random", includeUnemployed: false, retain: true },
+      })),
+    };
+    expect(runFromRecipe(JSON.parse(JSON.stringify(older)))).toEqual(run);
   });
 
   it("keeps the run settings chosen for the whole era", () => {
@@ -146,7 +152,9 @@ describe("a run rebuilt from its recipe", () => {
       teamNames: "first",
       liveries: "first",
       engineSuppliers: "first",
-      teamsAndSeats: OPENING_SEAT_RULES,
+      teams: OPENING_TEAMS,
+      seating: { kind: "random", includeUnemployed: true },
+      driverPool: OPENING_DRIVER_POOL,
     });
     crown(YEAR);
     useSeasonStore.getState().continueRun();
@@ -168,7 +176,7 @@ describe("a run rebuilt from its recipe", () => {
     const lower = stepChassis(base, team, -1);
     useSeasonStore
       .getState()
-      .setGrid(null, null, null, lower === base ? stepChassis(base, team, 1) : lower);
+      .setGrid(null, null, lower === base ? stepChassis(base, team, 1) : lower);
     crown(YEAR);
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().restartSeason();
@@ -196,7 +204,7 @@ describe("a run rebuilt from its recipe", () => {
 });
 
 describe("an era that keeps its starting grid", () => {
-  const keep = { ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES };
+  const keep = { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS };
 
   it("rebuilds a year with a ghost entry in it", () => {
     useSeasonStore.getState().simulateEra(9, FOLDING_YEAR.year, undefined, keep);
@@ -210,7 +218,7 @@ describe("an era that keeps its starting grid", () => {
     const recipe = stored(current());
     recipe.worlds[0] = {
       ...recipe.worlds[0],
-      settings: { ...keep, teamsAndSeats: { ...OPENING_SEAT_RULES, maxAge: 99 } },
+      settings: { ...keep, driverPool: { ...OPENING_DRIVER_POOL, maxAge: 99 } },
     };
     expect(runFromRecipe(recipe)).toBeNull();
   });

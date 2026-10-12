@@ -65,7 +65,7 @@ screen draws no *Each year starts from* row (the component keeps the era's answe
   walking, and in a first year), the `namesKeptFrom` pattern: `nextEraWorld` passes
   `racedChassis(last)` and `racedEngineRatings(last)` as `createWorld`'s `era.lastRaced`
   and `era.lastRacedEngines`, and every action that rebuilds a year in place (`setGrid`,
-  `setRatingMode`, `restartSeason`, `nextLineup`) passes the world's own on. `restartEra`
+  `setRatingMode`, `restartSeason`) passes the world's own on. `restartEra`
   passes null. The recipe does not store them: `rebuild` hands each world the one
   rebuilt before it.
 - **The pull back to the pack.** Before its roll, a walked car's every rating moves
@@ -93,8 +93,8 @@ absolute ratings over it.
 - `setGrid` and `setRatingMode` keep the seed, so the rolls; **both restarts,
   `switchSeasonYear` and `setRunSettings` draw a new seed and so re-roll**, the settings
   carried and the reader's own chassis carrying as the ratings they are.
-- `arrangedLineup` builds from the baseline season for its seed, so a bulk rule kept
-  across an era ranks that year's rolled cars.
+- The reseat under *Who drives where* is `baselineSeason`'s last step, so it ranks that
+  year's rolled cars.
 - The team popover reads *Real → this run*: `SeasonGrid`'s `historicalChassis`
   (authored, passed only when the run rolled its own) puts the authored rating muted
   before each chassis bar, and `historicalEngines` (`historicalEngineRatings(world)`)

@@ -81,7 +81,6 @@ describe("the team names setting", () => {
       null,
       undefined,
       null,
-      null,
       { ...HISTORICAL_SETTINGS, teamNames: "first" },
     );
     expect(settingsOf(world)).toContainEqual({ name: "Team name changes", value: "No" });

@@ -6,6 +6,7 @@ import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
+import { seatingArrangement } from "../lib/run-settings.js";
 import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
@@ -242,16 +243,11 @@ export function SeasonOverview({
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
-      {changes.length === 0 &&
-      supplyChanges.length === 0 &&
-      rerated.length === 0 &&
-      world.arrangement === null ? null : (
+      {changes.length === 0 && supplyChanges.length === 0 && rerated.length === 0 ? null : (
         <EditedGridBanner
           changes={changes}
           engineChanges={supplyChanges}
           chassisChanges={rerated}
-          arrangement={world.arrangement}
-          ratingMode={world.ratingMode}
         />
       )}
       {finished ? (
@@ -296,7 +292,7 @@ export function SeasonOverview({
             chassisChanges={rerated}
             historicalChassis={historicalChassis}
             historicalEngines={historicalEngines}
-            arrangement={world.arrangement}
+            arrangement={seatingArrangement(world.settings)}
             kept={keptNotes(world)}
             sort={teamSort}
             onSortChange={setTeamSort}

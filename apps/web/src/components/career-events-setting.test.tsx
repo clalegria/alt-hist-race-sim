@@ -44,7 +44,6 @@ describe("the career events setting", () => {
       null,
       undefined,
       null,
-      null,
       {
         ...HISTORICAL_SETTINGS,
         careerEvents: "none",

@@ -55,38 +55,16 @@ export const ARRANGEMENT_KINDS: readonly ArrangementKind[] = [
 ];
 
 /**
- * A rearrangement as the reader chose it: the rule, the pool it draws on, and
- * whether it should happen again next year.
- *
- * Plain data, because it is part of the saved world beside the lineup it
- * produced — the grid on screen is a `SeasonLineup` like any other, and this is
- * the record of *how it came to be*, which is what lets the app say so
- * afterwards and what lets an era do it again.
+ * A rearrangement: the rule, and the pool it draws on. Plain data — the run
+ * settings' *Who drives where* and *Drivers who can be signed* as one value, or
+ * a press of one of the editor's buttons.
  */
 export interface GridArrangement {
   readonly kind: ArrangementKind;
   /** Whether drivers without a seat may take one at all. */
   readonly includeUnemployed: boolean;
-  /**
-   * Which of them, when they may: the pool exactly as the reader has narrowed
-   * it in the editor's "Without a drive" panel.
-   *
-   * A snapshot rather than a reference to that panel, because a rule outlives
-   * the screen it was pressed on — an era re-applies it to every following
-   * year, and "the drivers who were around, aged 18 to 42" has to mean the same
-   * thing in 1983 as it did in 1980 without depending on where a slider is
-   * sitting three seasons later. It is plain data, so it saves and reloads with
-   * the world like the rest of the arrangement.
-   */
+  /** Which of them, when they may: the run's signing pool, or the editor's list filters. */
   readonly filters: DriverFilters;
-  /**
-   * Whether every following season of an era is arranged the same way.
-   *
-   * Era mode only — a standalone season has no next year to retain it for — and
-   * it is the reader's answer rather than something derived, which is why it
-   * rides along in here instead of being a fact about the run.
-   */
-  readonly retain: boolean;
 }
 
 /** Whether a value is one of the three rules — for a lineup read off a save file. */

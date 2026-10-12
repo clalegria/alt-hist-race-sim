@@ -29,8 +29,8 @@ function pressed(html: string): string[] {
 }
 
 /** An era's first year under the given settings, perhaps with the reader's own chassis. */
-function eraYear(settings: RunSettings, chassis: Parameters<typeof createWorld>[7] = null) {
-  return createWorld(3, YEAR, ERA_RATING_MODE, null, null, undefined, null, chassis, settings);
+function eraYear(settings: RunSettings, chassis: Parameters<typeof createWorld>[6] = null) {
+  return createWorld(3, YEAR, ERA_RATING_MODE, null, null, undefined, chassis, settings);
 }
 
 describe("the car performance setting", () => {

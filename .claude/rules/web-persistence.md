@@ -20,9 +20,9 @@ run exactly.
 
 **The recipe is derived from the run, not kept beside it.** Every `World` already records
 the inputs that built it: `seed`, `year`, `ratingMode`, `randomness`, `settings`,
-`lineup`, `engines`, `chassis`, `arrangement` and `namesKeptFrom`, which are exactly
-`createWorld`'s arguments. `baselineChassis`, `baselineEngineRatings`, `baselineTrends`
-and `keptSeats` are not: the seed rolls and signs them again; nor are `walkedFrom`,
+`lineup`, `engines`, `chassis` and `namesKeptFrom`, which are exactly
+`createWorld`'s arguments. `baselineChassis`, `baselineEngineRatings`, `baselineTrends`,
+`keptSeats` and `reseated` are not: the seed rolls, signs and reseats them again; nor are `walkedFrom`,
 `engineWalkedFrom`, `liveriesKeptFrom`, `enginesKeptFrom`, `gridKeptFrom` and `kept`,
 which `rebuild` takes from the world rebuilt before it (`racedChassis`,
 `racedEngineRatings`, `eraStartOf`, `keptYearAfter`), or from the settings. `recipeOf(run)` is one

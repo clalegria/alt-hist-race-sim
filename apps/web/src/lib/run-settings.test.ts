@@ -5,6 +5,7 @@
 
 import {
   AGE_RANGE,
+  ARRANGEMENT_KINDS,
   drivers,
   driversWithoutCareerEvents,
   flatTrends,
@@ -24,10 +25,12 @@ import {
   DEVELOPMENT_STREAM,
   driverPoolOf,
   ENGINE_PERFORMANCE_STREAM,
+  emptySeatRules,
   enginesWalkFromLastYear,
   HISTORICAL_SETTINGS,
   historicalSettings,
-  OPENING_SEAT_RULES,
+  OPENING_DRIVER_POOL,
+  OPENING_TEAMS,
   parseRunSettings,
   pointsTableOf,
   pointsTables,
@@ -38,6 +41,7 @@ import {
   rolledEnginesOf,
   samePoints,
   seasonSettings,
+  seatingArrangement,
   settingsInForce,
   trendsOf,
   walksFromLastYear,
@@ -146,21 +150,45 @@ describe("parsing stored settings", () => {
     }
   });
 
-  it("accepts Teams and seats: Keep, under both fills, at any ages the range holds", () => {
-    for (const teamsAndSeats of [
-      OPENING_SEAT_RULES,
-      { ...OPENING_SEAT_RULES, fill: "best", activeOnly: false },
-      { ...OPENING_SEAT_RULES, minAge: AGE_RANGE.min, maxAge: AGE_RANGE.max },
-      { ...OPENING_SEAT_RULES, minAge: 30, maxAge: 30 },
-    ] as const) {
-      const settings = { ...HISTORICAL_SETTINGS, teamsAndSeats };
-      expect(parseRunSettings(settings), JSON.stringify(teamsAndSeats)).toEqual(settings);
+  it("accepts Teams under both fills, every seating rule, and any pool the range holds", () => {
+    const answers: Partial<RunSettings>[] = [
+      { teams: OPENING_TEAMS },
+      { teams: { fill: "best" } },
+      ...ARRANGEMENT_KINDS.flatMap((kind) => [
+        { seating: { kind, includeUnemployed: false } },
+        { seating: { kind, includeUnemployed: true } },
+      ]),
+      { driverPool: { ...OPENING_DRIVER_POOL, activeOnly: false } },
+      { driverPool: { minAge: AGE_RANGE.min, maxAge: AGE_RANGE.max, activeOnly: true } },
+      { driverPool: { minAge: 30, maxAge: 30, activeOnly: true } },
+    ];
+    for (const answer of answers) {
+      const settings = { ...HISTORICAL_SETTINGS, ...answer };
+      expect(parseRunSettings(settings), JSON.stringify(answer)).toEqual(settings);
     }
+  });
+
+  it("reads the shape from before Teams, Who drives where and the pool split", () => {
+    const { teams: _teams, seating: _seating, driverPool: _pool, ...before } = HISTORICAL_SETTINGS;
+    expect(parseRunSettings({ ...before, teamsAndSeats: null })).toEqual(HISTORICAL_SETTINGS);
+    expect(
+      parseRunSettings({
+        ...before,
+        teamsAndSeats: { fill: "best", minAge: 20, maxAge: 35, activeOnly: false },
+      }),
+    ).toEqual({
+      ...HISTORICAL_SETTINGS,
+      teams: { fill: "best" },
+      driverPool: { minAge: 20, maxAge: 35, activeOnly: false },
+    });
+    expect(parseRunSettings({ ...before, teamsAndSeats: { fill: "nobody" } })).toBeNull();
   });
 
   it("refuses anything else", () => {
     const table = pointsTables()[0]?.scale ?? [];
-    const { teamsAndSeats: _new, ...beforeTeamsAndSeats } = HISTORICAL_SETTINGS;
+    const { teams: _teams, ...withoutTeams } = HISTORICAL_SETTINGS;
+    const { seating: _seating, ...withoutSeating } = HISTORICAL_SETTINGS;
+    const { driverPool: _pool, ...withoutPool } = HISTORICAL_SETTINGS;
     const {
       enginePerformance: _engines,
       development: _development,
@@ -168,9 +196,9 @@ describe("parsing stored settings", () => {
       engineSuppliers: _suppliers,
       ...beforeEngines
     } = HISTORICAL_SETTINGS;
-    const seats = (changes: Record<string, unknown>) => ({
+    const pool = (changes: Record<string, unknown>) => ({
       ...HISTORICAL_SETTINGS,
-      teamsAndSeats: { ...OPENING_SEAT_RULES, ...changes },
+      driverPool: { ...OPENING_DRIVER_POOL, ...changes },
     });
     const junk: unknown[] = [
       null,
@@ -211,19 +239,26 @@ describe("parsing stored settings", () => {
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: "first" } },
       { ...HISTORICAL_SETTINGS, carPerformance: { kind: "varied", spread: 10, from: null } },
       { ...HISTORICAL_SETTINGS, carPerformance: [] },
-      // Settings from before Teams and seats, and its rules wrong in turn: a
-      // fill nobody offers, ages outside the range, crossed or fractional, and
-      // a field missing.
-      beforeTeamsAndSeats,
-      { ...HISTORICAL_SETTINGS, teamsAndSeats: "keep" },
-      seats({ fill: "nobody" }),
-      seats({ fill: "Last" }),
-      seats({ minAge: AGE_RANGE.min - 1 }),
-      seats({ maxAge: AGE_RANGE.max + 1 }),
-      seats({ minAge: 40, maxAge: 30 }),
-      seats({ maxAge: 40.5 }),
-      seats({ activeOnly: "yes" }),
-      seats({ activeOnly: undefined }),
+      // Each of Teams, Who drives where and the pool missing, and each wrong
+      // in turn: a fill or a rule nobody offers, and ages outside the range,
+      // crossed or fractional.
+      withoutTeams,
+      withoutSeating,
+      withoutPool,
+      { ...HISTORICAL_SETTINGS, teams: "first" },
+      { ...HISTORICAL_SETTINGS, teams: { fill: "nobody" } },
+      { ...HISTORICAL_SETTINGS, teams: { fill: "Last" } },
+      { ...HISTORICAL_SETTINGS, seating: "random" },
+      { ...HISTORICAL_SETTINGS, seating: { kind: "slowest", includeUnemployed: false } },
+      { ...HISTORICAL_SETTINGS, seating: { kind: "random" } },
+      { ...HISTORICAL_SETTINGS, seating: { kind: "random", includeUnemployed: "yes" } },
+      { ...HISTORICAL_SETTINGS, driverPool: null },
+      pool({ minAge: AGE_RANGE.min - 1 }),
+      pool({ maxAge: AGE_RANGE.max + 1 }),
+      pool({ minAge: 40, maxAge: 30 }),
+      pool({ maxAge: 40.5 }),
+      pool({ activeOnly: "yes" }),
+      pool({ activeOnly: undefined }),
       // Settings from before Engine performance, In-season development, Livery
       // and Engine supplier changes, and each answer misspelled.
       beforeEngines,
@@ -256,9 +291,62 @@ describe("the settings in force", () => {
       expect(settingsInForce(settings)).toBe(settings);
     }
   });
+
+  const narrow = { minAge: 25, maxAge: 30, activeOnly: false };
+  const shuffled = { kind: "random", includeUnemployed: false } as const;
+
+  it("signs the best available for the kept teams under a reseat, which moves everyone", () => {
+    const settings = { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS, seating: shuffled };
+    expect(settingsInForce(settings).teams).toEqual({ fill: "best" });
+    const alone = { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS };
+    expect(settingsInForce(alone)).toBe(alone);
+  });
+
+  it("puts the pool back on its opening answer while nothing signs drivers", () => {
+    for (const seating of [null, shuffled]) {
+      expect(
+        settingsInForce({ ...HISTORICAL_SETTINGS, seating, driverPool: narrow }).driverPool,
+      ).toEqual(OPENING_DRIVER_POOL);
+    }
+  });
+
+  it("keeps the pool while kept teams or a reseat sign from it", () => {
+    for (const signing of [
+      { teams: OPENING_TEAMS },
+      { seating: { ...shuffled, includeUnemployed: true } },
+    ]) {
+      const settings = { ...HISTORICAL_SETTINGS, ...signing, driverPool: narrow };
+      expect(settingsInForce(settings), JSON.stringify(signing)).toBe(settings);
+    }
+  });
+
+  it("hands the kept grid its fill with the pool, and the reseat the pool as its filters", () => {
+    const settings = {
+      ...HISTORICAL_SETTINGS,
+      teams: OPENING_TEAMS,
+      seating: shuffled,
+      driverPool: narrow,
+    };
+    expect(emptySeatRules(settings)).toEqual({ ...narrow, fill: OPENING_TEAMS.fill });
+    expect(seatingArrangement(settings)).toEqual({
+      ...shuffled,
+      filters: { hideRetired: false, hideFuture: false, minAge: 25, maxAge: 30 },
+    });
+    expect(emptySeatRules(HISTORICAL_SETTINGS)).toBeNull();
+    expect(seatingArrangement(HISTORICAL_SETTINGS)).toBeNull();
+  });
 });
 
 describe("a standalone season's settings", () => {
+  it("keeps Who drives where and the pool, which a season offers too", () => {
+    const settings = {
+      ...HISTORICAL_SETTINGS,
+      seating: { kind: "fastest-in-slowest", includeUnemployed: true },
+      driverPool: { minAge: 20, maxAge: 40, activeOnly: false },
+    } as const;
+    expect(seasonSettings(settings)).toBe(settings);
+  });
+
   it("drops Career events and Team names, which only an era offers", () => {
     const era = {
       ...HISTORICAL_SETTINGS,
@@ -271,7 +359,7 @@ describe("a standalone season's settings", () => {
     expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamNames: "first" })).toEqual(
       HISTORICAL_SETTINGS,
     );
-    expect(seasonSettings({ ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES })).toEqual(
+    expect(seasonSettings({ ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS })).toEqual(
       HISTORICAL_SETTINGS,
     );
     for (const changes of [{ liveries: "first" }, { engineSuppliers: "first" }] as const) {
@@ -327,7 +415,9 @@ describe("restoring the defaults", () => {
     teamNames: "first",
     liveries: "first",
     engineSuppliers: "first",
-    teamsAndSeats: OPENING_SEAT_RULES,
+    teams: OPENING_TEAMS,
+    seating: null,
+    driverPool: OPENING_DRIVER_POOL,
   } as const;
 
   it("puts every setting an era offers back on its historical answer", () => {
@@ -341,7 +431,7 @@ describe("restoring the defaults", () => {
       teamNames: "first",
       liveries: "first",
       engineSuppliers: "first",
-      teamsAndSeats: OPENING_SEAT_RULES,
+      teams: OPENING_TEAMS,
     });
   });
 });
@@ -536,15 +626,15 @@ describe("the what-ifs a run states", () => {
   });
 
   it("names Keep the first season's teams after Team name changes, with its rules", () => {
-    expect(
-      whatIfsOf({ ...HISTORICAL_SETTINGS, teamNames: "first", teamsAndSeats: OPENING_SEAT_RULES }),
-    ).toEqual([
-      { name: "Team name changes", value: "No" },
-      {
-        name: "Keep the first season's teams",
-        value: `Yes · last year's driver first · ages ${OPENING_SEAT_RULES.minAge}–${OPENING_SEAT_RULES.maxAge} · real-grid drivers only`,
-      },
-    ]);
+    expect(whatIfsOf({ ...HISTORICAL_SETTINGS, teamNames: "first", teams: OPENING_TEAMS })).toEqual(
+      [
+        { name: "Team name changes", value: "No" },
+        {
+          name: "Keep the first season's teams",
+          value: `Yes · last year's driver first · ages ${OPENING_DRIVER_POOL.minAge}–${OPENING_DRIVER_POOL.maxAge} · real-grid drivers only`,
+        },
+      ],
+    );
   });
 
   it("names every what-if in the form's order", () => {
@@ -559,7 +649,7 @@ describe("the what-ifs a run states", () => {
         teamNames: "first",
         liveries: "first",
         engineSuppliers: "first",
-        teamsAndSeats: OPENING_SEAT_RULES,
+        teams: OPENING_TEAMS,
       }).map((line) => line.name),
     ).toEqual([
       "Mechanical failures",
@@ -603,7 +693,7 @@ describe("remembering a standalone season's settings", () => {
     teamNames: "first",
     liveries: "first",
     engineSuppliers: "first",
-    teamsAndSeats: OPENING_SEAT_RULES,
+    teams: OPENING_TEAMS,
   } as const;
 
   it("keeps the era-only answers the season never showed", () => {
@@ -613,7 +703,7 @@ describe("remembering a standalone season's settings", () => {
     expect(after.teamNames).toBe("first");
     expect(after.liveries).toBe("first");
     expect(after.engineSuppliers).toBe("first");
-    expect(after.teamsAndSeats).toEqual(OPENING_SEAT_RULES);
+    expect(after.teams).toEqual(OPENING_TEAMS);
   });
 
   it("keeps an era's walk the season only read as its own real car", () => {

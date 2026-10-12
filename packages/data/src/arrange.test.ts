@@ -102,7 +102,7 @@ const rules = (
   kind: ArrangementKind,
   includeUnemployed = false,
   filters: DriverFilters = NARROWED.peak,
-): GridArrangement => ({ kind, includeUnemployed, filters, retain: false });
+): GridArrangement => ({ kind, includeUnemployed, filters });
 
 /** The rearrangement, always against the same pool and in one rating mode. */
 function arrange(

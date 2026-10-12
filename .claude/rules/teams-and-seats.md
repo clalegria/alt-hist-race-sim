@@ -43,12 +43,13 @@ the settings row is `.claude/rules/web-setup.md`, and the layer it sits in
 these cars, each entry's `drivers` its filled seats; `seats` is the `LineupDraft`, empty
 seats `null`.
 
-## Signing: `fillSeats(season, seats, rules, options)`
+## Signing: `fillSeats(season, seats, signing, options)`
 
 - **Best car first** — `teamsByCar` (`arrange.ts`, shared), on
   the `season` passed in, which is the cars the run races after any *Chassis performance*
   roll — each empty seat takes the strongest free driver by `byOverall` (`arrange.ts`,
-  shared). Free means holding no seat, inside the band, and under `activeOnly` a real
+  shared). `signing` is the run's `SigningPool`. Free means holding no seat, inside the
+  band, and under `activeOnly` a real
   career spanning the season (`matchesFilters` with both career filters on: one rule with
   the grid editor's pool).
 - `best` carries nobody, so every empty seat is signed fresh each year.
@@ -60,14 +61,16 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
 
 ## In the run
 
-- **The setting** is `RunSettings.teamsAndSeats`: *No* / *Yes*, null / `EmptySeatRules`,
-  era only (`seasonSettings` drops it). Under Yes, `TeamsAndSeatsSetting` draws three
-  rows, Chassis performance's way: *Empty seats go to* (`SEAT_FILL_LABELS`), *Only sign
-  drivers aged* (the grid editor's number inputs through `withAge`, so they cannot cross)
-  and *Only sign drivers from that season's real grid* (`activeOnly`).
-  Switching in opens on `OPENING_SEAT_RULES`; the rows are remembered while the screen
-  is open. `parseRunSettings` refuses a fill outside `OFFERED_SEAT_FILLS`, and an age
-  outside `AGE_RANGE` or crossed.
+- **The setting** is `RunSettings.teams` (null / `{ fill }`, era only: `seasonSettings`
+  drops it) with the run's signing pool, `RunSettings.driverPool` (`SigningPool`: an age
+  band and `activeOnly`), which a reseat shares. `emptySeatRules(settings)` joins them
+  into the `EmptySeatRules` this file reads. Under a reseat the fill is always `best`
+  (`settingsInForce`): the reseat moves everyone. `TeamsAndSeatsSetting` still draws
+  them as one row, *Keep the first season's teams*, with *Empty seats go to*
+  (`SEAT_FILL_LABELS`), *Only sign drivers aged* (inputs through `withAge`, so they
+  cannot cross) and *Only sign drivers from that season's real grid*. Switching in opens
+  on `OPENING_TEAMS` and `OPENING_DRIVER_POOL`. `parseRunSettings` refuses a fill outside
+  `OFFERED_SEAT_FILLS`, and an age outside `AGE_RANGE` or crossed.
 - **The world** (`store/season.ts`) records `gridKeptFrom` (the era's first year),
   `kept` (the `KeptYear`, an input passed on by every in-place rebuild) and `keptSeats`
   (after `fillSeats`, a derived baseline like `baselineChassis`); all null unless Keep,
@@ -78,7 +81,7 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   run's own cars over it (`withRunCars`: kept engine suppliers, which give a ghost its
   first-season engine too, the chassis and engine rolls and the trends — a ghost walks
   off its own raced car with no special case), then `fillSeats` on those cars, then
-  `seatedSeason`. A kept bulk rule arranges that.
+  `seatedSeason`, then the reseat under *Who drives where*.
 - **Kept seats are the baseline, not edits.** `enteredSeason(world)` (`lib/seasons.ts`,
   memoised per world) is what Restore and every change notice compare against; the
   grid editor's *Copy last year's grid* copies `racedLineup` of the year before.

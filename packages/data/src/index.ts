@@ -133,6 +133,8 @@ export {
   matchesFilters,
   peakAge,
   ratedAge,
+  type SigningPool,
+  signingFilters,
   withAge,
 } from "./people.js";
 export { carOverall, carRacing, compareByRating, driverOverall, type Rated } from "./rating.js";

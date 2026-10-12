@@ -16,6 +16,7 @@
 import {
   applyChassis,
   applyEngineRatings,
+  applyLineup,
   authoredEngineRatings,
   authoredSeasons,
   hasSeason,
@@ -147,7 +148,7 @@ export function historicalEngineRatings(world: HistoricalInputs): SeasonEngineRa
 }
 
 /** What `enteredSeason` reads: a `World`, or the revealed one a page holds. */
-type EnteredInputs = Pick<World, "year" | "kept" | "keptSeats"> & RunCars;
+type EnteredInputs = Pick<World, "year" | "kept" | "keptSeats" | "reseated"> & RunCars;
 
 const enteredSeasons = new WeakMap<EnteredInputs, SeasonSeed>();
 
@@ -155,18 +156,20 @@ const enteredSeasons = new WeakMap<EnteredInputs, SeasonSeed>();
  * The season as the run entered this world's year, which every "was this
  * edited?" compares against: the editor's Restore, the change notices. The seed
  * file with the run's own cars (`withRunCars`); under Keep, the kept year with
- * them and its signings. Memoised per world, since worlds are never mutated,
- * so a component reading it gets the same object every render.
+ * them and its signings; under *Who drives where*, reseated. Memoised per
+ * world, since worlds are never mutated, so a component reading it gets the
+ * same object every render.
  */
 export function enteredSeason(world: EnteredInputs): SeasonSeed {
   const known = enteredSeasons.get(world);
   if (known !== undefined) {
     return known;
   }
-  const season =
+  const seated =
     world.kept === null || world.keptSeats === null
       ? withRunCars(seasonSeed(world.year), world)
       : seatedSeason(withRunCars(world.kept.season, world), world.keptSeats);
+  const season = world.reseated === null ? seated : applyLineup(seated, world.reseated);
   enteredSeasons.set(world, season);
   return season;
 }

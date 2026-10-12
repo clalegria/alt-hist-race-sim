@@ -7,12 +7,20 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { KeptNotes } from "../lib/kept.js";
-import { HISTORICAL_SETTINGS, OPENING_SEAT_RULES, type RunSettings } from "../lib/run-settings.js";
+import {
+  HISTORICAL_SETTINGS,
+  OPENING_DRIVER_POOL,
+  OPENING_TEAMS,
+  type RunSettings,
+} from "../lib/run-settings.js";
 import { useSeasonStore } from "../store/season.js";
 import { FOLDING_YEAR, settingsForm, shownAt } from "../test-support.js";
 import { keptSentences } from "./LineupChanges.js";
 import { SeasonView } from "./SeasonView.js";
 import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
+
+/** What Yes opens on, as the row takes it. */
+const OPENING_RULES = { ...OPENING_DRIVER_POOL, ...OPENING_TEAMS };
 
 /** An input's attribute, read off the markup rather than matched as one string. */
 function inputValue(html: string, label: string): string | undefined {
@@ -29,19 +37,19 @@ describe("the teams and seats setting", () => {
   });
 
   it("draws the fill, the ages and the real-grid box under Yes", () => {
-    const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={OPENING_SEAT_RULES} />);
+    const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={OPENING_RULES} />);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Yes</);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Last year&#x27;s driver, if possible</);
     expect(html).toContain("Only sign drivers aged");
-    expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_SEAT_RULES.minAge));
-    expect(inputValue(html, "Oldest driver age")).toBe(String(OPENING_SEAT_RULES.maxAge));
+    expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_RULES.minAge));
+    expect(inputValue(html, "Oldest driver age")).toBe(String(OPENING_RULES.maxAge));
     expect(html).toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
   });
 
   it("shows the other fill and an unticked box when that is the answer", () => {
     const html = renderToStaticMarkup(
       <TeamsAndSeatsSetting
-        teamsAndSeats={{ ...OPENING_SEAT_RULES, fill: "best", activeOnly: false }}
+        teamsAndSeats={{ ...OPENING_RULES, fill: "best", activeOnly: false }}
       />,
     );
     expect(html).toMatch(/aria-pressed="true"[^>]*>The best available driver</);
@@ -57,9 +65,7 @@ describe("the teams and seats setting", () => {
 
 describe("what the grid says about a kept year", () => {
   /** The grid of the year after a team folds, in an era from the year before. */
-  function ghostYear(
-    settings: RunSettings = { ...HISTORICAL_SETTINGS, teamsAndSeats: OPENING_SEAT_RULES },
-  ) {
+  function ghostYear(settings: RunSettings = { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS }) {
     useSeasonStore.getState().simulateEra(9, FOLDING_YEAR.year, undefined, settings);
     useSeasonStore.getState().jumpTo({ year: FOLDING_YEAR.year + 1, beat: { kind: "grid" } });
     const run = useSeasonStore.getState().run;

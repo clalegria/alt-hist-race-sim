@@ -16,11 +16,14 @@
 
 import {
   AGE_RANGE,
+  type ArrangementKind,
   type Driver,
   drivers,
   driversWithoutCareerEvents,
   type EmptySeatRules,
   flatTrends,
+  type GridArrangement,
+  isArrangementKind,
   randomChassis,
   randomEngines,
   randomTrends,
@@ -28,6 +31,9 @@ import {
   type SeasonEngineRatings,
   type SeasonSeed,
   type SeasonTrends,
+  type SeatFill,
+  type SigningPool,
+  signingFilters,
   variedChassis,
   variedEngines,
 } from "@alt-hist/data";
@@ -70,6 +76,27 @@ export type CarPerformance =
 
 /** The *In-season development* what-ifs: a random trend for every car, or none at all. */
 export type Development = "random" | "none";
+
+/** *Teams: The first season's teams*: who takes the seats that leaves empty. */
+export interface KeptTeams {
+  readonly fill: SeatFill;
+}
+
+/**
+ * *Who drives where*: one of the rules in `arrange.ts` (`@alt-hist/data`), and
+ * whether drivers without a drive can take a seat.
+ */
+export interface Seating {
+  readonly kind: ArrangementKind;
+  readonly includeUnemployed: boolean;
+}
+
+/**
+ * What *Drivers who can be signed* opens on: the grid editor's default racing
+ * ages, drivers racing that year only. The pool's answer while nothing signs
+ * drivers.
+ */
+export const OPENING_DRIVER_POOL: SigningPool = { minAge: 18, maxAge: 42, activeOnly: true };
 
 export interface RunSettings {
   /**
@@ -128,11 +155,24 @@ export interface RunSettings {
   readonly engineSuppliers: "first" | null;
   /**
    * Whether every year has the teams history gave it, or the run's first year's
-   * teams at their first-year seat counts, with the rules for the seats that
-   * leaves empty (`keptGrid.ts` in `@alt-hist/data`). **Era only**, like
-   * `careerEvents`.
+   * teams at their first-year seat counts, and who takes the seats that leaves
+   * empty (`keptGrid.ts` in `@alt-hist/data`). **Era only**, like
+   * `careerEvents`. Under a reseat the fill is always `best` (`settingsInForce`).
    */
-  readonly teamsAndSeats: EmptySeatRules | null;
+  readonly teams: KeptTeams | null;
+  /**
+   * Whether drivers sit where history put them, or every year's grid is
+   * reseated by a rule (`seatingArrangement`). The reseat is the year's
+   * starting grid, not an edit. On both setup screens.
+   */
+  readonly seating: Seating | null;
+  /**
+   * *Drivers who can be signed*: who the kept teams' empty seats and the
+   * reseat's pool draw on. Not itself a what-if, so never null; while nothing
+   * signs drivers (`signsDrivers`) it is in force as `OPENING_DRIVER_POOL`.
+   * Not `driverPoolOf`, which is whose ratings a run races.
+   */
+  readonly driverPool: SigningPool;
 }
 
 /** Every setting on its historical answer: the run as it happened. */
@@ -147,19 +187,63 @@ export const HISTORICAL_SETTINGS: RunSettings = {
   teamNames: null,
   liveries: null,
   engineSuppliers: null,
-  teamsAndSeats: null,
+  teams: null,
+  seating: null,
+  driverPool: OPENING_DRIVER_POOL,
 };
 
+/** Whether a run signs drivers from the pool: kept teams' empty seats, or a reseat that may. */
+export function signsDrivers(settings: RunSettings): boolean {
+  return settings.teams !== null || settings.seating?.includeUnemployed === true;
+}
+
+function samePool(a: SigningPool, b: SigningPool): boolean {
+  return a.minAge === b.minAge && a.maxAge === b.maxAge && a.activeOnly === b.activeOnly;
+}
+
 /**
- * The settings that change a run: *Cars as reliable as* only sets how often
- * cars break down, so under *Mechanical failures: None* it is dropped. The setup screen keeps the
- * reader's choice (greyed out) so switching back restores it; a world records
- * only what is in force.
+ * The settings that change a run. *Cars as reliable as* only sets how often
+ * cars break down, so under *Mechanical failures: None* it is dropped. Under a
+ * reseat the kept teams' empty seats go to the best available, since the
+ * reseat moves everyone anyway. While nothing signs drivers the pool is on its
+ * opening answer. The setup screen keeps the reader's choices so switching back
+ * restores them; a world records only what is in force.
  */
 export function settingsInForce(settings: RunSettings): RunSettings {
-  return settings.breakdowns === "none" && settings.reliability !== null
-    ? { ...settings, reliability: null }
-    : settings;
+  let inForce = settings;
+  if (inForce.breakdowns === "none" && inForce.reliability !== null) {
+    inForce = { ...inForce, reliability: null };
+  }
+  if (inForce.teams !== null && inForce.seating !== null && inForce.teams.fill !== "best") {
+    inForce = { ...inForce, teams: { fill: "best" } };
+  }
+  if (!signsDrivers(inForce) && !samePool(inForce.driverPool, OPENING_DRIVER_POOL)) {
+    inForce = { ...inForce, driverPool: OPENING_DRIVER_POOL };
+  }
+  return inForce;
+}
+
+/**
+ * Under *Teams: The first season's teams*, who takes the seats that leaves
+ * empty, as `keptGrid.ts` reads it; else null.
+ */
+export function emptySeatRules(settings: RunSettings): EmptySeatRules | null {
+  return settings.teams === null ? null : { ...settings.driverPool, fill: settings.teams.fill };
+}
+
+/**
+ * Under *Who drives where*, the rule every year's grid is reseated by, its
+ * pool the run's signing pool; else null.
+ */
+export function seatingArrangement(settings: RunSettings): GridArrangement | null {
+  const { seating } = settings;
+  return seating === null
+    ? null
+    : {
+        kind: seating.kind,
+        includeUnemployed: seating.includeUnemployed,
+        filters: signingFilters(settings.driverPool),
+      };
 }
 
 /** A value as JSON with every object's keys sorted, so two equal settings print alike. */
@@ -180,13 +264,7 @@ export function sameSettings(a: RunSettings, b: RunSettings): boolean {
 }
 
 /** The era-only settings, which a standalone season never shows and never runs. */
-const ERA_ONLY = [
-  "careerEvents",
-  "teamNames",
-  "liveries",
-  "engineSuppliers",
-  "teamsAndSeats",
-] as const;
+const ERA_ONLY = ["careerEvents", "teamNames", "liveries", "engineSuppliers", "teams"] as const;
 
 /** Whether a roll walks from the previous year's: the one answer that reads the year before. */
 function walks(roll: CarPerformance | null): boolean {
@@ -221,7 +299,7 @@ export function seasonSettings(settings: RunSettings): RunSettings {
     teamNames: null,
     liveries: null,
     engineSuppliers: null,
-    teamsAndSeats: null,
+    teams: null,
   };
 }
 
@@ -240,7 +318,7 @@ export function historicalSettings(settings: RunSettings, eraSettings: boolean):
     teamNames: settings.teamNames,
     liveries: settings.liveries,
     engineSuppliers: settings.engineSuppliers,
-    teamsAndSeats: settings.teamsAndSeats,
+    teams: settings.teams,
   };
 }
 
@@ -263,7 +341,7 @@ export function rememberedAfterSeason(stored: RunSettings, season: RunSettings):
     teamNames: stored.teamNames,
     liveries: stored.liveries,
     engineSuppliers: stored.engineSuppliers,
-    teamsAndSeats: stored.teamsAndSeats,
+    teams: stored.teams,
   };
 }
 
@@ -359,16 +437,8 @@ export function trendsOf(
   }
 }
 
-/**
- * What *Keep the first season's teams: Yes* opens on: last year's driver first, at the
- * grid editor's default racing ages, drivers active that year only.
- */
-export const OPENING_SEAT_RULES: EmptySeatRules = {
-  fill: "last",
-  minAge: 18,
-  maxAge: 42,
-  activeOnly: true,
-};
+/** What *Teams: The first season's teams* opens on: last year's driver first. */
+export const OPENING_TEAMS: KeptTeams = { fill: "last" };
 
 /** The fills the setup screen offers, in its order. */
 export const OFFERED_SEAT_FILLS = ["last", "best"] as const;
@@ -497,12 +567,14 @@ export function pointsTableOf(year: number): PointsTable | undefined {
  * authored ones, a year with no season, a Chassis or Engine performance answer,
  * spread or base this build does not offer, a Mechanical failures, In-season
  * development, Driver career events, Team name, Livery or Engine supplier
- * changes answer that is not a what-if, or *Keep the first season's teams*
- * rules this build does not offer. Takes `unknown` because both callers read
+ * changes answer that is not a what-if, or a Teams, Who drives where or
+ * signing pool answer this build does not offer. Also reads the shape before
+ * those three split, `teamsAndSeats` (Keep's fill and its pool in one), so a
+ * remembered choice survives. Takes `unknown` because both callers read
  * storage the reader controls.
  */
 export function parseRunSettings(raw: unknown): RunSettings | null {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+  if (!isObject(raw)) {
     return null;
   }
   if (
@@ -516,8 +588,7 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
       "careerEvents" in raw &&
       "teamNames" in raw &&
       "liveries" in raw &&
-      "engineSuppliers" in raw &&
-      "teamsAndSeats" in raw
+      "engineSuppliers" in raw
     )
   ) {
     return null;
@@ -527,7 +598,7 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
   const points = parsePoints(raw.points);
   const breakdowns = parseFewerBreakdowns(raw.breakdowns);
   const reliability = parseReliability(raw.reliability);
-  const teamsAndSeats = parseTeamsAndSeats(raw.teamsAndSeats);
+  const grid = parseGridSettings(raw);
   const { careerEvents, teamNames, liveries, engineSuppliers, development } = raw;
   if (
     carPerformance === undefined ||
@@ -535,7 +606,7 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
     points === undefined ||
     breakdowns === undefined ||
     reliability === undefined ||
-    teamsAndSeats === undefined ||
+    grid === undefined ||
     (careerEvents !== null && careerEvents !== "none") ||
     (teamNames !== null && teamNames !== "first") ||
     (liveries !== null && liveries !== "first") ||
@@ -555,37 +626,81 @@ export function parseRunSettings(raw: unknown): RunSettings | null {
     teamNames,
     liveries,
     engineSuppliers,
-    teamsAndSeats,
+    ...grid,
   };
 }
 
-function parseTeamsAndSeats(rules: unknown): EmptySeatRules | null | undefined {
-  if (rules === null) {
+function isObject(value: unknown): value is object {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Teams, Who drives where and the signing pool, from either shape. */
+function parseGridSettings(
+  raw: object,
+): Pick<RunSettings, "teams" | "seating" | "driverPool"> | undefined {
+  if ("teams" in raw && "seating" in raw && "driverPool" in raw) {
+    const teams = parseTeams(raw.teams);
+    const seating = parseSeating(raw.seating);
+    const driverPool = parseSigningPool(raw.driverPool);
+    return teams === undefined || seating === undefined || driverPool === undefined
+      ? undefined
+      : { teams, seating, driverPool };
+  }
+  if (!("teamsAndSeats" in raw)) {
+    return undefined;
+  }
+  const old = raw.teamsAndSeats;
+  if (old === null) {
+    return { teams: null, seating: null, driverPool: OPENING_DRIVER_POOL };
+  }
+  if (!isObject(old) || !("fill" in old)) {
+    return undefined;
+  }
+  const teams = parseTeams({ fill: old.fill });
+  const driverPool = parseSigningPool(old);
+  return teams === undefined || driverPool === undefined
+    ? undefined
+    : { teams, seating: null, driverPool };
+}
+
+function parseTeams(teams: unknown): KeptTeams | null | undefined {
+  if (teams === null) {
     return null;
   }
-  if (typeof rules !== "object" || Array.isArray(rules)) {
+  if (!isObject(teams) || !("fill" in teams)) {
     return undefined;
   }
-  if (!("fill" in rules && "minAge" in rules && "maxAge" in rules && "activeOnly" in rules)) {
+  const fill = OFFERED_SEAT_FILLS.find((offered) => offered === teams.fill);
+  return fill === undefined ? undefined : { fill };
+}
+
+function parseSeating(seating: unknown): Seating | null | undefined {
+  if (seating === null) {
+    return null;
+  }
+  if (!isObject(seating) || !("kind" in seating && "includeUnemployed" in seating)) {
     return undefined;
   }
-  const fill = OFFERED_SEAT_FILLS.find((offered) => offered === rules.fill);
-  const { minAge, maxAge, activeOnly } = rules;
+  const { kind, includeUnemployed } = seating;
+  return isArrangementKind(kind) && typeof includeUnemployed === "boolean"
+    ? { kind, includeUnemployed }
+    : undefined;
+}
+
+function parseSigningPool(pool: unknown): SigningPool | undefined {
+  if (!isObject(pool) || !("minAge" in pool && "maxAge" in pool && "activeOnly" in pool)) {
+    return undefined;
+  }
+  const { minAge, maxAge, activeOnly } = pool;
   const age = (value: unknown): value is number =>
     typeof value === "number" &&
     Number.isInteger(value) &&
     value >= AGE_RANGE.min &&
     value <= AGE_RANGE.max;
-  if (
-    fill === undefined ||
-    !age(minAge) ||
-    !age(maxAge) ||
-    minAge > maxAge ||
-    typeof activeOnly !== "boolean"
-  ) {
+  if (!age(minAge) || !age(maxAge) || minAge > maxAge || typeof activeOnly !== "boolean") {
     return undefined;
   }
-  return { fill, minAge, maxAge, activeOnly };
+  return { minAge, maxAge, activeOnly };
 }
 
 function parseCarPerformance(cars: unknown): CarPerformance | null | undefined {
@@ -669,11 +784,9 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   if (settings.engineSuppliers !== null) {
     lines.push({ name: "Engine supplier changes", value: "No" });
   }
-  if (settings.teamsAndSeats !== null) {
-    lines.push({
-      name: "Keep the first season's teams",
-      value: teamsAndSeatsLabel(settings.teamsAndSeats),
-    });
+  const seatRules = emptySeatRules(settings);
+  if (seatRules !== null) {
+    lines.push({ name: "Keep the first season's teams", value: teamsAndSeatsLabel(seatRules) });
   }
   return lines;
 }

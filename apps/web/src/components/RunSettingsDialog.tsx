@@ -1,7 +1,12 @@
 import type { RandomnessLevel } from "@alt-hist/engine";
 import { type ReactNode, useState } from "react";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
-import { historicalSettings, type RunSettings, type RunUnit } from "../lib/run-settings.js";
+import {
+  emptySeatRules,
+  historicalSettings,
+  type RunSettings,
+  type RunUnit,
+} from "../lib/run-settings.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
@@ -178,9 +183,20 @@ export function RunSettingsForm({
               }}
             />
             <TeamsAndSeatsSetting
-              teamsAndSeats={settings.teamsAndSeats}
-              onChange={(teamsAndSeats) => {
-                set({ teamsAndSeats });
+              teamsAndSeats={emptySeatRules(settings)}
+              onChange={(rules) => {
+                set(
+                  rules === null
+                    ? { teams: null }
+                    : {
+                        teams: { fill: rules.fill },
+                        driverPool: {
+                          minAge: rules.minAge,
+                          maxAge: rules.maxAge,
+                          activeOnly: rules.activeOnly,
+                        },
+                      },
+                );
               }}
             />
           </RunSettingsGroup>

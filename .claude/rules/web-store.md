@@ -60,15 +60,13 @@ back on the authored grid to null, so undoing your last swap stops the notices.
 
 Separate fields because they are separate questions — who drives the car, what is in the
 back of it, how good the car is — and any can be changed without the others. **One store
-action, though**: `setGrid(lineup, engines, arrangement?, chassis?)` applies them all,
+action, though**: `setGrid(lineup, engines, chassis?)` applies them all,
 because the editor applies one draft and a reader who moved a driver *and* changed a
 supplier asked a single question. Simulating a season in between would answer one nobody
 asked. `chassis` is last (in `createWorld` too) only so earlier callers stay unchanged.
 
-A third field rides with them: `world.arrangement`, the bulk rule the grid was arranged
-by, which `setGrid` takes as its optional third argument. It is a record of *how* the
-lineup came to be rather than a second copy of it, and it is the one part of an edited
-grid that is re-derived rather than carried — see
+All three are measured from the year's baseline, which under *Who drives where* is
+already reseated (`world.reseated`): a hand edit sits on top of the reseat — see
 `.claude/rules/grid-arrangements-app.md`, which loads on this file.
 
 `setGrid` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year *from
@@ -93,7 +91,7 @@ chosen, carried and remembered exactly the same way, through every action that r
 a year and into every year of an era; `createWorld` takes it last, and races on
 `runConstants(entered, randomness, settings)` — the one place settings reach the constants; the
 drivers come from `driverPoolOf(settings)`, the one place they reach the ratings, which
-`arrangedLineup` and the grid editor (`GridStage`'s `pool`) read too; the cars from
+the reseat and the grid editor (`GridStage`'s `pool`) read too; the cars from
 `rolledChassisOf`, kept as `world.baselineChassis` (`car-performance.md`). What one year
 of an era cannot know about the run is `createWorld`'s last argument, the options object
 `era: EraInputs` — `start` (defaulting to the world's own year), `lastRaced`,
@@ -111,7 +109,7 @@ whatever differs from the defaults in its settings line (`RunSettingsLine`); the
 (`{ seed, year, points, ratingMode, randomness, settings, namesKeptFrom,
 liveriesKeptFrom, enginesKeptFrom, rngState, field, lineup, engines, chassis,
 baselineChassis, walkedFrom, baselineEngineRatings, engineWalkedFrom, baselineTrends,
-gridKeptFrom, kept, keptSeats, arrangement, season }`) — one
+gridKeptFrom, kept, keptSeats, reseated, season }`) — one
 per season screen, none before one is started. `field` is the grid exactly as raced,
 and is no longer derivable from the seed files: who is in it depends on `lineup`, what
 they drive on `engines` and `chassis`, and their ratings on `ratingMode`. `points` is the year's

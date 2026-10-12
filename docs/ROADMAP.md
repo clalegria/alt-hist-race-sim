@@ -65,9 +65,13 @@ Before *publish it*, and before the next item adds more to the editor.
 - **Peak / Aged moves into the settings** (*Drivers*, season only), so it rebuilds on a
   fresh seed and locks with the rest once the grid is edited. `RatingModeToggle` leaves
   the grid.
-- **Old links**: each world in a recipe stores its lineup, so an old run rebuilds the same
-  grid, shown as edited. Drop `arrangement` from the recipe; `parseRunSettings` reads the
-  old `teamsAndSeats` shape.
+- **Old links**: `parseRunSettings` reads the old `teamsAndSeats` shape, so remembered
+  settings survive. A run saved before the change is refused on resume, since the
+  fingerprint covers the world's shape; nothing is published yet.
+
+**Built:** the settings data and the store (`teams`, `seating`, `driverPool`; the reseat in
+`baselineSeason`; `world.arrangement` and `retain` gone). **Left:** the settings form, the
+editor, the docs pass.
 
 Takes along `age-input-collapse` (one shared age input), `drivers-plural` and
 `split-grid-stage` (`docs/design/ui-review.md`). `restore-defaults-two-meanings` and

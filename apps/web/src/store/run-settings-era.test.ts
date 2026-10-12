@@ -177,7 +177,6 @@ function keptSupplierYear(start: number, year: number): World {
     null,
     undefined,
     null,
-    null,
     { ...HISTORICAL_SETTINGS, engineSuppliers: "first" },
     { start },
   );

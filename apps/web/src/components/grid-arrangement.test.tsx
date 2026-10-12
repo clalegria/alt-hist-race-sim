@@ -4,16 +4,11 @@
  * Rendered statically, like everything else here, so what these reach is the
  * markup each state produces. The split is the same one the rest of the editor
  * is under: **the rules themselves are unit-tested in `@alt-hist/data`**, where
- * an arrangement is a pure function of a season and a cast; **where an applied
- * rule ends up is tested in the store**, which is also where "the next year of
- * an era is arranged the same way" lives; and what is left for this level is
- * what the reader is *told* — which rule the panel says is chosen, and what the
- * grid says about the season afterwards.
- *
- * The one thing no level here reaches is the click that puts a rule down again:
- * clearing it on a hand edit is a handler on component state, and `web-app.md`
- * lists that layer as out of reach without jsdom. What *is* covered is the
- * consequence — a world carrying no arrangement says nothing about one.
+ * an arrangement is a pure function of a season and a cast; **where the
+ * settings' reseat ends up is tested in the store**, every year of an era
+ * included; and what is left for this level is what the reader is *told* —
+ * which rule the panel says is chosen, and what the grid says about the season
+ * afterwards.
  */
 
 import {
@@ -29,9 +24,11 @@ import {
 } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
+import { enteredSeason } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
-import { GridArrangements, GridStage } from "./GridStage.js";
+import { GridArrangements } from "./GridStage.js";
 import { ARRANGEMENT_LABELS, ArrangementNote, arrangementNote } from "./LineupChanges.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
@@ -51,26 +48,31 @@ const rules = (
   kind: ArrangementKind,
   {
     includeUnemployed = false,
-    retain = false,
     filters = DEFAULT_DRIVER_FILTERS,
-  }: { includeUnemployed?: boolean; retain?: boolean; filters?: DriverFilters } = {},
-): GridArrangement => ({ kind, includeUnemployed, filters, retain });
+  }: { includeUnemployed?: boolean; filters?: DriverFilters } = {},
+): GridArrangement => ({ kind, includeUnemployed, filters });
 
 const RANKED = rules("fastest-in-fastest");
 const RANKED_LABEL = ARRANGEMENT_LABELS["fastest-in-fastest"];
 
-/** A season run under a rule, with a swap so the change list is non-empty too. */
+/** A run whose settings reseat the grid by the ranked rule. */
+const RESEATED: RunSettings = {
+  ...HISTORICAL_SETTINGS,
+  seating: { kind: "fastest-in-fastest", includeUnemployed: false },
+};
+/** A season under the rule and nothing else: no hand edit. */
+const unchangedWorld = createWorld(3, YEAR, MODE, null, null, undefined, null, RESEATED);
+/** The same season with a hand swap over the reseat, so the change list is non-empty too. */
 const arrangedWorld = createWorld(
   3,
   YEAR,
   MODE,
-  swapDrivers(authored, SEATED, RESERVE),
+  swapDrivers(authoredLineup(enteredSeason(unchangedWorld)), SEATED, RESERVE),
   null,
   undefined,
-  RANKED,
+  null,
+  RESEATED,
 );
-/** The same season under a rule that happened to land on the entered grid. */
-const unchangedWorld = createWorld(3, YEAR, MODE, null, null, undefined, RANKED);
 const plainWorld = seededWorld(3, MODE);
 
 /** Whether a button in the markup is pressed, by the label inside it. */
@@ -128,17 +130,10 @@ describe("what the rules are called", () => {
     expect(arrangementNote(open, "peak")).toContain("peak age");
     expect(arrangementNote(open, "aged")).not.toContain("peak age");
   });
-
-  it("says so when the rule is being kept for the rest of an era", () => {
-    expect(arrangementNote(rules("random"), MODE)).not.toContain("every season");
-    expect(arrangementNote(rules("random", { retain: true }), MODE)).toContain("every season");
-  });
 });
 
 describe("the panel of rules", () => {
-  const html = renderToStaticMarkup(
-    <GridArrangements chosen={null} includeUnemployed={false} retain={false} />,
-  );
+  const html = renderToStaticMarkup(<GridArrangements chosen={null} includeUnemployed={false} />);
 
   it("offers all three, and says what pressing one costs", () => {
     for (const kind of ARRANGEMENT_KINDS) {
@@ -157,7 +152,7 @@ describe("the panel of rules", () => {
   it("marks exactly the chosen rule, whichever it is", () => {
     for (const chosen of ARRANGEMENT_KINDS) {
       const drawn = renderToStaticMarkup(
-        <GridArrangements chosen={chosen} includeUnemployed={false} retain={false} />,
+        <GridArrangements chosen={chosen} includeUnemployed={false} />,
       );
       for (const kind of ARRANGEMENT_KINDS) {
         expect(pressed(drawn, ARRANGEMENT_LABELS[kind]), `${chosen}/${kind}`).toBe(kind === chosen);
@@ -168,19 +163,8 @@ describe("the panel of rules", () => {
   it("offers the pool, unticked by default", () => {
     expect(html).toContain("Include unemployed drivers");
     expect(ticked(html, "Include unemployed drivers")).toBe(false);
-    const wide = renderToStaticMarkup(
-      <GridArrangements chosen={null} includeUnemployed retain={false} />,
-    );
+    const wide = renderToStaticMarkup(<GridArrangements chosen={null} includeUnemployed />);
     expect(ticked(wide, "Include unemployed drivers")).toBe(true);
-  });
-
-  it("offers to keep the rule only inside an era, where there is a next year", () => {
-    expect(html).not.toContain("every season of the era");
-    const inEra = renderToStaticMarkup(
-      <GridArrangements chosen={null} includeUnemployed={false} retain inEra />,
-    );
-    expect(inEra).toContain("Keep this for every season of the era");
-    expect(ticked(inEra, "Keep this for every season of the era")).toBe(true);
   });
 });
 
@@ -209,19 +193,12 @@ describe("what the grid says about a rule in force", () => {
     expect(html).toContain("Edit grid");
   });
 
-  it("says it even when the rule changed nobody", () => {
-    // A shuffle can land on the grid the season was entered with. There is then
-    // no swap to list, and the reader who pressed the button is still owed the
-    // word — which is why the notice does not hang off the change list.
+  it("says it with no hand edit at all, since the reseat is the starting grid", () => {
+    // The reseat is the baseline, so there is no swap to list, and the reader
+    // is still owed the word — which is why the notice does not hang off the
+    // change list.
     const landed = renderToStaticMarkup(
-      <GridStage
-        field={unchangedWorld.field}
-        year={YEAR}
-        ratingMode={MODE}
-        lineup={unchangedWorld.lineup}
-        engines={null}
-        arrangement={unchangedWorld.arrangement}
-      />,
+      <SeasonView {...shownAt(unchangedWorld, { kind: "grid" })} canChooseAbility={false} />,
     );
     expect(unchangedWorld.lineup).toBeNull();
     expect(landed).toContain(RANKED_LABEL);
@@ -250,12 +227,11 @@ describe("what the season summary says about a rule", () => {
     />,
   );
 
-  it("declares it twice, like every other thing done to the grid", () => {
-    // Once in the banner above the champions, once on the grid tab: a
-    // championship won on a rearranged grid is a different claim from one won
-    // on the entry list, and the foot of the page is too late to find out.
-    expect(html.split(RANKED_LABEL)).toHaveLength(3);
-    expect(html.indexOf(RANKED_LABEL)).toBeLessThan(html.indexOf("champion"));
+  it("names it on the grid tab, not in the banner of hand edits", () => {
+    // The reseat is a setting, not an edit: the banner lists only what the
+    // reader changed by hand.
+    expect(html.split(RANKED_LABEL)).toHaveLength(2);
+    expect(html.indexOf(RANKED_LABEL)).toBeGreaterThan(html.indexOf("champion"));
   });
 
   it("says nothing of it on a season nobody rearranged", () => {

@@ -50,9 +50,9 @@ therefore re-runs the rule in force**, exactly as the checkbox does (`narrow` in
 `GridStage` does both jobs); neither counts as a hand edit.
 
 **The filters travel inside the `GridArrangement`**, as a snapshot rather than a
-reference. A rule outlives the screen it was pressed on — an era re-applies it every
-year, and "the drivers who were around, aged 18 to 42" must mean the same thing in 1983
-without depending on where a slider is sitting three seasons later.
+reference: the editor's buttons take the reserve list's, the run settings' reseat the
+signing pool's (`seatingArrangement`), so "aged 18 to 42" means the same thing in every
+year of an era.
 
 It also makes the two rating modes fall out for free. `defaultDriverFilters` already
 opens the career filters **on** in `aged` mode — the drivers actually around that year,

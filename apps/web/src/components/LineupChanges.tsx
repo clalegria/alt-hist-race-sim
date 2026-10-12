@@ -51,7 +51,7 @@ export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
 };
 
 /**
- * What a rule did, in a sentence: the cast it drew on, and whether it repeats.
+ * What a rule did, in a sentence: the cast it drew on.
  *
  * The cast is worth spelling out because it is the reader's own — the pool
  * filters travel inside the arrangement, so a rule kept across an era is drawing
@@ -63,10 +63,9 @@ export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
 export function arrangementNote(arrangement: GridArrangement, mode: RatingMode): string {
   const { filters } = arrangement;
   const band = `${mode === "peak" ? "peak age" : "aged"} ${filters.minAge} to ${filters.maxAge}`;
-  const cast = arrangement.includeUnemployed
+  return arrangement.includeUnemployed
     ? `Drivers without a seat could be picked too, ${band}.`
     : "Only that season's drivers.";
-  return arrangement.retain ? `${cast} Repeated every season.` : cast;
 }
 
 /**
@@ -314,17 +313,11 @@ export function EditedGridBanner({
   changes,
   engineChanges = [],
   chassisChanges = [],
-  arrangement = null,
-  ratingMode,
   className,
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   chassisChanges?: readonly ChassisChange[];
-  /** The bulk rule the grid was arranged by, if it was one rather than swaps. */
-  arrangement?: GridArrangement | null;
-  /** Read only by the rule's note, and only to name the age band it filtered on. */
-  ratingMode: RatingMode;
   className?: string;
 }) {
   return (
@@ -341,9 +334,6 @@ export function EditedGridBanner({
           {changeCount(changes, engineChanges, chassisChanges)} from the real one.
         </span>
       </div>
-      {arrangement === null ? null : (
-        <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
-      )}
       <GridChanges
         changes={changes}
         engineChanges={engineChanges}

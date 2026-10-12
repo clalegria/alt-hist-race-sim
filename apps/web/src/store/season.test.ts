@@ -2,10 +2,8 @@ import {
   authoredChassis,
   authoredEngines,
   authoredLineup,
-  DEFAULT_DRIVER_FILTERS,
   DEFAULT_RATING_MODE,
   FIRST_AUTHORED_SEASON,
-  type GridArrangement,
   reserveDrivers,
   seasonConstants,
   seasonSeed,
@@ -28,12 +26,13 @@ import {
   rolledEnginesOf,
   samePoints,
 } from "../lib/run-settings.js";
-import { adjacentSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
+import { adjacentSeason, enteredSeason, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Beat } from "../lib/timeline.js";
 import {
   createWorld,
   isUntouched,
   type Run,
+  racedLineup,
   runConstants,
   useSeasonStore,
   type World,
@@ -529,17 +528,7 @@ describe("the points setting", () => {
     // season, handed out differently.
     expect(other.length).toBeGreaterThan(0);
     const historical = createWorld(3, YEAR);
-    const scored = createWorld(
-      3,
-      YEAR,
-      DEFAULT_RATING_MODE,
-      null,
-      null,
-      undefined,
-      null,
-      null,
-      fixed,
-    );
+    const scored = createWorld(3, YEAR, DEFAULT_RATING_MODE, null, null, undefined, null, fixed);
 
     expect(scored.points).toEqual(other);
     expect(scored.settings).toEqual(fixed);
@@ -710,7 +699,7 @@ describe("the reliability and breakdowns settings", () => {
   });
 
   it("record no Reliability under Breakdowns: None, where it changes nothing", () => {
-    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, {
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, {
       ...HISTORICAL_SETTINGS,
       breakdowns: "none",
       reliability: harder ?? YEAR,
@@ -719,7 +708,7 @@ describe("the reliability and breakdowns settings", () => {
   });
 
   it("race the same season as history when Reliability names the year itself", () => {
-    const own = createWorld(3, YEAR, DEFAULT_RATING_MODE, null, null, undefined, null, null, {
+    const own = createWorld(3, YEAR, DEFAULT_RATING_MODE, null, null, undefined, null, {
       ...HISTORICAL_SETTINGS,
       reliability: YEAR,
     });
@@ -727,7 +716,7 @@ describe("the reliability and breakdowns settings", () => {
   });
 
   it("break no car down under None", () => {
-    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, null, {
+    const world = createWorld(3, YEAR, "peak", null, null, undefined, null, {
       ...HISTORICAL_SETTINGS,
       breakdowns: "none",
     });
@@ -875,130 +864,119 @@ describe("the chosen grid", () => {
   });
 });
 
-describe("the grid arranged by rule", () => {
-  /** One of the editor's bulk rules, as the grid stage hands one over. */
-  const ranked: GridArrangement = {
-    kind: "fastest-in-fastest",
-    includeUnemployed: false,
-    // The pool the rule may draw on, which only matters when it is allowed to:
-    // the panel's own defaults, since nothing here is about filtering.
-    filters: DEFAULT_DRIVER_FILTERS,
-    retain: false,
+describe("the grid reseated by Who drives where", () => {
+  const ranked: RunSettings = {
+    ...HISTORICAL_SETTINGS,
+    seating: { kind: "fastest-in-fastest", includeUnemployed: false },
   };
-  const shuffled: GridArrangement = { ...ranked, kind: "random" };
+  const shuffled: RunSettings = {
+    ...HISTORICAL_SETTINGS,
+    seating: { kind: "random", includeUnemployed: false },
+  };
 
-  beforeEach(() => {
+  /** Every seated driver, sorted: the cast, whatever the seats. */
+  function cast(lineup: Readonly<Record<string, readonly string[]>>): string[] {
+    return Object.values(lineup).flat().sort();
+  }
+
+  it("reseats nothing under Historical", () => {
     useSeasonStore.getState().simulate(3, YEAR);
+    expect(running().world.reseated).toBeNull();
   });
 
-  it("starts on no rule at all", () => {
-    expect(running().world.arrangement).toBeNull();
+  it("is the starting grid, not an edit", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, ranked);
+    const { world } = running();
+    expect(world.reseated).not.toBeNull();
+    expect(world.lineup).toBeNull();
+    expect(racedLineup(world)).toEqual(world.reseated);
+    // What the editor's Restore and the change notices measure from.
+    expect(authoredLineup(enteredSeason(world))).toEqual(world.reseated);
+    expect(isUntouched(useSeasonStore.getState().run as Run)).toBe(true);
   });
 
-  it("records the rule beside the lineup it produced", () => {
-    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null, ranked);
-    expect(running().world.arrangement).toEqual(ranked);
+  it("seats the season's own drivers, each team at its count, when nobody else may sign", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
+    const raced = racedLineup(running().world);
+    expect(cast(raced)).toEqual(cast(AUTHORED));
+    for (const [teamId, drivers] of Object.entries(AUTHORED)) {
+      expect(raced[teamId], teamId).toHaveLength(drivers.length);
+    }
   });
 
-  it("records nothing for a grid the reader assembled by hand", () => {
-    // The default, and the case every caller that predates the rules is in.
-    useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
-    expect(running().world.arrangement).toBeNull();
+  it("fills every seat, nobody twice, when drivers without a drive can sign", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, {
+      ...shuffled,
+      seating: { kind: "random", includeUnemployed: true },
+      driverPool: { minAge: 16, maxAge: 56, activeOnly: false },
+    });
+    const seated = cast(racedLineup(running().world));
+    expect(seated).toHaveLength(SEATS);
+    expect(new Set(seated).size).toBe(SEATS);
   });
 
-  it("keeps the rule recorded even when it lands on the entered grid", () => {
-    // A shuffle can come back with everybody where the season put them. The
-    // lineup is then null, like any unedited grid, but the reader pressed a
-    // button and the screen still has to say which.
-    useSeasonStore.getState().setGrid(null, null, shuffled);
-    expect(running().world.lineup).toBeNull();
-    expect(running().world.arrangement).toEqual(shuffled);
-  });
-
-  it("is part of the save file, and stays plain data", () => {
-    useSeasonStore.getState().setGrid(null, null, ranked);
-    const world = running().world;
-    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
-  });
-
-  it("re-runs a ranked rule through Restart season, on fresh dice and the same grid", () => {
-    // Applied, then restarted twice: the first restart is what materialises the
-    // rule into a lineup, and the second is the claim — a rule that ranks by
-    // rating does not depend on the dice, so a new seed must hand back the same
-    // grid. A store that carried the *seats* instead of the rule would also come
-    // back identical, which is why the rule itself is asserted beside them.
-    useSeasonStore.getState().setGrid(null, null, ranked);
+  it("keeps a ranked reseat through Restart season, on fresh dice", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, ranked);
+    const { seed, reseated } = running().world;
     useSeasonStore.getState().restartSeason();
-    const arranged = running().world.lineup;
-    const seed = running().world.seed;
-    useSeasonStore.getState().restartSeason();
-
-    expect(arranged).not.toBeNull();
-    expect(running().world.arrangement).toEqual(ranked);
-    expect(running().world.lineup).toEqual(arranged);
     expect(running().world.seed).not.toBe(seed);
+    expect(running().world.reseated).toEqual(reseated);
   });
 
-  it("re-rolls a shuffled grid on Restart season, given enough goes", () => {
-    // Not an assertion about one restart: two shuffles of the same field can
-    // agree. What must not happen is the grid being frozen for the rest of the
-    // run, which is what carrying the lineup instead of the rule would do.
-    useSeasonStore.getState().setGrid(null, null, shuffled);
-    const first = JSON.stringify(running().world.lineup);
-    const grids = new Set([first]);
+  it("re-rolls a random reseat on Restart season, given enough goes", () => {
+    // Two shuffles of the same field can agree; what must not happen is the
+    // grid frozen for good.
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
+    const grids = new Set([JSON.stringify(running().world.reseated)]);
     for (let go = 0; go < 8; go += 1) {
       useSeasonStore.getState().restartSeason();
-      grids.add(JSON.stringify(running().world.lineup));
+      grids.add(JSON.stringify(running().world.reseated));
     }
     expect(grids.size).toBeGreaterThan(1);
   });
 
-  it("arranges again when the ability mode changes, since that is who is fastest", () => {
-    useSeasonStore.getState().simulate(3, YEAR, "peak");
-    useSeasonStore.getState().setGrid(null, null, ranked);
-    useSeasonStore.getState().setRatingMode("aged");
-    const aged = running().world.lineup;
-    useSeasonStore.getState().setRatingMode("peak");
+  it("measures a hand edit from the reseat, and Clear all edits returns to it", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
+    const reseated = running().world.reseated;
+    if (reseated === null) {
+      throw new Error("expected a reseat");
+    }
+    useSeasonStore.getState().setGrid(swapDrivers(reseated, SEATED, RESERVE), null);
+    expect(running().world.lineup).not.toBeNull();
+    expect(running().world.reseated).toEqual(reseated);
 
-    expect(aged).not.toBeNull();
-    expect(running().world.arrangement).toEqual(ranked);
-    // The two modes rank the field differently, so the same rule seats them
-    // differently. Carrying the lineup instead of re-running the rule would
-    // leave "the fastest drivers" meaning the other mode's fastest.
-    expect(running().world.lineup).not.toEqual(aged);
+    useSeasonStore.getState().setGrid(null, null);
+    expect(running().world.lineup).toBeNull();
+    expect(racedLineup(running().world)).toEqual(reseated);
   });
 
-  it("gives the same answer flipping back, so the switch is not a slot machine", () => {
-    useSeasonStore.getState().simulate(3, YEAR, "peak");
-    useSeasonStore.getState().setGrid(null, null, shuffled);
+  it("reseats on the new ratings when the ability mode changes, the same dice both ways", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
+    const peak = running().world.reseated;
     useSeasonStore.getState().setRatingMode("aged");
-    const first = running().world.lineup;
+    expect(running().world.reseated).toEqual(
+      createWorld(3, YEAR, "aged", null, null, undefined, null, shuffled).reseated,
+    );
     useSeasonStore.getState().setRatingMode("peak");
-    useSeasonStore.getState().setRatingMode("aged");
-
-    expect(first).not.toBeNull();
-    // Re-rolled from the same seed over the same entry list, which is why the
-    // rule is never re-run over the grid it last produced: a shuffle of a
-    // shuffle would make a toggle into a dice cup.
-    expect(running().world.lineup).toEqual(first);
+    expect(running().world.reseated).toEqual(peak);
   });
 
-  it("drops the rule with the grid when stepping to the season next door", () => {
+  it("carries the setting to the season next door, reseating that year", () => {
     const next = adjacentSeason(YEAR, 1);
     if (next === null) {
       throw new Error("the range needs a season after the first");
     }
-    useSeasonStore.getState().setGrid(null, null, ranked);
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, ranked);
     useSeasonStore.getState().switchSeasonYear(next);
-    expect(running().world.arrangement).toBeNull();
+    expect(running().world.year).toBe(next);
+    expect(running().world.reseated).not.toBeNull();
     expect(running().world.lineup).toBeNull();
   });
 
-  it("refuses a rule once the season has started revealing", () => {
-    useSeasonStore.getState().continueRun();
-    const before = running().world;
-    useSeasonStore.getState().setGrid(null, null, ranked);
-    expect(running().world).toBe(before);
+  it("is part of the save file, and stays plain data", () => {
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
+    const world = running().world;
+    expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
 });
 
@@ -1191,7 +1169,7 @@ describe("the re-rated chassis", () => {
 
   it("re-runs the same seed with the reader's own chassis in the field", () => {
     const before = running().world;
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     const after = running().world;
 
     expect(after.chassis).toEqual(rerated);
@@ -1200,20 +1178,20 @@ describe("the re-rated chassis", () => {
       expect(entrant.chassis, entrant.teamId).toEqual(rerated[entrant.teamId]);
     }
     expect(after.season).toEqual(
-      createWorld(3, YEAR, DEFAULT_RATING_MODE, null, null, DEFAULT_RANDOMNESS_LEVEL, null, rerated)
+      createWorld(3, YEAR, DEFAULT_RATING_MODE, null, null, DEFAULT_RANDOMNESS_LEVEL, rerated)
         .season,
     );
   });
 
   it("forgets a chassis set that is the authored one, so nothing claims a change", () => {
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
-    useSeasonStore.getState().setGrid(null, null, null, authored);
+    useSeasonStore.getState().setGrid(null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, authored);
     expect(running().world.chassis).toBeNull();
     expect(running().world).toEqual(createWorld(3, YEAR));
   });
 
   it("carries into a fresh seed of the same season, and across a change of ability model", () => {
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     useSeasonStore.getState().restartSeason();
     expect(running().world.chassis).toEqual(rerated);
     useSeasonStore.getState().setRatingMode("aged");
@@ -1222,12 +1200,12 @@ describe("the re-rated chassis", () => {
 
   it("cannot be changed once the season has started revealing", () => {
     useSeasonStore.getState().continueRun();
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     expect(running().world.chassis).toBeNull();
   });
 
   it("is part of the save file like everything else", () => {
-    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, rerated);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
@@ -1337,24 +1315,19 @@ describe("an untouched run, which can be left without asking", () => {
     expect(untouched()).toBe(false);
   });
 
-  it("is touched by an edited grid: a swap, or a rule", () => {
+  it("is touched by an edited grid, but not by a reseat, which is a setting", () => {
     useSeasonStore.getState().setGrid(swapDrivers(AUTHORED, SEATED, RESERVE), null);
     expect(untouched()).toBe(false);
-    useSeasonStore.getState().simulate(3, YEAR);
-    useSeasonStore.getState().setGrid(null, null, {
-      kind: "random",
-      includeUnemployed: false,
-      filters: DEFAULT_DRIVER_FILTERS,
-      retain: false,
+    useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, {
+      ...HISTORICAL_SETTINGS,
+      seating: { kind: "random", includeUnemployed: false },
     });
-    expect(untouched()).toBe(false);
+    expect(untouched()).toBe(true);
   });
 
   it("is touched by a re-rated chassis", () => {
     const team = SEED.entries[0]?.teamId ?? "";
-    useSeasonStore
-      .getState()
-      .setGrid(null, null, null, stepChassis(authoredChassis(SEED), team, -1));
+    useSeasonStore.getState().setGrid(null, null, stepChassis(authoredChassis(SEED), team, -1));
     expect(untouched()).toBe(false);
   });
 

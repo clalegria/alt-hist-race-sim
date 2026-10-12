@@ -2,8 +2,8 @@ import { AGE_RANGE, type EmptySeatRules, withAge } from "@alt-hist/data";
 import { useState } from "react";
 import {
   OFFERED_SEAT_FILLS,
-  OPENING_SEAT_RULES,
-  type RunSettings,
+  OPENING_DRIVER_POOL,
+  OPENING_TEAMS,
   SEAT_FILL_LABELS,
 } from "../lib/run-settings.js";
 import { SettingNote, SettingSegments, SettingSub } from "./SettingSegments.js";
@@ -37,12 +37,14 @@ export function TeamsAndSeatsSetting({
   teamsAndSeats,
   onChange,
 }: {
-  /** Null is No, the historical answer. */
-  teamsAndSeats: RunSettings["teamsAndSeats"];
+  /** Null is No, the historical answer (`emptySeatRules`). */
+  teamsAndSeats: EmptySeatRules | null;
   /** Absent in tests, where nothing is clicked. */
-  onChange?: (teamsAndSeats: RunSettings["teamsAndSeats"]) => void;
+  onChange?: (teamsAndSeats: EmptySeatRules | null) => void;
 }) {
-  const [rules, setRules] = useState<EmptySeatRules>(teamsAndSeats ?? OPENING_SEAT_RULES);
+  const [rules, setRules] = useState<EmptySeatRules>(
+    teamsAndSeats ?? { ...OPENING_DRIVER_POOL, ...OPENING_TEAMS },
+  );
   const keep = (to: EmptySeatRules) => {
     setRules(to);
     onChange?.(to);

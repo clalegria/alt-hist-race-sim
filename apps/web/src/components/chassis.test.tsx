@@ -172,7 +172,7 @@ describe("a re-rated chassis in the list of changes", () => {
 describe("a grid with a re-rated chassis", () => {
   const rerated = stepChassis(authoredChassis(SEED), TEAM, -1);
   const changes = chassisChanges(SEED, rerated);
-  const changed = createWorld(world.seed, YEAR, "peak", null, null, undefined, null, rerated);
+  const changed = createWorld(world.seed, YEAR, "peak", null, null, undefined, rerated);
 
   it("lists it, and marks the team's header as the engine change does", () => {
     const plain = renderToStaticMarkup(

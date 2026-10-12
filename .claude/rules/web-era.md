@@ -45,8 +45,8 @@ year can be crowned twice. Continue off the review is the only thing that append
 year only, the crowned years standing, and is refused on the review, where that year
 has itself been crowned. `restartEra` goes back to the first year's grid with every year
 since discarded; what carries is how the reader chose to play (randomness, ability mode)
-and **the first year's grid** — its edits, engines and bulk rule, a kept rule going on to
-arrange every year after. A grid edited in a later year goes with that year.
+and **the first year's grid** — its edits, engines and chassis; a reseat is a setting, so
+it is thrown again on the new dice. A grid edited in a later year goes with that year.
 
 ## What crosses a year boundary
 
@@ -64,11 +64,9 @@ The ability mode is carried,
 but it was never chosen — an era runs at `ERA_RATING_MODE` throughout and offers no
 switch; see `.claude/rules/web-store.md` for why.
 
-**A bulk rule does, if the reader ticked the box.** The grid editor's three
-rearrange-everything buttons carry a `retain` flag, and an era that has one re-runs the
-*rule* on each following year's own entry list — never the lineup, which was a grid for a
-year now behind them. Same split as the ability mode: how to play carries, one grid does
-not. `nextEraGrid` in the store is where it happens, for stepping and for jumping alike;
+**A reseat does, as a setting.** Under *Who drives where* every year's starting grid is
+reseated by the rule, on that year's own entry list, in `baselineSeason` — never last
+year's lineup carried. A hand edit in one year does not stop it the next.
 `.claude/rules/grid-arrangements-app.md` owns the rest.
 
 **The dice do.** The next year's seed is `nextSeed(world.rngState)` — drawn from where

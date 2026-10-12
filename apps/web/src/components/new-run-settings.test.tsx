@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import {
   type CarPerformance,
   HISTORICAL_SETTINGS,
-  OPENING_SEAT_RULES,
+  OPENING_TEAMS,
   type RunSettings,
 } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
@@ -38,7 +38,7 @@ function pressed(html: string): string[] {
 
 /** An era's first year under the given settings. */
 function eraYear(settings: RunSettings) {
-  return createWorld(3, YEAR, ERA_RATING_MODE, null, null, undefined, null, null, settings);
+  return createWorld(3, YEAR, ERA_RATING_MODE, null, null, undefined, null, settings);
 }
 
 describe("the engine performance setting", () => {
@@ -167,7 +167,7 @@ describe("the notes, with every what-if on", () => {
     teamNames: "first",
     liveries: "first",
     engineSuppliers: "first",
-    teamsAndSeats: OPENING_SEAT_RULES,
+    teams: OPENING_TEAMS,
   };
 
   it("no longer say engines or colours stay as they were", () => {

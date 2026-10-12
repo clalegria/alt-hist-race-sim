@@ -80,7 +80,7 @@ child*, which applies the padding and the rules between): **Races** — Luck on 
 Points system; **Cars** — Chassis performance, Engine performance, In-season development,
 Mechanical failures (with Cars as reliable as under it); **Over the years**, era only
 (`eraSettings`) — Driver career events, Team name changes, Livery changes, Engine supplier
-changes, Keep the first season's teams. Two columns from `lg`: an era's Races + Cars
+changes, Keep the first season's teams. *Who drives where* has no row yet. Two columns from `lg`: an era's Races + Cars
 beside its years, a season's Races beside Cars. The form passes the whole remembered set through, so a
 season's screen never drops an era answer it does not show.
 
@@ -119,8 +119,17 @@ only values this build could offer) and `whatIfsOf`, the line's entries.
   null / `"first"`, each its own: under No each team keeps the name and base, the livery,
   or the engine supplier of its first season in the run (`team-eras.md`; the engines are
   `withFirstEngines`, `data-layers.md`).
-- **Keep the first season's teams**: *No* / *Yes*, null or `EmptySeatRules`
-  (`teams-and-seats.md`).
+- **Keep the first season's teams**: `teams`, null or `{ fill }`, era only, with the
+  signing pool `driverPool` (`teams-and-seats.md`).
+- **Who drives where**: `seating`, null or `{ kind, includeUnemployed }`, on both
+  screens: every year's grid reseated by a rule in `arrange.ts`
+  (`grid-arrangements-app.md`).
+- **Drivers who can be signed**: `driverPool`, a `SigningPool`, never null. In force only
+  while something signs drivers (`signsDrivers`); otherwise `settingsInForce` puts it
+  back on `OPENING_DRIVER_POOL`, so no world records a pool nothing read.
+
+`parseRunSettings` also reads the shape before those three split, `teamsAndSeats` (Keep's
+fill and pool in one), so a remembered choice survives.
 
 One remembered set serves both screens; the store drops the era-only ones from a
 standalone season (`seasonSettings`, in `startSeason`, `simulate` and `setRunSettings`).
