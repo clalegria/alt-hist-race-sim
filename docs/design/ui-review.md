@@ -8,6 +8,7 @@ A to-do list from a review of the whole web app. The review covered every screen
 It found mostly **drift**: the same thing drawn, named or placed in several ways because features landed one at a time.
 
 **The file reads in priority order: take the items top to bottom.**
+- **The author has not sorted it yet** (*Sort the UI review*, `docs/ROADMAP.md`). Until an item is kept there, it is a suggestion, not a to-do.
 - **Take one item per chat**, by its id (for example, do `drivers-plural`).
 - Each item names its files and the screenshot step that shows it.
 - Line numbers marked `~` are approximate.

@@ -41,14 +41,54 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ---
 
-## 1. Edit engines in the grid editor
+## 1. Tidy the run settings and the grid editor
+
+The grid editor and the settings dialog have grown into each other, and a reader cannot
+tell which one holds a choice. One of the most important jobs before *publish it*, and
+before the next item adds more to the editor. **The line to draw: a choice about the
+whole run lives in the settings; the editor only changes this grid.** Today the editor
+holds run-wide answers:
+
+- **"Keep this for every season of the era"** on the reseat buttons, and **"Include
+  unemployed drivers"** beside it (`GridStage`, `world.arrangement`;
+  `.claude/rules/grid-arrangements-app.md`).
+- **The pool filters** (hide retired, hide debuting, an age range), which travel with a
+  kept rule, so they are era-wide once it is kept. The settings' *Keep the first season's
+  teams* has a second age range and driver filter of its own (`TeamsAndSeatsSetting`).
+- **Peak / Aged** sits above the grid, outside both (`RatingModeToggle`).
+
+Open, to agree before building:
+- **Which of these move.** The likely shape: a kept reseat rule becomes an *Over the
+  years* setting, and the one-press reseat buttons stay in the editor as an edit to this
+  grid.
+- **One driver-pool answer or two.** Whether the editor's filters and *Keep the first
+  season's teams* share one setting.
+- **When a kept rule can start.** The settings lock after the first grid; the editor can
+  start a kept rule in any year of an era. Moving it means choosing it up front.
+
+A move changes what a world and the reload recipe store (`web-persistence.md`), so old
+links need a reading. Take along the UI review items on these two screens:
+`restore-defaults-two-meanings`, `settings-summary-wall`, `age-input-collapse`,
+`drivers-plural`, `split-grid-stage` (`docs/design/ui-review.md`).
+
+## 2. Edit engines in the grid editor
 
 The chassis has steppers (`stepChassis`); the engine only its supplier picker, and the
 popover's engine panel none. Add steppers for its three ratings. Open: whether a step
 moves the engine for every team running it (recommended, as *Engine performance* rolls
 it, and the card says so) or only this team's.
 
-## 2. Phone layout
+## 3. Sort the UI review
+
+`docs/design/ui-review.md` is a to-do list from an AI review of the whole app, and the
+author has not yet read it as a list of their own. **The author's pass, item by item**:
+must-do before *publish it*, later, or drop. Some of its proposals the author may not
+agree with. A dropped item is deleted. A kept one becomes DECIDED with the author's
+answer, and its OPEN question is settled. The must-dos are then built, one per chat, before
+*publish it*. The items tagged *Phone layout* and *The text pass* are sorted here too,
+which is why this comes before both.
+
+## 4. Phone layout
 
 The app is built for a desktop window; a public site gets most of its traffic from a
 phone held vertically. The grid, the classification and the standings are wide tables,
@@ -69,7 +109,7 @@ layout***: what each screen loses at 390px today and the move proposed for it.
 Cheaper before the editor adds more screens, and *publish it* is what makes it matter.
 Styling and layout only; nothing about the model changes.
 
-## 3. The share image
+## 5. The share image
 
 A button on a season's overview (`SeasonOverview`) and an era's review (`EraChampions`)
 that makes a **portrait PNG, 1080×1920**, to send from a phone — the way small games share
@@ -85,7 +125,7 @@ no save format.
   download where there is not.
 - Open: what each card shows, and whether the era card is one image or one per page.
 
-## 4. Publish it
+## 6. Publish it
 
 Put the app on the public internet, unfinished, and keep it there.
 
@@ -174,7 +214,7 @@ the reason to put a version stamp in the footer here.
   season data may carry conditions from wherever it was sourced. Settle what it is
   licensed as and say so on the About page. Open.
 
-## 5. The in-app ratings editor
+## 7. The in-app ratings editor
 
 Turns on the `edit-ratings` card. **A player feature first**, not an authoring tool:
 someone who disagrees that a driver was worth what the data says should be able to change
@@ -204,7 +244,7 @@ After *publish it*: not needed for launch.
   serves the author, and it makes a user's tuning something that can be sent in as data.
   Always on or behind a flag is open.
 
-## 6. Historical career records
+## 8. Historical career records
 
 When a run starts in 1980, Jones should already have his wins and Ferrari its titles, so
 the first screen reads as a career in progress rather than everyone's debut — and the
@@ -229,7 +269,7 @@ season**.
 Consumed by the era's champions screen, and later by anything wanting to say who the
 established names are — the driver market included.
 
-## 7. Seasonal factors
+## 9. Seasonal factors
 
 Numbers that are one global constant today but are really per-era, in the season file
 where they belong. What is left is **the cosmetic qualifying and race gaps**: a 1955
@@ -238,7 +278,7 @@ all of them today. Display-only — nothing in the model reads it. Setting it pe
 measurement job, and this item is the authorisation the tuning invariant requires — for
 *this* number, not for driver or car ratings, which a session leaves alone.
 
-## 8. Circuit character
+## 10. Circuit character
 
 A round reaches the model as a `RoundContext` with one field, `country`, read only by
 home advantage. Give circuits attributes and feed them in:
@@ -254,7 +294,7 @@ A deep change to the score — the "changes what a rating means" caveat applies 
 adds an authored block to every round of every season file, the largest of the
 re-authoring passes.
 
-## 9. Driver market
+## 11. Driver market
 
 Transfers between seasons: what turns an era from a replay into an alternate history, and
 what turns on the `era-advanced` card. **Designed in `docs/design/era-advanced.md`** —
@@ -268,7 +308,7 @@ beats and pages of the run (`docs/design/era-advanced.md` §12). This is where t
 the era loop gets used: the grid for year N+1 stops coming from that year's seed file and
 starts coming from the market.
 
-## 10. Game mode
+## 12. Game mode
 
 The `game` card: take charge of a team, hire and fire drivers, choose development
 directions, negotiate engine deals. Far future, and explicitly after a working
