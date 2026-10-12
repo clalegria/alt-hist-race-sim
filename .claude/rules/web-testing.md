@@ -7,53 +7,22 @@ paths:
 
 # Web app — testing
 
-Vitest with **no jsdom**. `SeasonView` takes the world and the cursor as **props**
-rather than reading the store, so every stage renders through `renderToStaticMarkup`
-without a DOM and without clicking through fourteen rounds. `MainMenu` and
-`SeasonPicker` take their callbacks the same way — the only level at which a greyed-out
-mode or an unplayable year can be checked. A test passes a season as
-`shownAt(world, view)` (`src/test-support.ts`): the world cut at that beat, as the gate
-cuts it for a page. The routes connect them; rendering a URL
-through the router is `.claude/rules/web-routing.md`.
+Vitest with **no jsdom**: components are rendered with `renderToStaticMarkup`.
 
-That split is partly structural and partly because **zustand serves
-`getInitialState()` as the `useSyncExternalStore` *server* snapshot** — a static render
-always shows the world the store was built with, whatever has been simulated since.
-SSR-only and irrelevant to a client-rendered SPA, but it is why store updates are
-asserted in the store's own tests.
-
-`menu.test.tsx` counts rendered `disabled=""` attributes, **not** the word "disabled"
-— several perfectly clickable buttons carry `disabled:opacity-50` in their class list.
-
-**Nothing here asserts an authored number or what a seed produced** — the rule is in
-`CLAUDE.md`, and `src/test-support.ts` is how it is kept. A rating rule is asserted
-against synthetic ratings, the `driver()` fixture in `src/lib/rating.test.ts`.
-`seededWorld()` is a fixture (a render has to be *of* something); `findWorld(predicate)` searches seeds for a season
-of the shape a test needs — a title settled with rounds to spare, a place that changed
-hands — instead of pinning the seed that happened to work. Counts come off the grid:
-`world.field.length`, `teamCount`, `starterCount`, `SEED.calendar.length`. `YEAR` and
-`SEED` are the earliest authored season rather than a year written down, and anything
-that must hold for *every* season loops `seasons` instead. The suite is checked against
-this by perturbing every rating in the seed data and by adding an entry to a season; it
-stays green through both.
-
-The grid editor is split the same way, and for the same reason. `SeasonGrid` and
-`ReserveList` are **controlled** — the draft lives in `useGridDraft` above them — so every
-state they can be in renders on its own, and the interaction itself is the pure
-`pickUp(lineup, selected, driverId)` in `useGridDraft.ts`, which is where the
-select-then-swap rule is tested. The swap rules underneath it are unit-tested in
-`@alt-hist/data`; where an applied grid ends up is tested in the store.
-
-The **supplier picker is a native `select`** partly for that reason: it is the one
-control in the editor whose state a DOM-less test can read back, since React renders
-`selected=""` on the chosen option. `engines.test.tsx` reads the selected values in card
-order rather than searching for a name — a works team is called the same thing as one of
-the options in every other team's picker.
-
-What this level cannot reach: the click handlers, the scroll-to-top effect, the
-editor's open/closed toggle, the navigation blocker, which layout of the run bar a media
-query shows, and anything Radix renders into a portal — popover contents, the run bar's ⋯
-menu, the dialogs. All would need jsdom. What the bar offers is `runBarFor`, and where
-each action goes `runActionsFor`, both tested as data;
-the blocker and the dialogs are exercised in a real browser by `pnpm screenshots`. Where a click *ends
-up* is covered: it ends up in the store, or in `pickUp`.
+- **A static render shows the store's initial world, whatever has run since**: zustand
+  serves `getInitialState()` as the server snapshot. Assert store updates in the store's
+  own tests, and render a page by passing its world as props
+  (`shownAt(world, view)` from `src/test-support.ts`). Rendering a URL is `web-routing.md`.
+- **Keep components testable without a DOM**: state as props (controlled, like
+  `SeasonGrid` and `ReserveList` under `useGridDraft`), and interaction as a pure function
+  (`pickUp`) tested on its own. A click handler cannot be reached here.
+- **Fixtures come from `src/test-support.ts`**: a fixed seed is a fixture; when a test
+  needs a season of some shape, `findWorld` searches for one. Counts come off the grid,
+  and a rule for every season loops `seasons`.
+- **Read the rendered attribute, not the word**: count `disabled=""` (many enabled
+  buttons carry `disabled:` classes) and read a native `select` by its `selected=""`
+  option, in card order, never by searching for a team name, which every picker lists.
+- **Out of reach here**: click handlers, effects, media-query layouts, and anything Radix
+  renders into a portal (popovers, the run bar's ⋯ menu, dialogs). Test what they offer
+  as data (`runBarFor`, `runActionsFor`) and where a click ends up in the store; the
+  blocker and the dialogs are exercised in a real browser by `pnpm screenshots`.

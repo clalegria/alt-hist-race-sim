@@ -11,140 +11,29 @@ paths:
   - "apps/web/src/store/season.ts"
 ---
 
-# Teams and seats — the kept grid and the reseat
+# Teams and seats
 
-Two run settings decide who sits where before a wheel turns: *Teams* (below) and *Who
-drives where* (the reseat, last section). The reseat's rules themselves are
-`.claude/rules/grid-arrangements.md`.
+The two run settings that decide who sits where before a race: *Teams: The first
+season's teams* (the kept grid, `keptGrid.ts`) and *Who drives where* (the reseat,
+`arrange.ts`).
 
-*Teams: The first season's teams* is an era run setting: every year has the
-start year's teams, each with its start-year seat count, and teams new in history never
-appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
-the settings row is `.claude/rules/web-run-settings.md`, and the layer it sits in
-`.claude/rules/data-layers.md`. The fills are `last` and `best` (`SEAT_FILLS`).
-
-## The entry list: `keptYear(start, season, previous, rules, options)`
-
-- **A team history has in year N** takes its car and its authored drivers. With more
-  drivers than its start-year count, the weakest drop out by `strongestOf`
-  (`carryOver.ts`, shared): the ranking rule, the authored order settling a dead heat.
-- **A ghost entry** — a start-year team history has dropped — races **its last real
-  car**: the latest season before N with the team (the start year always has it), chassis,
-  engine and paint, but no `developmentTrend`, which describes that one year. Its engine
-  has year N's values if N rates it; otherwise its latest authored spec is **appended to
-  the kept season's `engines`**, so `applyEngines` and `buildField` accept it. `ghosts`
-  maps each ghost to the year of the car.
-- **A short seat** is one a real team leaves empty by running fewer cars than in the start
-  year. It follows the same rules as a ghost's.
-- **Last year's driver keeps an empty seat** (under `last`) at the team they
-  drove for last year *in this run* (`previous`), unless:
-  - **history has seated them elsewhere this year** — history always wins;
-  - they are **outside the age band**, read against their real age in the season. Past
-    `maxAge` is their retirement from the seat.
-
-  More candidates than seats, and the strongest stay. Nobody held two seats last year,
-  so nobody is carried twice. A driver history moved to a team that has no room for
-  them — it ran fewer cars in the start year — is a leftover, so they can still return
-  to the seat they raced last year.
-
-`KeptYear.season` is year N's calendar, points and factors with the start year's teams on
-these cars, each entry's `drivers` its filled seats; `seats` is the `LineupDraft`, empty
-seats `null`.
-
-## Signing: `fillSeats(season, seats, signing, options)`
-
-- **Best car first** — `teamsByCar` (`arrange.ts`, shared), on
-  the `season` passed in, which is the cars the run races after any *Chassis performance*
-  roll — each empty seat takes the strongest free driver by `byOverall` (`arrange.ts`,
-  shared). `signing` is the run's `SigningPool`. Free means holding no seat, inside the
-  band, and under `activeOnly` a real
-  career spanning the season (`matchesFilters` with both career filters on: one rule with
-  the grid editor's pool).
-- `best` carries nobody, so every empty seat is signed fresh each year.
-- **A seat nobody qualifies for stays `null`.** `seatedSeason` leaves it out, and a team
-  with no driver at all sits the year out. Only a very narrow band reaches it.
-
-No dice anywhere: ranking is deterministic, ties settled by name then id. Ratings are
-`aged` by default, as an era always runs; `pool` is the run's (`driverPoolOf`).
-
-## In the run
-
-- **The setting** is `RunSettings.teams` (null / `{ fill }`, era only: `seasonSettings`
-  drops it) with the run's signing pool, `RunSettings.driverPool` (`SigningPool`: an age
-  band and `activeOnly`), which a reseat shares. `emptySeatRules(settings)` joins them
-  into the `EmptySeatRules` this file reads. Under a reseat the fill is always `best`
-  (`settingsInForce`): the reseat moves everyone. `TeamsSetting` draws *Teams* in Over
-  the years, with *Empty seats go to* (`SEAT_FILL_LABELS`) under it, hidden under a
-  reseat; the pool is the Drivers group's *Drivers who can be signed*
-  (`web-run-settings.md`). Switching in opens on `OPENING_TEAMS`. `parseRunSettings` refuses a fill outside
-  `OFFERED_SEAT_FILLS`, and an age outside `AGE_RANGE` or crossed.
-- **The world** (`store/season.ts`) records `gridKeptFrom` (the era's first year),
-  `kept` (the `KeptYear`, an input passed on by every in-place rebuild) and `keptSeats`
-  (after `fillSeats`, a derived baseline like `baselineChassis`); all null unless Keep,
-  and `kept` null in the first year. `keptYearAfter(last, year)` builds the next year off
-  `racedLineup(last)`; `nextEraWorld` and the recipe's `rebuild` both call it, so
-  stepping, jumping and reloading build the same year.
-- **`baselineSeason` is the one place it reaches a season**: the kept season, then the
-  run's own cars over it (`withRunCars`: kept engine suppliers, which give a ghost its
-  first-season engine too, the chassis and engine rolls and the trends — a ghost walks
-  off its own raced car with no special case), then `fillSeats` on those cars, then
-  `seatedSeason`, then the reseat under *Who drives where*.
-- **Kept seats are the baseline, not edits.** `enteredSeason(world)` (`lib/seasons.ts`,
-  memoised per world) is what Restore and every change notice compare against; the
-  grid editor's *Copy last year's grid* copies `racedLineup` of the year before.
-- **On the grid**, `keptNotes(world)` (`lib/kept.ts`) says what Keep did: a ghost card
-  reads "Gone in real life, racing its {year} car", a seat history did not fill carries a
-  muted *kept* or *signed* (never `SWAPPED_IN`, which means the reader moved someone),
-  and `KeptNote` above the cards — its own notice, not the edited-grid one — names the
-  ghosts, counts the seats and says who is short (`keptSentences`, pure).
-
-## Who drives where: the reseat
-
-`RunSettings.seating` (null or `{ kind, includeUnemployed }`, season and era) reseats
-every year's grid; `seatingArrangement(settings)` turns it into a `GridArrangement`
-whose filters are the run's signing pool (`driverPool`, `signingFilters`), the pool the
-empty seats above sign from too.
-
-- **The reseat is the starting grid, not an edit.** `reseat` is `baselineSeason`'s last
-  step: the rule over the season's grid after any signings, on the cars it races, ranking
-  drivers in the world's rating mode. `world.reseated` keeps the result, a derived
-  baseline like `keptSeats`; `enteredSeason` applies it, so Restore, Clear all edits and
-  every change notice measure hand edits from it, and `isUntouched` holds on it.
-- **A hand edit sits on top of it and never ends it.** Next year is reseated again on
-  that year's own entry list; an era carries the setting, never a lineup. The grid
-  editor only changes this grid and offers no rule of its own (`web-grid.md`).
-- **The dice are `createRng(seed)`**, apart from the races', so a random reseat is
-  reproducible from the season's seed: `setGrid` keeps it; both restarts,
-  `switchSeasonYear` and `setRunSettings` throw it again. A ranked rule comes back the
-  same on any seed. A rule that leaves a seat open falls back to the season's grid.
-- **Saying so.** `ARRANGEMENT_LABELS` (`lib/run-settings.ts`) names each rule for the
-  setting, the settings line and the note. `arrangementNote` spells out the cast, the age
-  band with "peak age" under `peak`; `ArrangementNote` draws it as its own line on
-  `SeasonGrid` (the grid screen and the summary's grid tab). The summary's banner lists
-  only hand edits.
-
-A recipe from before this stored an `arrangement` beside each world's lineup;
-`parseWorldRecipe` ignores it (`web-persistence.md`).
-
-## Testing
-
-`keptGrid.test.ts` checks every rule above against synthetic seasons and drivers, and
-chains real seasons from two start years to the last checking rules only (every start
-team at its count, nobody seated twice, every raced engine on the menu). Mutation-checked:
-reversing the driver ranking, the car order, dropping the band from either step, or
-letting carry-over ignore history each fail at least one test. In the app,
-`store/era.test.ts` runs an era from `FOLDING_YEAR` (`test-support.ts`, found by search),
-`recipe.test.ts` reloads a ghost year, and `teams-setting.test.tsx` renders the
-row, the ghost and the note; dropping `kept` from `nextEraWorld`, from `rebuild` or from
-an in-place rebuild each fails at least one. `pnpm screenshots` keeps the 1984 grid
-(`era-kept-grid`).
-
-The reseat: `store/season.test.ts` (a season) and `store/era.test.ts` (every year by
-stepping and by jumping, a hand edit not stopping next year's reseat, Restart keeping a
-ranked reseat and re-rolling a random one, kept teams under a reseat seated in full with
-nobody twice); `lib/run-settings.test.ts` the in-force rules and the parse;
-`recipe.test.ts` an old recipe's `arrangement` ignored. Mutation-checked: dropping the
-reseat, drawing its dice off a fixed seed, ranking on a fixed mode, `enteredSeason`
-ignoring it, and the in-force fill or pool each fail at least one.
-`grid-arrangement.test.tsx` covers what the reader is told: the label map, the note's
-cast, the note with no hand edit at all.
+- **Both are the year's starting grid, not edits.** The world keeps their results
+  (`kept`, `keptSeats`, `reseated`) and `enteredSeason` applies them, so Restore, Clear
+  all edits and every change notice measure hand edits from them.
+- **`baselineSeason` (`store/season.ts`) is the one place either reaches a season**,
+  in a fixed order: the kept season, the run's own cars (`withRunCars`), the signings
+  (`fillSeats`), then the reseat. Drivers are ranked on the cars the run races, so
+  nothing that ranks drivers may move ahead of the car rolls.
+- **One signing pool**, `RunSettings.driverPool`, feeds the kept grid's empty seats and
+  the reseat alike; never give either its own band or filter.
+- **A hand edit never ends a reseat**: next year is reseated on its own entry list. An
+  era carries the setting, never a lineup, and the grid editor offers no rule of its own.
+- **`kept` is an input, not a derived value**: an action that rebuilds a year in place
+  passes it on, and the next year comes only from `keptYearAfter`, so stepping, jumping
+  and reloading a recipe build the same year.
+- **The reseat's dice are the season's seed through their own `createRng`**, never the
+  races' stream. A new action that rebuilds a year decides on purpose whether it keeps
+  the seed (same reseat) or takes a fresh one (a new throw).
+- **What these settings did is said in their own notes** (`KeptNote`, `ArrangementNote`,
+  `keptNotes`), never in the edited-grid notice or the summary's banner, which list hand
+  edits only; a kept or signed driver is never marked as swapped in.

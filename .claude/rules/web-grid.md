@@ -148,5 +148,5 @@ component state rather than the store is `.claude/rules/web-store.md`.
   `compareByRating` from `@alt-hist/data`: a **display heuristic, not model truth** —
   nothing in the engine reads it. The weights, why reliability and adaptability sit
   where they do, and why the engine is folded in through `powertrain()` rather than
-  weighted locally are `.claude/rules/data-layers.md`; they move by hand, so do not
+  weighted locally are the doc comments in `packages/data/src/rating.ts`; they move by hand, so do not
   copy them here or re-implement them in the app.

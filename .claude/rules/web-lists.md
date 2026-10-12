@@ -77,5 +77,5 @@ they contain. `.claude/rules/web-grid.md` owns the grid itself and its editor.
 - **Controlled** — held by the editor, passed down — so a DOM-less test renders any state
   the list can be narrowed to. The rules are pure functions in `@alt-hist/data`
   (`people.ts`, re-exported by `lib/people.ts`), because the run's reseat and signings
-  read the same `matchesFilters` (`data-layers.md`), and are unit-tested against
+  read the same `matchesFilters` (`seed-data.md`), and are unit-tested against
   synthetic careers in `lib/people.test.ts`.

@@ -57,7 +57,7 @@ export function parsePhase(argv: readonly string[]): SeasonPhase {
  * did not ask for it.
  *
  * No `country` either way: `pnpm race` has no venue, so home advantage pays
- * nothing there — see `.claude/rules/calibration.md`.
+ * nothing there.
  */
 export function phaseRound(phase: SeasonPhase): RoundContext {
   switch (phase) {

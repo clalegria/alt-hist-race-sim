@@ -129,7 +129,7 @@ only values this build could offer) and `whatIfsOf`, the line's entries.
   only; *Empty seats go to* under it, hidden under a reseat (`teams-and-seats.md`).
 - **Team name changes**, **Livery changes**, **Engine supplier changes**: *Yes* / *No*,
   null / `"first"`: under No each team keeps its first season's name and base, livery or
-  engine supplier (`team-eras.md`; `withFirstEngines`, `data-layers.md`).
+  engine supplier (`team-eras.md`; `withFirstEngines` in `packages/data/src/engines.ts`).
 
 `parseRunSettings` also reads `teamsAndSeats`, the shape before `teams`, `seating` and
 `driverPool` split. One remembered set serves both screens; the store drops the era-only

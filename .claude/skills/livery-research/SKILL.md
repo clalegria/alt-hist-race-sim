@@ -12,7 +12,7 @@ A livery here is four values: `primaryColor`, `secondaryColor1`, `secondaryColor
 (`#RRGGBB`) and `badgeStripes` (0, 1 or 2). The badge is a disc in the primary with a
 diagonal sash: 1 stripe draws `secondaryColor1`, 2 draw both accents side by side. Eras
 are `{ from, ...livery }`, sorted, each running until the next — see
-`.claude/rules/team-eras.md` for the model and why it is coarse on purpose.
+`LiveryEra` in `packages/data/src/types.ts` for the model and why it is coarse on purpose.
 
 ## Working with the user
 
