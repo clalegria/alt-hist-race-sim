@@ -52,7 +52,7 @@ or *Classification*. **They move between places and never reveal**: a link only 
 place reached, anything ahead drawn disabled (a `span`, never an `<a>` to nowhere). The
 next round keeps the session on screen, or goes to its qualifying while its race is
 ahead. They stay within a season; across rounds and years, the breadcrumbs' menus
-(`.claude/rules/web-run-bar.md`) use the same `roundLink`.
+(`.claude/rules/web-routing.md`) use the same `roundLink`.
 
 ## Testing
 

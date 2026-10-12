@@ -3,7 +3,7 @@
  * season.
  *
  * Two levels, because the panel itself is a Radix popover and Radix does not
- * render one while it is shut — the same limit `web-app.md` records. So what a
+ * render one while it is shut — the same limit `web-testing.md` records. So what a
  * panel *says* is tested where it is decided, in `lib/history.ts`, against
  * worlds that were actually simulated; and what a screen *offers* is tested in
  * the markup, by asking whether a name became a control.

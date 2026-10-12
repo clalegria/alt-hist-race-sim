@@ -79,7 +79,7 @@ Every name in a run opens its career panel (`.claude/rules/web-careers.md`), and
 page icon (`PageLink`) is in that panel's heading; the grid's driver and team popovers
 carry it too, the editor shut (`usePageOf` in `SeasonHistory.tsx`). The index's names
 are the one exception. Besides these: the root crumb's **Run sections** menu
-(`.claude/rules/web-run-bar.md`) and *All drivers → / All teams →* over the era's career
+(`.claude/rules/web-routing.md`) and *All drivers → / All teams →* over the era's career
 statistics. All of them draw only inside the run's frame, so a test without a router
 sees none. The same `pageOf` carries `season(year)`, the icon beside each year on these
 pages and on a panel's year lines.

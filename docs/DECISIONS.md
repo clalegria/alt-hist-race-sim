@@ -25,7 +25,7 @@ format (*Someday: the Share link* in `docs/ROADMAP.md`). The options are not exc
 
 - **Stamp a hash** of the data and engine in every link and save; warn on a mismatch.
   The reload recipe already carries a fingerprint of each world it rebuilds
-  (`.claude/rules/web-persistence.md`).
+  (`.claude/rules/web-store.md`).
 - **Keep old builds deployed** at versioned paths, so an old link opens on the build
   that made it.
 - **Save the results, not just the recipe**, so a save file survives any change.

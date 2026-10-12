@@ -7,7 +7,7 @@ paths:
 # Web app — the career statistics
 
 The bottom half of the era's champions screen. The screen itself, the run it reads and
-the roll of honour above it are `.claude/rules/web-era.md`. The display conventions every
+the roll of honour above it are `EraChampions.tsx`. The display conventions every
 table here follows are next door: the accent in `.claude/rules/web-display.md`, the badges
 in `.claude/rules/web-liveries.md`, and how a name is fitted to a column in
 `.claude/rules/web-names.md`.

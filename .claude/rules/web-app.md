@@ -5,56 +5,28 @@ paths:
 
 # Web app
 
-`apps/web` reveals a season a session at a time. React + Vite, Tailwind 4, Zustand.
-shadcn/ui components are **copied in, not a dependency** — but the Radix primitives
-they wrap *are* real dependencies (`react-popover`, `react-alert-dialog`,
-`react-dropdown-menu`).
+`apps/web`: React + Vite, Tailwind 4, Zustand, TanStack Router. Rules for the whole app;
+each subsystem's are in the `web-*` file scoped to its code.
 
-## Screens and state
-
-**The URL says which page; the store holds the run.** Routes and the top nav are
-`.claude/rules/web-routing.md`, the run bar `.claude/rules/web-run-bar.md`. The store's `run` is null until one is started,
-then a `Run` in `store/season.ts`: `season` for a single year, `era` for a run of them,
-each a world and a cursor. A `World` is a *member of the
-variants that have one* rather than a nullable field beside them, so nothing reads a
-season nobody started. Nothing is simulated until a mode is chosen: the app opens on the
-menu having run no races at all. **The era half is `.claude/rules/web-era.md`**, which
-loads alongside this file on the store and `App.tsx`; everything below describes both
-unless it says otherwise, since an era is the same season screen with a run carried
-beside it.
-
-Modes come from `lib/modes.ts` and years from `lib/seasons.ts`; both list what does
-not exist yet — the unbuilt modes, and any year without seed data — as disabled entries
-rather than omitting it. **`lib/seasons.ts` holds no list of its own** —
-`PLAYABLE_SEASONS` and `isPlayable` come straight from `authoredSeasons` in
-`@alt-hist/data`, so authoring a season is a file in `packages/data/src/seasons/` and
-the UI follows. The split: which years *exist* is a data decision, the `FIRST_SEASON`–
-`LAST_SEASON` *range the picker draws* is a display decision and lives here. Every year
-in the range is authored today, so what still proves the rule is that a year *outside*
-it is not playable. `createWorld(seed, year)` goes through `seasonSeed`, which throws on an unauthored
-year rather than quietly falling back.
-
-## The reveal: a timeline of beats
-
-The whole year is simulated the instant a seed is drawn — one continuous RNG stream
-through every round, which is what makes a season reproducible. The cursor (`run.cursor`)
-is a `Beat` (`lib/timeline.ts`) over results that already exist:
-
-```
-grid → qualifying 1 → race 1 → … → summary → (era) review → next year's grid
-```
-
-`View` is the season screen's part of it, every beat but `review`. Continue is a promise
-about what the reader sees next, not about when the dice are rolled. What a page may
-read of those results is the gate's call, `revealed(run)` (`.claude/rules/web-routing.md`). `nextBeat` is the
-order, `comparePlaces`/`isReached` compare two `Place`s (a year and a beat) anywhere in
-a run, and `describeBeat` is the run bar's words for one. **A new kind of beat** — a
-market event, a decision — **is a row in that file**, plus a page and a line in the bar.
-
-`continueRun()` is the store's one forward step: the next session, the summary, an era's
-review, then the next year (built there, which is the advanced mode's seam —
-`.claude/rules/web-era.md`); `jumpTo` is that step in a loop. Nothing rewinds the
-cursor: a restart draws a new season and puts it at the grid, and Back moves between
-pages, never through time. The walk is
-property-tested (every session once, strictly increasing, `isReached` agreeing with it),
-and `runBarFor()` is the whole of what can be done on each beat (`web-run-bar.md`).
+- **shadcn/ui is copied into `components/ui/`, not a dependency**: edit it there. The
+  Radix primitives it wraps are real dependencies (`@radix-ui/react-*`).
+- **The URL says which page; the store holds the run.** Nothing writes the store into
+  the URL (`web-routing.md`).
+- **A season is simulated whole the moment its seed is drawn**, one RNG stream through
+  every round; the cursor only reveals it. Never simulate a beat at a time.
+- **Nothing rewinds the cursor.** A restart is a new seed back at the grid; Back moves
+  between pages, never through time.
+- **A new kind of beat** (a market event, a decision) is a row in `lib/timeline.ts`, a
+  page in `lib/run-places.ts` and a line in `describeBeat`, not a new screen flow.
+- **An era is the season flow with an `EraRun` beside it**: the same beats, pages and
+  store actions, written once for both. Never fork one per mode; `SeasonPage`'s
+  optional `run` is the whole difference.
+- **`nextEraWorld` is the seam `era-advanced` replaces** (what is handed to
+  `createWorld` for the next year). Keep it the one step Continue and a jump share.
+- **Never write a year down.** Which years exist is `authoredSeasons` (`@alt-hist/data`);
+  `lib/seasons.ts` only holds the range the picker draws, and `nextEraYear` and
+  `adjacentSeason` walk what is authored. `seasonSeed` throws on an unauthored year:
+  never fall back.
+- **No component reads a season fixed at import time**: round names and calendars come
+  from the world's own year (`seasonSeed(world.year)`). 1981 renders fine with 1980's
+  names, so only `seasons.smoke.test.tsx` catches it.

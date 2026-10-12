@@ -45,7 +45,7 @@ whole authoring pass, nor after the ratings editor.
 - **The bug report page**. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
   one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
   season, rating mode, randomness level and a build id, which together reproduce a run.
-  The recipe (`web-persistence.md`) has all but the build id, so add a version stamp to
+  The recipe (`web-store.md`) has all but the build id, so add a version stamp to
   the footer.
 - **Going live**:
   - Hosting: any static host. GitHub Pages needs a `base` in `vite.config.ts` and a

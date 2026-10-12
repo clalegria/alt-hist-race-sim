@@ -13,24 +13,16 @@ const LIMITS = { claude: 80, rule: 60, roadmap: 120 };
 
 /** Rule files not yet cut to the limit. Remove each as it is rewritten; never add one. */
 const OVER_LIMIT = new Set([
-  "car-performance",
   "web-careers",
   "web-charts",
   "web-display",
-  "web-era",
   "web-grid",
   "web-lists",
   "web-liveries",
   "web-names",
   "web-people-pages",
-  "web-persistence",
   "web-records",
-  "web-routing",
-  "web-run-bar",
-  "web-run-settings",
   "web-season-pages",
-  "web-setup",
-  "web-store",
   "web-styling",
   "web-team-car",
 ]);

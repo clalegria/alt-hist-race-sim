@@ -19,6 +19,10 @@
  * and reads the engine off that, which is what lets the grid editor preview a
  * draft the world has never seen.
  *
+ * A table spanning several years wraps each row in its own season's provider
+ * (`EraChampions`): one shared map would go unnoticed, since a works team is
+ * named after itself, so its test must find a customer team to check.
+ *
  * The team half of the name also depends on the run: under an era's *Team
  * name changes: No*, each team keeps the name and base of its first season
  * in the run. `KeptNames` carries that year down from the run's frame, and every

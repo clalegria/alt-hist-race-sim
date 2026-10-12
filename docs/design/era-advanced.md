@@ -59,11 +59,11 @@ tunable numbers live in `packages/engine/src/market/constants.ts` and are the au
 ## 3. Run settings
 
 Chosen before the run starts, like the randomness level, and part of the run's recipe
-(`.claude/rules/web-persistence.md`). The *historical* options read season files after the run has diverged, so they
+(`.claude/rules/web-store.md`). The *historical* options read season files after the run has diverged, so they
 depend on *what a saved or shared run replays against* (`docs/DECISIONS.md`).
 
 **The first season's teams, the reseat, career events on or off, and random car
-development are built first in `era-basic`** as run settings (`.claude/rules/web-setup.md`); this mode inherits them.
+development are built first in `era-basic`** as run settings (`.claude/rules/web-run-settings.md`); this mode inherits them.
 What follows is only what stays advanced.
 
 - **DECIDED** — **Randomness** keeps its meaning: how chaotic the *races* are. It does not

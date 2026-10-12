@@ -8,7 +8,7 @@ paths:
 # Web app — the career panel
 
 The reading of a run that hangs off a *name*. The roll of honour says who won each year
-(`.claude/rules/web-era.md`); the career statistics say who won the era
+(`EraChampions.tsx`); the career statistics say who won the era
 (`.claude/rules/web-records.md`); this says what **one** name did in **every** year of
 it. Select a driver or a team anywhere in a run — the champions screen, the season
 page's champion cards, the standings and the sidebar, the classification, the calendar's
@@ -124,7 +124,7 @@ assertion that merely looked for `aria-expanded` passed with the chevron deleted
 ## Testing
 
 Split in two, because **Radix does not render a popover's contents while it is shut**
-(the limit `web-app.md` records). So:
+(the limit `web-testing.md` records). So:
 
 - **What a panel says** is tested in `lib/history.ts`, which is where it is decided —
   `figuresLine`, `lineupOf` and `ordinal` are pure and live there rather than in the

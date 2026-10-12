@@ -32,9 +32,9 @@ changes the data itself.
 
 - A snapshot can be continued: each world carries its `rngState`.
 - The read-only view is the run's pages with the run bar's actions hidden, which holds only
-  while pages never act on the run (`web-run-bar.md`).
+  while pages never act on the run (`web-routing.md`).
 - **Share link**: a Share button beside Continue; `/share?…` is an entry-only route that
-  rebuilds the run from the recipe (`web-persistence.md`) and cursor, then redirects. Its
+  rebuilds the run from the recipe (`web-store.md`) and cursor, then redirects. Its
   format waits on the replay decision. A game-mode run (seed plus decision log) can
   outgrow a URL, so it shares as a save file.
 - Backend, only if a later phase needs one: Hono + SQLite/Postgres + Drizzle.
