@@ -121,6 +121,7 @@ export const REAL_RETIREMENTS: ReadonlyMap<number, RealRetirements> = new Map([
   [2023, { races: 22, starters: 435, retirements: 45 }],
   [2024, { races: 24, starters: 476, retirements: 43 }],
   [2025, { races: 24, starters: 476, retirements: 46 }],
+  // Partial: 12 rounds fetched. Re-fit 2026's factor once the season finishes.
   [2026, { races: 12, starters: 257, retirements: 46 }],
 ]);
 

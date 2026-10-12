@@ -41,8 +41,8 @@ pnpm fit <year>    # fit a season's chassis/engines to its real results; --write
 ## Measure at the reference level, on `aged`
 
 **`DEFAULT_RANDOMNESS_LEVEL` is the reference level** and every harness takes it unless
-told otherwise. It is not the stop the web app opens on — see
-`.claude/rules/race-randomness.md` — and nothing here should read the app's choice.
+told otherwise. It is not the stop the web app opens on — see its doc
+comment in `race/randomness.ts` — and nothing here should read the app's choice.
 
 **Every harness defaults to `aged`** — drivers at their ability in the year being
 measured — from the shared `CALIBRATION_RATING_MODE` in `tools/calibrate/src/mode.ts`.

@@ -158,6 +158,8 @@ export function driverOverall(ratings: DriverRatings): number {
  * blend unevenly: a strong chassis behind a fragile engine loses half its
  * reliability to the swap but only a third of its pace, and only the blend
  * shows it. Omit the engine and this is the bare chassis.
+ *
+ * No `developmentTrend`: a trend rotates pace about mid-season, so this is the year's average.
  */
 export function carOverall(chassis: ChassisSpec, engine?: EngineSpec): number {
   return weighted(powertrain(chassis, engine), CAR_WEIGHTS);

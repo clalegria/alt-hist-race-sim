@@ -14,19 +14,9 @@ const LIMITS = { claude: 80, rule: 60, roadmap: 120 };
 /** Rule files not yet cut to the limit. Remove each as it is rewritten; never add one. */
 const OVER_LIMIT = new Set([
   "calibration",
-  "car-development",
   "car-performance",
   "data-layers",
-  "driver-error",
   "grid-arrangements",
-  "home-advantage",
-  "progression",
-  "race-constants",
-  "race-engine",
-  "race-powertrain",
-  "race-randomness",
-  "retirement-factor",
-  "season-engine",
   "seed-data",
   "team-eras",
   "teams-and-seats",
@@ -49,7 +39,6 @@ const OVER_LIMIT = new Set([
   "web-store",
   "web-styling",
   "web-team-car",
-  "wet-weather",
 ]);
 
 const lineCount = (path: string) => readFileSync(path, "utf8").trimEnd().split("\n").length;
