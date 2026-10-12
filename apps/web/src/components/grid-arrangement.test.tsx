@@ -24,12 +24,12 @@ import {
 } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
+import { ARRANGEMENT_LABELS, HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
 import { enteredSeason } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridArrangements } from "./GridStage.js";
-import { ARRANGEMENT_LABELS, ArrangementNote, arrangementNote } from "./LineupChanges.js";
+import { ArrangementNote, arrangementNote } from "./LineupChanges.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
 
@@ -169,12 +169,8 @@ describe("the panel of rules", () => {
 });
 
 describe("what the grid says about a rule in force", () => {
-  const html = renderToStaticMarkup(
-    <SeasonView {...shownAt(arrangedWorld, { kind: "grid" })} canChooseAbility={false} />,
-  );
-  const plain = renderToStaticMarkup(
-    <SeasonView {...shownAt(plainWorld, { kind: "grid" })} canChooseAbility={false} />,
-  );
+  const html = renderToStaticMarkup(<SeasonView {...shownAt(arrangedWorld, { kind: "grid" })} />);
+  const plain = renderToStaticMarkup(<SeasonView {...shownAt(plainWorld, { kind: "grid" })} />);
 
   it("names the rule on the grid the reader comes back to", () => {
     expect(html).toContain("This grid was edited");
@@ -198,7 +194,7 @@ describe("what the grid says about a rule in force", () => {
     // is still owed the word — which is why the notice does not hang off the
     // change list.
     const landed = renderToStaticMarkup(
-      <SeasonView {...shownAt(unchangedWorld, { kind: "grid" })} canChooseAbility={false} />,
+      <SeasonView {...shownAt(unchangedWorld, { kind: "grid" })} />,
     );
     expect(unchangedWorld.lineup).toBeNull();
     expect(landed).toContain(RANKED_LABEL);
@@ -213,24 +209,19 @@ describe("what the grid says about a rule in force", () => {
 
 describe("what the season summary says about a rule", () => {
   const html = renderToStaticMarkup(
-    <SeasonView
-      {...shownAt(arrangedWorld, { kind: "summary" })}
-      canChooseAbility={false}
-      tab="grid"
-    />,
+    <SeasonView {...shownAt(arrangedWorld, { kind: "summary" })} tab="grid" />,
   );
   const plain = renderToStaticMarkup(
-    <SeasonView
-      {...shownAt(plainWorld, { kind: "summary" })}
-      canChooseAbility={false}
-      tab="grid"
-    />,
+    <SeasonView {...shownAt(plainWorld, { kind: "summary" })} tab="grid" />,
   );
 
-  it("names it on the grid tab, not in the banner of hand edits", () => {
+  it("names it on the settings line and the grid tab, not in the banner of hand edits", () => {
     // The reseat is a setting, not an edit: the banner lists only what the
     // reader changed by hand.
-    expect(html.split(RANKED_LABEL)).toHaveLength(2);
+    expect(html).toContain(
+      `Who drives where: <span class="text-foreground font-medium">${RANKED_LABEL}`,
+    );
+    expect(html.split(RANKED_LABEL)).toHaveLength(3);
     expect(html.indexOf(RANKED_LABEL)).toBeGreaterThan(html.indexOf("champion"));
   });
 

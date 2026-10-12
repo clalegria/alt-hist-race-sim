@@ -22,8 +22,9 @@ cursor walking each year's beats and then its **review** (`/run`, the era's over
 before the next year's grid. `EraRun` is `{ startYear, seasons }`.
 
 **An era reuses the season's beats rather than copying them.** `SeasonPage` in
-`App.tsx` takes an optional `run`, and that changes whether the ability toggle is offered
-and what the grid's carry-over copies — nothing else. `runBarFor` says the same thing:
+`App.tsx` takes an optional `run`, and that changes whether the year switcher is offered,
+which settings the grid's line shows, and what the grid's carry-over copies — nothing
+else. `runBarFor` says the same thing:
 a test asserts every beat but the summary offers the same season actions in both, the
 era adding only its own — the jump across years and Restart era. The store
 follows the same shape: `continueRun`, `jumpTo`, `setGrid` and `restartSeason` are
@@ -57,7 +58,7 @@ the grid substitutes what is handed to `createWorld` there, and nothing else abo
 loop changes. Keep it a single call, shared by Continue and the jump. An edited lineup, engine supply or chassis is deliberately
 *not* carried: it was a grid for a year now behind them. (Under *Chassis* or *Engine
 performance* from last year's, the next year's cars walk off what raced, edits
-included — `car-performance.md`.) Under *Keep the first season's teams* the entry list is
+included — `car-performance.md`.) Under *Teams: The first season's teams* the entry list is
 built rather than read: `keptYearAfter(last, year)` hands `createWorld` the first year's
 teams on year N+1's cars, with last year's raced grid carried (`teams-and-seats.md`).
 The ability mode is carried,

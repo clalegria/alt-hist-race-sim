@@ -1125,15 +1125,16 @@ describe("a season inside an era", () => {
     expect(running().run.seasons.map((world) => world.year)).toEqual([YEAR]);
   });
 
-  it("refuses to change the ability model, which an era does not offer", () => {
-    // The switch is not drawn inside an era, so this is the store closing the
-    // back door rather than a case the UI can reach. The grid is untouched: the
-    // world on screen is the one the era built.
+  it("ignores an ability from the settings, which an era does not offer", () => {
+    // The row is not drawn on an era's settings, so this is the store closing
+    // the back door rather than a case the UI can reach. On the era's untouched
+    // first grid, where the settings can still change, nothing else differs, so
+    // nothing is rebuilt.
+    useSeasonStore.getState().simulateEra(5, YEAR);
     const before = running().world;
-    useSeasonStore.getState().setRatingMode("peak");
-    expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
+    useSeasonStore.getState().setRunSettings(before.randomness, before.settings, "peak");
     expect(running().world).toBe(before);
-    expect(running().run.seasons).toHaveLength(1);
+    expect(running().world.ratingMode).toBe(ERA_RATING_MODE);
   });
 
   it("does not even remember a mode set from inside an era", () => {
@@ -1156,7 +1157,9 @@ describe("a season inside an era", () => {
       rememberRatingMode("peak");
       expect(readRatingMode()).toBe("peak");
 
-      useSeasonStore.getState().setRatingMode(ERA_RATING_MODE);
+      useSeasonStore.getState().simulateEra(5, YEAR);
+      const { world } = running();
+      useSeasonStore.getState().setRunSettings(world.randomness, world.settings, ERA_RATING_MODE);
       expect(readRatingMode()).toBe("peak");
     } finally {
       vi.unstubAllGlobals();

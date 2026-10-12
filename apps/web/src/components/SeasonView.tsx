@@ -1,4 +1,4 @@
-import type { CalendarRace, RatingMode, SeasonLineup } from "@alt-hist/data";
+import type { CalendarRace, SeasonLineup } from "@alt-hist/data";
 import {
   championshipStandings,
   constructorStandings,
@@ -27,7 +27,6 @@ import { HomeAdvantage } from "./HomeAdvantage.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { RatingModeToggle } from "./RatingModeToggle.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonOverview } from "./SeasonOverview.js";
@@ -188,33 +187,18 @@ interface SeasonViewProps {
   readonly world: RevealedWorld;
   readonly view: View;
   /**
-   * Whether the reader gets to choose the ability model at all.
-   *
-   * True for a standalone season, false for a year inside an era, which is fixed
-   * at `ERA_RATING_MODE` — see the note on that constant. Not derivable from the
-   * world: an era year and a standalone season played "at their age" are the
-   * same world, and only one of them offers the switch. Defaults to offering it,
-   * so a bare render is the standalone case.
-   */
-  readonly canChooseAbility?: boolean;
-  /**
-   * Whether this season is one year of an era.
-   *
-   * Only the grid editor's bulk rules read it, and only to offer keeping a rule
-   * for the years that follow — a standalone season has none. Deliberately not
-   * folded into `canChooseAbility`: that one is about a control an era takes
-   * *away*, and this is about one it adds, so a single flag would be two
-   * opposite claims sharing a name.
+   * Whether this season is one year of an era: its settings are the era's, and
+   * it offers no year switcher. Not derivable from the world: an era year and a
+   * standalone season played as they were are the same world. Defaults to
+   * false, so a bare render is the standalone case.
    */
   readonly inEra?: boolean;
-  /** Absent in tests, where nothing is clicked. The toggle still renders. */
-  readonly onRatingModeChange?: (mode: RatingMode) => void;
   /**
    * Jump to the season either side of this one, from the grid.
    *
    * Absent inside an era, where the year belongs to the run rather than to the
-   * reader — the switcher is not drawn at all then, the same way the ability
-   * toggle is not. Absent in tests too, where nothing is clicked.
+   * reader — the switcher is not drawn at all then. Absent in tests too, where
+   * nothing is clicked.
    */
   readonly onYearChange?: (year: number) => void;
   /** The same, for the grid editor: it draws without one, it just cannot apply. */
@@ -248,7 +232,7 @@ interface SeasonViewProps {
   readonly onGridEditingChange?: (editing: boolean) => void;
   /**
    * A grid the run has moved past, revisited: drawn as it was raced, with the
-   * ability toggle, the season switcher and the editor all put away, and a
+   * season switcher and the editor put away, and a
    * line saying why. Only the grid the cursor is on can still be changed.
    */
   readonly locked?: boolean;
@@ -277,9 +261,7 @@ interface SeasonViewProps {
 function SeasonBody({
   world,
   view,
-  canChooseAbility = true,
   inEra = false,
-  onRatingModeChange,
   onYearChange,
   onGridChange,
   onGridEditingChange,
@@ -315,14 +297,18 @@ function SeasonBody({
           read-only then, for the same reason.
         */}
         <RunSettingsLine
-          choice={{ randomness: world.randomness, settings: world.settings }}
+          choice={{
+            randomness: world.randomness,
+            ratingMode: world.ratingMode,
+            settings: world.settings,
+          }}
           year={world.year}
           unit={inEra ? "era" : "season"}
           eraSettings={inEra}
           lock={editingGrid && settingsLock === null ? EDITING_LOCK : settingsLock}
           {...(onSettingsChange === undefined ? {} : { onCommit: onSettingsChange })}
           extra={
-            canChooseAbility && !editingGrid && !locked ? (
+            !inEra && !editingGrid && !locked ? (
               <SeasonSwitcher
                 year={world.year}
                 {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
@@ -339,13 +325,6 @@ function SeasonBody({
           <p className="text-muted-foreground text-sm">
             This grid has been raced, so it can no longer be changed.
           </p>
-        ) : null}
-        {canChooseAbility && !locked ? (
-          <RatingModeToggle
-            mode={world.ratingMode}
-            year={world.year}
-            {...(onRatingModeChange === undefined ? {} : { onChange: onRatingModeChange })}
-          />
         ) : null}
         <GridStage
           field={world.field}

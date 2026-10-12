@@ -10,6 +10,7 @@ import { authoredLineup, lineupChanges, swapDrivers } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { driverName } from "../lib/names.js";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
 import { seasonSeed } from "../lib/seasons.js";
@@ -22,6 +23,7 @@ import { SeasonView } from "./SeasonView.js";
 
 const choice = (settings: RunSettings = HISTORICAL_SETTINGS) => ({
   randomness: STARTING_RANDOMNESS_LEVEL,
+  ratingMode: "aged" as const,
   settings,
 });
 
@@ -48,11 +50,7 @@ describe("the settings line", () => {
       throw new Error("no level but the starting one");
     }
     const html = renderToStaticMarkup(
-      <RunSettingsLine
-        choice={{ randomness: level, settings: HISTORICAL_SETTINGS }}
-        year={YEAR}
-        unit="era"
-      />,
+      <RunSettingsLine choice={{ ...choice(), randomness: level }} year={YEAR} unit="era" />,
     );
     expect(html).toContain("Luck on the day:");
     expect(html).not.toContain("Default settings");
@@ -78,21 +76,23 @@ describe("the settings line", () => {
     ).not.toContain("Restore defaults");
   });
 
-  it("restores the starting luck and the historical answers", () => {
+  it("restores the starting luck, the historical answers and a season's ability", () => {
     const level = RANDOMNESS_LEVELS.find((one) => one !== STARTING_RANDOMNESS_LEVEL);
     if (level === undefined) {
       throw new Error("no level but the starting one");
     }
     const changed = {
       randomness: level,
+      ratingMode: "peak" as const,
       settings: {
         ...HISTORICAL_SETTINGS,
         breakdowns: "fewer" as const,
         teamNames: "first" as const,
       },
     };
-    expect(defaultChoice(changed, true)).toEqual(choice());
-    // A season's screen keeps the era-only answer it does not show.
+    // An era's screen keeps the ability it does not show,
+    expect(defaultChoice(changed, true)).toEqual({ ...choice(), ratingMode: "peak" });
+    // and a season's the era-only answer.
     expect(defaultChoice(changed, false)).toEqual(
       choice({ ...HISTORICAL_SETTINGS, teamNames: "first" }),
     );
@@ -116,7 +116,7 @@ describe("the settings line", () => {
       <SeasonView {...shownAt(world, { kind: "grid" })} settingsLock="Fixed for a test." />,
     );
     expect(html.indexOf('aria-label="Run settings"')).toBeLessThan(
-      html.indexOf('aria-label="Driver ability"'),
+      html.indexOf(driverName(world.field[0]?.driverId ?? "")),
     );
     expect(html).toContain('title="Fixed for a test."');
   });

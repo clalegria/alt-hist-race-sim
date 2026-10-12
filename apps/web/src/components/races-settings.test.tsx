@@ -118,7 +118,11 @@ describe("the breakdowns setting, on a season's screen", () => {
 });
 
 describe("the races and cars groups", () => {
-  const choice = { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS };
+  const choice = {
+    randomness: STARTING_RANDOMNESS_LEVEL,
+    ratingMode: "aged" as const,
+    settings: HISTORICAL_SETTINGS,
+  };
 
   it("hold every race and car setting on both screens, in the design's order", () => {
     for (const html of [

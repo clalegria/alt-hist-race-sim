@@ -235,7 +235,7 @@ export interface World {
    */
   readonly baselineTrends: SeasonTrends | null;
   /**
-   * The era's first year under *Keep the first season's teams*, whose
+   * The era's first year under *Teams: The first season's teams*, whose
    * teams and seat counts every year keeps — else null. Recorded for the reason
    * `namesKeptFrom` is: one year cannot see where its era began.
    */
@@ -292,7 +292,7 @@ interface BaselineInputs {
   readonly lastRaced: SeasonChassis | null;
   /** Each engine as raced the year before, for a walk. */
   readonly lastRacedEngines: SeasonEngineRatings | null;
-  /** The year as *Keep the first season's teams* built it. */
+  /** The year as *Teams: The first season's teams* built it. */
   readonly kept: KeptYear | null;
   /** The era's first year under *Engine supplier changes: No*, else null. */
   readonly enginesKeptFrom: number | null;
@@ -424,7 +424,7 @@ export interface EraInputs {
   readonly lastRaced?: SeasonChassis | null;
   /** Each engine as raced the year before (`racedEngineRatings`), for a walk. */
   readonly lastRacedEngines?: SeasonEngineRatings | null;
-  /** The year as *Keep the first season's teams* built it (`keptYearAfter`). */
+  /** The year as *Teams: The first season's teams* built it (`keptYearAfter`). */
   readonly kept?: KeptYear | null;
 }
 
@@ -669,9 +669,9 @@ export function cursorPlace(run: Run): Place {
  *
  * Every way out of a run asks first unless this is true, because until then
  * the run is still being set up — going back to change the randomness is not
- * abandoning anything. The ability toggle, the year switcher and the run
- * settings do not count: the first and last are remembered as preferences, the
- * second only draws a different season. A grid edit does, and so does anything
+ * abandoning anything. The year switcher and the run settings do not count:
+ * the settings are remembered as preferences, and the switcher only draws a
+ * different season. A grid edit does, and so does anything
  * revealed or any later year — which is also when the run settings stop being
  * changeable (`setRunSettings`).
  */
@@ -792,32 +792,27 @@ interface SeasonStore {
    */
   readonly jumpTo: (target: Place) => void;
   /**
-   * Re-runs the season from the same seed with the other ability model.
-   *
-   * Only on the grid: past it, the reader has seen results that the new field
-   * would not have produced. Keeping the seed makes the two modes comparable —
-   * same dice, different drivers.
-   *
-   * **Standalone seasons only.** An era runs at `ERA_RATING_MODE` throughout and
-   * offers no switch; called on an era screen this does nothing at all, not even
-   * remember the choice — see the note on the constant.
-   */
-  readonly setRatingMode: (mode: RatingMode) => void;
-  /**
    * Re-runs the run's first season on a fresh seed under other run settings —
-   * the randomness level and the what-ifs — and remembers them, as the setup
-   * screen would have.
+   * the randomness level, the driver ability and the what-ifs — and remembers
+   * them, as the setup screen would have. The ability is a standalone season's
+   * alone: an era runs at `ERA_RATING_MODE` throughout, ignores it and does not
+   * remember it, since that would reach the next standalone season. Omitted, it
+   * is the world's own.
    *
    * **Only while the run is untouched** (`isUntouched`): its first grid, as
    * entered. Past it the reader has seen results, or edited a grid, that the
    * settings were fixed for.
    *
-   * **A fresh seed, unlike `setRatingMode`**: on the same seed, flipping *Car
-   * performance* away and back hands back the very same rolled cars, so the
-   * pecking order never moves however often the reader tries. Settings that
-   * leave the run as it was (a Done with nothing changed) rebuild nothing.
+   * **A fresh seed**: on the same seed, flipping *Chassis performance* away
+   * and back hands back the very same rolled cars, so the pecking order never
+   * moves however often the reader tries. Settings that leave the run as it
+   * was (a Done with nothing changed) rebuild nothing.
    */
-  readonly setRunSettings: (randomness: RandomnessLevel, settings: RunSettings) => void;
+  readonly setRunSettings: (
+    randomness: RandomnessLevel,
+    settings: RunSettings,
+    ratingMode?: RatingMode,
+  ) => void;
   /**
    * Re-runs the season from the same seed with the reader's own grid: who
    * drives what, what is in the back of it, and how good the chassis is. `null`
@@ -828,7 +823,7 @@ interface SeasonStore {
    * applying them separately would simulate a season nobody asked for in
    * between.
    *
-   * Grid-only for the same reason as `setRatingMode`: past it, the results on
+   * Grid-only: past it, the results on
    * screen were driven by a field that no longer exists. The seed is kept, so
    * an alternate grid is the same dice thrown at different people — which is
    * the comparison the feature is for.
@@ -1059,62 +1054,32 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       return landed === null ? state : { run: landed };
     });
   },
-  setRatingMode: (mode) => {
-    // An era does not have this choice, and calling it there must not leave a
-    // trace: remembering a mode chosen on a screen that never offered it would
-    // reach the *next standalone season* the reader starts.
-    if (get().run?.kind === "era") {
-      return;
-    }
-    // Remembered even if the switch itself is a no-op, so the choice survives
-    // whatever the reader does next.
-    rememberRatingMode(mode);
-    set((state) =>
-      state.run?.kind === "season" && state.run.cursor.kind === "grid"
-        ? {
-            run: replaceWorld(
-              state.run,
-              createWorld(
-                state.run.world.seed,
-                state.run.world.year,
-                mode,
-                // A reseat is rebuilt on the new ratings, since who is
-                // "fastest" is what the mode decides; the seed is the same, so
-                // a random one is the same shuffle.
-                state.run.world.lineup,
-                state.run.world.engines,
-                state.run.world.randomness,
-                state.run.world.chassis,
-                state.run.world.settings,
-                eraInputsOf(state.run.world),
-              ),
-            ),
-          }
-        : state,
-    );
-  },
-  setRunSettings: (randomness, settings) => {
+  setRunSettings: (randomness, settings, ratingMode) => {
     const run = get().run;
     if (run === null || !isUntouched(run)) {
       return;
     }
     const { world } = run;
+    const mode = run.kind === "season" ? (ratingMode ?? world.ratingMode) : world.ratingMode;
     rememberRandomness(randomness);
     const raced = run.kind === "season" ? seasonSettings(settings) : settings;
     if (run.kind === "season") {
       rememberRunSettings(rememberedAfterSeason(readRunSettings(), raced));
+      rememberRatingMode(mode);
     } else {
       rememberRunSettings(settings);
     }
-    if (randomness === world.randomness && sameSettings(settingsInForce(raced), world.settings)) {
+    if (
+      randomness === world.randomness &&
+      mode === world.ratingMode &&
+      sameSettings(settingsInForce(raced), world.settings)
+    ) {
       return;
     }
     const seed = randomSeed();
     if (run.kind === "season") {
       set({
-        run: openSeason(
-          createWorld(seed, world.year, world.ratingMode, null, null, randomness, null, raced),
-        ),
+        run: openSeason(createWorld(seed, world.year, mode, null, null, randomness, null, raced)),
       });
       return;
     }

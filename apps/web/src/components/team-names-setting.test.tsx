@@ -61,11 +61,11 @@ describe("the team names setting", () => {
     }
   });
 
-  it("is offered on the era's setup screen, in the Over the years group after Driver career events, and not on a season's", () => {
+  it("is offered on the era's setup screen, in the Over the years group after Teams, and not on a season's", () => {
     const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Team name changes")).toBeGreaterThan(at("Over the years"));
-    expect(at("Team name changes")).toBeGreaterThan(at("Driver career events"));
+    expect(at("Teams")).toBeGreaterThan(at("Over the years"));
+    expect(at("Team name changes")).toBeGreaterThan(at("Teams"));
 
     const season = settingsForm("season");
     expect(season).not.toContain('aria-label="Over the years"');

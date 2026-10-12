@@ -79,11 +79,6 @@ Each is a small, sure commit.
   - With an empty pool it still says "Pick one to put them in the seat." next to "No driver matches."
   - Fix: use `count()` from `lib/history.ts:~180`, and drop the "Pick one" sentence when nothing is shown.
   - Screenshot step: `era-grid-team`.
-- **`age-input-collapse`** (PROPOSED)
-  - Clearing an age box gives NaN. `clampAge` (`packages/data/src/people.ts:~134`) turns that into `AGE_RANGE.min`, so clearing "Oldest" collapses the range to 16–16.
-  - Affected: the grid editor's filters (`GridStage.tsx:~174-196`) and the era setting (`TeamsAndSeatsSetting.tsx:~76-98`).
-  - Fix: while the box is empty keep the previous value, and commit on blur.
-  - Screenshot step: none; test only.
 - **`qualifying-gap-overflow`** (PROPOSED)
   - A qualifying gap over a minute ("+1:17.230s", 10 characters) overflows its `w-[9ch]` box (`QualifyingResults.tsx:~83`).
   - `formatSeconds` (`lib/format.ts:~18`) also writes "s" after an m:ss time.
@@ -266,7 +261,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
     |---|---|
     | Uppercase label | 7 variants of tracking, colour and weight (`MainMenu.tsx:~53`, `ResumeRun.tsx:~38`, `QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
     | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
-    | Card shell | `GridStage.tsx:~248,358`, `RatingModeToggle.tsx:~41`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
+    | Card shell | `GridStage.tsx:~248,358`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
     | Small button, `h-8 gap-1.5 px-3 text-xs` | 4 files |
     | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |
 
@@ -284,7 +279,7 @@ Mostly OPEN: the author picks the wording.
 - **`settings-answer-polarity`** (OPEN; *The text pass*)
   - The real-history choice changes name and position from setting to setting:
     - "Yes" means real history for team names, liveries and engine suppliers.
-    - "No" means real history for "Keep the first season's teams", and that toggle runs No/Yes where the others run Yes/No (`TeamsAndSeatsSetting.tsx:~40-55`).
+    - "As they were that year" for *Driver ability* (`DriverAbilitySetting`).
     - Elsewhere real history is "Historical" (`PerformanceSetting.tsx:~79`, `DevelopmentSetting`) or "Realistic" (`BREAKDOWNS_LABELS`).
   - "Off" is variously "No", "Off" and "None".
   - Proposed: the real-history choice always first, always worded the same.
@@ -350,9 +345,8 @@ No visible change.
   - `EngineSuppliersSetting`, `LiveriesSetting`, `TeamNamesSetting` and `CareerEventsSetting` are the same component, differing in name, key and note.
   - Fix: one `YesNoSetting` driven by a table, in the shape `settings-answer-polarity` settled.
 - **`segmented-controls`** (PROPOSED)
-  - Five near-copies of a segmented control:
+  - Four near-copies of a segmented control:
     - `SettingSegments` (aria-pressed)
-    - `RatingModeToggle` (a copy at different sizes)
     - `SortToggle` (radios)
     - the season tabs (`SeasonOverview.tsx:~147`) and the session switch (`SessionNav.tsx:~10`), which define the same class string twice
     - `YearPicker`

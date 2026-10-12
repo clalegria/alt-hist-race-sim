@@ -14,23 +14,19 @@ loads alongside this file.
 
 **Driver ability is a simulation input, not a display filter.** `world.ratingMode` is
 `"aged"` (each driver's ability in that season, via the engine's curve, and the
-default) or `"peak"` (authored peaks, a what-if chosen on the grid).
-`RatingModeToggle` renders **only on the grid stage** — past it the reader has seen
-results the other field would never have produced — and `setRatingMode` re-runs the
-year *from the same seed*, so the two modes are the same dice thrown at different
-drivers.
+default) or `"peak"` (authored peaks): *Driver ability* in a season's run settings
+(`web-run-settings.md`). Not a `RunSettings` field, since the world keeps it apart, but
+carried beside them in the dialog's `RunChoice` and changed with them:
+`setRunSettings(randomness, settings, ratingMode)`, only while the run is untouched, on
+a fresh seed.
 
-**And only in a standalone season.** An era is pinned to `ERA_RATING_MODE` (`"aged"`),
-with no switch anywhere in the run: "at their peak" answers a question about *one*
-season — what if these people met at the best they ever were — while an era's whole
-subject is the ageing curve, drivers arriving raw, coming good and falling away. Peak
-ratings across twenty years would freeze everyone at one age and delete that. Three
-places enforce it, and all three are needed: `startEra`/`simulateEra` build with the
-constant rather than the remembered mode, `setRatingMode` returns early on an era
-screen — **without remembering**, since the preference seeds the next *standalone*
-season and would otherwise reach a screen the reader never connected it to — and
-`SeasonPage` passes `canChooseAbility={run === undefined}` so the control is not
-drawn. A control that fires into a no-op is how the choice comes back by accident.
+**And only in a standalone season.** An era is pinned to `ERA_RATING_MODE` (`"aged"`):
+"at their best" answers a question about *one* season, while an era's whole subject is
+the ageing curve, drivers arriving raw, coming good and falling away. Three places
+enforce it: `startEra`/`simulateEra` build with the constant rather than the remembered
+mode; `setRunSettings` ignores an era's ability **without remembering it**, since the
+preference seeds the next *standalone* season; and the era's form has no row for it,
+nor does its setup screen read or remember it (`SeasonPicker`).
 
 **`switchSeasonYear(year)` is the grid's shortcut to the season next door.** It is
 `startSeason` in every respect but where the settings come from: the ability mode and
@@ -38,7 +34,7 @@ the randomness level are taken off the *world on screen* rather than off the rem
 preferences, so stepping through a decade keeps the rules the reader chose for the
 first of them. The grid does not carry — a lineup and a set of supply deals belong to
 the entry list they were drawn for — and the dice are fresh. Standalone seasons only,
-and only on the grid stage, guarded exactly as `setGrid` and `setRatingMode` are. It
+and only on the grid stage, guarded exactly as `setGrid` is. It
 writes the year through `rememberSeasonYear`, since it is the same choice the picker
 makes.
 
@@ -46,8 +42,9 @@ The choice **sticks**, via `lib/preferences.ts` (localStorage, guarded exactly a
 `theme.ts` guards it — storage is absent under Vitest and throws in private
 browsing). Two levels, and the split is the point: the *world* owns the mode it was
 built with, so a finished season keeps reporting the ratings it actually raced; the
-*preference* only seeds the next one. `startSeason` reads it, `setRatingMode` writes
-it, `restartSeason` carries the world's own. `simulate` deliberately ignores it — it
+*preference* only seeds the next one. `startSeason` reads it, a season's
+`setRunSettings` and its setup screen's commit write it, `restartSeason` carries the
+world's own. `simulate` deliberately ignores it — it
 is the entry point whose output must depend only on its arguments, and tests would
 otherwise be order-dependent on whatever was last remembered.
 
@@ -69,10 +66,9 @@ All three are measured from the year's baseline, which under *Who drives where* 
 already reseated (`world.reseated`): a hand edit sits on top of the reseat — see
 `.claude/rules/grid-arrangements-app.md`, which loads on this file.
 
-`setGrid` mirrors `setRatingMode` exactly: **grid stage only**, re-runs the year *from
-the same seed*, and `restartSeason` carries it — an edited grid is something the reader
-chose, like the ability mode. Unlike the ability mode it is **not** remembered in
-localStorage: a lineup and a set of engine deals belong to the year they were drawn
+`setGrid` is **grid stage only**, re-runs the year *from the same seed*, and
+`restartSeason` carries it — an edited grid is something the reader chose. Unlike the
+ability mode it is **not** remembered in localStorage: a lineup and a set of engine deals belong to the year they were drawn
 for, so starting a season from the menu gets the real grid back.
 
 **Randomness is chosen before the run is under way, and never again.** `world.randomness` is a level 1–5 —
@@ -84,7 +80,7 @@ which is why `startSeason`/`startEra` take it as an argument rather than reading
 themselves. It reaches the model as `withRandomness(level)`, a derived copy of the
 constants; at `UNSCALED_RANDOMNESS_LEVEL` it *is* `RACE_CONSTANTS`, untouched. Only
 `setRunSettings` changes it after the start, and only while the run is untouched (a fresh
-seed; `.claude/rules/web-run-settings.md`) — `setRatingMode`, `setGrid` and `restartSeason` all carry it forward, and an
+seed; `.claude/rules/web-run-settings.md`) — `setGrid` and `restartSeason` both carry it forward, and an
 era carries `last.randomness` into every following year, so a run is one championship
 under one set of rules. **`world.settings`** (`RunSettings`, `lib/run-settings.ts`) is
 chosen, carried and remembered exactly the same way, through every action that rebuilds

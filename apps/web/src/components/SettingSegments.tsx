@@ -32,7 +32,7 @@ const ROW =
  * what-if in the settings dialog shares, so each reads historical-versus-what-if
  * the same way. The historical answer is the first segment.
  *
- * A button group with `aria-pressed`, copying `RatingModeToggle`, rather than
+ * A button group with `aria-pressed` rather than
  * radio inputs: each segment is an action that commits at once.
  *
  * `sub` is an option under another one (*Varies by up to* under *Random factor is added*), drawn smaller.
@@ -138,4 +138,40 @@ export function SettingNote({ children }: { children: ReactNode }) {
 /** The options under a setting's answer — the random factor's spread, the year cars are as reliable as, the kept teams' seat rules — set in. */
 export function SettingSub({ children }: { children: ReactNode }) {
   return <div className="border-border flex flex-col gap-2 border-l-2 pl-3">{children}</div>;
+}
+
+/** A tick box under a setting: *Drivers without a drive can take a seat*, *Only drivers racing that year*. */
+export function SettingCheck({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  /** Absent in tests, where nothing is clicked. */
+  onChange?: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => {
+          onChange?.(event.target.checked);
+        }}
+        className="accent-primary size-3.5 cursor-pointer"
+      />
+      {label}
+    </label>
+  );
+}
+
+/** A setting whose control is its own, not segments or a list: its name, then `children`, on the shared row. */
+export function SettingRow({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <div className={ROW}>
+      <SettingName name={name} sub={false} />
+      {children}
+    </div>
+  );
 }

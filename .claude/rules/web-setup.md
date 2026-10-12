@@ -49,8 +49,7 @@ The two tests that care hand it a range with a gap in it.
 **The run settings are a line under the heading** (`RunSettingsLine`) whose ⚙ button
 opens them in a dialog — the same line, in the same place, as on the grid. The line, the
 dialog, the settings and when the grid may still change them are
-`.claude/rules/web-run-settings.md`. What does not belong there is anything a reader can
-change on an edited grid; the ability toggle is on the grid for that reason.
+`.claude/rules/web-run-settings.md`.
 
 **`max-w-prose` is for paragraphs, not for one-line notes.** The setup screen's lead is
 capped because it runs to two or three lines and is read down. The notes inside the
@@ -72,9 +71,8 @@ checks each round against its own calendar entry.
 
 **The grid offers the seasons either side of it**, in `SeasonSwitcher` — the shortcut
 for a reader who has just watched 1980 and wants 1981. It is where Restart season lands them, and the alternative was Back plus a decade rail to
-answer a one-button question. Drawn **only on the grid**, for the reason
-`RatingModeToggle` is — past it the reader has seen results that switching would throw
-away — and **only in a standalone season**, since an era's year belongs to the run.
+answer a one-button question. Drawn **only on the grid** — past it the reader has
+seen results that switching would throw away — and **only in a standalone season**, since an era's year belongs to the run.
 The neighbours come from `adjacentSeason(year, ±1)` in `lib/seasons.ts`, which walks
 `PLAYABLE_SEASONS` rather than adding one, so a gap in the seed data is skipped rather
 than offered.

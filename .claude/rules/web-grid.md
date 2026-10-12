@@ -3,7 +3,6 @@ paths:
   - "apps/web/src/components/GridStage.tsx"
   - "apps/web/src/components/SeasonGrid.tsx"
   - "apps/web/src/components/LineupChanges.tsx"
-  - "apps/web/src/components/RatingModeToggle.tsx"
   - "apps/web/src/lib/rating.ts"
 ---
 

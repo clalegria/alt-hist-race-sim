@@ -21,7 +21,11 @@ import { RunSettingsForm } from "./RunSettingsDialog.js";
 import { SeasonView } from "./SeasonView.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 
-const choice = { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS };
+const choice = {
+  randomness: STARTING_RANDOMNESS_LEVEL,
+  ratingMode: "aged" as const,
+  settings: HISTORICAL_SETTINGS,
+};
 
 describe("the randomness slider", () => {
   it("names every level the engine offers, exactly once", () => {
@@ -111,7 +115,7 @@ describe("where the level is chosen", () => {
 });
 
 describe("the settings a finished championship was run under", () => {
-  const world = createWorld(3, FIRST_AUTHORED_SEASON, "peak", null, null, 5);
+  const world = createWorld(3, FIRST_AUTHORED_SEASON, "aged", null, null, 5);
 
   it("names each setting and its value", () => {
     // A list rather than a sentence, so a second setting is a line in
@@ -156,7 +160,7 @@ describe("the settings a finished championship was run under", () => {
     const plain = createWorld(
       3,
       FIRST_AUTHORED_SEASON,
-      "peak",
+      "aged",
       null,
       null,
       STARTING_RANDOMNESS_LEVEL,

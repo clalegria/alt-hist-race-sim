@@ -144,7 +144,7 @@ describe("the livery and engine supplier settings", () => {
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
     expect(at("Livery changes")).toBeGreaterThan(at("Team name changes"));
     expect(at("Engine supplier changes")).toBeGreaterThan(at("Livery changes"));
-    expect(at("Keep the first season&#x27;s teams")).toBeGreaterThan(at("Engine supplier changes"));
+    expect(at("Livery changes")).toBeGreaterThan(at("Teams"));
 
     const season = settingsForm("season");
     expect(season).not.toContain('aria-label="Livery changes"');
@@ -174,7 +174,7 @@ describe("the notes, with every what-if on", () => {
     for (const unit of ["season", "era"] as const) {
       const html = renderToStaticMarkup(
         <RunSettingsForm
-          choice={{ randomness: 1, settings: everything }}
+          choice={{ randomness: 1, ratingMode: "aged", settings: everything }}
           year={YEAR}
           unit={unit}
           eraSettings={unit === "era"}

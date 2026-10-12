@@ -43,7 +43,7 @@ export function RunSettingsLine({
   // A season's screen states only what a season races: the remembered set can
   // hold an era's answers too.
   const inForce = unit === "season" ? seasonSettings(choice.settings) : choice.settings;
-  const lines = settingsOf({ randomness: choice.randomness, settings: inForce });
+  const lines = settingsOf({ ...choice, settings: inForce });
 
   return (
     <div className="border-border bg-card flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border px-4 py-2.5 shadow-sm">

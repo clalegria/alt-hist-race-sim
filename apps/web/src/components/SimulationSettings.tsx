@@ -1,6 +1,7 @@
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { type Setting, whatIfsOf } from "../lib/run-settings.js";
 import type { World } from "../store/season.js";
+import { PEAK_LABEL } from "./DriverAbilitySetting.js";
 import { randomnessLabel } from "./RandomnessSlider.js";
 
 /**
@@ -27,14 +28,18 @@ export type { Setting };
 
 /**
  * The settings one world was run under that are not the defaults: its luck on
- * the day off the level the app opens on, then every run setting that is not
- * historical (`whatIfsOf`). The only place the list is written.
+ * the day off the level the app opens on, drivers at their best, then every run
+ * setting that is not historical (`whatIfsOf`). The only place the list is
+ * written.
  */
-export function settingsOf(world: Pick<World, "randomness" | "settings">): readonly Setting[] {
+export function settingsOf(
+  world: Pick<World, "randomness" | "ratingMode" | "settings">,
+): readonly Setting[] {
   return [
     ...(world.randomness === STARTING_RANDOMNESS_LEVEL
       ? []
       : [{ name: "Luck on the day", value: randomnessLabel(world.randomness) }]),
+    ...(world.ratingMode === "peak" ? [{ name: "Driver ability", value: PEAK_LABEL }] : []),
     ...whatIfsOf(world.settings),
   ];
 }

@@ -124,6 +124,7 @@ export {
 } from "./lineup.js";
 export {
   AGE_RANGE,
+  type AgeBand,
   ageInSeason,
   clampAge,
   DEFAULT_DRIVER_FILTERS,

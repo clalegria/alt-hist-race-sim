@@ -118,9 +118,7 @@ describe("the shortcut to the season next door", () => {
   });
 
   it("is not offered inside an era, whose year belongs to the run", () => {
-    const inEra = renderToStaticMarkup(
-      <SeasonView {...shownAt(world, { kind: "grid" })} canChooseAbility={false} />,
-    );
+    const inEra = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} inEra />);
     expect(inEra).not.toContain("Another year");
     expect(inEra).not.toContain(label(adjacentSeason(world.year, 1) ?? 0));
   });
@@ -131,14 +129,7 @@ describe("the way back to an era's setup", () => {
   /** The button, if it is drawn disabled. */
   const disabledBack = /<button[^>]*disabled=""[^>]*>(?:(?!<\/button>).)*Back to setup/;
   const inEra = (props: { backToSetupLock?: string | null } = {}) =>
-    renderToStaticMarkup(
-      <SeasonView
-        {...shownAt(world, { kind: "grid" })}
-        canChooseAbility={false}
-        inEra
-        {...props}
-      />,
-    );
+    renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} inEra {...props} />);
 
   it("is drawn live on an era's first grid", () => {
     const html = inEra({ backToSetupLock: null });
@@ -158,60 +149,8 @@ describe("the way back to an era's setup", () => {
   });
 });
 
-describe("the driver ability toggle", () => {
+describe("the drivers' ability", () => {
   const html = render({ kind: "grid" });
-
-  it("offers both modes on the grid, with the world's own marked", () => {
-    expect(html).toContain("At their peak");
-    expect(html).toContain("At their age");
-    // The seeded world is in aged mode, the default, so exactly one button is
-    // pressed and it is that one.
-    expect((html.match(/aria-pressed="true"/g) ?? []).length).toBe(1);
-    const fromPressed = html.slice(html.indexOf('aria-pressed="true"'));
-    expect(fromPressed.slice(0, fromPressed.indexOf("</button>"))).toContain("At their age");
-  });
-
-  it("says what the chosen mode means, in the season's own year", () => {
-    expect(html).toContain("young ones still learning");
-    expect(html).toContain(String(world.year));
-    expect(html).not.toContain("Every driver at the best they ever were");
-  });
-
-  it("describes the other mode once it is chosen", () => {
-    const peak = render({ kind: "grid" }, seededWorld(3, "peak"));
-    expect(peak).toContain("Every driver at the best they ever were");
-    expect(peak).not.toContain("young ones still learning");
-  });
-
-  it("is not offered at all inside an era, which fixes the ability model", () => {
-    // "At their peak" answers a question about one season; an era is the ageing
-    // curve's mode by construction, so there is nothing to choose. Both labels,
-    // not just the pressed one — a switch drawn with one option greyed out is
-    // still a switch.
-    const inEra = renderToStaticMarkup(
-      <SeasonView {...shownAt(world, { kind: "grid" })} canChooseAbility={false} />,
-    );
-    expect(inEra).not.toContain("At their peak");
-    expect(inEra).not.toContain("At their age");
-    expect(inEra).not.toContain("Driver ability");
-    // And the grid it was hiding is still all there: this removes a control,
-    // not the page under it.
-    for (const entrant of world.field) {
-      expect(inEra, entrant.driverId).toContain(driverName(entrant.driverId));
-    }
-  });
-
-  it("stays off every page after the grid", () => {
-    // Switching mid-season would invalidate results already revealed, and the
-    // summary ends with a grid that must not offer it either.
-    for (const view of [
-      { kind: "qualifying", round: 0 },
-      { kind: "race", round: 0 },
-      { kind: "summary" },
-    ] as const) {
-      expect(render(view), view.kind).not.toContain("At their peak");
-    }
-  });
 
   it("ages the grid it is showing", () => {
     // Whoever the curve moves most, rather than a driver named here: the two
@@ -565,19 +504,19 @@ describe("a settled championship", () => {
 });
 
 /**
- * The one seam the component tests above cannot reach: which screen passes
- * `canChooseAbility`.
- *
- * `SeasonView` renders the toggle or does not, and the store refuses the change
- * or does not — both covered on their own. What connects them is a single
- * expression in `SeasonPage`, and a year inside an era that forgot to say so
- * would draw a control that silently does nothing.
+ * The one seam the component tests above cannot reach: which screen says it is
+ * an era's. A single expression in `SeasonPage`; a year inside an era that
+ * forgot to say so would offer a switcher that throws the run away.
  */
-describe("who is offered the ability toggle", () => {
+describe("who is offered the year switcher", () => {
   const shown = (run?: EraRun) =>
     renderToStaticMarkup(
-      <SeasonPage {...shownAt(world, { kind: "grid" })} {...(run === undefined ? {} : { run })} />,
-    ).includes("Driver ability");
+      <SeasonPage
+        {...shownAt(world, { kind: "grid" })}
+        {...(run === undefined ? {} : { run })}
+        onYearChange={() => {}}
+      />,
+    ).includes("Another year");
 
   it("offers it on a standalone season's grid", () => {
     expect(shown()).toBe(true);
@@ -602,7 +541,6 @@ describe("a grid the run has moved past", () => {
     const locked = html(true);
     expect(locked).toContain("This grid has been raced");
     expect(locked).not.toContain("Edit grid");
-    expect(locked).not.toContain("Driver ability");
     // Still the grid: every seat on it.
     expect(locked).toContain(driverName(world.field[0]?.driverId ?? ""));
   });

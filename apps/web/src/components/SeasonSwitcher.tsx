@@ -11,8 +11,8 @@ import { Button } from "./ui/button.js";
  * the one they have just watched. Two clicks and a decade rail to answer a
  * question that is one button wide.
  *
- * On the grid stage and nowhere else, for the same reason `RatingModeToggle` is:
- * past it the reader has seen results that switching would throw away. It also
+ * On the grid stage and nowhere else: past it the reader has seen results
+ * that switching would throw away. It also
  * draws only in a standalone season — an era's year is decided by the run, and
  * a button that jumped out of it would be leaving the mode, not stepping within
  * it.

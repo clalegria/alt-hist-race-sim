@@ -2,14 +2,17 @@ import type { RandomnessLevel } from "@alt-hist/engine";
 import { useState } from "react";
 import {
   readRandomness,
+  readRatingMode,
   readRunSettings,
   readSeasonYear,
   rememberRandomness,
+  rememberRatingMode,
   rememberRunSettings,
   rememberSeasonYear,
 } from "../lib/preferences.js";
 import type { RunSettings, RunUnit } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS } from "../lib/seasons.js";
+import { ERA_RATING_MODE } from "../store/season.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { Button } from "./ui/button.js";
@@ -72,8 +75,11 @@ export function SeasonPicker({
 }) {
   // Read once, on mount: this is the seed for the controls, not a live mirror
   // of storage, and nothing else on the screen can change it underneath.
+  // An era always runs drivers as they were, and its screen does not offer the
+  // choice, so it neither reads nor remembers the season's.
   const [choice, setChoice] = useState<RunChoice>(() => ({
     randomness: readRandomness(),
+    ratingMode: unit === "season" ? readRatingMode() : ERA_RATING_MODE,
     settings: readRunSettings(),
   }));
   // Read once on mount for the same reason, and validated in `readSeasonYear`
@@ -103,6 +109,9 @@ export function SeasonPicker({
           setChoice(changed);
           rememberRandomness(changed.randomness);
           rememberRunSettings(changed.settings);
+          if (unit === "season") {
+            rememberRatingMode(changed.ratingMode);
+          }
         }}
       />
 

@@ -226,7 +226,7 @@ export function RunFrame({
  * summary, for whichever year of the run the URL names.
  *
  * `run` is present only inside an era, and is the years before this one: it
- * changes whether the ability toggle is offered, which settings the grid's
+ * changes whether the year switcher is offered, which settings the grid's
  * settings line shows and what the grid editor's carry-over copies, and
  * nothing else. `locked` is a grid the run has moved
  * past. `onYearChange` is the grid's shortcut to the season next door, which
@@ -274,7 +274,6 @@ export function SeasonPage({
   /** On a session's page: the links around it. */
   sessionNav?: SessionNav | null;
 }) {
-  const setRatingMode = useSeasonStore((state) => state.setRatingMode);
   const setGrid = useSeasonStore((state) => state.setGrid);
   const setRunSettings = useSeasonStore((state) => state.setRunSettings);
   const setEditingGrid = useContext(GridEditingContext);
@@ -303,19 +302,10 @@ export function SeasonPage({
     <SeasonView
       world={world}
       view={view}
-      // An era is fixed at `ERA_RATING_MODE` and offers no switch, so the
-      // handler is not passed either — the store would refuse it anyway, and
-      // wiring a control that cannot fire is how one comes back by accident.
-      canChooseAbility={run === undefined}
       inEra={run !== undefined}
       locked={locked}
       previousLineup={previousLineup}
-      {...(run === undefined && editable
-        ? {
-            onRatingModeChange: setRatingMode,
-            ...(onYearChange === undefined ? {} : { onYearChange }),
-          }
-        : {})}
+      {...(run === undefined && editable && onYearChange !== undefined ? { onYearChange } : {})}
       {...(editable
         ? {
             onGridChange: (edit: GridEdit) => {
@@ -328,7 +318,7 @@ export function SeasonPage({
       {...(editable && settingsLock === null
         ? {
             onSettingsChange: (choice: RunChoice) => {
-              setRunSettings(choice.randomness, choice.settings);
+              setRunSettings(choice.randomness, choice.settings, choice.ratingMode);
             },
           }
         : {})}

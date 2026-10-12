@@ -14,9 +14,9 @@ import { cn } from "../lib/utils.js";
  *
  * It lives in the run settings dialog, in both modes, and changes only while
  * the run is untouched — on the setup screen, or from its first grid as
- * entered. The ability toggle stays changeable on an edited grid; randomness
- * answers "under what rules", a question about the run as a whole, and a level
- * re-picked once the run is under way would be a different run.
+ * entered: randomness answers "under what rules", a question about the run
+ * as a whole, and a level re-picked once the run is under way would be a
+ * different run.
  */
 
 interface Level {

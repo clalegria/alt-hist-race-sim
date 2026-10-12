@@ -6,6 +6,7 @@ paths:
   - "apps/web/src/lib/filter-preference.ts"
   - "apps/web/src/components/SortToggle.tsx"
   - "apps/web/src/components/GridStage.tsx"
+  - "apps/web/src/components/AgeRangeInput.tsx"
   - "apps/web/src/components/SeasonGrid.tsx"
   - "apps/web/src/components/SeasonView.tsx"
 ---
@@ -79,6 +80,10 @@ and its editor; both load together in `src/components/`.
   whole pool today), so opening the range fully reaches all of them. The age row is
   labelled "Peak age" rather than "Aged" in `peak` mode, or the numbers are read as
   season ages and the list looks broken when someone from another decade survives it.
+  The row is `AgeRangeInput`, shared with the settings' *Drivers who can be signed*:
+  the ends cannot cross (`withAge`), and a box the reader empties or is still typing
+  into ("2" on the way to "25") holds the range's last value until they leave it
+  (`typedAge`, `leftAge`).
   **What the filters open on depends on the mode too** — `defaultDriverFilters`. Aged
   18-42 either way; the two career filters open **on** in `aged` mode, so the list shows
   the drivers who were actually around that year, and **off** in `peak` mode, because a

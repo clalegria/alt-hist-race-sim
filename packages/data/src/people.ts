@@ -95,6 +95,12 @@ export interface DriverFilters {
  */
 export const AGE_RANGE = { min: 16, max: 56 } as const;
 
+/** An age range: the list's filters, a run's signing pool. */
+export interface AgeBand {
+  readonly minAge: number;
+  readonly maxAge: number;
+}
+
 /**
  * What the list opens on: the drivers who were actually around that year, at a
  * plausible racing age.
@@ -146,11 +152,11 @@ export function clampAge(value: number): number {
  * empty list with nothing on screen explaining why. Shoving the far end is the
  * behaviour that cannot produce that.
  */
-export function withAge(filters: DriverFilters, end: "min" | "max", value: number): DriverFilters {
+export function withAge<Band extends AgeBand>(band: Band, end: "min" | "max", value: number): Band {
   const age = clampAge(value);
   return end === "min"
-    ? { ...filters, minAge: age, maxAge: Math.max(age, filters.maxAge) }
-    : { ...filters, maxAge: age, minAge: Math.min(age, filters.minAge) };
+    ? { ...band, minAge: age, maxAge: Math.max(age, band.maxAge) }
+    : { ...band, maxAge: age, minAge: Math.min(age, band.minAge) };
 }
 
 /**

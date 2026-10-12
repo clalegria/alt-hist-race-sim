@@ -70,12 +70,12 @@ Before *publish it*, and before the next item adds more to the editor.
   fingerprint covers the world's shape; nothing is published yet.
 
 **Built:** the settings data and the store (`teams`, `seating`, `driverPool`; the reseat in
-`baselineSeason`; `world.arrangement` and `retain` gone). **Left:** the settings form, the
-editor, the docs pass.
+`baselineSeason`; `world.arrangement` and `retain` gone), and the settings form (the
+*Drivers* group, *Teams*, `RatingModeToggle` and `setRatingMode` gone, the shared
+`AgeRangeInput`). **Left:** the editor, the docs pass.
 
-Takes along `age-input-collapse` (one shared age input), `drivers-plural` and
-`split-grid-stage` (`docs/design/ui-review.md`). `restore-defaults-two-meanings` and
-`settings-summary-wall` stay with *Sort the UI review*.
+Takes along `drivers-plural` and `split-grid-stage` (`docs/design/ui-review.md`).
+`restore-defaults-two-meanings` and `settings-summary-wall` stay with *Sort the UI review*.
 
 ## 2. Edit engines in the grid editor
 
@@ -149,9 +149,8 @@ shows: too many words, and too much of the *design* explained to a reader who ne
 — why a setting is fixed before the run, what a rating mode is, how a table decided what
 to count. A reader wants to know what they are looking at, not how it was built. Go
 screen by screen and cut. The leads and panel copy on the setup screens (`SeasonPicker`
-— the era lead is three sentences), the option details on `RandomnessSlider` and
-`RatingModeToggle`, the what-if notes in the settings dialog (Keep the first season's teams
-runs to two sentences), and the section descriptions on `CareerStatistics` are where the
+— the era lead is three sentences), the option details on `RandomnessSlider`, the
+what-if notes in the settings dialog (*Teams* runs to two sentences), and the section descriptions on `CareerStatistics` are where the
 prose is. What survives should be short, concrete, and about the racing. The wording items
 of the UI consistency pass (`docs/design/ui-review.md`, tagged *The text pass*) belong to
 this pass.

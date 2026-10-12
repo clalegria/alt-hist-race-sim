@@ -18,6 +18,7 @@ import {
 import { createRng, deriveSeed } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import {
+  ARRANGEMENT_LABELS,
   BREAKDOWNS_LABELS,
   CAR_PERFORMANCE_STREAM,
   CAR_VARIATION_BASES,
@@ -416,15 +417,15 @@ describe("restoring the defaults", () => {
     liveries: "first",
     engineSuppliers: "first",
     teams: OPENING_TEAMS,
-    seating: null,
-    driverPool: OPENING_DRIVER_POOL,
+    seating: { kind: "random", includeUnemployed: true },
+    driverPool: { minAge: 20, maxAge: 30, activeOnly: false },
   } as const;
 
   it("puts every setting an era offers back on its historical answer", () => {
     expect(historicalSettings(whatIfs, true)).toEqual(HISTORICAL_SETTINGS);
   });
 
-  it("keeps the era-only answers a season's screen does not show", () => {
+  it("keeps the era-only answers a season's screen does not show, and the pool they sign from", () => {
     expect(historicalSettings(whatIfs, false)).toEqual({
       ...HISTORICAL_SETTINGS,
       careerEvents: "none",
@@ -432,7 +433,11 @@ describe("restoring the defaults", () => {
       liveries: "first",
       engineSuppliers: "first",
       teams: OPENING_TEAMS,
+      driverPool: whatIfs.driverPool,
     });
+    expect(historicalSettings({ ...whatIfs, teams: null }, false).driverPool).toEqual(
+      OPENING_DRIVER_POOL,
+    );
   });
 });
 
@@ -576,10 +581,16 @@ describe("the what-ifs a run states", () => {
   it("names Mechanical failures and Cars as reliable as, in the order the card lists them", () => {
     const year = PLAYABLE_SEASONS[0] ?? 0;
     expect(
-      whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "none", reliability: year }).map(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer", reliability: year }).map(
         (line) => line.name,
       ),
     ).toEqual(["Mechanical failures", "Cars as reliable as"]);
+    // Under None no car breaks down to be measured, so the year changes nothing.
+    expect(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "none", reliability: year }).map(
+        (line) => line.name,
+      ),
+    ).toEqual(["Mechanical failures"]);
     expect(whatIfsOf({ ...HISTORICAL_SETTINGS, reliability: year })).toEqual([
       { name: "Cars as reliable as", value: String(year) },
     ]);
@@ -588,15 +599,7 @@ describe("the what-ifs a run states", () => {
     ]);
   });
 
-  it("names Chassis performance after the Races group and before the Drivers group", () => {
-    expect(
-      whatIfsOf({
-        ...HISTORICAL_SETTINGS,
-        breakdowns: "fewer",
-        carPerformance: { kind: "varied", spread: 10, from: "real" },
-        careerEvents: "none",
-      }).map((line) => line.name),
-    ).toEqual(["Mechanical failures", "Chassis performance", "Driver career events"]);
+  it("names each Chassis performance answer", () => {
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
@@ -616,31 +619,14 @@ describe("the what-ifs a run states", () => {
     ]);
   });
 
-  it("names Driver career events after the Races group", () => {
-    expect(
-      whatIfsOf({ ...HISTORICAL_SETTINGS, breakdowns: "fewer", careerEvents: "none" }),
-    ).toEqual([
-      { name: "Mechanical failures", value: BREAKDOWNS_LABELS.fewer },
-      { name: "Driver career events", value: "No" },
-    ]);
-  });
-
-  it("names Keep the first season's teams after Team name changes, with its rules", () => {
-    expect(whatIfsOf({ ...HISTORICAL_SETTINGS, teamNames: "first", teams: OPENING_TEAMS })).toEqual(
-      [
-        { name: "Team name changes", value: "No" },
-        {
-          name: "Keep the first season's teams",
-          value: `Yes · last year's driver first · ages ${OPENING_DRIVER_POOL.minAge}–${OPENING_DRIVER_POOL.maxAge} · real-grid drivers only`,
-        },
-      ],
-    );
-  });
-
-  it("names every what-if in the form's order", () => {
+  it("names every what-if in the form's order: Races, Drivers, Cars, Over the years", () => {
+    const scale = pointsTables()[0]?.scale ?? [];
     expect(
       whatIfsOf({
         ...HISTORICAL_SETTINGS,
+        points: scale,
+        seating: { kind: "random", includeUnemployed: true },
+        driverPool: { ...OPENING_DRIVER_POOL, activeOnly: false },
         carPerformance: { kind: "random" },
         enginePerformance: { kind: "varied", spread: 5, from: "last" },
         development: "random",
@@ -652,15 +638,18 @@ describe("the what-ifs a run states", () => {
         teams: OPENING_TEAMS,
       }).map((line) => line.name),
     ).toEqual([
-      "Mechanical failures",
+      "Points system",
+      "Who drives where",
+      "Drivers who can be signed",
+      "Driver career events",
       "Chassis performance",
       "Engine performance",
       "In-season development",
-      "Driver career events",
+      "Mechanical failures",
+      "Teams",
       "Team name changes",
       "Livery changes",
       "Engine supplier changes",
-      "Keep the first season's teams",
     ]);
     expect(
       whatIfsOf({
@@ -674,13 +663,59 @@ describe("the what-ifs a run states", () => {
     ]);
   });
 
-  it("names Team name changes last, after the Drivers group", () => {
-    expect(whatIfsOf({ ...HISTORICAL_SETTINGS, careerEvents: "none", teamNames: "first" })).toEqual(
-      [
-        { name: "Driver career events", value: "No" },
-        { name: "Team name changes", value: "No" },
-      ],
+  it("names the rule Who drives where reseats by", () => {
+    for (const kind of ARRANGEMENT_KINDS) {
+      expect(
+        whatIfsOf({ ...HISTORICAL_SETTINGS, seating: { kind, includeUnemployed: false } }),
+      ).toEqual([{ name: "Who drives where", value: ARRANGEMENT_LABELS[kind] }]);
+    }
+  });
+
+  it("names the signing pool only when something signs and it is not the opening one", () => {
+    const pool = { minAge: 20, maxAge: 30, activeOnly: false };
+    const signing = { kind: "random", includeUnemployed: true } as const;
+    const named = (settings: RunSettings) =>
+      whatIfsOf(settings).some((line) => line.name === "Drivers who can be signed");
+    expect(named({ ...HISTORICAL_SETTINGS, seating: signing, driverPool: pool })).toBe(true);
+    expect(named({ ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS, driverPool: pool })).toBe(true);
+    // Nothing signs: a reseat of the drivers already seated, or no what-if at all.
+    expect(
+      named({
+        ...HISTORICAL_SETTINGS,
+        seating: { ...signing, includeUnemployed: false },
+        driverPool: pool,
+      }),
+    ).toBe(false);
+    expect(named({ ...HISTORICAL_SETTINGS, driverPool: pool })).toBe(false);
+    // Something signs, from the pool it opens on.
+    expect(named({ ...HISTORICAL_SETTINGS, seating: signing })).toBe(false);
+    expect(
+      whatIfsOf({ ...HISTORICAL_SETTINGS, seating: signing, driverPool: pool }).at(-1),
+    ).toEqual({ name: "Drivers who can be signed", value: "Ages 20–30, from any year" });
+    expect(
+      whatIfsOf({
+        ...HISTORICAL_SETTINGS,
+        seating: signing,
+        driverPool: { ...pool, activeOnly: true },
+      }).at(-1)?.value,
+    ).toBe("Ages 20–30, racing that year");
+  });
+
+  it("names Teams, with the fill only where the form shows it", () => {
+    const teams = (settings: RunSettings) =>
+      whatIfsOf(settings).find((line) => line.name === "Teams")?.value;
+    expect(teams({ ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS })).toBe("First season's");
+    expect(teams({ ...HISTORICAL_SETTINGS, teams: { fill: "best" } })).toBe(
+      "First season's · best available",
     );
+    // Under a reseat the fill is hidden, and in force as the best available.
+    expect(
+      teams({
+        ...HISTORICAL_SETTINGS,
+        teams: { fill: "last" },
+        seating: { kind: "random", includeUnemployed: false },
+      }),
+    ).toBe("First season's");
   });
 });
 

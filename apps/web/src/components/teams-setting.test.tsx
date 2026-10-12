@@ -1,65 +1,57 @@
 /**
- * The Keep the first season's teams setting, and what the grid says about a kept year.
- * Rendered without a DOM, like the rest of the setup screen; what it records on
- * a run is the era's store tests.
+ * The Teams setting, and what the grid says about a kept year. Rendered without
+ * a DOM, like the rest of the setup screen; what it records on a run is the
+ * era's store tests.
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { KeptNotes } from "../lib/kept.js";
-import {
-  HISTORICAL_SETTINGS,
-  OPENING_DRIVER_POOL,
-  OPENING_TEAMS,
-  type RunSettings,
-} from "../lib/run-settings.js";
+import { HISTORICAL_SETTINGS, OPENING_TEAMS, type RunSettings } from "../lib/run-settings.js";
 import { useSeasonStore } from "../store/season.js";
 import { FOLDING_YEAR, settingsForm, shownAt } from "../test-support.js";
 import { keptSentences } from "./LineupChanges.js";
 import { SeasonView } from "./SeasonView.js";
-import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
+import { TeamsSetting } from "./TeamsSetting.js";
 
-/** What Yes opens on, as the row takes it. */
-const OPENING_RULES = { ...OPENING_DRIVER_POOL, ...OPENING_TEAMS };
+const FILL = 'aria-label="Empty seats go to"';
 
-/** An input's attribute, read off the markup rather than matched as one string. */
-function inputValue(html: string, label: string): string | undefined {
-  const input = html.match(new RegExp(`<input[^>]*aria-label="${label}"[^>]*>`))?.[0];
-  return input?.match(/value="([^"]*)"/)?.[1];
-}
-
-describe("the teams and seats setting", () => {
-  it("presses No while historical, with nothing below it", () => {
-    const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={null} />);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>No</);
-    expect(html).not.toContain("Only sign drivers aged");
-    expect(html).not.toContain("The best available driver");
+describe("the Teams setting", () => {
+  it("presses Historical while historical, with nothing below it", () => {
+    const html = renderToStaticMarkup(<TeamsSetting teams={null} reseated={false} />);
+    expect(html).toMatch(/aria-pressed="true"[^>]*>Historical</);
+    expect(html).not.toContain(FILL);
   });
 
-  it("draws the fill, the ages and the real-grid box under Yes", () => {
-    const html = renderToStaticMarkup(<TeamsAndSeatsSetting teamsAndSeats={OPENING_RULES} />);
-    expect(html).toMatch(/aria-pressed="true"[^>]*>Yes</);
+  it("draws who takes the empty seats under the first season's teams", () => {
+    const html = renderToStaticMarkup(<TeamsSetting teams={OPENING_TEAMS} reseated={false} />);
+    expect(html).toMatch(/aria-pressed="true"[^>]*>The first season&#x27;s teams</);
+    expect(html).toContain(FILL);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Last year&#x27;s driver, if possible</);
-    expect(html).toContain("Only sign drivers aged");
-    expect(inputValue(html, "Youngest driver age")).toBe(String(OPENING_RULES.minAge));
-    expect(inputValue(html, "Oldest driver age")).toBe(String(OPENING_RULES.maxAge));
-    expect(html).toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
+    const best = renderToStaticMarkup(<TeamsSetting teams={{ fill: "best" }} reseated={false} />);
+    expect(best).toMatch(/aria-pressed="true"[^>]*>The best available driver</);
   });
 
-  it("shows the other fill and an unticked box when that is the answer", () => {
-    const html = renderToStaticMarkup(
-      <TeamsAndSeatsSetting
-        teamsAndSeats={{ ...OPENING_RULES, fill: "best", activeOnly: false }}
-      />,
+  it("hides who takes the empty seats under a reseat, which moves everyone", () => {
+    const html = renderToStaticMarkup(<TeamsSetting teams={OPENING_TEAMS} reseated />);
+    expect(html).toMatch(/aria-pressed="true"[^>]*>The first season&#x27;s teams</);
+    expect(html).not.toContain(FILL);
+  });
+
+  it("is offered in Over the years on the era's screen and not a season's", () => {
+    const at = (html: string, label: string) => html.indexOf(`aria-label="${label}"`);
+    const era = settingsForm("era");
+    expect(at(era, "Teams")).toBeGreaterThan(at(era, "Over the years"));
+    const reseated = settingsForm("era", {
+      ...HISTORICAL_SETTINGS,
+      teams: OPENING_TEAMS,
+      seating: { kind: "random", includeUnemployed: false },
+    });
+    expect(reseated).toContain('aria-label="Teams"');
+    expect(reseated).not.toContain(FILL);
+    expect(settingsForm("season", { ...HISTORICAL_SETTINGS, teams: OPENING_TEAMS })).not.toContain(
+      'aria-label="Teams"',
     );
-    expect(html).toMatch(/aria-pressed="true"[^>]*>The best available driver</);
-    expect(html).not.toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
-  });
-
-  it("is offered on the era's screen and not a season's", () => {
-    const name = 'aria-label="Keep the first season&#x27;s teams"';
-    expect(settingsForm("era")).toContain(name);
-    expect(settingsForm("season")).not.toContain(name);
   });
 });
 

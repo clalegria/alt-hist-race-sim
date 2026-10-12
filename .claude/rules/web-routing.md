@@ -102,8 +102,7 @@ its `review` answer carries the crowned years.
   the door in `lib/run-places.test.ts` (every cursor × every URL).
 
 **Only the grid the cursor is on can be edited** (`editable`). Any other grid,
-revisited, is `SeasonPage` with `locked`: no editor button, no ability toggle, no
-season switcher, and a line saying the grid has been raced.
+revisited, is `SeasonPage` with `locked`: no editor button, no season switcher, and a line saying the grid has been raced.
 
 **Routes are thin.** A route file reads params and calls into `run-routes.tsx`.
 `SeasonPage` and `RunFrame` in `App.tsx` take their actions as props, so they never

@@ -24,14 +24,15 @@ describe("the career events setting", () => {
     }
   });
 
-  it("is offered on the era's setup screen, in the Over the years group after Races, and not on a season's", () => {
+  it("is offered on the era's setup screen, last in the Drivers group, and not on a season's", () => {
     const era = settingsForm("era");
     const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Driver career events")).toBeGreaterThan(at("Over the years"));
-    expect(at("Over the years")).toBeGreaterThan(at("Points system"));
+    expect(at("Drivers")).toBeGreaterThan(at("Points system"));
+    expect(at("Driver career events")).toBeGreaterThan(at("Who drives where"));
+    expect(at("Cars")).toBeGreaterThan(at("Driver career events"));
 
     const season = settingsForm("season");
-    expect(season).not.toContain('aria-label="Over the years"');
+    expect(season).toContain('aria-label="Drivers"');
     expect(season).not.toContain('aria-label="Driver career events"');
   });
 

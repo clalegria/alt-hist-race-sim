@@ -376,24 +376,20 @@ describe("driver ability mode", () => {
     expect(running().world.ratingMode).toBe("aged");
   });
 
-  it("re-runs the same seed against drivers at their peak", () => {
+  it("re-runs the year against drivers at their best when the settings say so", () => {
     const before = running().world;
-    useSeasonStore.getState().setRatingMode("peak");
+    useSeasonStore.getState().setRunSettings(before.randomness, before.settings, "peak");
     const after = running().world;
 
     expect(after.ratingMode).toBe("peak");
-    // Same dice, different drivers: that is what makes the two comparable.
-    expect(after.seed).toBe(before.seed);
     expect(after.year).toBe(before.year);
     expect(after.field).not.toEqual(before.field);
-    expect(after.season).not.toEqual(before.season);
     expect(running().view).toEqual({ kind: "grid" });
   });
 
   it("rates at least one driver differently once ages are applied", () => {
     // Which drivers move, and by how much, is a question for the ageing curve's
     // own tests — here it only has to be true that the mode reaches the field.
-    useSeasonStore.getState().setRatingMode("aged");
     const aged = running().world;
     const peak = createWorld(aged.seed, aged.year, "peak").field;
     const moved = agedDiffers(aged);
@@ -408,9 +404,10 @@ describe("driver ability mode", () => {
   });
 
   it("goes back to aged again", () => {
-    useSeasonStore.getState().setRatingMode("peak");
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(running().world).toEqual(createWorld(3, YEAR, "aged"));
+    const { world } = running();
+    useSeasonStore.getState().setRunSettings(world.randomness, world.settings, "peak");
+    useSeasonStore.getState().setRunSettings(world.randomness, world.settings, "aged");
+    expect(running().world).toEqual(createWorld(running().world.seed, YEAR, "aged"));
   });
 
   it("refuses to switch once the season has started revealing", () => {
@@ -418,7 +415,7 @@ describe("driver ability mode", () => {
     // produced, so the switch is not offered and the action does nothing.
     useSeasonStore.getState().continueRun();
     const before = running().world;
-    useSeasonStore.getState().setRatingMode("peak");
+    useSeasonStore.getState().setRunSettings(before.randomness, before.settings, "peak");
     expect(running().world).toBe(before);
     expect(running().world.ratingMode).toBe("aged");
   });
@@ -426,7 +423,8 @@ describe("driver ability mode", () => {
   it("carries the chosen mode through Restart season", () => {
     // Picking peak drivers is a choice about how to play, not a property of one
     // season — starting another must not quietly hand back aged ratings.
-    useSeasonStore.getState().setRatingMode("peak");
+    const { world } = running();
+    useSeasonStore.getState().setRunSettings(world.randomness, world.settings, "peak");
     const before = running().world;
     useSeasonStore.getState().restartSeason();
     const after = running().world;
@@ -444,7 +442,6 @@ describe("driver ability mode", () => {
   });
 
   it("is part of the save file like everything else", () => {
-    useSeasonStore.getState().setRatingMode("aged");
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
   });
@@ -489,7 +486,6 @@ describe("the randomness level", () => {
   it("is fixed for the run: no action on a season changes it", () => {
     const level = 5;
     useSeasonStore.getState().simulate(3, YEAR, "peak", level);
-    useSeasonStore.getState().setRatingMode("aged");
     expect(running().world.randomness).toBe(level);
     useSeasonStore.getState().setGrid(null, null);
     expect(running().world.randomness).toBe(level);
@@ -538,8 +534,6 @@ describe("the points setting", () => {
 
   it("is fixed for the run, and carried by every action that rebuilds the year", () => {
     useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(running().world.points).toEqual(other);
     useSeasonStore.getState().setGrid(null, null);
     expect(running().world.points).toEqual(other);
     useSeasonStore.getState().restartSeason();
@@ -645,13 +639,11 @@ describe("car performance in a standalone season", () => {
     }
   });
 
-  it("keeps the roll through a new grid and an ability switch", () => {
+  it("keeps the roll through a new grid", () => {
     const [varied] = answers as [RunSettings];
     useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, varied);
     const rolled = running().world.baselineChassis;
     useSeasonStore.getState().setGrid(null, null);
-    expect(running().world.baselineChassis).toEqual(rolled);
-    useSeasonStore.getState().setRatingMode("aged");
     expect(running().world.baselineChassis).toEqual(rolled);
   });
 
@@ -733,7 +725,6 @@ describe("the reliability and breakdowns settings", () => {
       reliability: harder ?? YEAR,
     };
     useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, fixed);
-    useSeasonStore.getState().setRatingMode("aged");
     useSeasonStore.getState().setGrid(null, null);
     useSeasonStore.getState().restartSeason();
     expect(running().world.settings).toEqual(fixed);
@@ -825,18 +816,6 @@ describe("the chosen grid", () => {
     expect(after.lineup).toEqual(swapped);
     expect(after.field).toEqual(before.field);
     expect(after.seed).not.toBe(before.seed);
-  });
-
-  it("keeps it through a change of ability mode", () => {
-    useSeasonStore.getState().setGrid(swapped, null);
-    useSeasonStore.getState().setRatingMode("aged");
-    const world = running().world;
-
-    expect(world.lineup).toEqual(swapped);
-    expect(world.ratingMode).toBe("aged");
-    // And the two are applied together: the chosen grid, at its real ages.
-    expect(world.field).toEqual(createWorld(3, YEAR, "aged", swapped).field);
-    expect(world.field.map((entrant) => entrant.driverId)).toContain(RESERVE);
   });
 
   it("does not follow the reader to a new season from the menu", () => {
@@ -950,15 +929,15 @@ describe("the grid reseated by Who drives where", () => {
     expect(racedLineup(running().world)).toEqual(reseated);
   });
 
-  it("reseats on the new ratings when the ability mode changes, the same dice both ways", () => {
+  it("reseats on the new ratings when the ability changes", () => {
     useSeasonStore.getState().simulate(3, YEAR, "peak", undefined, shuffled);
-    const peak = running().world.reseated;
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(running().world.reseated).toEqual(
-      createWorld(3, YEAR, "aged", null, null, undefined, null, shuffled).reseated,
+    const { world } = running();
+    useSeasonStore.getState().setRunSettings(world.randomness, world.settings, "aged");
+    const aged = running().world;
+    expect(aged.ratingMode).toBe("aged");
+    expect(aged.reseated).toEqual(
+      createWorld(aged.seed, YEAR, "aged", null, null, undefined, null, shuffled).reseated,
     );
-    useSeasonStore.getState().setRatingMode("peak");
-    expect(running().world.reseated).toEqual(peak);
   });
 
   it("carries the setting to the season next door, reseating that year", () => {
@@ -1011,9 +990,9 @@ describe("the remembered ability mode", () => {
     expect(running().world.ratingMode).toBe("aged");
   });
 
-  it("writes the choice down when the toggle is used", () => {
-    // The other half of the loop: nothing above works if the toggle never
-    // records what was picked.
+  it("writes the choice down when the settings change it", () => {
+    // The other half of the loop: nothing above works if the settings never
+    // record what was picked.
     const written: string[] = [];
     Object.defineProperty(globalThis, "localStorage", {
       configurable: true,
@@ -1025,7 +1004,8 @@ describe("the remembered ability mode", () => {
       },
     });
     useSeasonStore.getState().simulate(3, YEAR);
-    useSeasonStore.getState().setRatingMode("peak");
+    const { world } = running();
+    useSeasonStore.getState().setRunSettings(world.randomness, world.settings, "peak");
     expect(written).toContain("peak");
   });
 
@@ -1119,13 +1099,6 @@ describe("the chosen engines", () => {
     expect(running().world.engines).toEqual(resupplied);
   });
 
-  it("carries the supply across a change of ability model", () => {
-    useSeasonStore.getState().setGrid(null, resupplied);
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(running().world.engines).toEqual(resupplied);
-    expect(running().world.ratingMode).toBe("aged");
-  });
-
   it("cannot be changed once the season has started revealing", () => {
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().setGrid(null, resupplied);
@@ -1190,11 +1163,9 @@ describe("the re-rated chassis", () => {
     expect(running().world).toEqual(createWorld(3, YEAR));
   });
 
-  it("carries into a fresh seed of the same season, and across a change of ability model", () => {
+  it("carries into a fresh seed of the same season", () => {
     useSeasonStore.getState().setGrid(null, null, rerated);
     useSeasonStore.getState().restartSeason();
-    expect(running().world.chassis).toEqual(rerated);
-    useSeasonStore.getState().setRatingMode("aged");
     expect(running().world.chassis).toEqual(rerated);
   });
 
@@ -1298,11 +1269,8 @@ describe("an untouched run, which can be left without asking", () => {
     expect(untouched()).toBe(true);
   });
 
-  it("stays untouched through the ability toggle and the year switcher", () => {
-    // Neither loses anything: the mode is remembered, and the switcher only
-    // draws a different season.
-    useSeasonStore.getState().setRatingMode("aged");
-    expect(untouched()).toBe(true);
+  it("stays untouched through the year switcher", () => {
+    // It loses nothing: the switcher only draws a different season.
     const next = adjacentSeason(YEAR, 1);
     if (next !== null) {
       useSeasonStore.getState().switchSeasonYear(next);

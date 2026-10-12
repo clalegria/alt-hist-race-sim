@@ -27,11 +27,11 @@ kept teams' empty seats sign from too (`teams-and-seats.md`).
 - **A hand edit sits on top of it and never ends it.** Next year is reseated again on
   that year's own entry list; an era carries the setting, never a lineup.
 - **The dice are `createRng(seed)`**, a generator apart from the races', so a random
-  reseat is reproducible from the season's seed: `setGrid` and `setRatingMode` keep it,
-  both restarts, `switchSeasonYear` and `setRunSettings` throw it again. A ranked rule
-  comes back the same on any seed. A rule that leaves a seat open falls back to the
-  season's grid.
-- **The settings form has no row for it yet**, and the settings line does not name it;
+  reseat is reproducible from the season's seed: `setGrid` keeps it, both restarts,
+  `switchSeasonYear` and `setRunSettings` throw it again. A ranked rule comes back the
+  same on any seed. A rule that leaves a seat open falls back to the season's grid.
+- **The settings form's row** is *Who drives where* in the Drivers group
+  (`WhoDrivesSetting`, `web-run-settings.md`); the settings line names the rule, and
   the grid states it through `ArrangementNote` (below).
 
 A recipe from before this stored an `arrangement` beside each world's lineup;
@@ -48,11 +48,12 @@ hand edit clears it, and `untouched` counts it as a change.
 
 ## Saying so
 
-`ARRANGEMENT_LABELS` in `LineupChanges.tsx` names each rule, for the buttons and the
-note alike. `arrangementNote` spells out the cast, the age band with "peak age" under
-`peak`. `ArrangementNote` draws it as its own line on the grid, from the settings'
-rule or, while the editor is open, the draft's: on `SeasonGrid` (the grid screen and
-the summary's grid tab). The summary's banner lists only hand edits.
+`ARRANGEMENT_LABELS` in `lib/run-settings.ts` names each rule, for the setting, the
+settings line, the editor's buttons and the note alike. `arrangementNote` spells out the
+cast, the age band with "peak age" under `peak`. `ArrangementNote` draws it as its own
+line on the grid, from the settings' rule or, while the editor is open, the draft's: on
+`SeasonGrid` (the grid screen and the summary's grid tab). The summary's banner lists
+only hand edits.
 
 ## Testing
 

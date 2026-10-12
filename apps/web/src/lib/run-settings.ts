@@ -319,6 +319,8 @@ export function historicalSettings(settings: RunSettings, eraSettings: boolean):
     liveries: settings.liveries,
     engineSuppliers: settings.engineSuppliers,
     teams: settings.teams,
+    // The era's kept teams still sign from it.
+    driverPool: settings.teams === null ? HISTORICAL_SETTINGS.driverPool : settings.driverPool,
   };
 }
 
@@ -468,6 +470,13 @@ export function carPerformanceLabel(roll: CarPerformance, noun: "chassis" | "eng
     ? `Random factor ±${roll.spread} from last year's ${noun}`
     : `Random factor ±${roll.spread}`;
 }
+
+/** What the reader is shown for each *Who drives where* rule, in the settings and on the grid. */
+export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
+  "fastest-in-fastest": "Fastest drivers in fastest teams",
+  "fastest-in-slowest": "Fastest drivers in slowest teams",
+  random: "Randomize grid",
+};
 
 /** What the reader is shown for each In-season development answer. */
 export const DEVELOPMENT_LABELS: Readonly<Record<Development, string>> = {
@@ -745,17 +754,25 @@ function parseReliability(year: unknown): number | null | undefined {
   return typeof year === "number" && Number.isInteger(year) && isPlayable(year) ? year : undefined;
 }
 
-/** One line per setting that is not historical, in one fixed order. */
-export function whatIfsOf(settings: RunSettings): readonly Setting[] {
+/**
+ * One line per setting that is not historical, in force, in the form's order:
+ * Races, Drivers, Cars, Over the years. (*Luck on the day* and the ability
+ * are not run settings; `settingsOf` puts them in.)
+ */
+export function whatIfsOf(chosen: RunSettings): readonly Setting[] {
+  const settings = settingsInForce(chosen);
   const lines: Setting[] = [];
-  if (settings.breakdowns !== null) {
-    lines.push({ name: "Mechanical failures", value: BREAKDOWNS_LABELS[settings.breakdowns] });
-  }
-  if (settings.reliability !== null) {
-    lines.push({ name: "Cars as reliable as", value: String(settings.reliability) });
-  }
   if (settings.points !== null) {
     lines.push({ name: "Points system", value: pointsValues(settings.points) });
+  }
+  if (settings.seating !== null) {
+    lines.push({ name: "Who drives where", value: ARRANGEMENT_LABELS[settings.seating.kind] });
+  }
+  if (signsDrivers(settings) && !samePool(settings.driverPool, OPENING_DRIVER_POOL)) {
+    lines.push({ name: "Drivers who can be signed", value: driverPoolLabel(settings.driverPool) });
+  }
+  if (settings.careerEvents !== null) {
+    lines.push({ name: "Driver career events", value: "No" });
   }
   if (settings.carPerformance !== null) {
     lines.push({
@@ -772,8 +789,14 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   if (settings.development !== null) {
     lines.push({ name: "In-season development", value: DEVELOPMENT_LABELS[settings.development] });
   }
-  if (settings.careerEvents !== null) {
-    lines.push({ name: "Driver career events", value: "No" });
+  if (settings.breakdowns !== null) {
+    lines.push({ name: "Mechanical failures", value: BREAKDOWNS_LABELS[settings.breakdowns] });
+  }
+  if (settings.reliability !== null) {
+    lines.push({ name: "Cars as reliable as", value: String(settings.reliability) });
+  }
+  if (settings.teams !== null) {
+    lines.push({ name: "Teams", value: teamsLabel(settings) });
   }
   if (settings.teamNames !== null) {
     lines.push({ name: "Team name changes", value: "No" });
@@ -784,16 +807,17 @@ export function whatIfsOf(settings: RunSettings): readonly Setting[] {
   if (settings.engineSuppliers !== null) {
     lines.push({ name: "Engine supplier changes", value: "No" });
   }
-  const seatRules = emptySeatRules(settings);
-  if (seatRules !== null) {
-    lines.push({ name: "Keep the first season's teams", value: teamsAndSeatsLabel(seatRules) });
-  }
   return lines;
 }
 
-/** What the reader is shown for a *Keep the first season's teams* answer. */
-export function teamsAndSeatsLabel(rules: EmptySeatRules): string {
-  const fill = rules.fill === "best" ? "best available driver" : "last year's driver first";
-  const active = rules.activeOnly ? " · real-grid drivers only" : "";
-  return `Yes · ${fill} · ages ${rules.minAge}–${rules.maxAge}${active}`;
+/** What the reader is shown for a *Teams* answer: the fill only where the form shows it. */
+function teamsLabel(settings: RunSettings): string {
+  return settings.teams?.fill === "best" && settings.seating === null
+    ? "First season's · best available"
+    : "First season's";
+}
+
+/** What the reader is shown for a *Drivers who can be signed* answer. */
+export function driverPoolLabel(pool: SigningPool): string {
+  return `Ages ${pool.minAge}–${pool.maxAge}, ${pool.activeOnly ? "racing that year" : "from any year"}`;
 }

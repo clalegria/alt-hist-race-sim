@@ -1,5 +1,4 @@
 import type {
-  ArrangementKind,
   ChassisChange,
   EngineChange,
   GridArrangement,
@@ -8,6 +7,7 @@ import type {
 } from "@alt-hist/data";
 import type { KeptNotes } from "../lib/kept.js";
 import { driverName, engineName } from "../lib/names.js";
+import { ARRANGEMENT_LABELS } from "../lib/run-settings.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
 
@@ -36,19 +36,6 @@ import { useTeamName } from "./EntryNames.js";
  * survive into an applied season, because a grid with an open seat cannot be
  * applied.
  */
-
-/**
- * What each bulk rule is called, in one place.
- *
- * The buttons that apply a rule and the notice that says one is in force read
- * the same map, so the grid cannot end up reporting a rule by a different name
- * from the one the reader pressed.
- */
-export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
-  "fastest-in-fastest": "Fastest drivers in fastest teams",
-  "fastest-in-slowest": "Fastest drivers in slowest teams",
-  random: "Randomize grid",
-};
 
 /**
  * What a rule did, in a sentence: the cast it drew on.
@@ -103,7 +90,7 @@ function listed(names: readonly string[]): string {
 }
 
 /**
- * What *Keep the first season's teams* did to a year, as sentences: the ghosts and
+ * What *Teams: The first season's teams* did to a year, as sentences: the ghosts and
  * their cars, how many seats were kept and signed, and who is short of
  * drivers. Pure, so a test reads the words without a DOM.
  */

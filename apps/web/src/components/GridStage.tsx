@@ -45,20 +45,15 @@ import {
   rememberDriverFilters,
 } from "../lib/filter-preference.js";
 import type { KeptNotes } from "../lib/kept.js";
-import {
-  AGE_RANGE,
-  type DriverFilters,
-  defaultDriverFilters,
-  filterDrivers,
-  withAge,
-} from "../lib/people.js";
+import { type DriverFilters, defaultDriverFilters, filterDrivers } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
+import { ARRANGEMENT_LABELS } from "../lib/run-settings.js";
 import { adjacentSeason, isPlayable, seasonSeed, seasonWithChassis } from "../lib/seasons.js";
 import { randomSeed } from "../lib/seed.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { useSortOrder } from "../lib/sort-preference.js";
 import { cn } from "../lib/utils.js";
-import { ARRANGEMENT_LABELS } from "./LineupChanges.js";
+import { AgeRangeInput } from "./AgeRangeInput.js";
 import { RunConfirmDialog } from "./RunDialogs.js";
 import {
   DriverLabel,
@@ -70,7 +65,6 @@ import {
 } from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
 import { Button } from "./ui/button.js";
-import { Input } from "./ui/input.js";
 
 /**
  * The opening grid, and the editor that lets a reader rearrange it.
@@ -162,39 +156,7 @@ function ReserveFilters({
           onChange({ ...filters, hideFuture });
         }}
       />
-      <div className="flex items-center gap-1.5">
-        {/*
-          Which age is being narrowed, said out loud in peak mode. The numbers
-          are read against the age each driver was at their best there, and a
-          bare "Aged 18 to 42" beside a 1980 season is read as 1980 ages — which
-          is the misreading that makes the list look broken when a driver from
-          another decade survives it.
-        */}
-        <span>{ratingMode === "peak" ? "Peak age" : "Aged"}</span>
-        <Input
-          type="number"
-          aria-label="Youngest age"
-          min={AGE_RANGE.min}
-          max={AGE_RANGE.max}
-          value={filters.minAge}
-          onChange={(event) => {
-            onChange(withAge(filters, "min", event.target.valueAsNumber));
-          }}
-          className="h-7 w-14 px-1.5 text-center text-xs"
-        />
-        <span>to</span>
-        <Input
-          type="number"
-          aria-label="Oldest age"
-          min={AGE_RANGE.min}
-          max={AGE_RANGE.max}
-          value={filters.maxAge}
-          onChange={(event) => {
-            onChange(withAge(filters, "max", event.target.valueAsNumber));
-          }}
-          className="h-7 w-14 px-1.5 text-center text-xs"
-        />
-      </div>
+      <AgeRangeInput band={filters} ratingMode={ratingMode} onChange={onChange} />
     </fieldset>
   );
 }
@@ -566,11 +528,11 @@ export function GridStage({
   historicalEngines?: SeasonEngineRatings | null;
   /**
    * The season as the run entered it when that is not the seed file with
-   * `baselineChassis` in it — under *Keep the first season's teams*, the kept year
+   * `baselineChassis` in it — under *Teams: The first season's teams*, the kept year
    * with its signings (`enteredSeason`) — or null. Restore puts it back.
    */
   runSeason?: SeasonSeed | null;
-  /** What *Keep the first season's teams* did to the year (`keptNotes`), or null. */
+  /** What *Teams: The first season's teams* did to the year (`keptNotes`), or null. */
   kept?: KeptNotes | null;
   /**
    * The rule the run's settings reseat the grid by (`seatingArrangement`), or

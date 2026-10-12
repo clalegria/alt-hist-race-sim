@@ -3,16 +3,16 @@ paths:
   - "packages/data/src/keptGrid.ts"
   - "packages/data/src/keptGrid.test.ts"
   - "apps/web/src/lib/kept.ts"
-  - "apps/web/src/components/TeamsAndSeatsSetting.tsx"
-  - "apps/web/src/components/teams-and-seats-setting.test.tsx"
+  - "apps/web/src/components/TeamsSetting.tsx"
+  - "apps/web/src/components/teams-setting.test.tsx"
 ---
 
-# Keep the first season's teams — the kept grid
+# The first season's teams — the kept grid
 
-*Keep the first season's teams: Yes* is an era run setting: every year has the
+*Teams: The first season's teams* is an era run setting: every year has the
 start year's teams, each with its start-year seat count, and teams new in history never
 appear (their drivers are free). `packages/data/src/keptGrid.ts` builds one year of it;
-the settings row is `.claude/rules/web-setup.md`, and the layer it sits in
+the settings row is `.claude/rules/web-run-settings.md`, and the layer it sits in
 `.claude/rules/data-layers.md`. The fills are `last` and `best` (`SEAT_FILLS`).
 
 ## The entry list: `keptYear(start, season, previous, rules, options)`
@@ -65,11 +65,10 @@ No dice anywhere: ranking is deterministic, ties settled by name then id. Rating
   drops it) with the run's signing pool, `RunSettings.driverPool` (`SigningPool`: an age
   band and `activeOnly`), which a reseat shares. `emptySeatRules(settings)` joins them
   into the `EmptySeatRules` this file reads. Under a reseat the fill is always `best`
-  (`settingsInForce`): the reseat moves everyone. `TeamsAndSeatsSetting` still draws
-  them as one row, *Keep the first season's teams*, with *Empty seats go to*
-  (`SEAT_FILL_LABELS`), *Only sign drivers aged* (inputs through `withAge`, so they
-  cannot cross) and *Only sign drivers from that season's real grid*. Switching in opens
-  on `OPENING_TEAMS` and `OPENING_DRIVER_POOL`. `parseRunSettings` refuses a fill outside
+  (`settingsInForce`): the reseat moves everyone. `TeamsSetting` draws *Teams* in Over
+  the years, with *Empty seats go to* (`SEAT_FILL_LABELS`) under it, hidden under a
+  reseat; the pool is the Drivers group's *Drivers who can be signed*
+  (`web-run-settings.md`). Switching in opens on `OPENING_TEAMS`. `parseRunSettings` refuses a fill outside
   `OFFERED_SEAT_FILLS`, and an age outside `AGE_RANGE` or crossed.
 - **The world** (`store/season.ts`) records `gridKeptFrom` (the era's first year),
   `kept` (the `KeptYear`, an input passed on by every in-place rebuild) and `keptSeats`
@@ -99,7 +98,7 @@ team at its count, nobody seated twice, every raced engine on the menu). Mutatio
 reversing the driver ranking, the car order, dropping the band from either step, or
 letting carry-over ignore history each fail at least one test. In the app,
 `store/era.test.ts` runs an era from `FOLDING_YEAR` (`test-support.ts`, found by search),
-`recipe.test.ts` reloads a ghost year, and `teams-and-seats-setting.test.tsx` renders the
+`recipe.test.ts` reloads a ghost year, and `teams-setting.test.tsx` renders the
 row, the ghost and the note; dropping `kept` from `nextEraWorld`, from `rebuild` or from
 an in-place rebuild each fails at least one. `pnpm screenshots` keeps the 1984 grid
 (`era-kept-grid`).

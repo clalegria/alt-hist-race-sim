@@ -252,10 +252,10 @@ export const STEPS: readonly Step[] = [
         .getByRole("group", { name: "In-season development" })
         .getByRole("button", { name: "Random", exact: true })
         .click();
-      // Keep the first season's teams, so the year jumped to below races ghost entries.
+      // The first season's teams, so the year jumped to below races ghost entries.
       await dialog
-        .getByRole("group", { name: "Keep the first season's teams" })
-        .getByRole("button", { name: "Yes", exact: true })
+        .getByRole("group", { name: "Teams" })
+        .getByRole("button", { name: "The first season's teams", exact: true })
         .click();
       // Both rolls at ±20, the chassis walking: the two sets of sub-rows, in order.
       for (const roll of ["Chassis performance", "Engine performance"]) {
@@ -358,7 +358,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-kept-grid",
     reach: async (page) => {
-      // The year after the start under Keep the first season's teams: ghost entries
+      // The year after the start under the first season's teams: ghost entries
       // and the note saying what was kept.
       await page
         .getByRole("navigation", { name: "Season" })

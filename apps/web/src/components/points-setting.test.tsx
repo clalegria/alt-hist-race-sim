@@ -53,7 +53,11 @@ describe("the points setting", () => {
   });
 
   it("sits in the Races group of the run settings, on both screens", () => {
-    const choice = { randomness: STARTING_RANDOMNESS_LEVEL, settings: HISTORICAL_SETTINGS };
+    const choice = {
+      randomness: STARTING_RANDOMNESS_LEVEL,
+      ratingMode: "aged" as const,
+      settings: HISTORICAL_SETTINGS,
+    };
     for (const html of [
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="season" />),
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="era" eraSettings />),

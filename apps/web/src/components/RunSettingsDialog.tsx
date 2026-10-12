@@ -1,23 +1,26 @@
+import { DEFAULT_RATING_MODE, type RatingMode } from "@alt-hist/data";
 import type { RandomnessLevel } from "@alt-hist/engine";
 import { type ReactNode, useState } from "react";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import {
-  emptySeatRules,
   historicalSettings,
   type RunSettings,
   type RunUnit,
+  signsDrivers,
 } from "../lib/run-settings.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
 import { DevelopmentSetting } from "./DevelopmentSetting.js";
+import { DriverAbilitySetting } from "./DriverAbilitySetting.js";
+import { DriverPoolSetting } from "./DriverPoolSetting.js";
 import { EnginePerformanceSetting } from "./EnginePerformanceSetting.js";
 import { EngineSuppliersSetting } from "./EngineSuppliersSetting.js";
 import { LiveriesSetting } from "./LiveriesSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { TeamNamesSetting } from "./TeamNamesSetting.js";
-import { TeamsAndSeatsSetting } from "./TeamsAndSeatsSetting.js";
+import { TeamsSetting } from "./TeamsSetting.js";
 import { Button } from "./ui/button.js";
 import {
   Dialog,
@@ -27,25 +30,31 @@ import {
   DialogFooter,
   DialogTitle,
 } from "./ui/dialog.js";
+import { WhoDrivesSetting } from "./WhoDrivesSetting.js";
 
 /**
  * Everything a run is simulated under, apart from the year: the randomness
- * level and the what-ifs. Two fields because the world keeps them apart
- * (`world.randomness`, `world.settings`), but one answer to the dialog.
+ * level, the driver ability and the what-ifs. Three fields because the world
+ * keeps them apart (`world.randomness`, `world.ratingMode`, `world.settings`),
+ * but one answer to the dialog. An era's `ratingMode` is always
+ * `ERA_RATING_MODE`, and its form does not offer it.
  */
 export interface RunChoice {
   readonly randomness: RandomnessLevel;
+  readonly ratingMode: RatingMode;
   readonly settings: RunSettings;
 }
 
 /**
  * What Restore defaults puts a choice back to — the dialog's button and the
  * settings line's link alike: every setting the screen offers historical
- * (`historicalSettings`), and the luck on the day the app opens on.
+ * (`historicalSettings`), the luck on the day the app opens on, and on a
+ * season's screen drivers as they were that year.
  */
 export function defaultChoice(choice: RunChoice, eraSettings: boolean): RunChoice {
   return {
     randomness: STARTING_RANDOMNESS_LEVEL,
+    ratingMode: eraSettings ? choice.ratingMode : DEFAULT_RATING_MODE,
     settings: historicalSettings(choice.settings, eraSettings),
   };
 }
@@ -65,12 +74,13 @@ export function RunSettingsGroup({ title, children }: { title: string; children:
 
 /**
  * The settings themselves, grouped by what they are about: **Races** (how much
- * the dice decide, how a result is scored), **Cars** (how quick, how they
- * develop, how often they break), and the era's **Over the years** (careers,
- * team names, liveries and engines, the grid).
+ * the dice decide, how a result is scored), **Drivers** (how good they are, who
+ * drives where, who can be signed, their careers), **Cars** (how quick, how they
+ * develop, how often they break), and the era's **Over the years** (the teams,
+ * their names, liveries and engines).
  *
- * Two columns from `lg` up — an era's Races and Cars beside its years, a
- * season's Races beside its Cars — one below it.
+ * Two columns from `lg` up — Races and Drivers beside Cars and, on an era,
+ * Over the years — one below it, in that order.
  *
  * Controlled: the dialog holds the draft. Everything the remembered settings
  * hold is passed through, era-only answers included, so a season's screen never
@@ -89,79 +99,110 @@ export function RunSettingsForm({
   year: number;
   /** What the settings are fixed for, which their copy follows. */
   unit: RunUnit;
-  /** Whether to offer the era-only group. */
+  /** Whether to offer the era-only settings, and not the season-only one. */
   eraSettings?: boolean;
   /** Absent in tests, where nothing is clicked. */
   onChange?: (choice: RunChoice) => void;
 }) {
-  const { randomness, settings } = choice;
+  const { randomness, ratingMode, settings } = choice;
   const set = (changed: Partial<RunSettings>) => {
-    onChange?.({ randomness, settings: { ...settings, ...changed } });
+    onChange?.({ ...choice, settings: { ...settings, ...changed } });
   };
-
-  const races = (
-    <RunSettingsGroup title="Races">
-      <RandomnessSlider
-        level={randomness}
-        onChange={(level) => {
-          onChange?.({ randomness: level, settings });
-        }}
-      />
-      <PointsSetting
-        points={settings.points}
-        year={year}
-        unit={unit}
-        onChange={(points) => {
-          set({ points });
-        }}
-      />
-    </RunSettingsGroup>
-  );
-  const cars = (
-    <RunSettingsGroup title="Cars">
-      <CarPerformanceSetting
-        carPerformance={settings.carPerformance}
-        unit={unit}
-        onChange={(carPerformance) => {
-          set({ carPerformance });
-        }}
-      />
-      <EnginePerformanceSetting
-        enginePerformance={settings.enginePerformance}
-        unit={unit}
-        onChange={(enginePerformance) => {
-          set({ enginePerformance });
-        }}
-      />
-      <DevelopmentSetting
-        development={settings.development}
-        unit={unit}
-        onChange={(development) => {
-          set({ development });
-        }}
-      />
-      <BreakdownsSetting
-        breakdowns={settings.breakdowns}
-        reliability={settings.reliability}
-        unit={unit}
-        onChange={set}
-      />
-    </RunSettingsGroup>
-  );
+  // A season never runs the era-only answers it passes through, so its kept
+  // teams sign nobody.
+  const signing = signsDrivers(eraSettings ? settings : { ...settings, teams: null });
 
   return (
     <div className="grid gap-x-8 gap-y-2 lg:grid-cols-2 lg:items-start">
-      {eraSettings ? (
-        <>
-          <div className="flex flex-col gap-2">
-            {races}
-            {cars}
-          </div>
-          <RunSettingsGroup title="Over the years">
+      <div className="flex flex-col gap-2">
+        <RunSettingsGroup title="Races">
+          <RandomnessSlider
+            level={randomness}
+            onChange={(level) => {
+              onChange?.({ ...choice, randomness: level });
+            }}
+          />
+          <PointsSetting
+            points={settings.points}
+            year={year}
+            unit={unit}
+            onChange={(points) => {
+              set({ points });
+            }}
+          />
+        </RunSettingsGroup>
+        <RunSettingsGroup title="Drivers">
+          {eraSettings ? null : (
+            <DriverAbilitySetting
+              ratingMode={ratingMode}
+              onChange={(mode) => {
+                onChange?.({ ...choice, ratingMode: mode });
+              }}
+            />
+          )}
+          <WhoDrivesSetting
+            seating={settings.seating}
+            unit={unit}
+            onChange={(seating) => {
+              set({ seating });
+            }}
+          />
+          {signing ? (
+            <DriverPoolSetting
+              pool={settings.driverPool}
+              ratingMode={ratingMode}
+              onChange={(driverPool) => {
+                set({ driverPool });
+              }}
+            />
+          ) : null}
+          {eraSettings ? (
             <CareerEventsSetting
               careerEvents={settings.careerEvents}
               onChange={(careerEvents) => {
                 set({ careerEvents });
+              }}
+            />
+          ) : null}
+        </RunSettingsGroup>
+      </div>
+      <div className="flex flex-col gap-2">
+        <RunSettingsGroup title="Cars">
+          <CarPerformanceSetting
+            carPerformance={settings.carPerformance}
+            unit={unit}
+            onChange={(carPerformance) => {
+              set({ carPerformance });
+            }}
+          />
+          <EnginePerformanceSetting
+            enginePerformance={settings.enginePerformance}
+            unit={unit}
+            onChange={(enginePerformance) => {
+              set({ enginePerformance });
+            }}
+          />
+          <DevelopmentSetting
+            development={settings.development}
+            unit={unit}
+            onChange={(development) => {
+              set({ development });
+            }}
+          />
+          <BreakdownsSetting
+            breakdowns={settings.breakdowns}
+            reliability={settings.reliability}
+            unit={unit}
+            onChange={set}
+          />
+        </RunSettingsGroup>
+        {eraSettings ? (
+          <RunSettingsGroup title="Over the years">
+            <TeamsSetting
+              teams={settings.teams}
+              reseated={settings.seating !== null}
+              onChange={(teams) => {
+                set({ teams });
               }}
             />
             <TeamNamesSetting
@@ -182,31 +223,9 @@ export function RunSettingsForm({
                 set({ engineSuppliers });
               }}
             />
-            <TeamsAndSeatsSetting
-              teamsAndSeats={emptySeatRules(settings)}
-              onChange={(rules) => {
-                set(
-                  rules === null
-                    ? { teams: null }
-                    : {
-                        teams: { fill: rules.fill },
-                        driverPool: {
-                          minAge: rules.minAge,
-                          maxAge: rules.maxAge,
-                          activeOnly: rules.activeOnly,
-                        },
-                      },
-                );
-              }}
-            />
           </RunSettingsGroup>
-        </>
-      ) : (
-        <>
-          {races}
-          {cars}
-        </>
-      )}
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -314,6 +333,7 @@ function DraftForm({
   // A reset answer is null and a kept one the draft's own object, so `===` is enough.
   const atDefaults =
     draft.randomness === defaults.randomness &&
+    draft.ratingMode === defaults.ratingMode &&
     Object.entries(defaults.settings).every(
       ([key, value]) => draft.settings[key as keyof RunSettings] === value,
     );
