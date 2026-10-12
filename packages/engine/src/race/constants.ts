@@ -170,7 +170,7 @@ export interface RaceConstants {
    * roots of the four products, which sum to 1. The session sigma is therefore
    * untouched by either share, and so is the correlation between sessions.
    *
-   * It is high (0.75) on purpose. Most of what swings a car's level from one
+   * It is high on purpose. Most of what swings a car's level from one
    * weekend to the next belongs to the team rather than the driver: the circuit
    * suits the aero, the tyres never switch on, the strategy call is wrong. All
    * of that moves both cars of a garage together, so it cannot decide which of
@@ -418,8 +418,8 @@ export interface RaceConstants {
 
   /**
    * Lap length in seconds, used only to convert a large cosmetic race gap into
-   * "+1 lap", "+2 laps". One nominal value stands in for every circuit: the sim
-   * has no calendar and no track data, and gaps are decoration, not physics.
+   * "+1 lap", "+2 laps". One nominal value stands in for every circuit: a round
+   * knows its country but has no track data, and gaps are decoration, not physics.
    */
   readonly nominalLapSeconds: number;
 
@@ -430,11 +430,11 @@ export interface RaceConstants {
    * 1.0 is 1980, when roughly half a field could fail to see the flag. Rising
    * reliability *ratings* alone do not capture the shift — a 95-rated car still
    * fails far too often under period-accurate endpoints — so the mapping itself
-   * has to tighten as the sport matures. Later seasons pass a smaller value
-   * through the constants override.
+   * has to tighten as the sport matures.
    *
-   * The per-season curve is deliberately not defined here: it belongs to the
-   * progression model, and picking it is an open decision.
+   * Left at 1 here: the per-season curve is each season's `retirementFactor`
+   * (`retirement.ts`), which multiplies it, as do the weather and the
+   * Mechanical failures setting (`breakdowns.ts`).
    */
   readonly mechanicalDnfEraScale: number;
 
