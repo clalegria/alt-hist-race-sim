@@ -43,33 +43,35 @@ for that era by name — the tuning invariant in `CLAUDE.md`.
 
 ## 1. Tidy the run settings and the grid editor
 
-The grid editor and the settings dialog have grown into each other, and a reader cannot
-tell which one holds a choice. One of the most important jobs before *publish it*, and
-before the next item adds more to the editor. **The line to draw: a choice about the
-whole run lives in the settings; the editor only changes this grid.** Today the editor
-holds run-wide answers:
+The grid editor and the settings dialog have grown into each other. **The line, decided:
+a choice about the whole run lives in the settings; the editor only changes this grid.**
+Before *publish it*, and before the next item adds more to the editor.
 
-- **"Keep this for every season of the era"** on the reseat buttons, and **"Include
-  unemployed drivers"** beside it (`GridStage`, `world.arrangement`;
-  `.claude/rules/grid-arrangements-app.md`).
-- **The pool filters** (hide retired, hide debuting, an age range), which travel with a
-  kept rule, so they are era-wide once it is kept. The settings' *Keep the first season's
-  teams* has a second age range and driver filter of its own (`TeamsAndSeatsSetting`).
-- **Peak / Aged** sits above the grid, outside both (`RatingModeToggle`).
+- **Reseating moves to the settings, out of the editor.** A new *Drivers* group, on a
+  season and an era: **Who drives where** — *Historical* / the three rules in
+  `ARRANGEMENT_LABELS` — with *Drivers without a drive can take a seat* under a rule. The
+  editor's `GridArrangements` panel, its keep box and `world.arrangement` go. The driver
+  market later becomes one more answer here.
+- **The reseat is the starting grid, not an edit**, as kept seats are: a last step in
+  `baselineSeason`, after the empty seats are filled. A hand edit sits on top of it and no
+  longer ends it; Restore and Clear all edits return to it.
+- **One driver pool**: *Drivers who can be signed* (an age range, *only drivers racing
+  that year*), read by the reseat and by the empty-seat fill. The editor's *Without a
+  drive* filters go back to only narrowing the list on screen.
+- ***Keep the first season's teams* becomes *Teams*** (*Historical* / *The first season's
+  teams*, with *Empty seats go to*), in *Over the years*. Under a reseat, *Empty seats go
+  to* is hidden and the seats go to the best available. *Driver career events* moves to
+  *Drivers*.
+- **Peak / Aged moves into the settings** (*Drivers*, season only), so it rebuilds on a
+  fresh seed and locks with the rest once the grid is edited. `RatingModeToggle` leaves
+  the grid.
+- **Old links**: each world in a recipe stores its lineup, so an old run rebuilds the same
+  grid, shown as edited. Drop `arrangement` from the recipe; `parseRunSettings` reads the
+  old `teamsAndSeats` shape.
 
-Open, to agree before building:
-- **Which of these move.** The likely shape: a kept reseat rule becomes an *Over the
-  years* setting, and the one-press reseat buttons stay in the editor as an edit to this
-  grid.
-- **One driver-pool answer or two.** Whether the editor's filters and *Keep the first
-  season's teams* share one setting.
-- **When a kept rule can start.** The settings lock after the first grid; the editor can
-  start a kept rule in any year of an era. Moving it means choosing it up front.
-
-A move changes what a world and the reload recipe store (`web-persistence.md`), so old
-links need a reading. Take along the UI review items on these two screens:
-`restore-defaults-two-meanings`, `settings-summary-wall`, `age-input-collapse`,
-`drivers-plural`, `split-grid-stage` (`docs/design/ui-review.md`).
+Takes along `age-input-collapse` (one shared age input), `drivers-plural` and
+`split-grid-stage` (`docs/design/ui-review.md`). `restore-defaults-two-meanings` and
+`settings-summary-wall` stay with *Sort the UI review*.
 
 ## 2. Edit engines in the grid editor
 
