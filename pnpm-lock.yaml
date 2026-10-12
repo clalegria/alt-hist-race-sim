@@ -115,6 +115,12 @@ importers:
         specifier: ^4.20.6
         version: 4.23.12
 
+  tools/docs:
+    devDependencies:
+      '@types/node':
+        specifier: ^26.2.0
+        version: 26.2.0
+
   tools/screenshots:
     devDependencies:
       '@types/node':

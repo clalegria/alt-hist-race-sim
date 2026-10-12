@@ -33,7 +33,7 @@ data**, and rather than in `apps/web` because more than one consumer needs each 
     **It does not blend** — `powertrain()` in the engine owns that, so the number raced
     and the number the grid page shows come from one place. Hence the entrant carries
     `chassis`, not `car`.
-  - `mode` is `"aged"` (the default) or `"peak"`; see "Peak vs aged" in `CLAUDE.md`.
+  - `mode` is `"aged"` (the default) or `"peak"`; see "Aged / peak" in `CLAUDE.md`.
     `"aged"` calls the engine's `ratingsForSeason`, so this
     package depends on the engine at runtime — one-directionally, which is the
     invariant that matters.

@@ -1,55 +1,13 @@
 # CLAUDE.md
 
-## Project
-**alt-hist-race-sim** (working name) — an alternate-history motor racing simulator.
-Starts from a real season — 1950 to 2026, all authored — and simulates forward, year by
-year, diverging from history as it goes. Drivers and teams have 1–100 attributes; races
-are resolved probabilistically; drivers age, move between teams via a transfer market,
-and retire; statistics accumulate over the run. Eventually this should also become a
-videogame though the specifics are not yet planned.
+**alt-hist-race-sim**: an alternate-history motor racing simulator. It starts from a real
+season (1950–2026, all authored) and simulates forward year by year: 1–100 ratings,
+probabilistic races, ageing, transfers, retirements, accumulated statistics. A hobby
+project, ~98% AI-generated; these rules keep it coherent.
 
-Hobby project for learning modern TypeScript/React, and especially how to work with
-Claude Code itself. Will eventually be shared publicly. ~98% of the code is
-AI-generated, so the rules below are the guardrails that keep the project coherent —
-follow them.
-
-**The author is an experienced programmer in non-web legacy languages, but new to
-TypeScript, React and web development.** When making a design decision, explain it with
-that in mind: name the web-dev convention or framework idea involved and why it fits.
-
-**The player is a casually curious motorsport fan**, not technical, who has never seen how
-the model works and does not want to. Every word on screen (a setting's name and caption,
-a page's intro, a tooltip) is written for them: what they will see happen, in plain racing
-words, one short sentence where one will do. Leave out mechanics, edge cases and
-exceptions; what only matters to someone reading the code belongs in a rule file, not on
-screen. When in doubt, cut.
-
-## Current phase
-**Phase 1: browser-only. No backend, no database, no user accounts.** The engine runs
-client-side. Do NOT introduce a server, an HTTP API, or a database in this phase.
-Seasons are authored one JSON file per year in `packages/data/src/seasons/`
-(`.claude/rules/seed-data.md`).
-
-## Documentation, and keeping it current
-- `docs/ROADMAP.md` is what to build next, in order; `docs/DECISIONS.md` is what is still
-  open, to confirm with the author rather than assume. **Read both before starting new
-  feature work.**
-- `docs/design/*.md` design a large subsystem before it is built, marking each point
-  DECIDED, PROPOSED (confirm first) or OPEN, and own that subsystem's open questions.
-  As parts are built they move to `.claude/rules/` and leave the design doc; when
-  nothing is left, delete it.
-- `.claude/rules/*.md` hold subsystem detail, path-scoped by YAML `paths:` so each loads
-  when matching files are opened. Document a new subsystem there, not here: this file is
-  re-injected after `/compact` and holds only project-wide invariants, commands, glossary
-  and conventions.
-- **Keeping every `.md` file current is Claude's job, not the author's.** When a change
-  makes a doc wrong or incomplete, fix the doc in the same piece of work: delete finished
-  roadmap items, take settled questions out of DECISIONS.md, make rule files follow the code.
-- **Keep them short.** Say a thing once, in the file that owns it, and point to it
-  elsewhere. No history, no anecdotes, no account of how a number got its value. This file
-  stays ≤150 lines; a rule file ≤~150, split by narrower path scope past that.
-- **When unsure whether a detail can go, ask the author.** Don't keep it by default and
-  don't drop it silently.
+- **The author** is an experienced programmer new to TypeScript, React and web dev. When
+  making a design choice, name the web convention behind it and why it fits.
+- **Phase 1 is browser-only**: no server, HTTP API, database or user accounts.
 
 ## Commands
 ```
@@ -62,71 +20,48 @@ pnpm format        # biome check --write .
 pnpm screenshots   # screens to PNGs; pass step names, --phone/--desktop, --light/--dark
 pnpm tunnel        # the dev server on a public https URL, for any device (.claude/rules/tunnel.md)
 ```
-The harnesses in `tools/calibrate` (`pnpm race`, `season`, `calibrate`, `tune`, `fit`, …)
-are listed in `.claude/rules/calibration.md`.
+Calibration harnesses (`pnpm race`, `season`, `tune`, `fit`, …): `.claude/rules/calibration.md`.
 
-## Architecture rules (invariants — do not violate)
-- **The engine is pure.** `packages/engine` imports nothing outside itself, does no I/O
-  (no `fetch`, no file reads, no `Date.now()`) and has **zero dependencies**, runtime or
-  dev. That is what keeps it testable and portable.
-- **No `Math.random()` in the engine.** All randomness comes from an injected seeded PRNG;
-  reproducibility is a hard requirement.
-- **Identity is separate from state.** `Driver` and `Team` are immutable; ratings and
-  per-season facts live in per-season records. A team's name, base and livery are eras
-  (`team-eras.md`).
-- **Results are the source of truth.** Store a result row per (driver, race) and derive
-  every statistic on read; never keep running counters as primary data.
-- **One serialisable world-state object**, plain data only, in one store (Zustand), never
-  scattered across component state; the `Rng` is kept as its state snapshot
-  (`web-store.md`).
-- **Tunable numbers live in one constants module per subsystem**, never inline in logic
-  (pattern: `packages/engine/src/race/constants.ts`).
-- **Never tune a number unless asked.** Engine constants and the authored ratings in
-  `packages/data/src/*.json` are the author's. Do not move them as a side effect of other
-  work, and do not run a harness to check a figure. The one other exception: a change to
-  how performance is computed (a new score term, a new entity between driver and result,
-  a new race model) changes what a rating means. Say so and agree before touching
-  numbers. **Never describe a number as fitted, calibrated, measured or stale**: the
-  values move by hand, and the note goes out of date.
+## Invariants
+- **The engine is pure**: `packages/engine` imports nothing outside itself, does no I/O
+  (no `fetch`, file reads, `Date.now()`) and has zero dependencies, runtime or dev.
+- **No `Math.random()` in the engine**: randomness comes from the injected seeded PRNG.
+  Runs must reproduce.
+- **Identity is separate from state**: `Driver` and `Team` are immutable; ratings and
+  per-season facts live in per-season records.
+- **Results are the source of truth**: one row per (driver, race); every statistic is
+  derived on read, never kept as a counter.
+- **One serialisable world state**, plain data, in the Zustand store (`web-store.md`).
+- **Tunable numbers live in the subsystem's constants module**, never inline.
+- **Never change a number unless asked**: engine constants and the authored ratings in
+  `packages/data/src/*.json` are the author's, and a harness is not run to check a figure.
+  A change to how performance is computed (a new score term, a new race model) changes
+  what a rating means: say so and agree before touching numbers. Never call a number
+  fitted, calibrated, measured or stale.
 
-## Domain glossary
-- **Entry**: one team's season — team + chassis + engine + drivers.
-- **Chassis spec / engine spec**: authored per season; an engine has no consistency. The
-  **car spec** is their blend through `powertrain()`, what the model scores and what the
-  UI's overall uses. `.claude/rules/race-powertrain.md`.
-- **Peak vs aged**: that season's ability via the ageing curve, or authored peak.
-  **`aged` is the default everywhere**; `peak` is a what-if on a season's grid.
-- **Ranking rule**: overall, then racing, then name or id (`compareByRating` in
-  `packages/data/src/rating.ts`). One rule for every list on screen and every grid reseat.
-- **Score-and-sort**: the v1 race model behind `RaceModel`: one noisy score per driver,
-  sorted, then DNFs. `.claude/rules/race-engine.md`.
-- **Beat**: one step of a run's reveal — the grid, a session, the summary, an era's
-  review. The cursor is the beat reached; each beat is a page. `.claude/rules/web-app.md`.
-- **Randomness level**: 1–5, fixed before a run; *Luck on the day* on screen. `race-randomness.md`.
-- **Team form**: the share of session noise that belongs to the team rather than the car,
-  so it cancels out of a teammate comparison. `race-engine.md`.
+## Glossary
+- **Entry**: one team's season: team, chassis, engine, drivers.
+- **Car spec**: chassis and engine blended by `powertrain()`; what the model races and
+  what the UI's overall shows.
+- **Aged / peak**: a driver's ability that season via the ageing curve (the default
+  everywhere) / their authored peak (a what-if).
+- **Ranking rule**: overall, then racing, then name or id (`compareByRating`). Every list
+  on screen and every reseat.
 
 ## Conventions
-- **Screenshots only for a visible change, and only of what changed**: name the steps
-  and one variant (`pnpm screenshots era-setup --phone --light`, `screenshots.md`).
-  Never the whole set to check a small change; the tests check logic.
 - Conventional commits (`feat:`, `fix:`, `chore:`, `test:`, `refactor:`), imperative, small.
-- **No build step.** Packages export TypeScript source (`"exports": "./src/index.ts"`);
-  `tsc --noEmit` is the correctness check.
-- Every engine module ships with Vitest tests; `apps/web` is tested at the store and
-  smoke-render level. Favour property-style checks: finish order is a valid permutation,
-  nobody finishes twice, DNFs remove cars.
-- **No test may depend on an authored number or on what a seed produced**; both move.
-  - Assert the *rule* against synthetic ratings, never an authored rating or a comparison
-    of two.
-  - A fixed seed is a fine fixture; asserting its outcome is not. When a test needs a
-    season of a particular shape, search for one (`web-testing.md`).
-  - Derive counts (`field.length`, `season.calendar.length`); never hard-code them.
-  - Naming a driver or team as an identity is fine; what they are worth is not.
-- **Mutation-check statistical tests**: break the implementation on purpose, confirm the
-  test fails, revert.
-- **Read `Test Files`, not just `Tests`**: a file that fails to compile is not counted in
-  the `Tests` line.
-- **Dependencies:** when pnpm's release-age policy rejects a fresh version, pick the
-  previous stable one; never add a `minimumReleaseAgeExclude`. `tools/*` may use dev
-  dependencies; the engine takes none. Secrets live only in a gitignored `.env`.
+- No build step: packages export TypeScript source; `pnpm typecheck` is the check.
+- Every engine module ships Vitest tests; `apps/web` is tested at store and smoke-render
+  level. **No test asserts an authored number or what a seed produced** (`testing.md`).
+  Read `Test Files`, not just `Tests`: a file that fails to compile isn't counted.
+- Screenshots only for a visible change: the changed steps, one variant
+  (`pnpm screenshots era-setup --phone --light`, `screenshots.md`).
+- Dependencies: if pnpm's release-age policy rejects a version, take the previous stable
+  one; never add `minimumReleaseAgeExclude`. Secrets only in the gitignored `.env`.
+
+## Docs
+- `docs/ROADMAP.md` is what to build next; `docs/DECISIONS.md` is what to ask the author
+  about, not assume. Read both when picking up a roadmap item.
+- `.claude/rules/*.md` hold subsystem rules, loaded by path. How to write any doc:
+  `.claude/rules/docs.md`.
+- A change that makes a doc wrong fixes it in the same commit.
