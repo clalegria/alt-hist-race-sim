@@ -9,6 +9,7 @@ export function DropdownMenuContent({
   className,
   align = "end",
   sideOffset = 6,
+  collisionPadding = 8,
   ...props
 }: ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -16,8 +17,11 @@ export function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         align={align}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
         className={cn(
           "bg-card text-card-foreground border-border z-50 min-w-56 rounded-xl border p-1 shadow-xl outline-none",
+          // As the popover: capped to the room on its side, so it scrolls rather than run off screen.
+          "max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
