@@ -194,6 +194,7 @@ describe("the grid in edit mode", () => {
     engineIds: SEED.engines.map((engine) => engine.engineId),
     onEngineChange: () => {},
     onChassisStep: () => {},
+    onEngineStep: () => {},
   };
   const html = renderToStaticMarkup(
     <SeasonGrid
@@ -680,6 +681,7 @@ describe("an empty seat", () => {
           engineIds: SEED.engines.map((engine) => engine.engineId),
           onEngineChange: () => {},
           onChassisStep: () => {},
+          onEngineStep: () => {},
         }}
         changes={lineupChanges(SEED, vacated)}
       />,

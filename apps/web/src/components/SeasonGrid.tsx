@@ -2,6 +2,7 @@ import type {
   ChassisChange,
   ChassisSpec,
   EngineChange,
+  EngineRatingChange,
   GridArrangement,
   GridPick,
   RatingMode,
@@ -9,6 +10,7 @@ import type {
 } from "@alt-hist/data";
 import {
   canStepChassis,
+  canStepEngine,
   driversById,
   type SeasonChassis,
   type SeasonEngineRatings,
@@ -24,7 +26,14 @@ import { cn } from "../lib/utils.js";
 import { useNameYear } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
-import { ArrangementNote, chassisSummary, GridChanges, KeptNote, signed } from "./LineupChanges.js";
+import {
+  ArrangementNote,
+  chassisSummary,
+  engineSummary,
+  GridChanges,
+  KeptNote,
+  signed,
+} from "./LineupChanges.js";
 import { useLiveryYear } from "./Liveries.js";
 import { PageLink } from "./PageLink.js";
 import { usePageOf } from "./SeasonHistory.js";
@@ -80,6 +89,11 @@ export interface GridEditing {
   readonly onEngineChange: (teamId: string, engineId: string) => void;
   /** One team's chassis a point better or worse: one rating, or all four when none is named. */
   readonly onChassisStep: (teamId: string, step: 1 | -1, key?: keyof ChassisSpec) => void;
+  /**
+   * One engine a point better or worse, for every team running it: one rating,
+   * or all three when none is named.
+   */
+  readonly onEngineStep: (engineId: string, step: 1 | -1, key?: keyof EngineSpec) => void;
 }
 
 /**
@@ -148,8 +162,8 @@ function Rating({
 }
 
 /**
- * A minus and a plus — the card's control for all four chassis ratings, and the
- * popover's for one.
+ * A minus and a plus — the card's control for all of a chassis's or an
+ * engine's ratings, and the popover's for one.
  *
  * Only ever drawn in the editor. Each button is disabled once nothing it would
  * move can move any further, so a press never silently does nothing.
@@ -157,9 +171,58 @@ function Rating({
  * The popover passes a `delta` and gets it as a tag between the buttons: there
  * it sits beside one rating and is that rating's own change. The card passes
  * none and says what moved in words after the buttons instead
- * (`chassisSummary`), because a bare number on the card would be read as a
- * change to the overall, which blends the chassis with its engine.
+ * (`chassisSummary`, `engineSummary`), because a bare number on the card would
+ * be read as a change to the overall, which blends the chassis with its engine.
  */
+function RatingStepper({
+  what,
+  canStep,
+  delta,
+  onStep,
+}: {
+  /** What the buttons move, for their accessible names: "Ferrari chassis racing". */
+  what: string;
+  /** Whether a step that way could move anything. */
+  canStep: (step: 1 | -1) => boolean;
+  /** How far the one rating has moved, for a tag between the buttons; none when absent. */
+  delta?: number | undefined;
+  onStep: (step: 1 | -1) => void;
+}) {
+  const button = "size-5 shrink-0 rounded px-0 text-xs leading-none";
+  return (
+    <span className="flex shrink-0 items-center gap-1">
+      <Button
+        variant="outline"
+        className={button}
+        aria-label={`Weaken ${what}`}
+        disabled={!canStep(-1)}
+        onClick={() => {
+          onStep(-1);
+        }}
+      >
+        &minus;
+      </Button>
+      {delta === undefined ? null : (
+        <span className="text-muted-foreground w-9 text-center text-xs tabular-nums">
+          {signed(delta)}
+        </span>
+      )}
+      <Button
+        variant="outline"
+        className={button}
+        aria-label={`Strengthen ${what}`}
+        disabled={!canStep(1)}
+        onClick={() => {
+          onStep(1);
+        }}
+      >
+        +
+      </Button>
+    </span>
+  );
+}
+
+/** A team's chassis stepper: all four ratings, or the one named. */
 export function ChassisStepper({
   teamName,
   chassis,
@@ -177,42 +240,56 @@ export function ChassisStepper({
   rating?: { key: keyof ChassisSpec; label: string };
   onStep: (step: 1 | -1) => void;
 }) {
-  const what =
-    rating === undefined
-      ? `${teamName} chassis`
-      : `${teamName} chassis ${rating.label.toLowerCase()}`;
-  const button = "size-5 shrink-0 rounded px-0 text-xs leading-none";
   return (
-    <span className="flex shrink-0 items-center gap-1">
-      <Button
-        variant="outline"
-        className={button}
-        aria-label={`Weaken ${what}`}
-        disabled={!canStepChassis(chassis, -1, rating?.key)}
-        onClick={() => {
-          onStep(-1);
-        }}
-      >
-        &minus;
-      </Button>
-      {delta === undefined ? null : (
-        <span className="text-muted-foreground w-9 text-center text-xs tabular-nums">
-          {signed(delta)}
-        </span>
-      )}
-      <Button
-        variant="outline"
-        className={button}
-        aria-label={`Strengthen ${what}`}
-        disabled={!canStepChassis(chassis, 1, rating?.key)}
-        onClick={() => {
-          onStep(1);
-        }}
-      >
-        +
-      </Button>
-    </span>
+    <RatingStepper
+      what={
+        rating === undefined
+          ? `${teamName} chassis`
+          : `${teamName} chassis ${rating.label.toLowerCase()}`
+      }
+      canStep={(step) => canStepChassis(chassis, step, rating?.key)}
+      delta={delta}
+      onStep={onStep}
+    />
   );
+}
+
+/**
+ * An engine's stepper: all three ratings, or the one named. Named by the
+ * engine, not the team, because it moves every team running it.
+ */
+export function EngineStepper({
+  engineId,
+  engine,
+  delta,
+  rating,
+  onStep,
+}: {
+  engineId: string;
+  /** The engine as it now stands, to know whether a step can move it. */
+  engine: EngineSpec;
+  /** How far the one rating has moved, for a tag between the buttons; none when absent. */
+  delta?: number;
+  /** The one rating these buttons move, or all three when absent. */
+  rating?: { key: keyof EngineSpec; label: string };
+  onStep: (step: 1 | -1) => void;
+}) {
+  const name = `${engineName(engineId)} engine`;
+  return (
+    <RatingStepper
+      what={rating === undefined ? name : `${name} ${rating.label.toLowerCase()}`}
+      canStep={(step) => canStepEngine(engine, step, rating?.key)}
+      delta={delta}
+      onStep={onStep}
+    />
+  );
+}
+
+/** "Haas", "Haas and Sauber", "Haas, Sauber and Williams". */
+function listed(names: readonly string[]): string {
+  return names.length <= 1
+    ? (names[0] ?? "")
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
 /** The headline number, tinted by how good it is. */
@@ -497,7 +574,7 @@ function EnginePicker({
   edit: GridEditing;
 }) {
   return (
-    <label className="mt-2 flex items-center gap-2 text-xs">
+    <label className="flex min-w-0 flex-1 items-center gap-2 text-xs">
       <span className={ROW_LABEL}>Engine</span>
       <select
         value={engineId ?? ""}
@@ -616,6 +693,7 @@ export function SeasonGrid({
   changes,
   engineChanges,
   chassisChanges,
+  engineRatingChanges,
   historicalChassis = null,
   historicalEngines = null,
   arrangement = null,
@@ -641,6 +719,8 @@ export function SeasonGrid({
   engineChanges?: readonly EngineChange[];
   /** Teams whose chassis the reader re-rated. */
   chassisChanges?: readonly ChassisChange[];
+  /** Engines the reader re-rated: every team running one is marked. */
+  engineRatingChanges?: readonly EngineRatingChange[];
   /**
    * Each team's chassis as history had it, when the run's own differ — *Car
    * performance* rolled them — or null. The team popover then reads history →
@@ -704,6 +784,9 @@ export function SeasonGrid({
   // changes rather than making the reader match names against a list.
   const swappedIn = new Set(edited.flatMap((change) => change.in));
   const movedEngine = new Set(resupplied.map((change) => change.teamId));
+  const reratedEngines = new Map(
+    (engineRatingChanges ?? []).map((change) => [change.engineId, change]),
+  );
 
   return (
     // A `Card`, like every results panel, rather than the bare section this was:
@@ -761,6 +844,7 @@ export function SeasonGrid({
         {edited.length === 0 &&
         resupplied.length === 0 &&
         rerated.size === 0 &&
+        reratedEngines.size === 0 &&
         arrangement === null ? null : (
           <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -786,6 +870,7 @@ export function SeasonGrid({
               changes={edited}
               engineChanges={resupplied}
               chassisChanges={[...rerated.values()]}
+              engineRatingChanges={[...reratedEngines.values()]}
             />
           </div>
         )}
@@ -811,7 +896,17 @@ export function SeasonGrid({
             const historicalEngine =
               entry.engineId === undefined ? undefined : historicalEngines?.[entry.engineId];
             const ghostCar = kept?.ghosts[entry.teamId];
-            const marked = movedEngine.has(entry.teamId) || chassisChange !== undefined;
+            const engineChange =
+              entry.engineId === undefined ? undefined : reratedEngines.get(entry.engineId);
+            // Everyone else on this engine, whom a step on it moves too.
+            const sharing = entries
+              .filter((other) => other.teamId !== entry.teamId && other.engineId === entry.engineId)
+              .map((other) => teamName(other.teamId, nameYear(other.teamId, seasonYear)))
+              .sort((a, b) => a.localeCompare(b));
+            const marked =
+              movedEngine.has(entry.teamId) ||
+              chassisChange !== undefined ||
+              engineChange !== undefined;
             return (
               <li
                 key={entry.teamId}
@@ -936,6 +1031,11 @@ export function SeasonGrid({
                                   : "Real → this run"}
                               </span>
                             </div>
+                            {edit === undefined || sharing.length === 0 ? null : (
+                              <p className="text-muted-foreground mb-2 text-xs">
+                                Also moves {listed(sharing)}.
+                              </p>
+                            )}
                             <div className="flex flex-col gap-2">
                               {ENGINE_RATINGS.map((rating) => (
                                 <Rating
@@ -945,6 +1045,30 @@ export function SeasonGrid({
                                   {...(historicalEngine === undefined
                                     ? {}
                                     : { was: historicalEngine[rating.key] })}
+                                  {...(edit === undefined ||
+                                  entry.engine === undefined ||
+                                  entry.engineId === undefined
+                                    ? {}
+                                    : {
+                                        control: (
+                                          <EngineStepper
+                                            engineId={entry.engineId}
+                                            engine={entry.engine}
+                                            delta={
+                                              engineChange === undefined
+                                                ? 0
+                                                : engineChange.to[rating.key] -
+                                                  engineChange.from[rating.key]
+                                            }
+                                            rating={rating}
+                                            onStep={(step) => {
+                                              if (entry.engineId !== undefined) {
+                                                edit.onEngineStep(entry.engineId, step, rating.key);
+                                              }
+                                            }}
+                                          />
+                                        ),
+                                      })}
                                 />
                               ))}
                             </div>
@@ -993,7 +1117,28 @@ export function SeasonGrid({
 
                 {edit === undefined ? null : (
                   <>
-                    <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
+                    <div className="mt-2 flex items-center gap-2">
+                      <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
+                      {entry.engine === undefined || entry.engineId === undefined ? null : (
+                        <EngineStepper
+                          engineId={entry.engineId}
+                          engine={entry.engine}
+                          onStep={(step) => {
+                            if (entry.engineId !== undefined) {
+                              edit.onEngineStep(entry.engineId, step);
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                    {engineChange === undefined ? null : (
+                      // Under the picker, lined up with it: the select takes the
+                      // row's width. Names the engine, since the same line
+                      // appears on every card running it.
+                      <p className="text-muted-foreground mt-1 pl-14 text-xs">
+                        {engineName(engineChange.engineId)} engine {engineSummary(engineChange)}
+                      </p>
+                    )}
                     {/*
                       Its own row rather than beside the overall: in the
                       editor's two-column cards a stepper in the header took

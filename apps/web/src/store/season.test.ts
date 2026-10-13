@@ -1,5 +1,6 @@
 import {
   authoredChassis,
+  authoredEngineRatings,
   authoredEngines,
   authoredLineup,
   DEFAULT_RATING_MODE,
@@ -9,6 +10,7 @@ import {
   seasonSeed,
   seasons,
   stepChassis,
+  stepEngine,
   swapDrivers,
 } from "@alt-hist/data";
 import {
@@ -32,6 +34,7 @@ import {
   createWorld,
   isUntouched,
   type Run,
+  racedEngineRatings,
   racedLineup,
   runConstants,
   useSeasonStore,
@@ -1179,6 +1182,83 @@ describe("the re-rated chassis", () => {
     useSeasonStore.getState().setGrid(null, null, rerated);
     const world = running().world;
     expect(JSON.parse(JSON.stringify(world))).toEqual(world);
+  });
+});
+
+describe("the re-rated engines", () => {
+  /**
+   * The engine most teams run, stepped down twice on every rating: derived
+   * with the editor's own primitive, never read off the data. Down rather
+   * than up, so an engine already on the top of the scale still moves.
+   */
+  const counts = new Map<string, number>();
+  for (const entry of SEED.entries) {
+    counts.set(entry.engineId, (counts.get(entry.engineId) ?? 0) + 1);
+  }
+  const ENGINE = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+  const authored = authoredEngineRatings(SEED);
+  const rerated = stepEngine(stepEngine(authored, ENGINE, -1), ENGINE, -1);
+  if (rerated === authored) {
+    throw new Error("the fixture engine is on the bottom of the scale");
+  }
+  const customers = new Set(
+    SEED.entries.filter((entry) => entry.engineId === ENGINE).map((entry) => entry.teamId),
+  );
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("starts on the engines the season was entered with", () => {
+    expect(running().world.engineRatings).toBeNull();
+  });
+
+  it("re-runs the same seed with the engine re-rated for every team running it", () => {
+    const before = running().world;
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    const after = running().world;
+
+    expect(after.engineRatings).toEqual(rerated);
+    expect(after.seed).toBe(before.seed);
+    const moved = after.field.filter((entrant) => customers.has(entrant.teamId));
+    expect(moved.length).toBeGreaterThan(0);
+    for (const entrant of after.field) {
+      expect(entrant.engine, entrant.teamId).toEqual(
+        customers.has(entrant.teamId)
+          ? rerated[ENGINE]
+          : before.field.find((other) => other.driverId === entrant.driverId)?.engine,
+      );
+    }
+  });
+
+  it("is what the walk moves off next year", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    expect(racedEngineRatings(running().world)).toEqual(rerated);
+  });
+
+  it("forgets ratings that are the season's own, so nothing claims a change", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().setGrid(null, null, null, authored);
+    expect(running().world.engineRatings).toBeNull();
+    expect(running().world).toEqual(createWorld(3, YEAR));
+  });
+
+  it("carries into a fresh seed of the same season", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    useSeasonStore.getState().restartSeason();
+    expect(running().world.engineRatings).toEqual(rerated);
+  });
+
+  it("touches the run, as any grid edit does", () => {
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    const run = useSeasonStore.getState().run;
+    expect(run === null ? true : isUntouched(run)).toBe(false);
+  });
+
+  it("cannot be changed once the season has started revealing", () => {
+    useSeasonStore.getState().continueRun();
+    useSeasonStore.getState().setGrid(null, null, null, rerated);
+    expect(running().world.engineRatings).toBeNull();
   });
 });
 

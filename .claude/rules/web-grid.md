@@ -35,15 +35,18 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **The editor changes only this grid**; a choice about the whole run is a setting
   (`teams-and-seats.md`). Its drafts are component state until Apply (`web-store.md`).
 - **It can only swap**: drivers through `pickUp`, engines among the suppliers the season
-  rates, chassis by one-point steps. Nothing may add a car or invent a supplier.
+  rates, chassis and engine ratings by one-point steps. Nothing may add a car or invent a
+  supplier.
 - **An empty seat exists only mid-edit** (after `Copy <year> grid`), and Apply is disabled
   while one is open. `previewField` splices in `EMPTY_SEAT` placeholders so a team with
   no driver still draws; nothing simulated may ever see one.
 - **`Copy <year> grid` reads the previous playable season**: in an era the lineup as raced
   (`App.tsx` → `SeasonView` → `previousLineup`), otherwise history; it composes onto the
   draft. The carry-over rules are `packages/data/src/carryOver.ts`.
-- **A chassis change is said in words** (`chassisSummary`), never as a number beside the
-  overall. Steppers appear only in the editor, and never on the engine panel.
+- **A chassis or engine change is said in words** (`chassisSummary`, `engineSummary`),
+  never as a number beside the overall. Steppers appear only in the editor.
+- **An engine step is per engine** (`stepEngine`, `World.engineRatings`): it moves every
+  team running it, so the notice lists it once per engine, never per team.
 - **Clear all edits sets every edit part to null**; the run's rolled cars, kept seats and
   reseat stay, being the baseline.
 - **An edited grid is marked by the muted dashed frame and `SWAPPED_IN`, never the

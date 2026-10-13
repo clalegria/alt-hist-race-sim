@@ -36,6 +36,7 @@ export function GridStage({
   lineup,
   engines,
   chassis = null,
+  engineRatings = null,
   baselineChassis = null,
   historicalEngines = null,
   runSeason = null,
@@ -57,6 +58,8 @@ export function GridStage({
   engines: SeasonEngines | null;
   /** The applied chassis ratings, or null for the chassis the season was entered with. */
   chassis?: SeasonChassis | null;
+  /** The applied engine ratings, per engine, or null for the ones the season was entered with. */
+  engineRatings?: SeasonEngineRatings | null;
   /**
    * The run's own chassis for the year (*Chassis performance*), or null for the
    * authored ones: what the season was entered with, and so what Restore puts
@@ -127,6 +130,7 @@ export function GridStage({
     lineup,
     engines,
     chassis,
+    engineRatings,
     previousLineup,
     pool,
     onApply,
@@ -184,6 +188,7 @@ export function GridStage({
         changes={grid.changes}
         engineChanges={grid.supplyChanges}
         chassisChanges={grid.rerated}
+        engineRatingChanges={grid.reratedEngines}
         historicalChassis={historicalChassis}
         historicalEngines={historicalEngines}
         arrangement={arrangement}
@@ -213,7 +218,7 @@ export function GridStage({
         variant="clearEdits"
         onConfirm={() => {
           setClearing(false);
-          onApply?.({ lineup: null, engines: null, chassis: null });
+          onApply?.({ lineup: null, engines: null, chassis: null, engineRatings: null });
         }}
         onCancel={() => {
           setClearing(false);

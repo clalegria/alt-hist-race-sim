@@ -334,6 +334,7 @@ function SeasonBody({
           lineup={world.lineup}
           engines={world.engines}
           chassis={world.chassis}
+          engineRatings={world.engineRatings}
           baselineChassis={world.baselineChassis}
           historicalEngines={historicalEngineRatings(world)}
           runSeason={enteredSeason(world)}

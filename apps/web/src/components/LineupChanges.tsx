@@ -1,9 +1,12 @@
-import type {
-  ChassisChange,
-  EngineChange,
-  GridArrangement,
-  RatingMode,
-  SeatChange,
+import {
+  CHASSIS_KEYS,
+  type ChassisChange,
+  ENGINE_KEYS,
+  type EngineChange,
+  type EngineRatingChange,
+  type GridArrangement,
+  type RatingMode,
+  type SeatChange,
 } from "@alt-hist/data";
 import type { KeptNotes } from "../lib/kept.js";
 import { driverName, engineName } from "../lib/names.js";
@@ -19,10 +22,12 @@ import { useTeamName } from "./EntryNames.js";
  * championship as history when it is not, and the full list at the foot of the
  * grid, where the teams it happened to are on screen.
  *
- * Three *kinds* of change, listed together: who drives the car, what is in the
- * back of it, and how good the chassis is. All are the reader rewriting the
- * entry list, and splitting them into separate notices would make a season that
- * changed one of each look like several separate caveats.
+ * Four *kinds* of change, listed together: who drives the car, what is in the
+ * back of it, how good the chassis is and how good an engine is. All are the
+ * reader rewriting the entry list, and splitting them into separate notices
+ * would make a season that changed one of each look like several separate
+ * caveats. An engine's ratings are said once per engine, not per team: one
+ * step moved every team running it.
  *
  * Arrivals pair with departures one for one — the lineup model only permits
  * swaps, so every seat taken is a seat lost — which is what lets this read as
@@ -168,21 +173,19 @@ export function signed(delta: number): string {
   return delta > 0 ? `+${delta}` : `\u2212${Math.abs(delta)}`;
 }
 
-/** The chassis ratings in the order the grid lists them, each named by its key. */
-const CHASSIS_KEYS = ["racing", "qualifying", "consistency", "reliability"] as const;
-
 /**
- * How a chassis moved: one delta when all four ratings moved together — which
- * is what the card's buttons do — or each rating that moved, by name.
+ * How a set of ratings moved: one delta when they all moved together — which
+ * is what the card's buttons do — or each rating that moved, by its key.
  *
- * The one reading behind both ways of saying it below, so the card and the
+ * The one reading behind every way of saying it below, so the card and the
  * changes list cannot disagree.
  */
-function chassisMoves(change: ChassisChange): number | readonly string[] {
-  const moves = CHASSIS_KEYS.map((key) => ({
-    label: key,
-    delta: change.to[key] - change.from[key],
-  }));
+function ratingMoves<K extends string>(
+  keys: readonly K[],
+  from: Readonly<Record<K, number>>,
+  to: Readonly<Record<K, number>>,
+): number | readonly string[] {
+  const moves = keys.map((key) => ({ label: key, delta: to[key] - from[key] }));
   const first = moves[0]?.delta ?? 0;
   if (moves.every((move) => move.delta === first)) {
     return first;
@@ -190,6 +193,10 @@ function chassisMoves(change: ChassisChange): number | readonly string[] {
   return moves
     .filter((move) => move.delta !== 0)
     .map((move) => `${move.label} ${signed(move.delta)}`);
+}
+
+function chassisMoves(change: ChassisChange): number | readonly string[] {
+  return ratingMoves(CHASSIS_KEYS, change.from, change.to);
 }
 
 /**
@@ -215,11 +222,21 @@ export function chassisNote(change: ChassisChange): string {
   return typeof moves === "number" ? `Chassis ${signed(moves)}` : `Chassis: ${moves.join(", ")}`;
 }
 
-/** "3 changes", or "1 change" — seats, engines and chassis counted together. */
+/**
+ * What moved on a re-rated engine, as the card and the changes list say it:
+ * "+2 each", or "racing +3, reliability −1". Words, as `chassisSummary` is.
+ */
+export function engineSummary(change: EngineRatingChange): string {
+  const moves = ratingMoves(ENGINE_KEYS, change.from, change.to);
+  return typeof moves === "number" ? `${signed(moves)} each` : moves.join(", ");
+}
+
+/** "3 changes", or "1 change": seats, engines, chassis and engine ratings counted together. */
 export function changeCount(
   changes: readonly SeatChange[],
   engineChanges: readonly EngineChange[] = [],
   chassisChanges: readonly ChassisChange[] = [],
+  engineRatingChanges: readonly EngineRatingChange[] = [],
 ): string {
   // The longer of the two sides, so a departure nobody has replaced still
   // counts as the change it is.
@@ -229,19 +246,25 @@ export function changeCount(
   );
   // A re-rated chassis is one change, however many ratings moved and by how
   // much: it is one team's car, as an engine swap is.
-  const total = seats + engineChanges.length + chassisChanges.length;
+  // A re-rated engine is one change too, however many teams run it.
+  const total = seats + engineChanges.length + chassisChanges.length + engineRatingChanges.length;
   return `${total} change${total === 1 ? "" : "s"}`;
 }
 
-/** Every swap, one line per team, alphabetically as the grid lists them. */
+/**
+ * Every swap, one line per team, alphabetically as the grid lists them; then
+ * one line per re-rated engine, since a step moved every team running it.
+ */
 export function GridChanges({
   changes,
   engineChanges = [],
   chassisChanges = [],
+  engineRatingChanges = [],
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   chassisChanges?: readonly ChassisChange[];
+  engineRatingChanges?: readonly EngineRatingChange[];
 }) {
   const teamName = useTeamName();
   // One row per team even when its drivers, its engine and its chassis all
@@ -285,6 +308,12 @@ export function GridChanges({
           </li>
         );
       })}
+      {engineRatingChanges.map((change) => (
+        <li key={`engine-${change.engineId}`} className="flex flex-wrap items-baseline gap-x-2">
+          <span className="font-medium">{engineName(change.engineId)} engine</span>
+          <span className="text-muted-foreground">{engineSummary(change)}</span>
+        </li>
+      ))}
     </ul>
   );
 }
@@ -300,11 +329,13 @@ export function EditedGridBanner({
   changes,
   engineChanges = [],
   chassisChanges = [],
+  engineRatingChanges = [],
   className,
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   chassisChanges?: readonly ChassisChange[];
+  engineRatingChanges?: readonly EngineRatingChange[];
   className?: string;
 }) {
   return (
@@ -318,13 +349,15 @@ export function EditedGridBanner({
         <span className="text-sm font-semibold tracking-tight">Alternate grid</span>
         <span className="text-muted-foreground text-xs">
           This season was raced on an edited grid:{" "}
-          {changeCount(changes, engineChanges, chassisChanges)} from the real one.
+          {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges)} from the real
+          one.
         </span>
       </div>
       <GridChanges
         changes={changes}
         engineChanges={engineChanges}
         chassisChanges={chassisChanges}
+        engineRatingChanges={engineRatingChanges}
       />
     </div>
   );

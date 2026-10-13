@@ -9,12 +9,14 @@
 
 import {
   authoredChassis,
+  authoredEngineRatings,
   authoredEngines,
   authoredLineup,
   FIRST_AUTHORED_SEASON,
   reserveDrivers,
   seasonSeed,
   stepChassis,
+  stepEngine,
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -74,6 +76,19 @@ describe("a run rebuilt from its recipe", () => {
     useSeasonStore.getState().setGrid(null, null, stepChassis(authoredChassis(SEED), team, -1));
     const run = current();
     expect(run.world.chassis, "the chassis was re-rated").not.toBeNull();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("keeps a re-rated engine", () => {
+    const engine = SEED.engines[0]?.engineId ?? "";
+    const authored = authoredEngineRatings(SEED);
+    const lower = stepEngine(authored, engine, -1);
+    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore
+      .getState()
+      .setGrid(null, null, null, lower === authored ? stepEngine(authored, engine, 1) : lower);
+    const run = current();
+    expect(run.world.engineRatings, "the engine was re-rated").not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
   });
 

@@ -24,11 +24,11 @@ The two run settings that roll a run's chassis and engine ratings (`rolledChassi
   never the draw count.
 - **The rolls are the year's baseline, not an edit** (`web-store.md`): rolled once in
   `createWorld`, kept on the world, never re-rolled on read, not in the recipe. A
-  reader's `chassis` stays absolute ratings over them. `setGrid` keeps the seed and so
-  the rolls; every other rebuild draws a new seed and re-rolls.
+  reader's `chassis` and `engineRatings` stay absolute ratings over them. `setGrid` keeps
+  the seed and so the rolls; every other rebuild draws a new seed and re-rolls.
 - **The walk carries what raced** (`racedChassis`, `racedEngineRatings`), the reader's
-  chassis edit included: the one way an edit crosses a year. A team or engine new to
-  the run moves off its own authored values, unpulled.
+  chassis and engine edits included: the one way an edit crosses a year. A team or
+  engine new to the run moves off its own authored values, unpulled.
 - **The pull is towards the season's field average, never the team's real car**, so
   history stays alternate. It draws nothing.
 - **A standalone season never walks**: `seasonSettings` turns `"last"` into `"real"`,

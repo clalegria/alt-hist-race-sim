@@ -8,12 +8,16 @@ import {
   authoredEngineRatings,
   authoredEngines,
   availableEngines,
+  canStepEngine,
   ENGINE_KEYS,
   engineChanges,
+  engineRatingChanges,
   engineSpecOf,
+  isAuthoredEngineRatings,
   isAuthoredEngines,
   randomEngines,
   type SeasonEngineRatings,
+  stepEngine,
   variedEngines,
   withFirstEngines,
 } from "./engines.js";
@@ -319,6 +323,84 @@ describe("authoredEngineRatings and applyEngineRatings", () => {
     expect(() =>
       applyEngineRatings(ROLLED, { ...authored, mid: { ...MID_ENGINE, racing: 101 } }),
     ).toThrow(/racing/);
+  });
+});
+
+describe("stepEngine", () => {
+  const spec = ({ racing, qualifying, reliability }: SeasonEngine): EngineSpec => ({
+    racing,
+    qualifying,
+    reliability,
+  });
+
+  it("moves all three ratings by one when no rating is named", () => {
+    const next = stepEngine(authoredEngineRatings(ROLLED), "mid", 1);
+    expect(next.mid).toEqual({
+      racing: MID_ENGINE.racing + 1,
+      qualifying: MID_ENGINE.qualifying + 1,
+      reliability: MID_ENGINE.reliability + 1,
+    });
+  });
+
+  it("moves only the named rating, and leaves every other engine alone", () => {
+    const authored = authoredEngineRatings(ROLLED);
+    const next = stepEngine(authored, "mid", -1, "qualifying");
+    expect(next.mid).toEqual({ ...spec(MID_ENGINE), qualifying: MID_ENGINE.qualifying - 1 });
+    expect(next.edge).toBe(authored.edge);
+    expect(next.low).toBe(authored.low);
+  });
+
+  it("moves every team running the engine", () => {
+    const next = stepEngine(authoredEngineRatings(ROLLED), "mid", 1);
+    const field = buildField(applyEngineRatings(ROLLED, next));
+    const customers = ROLLED.entries.filter((entry) => entry.engineId === "mid");
+    expect(customers.length).toBeGreaterThan(1);
+    for (const entry of customers) {
+      for (const entrant of field.filter((e) => e.teamId === entry.teamId)) {
+        expect(entrant.engine).toEqual(next.mid);
+      }
+    }
+  });
+
+  it("holds each rating inside the scale on its own", () => {
+    const up = stepEngine(authoredEngineRatings(ROLLED), "edge", 1);
+    expect(up.edge).toEqual({
+      racing: CHASSIS_STEP_RANGE.max,
+      qualifying: EDGE_ENGINE.qualifying + 1,
+      reliability: EDGE_ENGINE.reliability + 1,
+    });
+  });
+
+  it("hands back the same ratings when nothing could move", () => {
+    const authored = authoredEngineRatings(ROLLED);
+    expect(stepEngine(authored, "edge", 1, "racing")).toBe(authored);
+    expect(stepEngine(authored, "edge", -1, "reliability")).toBe(authored);
+    expect(stepEngine(authored, "no-such-engine", 1)).toBe(authored);
+  });
+
+  it("returns to the season's ratings when undone, and lists only what moved", () => {
+    const authored = authoredEngineRatings(ROLLED);
+    expect(isAuthoredEngineRatings(ROLLED, authored)).toBe(true);
+    expect(engineRatingChanges(ROLLED, authored)).toEqual([]);
+    const moved = stepEngine(authored, "low", 1, "racing");
+    expect(isAuthoredEngineRatings(ROLLED, moved)).toBe(false);
+    expect(engineRatingChanges(ROLLED, moved)).toEqual([
+      { engineId: "low", from: spec(LOW_ENGINE), to: { ...spec(LOW_ENGINE), racing: 41 } },
+    ]);
+    expect(isAuthoredEngineRatings(ROLLED, stepEngine(moved, "low", -1, "racing"))).toBe(true);
+  });
+
+  it("says whether a step that way could move anything", () => {
+    expect(canStepEngine(EDGE_ENGINE, 1, "racing")).toBe(false);
+    expect(canStepEngine(EDGE_ENGINE, -1, "reliability")).toBe(false);
+    expect(canStepEngine(EDGE_ENGINE, 1)).toBe(true);
+    const top: EngineSpec = {
+      racing: CHASSIS_STEP_RANGE.max,
+      qualifying: CHASSIS_STEP_RANGE.max,
+      reliability: CHASSIS_STEP_RANGE.max,
+    };
+    expect(canStepEngine(top, 1)).toBe(false);
+    expect(canStepEngine(top, -1)).toBe(true);
   });
 });
 

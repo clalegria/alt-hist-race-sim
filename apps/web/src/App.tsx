@@ -309,7 +309,7 @@ export function SeasonPage({
       {...(editable
         ? {
             onGridChange: (edit: GridEdit) => {
-              setGrid(edit.lineup, edit.engines, edit.chassis);
+              setGrid(edit.lineup, edit.engines, edit.chassis, edit.engineRatings);
             },
           }
         : {})}

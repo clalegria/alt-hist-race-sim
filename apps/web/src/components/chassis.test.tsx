@@ -34,6 +34,7 @@ const editing: GridEditing = {
   engineIds: SEED.engines.map((engine) => engine.engineId),
   onEngineChange: () => {},
   onChassisStep: () => {},
+  onEngineStep: () => {},
 };
 
 const MIDDLE: ChassisSpec = { racing: 60, qualifying: 60, consistency: 60, reliability: 60 };
@@ -63,8 +64,8 @@ describe("the stepper on each card", () => {
     const html = renderToStaticMarkup(
       <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode="peak" edit={editing} />,
     );
-    expect(count(html, 'aria-label="Strengthen ')).toBe(TEAMS);
-    expect(count(html, 'aria-label="Weaken ')).toBe(TEAMS);
+    expect(html.match(/aria-label="Strengthen [^"]* chassis"/g)).toHaveLength(TEAMS);
+    expect(html.match(/aria-label="Weaken [^"]* chassis"/g)).toHaveLength(TEAMS);
   });
 
   it("sits on a row of its own, labelled, once per team", () => {

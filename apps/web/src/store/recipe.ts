@@ -4,8 +4,9 @@
  * Simulation is deterministic, so a world is a function of the inputs it was
  * built from, and every `World` already records all of them: the seed, the
  * year, the ability mode, the randomness level, the run settings, the year
- * its team names are kept from and the reader's grid (lineup, engines, chassis). The recipe is therefore *derived* from the run rather
- * than kept beside it: one entry per world, plus the cursor. There is no second
+ * its team names are kept from and the reader's grid (lineup, engines, chassis,
+ * engine ratings). The recipe is therefore *derived* from the run rather than
+ * kept beside it: one entry per world, plus the cursor. There is no second
  * record of the reader's inputs that could fall out of step with the worlds.
  *
  * Each world's seed is stored rather than re-derived with `nextSeed`, because a
@@ -27,6 +28,7 @@ import {
   RATING_MODES,
   type RatingMode,
   type SeasonChassis,
+  type SeasonEngineRatings,
   type SeasonEngines,
   type SeasonLineup,
 } from "@alt-hist/data";
@@ -45,7 +47,7 @@ import {
 } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 9;
+export const RECIPE_VERSION = 10;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -59,6 +61,7 @@ export interface WorldRecipe {
   readonly lineup: SeasonLineup | null;
   readonly engines: SeasonEngines | null;
   readonly chassis: SeasonChassis | null;
+  readonly engineRatings: SeasonEngineRatings | null;
   /** `fingerprint` of the world these inputs built. */
   readonly check: string;
 }
@@ -108,6 +111,7 @@ function worldRecipe(world: World): WorldRecipe {
     lineup: world.lineup,
     engines: world.engines,
     chassis: world.chassis,
+    engineRatings: world.engineRatings,
     check: fingerprint(world),
   };
 }
@@ -127,7 +131,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** A plain object or null: what a lineup, an engine supply or a chassis set looks like from outside. */
+/** A plain object or null: what a lineup, an engine supply or a set of ratings looks like from outside. */
 function isRecordOrNull(value: unknown): boolean {
   return value === null || isRecord(value);
 }
@@ -157,8 +161,18 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
   if (!isRecord(raw)) {
     return null;
   }
-  const { seed, year, ratingMode, randomness, namesKeptFrom, lineup, engines, chassis, check } =
-    raw;
+  const {
+    seed,
+    year,
+    ratingMode,
+    randomness,
+    namesKeptFrom,
+    lineup,
+    engines,
+    chassis,
+    engineRatings,
+    check,
+  } = raw;
   const settings = parseRunSettings(raw.settings);
   const valid =
     Number.isInteger(seed) &&
@@ -172,6 +186,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     isRecordOrNull(lineup) &&
     isRecordOrNull(engines) &&
     isRecordOrNull(chassis) &&
+    isRecordOrNull(engineRatings) &&
     typeof check === "string";
   // An `arrangement` from before *Who drives where* was a setting is ignored:
   // its lineup is stored beside it, so the grid rebuilds as an edit.
@@ -186,6 +201,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
         lineup: lineup as SeasonLineup | null,
         engines: engines as SeasonEngines | null,
         chassis: chassis as SeasonChassis | null,
+        engineRatings: engineRatings as SeasonEngineRatings | null,
         check: check as string,
       }
     : null;
@@ -205,7 +221,6 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
     recipe.engines,
     recipe.randomness,
     recipe.chassis,
-
     recipe.settings,
     previous === null
       ? { start: recipe.namesKeptFrom }
@@ -215,6 +230,7 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
           lastRacedEngines: racedEngineRatings(previous),
           kept: keptYearAfter(previous, recipe.year),
         },
+    recipe.engineRatings,
   );
   return fingerprint(world) === recipe.check ? world : null;
 }

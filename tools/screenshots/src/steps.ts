@@ -120,11 +120,28 @@ export const STEPS: readonly Step[] = [
       await drivers.nth(0).click();
       await drivers.nth(3).click();
       await page.getByRole("heading", { name: "Without a drive" }).waitFor();
+      // One engine stepped up twice: every card running it says so.
+      const stronger = page.getByRole("button", { name: /^Strengthen .* engine$/ }).first();
+      await stronger.click();
+      await stronger.click();
+    },
+  },
+  {
+    name: "grid-editor-team",
+    reach: async (page) => {
+      // A team's popover in the editor: a stepper on every chassis and engine rating.
+      await page.locator('li button[aria-haspopup="dialog"]').first().click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: /engine racing$/ })
+        .first()
+        .waitFor();
     },
   },
   {
     name: "grid-edited",
     reach: async (page) => {
+      await page.keyboard.press("Escape");
       await button(page, "Apply grid").click();
       await page.getByText("This grid was edited").waitFor();
     },

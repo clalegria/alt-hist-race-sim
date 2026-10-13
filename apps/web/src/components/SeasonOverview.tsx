@@ -1,4 +1,10 @@
-import { authoredChassis, chassisChanges, engineChanges, lineupChanges } from "@alt-hist/data";
+import {
+  authoredChassis,
+  chassisChanges,
+  engineChanges,
+  engineRatingChanges,
+  lineupChanges,
+} from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -225,6 +231,10 @@ export function SeasonOverview({
     () => (world.chassis === null ? [] : chassisChanges(entered, world.chassis)),
     [world.chassis, entered],
   );
+  const reratedEngines = useMemo(
+    () => (world.engineRatings === null ? [] : engineRatingChanges(entered, world.engineRatings)),
+    [world.engineRatings, entered],
+  );
   const historicalChassis = useMemo(
     () => (world.baselineChassis === null ? null : authoredChassis(seed)),
     [world.baselineChassis, seed],
@@ -243,11 +253,15 @@ export function SeasonOverview({
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
-      {changes.length === 0 && supplyChanges.length === 0 && rerated.length === 0 ? null : (
+      {changes.length === 0 &&
+      supplyChanges.length === 0 &&
+      rerated.length === 0 &&
+      reratedEngines.length === 0 ? null : (
         <EditedGridBanner
           changes={changes}
           engineChanges={supplyChanges}
           chassisChanges={rerated}
+          engineRatingChanges={reratedEngines}
         />
       )}
       {finished ? (
@@ -290,6 +304,7 @@ export function SeasonOverview({
             changes={changes}
             engineChanges={supplyChanges}
             chassisChanges={rerated}
+            engineRatingChanges={reratedEngines}
             historicalChassis={historicalChassis}
             historicalEngines={historicalEngines}
             arrangement={seatingArrangement(world.settings)}

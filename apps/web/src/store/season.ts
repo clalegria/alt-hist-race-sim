@@ -20,6 +20,7 @@
 
 import {
   applyChassis,
+  applyEngineRatings,
   applyEngines,
   applyLineup,
   arrangeLineup,
@@ -31,6 +32,7 @@ import {
   filledLineup,
   fillSeats,
   isAuthoredChassis,
+  isAuthoredEngineRatings,
   isAuthoredEngines,
   isAuthoredLineup,
   type KeptYear,
@@ -194,6 +196,13 @@ export interface World {
    * one season's cars and nothing else; the authored data is never touched.
    */
   readonly chassis: SeasonChassis | null;
+  /**
+   * The reader's own engine ratings, per engine, or null for the engines the
+   * season was entered with — null for the reason `lineup` is. Per engine
+   * rather than per team, so every team running one moves with it; absolute
+   * ratings over `baselineEngineRatings`, as `chassis` is over `baselineChassis`.
+   */
+  readonly engineRatings: SeasonEngineRatings | null;
   /**
    * The run's own chassis for this year, rolled under *Chassis performance*, or null
    * for the chassis the season was entered with.
@@ -455,12 +464,17 @@ export function racedChassis(world: World): SeasonChassis {
 }
 
 /**
- * Each engine as a world raced it: the run's roll, else the values the year
- * entered with. What a walk (*from last year's engine*) moves the next
- * year off.
+ * Each engine as a world raced it: the reader's own, else the run's roll, else
+ * the values the year entered with. What a walk (*from last year's engine*)
+ * moves the next year off, so a reader's edit is carried by it, as
+ * `racedChassis` carries a chassis edit.
  */
 export function racedEngineRatings(world: World): SeasonEngineRatings {
-  return world.baselineEngineRatings ?? authoredEngineRatings(enteredSeason(world));
+  return (
+    world.engineRatings ??
+    world.baselineEngineRatings ??
+    authoredEngineRatings(enteredSeason(world))
+  );
 }
 
 /**
@@ -489,8 +503,10 @@ export function runConstants(
  * Pure: same seed and year in, same world out, no store involved. The store is
  * a place to keep this, not the thing that computes it.
  *
- * `lineup`, `engines` and `chassis` are the reader's edits over the baseline
- * (`baselineSeason`), which under *Who drives where* is already reseated.
+ * `lineup`, `engines`, `chassis` and `engineRatings` are the reader's edits
+ * over the baseline (`baselineSeason`), which under *Who drives where* is
+ * already reseated. `engineRatings` comes last so the many callers that never
+ * edit a grid need not name it.
  *
  * `chosen` is kept as `settingsInForce`, so a world never records a setting
  * that changed nothing about it.
@@ -519,6 +535,7 @@ export function createWorld(
   chassis: SeasonChassis | null = null,
   chosen: RunSettings = HISTORICAL_SETTINGS,
   era: EraInputs = {},
+  engineRatings: SeasonEngineRatings | null = null,
 ): World {
   const settings = settingsInForce(chosen);
   const start = era.start ?? year;
@@ -550,8 +567,14 @@ export function createWorld(
   const resupplied = engines !== null && !isAuthoredEngines(baseline, engines) ? engines : null;
   const withDrivers = edited === null ? baseline : applyLineup(baseline, edited);
   const rerated = chassis !== null && !isAuthoredChassis(baseline, chassis) ? chassis : null;
+  const reratedEngines =
+    engineRatings !== null && !isAuthoredEngineRatings(baseline, engineRatings)
+      ? engineRatings
+      : null;
   const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
-  const entered = rerated === null ? withEngines : applyChassis(withEngines, rerated);
+  const withRatings =
+    reratedEngines === null ? withEngines : applyEngineRatings(withEngines, reratedEngines);
+  const entered = rerated === null ? withRatings : applyChassis(withRatings, rerated);
   const rng = createRng(seed);
   const field = buildField(
     entered,
@@ -586,6 +609,7 @@ export function createWorld(
     lineup: edited,
     engines: resupplied,
     chassis: rerated,
+    engineRatings: reratedEngines,
     baselineChassis,
     walkedFrom,
     baselineEngineRatings,
@@ -681,7 +705,8 @@ export function isUntouched(run: Run): boolean {
     (run.kind === "season" || run.run.seasons.length === 0) &&
     run.world.lineup === null &&
     run.world.engines === null &&
-    run.world.chassis === null
+    run.world.chassis === null &&
+    run.world.engineRatings === null
   );
 }
 
@@ -815,7 +840,8 @@ interface SeasonStore {
   ) => void;
   /**
    * Re-runs the season from the same seed with the reader's own grid: who
-   * drives what, what is in the back of it, and how good the chassis is. `null`
+   * drives what, what is in the back of it, and how good the chassis and the
+   * engines are. `null`
    * for any part means that part as the season entered it.
    *
    * One action rather than two because the editor applies one draft — a reader
@@ -833,6 +859,8 @@ interface SeasonStore {
     engines: SeasonEngines | null,
     /** The reader's chassis ratings; null — the default — for the season's own. */
     chassis?: SeasonChassis | null,
+    /** The reader's engine ratings, per engine; null — the default — for the season's own. */
+    engineRatings?: SeasonEngineRatings | null,
   ) => void;
   /**
    * The grid of the season next door — the year before or the year after — on a
@@ -1092,7 +1120,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       ),
     });
   },
-  setGrid: (lineup, engines, chassis = null) => {
+  setGrid: (lineup, engines, chassis = null, engineRatings = null) => {
     set((state) =>
       state.run !== null && state.run.cursor.kind === "grid"
         ? {
@@ -1108,6 +1136,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 chassis,
                 state.run.world.settings,
                 eraInputsOf(state.run.world),
+                engineRatings,
               ),
             ),
           }
@@ -1161,6 +1190,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.chassis,
             world.settings,
             eraInputsOf(world),
+            world.engineRatings,
           ),
         ),
       };
@@ -1186,8 +1216,9 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             first.engines,
             first.randomness,
             first.chassis,
-
             first.settings,
+            {},
+            first.engineRatings,
           ),
         ),
       };

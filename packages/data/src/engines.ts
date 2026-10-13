@@ -245,6 +245,78 @@ export function applyEngineRatings(season: SeasonSeed, ratings: SeasonEngineRati
   return { ...season, engines };
 }
 
+function sameEngine(a: EngineSpec, b: EngineSpec): boolean {
+  return ENGINE_KEYS.every((key) => a[key] === b[key]);
+}
+
+/** Whether a set of ratings is the season's own, engine for engine. */
+export function isAuthoredEngineRatings(season: SeasonSeed, ratings: SeasonEngineRatings): boolean {
+  if (Object.keys(ratings).length !== season.engines.length) {
+    return false;
+  }
+  return season.engines.every((engine) => {
+    const now = ratings[engine.engineId];
+    return now !== undefined && sameEngine(now, engine);
+  });
+}
+
+/**
+ * One engine a point better or worse: one rating, or all three when no rating
+ * is named — the grid editor's engine step. **Per engine, not per team**, so
+ * every team running it moves together.
+ *
+ * Each rating is held inside the scale on its own, as `stepChassis` holds them.
+ * Hands back the ratings it was given when nothing could move, so a press at
+ * the limit changes nothing.
+ */
+export function stepEngine(
+  ratings: SeasonEngineRatings,
+  engineId: string,
+  step: 1 | -1,
+  key?: keyof EngineSpec,
+): SeasonEngineRatings {
+  const current = ratings[engineId];
+  if (current === undefined) {
+    return ratings;
+  }
+  let next: EngineSpec = current;
+  for (const k of key === undefined ? ENGINE_KEYS : [key]) {
+    next = { ...next, [k]: clamped(current[k] + step) };
+  }
+  return sameEngine(next, current) ? ratings : { ...ratings, [engineId]: next };
+}
+
+/** Whether a step that way could move this engine at all — one rating, or any of the three. */
+export function canStepEngine(engine: EngineSpec, step: 1 | -1, key?: keyof EngineSpec): boolean {
+  const keys = key === undefined ? ENGINE_KEYS : [key];
+  return keys.some((k) => clamped(engine[k] + step) !== engine[k]);
+}
+
+/** One re-rated engine, both ends, as a `ChassisChange` is for a chassis. */
+export interface EngineRatingChange {
+  readonly engineId: string;
+  /** The engine as the season rated it. */
+  readonly from: EngineSpec;
+  /** As the reader would have it. */
+  readonly to: EngineSpec;
+}
+
+/** Every engine whose ratings differ from the season's, in the season's `engines` order. */
+export function engineRatingChanges(
+  season: SeasonSeed,
+  ratings: SeasonEngineRatings,
+): readonly EngineRatingChange[] {
+  const changes: EngineRatingChange[] = [];
+  for (const { engineId, racing, qualifying, reliability } of season.engines) {
+    const from: EngineSpec = { racing, qualifying, reliability };
+    const now = ratings[engineId] ?? from;
+    if (!sameEngine(now, from)) {
+      changes.push({ engineId, from, to: now });
+    }
+  }
+  return changes;
+}
+
 /**
  * Every engine moved by one whole-number offset, uniform in [−spread, spread],
  * on all three ratings, each held inside the scale on its own — the
