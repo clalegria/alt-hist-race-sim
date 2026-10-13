@@ -125,6 +125,7 @@ describe("the supplier picker", () => {
     onEngineChange: () => {},
     onChassisStep: () => {},
     onEngineStep: () => {},
+    onTrendStep: () => {},
   };
   const html = renderToStaticMarkup(
     <SeasonGrid

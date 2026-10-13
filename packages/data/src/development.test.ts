@@ -1,6 +1,16 @@
 import { createRng, DEVELOPMENT_TREND_LIMIT } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
-import { flatTrends, randomTrends, withTrends } from "./development.js";
+import {
+  applyTrends,
+  authoredTrends,
+  canStepTrend,
+  flatTrends,
+  isAuthoredTrends,
+  randomTrends,
+  stepTrend,
+  trendChanges,
+  withTrends,
+} from "./development.js";
 import { FIRST_AUTHORED_SEASON, seasonSeed } from "./index.js";
 import type { SeasonSeed } from "./types.js";
 
@@ -68,5 +78,54 @@ describe("flatTrends and withTrends", () => {
     const [first] = TEAMS;
     const set = withTrends(SEASON, {});
     expect(set.entries.find((entry) => entry.teamId === first)?.developmentTrend).toBe(5);
+  });
+});
+
+describe("a grid edit's trends", () => {
+  const authored = authoredTrends(SEASON);
+  const [first = "", second = ""] = TEAMS;
+
+  it("start from the season's own, a car with none at zero", () => {
+    expect(Object.keys(authored)).toEqual(TEAMS);
+    expect(authored[first]).toBe(5);
+    expect(authored[second]).toBe(0);
+    expect(isAuthoredTrends(SEASON, authored)).toBe(true);
+    expect(trendChanges(SEASON, authored)).toEqual([]);
+  });
+
+  it("step one team a point either way, and say how it moved", () => {
+    const up = stepTrend(authored, second, 1);
+    expect(up[second]).toBe(1);
+    expect(up[first]).toBe(5);
+    expect(isAuthoredTrends(SEASON, up)).toBe(false);
+    expect(trendChanges(SEASON, up)).toEqual([{ teamId: second, from: 0, to: 1 }]);
+    expect(stepTrend(stepTrend(authored, first, -1), first, 1)).toEqual(authored);
+  });
+
+  it("stop at the limit, handing back what they were given", () => {
+    const top = { ...authored, [second]: DEVELOPMENT_TREND_LIMIT };
+    const bottom = { ...authored, [second]: -DEVELOPMENT_TREND_LIMIT };
+    expect(stepTrend(top, second, 1)).toBe(top);
+    expect(stepTrend(bottom, second, -1)).toBe(bottom);
+    expect(canStepTrend(DEVELOPMENT_TREND_LIMIT, 1)).toBe(false);
+    expect(canStepTrend(DEVELOPMENT_TREND_LIMIT, -1)).toBe(true);
+    expect(canStepTrend(-DEVELOPMENT_TREND_LIMIT, -1)).toBe(false);
+    expect(canStepTrend(0, 1)).toBe(true);
+  });
+
+  it("are applied as trends, a zero as none", () => {
+    const edited = applyTrends(SEASON, { ...authored, [first]: 0, [second]: -3 });
+    expect(edited.entries[0]?.developmentTrend).toBeUndefined();
+    expect(edited.entries[1]?.developmentTrend).toBe(-3);
+  });
+
+  it("are refused when a save file's do not fit the season", () => {
+    expect(() => applyTrends(SEASON, { ...authored, nobody: 0 })).toThrow(/nobody/);
+    const { [first]: _missing, ...short } = authored;
+    expect(() => applyTrends(SEASON, short)).toThrow(/missing/);
+    expect(() => applyTrends(SEASON, { ...authored, [first]: 1.5 })).toThrow(/whole numbers/);
+    expect(() =>
+      applyTrends(SEASON, { ...authored, [first]: DEVELOPMENT_TREND_LIMIT + 1 }),
+    ).toThrow(/whole numbers/);
   });
 });

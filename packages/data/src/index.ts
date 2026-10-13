@@ -64,9 +64,16 @@ export {
   variedChassis,
 } from "./chassis.js";
 export {
+  applyTrends,
+  authoredTrends,
+  canStepTrend,
   flatTrends,
+  isAuthoredTrends,
   randomTrends,
   type SeasonTrends,
+  stepTrend,
+  type TrendChange,
+  trendChanges,
   withTrends,
 } from "./development.js";
 export {

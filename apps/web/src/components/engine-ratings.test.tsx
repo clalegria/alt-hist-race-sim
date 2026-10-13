@@ -34,6 +34,7 @@ const editing: GridEditing = {
   onEngineChange: () => {},
   onChassisStep: () => {},
   onEngineStep: () => {},
+  onTrendStep: () => {},
 };
 
 /** The engine most teams run, so a step on it has more than one card to move. */

@@ -129,13 +129,19 @@ export const STEPS: readonly Step[] = [
   {
     name: "grid-editor-team",
     reach: async (page) => {
-      // A team's popover in the editor: a stepper on every chassis and engine rating.
+      // A team's popover in the editor: a stepper on every chassis and engine
+      // rating and on its development, stepped once.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
-      await page
-        .getByRole("dialog")
+      const popover = page.getByRole("dialog");
+      await popover
         .getByRole("button", { name: /engine racing$/ })
         .first()
         .waitFor();
+      const faster = popover.getByRole("button", { name: /^Strengthen .* development$/ });
+      await ((await faster.isEnabled())
+        ? faster
+        : popover.getByRole("button", { name: /^Weaken .* development$/ })
+      ).click();
     },
   },
   {

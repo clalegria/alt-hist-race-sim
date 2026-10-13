@@ -12,11 +12,13 @@ import {
   authoredEngineRatings,
   authoredEngines,
   authoredLineup,
+  authoredTrends,
   FIRST_AUTHORED_SEASON,
   reserveDrivers,
   seasonSeed,
   stepChassis,
   stepEngine,
+  stepTrend,
   swapDrivers,
 } from "@alt-hist/data";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -89,6 +91,17 @@ describe("a run rebuilt from its recipe", () => {
       .setGrid(null, null, null, lower === authored ? stepEngine(authored, engine, 1) : lower);
     const run = current();
     expect(run.world.engineRatings, "the engine was re-rated").not.toBeNull();
+    expect(roundTrip(run)).toEqual(run);
+  });
+
+  it("keeps a changed development trend", () => {
+    const team = SEED.entries[0]?.teamId ?? "";
+    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore
+      .getState()
+      .setGrid(null, null, null, null, stepTrend(authoredTrends(SEED), team, 1));
+    const run = current();
+    expect(run.world.trends, "the trend was changed").not.toBeNull();
     expect(roundTrip(run)).toEqual(run);
   });
 

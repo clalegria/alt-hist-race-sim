@@ -23,6 +23,7 @@ import {
   applyEngineRatings,
   applyEngines,
   applyLineup,
+  applyTrends,
   arrangeLineup,
   authoredChassis,
   authoredEngineRatings,
@@ -35,6 +36,7 @@ import {
   isAuthoredEngineRatings,
   isAuthoredEngines,
   isAuthoredLineup,
+  isAuthoredTrends,
   type KeptYear,
   keptYear,
   type LineupDraft,
@@ -203,6 +205,13 @@ export interface World {
    * ratings over `baselineEngineRatings`, as `chassis` is over `baselineChassis`.
    */
   readonly engineRatings: SeasonEngineRatings | null;
+  /**
+   * The reader's own development trends, per team, or null for the trends the
+   * season was entered with — null for the reason `lineup` is. Absolute trends
+   * over `baselineTrends`, as `chassis` is over `baselineChassis`. Never walks:
+   * a trend describes one year.
+   */
+  readonly trends: SeasonTrends | null;
   /**
    * The run's own chassis for this year, rolled under *Chassis performance*, or null
    * for the chassis the season was entered with.
@@ -503,10 +512,10 @@ export function runConstants(
  * Pure: same seed and year in, same world out, no store involved. The store is
  * a place to keep this, not the thing that computes it.
  *
- * `lineup`, `engines`, `chassis` and `engineRatings` are the reader's edits
- * over the baseline (`baselineSeason`), which under *Who drives where* is
- * already reseated. `engineRatings` comes last so the many callers that never
- * edit a grid need not name it.
+ * `lineup`, `engines`, `chassis`, `engineRatings` and `trends` are the
+ * reader's edits over the baseline (`baselineSeason`), which under *Who drives
+ * where* is already reseated. `engineRatings` and `trends` come last so the
+ * many callers that never edit a grid need not name them.
  *
  * `chosen` is kept as `settingsInForce`, so a world never records a setting
  * that changed nothing about it.
@@ -536,6 +545,7 @@ export function createWorld(
   chosen: RunSettings = HISTORICAL_SETTINGS,
   era: EraInputs = {},
   engineRatings: SeasonEngineRatings | null = null,
+  trends: SeasonTrends | null = null,
 ): World {
   const settings = settingsInForce(chosen);
   const start = era.start ?? year;
@@ -574,7 +584,9 @@ export function createWorld(
   const withEngines = resupplied === null ? withDrivers : applyEngines(withDrivers, resupplied);
   const withRatings =
     reratedEngines === null ? withEngines : applyEngineRatings(withEngines, reratedEngines);
-  const entered = rerated === null ? withRatings : applyChassis(withRatings, rerated);
+  const withChassisEdit = rerated === null ? withRatings : applyChassis(withRatings, rerated);
+  const retrended = trends !== null && !isAuthoredTrends(baseline, trends) ? trends : null;
+  const entered = retrended === null ? withChassisEdit : applyTrends(withChassisEdit, retrended);
   const rng = createRng(seed);
   const field = buildField(
     entered,
@@ -610,6 +622,7 @@ export function createWorld(
     engines: resupplied,
     chassis: rerated,
     engineRatings: reratedEngines,
+    trends: retrended,
     baselineChassis,
     walkedFrom,
     baselineEngineRatings,
@@ -706,7 +719,8 @@ export function isUntouched(run: Run): boolean {
     run.world.lineup === null &&
     run.world.engines === null &&
     run.world.chassis === null &&
-    run.world.engineRatings === null
+    run.world.engineRatings === null &&
+    run.world.trends === null
   );
 }
 
@@ -840,9 +854,9 @@ interface SeasonStore {
   ) => void;
   /**
    * Re-runs the season from the same seed with the reader's own grid: who
-   * drives what, what is in the back of it, and how good the chassis and the
-   * engines are. `null`
-   * for any part means that part as the season entered it.
+   * drives what, what is in the back of it, how good the chassis and the
+   * engines are, and which way each car's year runs. `null` for any part means
+   * that part as the season entered it.
    *
    * One action rather than two because the editor applies one draft — a reader
    * who moved a driver and changed a supplier asked a single question, and
@@ -861,6 +875,8 @@ interface SeasonStore {
     chassis?: SeasonChassis | null,
     /** The reader's engine ratings, per engine; null — the default — for the season's own. */
     engineRatings?: SeasonEngineRatings | null,
+    /** The reader's development trends; null — the default — for the season's own. */
+    trends?: SeasonTrends | null,
   ) => void;
   /**
    * The grid of the season next door — the year before or the year after — on a
@@ -1120,7 +1136,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
       ),
     });
   },
-  setGrid: (lineup, engines, chassis = null, engineRatings = null) => {
+  setGrid: (lineup, engines, chassis = null, engineRatings = null, trends = null) => {
     set((state) =>
       state.run !== null && state.run.cursor.kind === "grid"
         ? {
@@ -1137,6 +1153,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
                 state.run.world.settings,
                 eraInputsOf(state.run.world),
                 engineRatings,
+                trends,
               ),
             ),
           }
@@ -1191,6 +1208,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             world.settings,
             eraInputsOf(world),
             world.engineRatings,
+            world.trends,
           ),
         ),
       };
@@ -1219,6 +1237,7 @@ export const useSeasonStore = create<SeasonStore>((set, get) => ({
             first.settings,
             {},
             first.engineRatings,
+            first.trends,
           ),
         ),
       };

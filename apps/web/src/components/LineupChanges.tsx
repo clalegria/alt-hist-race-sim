@@ -7,6 +7,7 @@ import {
   type GridArrangement,
   type RatingMode,
   type SeatChange,
+  type TrendChange,
 } from "@alt-hist/data";
 import type { KeptNotes } from "../lib/kept.js";
 import { driverName, engineName } from "../lib/names.js";
@@ -22,9 +23,9 @@ import { useTeamName } from "./EntryNames.js";
  * championship as history when it is not, and the full list at the foot of the
  * grid, where the teams it happened to are on screen.
  *
- * Four *kinds* of change, listed together: who drives the car, what is in the
- * back of it, how good the chassis is and how good an engine is. All are the
- * reader rewriting the entry list, and splitting them into separate notices
+ * Five *kinds* of change, listed together: who drives the car, what is in the
+ * back of it, how good the chassis is, how good an engine is and which way the
+ * car's year runs. All are the reader rewriting the entry list, and splitting them into separate notices
  * would make a season that changed one of each look like several separate
  * caveats. An engine's ratings are said once per engine, not per team: one
  * step moved every team running it.
@@ -231,12 +232,21 @@ export function engineSummary(change: EngineRatingChange): string {
   return typeof moves === "number" ? `${signed(moves)} each` : moves.join(", ");
 }
 
-/** "3 changes", or "1 change": seats, engines, chassis and engine ratings counted together. */
+/** A changed development trend in the changes list: "Development +3". */
+export function trendNote(change: TrendChange): string {
+  return `Development ${signed(change.to - change.from)}`;
+}
+
+/**
+ * "3 changes", or "1 change": seats, engines, chassis, engine ratings and
+ * development counted together.
+ */
 export function changeCount(
   changes: readonly SeatChange[],
   engineChanges: readonly EngineChange[] = [],
   chassisChanges: readonly ChassisChange[] = [],
   engineRatingChanges: readonly EngineRatingChange[] = [],
+  trendChanges: readonly TrendChange[] = [],
 ): string {
   // The longer of the two sides, so a departure nobody has replaced still
   // counts as the change it is.
@@ -247,7 +257,12 @@ export function changeCount(
   // A re-rated chassis is one change, however many ratings moved and by how
   // much: it is one team's car, as an engine swap is.
   // A re-rated engine is one change too, however many teams run it.
-  const total = seats + engineChanges.length + chassisChanges.length + engineRatingChanges.length;
+  const total =
+    seats +
+    engineChanges.length +
+    chassisChanges.length +
+    engineRatingChanges.length +
+    trendChanges.length;
   return `${total} change${total === 1 ? "" : "s"}`;
 }
 
@@ -260,11 +275,13 @@ export function GridChanges({
   engineChanges = [],
   chassisChanges = [],
   engineRatingChanges = [],
+  trendChanges = [],
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   chassisChanges?: readonly ChassisChange[];
   engineRatingChanges?: readonly EngineRatingChange[];
+  trendChanges?: readonly TrendChange[];
 }) {
   const teamName = useTeamName();
   // One row per team even when its drivers, its engine and its chassis all
@@ -274,6 +291,7 @@ export function GridChanges({
       ...changes.map((change) => change.teamId),
       ...engineChanges.map((change) => change.teamId),
       ...chassisChanges.map((change) => change.teamId),
+      ...trendChanges.map((change) => change.teamId),
     ]),
   ].sort((a, b) => teamName(a).localeCompare(teamName(b)));
 
@@ -283,6 +301,7 @@ export function GridChanges({
         const seats = changes.find((change) => change.teamId === teamId);
         const engine = engineChanges.find((change) => change.teamId === teamId);
         const chassis = chassisChanges.find((change) => change.teamId === teamId);
+        const trend = trendChanges.find((change) => change.teamId === teamId);
         const said = [
           ...(seats === undefined
             ? []
@@ -300,6 +319,7 @@ export function GridChanges({
             ? []
             : [`${engineName(engine.to)} engine for ${engineName(engine.from)}`]),
           ...(chassis === undefined ? [] : [chassisNote(chassis)]),
+          ...(trend === undefined ? [] : [trendNote(trend)]),
         ];
         return (
           <li key={teamId} className="flex flex-wrap items-baseline gap-x-2">
@@ -330,12 +350,14 @@ export function EditedGridBanner({
   engineChanges = [],
   chassisChanges = [],
   engineRatingChanges = [],
+  trendChanges = [],
   className,
 }: {
   changes: readonly SeatChange[];
   engineChanges?: readonly EngineChange[];
   chassisChanges?: readonly ChassisChange[];
   engineRatingChanges?: readonly EngineRatingChange[];
+  trendChanges?: readonly TrendChange[];
   className?: string;
 }) {
   return (
@@ -349,8 +371,9 @@ export function EditedGridBanner({
         <span className="text-sm font-semibold tracking-tight">Edited grid</span>
         {/* Counted from the grid the run's settings built, not from history. */}
         <span className="text-muted-foreground text-xs">
-          You made {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges)} to
-          this season's grid.
+          You made{" "}
+          {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges, trendChanges)}{" "}
+          to this season's grid.
         </span>
       </div>
       <GridChanges
@@ -358,6 +381,7 @@ export function EditedGridBanner({
         engineChanges={engineChanges}
         chassisChanges={chassisChanges}
         engineRatingChanges={engineRatingChanges}
+        trendChanges={trendChanges}
       />
     </div>
   );

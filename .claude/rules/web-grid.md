@@ -27,6 +27,7 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **A clickable name is marked by a fill, never an underline**: `NAME_TARGET` is the one
   definition, shared with the editor's buttons, and tests count it as a marker.
 - **A development trend never enters `carOverall`** (`Development` in `SeasonGrid` says why).
+  The popover hides a flat year (`DevelopmentPanel`), except in the editor.
 - **`lib/rating.ts` re-exports `@alt-hist/data`**: the overall's weights and
   `compareByRating` are shared with the reseat. Never re-implement them in the app;
   nothing in the engine reads the overall.
@@ -35,8 +36,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **The editor changes only this grid**; a choice about the whole run is a setting
   (`teams-and-seats.md`). Its drafts are component state until Apply (`web-store.md`).
 - **It can only swap**: drivers through `pickUp`, engines among the suppliers the season
-  rates, chassis and engine ratings by one-point steps. Nothing may add a car or invent a
-  supplier.
+  rates, chassis and engine ratings and development trends by one-point steps. Nothing
+  may add a car or invent a supplier.
 - **An empty seat exists only mid-edit** (after `Copy <year> grid`), and Apply is disabled
   while one is open. `previewField` splices in `EMPTY_SEAT` placeholders so a team with
   no driver still draws; nothing simulated may ever see one.

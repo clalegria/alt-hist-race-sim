@@ -18,6 +18,8 @@ A car's authored `developmentTrend`, −10..+10: its pace rotated about mid-seas
   run setting's layer over the seed in `packages/data/src/development.ts`; and `trendsOf`
   in `apps/web/src/lib/run-settings.ts`, the one place the setting reaches the cars. The
   result is `World.baselineTrends`, rebuilt from the seed, never recorded.
+- **The grid editor's trend** is `World.trends`, absolute over `baselineTrends` and
+  recorded like the chassis edit, but never walked: a trend describes one year.
 - **Random** draws on its own `DEVELOPMENT_STREAM`, so no other roll or race moves.
 - **A trend is never free**: points are convex in pace, so any non-zero trend scores
   slightly more than the same car flat. Handing every car one inflates the grid. Under

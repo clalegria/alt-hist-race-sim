@@ -4,6 +4,7 @@ import {
   engineChanges,
   engineRatingChanges,
   lineupChanges,
+  trendChanges,
 } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
@@ -235,6 +236,10 @@ export function SeasonOverview({
     () => (world.engineRatings === null ? [] : engineRatingChanges(entered, world.engineRatings)),
     [world.engineRatings, entered],
   );
+  const retrended = useMemo(
+    () => (world.trends === null ? [] : trendChanges(entered, world.trends)),
+    [world.trends, entered],
+  );
   const historicalChassis = useMemo(
     () => (world.baselineChassis === null ? null : authoredChassis(seed)),
     [world.baselineChassis, seed],
@@ -256,12 +261,14 @@ export function SeasonOverview({
       {changes.length === 0 &&
       supplyChanges.length === 0 &&
       rerated.length === 0 &&
-      reratedEngines.length === 0 ? null : (
+      reratedEngines.length === 0 &&
+      retrended.length === 0 ? null : (
         <EditedGridBanner
           changes={changes}
           engineChanges={supplyChanges}
           chassisChanges={rerated}
           engineRatingChanges={reratedEngines}
+          trendChanges={retrended}
         />
       )}
       {finished ? (
@@ -305,6 +312,7 @@ export function SeasonOverview({
             engineChanges={supplyChanges}
             chassisChanges={rerated}
             engineRatingChanges={reratedEngines}
+            trendChanges={retrended}
             historicalChassis={historicalChassis}
             historicalEngines={historicalEngines}
             arrangement={seatingArrangement(world.settings)}

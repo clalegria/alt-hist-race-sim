@@ -3,6 +3,7 @@ import {
   authoredEngineRatings,
   authoredEngines,
   authoredLineup,
+  authoredTrends,
   DEFAULT_RATING_MODE,
   FIRST_AUTHORED_SEASON,
   reserveDrivers,
@@ -11,6 +12,7 @@ import {
   seasons,
   stepChassis,
   stepEngine,
+  stepTrend,
   swapDrivers,
 } from "@alt-hist/data";
 import {
@@ -1259,6 +1261,43 @@ describe("the re-rated engines", () => {
     useSeasonStore.getState().continueRun();
     useSeasonStore.getState().setGrid(null, null, null, rerated);
     expect(running().world.engineRatings).toBeNull();
+  });
+});
+
+describe("the reader's development trends", () => {
+  /** The first team's trend a point away from the season's: derived, never read off the data. */
+  const TEAM = SEED.entries[0]?.teamId ?? "";
+  const authored = authoredTrends(SEED);
+  const up = stepTrend(authored, TEAM, 1);
+  const edited = up === authored ? stepTrend(authored, TEAM, -1) : up;
+
+  beforeEach(() => {
+    useSeasonStore.getState().simulate(3, YEAR);
+  });
+
+  it("starts on the trends the season was entered with", () => {
+    expect(running().world.trends).toBeNull();
+  });
+
+  it("re-runs the same seed with that one car's year changed", () => {
+    const before = running().world;
+    useSeasonStore.getState().setGrid(null, null, null, null, edited);
+    const after = running().world;
+
+    expect(after.trends).toEqual(edited);
+    expect(after.seed).toBe(before.seed);
+    const run = useSeasonStore.getState().run;
+    expect(run === null ? true : isUntouched(run)).toBe(false);
+    for (const entrant of after.field) {
+      expect(entrant.developmentTrend ?? 0, entrant.teamId).toBe(edited[entrant.teamId]);
+    }
+  });
+
+  it("forgets trends that are the season's own, so nothing claims a change", () => {
+    useSeasonStore.getState().setGrid(null, null, null, null, edited);
+    useSeasonStore.getState().setGrid(null, null, null, null, authored);
+    expect(running().world.trends).toBeNull();
+    expect(running().world).toEqual(createWorld(3, YEAR));
   });
 });
 

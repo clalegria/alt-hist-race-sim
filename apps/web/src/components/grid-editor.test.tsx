@@ -195,6 +195,7 @@ describe("the grid in edit mode", () => {
     onEngineChange: () => {},
     onChassisStep: () => {},
     onEngineStep: () => {},
+    onTrendStep: () => {},
   };
   const html = renderToStaticMarkup(
     <SeasonGrid
@@ -682,6 +683,7 @@ describe("an empty seat", () => {
           onEngineChange: () => {},
           onChassisStep: () => {},
           onEngineStep: () => {},
+          onTrendStep: () => {},
         }}
         changes={lineupChanges(SEED, vacated)}
       />,

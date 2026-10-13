@@ -35,6 +35,7 @@ const editing: GridEditing = {
   onEngineChange: () => {},
   onChassisStep: () => {},
   onEngineStep: () => {},
+  onTrendStep: () => {},
 };
 
 const MIDDLE: ChassisSpec = { racing: 60, qualifying: 60, consistency: 60, reliability: 60 };

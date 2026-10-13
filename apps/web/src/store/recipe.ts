@@ -5,7 +5,7 @@
  * built from, and every `World` already records all of them: the seed, the
  * year, the ability mode, the randomness level, the run settings, the year
  * its team names are kept from and the reader's grid (lineup, engines, chassis,
- * engine ratings). The recipe is therefore *derived* from the run rather than
+ * engine ratings, development trends). The recipe is therefore *derived* from the run rather than
  * kept beside it: one entry per world, plus the cursor. There is no second
  * record of the reader's inputs that could fall out of step with the worlds.
  *
@@ -31,6 +31,7 @@ import {
   type SeasonEngineRatings,
   type SeasonEngines,
   type SeasonLineup,
+  type SeasonTrends,
 } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
 import { parseRunSettings, type RunSettings } from "../lib/run-settings.js";
@@ -47,7 +48,7 @@ import {
 } from "./season.js";
 
 /** Bumped when the recipe changes shape; any other version is refused. */
-export const RECIPE_VERSION = 10;
+export const RECIPE_VERSION = 11;
 
 /** Everything `createWorld` was called with, and a hash of what it returned. */
 export interface WorldRecipe {
@@ -62,6 +63,7 @@ export interface WorldRecipe {
   readonly engines: SeasonEngines | null;
   readonly chassis: SeasonChassis | null;
   readonly engineRatings: SeasonEngineRatings | null;
+  readonly trends: SeasonTrends | null;
   /** `fingerprint` of the world these inputs built. */
   readonly check: string;
 }
@@ -112,6 +114,7 @@ function worldRecipe(world: World): WorldRecipe {
     engines: world.engines,
     chassis: world.chassis,
     engineRatings: world.engineRatings,
+    trends: world.trends,
     check: fingerprint(world),
   };
 }
@@ -171,6 +174,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     engines,
     chassis,
     engineRatings,
+    trends,
     check,
   } = raw;
   const settings = parseRunSettings(raw.settings);
@@ -187,6 +191,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
     isRecordOrNull(engines) &&
     isRecordOrNull(chassis) &&
     isRecordOrNull(engineRatings) &&
+    isRecordOrNull(trends) &&
     typeof check === "string";
   // An `arrangement` from before *Who drives where* was a setting is ignored:
   // its lineup is stored beside it, so the grid rebuilds as an edit.
@@ -202,6 +207,7 @@ function parseWorldRecipe(raw: unknown): WorldRecipe | null {
         engines: engines as SeasonEngines | null,
         chassis: chassis as SeasonChassis | null,
         engineRatings: engineRatings as SeasonEngineRatings | null,
+        trends: trends as SeasonTrends | null,
         check: check as string,
       }
     : null;
@@ -231,6 +237,7 @@ function rebuild(recipe: WorldRecipe, previous: World | null): World | null {
           kept: keptYearAfter(previous, recipe.year),
         },
     recipe.engineRatings,
+    recipe.trends,
   );
   return fingerprint(world) === recipe.check ? world : null;
 }

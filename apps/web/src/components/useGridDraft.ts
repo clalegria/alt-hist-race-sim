@@ -3,10 +3,12 @@ import {
   applyDraft,
   applyEngineRatings,
   applyEngines,
+  applyTrends,
   authoredChassis,
   authoredEngineRatings,
   authoredEngines,
   authoredLineup,
+  authoredTrends,
   availableEngines,
   buildField,
   type ChassisSpec,
@@ -24,6 +26,7 @@ import {
   isAuthoredEngineRatings,
   isAuthoredEngines,
   isAuthoredLineup,
+  isAuthoredTrends,
   type LineupDraft,
   lineupChanges,
   type RatingMode,
@@ -33,9 +36,12 @@ import {
   type SeasonEngines,
   type SeasonLineup,
   type SeasonSeed,
+  type SeasonTrends,
   seatRefOf,
   stepChassis,
   stepEngine,
+  stepTrend,
+  trendChanges,
 } from "@alt-hist/data";
 import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
@@ -51,11 +57,11 @@ import { EMPTY_SEAT, type GridEditing } from "./SeasonGrid.js";
  * reader mid-way through moving four drivers around has not yet asked a question
  * worth answering.
  *
- * Four things can be changed, and they are kept as four drafts because they
- * are four questions: **who drives the car**, **what is in the back of it**,
- * **how good the chassis is** and **how good each engine is**. They apply
- * together, as one edit, so a reader who did them all gets one season rather
- * than four. The engine ratings are per engine, not per team: a step moves
+ * Five things can be changed, and they are kept as five drafts because they
+ * are five questions: **who drives the car**, **what is in the back of it**,
+ * **how good the chassis is**, **how good each engine is** and **which way the
+ * car's year runs**. They apply together, as one edit, so a reader who did them
+ * all gets one season rather than five. The engine ratings are per engine, not per team: a step moves
  * every team running that engine.
  *
  * The constraint the driver half is built around is that **only swaps exist**.
@@ -72,6 +78,7 @@ export interface GridEdit {
   readonly engines: SeasonEngines | null;
   readonly chassis: SeasonChassis | null;
   readonly engineRatings: SeasonEngineRatings | null;
+  readonly trends: SeasonTrends | null;
 }
 
 /** Whether two picks name the same thing. */
@@ -200,8 +207,8 @@ export function previewField(
  * The editor's drafts, what they draw, and every action on them.
  *
  * `season` is the year as the run entered it — what Restore puts back and every
- * change is measured from; `lineup`, `engines`, `chassis` and `engineRatings`
- * are what is applied over it, null for as entered.
+ * change is measured from; `lineup`, `engines`, `chassis`, `engineRatings` and
+ * `trends` are what is applied over it, null for as entered.
  */
 export function useGridDraft({
   season,
@@ -212,6 +219,7 @@ export function useGridDraft({
   engines,
   chassis,
   engineRatings,
+  trends,
   previousLineup,
   pool,
   onApply,
@@ -225,6 +233,7 @@ export function useGridDraft({
   engines: SeasonEngines | null;
   chassis: SeasonChassis | null;
   engineRatings: SeasonEngineRatings | null;
+  trends: SeasonTrends | null;
   previousLineup: SeasonLineup | null;
   pool: readonly Driver[];
   onApply: ((edit: GridEdit) => void) | undefined;
@@ -237,6 +246,7 @@ export function useGridDraft({
     () => engineRatings ?? authoredEngineRatings(season),
     [engineRatings, season],
   );
+  const appliedTrends = useMemo(() => trends ?? authoredTrends(season), [trends, season]);
   const engineIds = useMemo(
     () => availableEngines(season).map((engine) => engine.engineId),
     [season],
@@ -244,17 +254,19 @@ export function useGridDraft({
 
   // Null means "not editing": one flag fewer than a draft plus a boolean, and
   // it cannot get into the state where the editor is open with nothing to edit.
-  // The four drafts open and close together, so one null answers for all.
+  // The five drafts open and close together, so one null answers for all.
   const [draft, setDraft] = useState<LineupDraft | null>(null);
   const [engineDraft, setEngineDraft] = useState<SeasonEngines | null>(null);
   const [chassisDraft, setChassisDraft] = useState<SeasonChassis | null>(null);
   const [ratingsDraft, setRatingsDraft] = useState<SeasonEngineRatings | null>(null);
+  const [trendsDraft, setTrendsDraft] = useState<SeasonTrends | null>(null);
   const [selected, setSelected] = useState<GridPick | null>(null);
 
   const shown = draft ?? applied;
   const shownEngines = engineDraft ?? appliedEngines;
   const shownChassis = chassisDraft ?? appliedChassis;
   const shownRatings = ratingsDraft ?? appliedRatings;
+  const shownTrends = trendsDraft ?? appliedTrends;
   const changes = useMemo(() => lineupChanges(season, shown), [season, shown]);
   const supplyChanges = useMemo(() => engineChanges(season, shownEngines), [season, shownEngines]);
   const rerated = useMemo(() => chassisChanges(season, shownChassis), [season, shownChassis]);
@@ -262,11 +274,13 @@ export function useGridDraft({
     () => engineRatingChanges(season, shownRatings),
     [season, shownRatings],
   );
+  const retrended = useMemo(() => trendChanges(season, shownTrends), [season, shownTrends]);
   const untouched =
     (draft === null || isAuthoredLineup(season, draft)) &&
     (engineDraft === null || isAuthoredEngines(season, engineDraft)) &&
     (chassisDraft === null || isAuthoredChassis(season, chassisDraft)) &&
-    (ratingsDraft === null || isAuthoredEngineRatings(season, ratingsDraft));
+    (ratingsDraft === null || isAuthoredEngineRatings(season, ratingsDraft)) &&
+    (trendsDraft === null || isAuthoredTrends(season, trendsDraft));
 
   // Draft grids are rebuilt rather than raced: the ratings are the same
   // function of driver, car, season and mode that `createWorld` will apply,
@@ -275,14 +289,32 @@ export function useGridDraft({
   // and the grid ranks it as one. In `createWorld`'s order: the supply, then
   // the engines' ratings, so a team handed a re-rated engine races it as rated.
   const preview = useMemo(() => {
-    if (draft === null && engineDraft === null && chassisDraft === null && ratingsDraft === null) {
+    if (
+      draft === null &&
+      engineDraft === null &&
+      chassisDraft === null &&
+      ratingsDraft === null &&
+      trendsDraft === null
+    ) {
       return field;
     }
     const resupplied = engineDraft === null ? season : applyEngines(season, engineDraft);
     const rated = ratingsDraft === null ? resupplied : applyEngineRatings(resupplied, ratingsDraft);
-    const entered = chassisDraft === null ? rated : applyChassis(rated, chassisDraft);
+    const built = chassisDraft === null ? rated : applyChassis(rated, chassisDraft);
+    const entered = trendsDraft === null ? built : applyTrends(built, trendsDraft);
     return previewField(entered, draft ?? applied, ratingMode, pool);
-  }, [draft, engineDraft, chassisDraft, ratingsDraft, field, season, applied, ratingMode, pool]);
+  }, [
+    draft,
+    engineDraft,
+    chassisDraft,
+    ratingsDraft,
+    trendsDraft,
+    field,
+    season,
+    applied,
+    ratingMode,
+    pool,
+  ]);
   const reserve = useMemo(() => reserveDrivers(shown, pool), [shown, pool]);
   /** The open seats, and therefore whether this grid can be applied at all. */
   const open = useMemo(() => emptySeats(shown), [shown]);
@@ -304,6 +336,7 @@ export function useGridDraft({
     setEngineDraft(appliedEngines);
     setChassisDraft(appliedChassis);
     setRatingsDraft(appliedRatings);
+    setTrendsDraft(appliedTrends);
     setSelected(null);
     onEditingChange?.(true);
   };
@@ -313,6 +346,7 @@ export function useGridDraft({
     setEngineDraft(null);
     setChassisDraft(null);
     setRatingsDraft(null);
+    setTrendsDraft(null);
     setSelected(null);
     onEditingChange?.(false);
   };
@@ -348,6 +382,7 @@ export function useGridDraft({
     setEngineDraft(authoredEngines(season));
     setChassisDraft(authoredChassis(season));
     setRatingsDraft(authoredEngineRatings(season));
+    setTrendsDraft(authoredTrends(season));
     setSelected(null);
   };
 
@@ -366,6 +401,7 @@ export function useGridDraft({
         ratingsDraft === null || isAuthoredEngineRatings(season, ratingsDraft)
           ? null
           : ratingsDraft,
+      trends: trendsDraft === null || isAuthoredTrends(season, trendsDraft) ? null : trendsDraft,
     });
     stop();
   };
@@ -391,6 +427,11 @@ export function useGridDraft({
     );
   };
 
+  /** One team's development trend a point up or down. */
+  const stepTeamTrend = (teamId: string, step: 1 | -1): void => {
+    setTrendsDraft((current) => (current === null ? current : stepTrend(current, teamId, step)));
+  };
+
   /** What `SeasonGrid` needs to draw the editor, or undefined while it is shut. */
   const edit: GridEditing | undefined =
     draft === null
@@ -402,6 +443,7 @@ export function useGridDraft({
           onEngineChange: chooseEngine,
           onChassisStep: stepTeamChassis,
           onEngineStep: stepEngineRatings,
+          onTrendStep: stepTeamTrend,
         };
 
   return {
@@ -411,6 +453,7 @@ export function useGridDraft({
     supplyChanges,
     rerated,
     reratedEngines,
+    retrended,
     untouched,
     reserve,
     open,

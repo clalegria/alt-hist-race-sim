@@ -9,6 +9,7 @@ import {
   type SeasonEngines,
   type SeasonLineup,
   type SeasonSeed,
+  type SeasonTrends,
 } from "@alt-hist/data";
 import type { RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
@@ -37,6 +38,7 @@ export function GridStage({
   engines,
   chassis = null,
   engineRatings = null,
+  trends = null,
   baselineChassis = null,
   historicalEngines = null,
   runSeason = null,
@@ -60,6 +62,8 @@ export function GridStage({
   chassis?: SeasonChassis | null;
   /** The applied engine ratings, per engine, or null for the ones the season was entered with. */
   engineRatings?: SeasonEngineRatings | null;
+  /** The applied development trends, or null for the ones the season was entered with. */
+  trends?: SeasonTrends | null;
   /**
    * The run's own chassis for the year (*Chassis performance*), or null for the
    * authored ones: what the season was entered with, and so what Restore puts
@@ -131,6 +135,7 @@ export function GridStage({
     engines,
     chassis,
     engineRatings,
+    trends,
     previousLineup,
     pool,
     onApply,
@@ -189,6 +194,7 @@ export function GridStage({
         engineChanges={grid.supplyChanges}
         chassisChanges={grid.rerated}
         engineRatingChanges={grid.reratedEngines}
+        trendChanges={grid.retrended}
         historicalChassis={historicalChassis}
         historicalEngines={historicalEngines}
         arrangement={arrangement}
@@ -218,7 +224,13 @@ export function GridStage({
         variant="clearEdits"
         onConfirm={() => {
           setClearing(false);
-          onApply?.({ lineup: null, engines: null, chassis: null, engineRatings: null });
+          onApply?.({
+            lineup: null,
+            engines: null,
+            chassis: null,
+            engineRatings: null,
+            trends: null,
+          });
         }}
         onCancel={() => {
           setClearing(false);

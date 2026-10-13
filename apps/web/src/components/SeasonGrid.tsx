@@ -7,10 +7,12 @@ import type {
   GridPick,
   RatingMode,
   SeatChange,
+  TrendChange,
 } from "@alt-hist/data";
 import {
   canStepChassis,
   canStepEngine,
+  canStepTrend,
   driversById,
   type SeasonChassis,
   type SeasonEngineRatings,
@@ -94,6 +96,8 @@ export interface GridEditing {
    * or all three when none is named.
    */
   readonly onEngineStep: (engineId: string, step: 1 | -1, key?: keyof EngineSpec) => void;
+  /** One team's in-season development a point up or down. */
+  readonly onTrendStep: (teamId: string, step: 1 | -1) => void;
 }
 
 /**
@@ -285,6 +289,31 @@ export function EngineStepper({
   );
 }
 
+/** A team's development stepper: the trend a point up or down, its change between. */
+export function TrendStepper({
+  teamName,
+  trend,
+  delta,
+  onStep,
+}: {
+  /** The team, for the buttons' accessible names. */
+  teamName: string;
+  /** The trend as it now stands, to know whether a step can move it. */
+  trend: number;
+  /** How far the trend has moved, for a tag between the buttons. */
+  delta: number;
+  onStep: (step: 1 | -1) => void;
+}) {
+  return (
+    <RatingStepper
+      what={`${teamName} development`}
+      canStep={(step) => canStepTrend(trend, step)}
+      delta={delta}
+      onStep={onStep}
+    />
+  );
+}
+
 /** "Haas", "Haas and Sauber", "Haas, Sauber and Williams". */
 function listed(names: readonly string[]): string {
   return names.length <= 1
@@ -324,7 +353,14 @@ export function Overall({ value }: { value: number }) {
  * the year. Folding it in would double-count a car's own rating in one
  * direction and quietly libel it in the other.
  */
-function Development({ trend }: { trend: number }) {
+function Development({
+  trend,
+  control,
+}: {
+  trend: number;
+  /** Drawn after the number — the trend stepper, in the editor only. */
+  control?: React.ReactNode;
+}) {
   const magnitude = Math.min(Math.abs(trend), DEVELOPMENT_TREND_LIMIT) / DEVELOPMENT_TREND_LIMIT;
   // Half the track, because each direction owns one side of the centre line.
   const width = `${(magnitude * 50).toFixed(1)}%`;
@@ -341,17 +377,66 @@ function Development({ trend }: { trend: number }) {
       <span className="w-7 shrink-0 text-right text-xs font-medium tabular-nums">
         {trend > 0 ? `+${trend}` : trend}
       </span>
+      {control}
     </div>
   );
 }
 
 /** What a trend means, in a sentence, so the bar above never has to be guessed at. */
 function developmentNote(trend: number): string {
+  if (trend === 0) {
+    return "Same pace all year.";
+  }
   const size = Math.abs(trend);
   const points = `${size} ${size === 1 ? "point" : "points"}`;
   return trend > 0
     ? `Gets faster through the year: ${points} slower than this at the first race, ${size} quicker by the last.`
     : `Gets slower through the year: ${points} quicker than this at the first race, ${size} slower by the last.`;
+}
+
+/**
+ * The team popover's last section: which way the car's year runs.
+ *
+ * Last, and separated, because it is the only thing in there that is not a
+ * rating: the chassis and the engine say what the car *is*, and this says how
+ * its year went. It is not in the headline number — see `Development`. A flat
+ * year is left out, except in the editor (`onStep`), where it can be stepped.
+ */
+export function DevelopmentPanel({
+  teamName,
+  trend,
+  delta = 0,
+  onStep,
+}: {
+  /** The team, for the stepper's accessible names. */
+  teamName: string;
+  trend: number;
+  /** How far the reader has moved it, for the stepper's tag. */
+  delta?: number;
+  /** Present in the editor only: draws the stepper. */
+  onStep?: (step: 1 | -1) => void;
+}) {
+  if (trend === 0 && onStep === undefined) {
+    return null;
+  }
+  return (
+    <>
+      <div className="border-border/60 mt-3 mb-2 border-t pt-3">
+        <span className="text-xs font-semibold">In-season development</span>
+      </div>
+      <Development
+        trend={trend}
+        {...(onStep === undefined
+          ? {}
+          : {
+              control: (
+                <TrendStepper teamName={teamName} trend={trend} delta={delta} onStep={onStep} />
+              ),
+            })}
+      />
+      <p className="text-muted-foreground mt-2 text-xs">{developmentNote(trend)}</p>
+    </>
+  );
 }
 
 /**
@@ -694,6 +779,7 @@ export function SeasonGrid({
   engineChanges,
   chassisChanges,
   engineRatingChanges,
+  trendChanges,
   historicalChassis = null,
   historicalEngines = null,
   arrangement = null,
@@ -721,6 +807,8 @@ export function SeasonGrid({
   chassisChanges?: readonly ChassisChange[];
   /** Engines the reader re-rated: every team running one is marked. */
   engineRatingChanges?: readonly EngineRatingChange[];
+  /** Teams whose in-season development the reader changed. */
+  trendChanges?: readonly TrendChange[];
   /**
    * Each team's chassis as history had it, when the run's own differ — *Car
    * performance* rolled them — or null. The team popover then reads history →
@@ -787,6 +875,7 @@ export function SeasonGrid({
   const reratedEngines = new Map(
     (engineRatingChanges ?? []).map((change) => [change.engineId, change]),
   );
+  const retrended = new Map((trendChanges ?? []).map((change) => [change.teamId, change]));
 
   return (
     // A `Card`, like every results panel, rather than the bare section this was:
@@ -845,6 +934,7 @@ export function SeasonGrid({
         resupplied.length === 0 &&
         rerated.size === 0 &&
         reratedEngines.size === 0 &&
+        retrended.size === 0 &&
         arrangement === null ? null : (
           <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -871,6 +961,7 @@ export function SeasonGrid({
               engineChanges={resupplied}
               chassisChanges={[...rerated.values()]}
               engineRatingChanges={[...reratedEngines.values()]}
+              trendChanges={[...retrended.values()]}
             />
           </div>
         )}
@@ -903,10 +994,12 @@ export function SeasonGrid({
               .filter((other) => other.teamId !== entry.teamId && other.engineId === entry.engineId)
               .map((other) => teamName(other.teamId, nameYear(other.teamId, seasonYear)))
               .sort((a, b) => a.localeCompare(b));
+            const trendChange = retrended.get(entry.teamId);
             const marked =
               movedEngine.has(entry.teamId) ||
               chassisChange !== undefined ||
-              engineChange !== undefined;
+              engineChange !== undefined ||
+              trendChange !== undefined;
             return (
               <li
                 key={entry.teamId}
@@ -922,7 +1015,7 @@ export function SeasonGrid({
                 <div className="bg-card-header border-border/60 relative -mx-4 -mt-4 flex items-center gap-2 border-b px-4 pt-3 pb-2.5">
                   {livery === undefined ? null : <LiveryCorner livery={livery} />}
                   {/*
-                    A marked team (engine or chassis changed) carries the soft
+                    A marked team (engine, chassis or development changed) carries the soft
                     fill a moved driver's row does, so the note at the top and the
                     cards agree. On the header band that fill would be lost, so the
                     name sits on a card-coloured plate and the fill goes on it:
@@ -1074,23 +1167,19 @@ export function SeasonGrid({
                             </div>
                           </>
                         )}
-                        {entry.developmentTrend === undefined ||
-                        entry.developmentTrend === 0 ? null : (
-                          // Last, and separated, because it is the only thing in
-                          // here that is not a rating: the chassis and the engine
-                          // say what the car *is*, and this says how its year
-                          // went. It is not in the headline number above — see
-                          // `Development`.
-                          <>
-                            <div className="border-border/60 mt-3 mb-2 border-t pt-3">
-                              <span className="text-xs font-semibold">In-season development</span>
-                            </div>
-                            <Development trend={entry.developmentTrend} />
-                            <p className="text-muted-foreground mt-2 text-xs">
-                              {developmentNote(entry.developmentTrend)}
-                            </p>
-                          </>
-                        )}
+                        <DevelopmentPanel
+                          teamName={name}
+                          trend={entry.developmentTrend ?? 0}
+                          {...(edit === undefined
+                            ? {}
+                            : {
+                                delta:
+                                  trendChange === undefined ? 0 : trendChange.to - trendChange.from,
+                                onStep: (step: 1 | -1) => {
+                                  edit.onTrendStep(entry.teamId, step);
+                                },
+                              })}
+                        />
                       </PopoverContent>
                     </Popover>
                   </span>
