@@ -14,8 +14,17 @@ reasoning is its comment in `index.css`.
 
 - **Fonts are self-hosted through `@fontsource`** (`main.tsx`), so a static build makes
   no external request. Import a subset file, never a package root, which ships every
-  script's cut of every weight.
+  script's cut of every weight. Archivo's must be `standard.css`: `wght.css` has no
+  width axis, and `narrow` silently does nothing.
 - **`.tabular-nums` puts text in the mono face**: mark only figures with it.
+- **`narrow` is the one width utility.** Never name a custom utility `font-*`:
+  tailwind-merge reads it as a font family and drops it beside `font-mono`.
+- **Capitals come from `uppercase`, never the source text**: tests and the screenshot
+  steps find elements by their text.
+- **Corners are square through the `--radius-*` tokens**, `--radius` included (bare
+  `rounded`). A shape that must stay round uses `rounded-full` or an arbitrary value.
+- **Badges and flags outline with `badge-line`, never `border`**, which is too close to the
+  dark card to edge a black livery.
 - **Red is never the primary**: it means something went wrong or is about to be thrown
   away (`--color-destructive`, `--color-loss`).
 - **A new primary or destructive value must clear 4.5:1** under its foreground and as text

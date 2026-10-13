@@ -5,38 +5,38 @@
  * component references `bg-card` rather than a literal, and a theme swap is a
  * change to these blocks alone.
  *
- * The palette is warm greys against a petrol teal. Neutrals sit around hue
- * 60-70 with almost no chroma — enough to read as charcoal and paper instead of
- * as blue — and the primary is a teal at hue 203, held to moderate chroma so it
- * reads as neither the gain green (148) nor the wet blue (250) either side of
- * it. Red is not the primary: it means something went wrong or is about to be
- * thrown away (`destructive`, `loss`), and a red winner read as an error.
+ * The palette is a pit wall's timing screens: cool graphite against a petrol
+ * teal. Neutrals sit at hue 250 with a trace of chroma, enough to read as
+ * graphite rather than as neutral grey or as blue, and the primary is a teal at
+ * hue 203, held to moderate chroma so it reads as neither the gain green (148)
+ * nor the wet blue either side of it. The wet blue shares the neutrals' hue but
+ * not their chroma, so it never reads as a surface. Red is not the primary: it
+ * means something went wrong or is about to be thrown away (`destructive`,
+ * `loss`), and a red winner read as an error.
  *
  * Headers are darker than what they head. Inside a card, its `CardHeader`, a
- * table's `TableHeader` and a grid tile's top row sit on `card-header`, a step
- * below `card`, in both themes: grey over white in light, today's charcoal over a
- * lifted charcoal in dark. So a table reads as a header band and a body, rather
+ * table's `TableHeader` and a grid tile's top row sit on `card-header`, below
+ * `card`, in both themes. So a table reads as a header band and a body, rather
  * than one flat slab of the header's colour.
  *
- * Dark is a mid charcoal, not a void: background 27%, header 31%, card 35%,
- * muted 40%, accent 42%, border 47%. Below about 20% the surfaces stop
- * separating and a table's structure has to be carried by text alone, so the
- * ladder moves together and keeps its steps. `border` sits furthest above card
- * because on a dark theme the border, not the fill, is what draws a panel. The
- * dim text tokens rise with the card (`subtle` holds ~4.9:1 on it).
+ * Dark is a deep graphite: header 16%, background 19%, card 23.5%, muted
+ * 28.5%, accent 30.5%, border 33%. The header sits below even the background, as
+ * on a timing screen, and a panel is drawn by its border rather than by a big
+ * step in fill. Light runs the other way from a near-white card: card 99.5%,
+ * background 95.5%, muted 95%, header 91.5%, accent 89%, border 87%.
  *
  * Dark is the default, so it lives here in plain `@theme` and needs no attribute
  * on the document. Light is the override below.
  */
 @theme {
-  --color-background: oklch(27% 0.008 60);
-  --color-foreground: oklch(96.5% 0.005 75);
-  --color-card: oklch(35% 0.011 60);
-  --color-card-foreground: oklch(96.5% 0.005 75);
-  /* The band at the top of a card or a table: a step below `card`. */
-  --color-card-header: oklch(31% 0.01 60);
-  --color-muted: oklch(40% 0.013 60);
-  --color-muted-foreground: oklch(81.5% 0.016 70);
+  --color-background: oklch(19% 0.012 250);
+  --color-foreground: oklch(97% 0.004 250);
+  --color-card: oklch(23.5% 0.013 250);
+  --color-card-foreground: oklch(97% 0.004 250);
+  /* The band at the top of a card or a table: darker than `card`. */
+  --color-card-header: oklch(16% 0.011 250);
+  --color-muted: oklch(28.5% 0.014 250);
+  --color-muted-foreground: oklch(78% 0.015 250);
 
   /*
    * De-emphasised text: a driver who scored nothing, a rating that is not the
@@ -46,21 +46,29 @@
    * card, well under half of what it looks like it should be, and that class
    * was on a good fraction of every table. A token has a floor: this one holds
    * 4.5:1 or better on both card and header, dim enough to recede and still
-   * legible.
+   * legible. 5:1 on the card, 5.8:1 on the header, 4.7:1 on a table's
+   * alternating row.
    */
-  --color-subtle: oklch(74% 0.014 70);
-  --color-border: oklch(47% 0.013 60);
-  --color-input: oklch(47% 0.013 60);
-  /* 7.7:1 under its foreground, 4.75:1 as text on the card. */
-  --color-primary: oklch(72% 0.1 203);
-  --color-primary-foreground: oklch(19% 0.01 203);
-  --color-accent: oklch(42% 0.015 60);
-  --color-ring: oklch(72% 0.1 203);
+  --color-subtle: oklch(64% 0.014 250);
+  --color-border: oklch(33% 0.015 250);
+  --color-input: oklch(33% 0.015 250);
+  /*
+   * A badge's and a flag's hairline: lighter than `border`, so a black livery
+   * still has an edge against the card, and translucent, so a white one does
+   * not gain a grey ring.
+   */
+  --color-badge-line: oklch(50% 0.013 250 / 0.7);
+  /* 8.4:1 under its foreground, 7.5:1 as text on the card, 8.8:1 on the header. */
+  --color-primary: oklch(74% 0.1 203);
+  --color-primary-foreground: oklch(18% 0.02 203);
+  /* A hover fill: a step above `muted`, below the border. */
+  --color-accent: oklch(30.5% 0.015 250);
+  --color-ring: oklch(74% 0.1 203);
 
   /*
    * An action that throws work away, and any error or warning. The same red as
-   * `loss` today, but a separate token because it is a separate meaning. 7.6:1
-   * under its foreground, 4.7:1 as text on the card.
+   * `loss`, but a separate token because it is a separate meaning. 7.6:1 under
+   * its foreground, 6.9:1 as text on the card, 8:1 on the header.
    */
   --color-destructive: oklch(75% 0.16 25);
   --color-destructive-foreground: oklch(19% 0.01 40);
@@ -70,10 +78,10 @@
   --color-loss: oklch(75% 0.16 25);
 
   /*
-   * A wet race. Blue because blue means rain — a hue outside the warm-grey-and-
-   * teal palette, and it earns it by being a fact about the world rather than
-   * an emphasis: the primary already means "won the thing on screen", and a wet
-   * round is not a winner.
+   * A wet race. Blue because blue means rain — the graphite's hue at full
+   * chroma, a colour nothing else in the palette uses, and it earns it by being
+   * a fact about the world rather than an emphasis: the primary already means
+   * "won the thing on screen", and a wet round is not a winner.
    *
    * Chosen by measurement, not by eye. `--color-wet-foreground` on this fill is
    * 4.7:1 on dark and 5.6:1 on light, both clear of the 4.5:1 that 12px text
@@ -139,13 +147,20 @@
   --text-4xl: 2.375rem;
 
   /*
-   * Tighter than Tailwind's defaults. Overriding the scale rather than editing
-   * every component keeps one knob for how soft the whole thing looks — and
-   * squarer corners read as instrument panel rather than as consumer app.
+   * Square, like a timing screen. Zeroing the scale rather than editing every
+   * component keeps one knob; bare `rounded` reads the deprecated `--radius`.
+   * What must stay round says so outside the scale: `rounded-full` for a badge
+   * or a pill, an arbitrary value for a flag.
    */
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
+  --radius: 0;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 
   /*
    * A car's wheels (`TeamCar.tsx`). A quarter turn per step,
@@ -188,27 +203,29 @@
  * `var(--color-card)`, so overriding the variable here reaches all of them.
  */
 :root[data-theme="light"] {
-  --color-background: oklch(98.5% 0.004 75);
-  --color-foreground: oklch(20% 0.012 60);
-  --color-card: oklch(100% 0.002 75);
-  --color-card-foreground: oklch(20% 0.012 60);
-  --color-card-header: oklch(95% 0.007 75);
-  --color-muted: oklch(95.5% 0.006 75);
-  --color-muted-foreground: oklch(50% 0.014 60);
-  /* Darker than it would need on white alone: it has to hold 4.5:1 on the grey header too. */
-  --color-subtle: oklch(53% 0.014 60);
-  --color-border: oklch(90.5% 0.008 70);
-  --color-input: oklch(90.5% 0.008 70);
-  /* 5.5:1 under its foreground, 5.8:1 as text on the card. */
-  --color-primary: oklch(50% 0.085 203);
+  --color-background: oklch(95.5% 0.005 250);
+  --color-foreground: oklch(18% 0.015 250);
+  --color-card: oklch(99.5% 0.002 250);
+  --color-card-foreground: oklch(18% 0.015 250);
+  --color-card-header: oklch(91.5% 0.007 250);
+  --color-muted: oklch(95% 0.006 250);
+  --color-muted-foreground: oklch(44% 0.015 250);
+  /* Darker than it would need on white alone: 4.7:1 on the grey header, 5.9:1 on the card. */
+  --color-subtle: oklch(50% 0.014 250);
+  --color-border: oklch(87% 0.008 250);
+  --color-input: oklch(87% 0.008 250);
+  --color-badge-line: oklch(70% 0.01 250 / 0.7);
+  /* 5.7:1 under its foreground, 5.9:1 as text on the card, 4.7:1 on the header. */
+  --color-primary: oklch(49% 0.085 203);
   --color-primary-foreground: oklch(98% 0.01 203);
   /* A hover fill, so a step below the header band as well as the card. */
-  --color-accent: oklch(92.5% 0.012 70);
-  --color-ring: oklch(50% 0.085 203);
-  --color-destructive: oklch(54% 0.19 25);
+  --color-accent: oklch(89% 0.009 250);
+  --color-ring: oklch(49% 0.085 203);
+  /* Deeper than it would need on the card: 4.7:1 on the grey header. 5.7:1 under its foreground. */
+  --color-destructive: oklch(52% 0.19 25);
   --color-destructive-foreground: oklch(98% 0.01 25);
   --color-gain: oklch(54% 0.15 148);
-  --color-loss: oklch(54% 0.19 25);
+  --color-loss: oklch(52% 0.19 25);
   /* Deeper than dark's, because it sits on a white card rather than a grey one:
    * 5.9:1 against the card, so the pill is unmistakable, and 5.6:1 under its
    * own white text. The foreground is the same near-white in both themes. */
@@ -249,6 +266,16 @@ body {
   font-family: var(--font-mono);
   font-feature-settings: "tnum";
   letter-spacing: -0.01em;
+}
+
+/*
+ * Archivo's narrow width, for headings, names, nav and buttons in capitals. One
+ * utility so the width is one knob; weight and `uppercase` stay at the call site.
+ * Not named `font-*`: tailwind-merge reads an unknown `font-*` as a font family
+ * and would drop it beside `font-mono`.
+ */
+@utility narrow {
+  font-stretch: 72%;
 }
 
 /*

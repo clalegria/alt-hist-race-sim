@@ -7,7 +7,7 @@ of Home and the chequer laid as a diagonal sash. Chosen by the author from mocku
 **The reference is `docs/design/ui-makeover-mockup.html`**: open it in a browser. It shows
 Home and a race result, on a 1280px desktop browser and a 390px phone, in both themes. Match
 its look; its CSS is a sketch, not code to copy. The app builds the look from its own tokens
-and components, and the mockup's colour values are where step 1 starts.
+and components; the palette is already in `index.css`.
 
 - **Take one step per chat, top to bottom**, by its id (for example, do
   `makeover-type-and-palette`). Each step ships on its own; old and new styles side by side
@@ -67,19 +67,6 @@ and components, and the mockup's colour values are where step 1 starts.
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 1. `makeover-type-and-palette`
-- **Fonts**: import `@fontsource-variable/archivo/standard.css` (weight and width) in place
-  of `wght.css` in `main.tsx`. Add one utility for the narrow width in `index.css`.
-- **Palette**: give both themes' `--color-*` tokens the mockup's graphite values (its
-  `.d-tower` block). Keep every token name, so components follow without edits.
-  - Re-measure primary and destructive at 4.5:1 under their foreground, and as text on the
-    card and on the header, in both themes (`web-styling.md`).
-  - Rewrite each token's comment.
-- **Corners**: square through the `--radius-*` tokens. Badges and flags keep their shapes.
-- **Capitals by CSS only** (`uppercase`), never in the source text: tests and the
-  screenshot steps find elements by their text.
-- Screenshots: `menu`, `race`, `season-midseason`, `grid`, in both themes at one width.
 
 ### 2. `makeover-sash`
 - Mask `body::before`'s texture to one diagonal band at the badge's 135°, in both themes.

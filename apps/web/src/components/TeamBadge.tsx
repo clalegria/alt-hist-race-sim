@@ -94,7 +94,7 @@ export function cornerBackground(livery: Livery): string {
 /**
  * The corner's shape: a triangle in the card's top-right, 72px on a side, filled
  * in the card's own border colour. Exported so tests can count corners by it as
- * they count badges by `BADGE_SHAPE`. The card clips it to its rounded corner.
+ * they count badges by `BADGE_SHAPE`.
  */
 export const CORNER_SHAPE =
   "bg-border pointer-events-none absolute top-0 right-0 size-18 [clip-path:polygon(0_0,100%_0,100%_100%)]";
@@ -139,7 +139,7 @@ export function LiveryCorner({ livery }: { livery: Livery }) {
  * string and is still counted. Folding the two together made a resized badge
  * invisible to every test that counts them, which is a silent failure.
  */
-export const BADGE_SHAPE = "border-border/60 inline-block shrink-0 rounded-full border";
+export const BADGE_SHAPE = "border-badge-line inline-block shrink-0 rounded-full border";
 
 /**
  * The size against the row rather than the text beside it: this is a mark for a

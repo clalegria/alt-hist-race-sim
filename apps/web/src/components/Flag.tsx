@@ -39,7 +39,7 @@ export function Flag({
   return (
     <Icon
       className={cn(
-        "border-border/60 inline-block h-3 w-[1.125rem] shrink-0 rounded-[2px] border align-[-0.1em]",
+        "border-badge-line inline-block h-3 w-[1.125rem] shrink-0 rounded-[2px] border align-[-0.1em]",
         className,
       )}
       {...(title === undefined ? {} : { title })}
