@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Timing Tower Makeover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap">
+<style>
+/* Layout: a review sheet. Pick a direction, a screen and a theme; the desktop browser shows it full width, the phone and the notes sit below. The mocked app uses container queries, so one markup lays itself out for either frame. */
+:root {
+  --bg: oklch(97.5% 0.004 75);
+  --fg: oklch(22% 0.012 60);
+  --muted: oklch(47% 0.014 60);
+  --line: oklch(88% 0.008 70);
+  --panel: oklch(100% 0.002 75);
+  --accent: oklch(50% 0.085 203);
+  --bezel: oklch(20% 0.01 60);
+  --chrome: oklch(91% 0.006 70);
+  --sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --pixel: "Silkscreen", "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(21% 0.008 60); --fg: oklch(95% 0.005 75); --muted: oklch(76% 0.014 70);
+    --line: oklch(36% 0.012 60); --panel: oklch(26% 0.009 60); --accent: oklch(72% 0.1 203);
+    --bezel: oklch(9% 0.005 60); --chrome: oklch(30% 0.008 60); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(21% 0.008 60); --fg: oklch(95% 0.005 75); --muted: oklch(76% 0.014 70);
+  --line: oklch(36% 0.012 60); --panel: oklch(26% 0.009 60); --accent: oklch(72% 0.1 203);
+  --bezel: oklch(9% 0.005 60); --chrome: oklch(30% 0.008 60); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1400px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.page-head { display: grid; gap: 10px; max-width: 74ch; }
+.page-head .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.page-head h1 { font-stretch: 112%; font-weight: 800; font-size: clamp(28px, 5vw, 40px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.page-head p { margin: 0; color: var(--muted); }
+
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); margin-top: 22px; padding-block: 10px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--panel); }
+.seg > span { font-size: 12px; color: var(--muted); padding: 4px 6px 4px 10px; align-self: center; }
+.seg button { border: 0; background: transparent; padding: 4px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.controls .spacer { flex: 1; }
+
+.stage { display: grid; gap: 28px; padding-block: 24px; }
+.frame-label { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.frame-label button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; font-family: var(--sans); text-transform: none; letter-spacing: 0; font-size: 12px; padding: 2px 10px; cursor: pointer; color: var(--fg); }
+
+/* Desktop browser, drawn at 1280px and scaled to fit. */
+.desk-fit { width: 100%; overflow: hidden; }
+.desk-fit.actual { overflow-x: auto; }
+.browser { width: 1280px; transform-origin: 0 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 24px 50px -30px oklch(0% 0 0 / 0.55); }
+.chrome { height: 38px; background: var(--chrome); display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--line); }
+.chrome i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
+.chrome span { margin-left: 18px; flex: 0 1 520px; background: var(--bg); border-radius: 999px; font-size: 12.5px; color: var(--muted); padding: 3px 14px; font-family: var(--mono); }
+.viewport { overflow-y: auto; overflow-x: hidden; position: relative; }
+.browser .viewport { height: 820px; }
+
+.lower { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .lower { grid-template-columns: 392px minmax(0, 1fr); column-gap: 48px; } }
+.phone-col { display: grid; justify-items: center; align-content: start; }
+.phone { position: relative; width: 100%; max-width: 392px; border: 7px solid var(--bezel); border-radius: 36px; overflow: hidden; box-shadow: 0 18px 40px -24px oklch(0% 0 0 / 0.5); }
+.phone .notch { position: absolute; top: 9px; left: 50%; translate: -50% 0; width: 90px; height: 24px; border-radius: 999px; background: var(--bezel); z-index: 9; }
+.phone .viewport { height: 780px; }
+.phone .viewport > .app, .phone .viewport > .shot { padding-top: 38px; }
+.shot { display: block; width: 100%; }
+.shot img { display: block; width: 100%; height: auto; }
+
+.notes { display: grid; gap: 18px; align-content: start; min-width: 0; max-width: 66ch; }
+.notes h2 { margin: 0; font-weight: 750; font-size: 24px; line-height: 1.2; text-wrap: balance; }
+.notes p { margin: 0; }
+.notes dl { margin: 0; display: grid; gap: 14px; }
+.notes dt { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.notes dd { margin: 3px 0 0; }
+.notes ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+
+/* ═════════════ The mocked app: shared bones ═════════════ */
+.app { container: app / inline-size; min-height: 100%; font-family: var(--sans); font-size: 15px; line-height: 1.4; display: flex; flex-direction: column; }
+.app .inner { width: 100%; max-width: 1120px; margin: 0 auto; padding-inline: 14px; }
+@container app (min-width: 760px) { .app .inner { padding-inline: 32px; } }
+.app .num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.app button { cursor: pointer; }
+.badge { display: inline-block; flex: none; width: 1.5em; height: 1.5em; border-radius: 50%; border: 1px solid var(--badge-line); }
+.flag { display: inline-flex; flex: none; width: 18px; height: 12px; border-radius: 2px; overflow: hidden; border: 1px solid var(--badge-line); vertical-align: -1px; }
+.flag svg { width: 100%; height: 100%; display: block; }
+.carimg { display: block; width: 48px; height: 14px; image-rendering: pixelated; flex: none; }
+.star { color: var(--home); -webkit-text-stroke: 0.6px var(--home-edge); font-size: 11px; margin-left: 4px; }
+.wide-only { display: none !important; }
+@container app (min-width: 760px) { .wide-only { display: revert !important; } .narrow-only { display: none !important; } }
+.cloud { display: inline-block; width: 12px; height: 8px; border: 1.6px solid currentColor; border-radius: 6px; position: relative; margin-right: 5px; vertical-align: 0; }
+.cloud::before { content: ""; position: absolute; width: 6px; height: 6px; border: 1.6px solid currentColor; border-bottom-color: transparent; border-right-color: transparent; border-radius: 50%; left: 1px; top: -5px; rotate: 45deg; }
+
+/* Classification rows: one grid per row, columns chosen by width. */
+.tr { display: grid; align-items: center; column-gap: 10px; }
+.tr > * { min-width: 0; }
+.c-who { display: grid; }
+.c-who .nm { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-who .tm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-grid, .c-gap, .c-pts { text-align: right; }
+.cls .tr { grid-template-columns: 26px 22px minmax(0, 1fr) 48px 78px; }
+.d-arc .cls .tr { grid-template-columns: 38px 22px minmax(0, 1fr) 48px 74px; }
+@container app (min-width: 760px) { .d-arc .cls .tr { grid-template-columns: 46px 26px minmax(0, 1fr) 54px 48px 96px 120px 40px; } }
+.cls .c-grid, .cls .c-st, .cls .c-pts { display: none; }
+@container app (min-width: 760px) {
+  .cls .tr { grid-template-columns: 40px 26px minmax(0, 1fr) 54px 48px 96px 120px 40px; }
+  .cls .c-grid, .cls .c-st, .cls .c-pts { display: block; }
+}
+.g-short { display: inline; } .g-long { display: none; }
+.ini { display: inline; } .full { display: none; }
+@container app (min-width: 760px) { .ini { display: none; } .full { display: inline; } }
+@container app (min-width: 760px) { .g-short { display: none; } .g-long { display: inline; } }
+.std .tr { grid-template-columns: 26px minmax(0, 1fr) 36px; }
+
+.racegrid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@container app (min-width: 960px) { .racegrid { grid-template-columns: minmax(0, 1fr) 300px; } }
+.aside { display: grid; gap: 16px; }
+.foot { margin-top: auto; }
+
+/* ═════════════ Direction 1 · Timing tower ═════════════ */
+.d-tower {
+  --bg-a: oklch(19% 0.012 250); --panel-a: oklch(23.5% 0.013 250); --panel-b: oklch(25.5% 0.014 250);
+  --head-a: oklch(16% 0.011 250); --fg-a: oklch(97% 0.004 250); --dim-a: oklch(78% 0.015 250);
+  --line-a: oklch(33% 0.015 250); --teal: oklch(74% 0.1 203); --teal-ink: oklch(18% 0.02 203);
+  --off: oklch(52% 0.012 250); --loss: oklch(75% 0.16 25); --wet: oklch(54% 0.17 250); --wet-ink: oklch(98% 0.01 250);
+  --home: oklch(85% 0.11 88); --home-edge: oklch(72% 0.125 80); --badge-line: oklch(50% 0.013 250 / 0.7);
+  background: var(--bg-a); color: var(--fg-a);
+}
+[data-mt="light"] .d-tower {
+  --bg-a: oklch(95.5% 0.005 250); --panel-a: oklch(99.5% 0.002 250); --panel-b: oklch(97.2% 0.004 250);
+  --head-a: oklch(91.5% 0.007 250); --fg-a: oklch(18% 0.015 250); --dim-a: oklch(44% 0.015 250);
+  --line-a: oklch(87% 0.008 250); --teal: oklch(49% 0.085 203); --teal-ink: oklch(98% 0.01 203);
+  --off: oklch(62% 0.01 250); --loss: oklch(54% 0.19 25); --wet: oklch(50% 0.18 250); --wet-ink: oklch(98% 0.01 250);
+  --home: oklch(82% 0.13 88); --home-edge: oklch(62% 0.12 75); --badge-line: oklch(70% 0.01 250 / 0.7);
+}
+.d-tower .cond { font-stretch: 72%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; }
+.d-tower .mono-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim-a); font-weight: 500; }
+.chq { width: 14px; height: 14px; flex: none; background: repeating-conic-gradient(currentColor 0% 25%, transparent 0% 50%) 0 0 / 7px 7px; border: 1px solid currentColor; }
+
+.d-tower .nav { background: var(--head-a); border-bottom: 1px solid var(--line-a); }
+.d-tower .nav .inner { display: flex; align-items: stretch; gap: 14px; height: 50px; }
+.d-tower .logo { display: flex; align-items: center; gap: 8px; font-size: 17px; flex: none; }
+.d-tower .tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.d-tower .tabs a { display: flex; align-items: center; padding: 0 10px; font-stretch: 72%; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; font-size: 15px; color: var(--dim-a); border-bottom: 3px solid transparent; border-top: 3px solid transparent; white-space: nowrap; text-decoration: none; }
+.d-tower .tabs a.on { color: var(--fg-a); border-bottom-color: var(--teal); }
+.d-tower .tabs a.off { color: var(--off); }
+.d-tower .toggle { align-self: center; width: 32px; height: 32px; border: 1px solid var(--line-a); background: transparent; display: grid; place-items: center; flex: none; color: var(--dim-a); }
+.sun { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; box-shadow: 0 0 0 2px var(--toggle-bg, transparent), 0 0 0 3.5px currentColor; scale: 0.8; }
+
+.d-tower .runbar { background: color-mix(in oklab, var(--bg-a) 88%, transparent); border-bottom: 1px solid var(--line-a); position: sticky; top: 0; z-index: 4; backdrop-filter: blur(6px); }
+.d-tower .runbar .inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 10px; }
+.d-tower .rb-l { display: grid; gap: 6px; min-width: 0; }
+.d-tower .crumb { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--dim-a); white-space: nowrap; }
+.d-tower .crumb b { color: var(--fg-a); font-weight: 600; }
+.d-tower .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px color-mix(in oklab, var(--teal) 25%, transparent); flex: none; }
+.rounds { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; width: 100%; max-width: 260px; }
+.rounds i { height: 6px; background: var(--line-a); }
+.rounds i.done { background: var(--teal); }
+.d-tower .rb-r { display: flex; gap: 8px; flex: none; }
+.d-tower .btn { border: 1px solid var(--line-a); background: var(--panel-a); padding: 7px 14px; font-stretch: 72%; font-weight: 750; text-transform: uppercase; font-size: 15px; letter-spacing: 0.02em; color: var(--fg-a); }
+.d-tower .btn.go { background: var(--teal); color: var(--teal-ink); border-color: var(--teal); }
+
+.d-tower .page { padding-block: 22px 28px; display: grid; gap: 18px; }
+@container app (min-width: 760px) { .d-tower .page { padding-block: 34px 40px; gap: 22px; } }
+
+/* Tower: home */
+.d-tower .home { display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); }
+@container app (min-width: 900px) { .d-tower .home { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); column-gap: 40px; align-items: start; } }
+.d-tower .hero { display: grid; gap: 10px; align-content: start; }
+.d-tower .hero h1 { margin: 0; font-size: 44px; line-height: 0.9; }
+@container app (min-width: 760px) { .d-tower .hero h1 { font-size: 76px; } }
+.d-tower .hero p { margin: 0; color: var(--dim-a); max-width: 46ch; }
+.d-tower .facts { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+.d-tower .facts div { display: grid; }
+.d-tower .facts b { font-family: var(--mono); font-size: 22px; font-weight: 600; line-height: 1.1; }
+.d-tower .live { background: var(--panel-a); border: 1px solid var(--line-a); margin-top: 10px; }
+.d-tower .live-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--head-a); border-bottom: 1px solid var(--line-a); }
+.d-tower .live-body { padding: 12px; display: grid; gap: 8px; }
+.d-tower .live-body .t { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+.d-tower .live-body b { font-size: 26px; line-height: 1; }
+.d-tower .live .acts { display: flex; gap: 8px; }
+.d-tower .tower { border: 1px solid var(--line-a); background: var(--panel-a); }
+.d-tower .tower-head { display: flex; justify-content: space-between; padding: 8px 14px 8px 20px; background: var(--head-a); border-bottom: 1px solid var(--line-a); }
+.d-tower .mode { width: 100%; display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 14px; align-items: center; text-align: left; border: 0; border-top: 1px solid var(--line-a); background: var(--panel-a); padding: 0 14px 0 0; min-height: 64px; color: var(--fg-a); }
+.d-tower .mode:first-of-type { border-top: 0; }
+.d-tower .mode:nth-of-type(even) { background: var(--panel-b); }
+.d-tower .mode:hover { background: color-mix(in oklab, var(--teal) 12%, var(--panel-a)); }
+.d-tower .mode .bar { align-self: stretch; background: var(--teal); }
+.d-tower .mode.off .bar { background: var(--line-a); }
+.d-tower .mode .nm { display: grid; padding-block: 10px; min-width: 0; }
+.d-tower .mode .nm b { font-size: 21px; line-height: 1.1; }
+.d-tower .mode .nm span { font-size: 13px; color: var(--dim-a); }
+.d-tower .mode.off .nm b { color: var(--dim-a); }
+.d-tower .st { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 3px 7px; background: var(--teal); color: var(--teal-ink); }
+.d-tower .mode.off .st { background: transparent; color: var(--dim-a); outline: 1px solid var(--line-a); font-weight: 500; }
+
+/* Tower: race page */
+.d-tower .racehead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; }
+.d-tower .racehead h1 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 34px; line-height: 1; flex-wrap: wrap; }
+@container app (min-width: 760px) { .d-tower .racehead h1 { font-size: 46px; } }
+.d-tower .racehead h1 .flag { width: 30px; height: 20px; }
+.d-tower .wet { font-family: var(--mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; background: var(--wet); color: var(--wet-ink); padding: 3px 8px; text-transform: uppercase; display: inline-flex; align-items: center; }
+.d-tower .racehead p { margin: 6px 0 0; font-family: var(--mono); font-size: 12.5px; color: var(--dim-a); letter-spacing: 0.04em; text-transform: uppercase; }
+.d-tower .tgl { display: inline-flex; border: 1px solid var(--line-a); }
+.d-tower .tgl button { border: 0; background: transparent; padding: 7px 14px; font-stretch: 72%; font-weight: 750; text-transform: uppercase; font-size: 15px; color: var(--dim-a); }
+.d-tower .tgl button.on { background: var(--teal); color: var(--teal-ink); }
+.d-tower .panel { border: 1px solid var(--line-a); background: var(--panel-a); }
+.d-tower .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: var(--head-a); border-bottom: 1px solid var(--line-a); }
+.d-tower .panel-head h2 { margin: 0; font-size: 18px; }
+.d-tower .thead { padding: 7px 12px 7px 0; border-bottom: 1px solid var(--line-a); background: var(--head-a); }
+.d-tower .thead > span { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--dim-a); text-transform: uppercase; }
+.d-tower .tbody .tr { padding: 0 12px 0 0; min-height: 46px; border-top: 1px solid var(--line-a); background: var(--panel-a); }
+.d-tower .tbody .tr:first-child { border-top: 0; }
+.d-tower .tbody .tr:nth-child(even) { background: var(--panel-b); }
+.d-tower .c-pos { align-self: stretch; display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: 14px; background: var(--head-a); }
+.d-tower .tr.lead .c-pos { background: var(--teal); color: var(--teal-ink); }
+.d-tower .tr.pod .c-pos { color: var(--teal); }
+.d-tower .thead .c-pos { background: transparent; }
+.d-tower .c-who .nm { font-size: 16px; }
+.d-tower .c-who .nm .first { font-stretch: 80%; font-weight: 500; }
+.d-tower .c-who .nm .last { font-stretch: 72%; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; margin-left: -2px; }
+.d-tower .c-who .tm { font-size: 12px; color: var(--dim-a); }
+.d-tower .c-gap { font-size: 13.5px; }
+.d-tower .tr.lead .c-gap { color: var(--teal); font-weight: 600; }
+.d-tower .c-st { font-size: 12.5px; color: var(--dim-a); }
+.d-tower .tr.out .c-st, .d-tower .tr.out .g-short { color: var(--loss); }
+.d-tower .tr.out .c-who .nm, .d-tower .tr.out .c-pos { color: var(--dim-a); }
+.d-tower .c-pts { font-weight: 600; font-size: 14px; }
+.d-tower .tr.lead .c-pts { color: var(--teal); }
+.d-tower .std .tr { min-height: 40px; }
+.d-tower .std .c-who .nm { font-size: 15px; }
+.d-tower .more { text-align: center; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim-a); padding: 9px; border-top: 1px solid var(--line-a); }
+.d-tower .after { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--dim-a); margin: 0 0 -6px; }
+.d-tower .foot { border-top: 1px solid var(--line-a); }
+.d-tower .foot .inner { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-block: 16px 22px; font-size: 12.5px; color: var(--dim-a); }
+.d-tower .foot u { text-underline-offset: 3px; }
+.d-tower .foot .seed { margin-left: auto; font-family: var(--mono); }
+
+/* ═════════════ Direction 2 · Arcade ═════════════ */
+.d-arc {
+  --sky1: oklch(23% 0.05 245); --sky2: oklch(29% 0.06 235); --sky3: oklch(36% 0.07 222);
+  --box: oklch(17% 0.035 248); --box2: oklch(20% 0.04 248); --boxhead: oklch(27% 0.06 240);
+  --edge: oklch(95% 0.015 95); --ink: oklch(97% 0.012 95); --dim: oklch(80% 0.03 225);
+  --sel: oklch(86% 0.15 92); --sel-ink: oklch(20% 0.04 250); --shadow: oklch(50% 0.11 203);
+  --asph: oklch(33% 0.01 250); --lane: oklch(90% 0.01 90); --kerb: oklch(58% 0.2 27); --grass: oklch(50% 0.12 145);
+  --lock: oklch(66% 0.03 230); --loss: oklch(75% 0.16 25); --wet: oklch(54% 0.17 250); --wet-ink: oklch(98% 0.01 250);
+  --home: oklch(85% 0.11 88); --home-edge: oklch(72% 0.125 80); --badge-line: oklch(60% 0.03 240 / 0.7);
+  background: var(--sky1); color: var(--ink);
+}
+[data-mt="light"] .d-arc {
+  --sky1: oklch(86% 0.055 222); --sky2: oklch(90% 0.04 218); --sky3: oklch(94% 0.025 214);
+  --box: oklch(99% 0.008 95); --box2: oklch(96.5% 0.012 95); --boxhead: oklch(91% 0.035 220);
+  --edge: oklch(24% 0.05 255); --ink: oklch(22% 0.05 255); --dim: oklch(40% 0.05 240);
+  --sel: oklch(50% 0.17 35); --sel-ink: oklch(98% 0.01 90); --shadow: oklch(68% 0.08 222);
+  --asph: oklch(46% 0.01 250); --lane: oklch(97% 0.005 90); --kerb: oklch(58% 0.2 27); --grass: oklch(63% 0.14 140);
+  --lock: oklch(46% 0.03 240); --loss: oklch(53% 0.19 25); --wet: oklch(50% 0.18 250); --wet-ink: oklch(98% 0.01 250);
+  --home: oklch(82% 0.13 88); --home-edge: oklch(62% 0.12 75); --badge-line: oklch(55% 0.03 240 / 0.6);
+}
+.d-arc .px { font-family: var(--pixel); text-transform: uppercase; letter-spacing: 0.05em; }
+.d-arc .boxed { background: var(--box); border: 3px solid var(--edge); box-shadow: 5px 5px 0 0 var(--shadow); }
+
+.d-arc .nav { background: var(--box); border-bottom: 3px solid var(--edge); }
+.d-arc .nav .inner { display: flex; align-items: center; gap: 12px; height: 52px; }
+.d-arc .logo { font-family: var(--pixel); font-weight: 700; font-size: 17px; letter-spacing: 0.03em; flex: none; text-shadow: 2px 2px 0 var(--shadow); }
+.d-arc .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.d-arc .tabs a { font-family: var(--pixel); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; padding: 5px 8px; color: var(--dim); white-space: nowrap; text-decoration: none; }
+.d-arc .tabs a.on { background: var(--ink); color: var(--box); }
+.d-arc .tabs a.off { color: var(--lock); }
+.d-arc .tabs a.off::after { content: " ×"; }
+.d-arc .toggle { width: 32px; height: 32px; border: 3px solid var(--edge); background: transparent; display: grid; place-items: center; color: var(--ink); flex: none; }
+
+.d-arc .runbar { background: var(--box2); border-bottom: 3px solid var(--edge); position: sticky; top: 0; z-index: 4; }
+.d-arc .runbar .inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 9px; }
+.d-arc .rb-l { display: grid; gap: 6px; min-width: 0; }
+.d-arc .crumb { font-family: var(--pixel); font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; }
+.d-arc .crumb span { color: var(--dim); }
+.d-arc .rounds { gap: 2px; max-width: 220px; }
+.d-arc .rounds i { height: 8px; background: transparent; outline: 1px solid var(--dim); outline-offset: -1px; }
+.d-arc .rounds i.done { background: var(--sel); outline-color: var(--sel); }
+.d-arc .rb-r { display: flex; gap: 8px; flex: none; }
+.d-arc .btn { font-family: var(--pixel); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; border: 3px solid var(--edge); background: var(--box); color: var(--ink); padding: 6px 10px; box-shadow: 3px 3px 0 0 var(--shadow); }
+.d-arc .btn.go { background: var(--sel); color: var(--sel-ink); }
+.d-arc .btn:active { translate: 2px 2px; box-shadow: 1px 1px 0 0 var(--shadow); }
+
+.d-arc .page { padding-block: 22px 30px; display: grid; gap: 20px; }
+@container app (min-width: 760px) { .d-arc .page { padding-block: 32px 44px; gap: 24px; } }
+
+/* Arcade: home */
+.d-arc .sky { background: linear-gradient(var(--sky1) 0 45%, var(--sky2) 45% 75%, var(--sky3) 75%); text-align: center; padding: 30px 16px 18px; }
+@container app (min-width: 760px) { .d-arc .sky { padding: 56px 16px 30px; } }
+.d-arc .title { margin: 0; font-family: var(--pixel); font-weight: 700; font-size: 44px; line-height: 1; letter-spacing: 0.02em; text-shadow: 4px 4px 0 var(--shadow); }
+@container app (min-width: 760px) { .d-arc .title { font-size: 92px; text-shadow: 7px 7px 0 var(--shadow); } }
+.d-arc .sub { margin: 12px 0 0; font-family: var(--pixel); font-size: 12px; letter-spacing: 0.14em; color: var(--dim); }
+@container app (min-width: 760px) { .d-arc .sub { font-size: 16px; } }
+.d-arc .grass { height: 10px; background: var(--grass); }
+.d-arc .road { position: relative; height: 92px; background: var(--asph); overflow: hidden; }
+@container app (min-width: 760px) { .d-arc .road { height: 120px; } }
+.d-arc .road::before { content: ""; position: absolute; inset: 0 0 auto; height: 10px; background: repeating-linear-gradient(90deg, var(--kerb) 0 16px, var(--lane) 16px 32px); }
+.d-arc .road::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px; background: repeating-linear-gradient(90deg, var(--lane) 0 24px, transparent 24px 48px); }
+.d-arc .road img { position: absolute; image-rendering: pixelated; z-index: 1; animation: race linear infinite; }
+@keyframes race { from { left: -160px; } to { left: 100%; } }
+.d-arc .home { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
+@container app (min-width: 900px) { .d-arc .home { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 32px; align-items: start; } }
+.d-arc .menu { padding: 12px 14px; display: grid; gap: 2px; }
+.d-arc .menu-head { font-family: var(--pixel); font-size: 12px; color: var(--dim); letter-spacing: 0.1em; margin: 0 0 6px; }
+.d-arc .menu button { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 6px; text-align: left; border: 0; background: transparent; padding: 9px 0; font-family: var(--pixel); font-size: 16px; letter-spacing: 0.04em; color: var(--ink); }
+@container app (min-width: 760px) { .d-arc .menu button { font-size: 18px; padding: 10px 0; } }
+.d-arc .menu button::before { content: "▶"; font-size: 13px; color: var(--sel); visibility: hidden; }
+.d-arc .menu button.sel::before { visibility: visible; animation: blink 0.9s steps(2) infinite; }
+.d-arc .menu button.sel { color: var(--sel); }
+.d-arc .menu button small { font-size: 12px; color: var(--lock); letter-spacing: 0.06em; }
+.d-arc .menu button.locked, .d-arc .menu button.locked.sel { color: var(--lock); }
+.d-arc .menu .cont small { color: var(--dim); }
+@keyframes blink { 50% { opacity: 0.25; } }
+.d-arc .say { padding: 14px 16px; display: grid; gap: 12px; align-content: start; }
+.d-arc .say .who { font-family: var(--pixel); font-size: 13px; color: var(--sel); letter-spacing: 0.08em; }
+.d-arc .say p { margin: 0; font-size: 15px; line-height: 1.5; min-height: 3em; }
+.d-arc .say .preview { display: flex; align-items: end; gap: 14px; border-top: 2px dashed color-mix(in oklab, var(--edge) 40%, transparent); padding-top: 12px; }
+.d-arc .say .preview img { image-rendering: pixelated; width: 144px; height: 42px; }
+.d-arc .say .preview span { font-family: var(--pixel); font-size: 12px; color: var(--dim); letter-spacing: 0.06em; }
+
+/* Arcade: race page */
+.d-arc .racehead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 14px; }
+.d-arc .racehead h1 { margin: 0; display: flex; align-items: center; gap: 12px; font-family: var(--pixel); font-weight: 700; font-size: 26px; line-height: 1.1; flex-wrap: wrap; text-shadow: 3px 3px 0 var(--shadow); letter-spacing: 0.02em; }
+@container app (min-width: 760px) { .d-arc .racehead h1 { font-size: 40px; text-shadow: 4px 4px 0 var(--shadow); } }
+.d-arc .racehead h1 .flag { width: 30px; height: 20px; }
+.d-arc .wet { font-family: var(--pixel); font-size: 12px; font-weight: 400; letter-spacing: 0.06em; background: var(--wet); color: var(--wet-ink); padding: 4px 8px; text-shadow: none; display: inline-flex; align-items: center; }
+.d-arc .racehead p { margin: 6px 0 0; color: var(--dim); }
+.d-arc .tgl { display: inline-flex; gap: 8px; }
+.d-arc .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: var(--boxhead); border-bottom: 3px solid var(--edge); }
+.d-arc .panel-head h2 { margin: 0; font-family: var(--pixel); font-size: 16px; font-weight: 700; letter-spacing: 0.06em; }
+.d-arc .thead { padding: 8px 12px; border-bottom: 2px solid color-mix(in oklab, var(--edge) 50%, transparent); }
+.d-arc .thead > span { font-family: var(--pixel); font-size: 12px; letter-spacing: 0.08em; color: var(--dim); text-transform: uppercase; }
+.d-arc .tbody .tr { padding: 0 12px; min-height: 46px; border-top: 1px dashed color-mix(in oklab, var(--edge) 22%, transparent); }
+.d-arc .tbody .tr:first-child { border-top: 0; }
+.d-arc .c-pos { font-family: var(--pixel); font-size: 13px; letter-spacing: 0.02em; }
+.d-arc .tr.lead .c-pos, .d-arc .tr.lead .c-gap, .d-arc .tr.lead .c-pts { color: var(--sel); }
+.d-arc .tr.lead { background: color-mix(in oklab, var(--sel) 9%, transparent); }
+.d-arc .c-who .nm { font-size: 15.5px; font-weight: 600; }
+.d-arc .c-who .tm { font-size: 12.5px; color: var(--dim); }
+.d-arc .c-gap { font-size: 13.5px; }
+.d-arc .c-st { font-size: 12.5px; color: var(--dim); }
+.d-arc .tr.out .c-st, .d-arc .tr.out .g-short { color: var(--loss); }
+.d-arc .tr.out .c-who .nm { color: var(--dim); font-weight: 500; }
+.d-arc .c-pts { font-weight: 600; }
+.d-arc .std .tr { min-height: 40px; }
+.d-arc .more { text-align: center; font-family: var(--pixel); font-size: 12px; letter-spacing: 0.08em; color: var(--dim); padding: 10px; border-top: 2px solid color-mix(in oklab, var(--edge) 50%, transparent); }
+.d-arc .after { font-family: var(--pixel); font-size: 12px; letter-spacing: 0.08em; color: var(--dim); margin: 0 0 -8px; }
+.d-arc .foot { border-top: 3px solid var(--edge); background: var(--box); }
+.d-arc .foot .inner { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-block: 14px 20px; font-size: 12.5px; color: var(--dim); }
+.d-arc .foot .seed { margin-left: auto; font-family: var(--pixel); font-size: 12px; }
+.d-arc .foot u { text-underline-offset: 3px; }
+
+
+/* ═════════════ Tower + track: the arcade's road, redrawn in the tower's palette ═════════════ */
+.d-tower { --verge: oklch(30% 0.035 150); --tarmac: oklch(25% 0.008 250); --tarmac-line: oklch(70% 0.01 250); --kerb-r: oklch(58% 0.19 27); --kerb-w: oklch(93% 0.005 250); }
+[data-mt="light"] .d-tower { --verge: oklch(72% 0.09 145); --tarmac: oklch(42% 0.008 250); --tarmac-line: oklch(92% 0.004 250); --kerb-r: oklch(57% 0.2 27); --kerb-w: oklch(99% 0.002 250); }
+.d-tower.has-track .page { flex: 1; align-content: start; }
+@container app (min-width: 760px) { .d-tower.has-track .page { padding-block: 26px 26px; } .d-tower.has-track .hero h1 { font-size: 66px; } }
+.track { position: relative; overflow: hidden; border-top: 1px solid var(--line-a); }
+.track .verge { height: 8px; background: var(--verge); }
+.track .kerb { height: 8px; background: repeating-linear-gradient(90deg, var(--kerb-r) 0 18px, var(--kerb-w) 18px 36px); }
+.track .tarmac { position: relative; height: 78px; background: var(--tarmac); }
+@container app (min-width: 760px) { .track .tarmac { height: 112px; } }
+.track .tarmac::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; translate: 0 -1px; background: repeating-linear-gradient(90deg, var(--tarmac-line) 0 22px, transparent 22px 50px); opacity: 0.55; }
+.track .sf { position: absolute; top: 0; bottom: 0; left: 22%; width: 12px; background: repeating-conic-gradient(var(--kerb-w) 0% 25%, oklch(15% 0.01 250) 0% 50%) 0 0 / 12px 12px; opacity: 0.9; }
+.track .sf-label { position: absolute; left: calc(22% + 18px); top: 6px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--tarmac-line); opacity: 0.8; z-index: 1; }
+.track img { position: absolute; image-rendering: pixelated; width: 96px; height: 28px; animation: lap linear infinite; z-index: 2; }
+.track img.l1 { top: 8px; } .track img.l2 { top: 44px; z-index: 3; }
+@container app (min-width: 760px) { .track img { width: 144px; height: 42px; } .track img.l1 { top: 10px; } .track img.l2 { top: 62px; } }
+@keyframes lap { from { left: -160px; } to { left: 100%; } }
+
+/* ═════════════ The chequer, kept from today's background ═════════════ */
+/* The app's own texture (index.css): two stacked conic checkerboards, 120px squares with 20px ones inside.
+   Here it is masked to a corner or a sash instead of covering the page, and held still while the page
+   scrolls, as today's fixed layer is. A touch stronger than today's tints, since it fades out. */
+.d-tower { --chq-major: oklch(100% 0 0 / 0.032); --chq-minor: oklch(100% 0 0 / 0.019); }
+[data-mt="light"] .d-tower { --chq-major: oklch(0% 0 0 / 0.052); --chq-minor: oklch(0% 0 0 / 0.032); }
+.chq-layer { position: sticky; top: 0; pointer-events: none; z-index: 0;
+  background-image: repeating-conic-gradient(var(--chq-minor) 0% 25%, transparent 0% 50%), repeating-conic-gradient(var(--chq-major) 0% 25%, transparent 0% 50%);
+  background-size: 40px 40px, 240px 240px; background-position: right top; }
+.browser .chq-layer { height: 820px; margin-bottom: -820px; }
+.phone .chq-layer { height: 742px; margin-bottom: -742px; }
+.has-chq > :not(.chq-layer) { position: relative; z-index: 1; }
+.has-chq > .runbar { position: sticky; z-index: 4; }
+.chq-corner .chq-layer { -webkit-mask-image: linear-gradient(to bottom left, #000 0%, rgb(0 0 0 / 0.85) 26%, transparent 64%); mask-image: linear-gradient(to bottom left, #000 0%, rgb(0 0 0 / 0.85) 26%, transparent 64%); }
+.chq-sash .chq-layer { -webkit-mask-image: linear-gradient(135deg, transparent 30%, #000 44%, #000 56%, transparent 70%); mask-image: linear-gradient(135deg, transparent 30%, #000 44%, #000 56%, transparent 70%); }
+.chq-off .chq-layer { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="page-head">
+    <p class="kicker">alt-hist-race-sim · docs/design/ui-makeover.md</p>
+    <h1>Timing tower makeover</h1>
+    <p>The reference for the UI makeover (<code>docs/design/ui-makeover.md</code>): the timing tower look, with a racetrack along the foot of Home and the chequer laid as a diagonal sash. Home and a race result, on a 1280px desktop browser and a 390px phone, in both themes. The race is a 1984 Brazilian GP from a seeded run of the app; the colours are the authored 1984 liveries. Open this file in any browser.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Direction" id="ctl-dir">
+      <button type="button" data-v="track">Tower + track</button>
+    </div>
+    <div class="seg" role="group" aria-label="Screen" id="ctl-screen">
+      <button type="button" data-v="home">Home</button>
+      <button type="button" data-v="race">Race result</button>
+    </div>
+    <div class="seg" role="group" aria-label="Chequer" id="ctl-chq">
+      <span>Chequer</span>
+      <button type="button" data-v="sash">Sash</button>
+      <button type="button" data-v="off">Off</button>
+    </div>
+    <div class="seg" role="group" aria-label="App theme" id="ctl-theme">
+      <span>App theme</span>
+      <button type="button" data-v="dark">Dark</button>
+      <button type="button" data-v="light">Light</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div>
+      <p class="frame-label"><span id="desk-label">Desktop · 1280px browser</span><button type="button" id="actual">Show at actual size</button></p>
+      <div class="desk-fit" id="desk-fit">
+        <div class="browser" id="browser">
+          <div class="chrome"><i></i><i></i><i></i><span id="url">localhost:5173/</span></div>
+          <div class="viewport" id="desk-view"></div>
+        </div>
+      </div>
+    </div>
+    <div class="lower">
+      <div class="phone-col">
+        <p class="frame-label" style="width:100%;max-width:392px"><span>Phone · 390px</span></p>
+        <div class="phone"><div class="notch"></div><div class="viewport" id="phone-view"></div></div>
+      </div>
+      <div class="notes" id="notes"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FLAGS = {"GB":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><g fill=\"#FFF\"><path d=\"M0 0h513v341.3H0V0z\"/><path d=\"M311.7 230 513 341.3v-31.5L369.3 230h-57.6zM200.3 111.3 0 0v31.5l143.7 79.8h56.6z\"/></g><g fill=\"#012169\"><path d=\"M393.8 230 513 295.7V230H393.8zm-82.1 0L513 341.3v-31.5L369.3 230h-57.6zm146.9 111.3-147-81.7v81.7h147zM90.3 230 0 280.2V230h90.3zm110 14.2v97.2H25.5l174.8-97.2zM118.2 111.3 0 45.6v65.7h118.2zm82.1 0L0 0v31.5l143.7 79.8h56.6zM53.4 0l147 81.7V0h-147zM421.7 111.3 513 61.1v50.2h-91.3zm-110-14.2V0h174.9L311.7 97.1z\"/></g><g fill=\"#c8102e\"><path d=\"M288 0h-64v138.7H0v64h224v138.7h64V202.7h224v-64H288V0z\"/><path d=\"M311.7 230 513 341.3v-31.5L369.3 230h-57.6zM143.7 230 0 309.9v31.5L200.3 230h-56.6zM200.3 111.3 0 0v31.5l143.7 79.8h56.6zM368.3 111.3 513 31.5V0L311.7 111.3h56.6z\"/></g></svg>","FR":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#FFF\" d=\"M0 0h513v342H0z\"/><path fill=\"#00318A\" d=\"M0 0h171v342H0z\"/><path fill=\"#D80027\" d=\"M342 0h171v342H342z\"/></svg>","IT":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#F4F5F0\" d=\"M342 0H0v341.3h512V0z\"/><path fill=\"#008C45\" d=\"M0 0h171v342H0z\"/><path fill=\"#CD212A\" d=\"M342 0h171v342H342z\"/></svg>","BR":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#009b3a\" d=\"M0 0h513v342H0z\"/><path fill=\"#fedf00\" d=\"m256.5 19.3 204.9 151.4L256.5 322 50.6 170.7z\"/><circle fill=\"#FFF\" cx=\"256.5\" cy=\"171\" r=\"80.4\"/><path fill=\"#002776\" d=\"M215.9 165.7c-13.9 0-27.4 2.1-40.1 6 .6 43.9 36.3 79.3 80.3 79.3 27.2 0 51.3-13.6 65.8-34.3-24.9-31-63.2-51-106-51zM334.9 186c.9-5 1.5-10.1 1.5-15.4 0-44.4-36-80.4-80.4-80.4-33.1 0-61.5 20.1-73.9 48.6 10.9-2.2 22.1-3.4 33.6-3.4 46.8.1 89 19.5 119.2 50.6z\"/></svg>","AT":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#FFF\" d=\"M0 114h513v114H0z\"/><path fill=\"#D80027\" d=\"M0 0h513v114H0zM0 228h513v114H0z\"/></svg>","FI":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#FFF\" d=\"M0 0h513v342H0z\"/><path fill=\"#2E52B2\" d=\"M513 129.3V212H203.7v130H121V212H0v-82.7h121V0h82.7v129.3z\"/></svg>","BE":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#fdda25\" d=\"M0 0h513v342H0z\"/><path d=\"M0 0h171v342H0z\"/><path fill=\"#ef3340\" d=\"M342 0h171v342H342z\"/></svg>","DE":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#D80027\" d=\"M0 0h513v342H0z\"/><path d=\"M0 0h513v114H0z\"/><path fill=\"#FFDA44\" d=\"M0 228h513v114H0z\"/></svg>","CH":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 768 512\"><path fill=\"red\" d=\"M0 0h768v512H0V0z\"/><path fill=\"#FFF\" d=\"M336 96h96v112h112v96H432v112h-96V304H224v-96h112V96z\"/></svg>","US":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#FFF\" d=\"M0 0h513v342H0z\"/><g fill=\"#D80027\"><path d=\"M0 0h513v26.3H0zM0 52.6h513v26.3H0zM0 105.2h513v26.3H0zM0 157.8h513v26.3H0zM0 210.5h513v26.3H0zM0 263.1h513v26.3H0zM0 315.7h513V342H0z\"/></g><path fill=\"#2E52B2\" d=\"M0 0h256.5v184.1H0z\"/><g fill=\"#FFF\"><path d=\"m47.8 138.9-4-12.8-4.4 12.8H26.2l10.7 7.7-4 12.8 10.9-7.9 10.6 7.9-4.1-12.8 10.9-7.7zM104.1 138.9l-4.1-12.8-4.2 12.8H82.6l10.7 7.7-4 12.8 10.7-7.9 10.8 7.9-4-12.8 10.7-7.7zM160.6 138.9l-4.3-12.8-4 12.8h-13.5l11 7.7-4.2 12.8 10.7-7.9 11 7.9-4.2-12.8 10.7-7.7zM216.8 138.9l-4-12.8-4.2 12.8h-13.3l10.8 7.7-4 12.8 10.7-7.9 10.8 7.9-4.3-12.8 11-7.7zM100 75.3l-4.2 12.8H82.6L93.3 96l-4 12.6 10.7-7.8 10.8 7.8-4-12.6 10.7-7.9h-13.4zM43.8 75.3l-4.4 12.8H26.2L36.9 96l-4 12.6 10.9-7.8 10.6 7.8L50.3 96l10.9-7.9H47.8zM156.3 75.3l-4 12.8h-13.5l11 7.9-4.2 12.6 10.7-7.8 11 7.8-4.2-12.6 10.7-7.9h-13.2zM212.8 75.3l-4.2 12.8h-13.3l10.8 7.9-4 12.6 10.7-7.8 10.8 7.8-4.3-12.6 11-7.9h-13.5zM43.8 24.7l-4.4 12.6H26.2l10.7 7.9-4 12.7L43.8 50l10.6 7.9-4.1-12.7 10.9-7.9H47.8zM100 24.7l-4.2 12.6H82.6l10.7 7.9-4 12.7L100 50l10.8 7.9-4-12.7 10.7-7.9h-13.4zM156.3 24.7l-4 12.6h-13.5l11 7.9-4.2 12.7 10.7-7.9 11 7.9-4.2-12.7 10.7-7.9h-13.2zM212.8 24.7l-4.2 12.6h-13.3l10.8 7.9-4 12.7 10.7-7.9 10.8 7.9-4.3-12.7 11-7.9h-13.5z\"/></g></svg>","NL":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 513 342\"><path fill=\"#FFF\" d=\"M0 114h513v114H0z\"/><path fill=\"#cd1f2a\" d=\"M0 0h513v114H0z\"/><path fill=\"#1d4185\" d=\"M0 228h513v114H0z\"/></svg>","VE":"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 22.5 15\"><path fill=\"#FFCE00\" d=\"M0 0h22.5v5H0z\"/><path fill=\"#203899\" d=\"M0 5h22.5v5H0z\"/><path fill=\"#D82B2B\" d=\"M0 10h22.5v5H0z\"/><path fill=\"#FFF\" d=\"m12.13 5.38.14.46.45.14-.39.27.01.48-.38-.29-.45.15.15-.44-.28-.38h.47zM10.36 5.38l.27.39h.47l-.28.38.15.45-.45-.16-.38.28.01-.47-.39-.28.45-.13zM13.8 5.94l-.01.48.39.27-.46.14-.14.45-.27-.38h-.48l.29-.38-.15-.45.45.16zM8.69 5.96l.4.27.44-.18-.13.46.3.36-.47.02-.26.4-.16-.44-.46-.12.37-.3zM15.24 7.13l-.2.44.25.4-.47-.05-.31.36-.1-.46-.43-.18.41-.24.03-.47.35.31zM15.43 8.25l.21.43.47.07-.34.33.08.46-.42-.22-.42.22.08-.46-.34-.33.47-.07zM7 8.2l.21.43.47.06-.34.33.08.47L7 9.27l-.42.22.08-.47-.34-.33.47-.06zM7.31 7.05l.45.14.38-.29v.48l.39.26-.45.15-.13.46-.28-.38-.47.01.27-.38z\"/></svg>"};
+const SHOTS = {};
+(() => {
+  // ── Cars: the app's 1980s sprite and its colouring rule (TeamCar.tsx), plus two decades for the arcade road.
+  const SPRITES = {
+    1950: { rows: ["................................................","................oooo............................","...............ohhhho...........................","...............ohhvvo.om........................","..........oooooohhhhooom........................",".......oooPPPPPPooooooooooooooooooooooooo.......",".....ooPPPPPPPPPPPPPPPPPPoooooPPPPPPPPPPPoo.....","...ooPPPPPPPPPPPPPPPPPPPowwwwwoPPPPPPPPPPPPoo...","..oPP1111111111111111111owwwwwo11111111111PPPoo.","..oPP2222222222222222222owwwwwo22222222222PPPPox","..opPPPPPPPPmmmmmmmmPPPPPowwwoPPPPPPPPPPPPPPPPox","...oppppppppppppppppppppppooopppppppppppppppppo.","....ooooooooooooooooooooooooooooooooooooooooooo.","................................................"], wheels: [[6,5,9,2,"m"],[34,5,9,2,"m"]] },
+    1980: { rows: ["................................................","ooooooo.........................................","o11111o.........................................","oPPPPPo..........ooo.oooo.......................","oPPPPPo.........oPPPoohvvo......................","oppppp.oooooooooPPPPPPhhhhoooooo................",".ooooooPPPPPPPPPPPPPPPPPPPPPPPPPoooooo..........","......oPP1111111111111111111111PPPPPPPoooooo....","......oPP2222222222222222222222PPPPPPPPPPPPPoo..","......opPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPo.",".......oppppppppppppppppppppppppppppppppppppppo.","........ooooooooooooooooooooooooooooo...oooooooo",".......................................o111111o.",".......................................oooooooo."], wheels: [[2,5,9,2,"m"],[35,5,9,2,"m"]] },
+    1970: {"rows":["oooooooooo......................................","o11111111o......oooooo..........................","oPPPPPPPPo.....oPPPPPPo.........................",".ooooxoooo.....oPPPvvPo.oooo....................",".oxo...........oPPPPPPoohhvvo...................",".oxo..........ooPPPPPPPPhhhhoooooooo............","ooxo.........oPPPPPPPPPPPPPPPPPPPPPPoooooooo....","oxxx.........oPP1111111111111111111111PPPPPPoo..","oxxx.........oPP2222222222222222222222PPPPPPPPoo","oooo.........opPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPo","..............oppppppppppppppppppppppppppppppppo","...............ooooooooooooooooooooooo..oooooooo",".......................................o111111o.",".......................................oooooooo."],"wheels":[[3,3,11,3,"m"],[35,7,7,2,"m"]]},
+    1990: {"rows":["................................................","oooooo..........................................","o1111o..........ooooo...........................","oPPPPo.........oPPPPPo..........................","oPPPPo........oPPPoPPoooo.......................","oPPPPo.......oPPPPPPPohvvo......................","opppp.ooooooPPPPPPPPPPhhhhooooooooo.............",".ooooPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPoooooooooo...",".....oPP111111111111111111111111111PPPPPPPPPPoo.",".....oPP222222222222222222222222222PPPPPPPPPPPPo",".....opPPPPPPPPPPPPPPPPPPPPPPPPPPPPoooooooooooo.","......oopppppppppppppppppppppppppppo....oo......","........occcccccccccccccccccccccccco.oooooooooo.","........ooooooooooooooooooooooooooooo.o11111111o"],"wheels":[[2,5,9,2,"x"],[35,5,9,2,"x"]]},
+    2020: { rows: ["................................................","oooooo..........................................","o1111o..........................................","oPPPPo..............ooooo.......................","oPPPPo.............oPPPPPoooooo.................","oPPPPo............oPPPPPPohhv.o.................","oppppo.....oooooooPPPPPPPhhhhhoooo..............",".ooooooooooPPPPPPPPPPPPPPPPPPPPPPPPooooo........",".....oPPPPPP11111111111111111PPPPPPPPPPPoooooo..",".....oPPPPPP22222222222222222PPPPPPPPPPPPPPPPPoo",".....oppppppPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPo","......ooooooppppppppppppppppppppppppppppppppppo.","...........occcccccccccccccccccccccco.oPPPPPPPPo","...........oooooooooooooooooooooooooo.o1111111o."], wheels: [[3,5,9,3,"x"],[34,5,9,3,"x"]] },
+  };
+  const FIXED = { o: "#16181a", v: "#1f2a3d", c: "#2c2e31", x: "#5b5f64", m: "#bcc0c5", w: "#f4f3ef" };
+  // The authored 1984 liveries (packages/data/src/teams.json).
+  const L = {
+    mclaren: ["#FFFFFF", "#E10600", "#1A1A1A", 1], ferrari: ["#E10600", "#000000", "#FFFFFF", 0],
+    brabham: ["#FFFFFF", "#0A1E4A", "#68CCD9", 1], lotus: ["#000000", "#C9A227", "#C8A951", 1],
+    renault: ["#FFCD00", "#000000", "#FFFFFF", 2], williams: ["#FFFFFF", "#00563F", "#FFD200", 2],
+    toleman: ["#FFFFFF", "#0033A0", "#E4002B", 2], alfa: ["#26A18A", "#E4002B", "#FFFFFF", 2],
+    ligier: ["#2A8FC7", "#FFFFFF", "#E4002B", 1], arrows: ["#F3EBCF", "#B02617", "#0A2472", 2],
+    ats: ["#FFEC17", "#000000", "#FFFFFF", 1], spirit: ["#FFFFFF", "#E4002B", "#000000", 0],
+    ram: ["#00594F", "#FFFFFF", "#E4002B", 2], tyrrell: ["#1D2A4D", "#FFFFFF", "#E4002B", 1],
+  };
+  const shade = (hex) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * 0.7).toString(16).padStart(2, "0")).join("");
+  function wheelRows([, , size, rim, rimRole]) {
+    const c = (size - 1) / 2, outer = c + 0.4, spoke = rimRole === "m" ? "x" : "m", rows = [];
+    for (let y = 0; y < size; y++) { let r = ""; for (let x = 0; x < size; x++) { const d = Math.hypot(x - c, y - c); r += d > outer ? "." : d > rim + 0.4 ? "o" : d < 0.5 ? "x" : x === c && y < c ? spoke : rimRole; } rows.push(r); }
+    return rows;
+  }
+  const carCache = {};
+  function car(team, decade = 1980, scale = 1) {
+    const key = team + decade + scale;
+    if (carCache[key]) return carCache[key];
+    const [P, s1, s2, n] = L[team], one = n >= 1 ? s1 : P, two = n >= 2 ? s2 : one;
+    const col = { ...FIXED, P, p: shade(P), 1: one, 2: two, h: s1 };
+    const cv = document.createElement("canvas"); cv.width = 48 * scale; cv.height = 14 * scale;
+    const ctx = cv.getContext("2d"), sp = SPRITES[decade];
+    const paint = (rows, ox, oy) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (col[ch]) { ctx.fillStyle = col[ch]; ctx.fillRect((ox + x) * scale, (oy + y) * scale, scale, scale); } }));
+    paint(sp.rows, 0, 0); sp.wheels.forEach((w) => paint(wheelRows(w), w[0], w[1]));
+    return (carCache[key] = cv.toDataURL());
+  }
+  // The badge's sash, as TeamBadge.tsx draws it: 135°, ±9% about the centre.
+  function sash(team) {
+    const [P, s1, s2, n] = L[team];
+    if (n === 1) return `linear-gradient(135deg, ${P} 41%, ${s1} 41%, ${s1} 59%, ${P} 59%)`;
+    if (n >= 2) return `linear-gradient(135deg, ${P} 41%, ${s1} 41%, ${s1} 50%, ${s2} 50%, ${s2} 59%, ${P} 59%)`;
+    return P;
+  }
+  const badge = (t) => `<span class="badge" style="background:${sash(t)}"></span>`;
+  const flag = (c) => `<span class="flag">${FLAGS[c] || ""}</span>`;
+  const carImg = (t) => `<img class="carimg" alt="" src="${car(t)}">`;
+
+  // ── Data: round 1 of a seeded 1984 run.
+  const T = { brabham: "Brabham-BMW", ferrari: "Ferrari", lotus: "Lotus-Renault", renault: "Renault", mclaren: "McLaren-TAG Porsche", arrows: "Arrows-BMW", toleman: "Toleman-Hart", alfa: "Alfa Romeo", ats: "ATS-BMW", ram: "RAM-Hart", williams: "Williams-Honda", ligier: "Ligier-Renault", spirit: "Spirit-Hart" };
+  const CLS = [
+    ["Nelson", "Piquet", "BR", "brabham", 1, "winner", "Finished", 9, true],
+    ["René", "Arnoux", "FR", "ferrari", 2, "+6.298s", "Finished", 6],
+    ["Elio", "de Angelis", "IT", "lotus", 3, "+12.888s", "Finished", 4],
+    ["Patrick", "Tambay", "FR", "renault", 10, "+16.188s", "Finished", 3],
+    ["Alain", "Prost", "FR", "mclaren", 7, "+19.301s", "Finished", 2],
+    ["Derek", "Warwick", "GB", "renault", 9, "+23.879s", "Finished", 1],
+    ["Nigel", "Mansell", "GB", "lotus", 11, "+24.090s", "Finished", 0],
+    ["Thierry", "Boutsen", "BE", "arrows", 14, "+35.481s", "Finished", 0],
+    ["Ayrton", "Senna", "BR", "toleman", 6, "+43.831s", "Finished", 0, true],
+    ["Teo", "Fabi", "IT", "brabham", 13, "+55.144s", "Finished", 0],
+    ["Riccardo", "Patrese", "IT", "alfa", 12, "+1:06.592s", "Finished", 0],
+    ["Marc", "Surer", "CH", "arrows", 18, "+1:08.347s", "Finished", 0],
+    ["Gerhard", "Berger", "AT", "ats", 20, "+1 lap", "Finished", 0],
+    ["Jonathan", "Palmer", "GB", "ram", 25, "+2 laps", "Finished", 0],
+    ["Niki", "Lauda", "AT", "mclaren", 4, null, "Retired — mechanical", 0],
+    ["Keke", "Rosberg", "FI", "williams", 5, null, "Retired — mechanical", 0],
+    ["Michele", "Alboreto", "IT", "ferrari", 8, null, "Retired — mechanical", 0],
+    ["Andrea", "de Cesaris", "IT", "ligier", 16, null, "Retired — driver error", 0],
+    ["Mauro", "Baldi", "IT", "spirit", 26, null, "Did not qualify", 0],
+  ];
+  const DRV = [["Nelson", "Piquet", "BR", "brabham", 9], ["René", "Arnoux", "FR", "ferrari", 6], ["Elio", "de Angelis", "IT", "lotus", 4], ["Patrick", "Tambay", "FR", "renault", 3], ["Alain", "Prost", "FR", "mclaren", 2], ["Derek", "Warwick", "GB", "renault", 1], ["Nigel", "Mansell", "GB", "lotus", 0], ["Thierry", "Boutsen", "BE", "arrows", 0]];
+  const CON = [["brabham", "GB", 9], ["ferrari", "IT", 6], ["lotus", "GB", 4], ["renault", "FR", 4], ["mclaren", "GB", 2], ["arrows", "GB", 0]];
+
+  const ORD = ["1ST", "2ND", "3RD"];
+  function clsRows(dir) {
+    return CLS.map(([f, l, c, t, grid, gap, st, pts, home], i) => {
+      const out = gap === null, pos = out ? "—" : dir === "arc" ? (ORD[i] || i + 1 + "TH") : i + 1;
+      const short = st.startsWith("Did") ? "DNQ" : "DNF";
+      const fn = `<span class="full">${f}</span><span class="ini">${f[0]}.</span>`;
+      const name = dir === "tower" ? `<span class="first">${fn}</span> <span class="last">${l}</span>` : `${fn} ${l}`;
+      const cls = ["tr", i === 0 ? "lead" : "", i > 0 && i < 3 ? "pod" : "", out ? "out" : ""].join(" ");
+      return `<div class="${cls}"><span class="c-pos">${pos}</span>${badge(t)}<span class="c-who"><span class="nm">${flag(c)}<span>${name}</span></span><span class="tm">${T[t]}${home ? '<span class="star" title="Racing at home">★</span>' : ""}</span></span>${carImg(t)}<span class="c-grid num">${grid}</span><span class="c-gap num">${out ? `<span class="g-short">${short}</span><span class="g-long">—</span>` : gap}</span><span class="c-st">${st}</span><span class="c-pts num">${pts || ""}</span></div>`;
+    }).join("");
+  }
+  function stdRows(dir, rows, kind) {
+    return rows.map((r, i) => {
+      const [nameHtml, sub, c, pts] = kind === "d"
+        ? [dir === "tower" ? `<span class="first">${r[0]}</span> <span class="last">${r[1]}</span>` : `${r[0]} ${r[1]}`, T[r[3]], r[2], r[4]]
+        : [dir === "tower" ? `<span class="last">${T[r[0]]}</span>` : T[r[0]], "", r[1], r[2]];
+      return `<div class="tr ${i === 0 ? "lead" : ""}"><span class="c-pos">${dir === "arc" ? (ORD[i] || i + 1 + "TH") : i + 1}</span><span class="c-who"><span class="nm">${flag(c)}<span>${nameHtml}</span></span>${sub ? `<span class="tm">${sub}</span>` : ""}</span><span class="c-pts num">${pts}</span></div>`;
+    }).join("");
+  }
+
+  const NAV = [["Home", "home"], ["Season", "season"], ["Era (basic)", ""], ["Era (advanced)", "off"], ["Game", "off"], ["Editor", "off"], ["About", ""]];
+  const FOOT = (seed) => `<footer class="foot"><div class="inner"><span>Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.</span><u>About this project</u><u>Submit a bug report</u>${seed ? `<span class="seed">Seed 13681</span>` : ""}</div></footer>`;
+  const segs = (done) => `<div class="rounds" aria-label="Round ${done} of 16">${Array.from({ length: 16 }, (_, i) => `<i class="${i < done ? "done" : ""}"></i>`).join("")}</div>`;
+
+  // ── The track along the foot of Home: five decades, two lanes, different paces so they overtake.
+  const LAPPERS = [
+    ["ferrari", 1950, "l1", 9.5, -1.0, 6], ["lotus", 1970, "l2", 7.2, -5.5, 25],
+    ["brabham", 1980, "l1", 6.4, -3.6, 46], ["mclaren", 1990, "l2", 5.6, -1.4, 66], ["renault", 2020, "l1", 4.9, -4.2, 84],
+  ];
+  const TRACK = () => `<div class="track" aria-hidden="true"><div class="verge"></div><div class="kerb"></div><div class="tarmac"><span class="sf"></span><span class="sf-label">S/F</span>${LAPPERS.map(([t, d, lane, dur, delay, at]) => `<img class="${lane}" src="${car(t, d)}" alt="" style="left:${at}%;animation-duration:${dur}s;animation-delay:${delay}s">`).join("")}</div><div class="kerb"></div><div class="verge"></div></div>`;
+
+  const CHQ = `<div class="chq-layer" aria-hidden="true"></div>`;
+
+  // ── Timing tower
+  function towerNav(active) {
+    return `<header class="nav"><div class="inner"><span class="logo cond"><span class="chq"></span>Alt-Hist</span><nav class="tabs">${NAV.map(([n, k]) => `<a class="${k === active ? "on" : k === "off" ? "off" : ""}">${n}</a>`).join("")}</nav><button class="toggle" aria-label="Theme"><span class="sun"></span></button></div></header>`;
+  }
+  function towerHome(withTrack) {
+    const modes = [
+      ["Simulate a season", "Race one season, round by round, until a champion is crowned. Start from the real grid, or swap drivers around.", true],
+      ["Simulate an era", "Keep going, year after year. Each season brings its real grid, and you can still swap drivers.", true],
+      ["Era · advanced", "Drivers change teams on their own as contracts end and teams chase the best.", false],
+      ["Game mode", "Run one team through the years: sign the drivers, pick the engine, develop the car.", false],
+      ["Edit ratings", "Disagree with a driver's or a car's rating? Change it yourself.", false],
+    ];
+    return `<div class="app d-tower ${withTrack ? `has-track has-chq chq-${state.chq}` : ""}">${withTrack ? CHQ : ""}${towerNav("home")}<main class="inner page"><div class="home">
+      <div class="hero">
+        <span class="mono-label">Alternate history motorsport simulator</span>
+        <h1 class="cond">Rewrite motorsport history</h1>
+        <p>Pick a real season and race it again. The drivers and cars are the real ones; the results are new every time.</p>
+        <div class="facts"><div><b>77</b><span class="mono-label">Seasons</span></div><div><b>1950</b><span class="mono-label">First</span></div><div><b>2026</b><span class="mono-label">Latest</span></div></div>
+        <div class="live">
+          <div class="live-head"><span class="dot"></span><span class="mono-label">In progress · Resume run</span></div>
+          <div class="live-body">
+            <div class="t"><b class="cond">1984 season</b>${carImg("brabham")}</div>
+            <span class="mono-label">1984 · Round 1/16 · Race</span>
+            ${segs(1)}
+            <div class="acts"><button class="btn go">Resume ▸</button><button class="btn">Exit run</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="tower">
+        <div class="tower-head"><span class="mono-label">Mode</span><span class="mono-label">Status</span></div>
+        ${modes.map(([n, b, on]) => `<button class="mode ${on ? "" : "off"}"><span class="bar"></span><span class="nm"><b class="cond">${n}</b><span>${b}</span></span><span class="st">${on ? "READY" : "SOON"}</span></button>`).join("")}
+      </div>
+    </div></main>${withTrack ? TRACK() : ""}${FOOT(false)}</div>`;
+  }
+  function towerRace(withChq) {
+    return `<div class="app d-tower ${withChq ? `has-chq chq-${state.chq}` : ""}">${withChq ? CHQ : ""}${towerNav("season")}
+      <div class="runbar"><div class="inner"><div class="rb-l"><div class="crumb"><span class="dot"></span><b>1984</b>›<span>Round 1</span>›<b>Race</b></div>${segs(1)}</div>
+      <div class="rb-r"><button class="btn wide-only">Simulate rest of season</button><button class="btn">⋯</button><button class="btn go">Continue ▸</button></div></div></div>
+      <main class="inner page">
+        <div class="racehead"><div><h1 class="cond">${flag("BR")}Brazilian GP <span class="wet"><span class="cloud"></span>Wet 72%</span></h1><p>Round 1 of 16 · Jacarepaguá</p></div>
+          <div class="tgl"><button>Qualifying</button><button class="on">Race</button></div></div>
+        <div class="racegrid">
+          <section class="panel cls"><div class="panel-head"><h2 class="cond">Classification</h2><span class="mono-label">30 starters</span></div>
+            <div class="tr thead"><span class="c-pos">Pos</span><span></span><span>Driver</span><span></span><span class="c-grid">Grid</span><span class="c-gap">Gap</span><span class="c-st">Status</span><span class="c-pts">Pts</span></div>
+            <div class="tbody">${clsRows("tower")}</div></section>
+          <aside class="aside">
+            <p class="after">Championship after round 1</p>
+            <section class="panel std"><div class="panel-head"><h2 class="cond">Drivers</h2></div><div class="tbody">${stdRows("tower", DRV, "d")}</div><div class="more">Show all 30</div></section>
+            <section class="panel std"><div class="panel-head"><h2 class="cond">Constructors</h2></div><div class="tbody">${stdRows("tower", CON, "c")}</div><div class="more">Show all 15</div></section>
+          </aside>
+        </div>
+      </main>${FOOT(true)}</div>`;
+  }
+
+  // ── Arcade
+  function arcNav(active) {
+    return `<header class="nav"><div class="inner"><span class="logo">ALT-HIST</span><nav class="tabs">${NAV.map(([n, k]) => `<a class="${k === active ? "on" : k === "off" ? "off" : ""}">${n}</a>`).join("")}</nav><button class="toggle" aria-label="Theme"><span class="sun"></span></button></div></header>`;
+  }
+  const ARC_MENU = [
+    ["CONTINUE", "1984 R1", "cont", "Your 1984 season is waiting at round 1 of 16, the Brazilian GP. Pick up where you left off.", "brabham"],
+    ["NEW SEASON", "", "", "Race one season, round by round, until a champion is crowned. Start from the real grid, or swap drivers around to see what might have been.", "mclaren"],
+    ["NEW ERA", "", "", "Keep going, year after year. Each season brings its real grid, and you can still swap drivers whenever you like.", "williams"],
+    ["ERA+", "LOCKED", "locked", "Not built yet. Eras where drivers change teams on their own as contracts end and teams chase the best.", "lotus"],
+    ["GAME MODE", "LOCKED", "locked", "Not built yet. Run one team through the years: sign the drivers, pick the engine and decide where to develop the car.", "renault"],
+    ["EDIT RATINGS", "LOCKED", "locked", "Not built yet. Disagree with a driver's or a car's rating? Change it yourself.", "ferrari"],
+    ["EXIT RUN", "", "", "Ends the 1984 season you have in progress. You'll be asked first if there's anything to lose.", "spirit"],
+  ];
+  function arcHome() {
+    const first = ARC_MENU[0];
+    return `<div class="app d-arc">${arcNav("home")}
+      <div class="sky"><h1 class="title">ALT-HIST</h1><p class="sub">GRAND PRIX · 1950–2026 · 77 SEASONS</p></div>
+      <div class="grass"></div>
+      <div class="road">
+        <img src="${car("ferrari", 1950, 3)}" style="left:8%;top:22px;width:144px;height:42px;animation-duration:7s;animation-delay:-2s" alt="">
+        <img src="${car("brabham", 1980, 3)}" style="left:42%;top:46px;width:144px;height:42px;animation-duration:5s;animation-delay:-1s" alt="">
+        <img src="${car("renault", 2020, 3)}" style="left:72%;top:66px;width:144px;height:42px;animation-duration:4.2s;animation-delay:-3.4s" alt="">
+      </div>
+      <div class="grass"></div>
+      <main class="inner page"><div class="home">
+        <div class="boxed menu" data-arc-menu>
+          <p class="menu-head">SELECT MODE</p>
+          ${ARC_MENU.map(([n, s, k, say, t], i) => `<button class="${k} ${i === 0 ? "sel" : ""}" data-say="${say}" data-car="${t}">${n}${s ? `<small>${s}</small>` : "<span></span>"}</button>`).join("")}
+        </div>
+        <div class="boxed say"><span class="who" data-who>${first[0]}</span><p data-text>${first[3]}</p>
+          <div class="preview"><img data-prev src="${car(first[4], 1980, 3)}" alt=""><span>1984 · ROUND 1/16 · RACE</span></div></div>
+      </div></main>${FOOT(false)}</div>`;
+  }
+  function arcRace() {
+    return `<div class="app d-arc">${arcNav("season")}
+      <div class="runbar"><div class="inner"><div class="rb-l"><div class="crumb">1984 <span>▸</span> R1 <span>▸</span> RACE</div>${segs(1)}</div>
+      <div class="rb-r"><button class="btn wide-only">Sim rest of season</button><button class="btn">⋯</button><button class="btn go">Continue ▶</button></div></div></div>
+      <main class="inner page">
+        <div class="racehead"><div><h1>${flag("BR")}BRAZILIAN GP <span class="wet"><span class="cloud"></span>WET 72%</span></h1><p>Round 1 of 16 · Jacarepaguá</p></div>
+          <div class="tgl"><button class="btn">Qualifying</button><button class="btn go">Race</button></div></div>
+        <div class="racegrid">
+          <section class="boxed cls"><div class="panel-head"><h2>CLASSIFICATION</h2></div>
+            <div class="tr thead"><span class="c-pos">Pos</span><span></span><span>Driver</span><span></span><span class="c-grid">Grid</span><span class="c-gap">Gap</span><span class="c-st">Status</span><span class="c-pts">Pts</span></div>
+            <div class="tbody">${clsRows("arc")}</div></section>
+          <aside class="aside">
+            <p class="after">CHAMPIONSHIP AFTER ROUND 1</p>
+            <section class="boxed std"><div class="panel-head"><h2>DRIVERS</h2></div><div class="tbody">${stdRows("arc", DRV, "d")}</div><div class="more">SHOW ALL 30</div></section>
+            <section class="boxed std"><div class="panel-head"><h2>CONSTRUCTORS</h2></div><div class="tbody">${stdRows("arc", CON, "c")}</div><div class="more">SHOW ALL 15</div></section>
+          </aside>
+        </div>
+      </main>${FOOT(true)}</div>`;
+  }
+
+  // ── Today: the real screens, captured from the current build.
+  const shot = (key) => SHOTS[key] ? `<div class="shot"><img alt="Today's ${key.split("-")[0]} screen" src="${SHOTS[key]}"></div>` : `<div class="shot" style="padding:40px;color:var(--muted)">Screenshot missing.</div>`;
+
+  const NOTES = {
+    today: `<h2>Today</h2><p>The current build, captured at the same sizes. The tables are where the app's character already is: sash badges, flags, a car per row, mono figures. The frame around them (nav, run bar, headings, the home cards) is the generic part.</p>
+      <dl><div><dt>On a phone</dt><dd>The nav wraps onto three lines. On the race page the classification keeps every name on two lines and drops the car. On Home, the three modes you can't play yet take up most of the screen.</dd></div></dl>`,
+    tower: `<h2>Timing tower</h2><p>The pit wall. The tables stay as they are and become the model for everything else: square panels with dark header bands, full-width rows, and figures in mono. Driver names change to timing-screen style (first name light, SURNAME bold and condensed).</p>
+      <dl>
+        <div><dt>Kept as is</dt><dd><ul><li>Circular sash badges, flags and the 1× car in every row</li><li>IBM Plex Mono for every figure; teal for the winner and the leader</li><li>Header bands darker than the panel, the home star and the wet pill</li></ul></dd></div>
+        <div><dt>What changes</dt><dd><ul><li>Archivo's narrow width for headings, names, nav and buttons. The app loads only the weight axis today, so this means loading the width axis too</li><li>Square corners; panels drawn by their border, not a shadow</li><li>The nav becomes broadcast tabs; the run bar shows the season as 16 round segments</li><li>Home: a timing tower of modes beside the hero, with the run in progress as a live session</li><li>A cooler graphite in place of the warm charcoal; light theme included</li></ul></dd></div>
+        <div><dt>On a phone</dt><dd>The nav is one row of tabs that scrolls sideways instead of wrapping. Condensed names fit on one line, so a classification row keeps the badge, flag, name, car and gap. Grid, status and points fold away, and a retirement shows as DNF in the gap column.</dd></div>
+        <div><dt>On a computer</dt><dd>The same 1120px column as today. Home splits into hero and tower; the race page keeps the classification with standings beside it.</dd></div>
+      </dl>`,
+    arc: `<h2>Arcade</h2><p>A 16-bit racing game, built around the pixel cars the app already draws. The pixel face is for the frame only: titles, nav, buttons, column headers and positions. Names stay in Archivo and figures in Plex Mono, so a 30-row classification still reads like a table.</p>
+      <dl>
+        <div><dt>Kept as is</dt><dd><ul><li>Circular sash badges, flags and the 1× car in every row</li><li>Mono figures, the home star, the wet pill, the classification's columns</li></ul></dd></div>
+        <div><dt>What changes</dt><dd><ul><li>Silkscreen, a pixel font (self-hostable through @fontsource like the others), for frame text</li><li>Boxes with thick square borders and a hard offset shadow in place of cards</li><li>Home is a title screen: logo, a road with cars from three decades, a SELECT MODE list with Continue first and unfinished modes shown as LOCKED, and one box describing whatever is selected. Try hovering the list</li><li>Positions as 1ST, 2ND, 3RD; a navy sky palette, with a daytime light theme</li><li>Some copy turns game-like (NEW SEASON, ERA+, CONTINUE)</li></ul></dd></div>
+        <div><dt>On a phone</dt><dd>A game menu is already phone-shaped: one column of big labels. The description box means the blurbs take one box instead of five. Tables fold the same way as the tower's.</dd></div>
+        <div><dt>On a computer</dt><dd>The title screen spans the window; menu and description box sit side by side under the road. Run pages keep today's layout inside the boxes.</dd></div>
+        <div><dt>Risk</dt><dd>The pixel face gets heavy if it spreads past the frame. The rule that keeps it working is that nothing you read for information is set in it, only labels.</dd></div>
+      </dl>`,
+  };
+
+  NOTES.track = `<h2>Timing tower + track</h2><p>The timing tower, with the arcade's racetrack along the foot of Home: verge, kerbs, a chequered start/finish line, and cars from five decades lapping in two lanes at different paces, so they overtake each other. It's redrawn in the tower's graphite so it reads as the same app. Only Home gets the track; switch to Race result to see a run page.</p>
+      <dl>
+        <div><dt>The chequer</dt><dd>Today's background texture, the same two layers of squares, no longer covering the whole page: <b>Sash</b> lays it as one diagonal band across the window, at the same angle as the stripe on the livery badges. Like today's, it stays put while the page scrolls, and it shows only on bare page, never inside a panel. It's a little stronger than today's because it fades out.</dd></div>
+        <div><dt>Where it sits</dt><dd>At the bottom of the window on a computer, just above the footer, so it frames the menu without pushing it down. On a phone it comes after the mode list, as the last thing before the footer.</dd></div>
+        <div><dt>How it relates to the parade</dt><dd>Home's parade already sends cars across the page now and then. The track could become the parade's road: the same cars and the same hidden game, but driving on a track instead of floating over the content. Or both could stay, with the parade still crossing the page above.</dd></div>
+        <div><dt>In the real app</dt><dd>The cars would be drawn the way the parade draws them, large and with turning wheels. In this mockup they're flat pictures, so the wheels don't turn. Every car is scaled by a whole number, 2× on a phone and 3× on a computer, so the pixels stay square.</dd></div>
+        <div><dt>Motion</dt><dd>With reduced motion turned on, the cars sit still, spread along the track, just as the parade disappears for those readers today.</dd></div>
+        <div><dt>Everything else</dt><dd>As the plain timing tower. It keeps the badges, flags, cars in the rows, mono figures and header bands, and adds condensed type, square panels, broadcast tabs and round segments.</dd></div>
+      </dl>`;
+
+  // ── State and rendering.
+  const state = { dir: "track", screen: "home", theme: "dark", chq: "sash", actual: false };
+  try { Object.assign(state, { dir: "track" }, JSON.parse(localStorage.getItem("ui-makeover-mockup") || "{}")); } catch (e) {}
+  const deskView = document.getElementById("desk-view"), phoneView = document.getElementById("phone-view");
+  function render() {
+    document.getElementById("stage").dataset.mt = state.theme;
+    let html;
+    if (state.dir === "today") {
+      const k = (dev) => `${state.screen}-${dev}-${state.theme}`;
+      deskView.innerHTML = shot(k("desktop")); phoneView.innerHTML = shot(k("phone"));
+      document.getElementById("desk-label").textContent = "Desktop · 1440px capture, shown in a 1280px frame";
+    } else {
+      html = state.dir === "tower" || state.dir === "track" ? (state.screen === "home" ? towerHome(state.dir === "track") : towerRace(state.dir === "track")) : (state.screen === "home" ? arcHome() : arcRace());
+      deskView.innerHTML = html; phoneView.innerHTML = html;
+      document.getElementById("desk-label").textContent = "Desktop · 1280px browser";
+    }
+    deskView.scrollTop = 0; phoneView.scrollTop = 0;
+    document.getElementById("url").textContent = state.screen === "home" ? "localhost:5173/" : "localhost:5173/season/1984/round/1/race";
+    document.getElementById("notes").innerHTML = NOTES[state.dir];
+    document.getElementById("ctl-chq").hidden = state.dir !== "track";
+    for (const [id, key] of [["ctl-dir", "dir"], ["ctl-screen", "screen"], ["ctl-chq", "chq"], ["ctl-theme", "theme"]]) {
+      document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === state[key])));
+    }
+    document.querySelectorAll("[data-arc-menu]").forEach(wireArcMenu);
+    try { localStorage.setItem("ui-makeover-mockup", JSON.stringify(state)); } catch (e) {}
+    fit();
+  }
+  function wireArcMenu(menu) {
+    const app = menu.closest(".app");
+    menu.querySelectorAll("button").forEach((b) => {
+      const pick = () => {
+        menu.querySelectorAll("button").forEach((x) => x.classList.toggle("sel", x === b));
+        app.querySelector("[data-who]").textContent = b.firstChild.textContent;
+        app.querySelector("[data-text]").textContent = b.dataset.say;
+        app.querySelector("[data-prev]").src = car(b.dataset.car, 1980, 3);
+      };
+      b.addEventListener("pointerenter", pick); b.addEventListener("focus", pick); b.addEventListener("click", pick);
+    });
+  }
+  for (const [id, key] of [["ctl-dir", "dir"], ["ctl-screen", "screen"], ["ctl-chq", "chq"], ["ctl-theme", "theme"]]) {
+    document.querySelectorAll(`#${id} button`).forEach((b) => b.addEventListener("click", () => { state[key] = b.dataset.v; render(); }));
+  }
+
+  // Scale the 1280px browser into whatever width the page has.
+  const fitBox = document.getElementById("desk-fit"), browser = document.getElementById("browser"), actualBtn = document.getElementById("actual");
+  function fit() {
+    if (state.actual) { browser.style.transform = ""; fitBox.style.height = ""; fitBox.classList.add("actual"); actualBtn.textContent = "Fit to width"; return; }
+    fitBox.classList.remove("actual"); actualBtn.textContent = "Show at actual size";
+    const s = Math.min(1, fitBox.clientWidth / 1282);
+    browser.style.transform = `scale(${s})`; fitBox.style.height = Math.ceil(browser.offsetHeight * s) + "px";
+  }
+  actualBtn.addEventListener("click", () => { state.actual = !state.actual; render(); });
+  new ResizeObserver(fit).observe(fitBox);
+  render();
+})();
+</script>
+
+</body>
+</html>
