@@ -1,48 +1,10 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { RaceWeather } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
-import type { RunLink } from "../lib/run-places.js";
 import type { RoundLink, SessionNav } from "../lib/session-nav.js";
-import { cn } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
+import { TabLinks } from "./TabLinks.js";
 import { WeatherBadge } from "./WeatherBadge.js";
-
-const SWITCH = "rounded px-3 py-1.5 text-sm font-medium transition";
-
-/** One side of the Qualifying | Race switch: the page on screen, a link, or a session ahead. */
-function SessionLink({
-  label,
-  link,
-  current,
-}: {
-  label: string;
-  link: RunLink | null;
-  current: boolean;
-}) {
-  if (current) {
-    return (
-      <span aria-current="page" className={cn(SWITCH, "bg-primary text-primary-foreground")}>
-        {label}
-      </span>
-    );
-  }
-  if (link === null) {
-    return (
-      <span
-        aria-disabled="true"
-        title="Not reached yet"
-        className={cn(SWITCH, "text-muted-foreground cursor-not-allowed opacity-55")}
-      >
-        {label}
-      </span>
-    );
-  }
-  return (
-    <Link {...link} className={cn(SWITCH, "text-muted-foreground hover:text-foreground")}>
-      {label}
-    </Link>
-  );
-}
 
 /**
  * The top of a session's page: where the round is held, how far through the
@@ -83,14 +45,18 @@ export function SessionHeader({
         </p>
       </div>
       {nav === undefined ? null : (
-        <nav aria-label="Session" className="border-border inline-flex rounded-md border p-0.5">
-          <SessionLink
-            label="Qualifying"
-            link={nav.qualifying}
-            current={session === "qualifying"}
-          />
-          <SessionLink label="Race" link={nav.race} current={session === "race"} />
-        </nav>
+        <TabLinks
+          label="Session"
+          tabs={[
+            {
+              key: "qualifying",
+              label: "Qualifying",
+              current: session === "qualifying",
+              link: nav.qualifying,
+            },
+            { key: "race", label: "Race", current: session === "race", link: nav.race },
+          ]}
+        />
       )}
     </header>
   );
@@ -100,7 +66,7 @@ export function SessionHeader({
 function RoundStep({ step, direction }: { step: RoundLink; direction: "previous" | "next" }) {
   const text = direction === "previous" ? `‹ ${step.label}` : `${step.label} ›`;
   return step.link === null ? (
-    <span aria-disabled="true" className="text-muted-foreground text-sm opacity-55">
+    <span aria-disabled="true" className="text-subtle text-sm">
       {step.label} (not yet) ›
     </span>
   ) : (

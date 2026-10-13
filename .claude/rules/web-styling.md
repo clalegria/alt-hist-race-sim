@@ -5,6 +5,9 @@ paths:
   - "apps/web/src/lib/theme.ts"
   - "apps/web/src/theme.test.ts"
   - "apps/web/src/components/ThemeToggle.tsx"
+  - "apps/web/src/components/ui/button.tsx"
+  - "apps/web/src/components/ui/segmented.tsx"
+  - "apps/web/src/components/TabLinks.tsx"
 ---
 
 # Type, palette and theme
@@ -33,6 +36,9 @@ reasoning is its comment in `index.css`.
   carry `--color-card-header`.
 - **Never fade text with an opacity modifier**: alpha composites in gamma space and lands
   far below the contrast it appears to have. Use `--color-subtle`. Opacity on fills is fine.
+  A disabled control reads `text-subtle` and drops its fill.
+- **Every segmented control wears `ui/segmented.tsx`**: `Segmented` for choices, its
+  classes for the sort radios, `TabLinks` for places. Only tabs are in capitals.
 - **On dark, a panel is drawn by its border**: to make a surface read as raised, raise
   `border` before darkening `background`.
 - **Table stripes sit in `@layer components`** (`.striped`), so any `bg-*` on a row wins

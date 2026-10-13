@@ -1,5 +1,5 @@
 import type { SortOrder } from "../lib/sort.js";
-import { cn } from "../lib/utils.js";
+import { SEGMENTED_GROUP, segmentClass } from "./ui/segmented.js";
 
 /**
  * Which way a list is ordered, as a two-way switch.
@@ -36,18 +36,15 @@ export function SortToggle({
       <span aria-hidden="true" className="text-muted-foreground text-xs">
         Sort
       </span>
-      <span className="border-border inline-flex rounded-md border p-0.5">
+      <span className={SEGMENTED_GROUP}>
         {OPTIONS.map((option) => {
           const selected = option.order === order;
           return (
             <label
               key={option.order}
-              className={cn(
-                "cursor-pointer rounded px-2 py-1 text-xs font-medium transition",
-                "has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-2",
-                selected
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+              className={segmentClass(
+                selected ? "chosen" : "idle",
+                "has-[:focus-visible]:ring-ring cursor-pointer px-2 py-1 text-xs font-medium has-[:focus-visible]:ring-2",
               )}
             >
               <input

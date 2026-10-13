@@ -1,14 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "../lib/utils.js";
-
-/** One answer on a run setting's segmented control. */
-export interface Segment {
-  readonly key: string;
-  readonly label: string;
-  readonly selected: boolean;
-  /** Called only when an unselected segment is pressed. */
-  readonly onPick: () => void;
-}
+import { Segmented, type SegmentItem } from "./ui/segmented.js";
 
 /** A setting's name, at the head of its row; smaller for a sub-option. */
 function SettingName({ name, sub }: { name: string; sub: boolean }) {
@@ -32,8 +24,7 @@ const ROW =
  * what-if in the settings dialog shares, so each reads historical-versus-what-if
  * the same way. The historical answer is the first segment.
  *
- * A button group with `aria-pressed` rather than
- * radio inputs: each segment is an action that commits at once.
+ * The control is `Segmented`: each segment commits at once.
  *
  * `sub` is an option under another one (*Varies by up to* under *Random factor is added*), drawn smaller.
  */
@@ -43,45 +34,25 @@ export function SettingSegments({
   sub = false,
 }: {
   name: string;
-  segments: readonly Segment[];
+  segments: readonly SegmentItem[];
   sub?: boolean;
 }) {
   return (
     <div className={ROW}>
       <SettingName name={name} sub={sub} />
-      <fieldset
-        aria-label={name}
-        className="border-border inline-flex shrink-0 self-start rounded-md border p-0.5 disabled:opacity-50 sm:self-auto"
-      >
-        {segments.map((segment) => (
-          <button
-            key={segment.key}
-            type="button"
-            aria-pressed={segment.selected}
-            onClick={() => {
-              if (!segment.selected) {
-                segment.onPick();
-              }
-            }}
-            className={cn(
-              "focus-visible:ring-ring cursor-pointer rounded px-2.5 text-xs font-medium transition focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed",
-              sub ? "h-7" : "h-8",
-              segment.selected
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground enabled:hover:text-foreground",
-            )}
-          >
-            {segment.label}
-          </button>
-        ))}
-      </fieldset>
+      <Segmented
+        label={name}
+        items={segments}
+        className="shrink-0 self-start sm:self-auto"
+        segment={cn("px-2.5 text-xs font-medium", sub ? "h-7" : "h-8")}
+      />
     </div>
   );
 }
 
 /** The class a setting's native `select` uses, so every picker looks alike. */
 export const SETTING_SELECT_CLASS =
-  "border-border bg-background focus-visible:ring-ring min-w-0 cursor-pointer rounded border px-1.5 py-1 text-xs focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-xs";
+  "border-border bg-background focus-visible:ring-ring min-w-0 cursor-pointer rounded border px-1.5 py-1 text-xs focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-subtle sm:max-w-xs";
 
 /**
  * A run setting answered from a list — a year, a points table — as one native

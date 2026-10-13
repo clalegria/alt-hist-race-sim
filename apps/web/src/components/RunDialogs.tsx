@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { type JumpPoint, jumpPlace, jumpTarget, jumpYears } from "../lib/run-bar.js";
 import { comparePlaces, type Place } from "../lib/timeline.js";
-import { cn } from "../lib/utils.js";
 import { cursorPlace, type Run } from "../store/season.js";
 import {
   AlertDialog,
@@ -12,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog.js";
 import { Button } from "./ui/button.js";
+import { Segmented } from "./ui/segmented.js";
 import { YearPicker } from "./YearPicker.js";
 
 /**
@@ -167,30 +167,26 @@ export function JumpDialog({
               describeYear={(year) => `Jump to ${year}`}
               playable={(year) => years.includes(year)}
             />
-            <fieldset className="flex flex-wrap items-center gap-2">
-              <legend className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
+            <div className="flex flex-col gap-2">
+              <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 Stop at
-              </legend>
-              {POINTS.map(({ point, label }) => {
-                // The start of a year already begun is behind the run.
-                const ahead = comparePlaces(jumpPlace(target.year, point), cursor) > 0;
-                const pressed = target.beat.kind === (point === "start" ? "grid" : "summary");
-                return (
-                  <Button
-                    key={point}
-                    variant="outline"
-                    aria-pressed={pressed}
-                    disabled={!ahead}
-                    className={cn(pressed && "bg-primary text-primary-foreground border-primary")}
-                    onClick={() => {
-                      setChosen((current) => ({ ...current, point }));
-                    }}
-                  >
-                    {label}
-                  </Button>
-                );
-              })}
-            </fieldset>
+              </span>
+              <Segmented
+                label="Stop at"
+                className="self-start"
+                segment="h-9 px-4 text-sm font-medium"
+                items={POINTS.map(({ point, label }) => ({
+                  key: point,
+                  label,
+                  selected: target.beat.kind === (point === "start" ? "grid" : "summary"),
+                  // The start of a year already begun is behind the run.
+                  disabled: comparePlaces(jumpPlace(target.year, point), cursor) <= 0,
+                  onPick: () => {
+                    setChosen((current) => ({ ...current, point }));
+                  },
+                }))}
+              />
+            </div>
           </>
         )}
         <AlertDialogFooter>

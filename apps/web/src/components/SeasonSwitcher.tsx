@@ -43,7 +43,7 @@ export function SeasonSwitcher({
       {previous === null ? null : (
         <Button
           variant="outline"
-          className="h-8 px-3 text-xs"
+          size="sm"
           aria-label={`Simulate the ${previous} season instead`}
           onClick={() => {
             onSwitch?.(previous);
@@ -55,7 +55,7 @@ export function SeasonSwitcher({
       {next === null ? null : (
         <Button
           variant="outline"
-          className="h-8 px-3 text-xs"
+          size="sm"
           aria-label={`Simulate the ${next} season instead`}
           onClick={() => {
             onSwitch?.(next);

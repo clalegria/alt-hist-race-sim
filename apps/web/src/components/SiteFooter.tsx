@@ -25,7 +25,7 @@ function Pending({ label }: { label: string }) {
       type="button"
       disabled
       title="Not available yet"
-      className="cursor-not-allowed underline decoration-dotted underline-offset-2 opacity-60"
+      className="text-subtle cursor-not-allowed underline decoration-dotted underline-offset-2"
     >
       {label}
     </button>

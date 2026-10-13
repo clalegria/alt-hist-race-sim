@@ -47,7 +47,7 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
                 type="button"
                 disabled
                 title="Not available yet"
-                className="text-muted-foreground cursor-not-allowed text-sm opacity-55"
+                className="text-subtle cursor-not-allowed text-sm"
               >
                 {area.label}
               </button>

@@ -23,7 +23,7 @@ function ModeCard({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => vo
         "bg-card border-border focus-visible:ring-ring flex flex-col items-start gap-2 rounded-xl border p-5 text-left shadow-sm transition focus-visible:ring-2 focus-visible:outline-none",
         mode.available
           ? "hover:border-primary/50 hover:bg-accent cursor-pointer"
-          : "cursor-not-allowed opacity-55",
+          : "text-subtle cursor-not-allowed",
       )}
     >
       <span className="flex w-full items-center justify-between gap-3">
@@ -34,7 +34,7 @@ function ModeCard({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => vo
           </span>
         )}
       </span>
-      <span className="text-muted-foreground text-sm">{mode.blurb}</span>
+      <span className={cn("text-sm", mode.available && "text-muted-foreground")}>{mode.blurb}</span>
     </button>
   );
 }

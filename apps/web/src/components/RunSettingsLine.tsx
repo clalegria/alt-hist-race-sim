@@ -67,7 +67,7 @@ export function RunSettingsLine({
         {extra}
         <Button
           variant="outline"
-          className="h-8 gap-1.5 px-3 text-xs"
+          size="sm"
           aria-label="Run settings"
           aria-haspopup="dialog"
           {...(lock === null ? {} : { title: lock })}

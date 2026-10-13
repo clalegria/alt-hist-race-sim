@@ -226,15 +226,6 @@ Visual consistency. The first three settle how a name is drawn, which later item
   - The race page says "Wet 72%"; the calendar says "72%".
   - Fix: one form everywhere, and say what the percentage means in fan words.
   - Screenshot steps: `race`, `season-calendar`.
-- **`disabled-treatment`** (PROPOSED)
-  - Disabled or "not yet" items are faded three ways:
-    - `opacity-55`: `TopNav.tsx:~50`, `MainMenu.tsx:~26`, `SessionNav.tsx:~33,112`
-    - `opacity-60`: `SiteFooter.tsx:~28`, `RunSettingsDialog.tsx:~224`
-    - `opacity-50`: `SettingSegments.tsx:~54`
-  - `web-styling.md` forbids fading text with opacity.
-  - In the Jump dialog's year picker, the unreachable years look plain white and *more* clickable than the reachable, tinted ones.
-  - Fix: one treatment on `text-subtle`, used everywhere.
-  - Screenshot steps: `era-jump`, `menu`.
 - **`rating-chip-accent`** (OPEN)
   - The overall chip turns teal at 85 and above (`SeasonGrid.tsx:~224`, also the reserve pool at `ReserveList.tsx:~246`), so a grid shows a dozen teal chips.
   - The accent is reserved for "won the thing on screen" (`lib/highlight.ts`). The open-seats notice's `border-primary/50 bg-primary/5` (`SeasonGrid.tsx:~744`) is the same clash.
@@ -243,8 +234,6 @@ Visual consistency. The first three settle how a name is drawn, which later item
   - Screenshot step: `grid`.
 - **`link-focus-ring`** (PROPOSED)
   - Buttons show a `focus-visible` ring, but these links rely on the browser default:
-    - the season tabs (`SeasonOverview.tsx:~163`)
-    - the session switch (`SessionNav.tsx:~44`)
     - breadcrumbs
     - the roster's sort headings (`RosterIndex.tsx:~58`)
   - Fix: the same ring as buttons.
@@ -256,11 +245,10 @@ Visual consistency. The first three settle how a name is drawn, which later item
     | Uppercase label | 7 variants of tracking, colour and weight (`MainMenu.tsx:~53`, `ResumeRun.tsx:~38`, `QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
     | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
     | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
-    | Small button, `h-8 gap-1.5 px-3 text-xs` | 4 files |
     | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |
 
   - Arbitrary text sizes: `text-[0.5rem]`, `text-[0.6875rem]`, `text-[0.65rem]`.
-  - Fix: `Eyebrow`, `Notice`, a Button `size="sm"` and a `link` variant; use `Card` for the shells.
+  - Fix: `Eyebrow`, `Notice` and a Button `link` variant; use `Card` for the shells.
 
 ## 5. Words
 
@@ -338,13 +326,6 @@ No visible change.
 - **`yes-no-setting`** (PROPOSED)
   - `EngineSuppliersSetting`, `LiveriesSetting`, `TeamNamesSetting` and `CareerEventsSetting` are the same component, differing in name, key and note.
   - Fix: one `YesNoSetting` driven by a table, in the shape `settings-answer-polarity` settled.
-- **`segmented-controls`** (PROPOSED)
-  - Four near-copies of a segmented control:
-    - `SettingSegments` (aria-pressed)
-    - `SortToggle` (radios)
-    - the season tabs (`SeasonOverview.tsx:~147`) and the session switch (`SessionNav.tsx:~10`), which define the same class string twice
-    - `YearPicker`
-  - Fix: one `Segmented` for choices and one `TabLinks` for navigation.
 - **`expandable-row`** (OPEN)
   - The expanded-row markup is pasted four times.
   - The behaviour differs: one row open at a time in the standings, calendar and roll of honour (`StandingsTable.tsx:~91`, `SeasonCalendar.tsx:~225`, `EraChampions.tsx:~184`); many at once in careers and records (`PersonPages.tsx:~131`, `CareerStatistics.tsx:~247`).

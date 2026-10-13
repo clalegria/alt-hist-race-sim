@@ -7,7 +7,6 @@ import {
   trendChanges,
 } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
-import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { keptNotes } from "../lib/kept.js";
@@ -27,6 +26,7 @@ import { SeasonGrid } from "./SeasonGrid.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
+import { TabLinks } from "./TabLinks.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamCar } from "./TeamCar.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
@@ -146,39 +146,20 @@ function Champions({ world }: { world: RevealedWorld }) {
 
 /**
  * The tabs, as links: a tab is a place in the address bar (`?tab=`), so Back
- * moves between them and one can be opened in a new tab. The one on screen is
- * not a link. `exact` keeps the standings link, whose search is empty, from
- * counting as active on every tab — TanStack otherwise matches search as a
- * subset.
+ * moves between them and one can be opened in a new tab.
  */
 function SeasonTabs({ tabs }: { tabs: readonly SeasonTabLink[] }) {
-  const style = "rounded px-3 py-1.5 text-sm font-medium transition";
   return (
-    <nav
-      aria-label="Season"
-      className="border-border inline-flex self-start rounded-md border p-0.5"
-    >
-      {tabs.map((tab) =>
-        tab.current ? (
-          <span
-            key={tab.tab}
-            aria-current="page"
-            className={cn(style, "bg-primary text-primary-foreground")}
-          >
-            {tab.label}
-          </span>
-        ) : (
-          <Link
-            key={tab.tab}
-            {...tab.link}
-            activeOptions={{ exact: true }}
-            className={cn(style, "text-muted-foreground hover:text-foreground")}
-          >
-            {tab.label}
-          </Link>
-        ),
-      )}
-    </nav>
+    <TabLinks
+      label="Season"
+      className="self-start"
+      tabs={tabs.map((tab) => ({
+        key: tab.tab,
+        label: tab.label,
+        current: tab.current,
+        link: tab.link,
+      }))}
+    />
   );
 }
 

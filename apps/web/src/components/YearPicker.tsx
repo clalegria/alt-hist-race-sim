@@ -1,6 +1,14 @@
 import { decadeOf, isPlayable, SEASON_DECADES, yearsInDecade } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Segmented } from "./ui/segmented.js";
+
+/**
+ * Each grid is one bordered group: a 1px gap with every cell ringed in the
+ * border colour, so neighbouring rings meet in the gap as a single line.
+ */
+const GRID = "grid grid-cols-4 gap-px border-0 p-px sm:grid-cols-8";
+const CELL = "ring-border text-sm font-medium tabular-nums ring-1";
 
 /**
  * Which year to run, in two steps: a rail of decades, then the years in one.
@@ -21,6 +29,10 @@ import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
  *
  * The single-value shape is also what makes every state render without a click,
  * which is the level this app is tested at.
+ *
+ * `aria-pressed` buttons rather than a radio group: they act on the rest of the
+ * screen the moment they are pressed, and a screen reader is better told
+ * "1980s, pressed" than walked through a seventy-seven-strong radio group.
  */
 export function YearPicker({
   year,
@@ -59,80 +71,52 @@ export function YearPicker({
       </CardHeader>
 
       <div className="flex flex-col gap-4 px-5 py-4">
-        {/*
-          `aria-pressed` rather than a radio group: these are buttons that act
-          on the rest of the screen the moment they are pressed, and a screen
-          reader is better told "1980s, pressed" than walked through a
-          seventy-seven-strong radio group to find the same thing.
-        */}
         <div className="flex flex-col gap-1.5">
           <span className="text-subtle text-xs font-medium tracking-wide uppercase">Decade</span>
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-            {SEASON_DECADES.map((each) => {
+          <Segmented
+            label="Decade"
+            className={GRID}
+            segment={cn(CELL, "h-9")}
+            items={SEASON_DECADES.map((each) => {
               const opens = opener(each);
-              const open = each === decade;
-              return (
-                <button
-                  key={each}
-                  type="button"
-                  disabled={opens === null}
-                  aria-pressed={open}
-                  aria-label={
-                    opens === null ? `The ${each}s are not available yet` : `The ${each}s`
+              return {
+                key: String(each),
+                label: `${each}s`,
+                ariaLabel: opens === null ? `The ${each}s are not available yet` : `The ${each}s`,
+                selected: each === decade,
+                disabled: opens === null,
+                onPick: () => {
+                  if (opens !== null) {
+                    onSelect?.(opens);
                   }
-                  onClick={() => {
-                    if (opens !== null) {
-                      onSelect?.(opens);
-                    }
-                  }}
-                  className={cn(
-                    "focus-visible:ring-ring h-9 rounded-md border text-sm font-medium tabular-nums transition focus-visible:ring-2 focus-visible:outline-none",
-                    opens === null
-                      ? "border-border text-subtle cursor-not-allowed"
-                      : open
-                        ? "border-primary bg-primary text-primary-foreground cursor-pointer"
-                        : "border-border hover:bg-accent cursor-pointer",
-                  )}
-                >
-                  {each}s
-                </button>
-              );
+                },
+              };
             })}
-          </div>
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <span className="text-subtle text-xs font-medium tracking-wide uppercase">
             Season in the {decade}s
           </span>
-          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-            {yearsInDecade(decade).map((each) => {
+          <Segmented
+            label={`Season in the ${decade}s`}
+            className={cn(GRID, "grid-cols-5 sm:grid-cols-10")}
+            segment={cn(CELL, "h-11")}
+            items={yearsInDecade(decade).map((each) => {
               const runnable = playable(each);
-              const chosen = each === year;
-              return (
-                <button
-                  key={each}
-                  type="button"
-                  disabled={!runnable}
-                  aria-pressed={chosen}
-                  aria-label={runnable ? describeYear(each) : `${each} is not available yet`}
-                  onClick={() => {
-                    onSelect?.(each);
-                  }}
-                  className={cn(
-                    "focus-visible:ring-ring h-11 rounded-md border text-sm font-medium tabular-nums transition focus-visible:ring-2 focus-visible:outline-none",
-                    !runnable
-                      ? "border-border text-subtle cursor-not-allowed"
-                      : chosen
-                        ? "border-primary bg-primary text-primary-foreground cursor-pointer"
-                        : "border-primary/50 bg-primary/10 text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer",
-                  )}
-                >
-                  {each}
-                </button>
-              );
+              return {
+                key: String(each),
+                label: String(each),
+                ariaLabel: runnable ? describeYear(each) : `${each} is not available yet`,
+                selected: each === year,
+                disabled: !runnable,
+                onPick: () => {
+                  onSelect?.(each);
+                },
+              };
             })}
-          </div>
+          />
         </div>
       </div>
     </Card>

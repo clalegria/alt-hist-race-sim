@@ -36,7 +36,7 @@ function buttons(html: string): string[] {
 
 /**
  * Whether a button is actually disabled — the rendered attribute, not the word.
- * Several of these carry `disabled:opacity-50` in their class list and are
+ * Several of these carry `disabled:text-subtle` in their class list and are
  * perfectly clickable.
  */
 function isDisabled(button: string): boolean {

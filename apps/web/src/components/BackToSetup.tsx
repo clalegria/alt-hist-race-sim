@@ -23,7 +23,7 @@ export function BackToSetup({
     <span className="inline-flex" {...(lock === null ? {} : { title: lock })}>
       <Button
         variant="outline"
-        className="h-8 gap-1.5 px-3 text-xs"
+        size="sm"
         disabled={lock !== null}
         onClick={() => {
           onBack?.();

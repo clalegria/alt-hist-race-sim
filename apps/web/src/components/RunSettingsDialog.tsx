@@ -256,7 +256,7 @@ export function RunSettingsFields({
           {lock}
         </p>
       )}
-      <fieldset disabled={lock !== null} className="m-0 min-w-0 border-0 p-0 disabled:opacity-60">
+      <fieldset disabled={lock !== null} className="m-0 min-w-0 border-0 p-0 disabled:text-subtle">
         <RunSettingsForm {...form} />
       </fieldset>
     </>

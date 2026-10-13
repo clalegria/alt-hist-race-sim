@@ -60,21 +60,13 @@ and components; the palette is already in `index.css`.
     advanced one to "Era · advanced".
   - This is the "Era mode" row of `one-name-per-thing` in `ui-review.md`.
 - **`ui-review-overlap`** (PROPOSED)
-  - The makeover redraws what some `ui-review.md` items are about: `disabled-treatment`,
-    `ui-primitives`, `segmented-controls`, `page-heading`, `link-focus-ring`,
-    `run-menu-destructive`, `top-nav-wrap` and `classification-sideways-scroll`.
+  - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
+    `page-heading`, `link-focus-ring`, `run-menu-destructive`, `top-nav-wrap` and
+    `classification-sideways-scroll`.
   - Fold each into the step that touches its files, and delete it from `ui-review.md` when
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 4. `makeover-controls`
-- `ui/button.tsx`: square, narrow capitals, the primary filled with the accent.
-- Every segmented control becomes one bordered group with the chosen segment filled:
-  `SessionNav`, the season tabs in `SeasonOverview`, `SettingSegments`, `SortToggle` and
-  `YearPicker`. This takes in `segmented-controls` from `ui-review.md` if it is kept.
-- Disabled means `text-subtle`, never opacity (`disabled-treatment`).
-- Screenshots: `race`, `season-setup`, `grid`.
 
 ### 5. `makeover-names`
 - `DriverName` in tables and the race sidebar: first name regular, SURNAME in bold narrow
