@@ -20,6 +20,6 @@ each run) for Claude to Read. How it works is in the headers of `src/main.ts`,
 - **A step is reached from the one before it**, by role and visible text, never a CSS
   class: the styling is what the pictures check.
 - A page error, a console error or Vite's error overlay fails the run.
-- **Reading the pictures**: the checkerboard stops one viewport down in a full-page shot
-  (a fixed layer, painted once), which is not a bug; Read shrinks a tall PNG, so a long
+- **Reading the pictures**: the chequer sash crosses only the first viewport of a
+  full-page shot (a fixed layer, painted once), which is not a bug; Read shrinks a tall PNG, so a long
   page loses fine detail.

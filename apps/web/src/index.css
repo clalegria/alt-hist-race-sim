@@ -318,41 +318,41 @@ th {
 }
 
 /*
- * The background texture: a checkerboard of large squares, with a second
- * checkerboard of small ones laid over it.
+ * The chequer sash: a checkerboard of large squares with a second of small ones
+ * laid over it, masked to one diagonal band across the window.
  *
  * Two stacked `repeating-conic-gradient`s, each drawing a checkerboard by
  * alternating quadrants of a tile. Stacking them gives four tone levels rather
- * than two — big-off/small-off, big-off/small-on, big-on/small-off,
- * big-on/small-on — which is what makes the small grid read as sitting *inside*
- * the large one instead of as a separate texture floating over it. The two
- * periods are deliberately commensurate (the major tile is six minor squares
- * across), so the small grid never drifts across a large square's edge.
+ * than two, which is what makes the small grid read as sitting *inside* the
+ * large one. The periods are commensurate (six minor squares to a major), so
+ * the small grid never drifts across a large square's edge.
  *
- * The tints are the whole difficulty. They have to survive on the flattest
- * surface in the app and still never be the thing you notice, so they sit at
- * 1-4% alpha — below the point where a tone step reads as an edge, above the
- * point where 8-bit rounding erases it. Light runs stronger than dark, so the
- * pattern still shows on a washed-out screen such as a TV. White on dark,
- * black on light: the texture always lifts *away* from the background rather
- * than darkening it, which keeps it from looking like dirt on the light theme.
+ * The band runs at the livery badge's angle (`ANGLE` in `TeamBadge.tsx`), so
+ * the page's chequer and every badge's stripe lie the same way. A gradient mask
+ * fades the layer's paint by the mask's alpha without touching its colours:
+ * solid through the middle, gone at both edges.
  *
- * It is painted on a fixed pseudo-element at `z-index: -1` rather than on
- * `body` itself: fixed means the texture stays put while a long classification
- * scrolls over it (a scrolling backdrop turns a subtle pattern into a
- * distraction), and the negative index puts it above the page's background
- * colour and below every scrap of content without touching any component.
+ * The tints sit at a few percent alpha: below the point where a tone step reads
+ * as an edge, above the point where 8-bit rounding erases it, and a touch
+ * stronger than a whole-page texture would need, since the band fades out.
+ * Light runs stronger than dark, so it still shows on a washed-out screen.
+ * White on dark, black on light: it always lifts *away* from the background,
+ * which keeps it from looking like dirt on the light theme.
+ *
+ * A fixed pseudo-element at `z-index: -1` rather than `body`'s own background:
+ * fixed holds it still while a long classification scrolls over it, and the
+ * negative index puts it above the page's colour and below all content.
  */
 :root {
   --pattern-major: 120px;
   --pattern-minor: 20px;
-  --pattern-major-tint: oklch(100% 0 0 / 0.022);
-  --pattern-minor-tint: oklch(100% 0 0 / 0.013);
+  --pattern-major-tint: oklch(100% 0 0 / 0.032);
+  --pattern-minor-tint: oklch(100% 0 0 / 0.019);
 }
 
 :root[data-theme="light"] {
-  --pattern-major-tint: oklch(0% 0 0 / 0.042);
-  --pattern-minor-tint: oklch(0% 0 0 / 0.026);
+  --pattern-major-tint: oklch(0% 0 0 / 0.052);
+  --pattern-minor-tint: oklch(0% 0 0 / 0.032);
 }
 
 body::before {
@@ -367,4 +367,7 @@ body::before {
   background-size:
     calc(var(--pattern-minor) * 2) calc(var(--pattern-minor) * 2),
     calc(var(--pattern-major) * 2) calc(var(--pattern-major) * 2);
+  --sash: linear-gradient(135deg, transparent 30%, #000 44%, #000 56%, transparent 70%);
+  -webkit-mask-image: var(--sash);
+  mask-image: var(--sash);
 }

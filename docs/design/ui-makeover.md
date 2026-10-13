@@ -68,14 +68,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 2. `makeover-sash`
-- Mask `body::before`'s texture to one diagonal band at the badge's 135°, in both themes.
-  It stays fixed while the page scrolls, as now.
-- PROPOSED: tints a little stronger than today's, since the band fades out (the mockup's
-  `--chq-*`).
-- The parade's behind-the-page layer must still paint over the texture (`web-team-car.md`).
-- Screenshots: `menu`, `race`, in both themes.
-
 ### 3. `makeover-panels-and-tables`
 - `ui/card.tsx` and `ui/table.tsx`:
   - square panels drawn by their border, with the header band kept;

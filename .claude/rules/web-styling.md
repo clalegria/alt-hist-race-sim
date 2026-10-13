@@ -46,4 +46,5 @@ reasoning is its comment in `index.css`.
   `--color-home`), and is always paired with a glyph or tooltip, never colour alone.
 - **The pattern tints are not `--color-` tokens**: they stay on plain `:root`, outside
   `@theme`, so no component can reach for them as `bg-*`.
+- **The chequer sash's angle is the badge's** (`ANGLE` in `TeamBadge.tsx`): change both.
 - **Biome parses `@theme` only with `css.parser.tailwindDirectives`**, on in `biome.json`.
