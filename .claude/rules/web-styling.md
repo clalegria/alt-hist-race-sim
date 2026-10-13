@@ -35,6 +35,8 @@ reasoning is its comment in `index.css`.
   far below the contrast it appears to have. Use `--color-subtle`. Opacity on fills is fine.
 - **On dark, a panel is drawn by its border**: to make a surface read as raised, raise
   `border` before darkening `background`.
+- **Table stripes sit in `@layer components`** (`.striped`), so any `bg-*` on a row wins
+  over them. Never move them to an `even:` utility, which beats a row's own fill.
 - **Dark is the default, in plain `@theme`; light overrides the variables on
   `:root[data-theme="light"]`. Never nest a `@theme`**: Tailwind hoists it and drops its
   selector, pinning the app to whichever palette comes last.

@@ -5,7 +5,7 @@ export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
     <section
       className={cn(
-        "bg-card text-card-foreground border-border overflow-hidden rounded-xl border shadow-sm",
+        "bg-card text-card-foreground border-border overflow-hidden rounded-xl border",
         className,
       )}
       {...props}
@@ -26,7 +26,7 @@ export function CardHeader({ className, ...props }: ComponentProps<"header">) {
 }
 
 export function CardTitle({ className, ...props }: ComponentProps<"h2">) {
-  return <h2 className={cn("text-base font-semibold tracking-tight", className)} {...props} />;
+  return <h2 className={cn("narrow text-lg font-extrabold uppercase", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {

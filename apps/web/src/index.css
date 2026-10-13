@@ -50,6 +50,12 @@
    * alternating row.
    */
   --color-subtle: oklch(64% 0.014 250);
+  /*
+   * Every other row of a table, a step above `card`: a timing screen's
+   * alternating lines. Drawn by the `.striped` rule below, never as a `bg-*`.
+   * `subtle` holds 4.7:1 on it, the primary 7.1:1.
+   */
+  --color-row-alt: oklch(25.5% 0.014 250);
   --color-border: oklch(33% 0.015 250);
   --color-input: oklch(33% 0.015 250);
   /*
@@ -212,6 +218,8 @@
   --color-muted-foreground: oklch(44% 0.015 250);
   /* Darker than it would need on white alone: 4.7:1 on the grey header, 5.9:1 on the card. */
   --color-subtle: oklch(50% 0.014 250);
+  /* `subtle` 5.5:1 on it, the primary 5.5:1. */
+  --color-row-alt: oklch(97.2% 0.004 250);
   --color-border: oklch(87% 0.008 250);
   --color-input: oklch(87% 0.008 250);
   --color-badge-line: oklch(70% 0.01 250 / 0.7);
@@ -312,9 +320,18 @@ body {
     center / contain no-repeat;
 }
 
-/* Small uppercase labels need air to stay readable at this size. */
-th {
-  letter-spacing: 0.06em;
+/*
+ * A table's alternating rows (`TableBody`). In the components layer, which
+ * Tailwind declares before utilities: a later layer wins whatever the
+ * specificity, so any `bg-*` on a row (the accent, an opened row, hover) paints
+ * over the stripe. An `even:bg-*` utility would do the reverse on even rows.
+ * An opened row's expansion (`TableExpansion`) is skipped, so opening one does
+ * not flip the stripes of every row below it.
+ */
+@layer components {
+  .striped > tr:nth-child(even of :not([data-expansion])) {
+    background-color: var(--color-row-alt);
+  }
 }
 
 /*

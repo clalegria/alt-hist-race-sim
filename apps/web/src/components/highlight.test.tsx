@@ -11,7 +11,13 @@
 import { championshipStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { PODIUM_ROW, STANDOUT_ROW, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
+import {
+  PODIUM_POSITION,
+  STANDOUT_POSITION,
+  STANDOUT_ROW,
+  STANDOUT_SURFACE,
+  STANDOUT_TEXT,
+} from "../lib/highlight.js";
 import { driverRounds } from "../lib/results.js";
 import type { World } from "../store/season.js";
 import { findWorld, SEED, seededWorld, shownAt } from "../test-support.js";
@@ -34,6 +40,20 @@ function occurrences(html: string, marker: string): number {
   return html.split(marker).length - 1;
 }
 
+/** Every body row on the page: the rows with cells rather than column heads. */
+function bodyRows(html: string): string[] {
+  return html
+    .split("<tr")
+    .slice(1)
+    .filter((row) => row.includes("<td"));
+}
+
+/** A row's first cell, the position block, open tag to close. */
+function positionCell(row: string): string {
+  const start = row.indexOf("<td");
+  return row.slice(start, row.indexOf("</td>", start));
+}
+
 describe("the standout accent", () => {
   it("marks pole, and nobody else on the grid", () => {
     const html = renderToStaticMarkup(<QualifyingResults race={race} />);
@@ -42,38 +62,39 @@ describe("the standout accent", () => {
 
   it("marks the race winner, and nobody else in the classification", () => {
     const html = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />);
-    expect(occurrences(html, STANDOUT_ROW)).toBe(1);
-    // The winner's row, not the fastest qualifier's.
-    const winnerRow = html.split("<tr").find((row) => row.includes(STANDOUT_ROW));
+    expect(occurrences(html, STANDOUT_POSITION)).toBe(1);
+    // On the winner's position block, not the fastest qualifier's, and no row
+    // carries a tint as well: the block is the whole accent.
+    const winnerRow = bodyRows(html).find((row) => row.includes(STANDOUT_POSITION));
     expect(winnerRow).toContain("winner");
+    expect(positionCell(winnerRow ?? "")).toContain(STANDOUT_POSITION);
+    expect(html).not.toContain(STANDOUT_ROW);
   });
 
   it("marks the rest of the podium a step below the winner, and stops at third", () => {
-    // Rows in classification order, past the prefix and the header row: the
-    // winner, then second, third, fourth.
-    const rows = renderToStaticMarkup(<RaceClassification race={race} points={world.points} />)
-      .split("<tr")
-      .slice(2);
-    const [first, second, third, fourth] = rows;
-    if (fourth === undefined) {
+    // Position blocks in classification order: the winner, then second, third,
+    // fourth and the rest, retirements included.
+    const cells = bodyRows(
+      renderToStaticMarkup(<RaceClassification race={race} points={world.points} />),
+    ).map(positionCell);
+    const [first, second, third, ...rest] = cells;
+    if (first === undefined || second === undefined || third === undefined || rest.length === 0) {
       throw new Error("the race classified fewer than four cars");
     }
 
-    // The two accents are separate strings, so neither can be mistaken for the
-    // other by a substring match.
-    expect(PODIUM_ROW).not.toContain(STANDOUT_ROW);
-    expect(STANDOUT_ROW).not.toContain(PODIUM_ROW);
+    // The winner's fill contains the podium's text colour, so a podium block is
+    // one with the podium's string and without the winner's.
+    expect(PODIUM_POSITION).not.toContain(STANDOUT_POSITION);
+    expect(STANDOUT_POSITION).toContain(PODIUM_POSITION);
 
-    expect(first).toContain(STANDOUT_ROW);
-    expect(first).not.toContain(PODIUM_ROW);
-    for (const row of [second, third]) {
-      expect(row).toContain(PODIUM_ROW);
-      expect(row).not.toContain(STANDOUT_ROW);
+    expect(first).toContain(STANDOUT_POSITION);
+    for (const cell of [second, third]) {
+      expect(cell).toContain(PODIUM_POSITION);
+      expect(cell).not.toContain(STANDOUT_POSITION);
     }
-    expect(fourth).not.toContain(PODIUM_ROW);
-    expect(fourth).not.toContain(STANDOUT_ROW);
-    // And nowhere else down the sheet, retirements included.
-    expect(occurrences(rows.join("<tr"), PODIUM_ROW)).toBe(2);
+    for (const cell of rest) {
+      expect(cell).not.toContain(PODIUM_POSITION);
+    }
   });
 
   it("keeps the podium off every other view", () => {
@@ -81,8 +102,12 @@ describe("the standout accent", () => {
     // all — borrowing the mark there would say something the sim never claimed.
     const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
     const summary = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
-    for (const html of [quali, summary]) {
-      expect(html).not.toContain(PODIUM_ROW);
+    expect(quali).not.toContain(STANDOUT_POSITION);
+    // The summary spends its accent on the champions' cards, not the tables.
+    const blocks = bodyRows(summary).map(positionCell);
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const cell of blocks) {
+      expect(cell).not.toContain(PODIUM_POSITION);
     }
   });
 
@@ -104,8 +129,9 @@ describe("the standout accent", () => {
     const rounds = driverRounds(won.season, won.points, driverId);
 
     const html = renderToStaticMarkup(<RaceByRace rounds={rounds} calendar={SEED.calendar} />);
-    // `STANDOUT_TEXT` is a substring of `PODIUM_TEXT`, so its absence covers both.
-    for (const accent of [STANDOUT_ROW, PODIUM_ROW, STANDOUT_TEXT]) {
+    // `STANDOUT_TEXT` is the podium's string and a substring of the winner's
+    // block, so its absence covers all three.
+    for (const accent of [STANDOUT_ROW, STANDOUT_TEXT]) {
       expect(html, accent).not.toContain(accent);
     }
   });
@@ -130,7 +156,8 @@ describe("the standout accent", () => {
     expect(STANDOUT_SURFACE).toContain("primary");
     expect(STANDOUT_ROW).toContain("primary");
     expect(STANDOUT_TEXT).toContain("primary");
-    expect(PODIUM_ROW).toContain("primary");
+    expect(STANDOUT_POSITION).toContain("primary");
+    expect(PODIUM_POSITION).toContain("primary");
 
     const quali = renderToStaticMarkup(<QualifyingResults race={race} />);
     const summary = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);

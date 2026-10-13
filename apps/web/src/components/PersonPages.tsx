@@ -40,7 +40,15 @@ import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableExpansion,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table.js";
 
 /** The run's years with the walks every page here reads, made once per render of the page. */
 function useCareers(years: readonly RevealedWorld[]) {
@@ -226,23 +234,19 @@ export function CareerSeasons({
                     )}
                   </TableRow>
                   {isOpen ? (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell colSpan={columns} className="p-0">
-                        <div className="bg-muted/40 border-border border-y px-3 py-3">
-                          <RaceByRace
-                            rounds={each.rounds}
-                            calendar={seasonSeed(each.year).calendar}
-                            year={each.year}
-                            showDriver={teams}
-                          />
-                          {toCome > 0 ? (
-                            <p className="text-muted-foreground px-3 pt-2 text-xs">
-                              {count(toCome, "round", "rounds")} to come
-                            </p>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <TableExpansion colSpan={columns}>
+                      <RaceByRace
+                        rounds={each.rounds}
+                        calendar={seasonSeed(each.year).calendar}
+                        year={each.year}
+                        showDriver={teams}
+                      />
+                      {toCome > 0 ? (
+                        <p className="text-muted-foreground px-3 pt-2 text-xs">
+                          {count(toCome, "round", "rounds")} to come
+                        </p>
+                      ) : null}
+                    </TableExpansion>
                   ) : null}
                 </EntryNames>
               </Liveries>

@@ -21,7 +21,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SeasonPage } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
-import { STANDOUT_ROW } from "./lib/highlight.js";
+import { STANDOUT_POSITION } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
 import type { SeasonTab } from "./lib/season-tabs.js";
@@ -477,17 +477,17 @@ describe("a settled championship", () => {
     };
 
     expect(championRow(render({ kind: "race", round: teamsClinch - 1 }, settled))).not.toContain(
-      STANDOUT_ROW,
+      STANDOUT_POSITION,
     );
     expect(championRow(render({ kind: "race", round: teamsClinch }, settled))).toContain(
-      STANDOUT_ROW,
+      STANDOUT_POSITION,
     );
     // And it stays, rather than marking only the round it happened on.
     expect(championRow(render({ kind: "race", round: teamsClinch + 1 }, settled))).toContain(
-      STANDOUT_ROW,
+      STANDOUT_POSITION,
     );
     expect(championRow(render({ kind: "race", round: rounds - 1 }, settled))).toContain(
-      STANDOUT_ROW,
+      STANDOUT_POSITION,
     );
   });
 

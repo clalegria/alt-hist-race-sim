@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
+import { STANDOUT_POSITION, STANDOUT_TEXT } from "../lib/highlight.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
@@ -7,7 +7,7 @@ import { DriverHistory, HISTORY_FILL, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableRow } from "./ui/table.js";
+import { Table, TableBody, TableCell, TablePosition, TableRow } from "./ui/table.js";
 
 /**
  * How many rows show before the table is expanded.
@@ -28,14 +28,14 @@ const COLLAPSED_ROWS = 8;
  */
 function Movement({ places }: { places: number | null }) {
   if (places === null || places === 0) {
-    return <span aria-hidden="true" className="inline-block w-2.5" />;
+    return <span aria-hidden="true" className="inline-block w-2.5 shrink-0" />;
   }
   const gained = places > 0;
   return (
     <span
       title={`${gained ? "Up" : "Down"} ${Math.abs(places)} ${Math.abs(places) === 1 ? "place" : "places"}`}
       className={cn(
-        "inline-block w-2.5 text-[0.5rem] leading-none",
+        "inline-block w-2.5 shrink-0 text-[0.5rem] leading-none",
         gained ? "text-gain" : "text-loss",
       )}
     >
@@ -88,22 +88,10 @@ export function CompactStandings({
             const moved = was === undefined ? null : was - (index + 1);
             const won = key === clinchedBy;
             return (
-              <TableRow key={key} className={cn(won && STANDOUT_ROW)}>
-                <TableCell className="w-12 py-1.5 pr-0 text-right">
-                  <span className="inline-flex items-center gap-1">
-                    <Movement places={moved} />
-                    <span
-                      className={cn(
-                        "tabular-nums",
-                        won && cn(STANDOUT_TEXT, "font-semibold"),
-                        won ||
-                          (index === 0 ? "text-foreground font-semibold" : "text-muted-foreground"),
-                      )}
-                    >
-                      {index + 1}
-                    </span>
-                  </span>
-                </TableCell>
+              <TableRow key={key}>
+                <TablePosition className={cn("w-8 min-w-8 py-1.5", won && STANDOUT_POSITION)}>
+                  {index + 1}
+                </TablePosition>
                 {/*
                  * `w-full max-w-0` is the only way a cell in an auto-layout
                  * table lets its contents truncate: the width claims the slack
@@ -111,22 +99,31 @@ export function CompactStandings({
                  * column being sized by the name inside it. Without the pair,
                  * "Lola-Coventry Climax" simply makes the table wider than the
                  * sidebar and the card grows a scrollbar.
+                 *
+                 * The movement arrow leads the name rather than sitting in the
+                 * block, where green or red on the champion's accent fill would
+                 * not read.
                  */}
-                <TableCell className="w-full max-w-0 py-1.5">
-                  {isDriverStanding(standing) ? (
-                    <DriverHistory driverId={standing.driverId} className={HISTORY_FILL}>
-                      <DriverName
-                        driverId={standing.driverId}
-                        teamId={standing.teamId}
-                        emphasis={index === 0}
-                        tight
-                      />
-                    </DriverHistory>
-                  ) : (
-                    <TeamHistory teamId={standing.teamId} className={HISTORY_FILL}>
-                      <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
-                    </TeamHistory>
-                  )}
+                <TableCell className="w-full max-w-0 py-1.5 pl-2">
+                  <span className="flex items-center gap-1.5">
+                    <Movement places={moved} />
+                    <span className="min-w-0 flex-1">
+                      {isDriverStanding(standing) ? (
+                        <DriverHistory driverId={standing.driverId} className={HISTORY_FILL}>
+                          <DriverName
+                            driverId={standing.driverId}
+                            teamId={standing.teamId}
+                            emphasis={index === 0}
+                            tight
+                          />
+                        </DriverHistory>
+                      ) : (
+                        <TeamHistory teamId={standing.teamId} className={HISTORY_FILL}>
+                          <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
+                        </TeamHistory>
+                      )}
+                    </span>
+                  </span>
                 </TableCell>
                 <TableCell
                   className={cn(

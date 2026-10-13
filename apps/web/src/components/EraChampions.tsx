@@ -17,7 +17,15 @@ import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableExpansion,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table.js";
 
 /** Season, then name-points-wins twice over — the width the panel spans. */
 const COLUMN_COUNT = 7;
@@ -113,26 +121,22 @@ export function ChampionRow({
           </TableCell>
         </TableRow>
         {open ? (
-          <TableRow className="hover:bg-transparent">
-            <TableCell colSpan={COLUMN_COUNT} className="p-0">
-              {/*
-                The same two tables the season summary ends on, drawn by the same
-                component — so a year read out of the roll of honour and a year
-                just finished say the same thing, down to the columns. Each row of
-                them still opens into its own race-by-race, off this year's own
-                calendar rather than a season fixed at import time.
-              */}
-              <div className="bg-muted/40 border-border flex flex-col gap-4 border-y px-3 py-4">
-                <SeasonStandings
-                  season={season.world.season}
-                  calendar={seasonSeed(season.year).calendar}
-                  year={season.year}
-                  points={season.world.points}
-                  description="Final classification."
-                />
-              </div>
-            </TableCell>
-          </TableRow>
+          /*
+            The same two tables the season summary ends on, drawn by the same
+            component — so a year read out of the roll of honour and a year
+            just finished say the same thing, down to the columns. Each row of
+            them still opens into its own race-by-race, off this year's own
+            calendar rather than a season fixed at import time.
+          */
+          <TableExpansion colSpan={COLUMN_COUNT} className="flex flex-col gap-4 py-4">
+            <SeasonStandings
+              season={season.world.season}
+              calendar={seasonSeed(season.year).calendar}
+              year={season.year}
+              points={season.world.points}
+              description="Final classification."
+            />
+          </TableExpansion>
         ) : null}
       </Liveries>
     </EntryNames>

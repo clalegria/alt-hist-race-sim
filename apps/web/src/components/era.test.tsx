@@ -234,6 +234,19 @@ describe("a year opened out of the roll of honour", () => {
     expect(badges(wide)).toBe(2);
   });
 
+  it("marks the opened panel, so the stripes skip it", () => {
+    // The stripe rule in `index.css` counts rows `:not([data-expansion])`;
+    // without the mark, opening a year would flip every stripe below it.
+    expect(shut).not.toContain("data-expansion");
+    expect(wide.split("data-expansion").length - 1).toBe(1);
+    // And the tables inside it stripe their own rows.
+    const bodies = wide.split("<tbody").slice(2);
+    expect(bodies.length).toBeGreaterThan(0);
+    for (const body of bodies) {
+      expect(body.slice(0, body.indexOf(">"))).toContain("striped");
+    }
+  });
+
   it("shows both championships of that year when it is open", () => {
     expect(wide).toContain("Drivers’ Championship");
     expect(wide).toContain("Constructors’ Championship");

@@ -68,16 +68,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 3. `makeover-panels-and-tables`
-- `ui/card.tsx` and `ui/table.tsx`:
-  - square panels drawn by their border, with the header band kept;
-  - rows in two alternating fills, and column heads in small mono capitals;
-  - the position cell drawn as a block, filled with the accent on the accented row.
-- Still one accented row per view (`lib/highlight.ts`). Keep the substring contract
-  between the standout and podium classes (`web-display.md`).
-- The classification still wraps rather than scrolls (`web-display.md`).
-- Screenshots: `race`, `season-midseason`, `grid`, on desktop and phone.
-
 ### 4. `makeover-controls`
 - `ui/button.tsx`: square, narrow capitals, the primary filled with the accent.
 - Every segmented control becomes one bordered group with the chosen segment filled:

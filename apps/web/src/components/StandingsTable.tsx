@@ -13,7 +13,16 @@ import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableExpansion,
+  TableHead,
+  TableHeader,
+  TablePosition,
+  TableRow,
+} from "./ui/table.js";
 
 /**
  * The numeric columns both tables share, in order.
@@ -104,7 +113,7 @@ export function StandingsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12 text-right">Pos</TableHead>
+            <TableHead className="w-10 px-0 text-center">Pos</TableHead>
             <TableHead>{nameColumn}</TableHead>
             {car ? <TableHead className={CAR_COLUMN} /> : null}
             {COLUMNS.map((column) => (
@@ -122,14 +131,7 @@ export function StandingsTable({
             return (
               <Fragment key={key}>
                 <TableRow className={cn(isOpen && "bg-muted/60")}>
-                  <TableCell
-                    className={cn(
-                      "text-right tabular-nums",
-                      index === 0 ? "text-foreground font-semibold" : "text-muted-foreground",
-                    )}
-                  >
-                    {index + 1}
-                  </TableCell>
+                  <TablePosition>{index + 1}</TablePosition>
                   <TableCell>
                     {/*
                       Two controls, as on a record card's lineage row: the
@@ -182,22 +184,18 @@ export function StandingsTable({
                   ))}
                 </TableRow>
                 {isOpen ? (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={columnCount} className="p-0">
-                      <div className="bg-muted/40 border-border border-y px-3 py-3">
-                        <RaceByRace
-                          rounds={
-                            isDriver
-                              ? driverRounds(season, points, standing.driverId)
-                              : teamRounds(season, points, standing.teamId)
-                          }
-                          calendar={calendar}
-                          year={year}
-                          showDriver={!isDriver}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <TableExpansion colSpan={columnCount}>
+                    <RaceByRace
+                      rounds={
+                        isDriver
+                          ? driverRounds(season, points, standing.driverId)
+                          : teamRounds(season, points, standing.teamId)
+                      }
+                      calendar={calendar}
+                      year={year}
+                      showDriver={!isDriver}
+                    />
+                  </TableExpansion>
                 ) : null}
               </Fragment>
             );

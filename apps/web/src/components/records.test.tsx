@@ -14,7 +14,7 @@
 import { teamsById } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { STANDOUT_ROW } from "../lib/highlight.js";
+import { STANDOUT_POSITION, STANDOUT_ROW } from "../lib/highlight.js";
 import { liveryFor } from "../lib/livery.js";
 import { driverName, entryName, teamName } from "../lib/names.js";
 import {
@@ -133,6 +133,7 @@ describe("the career statistics", () => {
     // season just finished. Eight cards each accenting their own leader would
     // turn "the thing you just watched" into decoration.
     expect(html).not.toContain(STANDOUT_ROW);
+    expect(html).not.toContain(STANDOUT_POSITION);
   });
 
   it("flies a flag beside every name, as every other table does", () => {

@@ -10,7 +10,15 @@ import { PageLink } from "./PageLink.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { DriverHistory } from "./SeasonHistory.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableExpansion,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table.js";
 import { WeatherBadge } from "./WeatherBadge.js";
 
 /** What a round not reached shows in place of a name. */
@@ -167,18 +175,14 @@ export function CalendarRow({
         </TableCell>
       </TableRow>
       {open ? (
-        <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={4} className="p-0">
-            <div className="bg-muted/40 border-border border-y px-3 py-3">
-              {/*
-                The round's own country, so an entry racing at home is starred
-                here exactly as it is on the race screen. The cars too, by the
-                author's call — unlike the badges, which an expansion leaves off.
-              */}
-              <RaceClassification race={race} points={points} country={round?.country} car />
-            </div>
-          </TableCell>
-        </TableRow>
+        <TableExpansion colSpan={4}>
+          {/*
+            The round's own country, so an entry racing at home is starred
+            here exactly as it is on the race screen. The cars too, by the
+            author's call — unlike the badges, which an expansion leaves off.
+          */}
+          <RaceClassification race={race} points={points} country={round?.country} car />
+        </TableExpansion>
       ) : null}
     </>
   );

@@ -1,13 +1,21 @@
 import type { PointsScale, RaceEntryResult, RaceResult } from "@alt-hist/engine";
 import { formatGap } from "../lib/format.js";
-import { PODIUM_ROW, PODIUM_TEXT, STANDOUT_ROW, STANDOUT_TEXT } from "../lib/highlight.js";
+import { PODIUM_POSITION, STANDOUT_POSITION, STANDOUT_TEXT } from "../lib/highlight.js";
 import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { HomeStar } from "./HomeAdvantage.js";
 import { DriverHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TablePosition,
+  TableRow,
+} from "./ui/table.js";
 
 /**
  * Orders a race the way a classification sheet does.
@@ -21,7 +29,8 @@ function classify(race: RaceResult): readonly RaceEntryResult[] {
 }
 
 /**
- * Tighter than the default cell padding, on every cell of this table.
+ * Tighter than the default cell padding, on every cell of this table but the
+ * position block, which has none.
  *
  * The classification shares a row with the championship sidebar, so it gets
  * about two thirds of the page rather than all of it, and the default `px-3`
@@ -79,7 +88,7 @@ export function RaceClassification({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className={cn(CELL, "w-12 text-right")}>Pos</TableHead>
+          <TableHead className="w-10 px-0 text-center">Pos</TableHead>
           <TableHead className={CELL}>Driver</TableHead>
           {car ? <TableHead className={cn(CELL, CAR_COLUMN)} /> : null}
           <TableHead className={cn(CELL, "text-right")}>Grid</TableHead>
@@ -96,21 +105,16 @@ export function RaceClassification({
           const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
           const scored = pointsFor(entry, points);
           return (
-            <TableRow
-              key={entry.driverId}
-              className={cn("border-border/60", won && STANDOUT_ROW, podium && PODIUM_ROW)}
-            >
-              <TableCell
+            <TableRow key={entry.driverId} className="border-border/60">
+              <TablePosition
                 className={cn(
-                  CELL,
-                  "text-right tabular-nums",
-                  won && cn(STANDOUT_TEXT, "font-semibold"),
-                  podium && PODIUM_TEXT,
+                  won && STANDOUT_POSITION,
+                  podium && PODIUM_POSITION,
                   finished || "text-muted-foreground",
                 )}
               >
                 {entry.finishPosition ?? "—"}
-              </TableCell>
+              </TablePosition>
               <TableCell
                 className={cn(
                   CELL,
@@ -168,12 +172,7 @@ export function RaceClassification({
                 {statusOf(entry)}
               </TableCell>
               <TableCell
-                className={cn(
-                  CELL,
-                  "text-right font-semibold tabular-nums",
-                  won && STANDOUT_TEXT,
-                  podium && PODIUM_TEXT,
-                )}
+                className={cn(CELL, "text-right font-semibold tabular-nums", won && STANDOUT_TEXT)}
               >
                 {/* Blank rather than a column of zeroes: only six cars score. */}
                 {scored === 0 ? "" : scored}

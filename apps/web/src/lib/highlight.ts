@@ -10,8 +10,10 @@
 export const STANDOUT_SURFACE = "border-primary/40 bg-primary/5";
 
 /**
- * For a table row, which cannot carry a rounded border of its own — so the fill
- * does the whole job and is set stronger than the bordered surface's.
+ * For a table row with no position block (the roll of honour's year), which
+ * cannot carry a border of its own — so the fill does the whole job and is set
+ * stronger than the bordered surface's. A row that has a block carries the
+ * accent there instead, and no tint.
  */
 export const STANDOUT_ROW = "bg-primary/10";
 
@@ -19,16 +21,22 @@ export const STANDOUT_ROW = "bg-primary/10";
 export const STANDOUT_TEXT = "text-primary";
 
 /**
- * Second and third: the same accent, one step down.
+ * The position block (`TablePosition`) of the row that won, filled with the
+ * accent, like the leader's line on a timing screen.
+ *
+ * Contains `STANDOUT_TEXT` (`text-primary-foreground`), so a test telling the
+ * podium's blocks from the winner's checks for this string's absence.
+ */
+export const STANDOUT_POSITION = "bg-primary text-primary-foreground";
+
+/**
+ * Second and third: the accent one step down, the number alone in the accent on
+ * a plain block.
  *
  * A podium is worth marking — it is what the points table is built around — but
- * it is not the win, so the two must be told apart at a glance. The gradient is
- * the whole design: the winner's fill, then a little under half of it, then
- * nothing. Deliberately *not* a fraction of `STANDOUT_ROW`'s own string, so the
- * accent-counting tests can still tell the two apart by substring.
- *
- * `PODIUM_TEXT` does contain `STANDOUT_TEXT`; anything counting occurrences of
- * the latter in a classification has to account for that.
+ * it is not the win, so the two must be told apart at a glance: filled, then
+ * coloured, then nothing. The accent's own text colour rather than a faded one:
+ * the block sits on the header's fill, where anything fainter falls below 4.5:1
+ * on the light theme.
  */
-export const PODIUM_ROW = "bg-primary/[0.045]";
-export const PODIUM_TEXT = "text-primary/85";
+export const PODIUM_POSITION = STANDOUT_TEXT;

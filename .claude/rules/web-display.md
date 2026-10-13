@@ -1,6 +1,7 @@
 ---
 paths:
   - "apps/web/src/lib/highlight.ts"
+  - "apps/web/src/components/ui/table.tsx"
   - "apps/web/src/lib/results.ts"
   - "apps/web/src/components/QualifyingResults.tsx"
   - "apps/web/src/components/RaceClassification.tsx"
@@ -20,9 +21,13 @@ The accent, the session sheets and the championship tables.
 - **One accent (`lib/highlight.ts`) means "won the thing on screen"**: pole, a race
   winner, each champion, and the sidebar's champion row from the round the title is
   settled. One accented row or card per view; never give it a second meaning.
-- **Second and third get the half-strength podium accent, in the race classification
-  only.** No accent string may be a substring of another, because tests tell rows apart
-  by substring; `PODIUM_TEXT` does contain `STANDOUT_TEXT`, so a count of that allows for it.
+- **A row with a rank carries the accent on its `TablePosition` block, never as a row
+  tint**: the winner's block filled (`STANDOUT_POSITION`), second and third's number in
+  the accent (`PODIUM_POSITION`, race classification only). `STANDOUT_ROW` is for a row
+  with no block (the roll of honour).
+- **Tests tell accents apart by substring**: `STANDOUT_POSITION` contains
+  `PODIUM_POSITION` (`STANDOUT_TEXT`), so a podium check also asserts the fill's absence.
+- **An opened row is `TableExpansion`**: its `data-expansion` keeps the stripes in step.
 - **The title banner shows on the round that settles it, and only that one.**
 - **The qualifying stagger is a `translate-y` of exactly half the row height**, never a
   margin; a test holds the two numbers at 2:1.
