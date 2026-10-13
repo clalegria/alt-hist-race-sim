@@ -15,7 +15,7 @@ import {
 } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName, entryName, teamName } from "../lib/names.js";
+import { driverName, entryName, nameParts, teamName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
@@ -28,6 +28,7 @@ import {
   seededWorld,
   starterCount,
   teamCount,
+  textOf,
   YEAR,
 } from "../test-support.js";
 
@@ -121,7 +122,7 @@ describe("the race classification", () => {
   it("lists every car that entered, not just the finishers", () => {
     expect(race.entries).toHaveLength(SEATS);
     for (const entry of race.entries) {
-      expect(html, `missing ${entry.driverId}`).toContain(driverName(entry.driverId));
+      expect(textOf(html), `missing ${entry.driverId}`).toContain(driverName(entry.driverId));
     }
     // And one row each, so nobody is listed twice.
     expect(html.split("<tr").length - 1).toBe(SEATS + 1); // every car plus the header
@@ -130,7 +131,7 @@ describe("the race classification", () => {
   it("shows what each finish was worth, and leaves the rest blank", () => {
     const rows = html.split("<tr").slice(1);
     const rowFor = (driverId: string): string => {
-      const row = rows.find((candidate) => candidate.includes(driverName(driverId)));
+      const row = rows.find((candidate) => textOf(candidate).includes(driverName(driverId)));
       if (row === undefined) {
         throw new Error(`no row rendered for ${driverId}`);
       }
@@ -165,7 +166,7 @@ describe("the race classification", () => {
       if (entry.finishPosition !== null) {
         continue;
       }
-      const row = rows.find((candidate) => candidate.includes(driverName(entry.driverId)));
+      const row = rows.find((candidate) => textOf(candidate).includes(driverName(entry.driverId)));
       expect(row, `no row for ${entry.driverId}`).toBeDefined();
       expect(row ?? "", `${entry.driverId} was awarded points`).not.toMatch(
         />[1-9]\d*<\/td>\s*<\/tr>/,
@@ -211,7 +212,7 @@ describe("the race classification", () => {
     const rows = html.split("<tr").slice(1);
     const rowFor = (driverId: string): string => {
       const name = driverName(driverId);
-      const row = rows.find((candidate) => candidate.includes(name));
+      const row = rows.find((candidate) => textOf(candidate).includes(name));
       if (row === undefined) {
         throw new Error(`no row rendered for ${driverId}`);
       }
@@ -347,7 +348,7 @@ describe("the compact standings", () => {
     if (ninth === undefined) {
       throw new Error("expected more than eight drivers");
     }
-    expect(driverHtml).not.toContain(driverName(ninth.driverId));
+    expect(textOf(driverHtml)).not.toContain(driverName(ninth.driverId));
   });
 
   /*
@@ -445,7 +446,37 @@ describe("the compact standings", () => {
       expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
     }
   });
+
+  it("sets each surname in capitals by CSS, and the team line plain", () => {
+    const capitals = inCapitals(driverHtml);
+    for (const standing of drivers.slice(0, 8)) {
+      // The source case, so the capitals can only have come from `uppercase`.
+      expect(capitals, standing.driverId).toContain(
+        asRendered(nameParts(driverName(standing.driverId)).surname),
+      );
+      expect(capitals, standing.driverId).not.toContain(asRendered(teamName(standing.teamId)));
+    }
+  });
+
+  it("sets the constructors in capitals", () => {
+    const capitals = inCapitals(teamHtml);
+    for (const standing of teams.slice(0, 8)) {
+      expect(capitals, standing.teamId).toContain(asRendered(teamName(standing.teamId)));
+    }
+  });
 });
+
+/** The text of every span set in capitals, as rendered. */
+function inCapitals(html: string): string[] {
+  return [...html.matchAll(/<span class="[^"]*\buppercase\b[^"]*"[^>]*>([^<]*)<\/span>/g)].map(
+    (match) => match[1] ?? "",
+  );
+}
+
+/** A name the way `renderToStaticMarkup` escapes it. */
+function asRendered(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/'/g, "&#x27;").replace(/"/g, "&quot;");
+}
 
 describe("the starting grid layout", () => {
   const race = world.season.races[0];
@@ -570,7 +601,7 @@ describe("expanding a row of the championship", () => {
     expect(occurrencesOf(html, firstRound.name)).toBe(1);
     // And every one of the team's drivers is named, however many there are.
     for (const driverId of new Set(rounds.map((round) => round.entry.driverId))) {
-      expect(html, driverId).toContain(driverName(driverId));
+      expect(textOf(html), driverId).toContain(driverName(driverId));
     }
   });
 

@@ -19,6 +19,8 @@ Vitest with **no jsdom**: components are rendered with `renderToStaticMarkup`.
 - **Fixtures come from `src/test-support.ts`**: a fixed seed is a fixture; when a test
   needs a season of some shape, `findWorld` searches for one. Counts come off the grid,
   and a rule for every season loops `seasons`.
+- **Find a driver's name in `textOf(html)`**: `DriverName` splits it across spans, so a
+  `not.toContain(name)` on the raw markup passes whether it is on screen or not.
 - **Read the rendered attribute, not the word**: count `disabled=""` (many enabled
   buttons carry `disabled:` classes) and read a native `select` by its `selected=""`
   option, in card order, never by searching for a team name, which every picker lists.

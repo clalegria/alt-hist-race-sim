@@ -23,7 +23,7 @@ import {
   yearsInDecade,
 } from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
-import { YEAR } from "../test-support.js";
+import { textOf, YEAR } from "../test-support.js";
 import { ChampionRow, EraChampions, RollOfHonour } from "./EraChampions.js";
 import { EraPicker } from "./SeasonPicker.js";
 import { BADGE_SHAPE } from "./TeamBadge.js";
@@ -123,7 +123,7 @@ describe("the roll of honour", () => {
   it("names both champions of each of them", () => {
     for (const world of run.seasons) {
       const won = champions(world);
-      expect(html, `${world.year} drivers`).toContain(won.driver);
+      expect(textOf(html), `${world.year} drivers`).toContain(won.driver);
       expect(html, `${world.year} teams`).toContain(won.team);
     }
   });
@@ -257,7 +257,7 @@ describe("a year opened out of the roll of honour", () => {
     // finished — this is the season's final table, the same one its summary
     // ended on.
     for (const entrant of opened.world.field) {
-      expect(wide, entrant.driverId).toContain(driverName(entrant.driverId));
+      expect(textOf(wide), entrant.driverId).toContain(driverName(entrant.driverId));
     }
   });
 
@@ -272,14 +272,14 @@ describe("a year opened out of the roll of honour", () => {
     if (outsider === undefined) {
       throw new Error("the fixture years enter exactly the same drivers");
     }
-    expect(wide).not.toContain(`>${driverName(outsider)}<`);
+    expect(textOf(wide)).not.toContain(driverName(outsider));
   });
 
   it("keeps all of it out of the closed row", () => {
     expect(shut).not.toContain("Championship");
     expect(shut).not.toContain(">Poles<");
     // The champion is still named on the row itself, open or shut.
-    expect(shut).toContain(champions(opened.world).driver);
+    expect(textOf(shut)).toContain(champions(opened.world).driver);
   });
 });
 

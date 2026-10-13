@@ -27,6 +27,7 @@ import {
 } from "../lib/records.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { createWorld, type World } from "../store/season.js";
+import { textOf } from "../test-support.js";
 import { CareerStatistics, RecordCard, RecordRow } from "./CareerStatistics.js";
 import { TEAM_LINE } from "./DriverName.js";
 import { BADGE_SHAPE, badgeBackground } from "./TeamBadge.js";
@@ -108,7 +109,7 @@ describe("the career statistics", () => {
     const team = best(records.teams);
     expect(driver).toBeDefined();
     expect(team).toBeDefined();
-    expect(html).toContain(driverName(driver?.id ?? ""));
+    expect(textOf(html)).toContain(driverName(driver?.id ?? ""));
     expect(html).toContain(labelsFor(records.teams, teamName).get(team?.id ?? "")?.name);
   });
 

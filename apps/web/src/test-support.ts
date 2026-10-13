@@ -153,3 +153,14 @@ export function svgsBesideCars(html: string): number {
   const cars = html.split(`viewBox="0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}"`).length - 1;
   return svgs - cars;
 }
+
+/**
+ * A rendered tree's text, tags stripped (entities left as rendered).
+ *
+ * A name in a table is split across spans (`SplitName`), so its plain text is
+ * not in the markup. Search for a name here instead; a `not.toContain` on the
+ * raw markup passes whether the name is on screen or not.
+ */
+export function textOf(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}

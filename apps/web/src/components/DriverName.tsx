@@ -1,7 +1,7 @@
 import { driverCountry, driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
-import { FittedDriverName } from "./FittedName.js";
+import { FittedDriverName, SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { TeamBadge } from "./TeamBadge.js";
 
@@ -15,7 +15,8 @@ import { TeamBadge } from "./TeamBadge.js";
 export const TEAM_LINE = "pl-[1.625rem]";
 
 /**
- * A driver, as every table shows them: flag, name, and their team underneath.
+ * A driver, as every table shows them: flag, name in `SplitName`'s timing-screen
+ * style, and their team underneath, plain.
  *
  * One component so the flag cannot end up in some tables and not others, and so
  * a change to how people are labelled happens in one place.
@@ -81,9 +82,15 @@ export function DriverName({
         <span className="flex min-w-0 items-center gap-1.5">
           {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
           {tight ? (
-            <FittedDriverName driverId={driverId} className={cn(emphasis && "font-semibold")} />
+            <FittedDriverName
+              driverId={driverId}
+              className={cn(emphasis && "font-semibold")}
+              split
+            />
           ) : (
-            <span className={cn(emphasis && "font-semibold")}>{driverName(driverId)}</span>
+            <span className={cn(emphasis && "font-semibold")}>
+              <SplitName name={driverName(driverId)} />
+            </span>
           )}
         </span>
         {teamId === undefined ? null : (

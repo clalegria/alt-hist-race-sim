@@ -16,6 +16,7 @@ export function TeamName({
   className,
   badge = false,
   tight = false,
+  capitals = false,
 }: {
   teamId: string;
   emphasis?: boolean;
@@ -24,6 +25,8 @@ export function TeamName({
   badge?: boolean;
   /** End the name in an ellipsis rather than widen the column. See `DriverName`. */
   tight?: boolean;
+  /** Set the name in bold narrow capitals, as the race sidebar's tower does. */
+  capitals?: boolean;
 }) {
   const base = useTeamCountry()(teamId);
   const nameOf = useEntryName();
@@ -32,7 +35,11 @@ export function TeamName({
       {badge ? <TeamBadge teamId={teamId} /> : null}
       {base === undefined ? null : <Flag country={base} title={base} />}
       <span
-        className={cn(emphasis && "font-semibold", tight && "truncate")}
+        className={cn(
+          emphasis && "font-semibold",
+          capitals && "narrow font-extrabold uppercase",
+          tight && "truncate",
+        )}
         {...(tight ? { title: nameOf(teamId) } : {})}
       >
         {nameOf(teamId)}

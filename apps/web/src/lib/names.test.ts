@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shortName } from "./names.js";
+import { nameParts, shortName } from "./names.js";
 
 /**
  * Synthetic names throughout: the rule is about the shape of a name, not about
@@ -46,6 +46,32 @@ describe("shortName", () => {
     // shortening is only ever a saving from the third letter on.
     for (const name of ["Aaa Bbbbbbbb", "Aaaa Bbbb Cccccccccc", "Aaaa de Bbbbbbb"]) {
       expect(shortName(name).length).toBeLessThan(name.length);
+    }
+  });
+});
+
+describe("nameParts", () => {
+  it("splits at the last word when there is no particle", () => {
+    expect(nameParts("Aaaa Bbbbbb")).toEqual({ given: "Aaaa", surname: "Bbbbbb" });
+    expect(nameParts("Aaaa Cccc Bbbbbb")).toEqual({ given: "Aaaa Cccc", surname: "Bbbbbb" });
+  });
+
+  it("starts the surname at a particle", () => {
+    expect(nameParts("Aaaa van der Bbbb")).toEqual({ given: "Aaaa", surname: "van der Bbbb" });
+  });
+
+  it("keeps a suffix on the surname", () => {
+    expect(nameParts("Aaaa Bbbb Jr.")).toEqual({ given: "Aaaa", surname: "Bbbb Jr." });
+  });
+
+  it("has no given name for a name of one word", () => {
+    expect(nameParts("Bbbb")).toEqual({ given: "", surname: "Bbbb" });
+    expect(nameParts("Bbbb Jr.")).toEqual({ given: "", surname: "Bbbb Jr." });
+  });
+
+  it("splits a short form the way it split the full name", () => {
+    for (const name of ["Aaaa Bbbb", "Aaaa de Bbbb", "Aaaa-Cccc Dddd Bbbb Sr."]) {
+      expect(nameParts(shortName(name)).surname).toBe(nameParts(name).surname);
     }
   });
 });

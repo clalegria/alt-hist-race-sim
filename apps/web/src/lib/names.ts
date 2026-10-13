@@ -106,26 +106,23 @@ function initials(word: string): string {
 }
 
 /**
- * A name cut down to initials and surname: "Michael Schumacher" →
- * "M. Schumacher", "Jean-Pierre Jarier" → "J-P. Jarier", "Juan Manuel Fangio" →
- * "J.M. Fangio".
+ * A name split where the surname starts: "Nelson Piquet Jr." → "Nelson" and
+ * "Piquet Jr.", "Emmanuel de Graffenried" → "Emmanuel" and "de Graffenried".
  *
  * **Where the surname starts is the whole problem.** It is not "the last word":
  * "Emmanuel de Graffenried" and "Giedo van der Garde" carry particles, and a
  * particle is what marks the boundary — the first word after the first that
  * begins lowercase. With no particle the last word is the surname, after any
- * suffix has been set aside. Multi-word *given* names all become initials, so
- * Fangio reads "J.M." rather than losing a name he had.
+ * suffix has been set aside; the suffix stays on the surname. A name of one
+ * word, suffix or not, is all surname and has no given name.
  *
- * Two drivers can collapse onto the same short form — both Schumachers do — and
- * that is accepted: this is the fallback for a name that does not fit, and the
- * full name is a tooltip away. A name of one word is returned unchanged, since
- * there is nothing to abbreviate.
+ * Works on a short form too ("N. Piquet"), which is how the fitted name draws
+ * its abbreviation in the same style as the full one.
  *
  * Pure string work, on the display name and not on an id, so the rule is
  * testable without touching the seed data.
  */
-export function shortName(full: string): string {
+export function nameParts(full: string): { given: string; surname: string } {
   const words = full
     .trim()
     .split(/\s+/)
@@ -134,20 +131,37 @@ export function shortName(full: string): string {
   while (end > 1 && SUFFIXES.has((words[end - 1] ?? "").toLowerCase())) {
     end -= 1;
   }
-  const named = words.slice(0, end);
-  if (named.length < 2) {
+  if (end < 2) {
+    return { given: "", surname: words.join(" ") };
+  }
+  const particle = words.findIndex((word, index) => index > 0 && index < end && isParticle(word));
+  const surnameAt = particle === -1 ? end - 1 : particle;
+  return {
+    given: words.slice(0, surnameAt).join(" "),
+    surname: words.slice(surnameAt).join(" "),
+  };
+}
+
+/**
+ * A name cut down to initials and surname: "Michael Schumacher" →
+ * "M. Schumacher", "Jean-Pierre Jarier" → "J-P. Jarier", "Juan Manuel Fangio" →
+ * "J.M. Fangio". The surname is `nameParts`'.
+ *
+ * Multi-word *given* names all become initials, so Fangio reads "J.M." rather
+ * than losing a name he had. Two drivers can collapse onto the same short form —
+ * both Schumachers do — and that is accepted: this is the fallback for a name
+ * that does not fit, and the full name is a tooltip away. A name with no given
+ * name is returned unchanged, since there is nothing to abbreviate.
+ */
+export function shortName(full: string): string {
+  const { given, surname } = nameParts(full);
+  if (given === "") {
     return full;
   }
-  const particle = named.findIndex((word, index) => index > 0 && isParticle(word));
-  const surnameAt = particle === -1 ? named.length - 1 : particle;
-  return [
-    named
-      .slice(0, surnameAt)
-      .map((word) => initials(word))
-      .join(""),
-    ...named.slice(surnameAt),
-    ...words.slice(end),
-  ].join(" ");
+  return `${given
+    .split(" ")
+    .map((word) => initials(word))
+    .join("")} ${surname}`;
 }
 
 /** A driver's name, abbreviated — see `shortName`. */

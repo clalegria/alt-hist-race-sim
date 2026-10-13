@@ -15,13 +15,17 @@ How every table names the same people. Which era's name a team is in is `team-er
 
 - **Every driver and team is named through `DriverName` / `TeamName`**, so a flag sits
   beside every name everywhere. Never draw a name with its own flag markup.
+- **A driver in a table is `SplitName`**: given name plain, surname (`nameParts`, the rule
+  `shortName` also uses) in narrow capitals. Prose, headings and labels use plain
+  `driverName`; the team line under a driver stays plain.
 - **An entry is "Williams-Ford"; a works team keeps its bare name** (`entryName`). Lists
   sort on the plain team name, so a team does not move for changing supplier.
 - **The engine supply and the name's year travel by context** (`EntryNames`, `KeptNames`),
   built from `world.field`. The empty default must leave a component rendered alone
   drawable.
 - **`FittedName`'s caller gives it the width it may use** (`flex-1`, or a block in a
-  column): a content-sized box measures the short name and never widens back.
+  column): a content-sized box measures the short name and never widens back. Its
+  `render` draws the probe too, so a styled name is measured styled.
 - **`tight` is opted into per table**: the race sidebar fits names to its column, the full
   classification wraps them. Don't unify the two without deciding which behaviour wins.
 - **Tests count flags by counting `<svg>`**, so nothing else beside a name may be an

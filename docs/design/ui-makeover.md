@@ -68,15 +68,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 5. `makeover-names`
-- `DriverName` in tables and the race sidebar: first name regular, SURNAME in bold narrow
-  capitals. Prose and page headings keep plain names.
-- `FittedName`'s short form follows ("N. PIQUET"); it measures the new widths itself.
-- `TeamName` in the constructors' sidebar: narrow capitals. The team line under a driver
-  stays plain.
-- Tests count flags by counting `<svg>` (`web-names.md`).
-- Screenshots: `race`, `season-midseason`, `driver-page`.
-
 ### 6. `makeover-top-nav`
 - `TopNav.tsx`:
   - the header band;
@@ -139,7 +130,7 @@ and components; the palette is already in `index.css`.
   - A retirement in `text-loss`.
   - The phone row follows `phone-classification`.
 - `CompactStandings`: the sidebar as small towers, with "Show all" as a mono foot.
-- `QualifyingResults` matches.
+- `QualifyingResults` matches; its names take `FittedDriverName`'s `split`.
 - Screenshots: `qualifying`, `race`, `round-menu`, on desktop and phone.
 
 ### 11. `makeover-season-pages`
@@ -149,7 +140,7 @@ and components; the palette is already in `index.css`.
 - Screenshots: `season-midseason`, `season-calendar`, `season-summary`.
 
 ### 12. `makeover-grid`
-- `SeasonGrid`'s team cards (square, with the livery corner kept), `GridStage`,
+- `SeasonGrid`'s team cards (square, livery corner kept, names in `split`), `GridStage`,
   `ReserveList`, `LineupChanges`, and the grid editor and its popovers.
 - Screenshots: `grid`, `grid-editor`, `grid-editor-team`, `grid-edited`.
 

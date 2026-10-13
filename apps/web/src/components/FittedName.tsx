@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
-import { driverName, shortDriverName } from "../lib/names.js";
+import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { driverName, nameParts, shortDriverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 
 /**
@@ -31,11 +31,17 @@ export function FittedName({
   full,
   short,
   className,
+  render = (name) => name,
 }: {
   full: string;
   /** Usually `shortDriverName(id)`. Equal to `full` means "never abbreviate". */
   short: string;
   className?: string | undefined;
+  /**
+   * How a form of the name is drawn. The probe is drawn the same way, so it
+   * measures the styled width: capitals and weights move it either way.
+   */
+  render?: (name: string) => ReactNode;
 }) {
   const box = useRef<HTMLSpanElement>(null);
   const probe = useRef<HTMLSpanElement>(null);
@@ -105,31 +111,60 @@ export function FittedName({
       className={cn("relative block truncate", className)}
       title={fits ? undefined : full}
     >
-      {fits ? full : short}
+      {render(fits ? full : short)}
       <span
         ref={probe}
         aria-hidden
         className="pointer-events-none invisible absolute top-0 left-0 whitespace-pre"
       >
-        {full}
+        {render(full)}
       </span>
     </span>
   );
+}
+
+/**
+ * A name as a timing screen sets it: the given name plain, the SURNAME in bold
+ * narrow capitals. For names in tables; prose and headings keep `driverName`.
+ *
+ * The capitals are CSS, so the text keeps its own case, and the space between
+ * the two is real text, so the name still reads whole with the tags stripped.
+ */
+export function SplitName({ name }: { name: string }) {
+  const { given, surname } = nameParts(name);
+  return (
+    <>
+      {given === "" ? null : (
+        <>
+          <span>{given}</span>{" "}
+        </>
+      )}
+      <span className="narrow font-extrabold uppercase">{surname}</span>
+    </>
+  );
+}
+
+function splitName(name: string): ReactNode {
+  return <SplitName name={name} />;
 }
 
 /** The same, for a driver id: both forms come from `lib/names.ts`. */
 export function FittedDriverName({
   driverId,
   className,
+  split = false,
 }: {
   driverId: string;
   className?: string;
+  /** Set both forms as `SplitName` does: "Nelson PIQUET", "N. PIQUET". */
+  split?: boolean;
 }) {
   return (
     <FittedName
       full={driverName(driverId)}
       short={shortDriverName(driverId)}
       className={className}
+      {...(split ? { render: splitName } : {})}
     />
   );
 }

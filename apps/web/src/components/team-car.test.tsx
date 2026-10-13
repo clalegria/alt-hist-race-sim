@@ -15,7 +15,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CAR_SPRITES, carSpriteFor, SPRITE_HEIGHT, SPRITE_WIDTH } from "../lib/car-sprites.js";
 import { driverName } from "../lib/names.js";
-import { seededWorld, shownAt, YEAR } from "../test-support.js";
+import { seededWorld, shownAt, textOf, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -72,8 +72,7 @@ function carCellTexts(html: string): string[] {
     .map((cell) => cell.slice(0, cell.indexOf("</td>")))
     .filter((cell) => cell.includes(CANVAS))
     .map((cell) =>
-      cell
-        .replace(/<[^>]*>/g, "")
+      textOf(cell)
         .replace(/^[^>]*>/, "")
         .trim(),
     );

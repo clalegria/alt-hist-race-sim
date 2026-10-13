@@ -119,7 +119,12 @@ export function CompactStandings({
                         </DriverHistory>
                       ) : (
                         <TeamHistory teamId={standing.teamId} className={HISTORY_FILL}>
-                          <TeamName teamId={standing.teamId} emphasis={index === 0} tight />
+                          <TeamName
+                            teamId={standing.teamId}
+                            emphasis={index === 0}
+                            tight
+                            capitals
+                          />
                         </TeamHistory>
                       )}
                     </span>
