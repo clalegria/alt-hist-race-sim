@@ -346,11 +346,11 @@ export function EditedGridBanner({
       )}
     >
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className="text-sm font-semibold tracking-tight">Alternate grid</span>
+        <span className="text-sm font-semibold tracking-tight">Edited grid</span>
+        {/* Counted from the grid the run's settings built, not from history. */}
         <span className="text-muted-foreground text-xs">
-          This season was raced on an edited grid:{" "}
-          {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges)} from the real
-          one.
+          You made {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges)} to
+          this season's grid.
         </span>
       </div>
       <GridChanges

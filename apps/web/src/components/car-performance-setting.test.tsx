@@ -178,8 +178,8 @@ describe("a grid on rolled cars", () => {
     const html = renderToStaticMarkup(
       <SeasonView {...shownAt(rolled, { kind: "summary" })} tab="grid" />,
     );
-    expect(html).not.toContain("Alternate grid");
-    expect(html).not.toContain("from the real one");
+    expect(html).not.toContain("Edited grid");
+    expect(html).not.toContain("You made");
   });
 
   it("counts the reader's own change from the rolled car, not from history", () => {
@@ -193,7 +193,7 @@ describe("a grid on rolled cars", () => {
     const html = renderToStaticMarkup(
       <SeasonView {...shownAt(eraYear(random, edited), { kind: "summary" })} tab="grid" />,
     );
-    expect(html).toContain("1 change from the real one");
+    expect(html).toContain("You made 1 change to this");
     expect(html).toContain(chassisNote(changes[0] as ChassisChange));
   });
 });

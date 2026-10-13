@@ -504,13 +504,13 @@ describe("what the season summary says about an edited grid", () => {
   const plain = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
 
   it("declares it at the top, before the champions", () => {
-    expect(html).toContain("Alternate grid");
-    expect(html.indexOf("Alternate grid")).toBeLessThan(html.indexOf("champion"));
+    expect(html).toContain("Edited grid");
+    expect(html.indexOf("Edited grid")).toBeLessThan(html.indexOf("champion"));
   });
 
   it("repeats it on the grid tab, on the grid it happened to", () => {
     expect(html).toContain("This grid was edited");
-    expect(html.indexOf("This grid was edited")).toBeGreaterThan(html.indexOf("Alternate grid"));
+    expect(html.indexOf("This grid was edited")).toBeGreaterThan(html.indexOf("Edited grid"));
   });
 
   it("names the swap in both places", () => {
@@ -518,11 +518,11 @@ describe("what the season summary says about an edited grid", () => {
   });
 
   it("counts the changes rather than just admitting to some", () => {
-    expect(html).toContain("1 change from the real one");
+    expect(html).toContain("You made 1 change to this");
   });
 
   it("says none of it when the grid was left alone", () => {
-    expect(plain).not.toContain("Alternate grid");
+    expect(plain).not.toContain("Edited grid");
     expect(plain).not.toContain("This grid was edited");
   });
 

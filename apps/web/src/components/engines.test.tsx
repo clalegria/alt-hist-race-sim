@@ -197,14 +197,14 @@ describe("a re-supplied grid", () => {
     );
     const said = `${engineName(swap.to)} engine for ${engineName(swap.from)}`;
 
-    expect(html).toContain("Alternate grid");
+    expect(html).toContain("Edited grid");
     expect(html.split(said).length - 1).toBe(2);
-    expect(html).toContain("1 change from the real one");
+    expect(html).toContain("You made 1 change to this");
   });
 
   it("says none of it when the supply was left alone", () => {
     const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
-    expect(html).not.toContain("Alternate grid");
+    expect(html).not.toContain("Edited grid");
     expect(html).not.toContain("engine for ");
   });
 

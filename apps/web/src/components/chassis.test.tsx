@@ -200,8 +200,8 @@ describe("a grid with a re-rated chassis", () => {
     const html = renderToStaticMarkup(
       <SeasonView {...shownAt(changed, { kind: "summary" })} tab="grid" />,
     );
-    expect(html).toContain("Alternate grid");
+    expect(html).toContain("Edited grid");
     expect(count(html, chassisNote(changes[0] as ChassisChange))).toBe(2);
-    expect(html).toContain("1 change from the real one");
+    expect(html).toContain("You made 1 change to this");
   });
 });
