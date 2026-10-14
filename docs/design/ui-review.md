@@ -43,11 +43,6 @@ Things a fan meets on an ordinary first run: a dead end, a click that throws the
   - "How the drivers' title was won" (`StandingsEvolution.tsx:~491,498`) also shows mid-season, because `SeasonOverview.tsx:~317` passes `charts` before the season is finished.
   - Fix: pass `finished` through, and title the unfinished chart "How the title race stands".
   - Screenshot step: `season-midseason`.
-- **`classification-sideways-scroll`** (OPEN: which move per table; *Phone layout*)
-  - Tables scroll sideways through `ui/table.tsx:~11` (`overflow-x-auto`): the roll of honour hides the constructors' champion.
-  - *Phone layout* gives three moves per screen: drop columns, restack the row, or scroll the table. (The classification's and the standings' phone rows were settled in the makeover.)
-  - Proposed: **roll of honour:** restack, with the constructors' champion under the drivers' champion.
-  - Screenshot step: `era-champions --phone`.
 - **`roll-of-honour-in-progress`** (OPEN)
   - At 1985's season summary, the roll of honour still says "1985 in progress, leaders after round 16" (`EraChampions.tsx:~258`) while the summary page has already crowned both champions.
   - The year only counts as finished at the era's review beat.
@@ -113,25 +108,10 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Fix: show the sub-line under the crumbs only when away from the cursor ("Run is at …"), and drop the position text from the foot (`App.tsx:~191`).
   - Screenshot steps: `grid`, `not-reached`.
 - **`page-heading`** (PROPOSED)
-  - The drivers and teams indexes have no `<h1>` (`RosterIndex.tsx:~108`).
-  - `PageHeading` (title, flag, sub-line) is built: the season, session and grid pages use it.
-  - Existing h1 sizes differ:
-
-    | Size | Where |
-    |---|---|
-    | `5xl/7xl` | Home |
-    | `2xl/3xl` | Setup and the era overview |
-    | `2xl` | Person pages |
-    | `xl` | Not reached |
-
-  - Flags beside an h1 are sized `h-4 w-6` in one place and default in another.
-  - Lower headings are out of order:
-    - `CareerStatistics` nests h2 card titles under an h2.
-  - Fix:
-    - `PageHeading` on every remaining page;
-    - a test that every page renders exactly one h1 (the season and grid pages have one);
-    - correct the order of the lower headings.
-  - Screenshot step: `drivers-index`.
+  - Setup's h1 (`2xl/3xl`) is the last not drawn by `PageHeading`; Home's hero is its own.
+  - Fix: `PageHeading` on setup, and a test that every page renders exactly one h1 (each
+    page's own tests check theirs today).
+  - Screenshot step: `season-setup`.
 - **`run-menu-destructive`** (PROPOSED)
   - In the ⋯ menu, "Restart season", "Restart era" and "Exit run" are plain items with no separator and no destructive colour. The only separator divides phone-only items (`RunBar.tsx:~266`). Their confirm dialogs are already red.
   - Fix: a separator, and `text-destructive` on those items.
@@ -225,9 +205,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
   - Proposed: weight or ink steps instead of the accent.
   - Screenshot step: `grid`.
 - **`link-focus-ring`** (PROPOSED)
-  - Buttons show a `focus-visible` ring, but these links rely on the browser default:
-    - breadcrumbs
-    - the roster's sort headings (`RosterIndex.tsx:~58`)
+  - Buttons show a `focus-visible` ring, but the breadcrumbs rely on the browser default.
   - Fix: the same ring as buttons.
 - **`ui-primitives`** (PROPOSED)
   - Hand-rolled repeats that should become shared pieces:
@@ -236,7 +214,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
     |---|---|
     | Uppercase label | 4 variants of tracking, colour and weight (`RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`); `MONO_LABEL` is the shared one |
     | Dashed notice box | `RunSettingsDialog.tsx:~220`; `ui/notice.tsx` is the shared one |
-    | Card shell | `RunSettingsLine.tsx:~51`, `NotReached.tsx` |
+    | Card shell | `RunSettingsLine.tsx:~51` |
     | Text-link button | `RunSettingsLine.tsx:~60`; Button `link`, size `inline`, is the shared one |
 
   - Arbitrary text sizes: `text-[0.5rem]`, `text-[0.6875rem]`, `text-[0.65rem]`.
@@ -266,7 +244,7 @@ Mostly OPEN: the author picks the wording.
     | "Random factor is added", "Totally random", "Varies by up to ±20", "rating points" | `PerformanceSetting.tsx:~85-102` |
     | "Real → this run", "{year} spec", "Adaptability", "Composure" | `SeasonGrid.tsx:~44-46,892,935` |
     | "Weaken/Strengthen … chassis" | `SeasonGrid.tsx:~190,206` |
-    | "… is still ahead of the run" | `NotReached.tsx` |
+    | "Still ahead of the run" | `NotReached.tsx` |
     | "Simulate through 1985" | the Jump dialog |
     | "Seed 13601" | `SiteFooter.tsx:~43` |
 

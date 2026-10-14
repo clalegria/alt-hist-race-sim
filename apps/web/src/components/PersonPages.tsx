@@ -32,14 +32,14 @@ import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
-import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
+import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
 import { RaceByRace } from "./RaceByRace.js";
-import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
+import { DriverHistory, HISTORY_FILL, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
   TableBody,
@@ -81,7 +81,7 @@ export function totalsLine(record: CareerRecord | undefined): string {
   return parts.filter((part) => part !== null).join(" · ");
 }
 
-/** A page's heading: who, and the line under it. */
+/** A page's heading: who, their totals in the mono sub-line, and the line under it. */
 function PersonHeader({
   country,
   name,
@@ -96,14 +96,9 @@ function PersonHeader({
   totals: string;
 }) {
   return (
-    <header className="flex flex-col gap-1">
-      <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-        {badge}
-        {country === undefined ? null : <Flag country={country} title={country} />}
-        <span>{name}</span>
-      </h1>
+    <header className="flex flex-col gap-3">
+      <PageHeading title={name} flag={country} badge={badge} sub={totals} />
       <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">{details}</p>
-      <p className="text-sm font-medium">{totals}</p>
     </header>
   );
 }
@@ -124,6 +119,17 @@ interface CareerYear {
 const FIGURES = ["points", "wins", "podiums", "poles"] as const;
 
 /**
+ * A figure's cells. A phone keeps points and wins, as a standings row does, so
+ * the table never scrolls sideways; the room goes to the team.
+ */
+function figureClass(key: (typeof FIGURES)[number]): string {
+  return cn(
+    "px-2 text-right sm:px-3",
+    (key === "podiums" || key === "poles") && "hidden sm:table-cell",
+  );
+}
+
+/**
  * Year by year, latest first, each opening into its races. All start shut.
  *
  * `teams` switches on the driver column of the races, since a team's rounds
@@ -142,20 +148,17 @@ export function CareerSeasons({
   const columns = 3 + FIGURES.length;
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Season by season</CardTitle>
-        <CardDescription>Select a year for its races.</CardDescription>
-      </CardHeader>
+      <CardBand title="Season by season" label={count(years.length, "season", "seasons")} />
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-20">Year</TableHead>
-            <TableHead>{teams ? "Entry" : "Team"}</TableHead>
-            <TableHead className="text-right">Pos</TableHead>
-            <TableHead className="text-right">Pts</TableHead>
-            <TableHead className="text-right">Wins</TableHead>
-            <TableHead className="text-right">Podiums</TableHead>
-            <TableHead className="text-right">Poles</TableHead>
+            <TableHead className="px-2 sm:w-20 sm:px-3">Year</TableHead>
+            <TableHead className="px-2 sm:px-3">{teams ? "Entry" : "Team"}</TableHead>
+            <TableHead className="px-2 text-right sm:px-3">Pos</TableHead>
+            <TableHead className={figureClass("points")}>Pts</TableHead>
+            <TableHead className={figureClass("wins")}>Wins</TableHead>
+            <TableHead className={figureClass("podiums")}>Podiums</TableHead>
+            <TableHead className={figureClass("poles")}>Poles</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -166,8 +169,8 @@ export function CareerSeasons({
               <Liveries key={each.year} year={each.year}>
                 <EntryNames field={each.world.field}>
                   <TableRow className={cn(isOpen && "bg-muted/60")}>
-                    <TableCell>
-                      <span className="flex items-center gap-1">
+                    <TableCell className="px-2 sm:px-3">
+                      <span className="flex items-center gap-1 max-sm:flex-col max-sm:items-start">
                         <DisclosureButton
                           open={isOpen}
                           onToggle={() => {
@@ -190,7 +193,11 @@ export function CareerSeasons({
                         )}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    {/*
+                      `w-full max-w-0`, as on a record card: the team takes the
+                      slack and ends in an ellipsis, so a phone never scrolls.
+                    */}
+                    <TableCell className="w-full max-w-0 px-2 whitespace-normal sm:px-3">
                       <span className="flex flex-col gap-0.5">
                         {each.who}
                         {each.under}
@@ -205,7 +212,7 @@ export function CareerSeasons({
                       </TableCell>
                     ) : (
                       <>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="px-2 text-right tabular-nums sm:px-3">
                           <span
                             className={cn(
                               isTitle(each.figures) ? `${STANDOUT_TEXT} font-semibold` : undefined,
@@ -223,7 +230,8 @@ export function CareerSeasons({
                           <TableCell
                             key={key}
                             className={cn(
-                              "text-right tabular-nums",
+                              figureClass(key),
+                              "tabular-nums",
                               key === "points" ? "font-semibold" : "text-muted-foreground",
                             )}
                           >
@@ -321,8 +329,8 @@ export function DriverPage({
       year,
       world,
       who: (
-        <TeamHistory teamId={season?.teamId ?? teamId}>
-          <TeamName teamId={season?.teamId ?? teamId} badge />
+        <TeamHistory teamId={season?.teamId ?? teamId} className={HISTORY_FILL}>
+          <TeamName teamId={season?.teamId ?? teamId} badge tight />
         </TeamHistory>
       ),
       figures: season,
@@ -376,7 +384,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
     return {
       year,
       world,
-      who: <TeamName teamId={teamId} badge />,
+      who: <TeamName teamId={teamId} badge tight />,
       under: (
         <span className="text-muted-foreground flex flex-wrap gap-x-2 pl-6 text-xs">
           {drivers.map(({ driverId, position }) => (

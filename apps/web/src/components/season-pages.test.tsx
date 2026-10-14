@@ -159,7 +159,7 @@ describe("the era overview's year in progress", () => {
       <EraChampions run={run} inProgress={revealYear(next, { kind: "race", round: 0 })} />,
     );
     expect(html).toContain("in progress, leaders after round 1");
-    expect(html).toContain(`${YEAR + 1} is under way.`);
+    expect(html).toContain(`· ${YEAR + 1} is under way`);
     expect(count(html, STANDOUT_ROW)).toBe(1);
   });
 
@@ -176,7 +176,7 @@ describe("the era overview's year in progress", () => {
         inProgress={revealYear(world, { kind: "grid" })}
       />,
     );
-    expect(html).toContain("No season finished yet.");
+    expect(html).toContain("No season finished yet ·");
     expect(html).toContain("on the grid");
     expect(count(html, STANDOUT_ROW)).toBe(0);
   });

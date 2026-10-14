@@ -103,6 +103,11 @@ describe("the career statistics", () => {
     }
   });
 
+  it("heads each card one level under its half's heading", () => {
+    expect(html.split("<h2").length - 1).toBe(2);
+    expect(html.split("<h3").length - 1).toBe(8);
+  });
+
   it("names the drivers and the teams of the era", () => {
     const best = (list: readonly CareerRecord[]) => rankBy(list, "wins")[0]?.record;
     const driver = best(records.drivers);

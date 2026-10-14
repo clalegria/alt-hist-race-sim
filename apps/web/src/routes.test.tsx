@@ -433,7 +433,9 @@ describe("the Not reached yet page", () => {
 
   it("says so, and names the place", async () => {
     const html = await page();
-    expect(html).toContain("Not reached yet");
+    // The words are the page's one h1, the place its sub-line.
+    expect(html.split("<h1").length - 1).toBe(1);
+    expect(html).toContain("Not reached yet</h1>");
     expect(html).toContain(placeLabel(place));
   });
 

@@ -31,3 +31,5 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
   popovers (`usePageOf`). No icon beside a name in a table, card or list.
 - **An index's order is a search param** (`indexSearch`), the default left out of the
   URL; `sortIndex` is total, ending on the id.
+- **On a phone an index row is the name, wins, points and the sorted column**; a page's
+  season-by-season keeps points and wins, as a standings row does. Neither scrolls.

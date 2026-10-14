@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 import { eraChampions, eraSpan } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import { driverName, entryName, teamName } from "../lib/names.js";
+import { revealYear } from "../lib/reveal.js";
 import {
   DEFAULT_SEASON_YEAR,
   decadeOf,
@@ -24,7 +25,7 @@ import {
 } from "../lib/seasons.js";
 import { createWorld, type EraRun, type World } from "../store/season.js";
 import { textOf, YEAR } from "../test-support.js";
-import { ChampionRow, EraChampions, RollOfHonour } from "./EraChampions.js";
+import { ChampionRow, EraChampions, RESTACK, RollOfHonour } from "./EraChampions.js";
 import { EraPicker } from "./SeasonPicker.js";
 import { BADGE_SHAPE } from "./TeamBadge.js";
 
@@ -146,7 +147,7 @@ describe("the roll of honour", () => {
     expect(html).toContain(`${run.seasons.length} seasons run`);
     // The span off the seasons actually crowned, not off the starting year and
     // a count: the two agree today and a later mode could make them disagree.
-    expect(html).toContain(`${eraChampionYears()}.`);
+    expect(html).toContain(`${eraChampionYears()} · `);
   });
 
   it("counts one season as one, rather than as 1 seasons", () => {
@@ -200,6 +201,52 @@ describe("the roll of honour", () => {
     expect(row).toBeDefined();
     expect(badged.entry).not.toBe(teamName(badged.teamId));
     expect(row).toContain(badged.entry);
+  });
+
+  it("heads the page with its one h1", () => {
+    expect(html.split("<h1").length - 1).toBe(1);
+    expect(textOf(html.slice(html.indexOf("<h1"), html.indexOf("</h1>")))).toBe("Champions so far");
+  });
+});
+
+/** A row's cells a phone hides: cells, not the short labels inside a heading. */
+function hiddenCells(row: string): number {
+  return [...row.matchAll(/<t[hd] [^>]*class="([^"]*)"/g)].filter(([, classes = ""]) =>
+    classes.split(" ").includes(RESTACK.wins),
+  ).length;
+}
+
+describe("the roll of honour on a phone", () => {
+  it("restacks every row rather than scrolling, header included", () => {
+    // As React writes the attribute, with the child combinators escaped.
+    expect(roll).toContain(RESTACK.table.replaceAll("&", "&amp;").replaceAll(">", "&gt;"));
+    for (const row of rows(roll)) {
+      expect(row).toContain(RESTACK.row);
+    }
+  });
+
+  it("sets each champion over the other, with their points beside them", () => {
+    for (const row of rows(roll)) {
+      for (const cell of [RESTACK.driver, RESTACK.driverPoints, RESTACK.team, RESTACK.teamPoints]) {
+        expect(row.split(cell).length - 1).toBe(1);
+      }
+    }
+  });
+
+  it("leaves both wins columns to wider screens", () => {
+    for (const row of rows(roll)) {
+      expect(hiddenCells(row)).toBe(2);
+    }
+  });
+
+  it("restacks the year in progress the same way", () => {
+    const year = revealYear(createWorld(5, YEAR + 3), { kind: "race", round: 0 });
+    const markup = renderToStaticMarkup(
+      <RollOfHonour seasons={eraChampions(run.seasons)} inProgress={year} />,
+    );
+    const last = rows(markup).at(-1) ?? "";
+    expect(last).toContain(RESTACK.row);
+    expect(hiddenCells(last)).toBe(2);
   });
 });
 

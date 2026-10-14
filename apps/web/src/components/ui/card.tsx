@@ -25,8 +25,15 @@ export function CardHeader({ className, ...props }: ComponentProps<"header">) {
   );
 }
 
-export function CardTitle({ className, ...props }: ComponentProps<"h2">) {
-  return <h2 className={cn("narrow text-lg font-extrabold uppercase", className)} {...props} />;
+/** An `h2`, or an `h3` for a card under a section's own heading. */
+export function CardTitle({
+  className,
+  as: Heading = "h2",
+  ...props
+}: ComponentProps<"h2"> & { as?: "h2" | "h3" | undefined }) {
+  return (
+    <Heading className={cn("narrow text-lg font-extrabold uppercase", className)} {...props} />
+  );
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {
@@ -44,10 +51,13 @@ export function CardDescription({ className, ...props }: ComponentProps<"p">) {
 export function CardBand({
   title,
   label,
+  as,
   children,
 }: {
   title: ReactNode;
   label?: ReactNode;
+  /** The title's level: `h3` for a card under a section's heading. */
+  as?: "h2" | "h3";
   children?: ReactNode;
 }) {
   const labelled = label === undefined ? null : <p className={MONO_LABEL}>{label}</p>;
@@ -55,13 +65,13 @@ export function CardBand({
     <CardHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5">
       {children === undefined ? (
         <>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle as={as}>{title}</CardTitle>
           {labelled}
         </>
       ) : (
         <>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <CardTitle>{title}</CardTitle>
+            <CardTitle as={as}>{title}</CardTitle>
             {labelled}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">{children}</div>

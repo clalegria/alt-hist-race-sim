@@ -47,11 +47,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 13. `makeover-era-and-people`
-- `EraChampions`, `CareerStatistics`, `PersonPages`, `RosterIndex`, `NotReached`.
-- Screenshots: `era-champions`, `career-panel`, `driver-page`, `team-page`,
-  `drivers-index`, `not-reached`.
-
 ### 14. `makeover-setup-and-dialogs`
 - `SeasonPicker`, `RunSettingsDialog`, `RunSettingsLine`, `RunDialogs`, `SiteFooter`.
 - The rest of `components/ui/`: dialog, alert dialog, popover and dropdown menu.

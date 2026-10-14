@@ -375,7 +375,7 @@ export const STEPS: readonly Step[] = [
         .getByRole("link", { name: "Era", exact: true })
         .click();
       await page.waitForURL("**/run");
-      await page.getByText("No season finished yet.", { exact: false }).waitFor();
+      await page.getByText("No season finished yet", { exact: false }).waitFor();
     },
   },
   {

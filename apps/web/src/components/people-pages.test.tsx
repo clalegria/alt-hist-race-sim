@@ -8,14 +8,14 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverBirthYear } from "../lib/names.js";
+import { driverBirthYear, driverName } from "../lib/names.js";
 import { revealed } from "../lib/reveal.js";
 import { bestOverall, rosterOf } from "../lib/roster.js";
 import { driversLink, PAGE_OF, teamsLink } from "../lib/roster-places.js";
 import { isPlayable, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Run } from "../store/season.js";
 import { inRouter } from "../test-router.js";
-import { seededWorld, YEAR } from "../test-support.js";
+import { seededWorld, textOf, YEAR } from "../test-support.js";
 import { DriverPage, TeamPage } from "./PersonPages.js";
 import { RosterIndex } from "./RosterIndex.js";
 import { SeasonHistoryProvider } from "./SeasonHistory.js";
@@ -37,6 +37,16 @@ function disclosures(html: string): { all: number; open: number } {
     all: html.split("aria-expanded=").length - 1,
     open: html.split('aria-expanded="true"').length - 1,
   };
+}
+
+/** Each column heading's words, and whether a phone hides its column. */
+function phoneHeadings(html: string): [string, boolean][] {
+  return [...html.matchAll(/<th [^>]*class="([^"]*)"[^>]*>(.*?)<\/th>/g)].map(
+    ([, classes = "", inner = ""]) => [
+      textOf(inner).replace(/[↑↓]/g, "").trim(),
+      classes.includes("hidden sm:table-cell"),
+    ],
+  );
 }
 
 /** Someone on both years' grids, so their page has two rows. */
@@ -198,5 +208,70 @@ describe("the index lists", () => {
       expect(html).toContain(`href="/run/team/${teamId}"`);
     }
     expect(html.split('aria-sort="ascending"').length - 1).toBe(1);
+  });
+
+  it("are headed by their one h1", async () => {
+    const html = await inRouter(
+      <RosterIndex
+        kind="drivers"
+        years={midSeason}
+        sort="name"
+        linkFor={driversLink}
+        pageOf={PAGE_OF}
+      />,
+    );
+    expect(html.split("<h1").length - 1).toBe(1);
+    expect(textOf(html.slice(html.indexOf("<h1"), html.indexOf("</h1>")))).toBe("Drivers");
+  });
+
+  it("keep the name, wins, points and the sorted column on a phone", async () => {
+    for (const sort of ["name", "seasons", "poles"] as const) {
+      const html = await inRouter(
+        <RosterIndex
+          kind="drivers"
+          years={midSeason}
+          sort={sort}
+          linkFor={driversLink}
+          pageOf={PAGE_OF}
+        />,
+      );
+      const kept = new Set(["Driver", "Wins", "Pts"]);
+      if (sort === "seasons") kept.add("Seasons");
+      if (sort === "poles") kept.add("Poles");
+      for (const [label, hidden] of phoneHeadings(html)) {
+        expect(hidden, `${sort}: ${label}`).toBe(!kept.has(label));
+      }
+    }
+  });
+});
+
+describe("a person's page on a phone", () => {
+  it("keeps points and wins, as a standings row does", () => {
+    const entrant = twoYears ?? second.field[0];
+    if (entrant === undefined) {
+      throw new Error("no driver on the grid");
+    }
+    const html = renderToStaticMarkup(<DriverPage years={midSeason} driverId={entrant.driverId} />);
+    const hidden = new Map(phoneHeadings(html));
+    expect([...hidden].filter(([, off]) => off).map(([label]) => label)).toEqual([
+      "Podiums",
+      "Poles",
+    ]);
+    // Every body cell under a hidden heading goes with it: two per year raced.
+    expect(html.split("hidden sm:table-cell").length - 1).toBeGreaterThan(2);
+  });
+
+  it("is headed by the name, in its one h1", () => {
+    const entrant = second.field[0];
+    if (entrant === undefined) {
+      throw new Error("no driver on the grid");
+    }
+    const html = renderToStaticMarkup(<DriverPage years={midSeason} driverId={entrant.driverId} />);
+    expect(html.split("<h1").length - 1).toBe(1);
+    // Through a render, so a name with an apostrophe is escaped as the page's
+    // is; the end of the text, since the flag's own title comes first.
+    const name = textOf(renderToStaticMarkup(<span>{driverName(entrant.driverId)}</span>));
+    const heading = textOf(html.slice(html.indexOf("<h1"), html.indexOf("</h1>")));
+    expect(heading.slice(-name.length)).toBe(name);
   });
 });

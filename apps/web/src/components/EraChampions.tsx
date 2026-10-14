@@ -11,12 +11,13 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { Liveries } from "./Liveries.js";
+import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
   TableBody,
@@ -29,6 +30,32 @@ import {
 
 /** Season, then name-points-wins twice over — the width the panel spans. */
 const COLUMN_COUNT = 7;
+
+/**
+ * Below `sm` the roll of honour restacks rather than scrolls: the table and its
+ * sections become blocks and each row a grid, the year down the left, the
+ * drivers' champion and points over the constructors' champion and points,
+ * the wins left to wider screens. One set of cells at every width, so each name
+ * stays one control. The grid's columns are fixed, since each row is a grid of
+ * its own and must line up with the next. Child combinators only: an opened
+ * year holds tables of its own.
+ */
+export const RESTACK = {
+  table:
+    "max-sm:block max-sm:[&>thead]:block max-sm:[&>tbody]:block max-sm:[&>tbody>tr[data-expansion]]:block max-sm:[&>tbody>tr[data-expansion]>td]:block",
+  row: "max-sm:grid max-sm:grid-cols-[6rem_minmax(0,1fr)_4.5rem] max-sm:items-center",
+  year: "max-sm:col-start-1 max-sm:row-span-2 max-sm:row-start-1 max-sm:whitespace-normal",
+  driver: "max-sm:col-start-2 max-sm:row-start-1 max-sm:whitespace-normal",
+  driverPoints: "max-sm:col-start-3 max-sm:row-start-1",
+  team: "max-sm:col-start-2 max-sm:row-start-2 max-sm:whitespace-normal",
+  teamPoints: "max-sm:col-start-3 max-sm:row-start-2",
+  wins: "max-sm:hidden",
+  /** The year in progress before its first race: one cell across both names. */
+  unraced: "max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-1",
+} as const;
+
+/** A header cell on a phone, where the restack sets the heads two lines deep. */
+const RESTACK_HEAD = "max-sm:h-7";
 
 /**
  * One year of the roll of honour: who it crowned, and — opened — how.
@@ -66,8 +93,10 @@ export function ChampionRow({
         and the roll of honour spans many, so each row resolves its own.
       */}
       <Liveries year={season.year}>
-        <TableRow className={cn(latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}>
-          <TableCell className="font-semibold tabular-nums">
+        <TableRow
+          className={cn(RESTACK.row, latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}
+        >
+          <TableCell className={cn(RESTACK.year, "font-semibold tabular-nums")}>
             {/* The year opens the panel; the icon beside it goes to its page. */}
             <span className="flex items-center gap-1">
               <DisclosureButton open={open} onToggle={onToggle}>
@@ -78,7 +107,7 @@ export function ChampionRow({
               )}
             </span>
           </TableCell>
-          <TableCell>
+          <TableCell className={RESTACK.driver}>
             {/*
               The champion's name opens their whole career, not this year — the
               row already *is* this year. The year's chevron beside it opens the
@@ -98,13 +127,13 @@ export function ChampionRow({
               </DriverHistory>
             )}
           </TableCell>
-          <TableCell className="text-right font-semibold tabular-nums">
+          <TableCell className={cn(RESTACK.driverPoints, "text-right font-semibold tabular-nums")}>
             {season.driver?.points ?? "—"}
           </TableCell>
-          <TableCell className="text-muted-foreground text-right tabular-nums">
+          <TableCell className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}>
             {season.driver?.wins ?? "—"}
           </TableCell>
-          <TableCell>
+          <TableCell className={RESTACK.team}>
             {season.team === null ? (
               <span className="text-muted-foreground">—</span>
             ) : (
@@ -113,10 +142,10 @@ export function ChampionRow({
               </TeamHistory>
             )}
           </TableCell>
-          <TableCell className="text-right font-semibold tabular-nums">
+          <TableCell className={cn(RESTACK.teamPoints, "text-right font-semibold tabular-nums")}>
             {season.team?.points ?? "—"}
           </TableCell>
-          <TableCell className="text-muted-foreground text-right tabular-nums">
+          <TableCell className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}>
             {season.team?.wins ?? "—"}
           </TableCell>
         </TableRow>
@@ -190,22 +219,28 @@ export function RollOfHonour({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Roll of honour</CardTitle>
-        <CardDescription>
-          Every champion of this era. Pick a year to see its full standings.
-        </CardDescription>
-      </CardHeader>
-      <Table>
+      <CardBand
+        title="Roll of honour"
+        label={seasons.length === 0 ? undefined : eraSpan(seasons)}
+      />
+      <Table className={RESTACK.table}>
         <TableHeader>
-          <TableRow>
-            <TableHead>Season</TableHead>
-            <TableHead>Drivers&rsquo; champion</TableHead>
-            <TableHead className="text-right">Pts</TableHead>
-            <TableHead className="text-right">Wins</TableHead>
-            <TableHead>Constructors&rsquo; champion</TableHead>
-            <TableHead className="text-right">Pts</TableHead>
-            <TableHead className="text-right">Wins</TableHead>
+          <TableRow className={RESTACK.row}>
+            <TableHead className={cn(RESTACK_HEAD, RESTACK.year)}>Season</TableHead>
+            <TableHead className={cn(RESTACK_HEAD, RESTACK.driver)}>
+              Drivers<span className="max-sm:hidden">&rsquo; champion</span>
+            </TableHead>
+            <TableHead className={cn(RESTACK_HEAD, RESTACK.driverPoints, "text-right")}>
+              Pts
+            </TableHead>
+            <TableHead className={cn(RESTACK.wins, "text-right")}>Wins</TableHead>
+            <TableHead className={cn(RESTACK_HEAD, RESTACK.team)}>
+              Constructors<span className="max-sm:hidden">&rsquo; champion</span>
+            </TableHead>
+            <TableHead className={cn(RESTACK_HEAD, RESTACK.teamPoints, "text-right")}>
+              Pts
+            </TableHead>
+            <TableHead className={cn(RESTACK.wins, "text-right")}>Wins</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -249,8 +284,8 @@ export function InProgressRow({
   return (
     <EntryNames field={world.field}>
       <Liveries year={world.year}>
-        <TableRow className="hover:bg-transparent">
-          <TableCell>
+        <TableRow className={cn(RESTACK.row, "hover:bg-transparent")}>
+          <TableCell className={RESTACK.year}>
             <span className="flex flex-col leading-tight">
               <span className="flex items-center gap-1">
                 <span className="font-semibold tabular-nums">{world.year}</span>
@@ -264,13 +299,16 @@ export function InProgressRow({
             </span>
           </TableCell>
           {raced === 0 || leaders === undefined ? (
-            <TableCell colSpan={COLUMN_COUNT - 1} className="text-muted-foreground">
+            <TableCell
+              colSpan={COLUMN_COUNT - 1}
+              className={cn(RESTACK.unraced, "text-muted-foreground")}
+            >
               Not raced yet.
             </TableCell>
           ) : (
             <>
               {/* The row never opens; the leaders' names open their careers. */}
-              <TableCell>
+              <TableCell className={RESTACK.driver}>
                 {leaders.driver === null ? (
                   <DriverName driverId={null} />
                 ) : (
@@ -283,13 +321,15 @@ export function InProgressRow({
                   </DriverHistory>
                 )}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
+              <TableCell className={cn(RESTACK.driverPoints, "text-right tabular-nums")}>
                 {leaders.driver?.points ?? "—"}
               </TableCell>
-              <TableCell className="text-muted-foreground text-right tabular-nums">
+              <TableCell
+                className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}
+              >
                 {leaders.driver?.wins ?? "—"}
               </TableCell>
-              <TableCell>
+              <TableCell className={RESTACK.team}>
                 {leaders.team === null ? (
                   <span className="text-muted-foreground">—</span>
                 ) : (
@@ -298,10 +338,12 @@ export function InProgressRow({
                   </TeamHistory>
                 )}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
+              <TableCell className={cn(RESTACK.teamPoints, "text-right tabular-nums")}>
                 {leaders.team?.points ?? "—"}
               </TableCell>
-              <TableCell className="text-muted-foreground text-right tabular-nums">
+              <TableCell
+                className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}
+              >
                 {leaders.team?.wins ?? "—"}
               </TableCell>
             </>
@@ -326,21 +368,21 @@ function eraEnded(seasons: readonly SeasonChampions[], inProgress: RevealedWorld
   return inProgress === null && yearAfter(seasons) === null;
 }
 
-/** The line under the overview's heading: what has been run, and what comes next. */
+/** The overview's sub-line: what has been run, and what comes next. */
 function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld | null): string {
   const span = eraSpan(seasons);
   const run =
     seasons.length === 0
-      ? "No season finished yet."
+      ? "No season finished yet"
       : seasons.length === 1
-        ? `One season run, ${span}.`
-        : `${seasons.length} seasons run, ${span}.`;
+        ? `One season run, ${span}`
+        : `${seasons.length} seasons run, ${span}`;
   if (inProgress !== null) {
-    return `${run} ${inProgress.year} is under way.`;
+    return `${run} · ${inProgress.year} is under way`;
   }
   return eraEnded(seasons, inProgress)
-    ? `${run} That's the last season there is, so the era ends here.`
-    : `${run} Next comes ${yearAfter(seasons)}.`;
+    ? `${run} · That's the last season there is, so the era ends here`
+    : `${run} · Next comes ${yearAfter(seasons)}`;
 }
 
 /**
@@ -389,11 +431,11 @@ export function EraChampions({
   return (
     // No padding of its own: the run's frame spaces every page under the bar.
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          {ended ? "All champions" : "Champions so far"}
-        </h1>
-        <p className="text-muted-foreground max-w-prose text-sm">{eraLead(seasons, inProgress)}</p>
+      <header className="flex flex-col gap-3">
+        <PageHeading
+          title={ended ? "All champions" : "Champions so far"}
+          sub={eraLead(seasons, inProgress)}
+        />
         {first === null ? null : (
           <SimulationSettings
             settings={settingsOf(first)}

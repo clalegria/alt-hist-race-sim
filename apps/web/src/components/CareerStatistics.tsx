@@ -20,8 +20,9 @@ import { Liveries } from "./Liveries.js";
 import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
-import { Card, CardHeader, CardTitle } from "./ui/card.js";
-import { Table, TableBody, TableCell, TableRow } from "./ui/table.js";
+import { buttonClass } from "./ui/button.js";
+import { Card, CardBand } from "./ui/card.js";
+import { Table, TableBody, TableCell, TablePosition, TableRow } from "./ui/table.js";
 
 /**
  * How many careers a record card shows before it is opened out.
@@ -164,10 +165,10 @@ export function RecordRow({
   return (
     <Liveries year={year}>
       <TableRow>
-        <TableCell className="text-muted-foreground w-10 py-1.5 text-right tabular-nums">
+        <TablePosition className="py-1.5">
           {shared ? "=" : ""}
           {position}
-        </TableCell>
+        </TablePosition>
         {/*
           `w-full max-w-0` for the reason the provisional standings use it: the
           cell takes the slack the two number columns leave without letting the
@@ -260,13 +261,11 @@ export function RecordCard({
 
   return (
     <Card>
-      <CardHeader className="py-3">
-        <CardTitle className="text-sm">{title}</CardTitle>
-      </CardHeader>
+      <CardBand title={title} as="h3" />
       {rows.length === 0 ? (
         // An era one season long has champions and winners but can still have a
         // card nobody is on — a blank panel reads as a bug, so it says so.
-        <p className="text-muted-foreground px-5 py-4 text-sm">Nobody has one yet.</p>
+        <p className="text-muted-foreground px-3 py-3 text-sm">Nobody has one yet.</p>
       ) : (
         <Table>
           <TableBody>
@@ -320,11 +319,11 @@ function RecordSection({
   return (
     <section className="flex flex-col gap-3">
       <header className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">{heading}</h2>
+        <h2 className="narrow text-2xl leading-none font-extrabold uppercase">{heading}</h2>
         {inRun ? (
           <Link
             {...(kind === "driver" ? driversLink() : teamsLink())}
-            className="text-primary shrink-0 text-xs font-medium hover:underline"
+            className={buttonClass("link", "-mx-1.5 shrink-0", "inline")}
           >
             {kind === "driver" ? "All drivers →" : "All teams →"}
           </Link>

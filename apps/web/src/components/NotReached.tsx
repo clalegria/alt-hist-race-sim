@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { RunLink } from "../lib/run-places.js";
 import type { Place } from "../lib/timeline.js";
+import { PageHeading } from "./PageHeading.js";
+import { buttonClass } from "./ui/button.js";
+import { Card } from "./ui/card.js";
 
 /** A place in words, the way the breadcrumbs spell it. */
 export function placeLabel(place: Place): string {
@@ -40,17 +43,18 @@ export function NotReached({
   link: RunLink;
 }) {
   return (
-    <section className="bg-card flex flex-col items-start gap-2 rounded-xl border p-6 shadow-sm">
-      <h1 className="text-xl font-semibold tracking-tight">Not reached yet</h1>
-      <p className="text-muted-foreground text-sm">
-        {placeLabel(place)} is still ahead of the run. Continue to get there.
-      </p>
-      <Link
-        {...link}
-        className="text-primary text-sm font-medium underline-offset-4 hover:underline"
-      >
-        Back to where the run is: {cursor}
-      </Link>
-    </section>
+    <div className="flex flex-col gap-6">
+      <header>
+        <PageHeading title="Not reached yet" sub={placeLabel(place)} />
+      </header>
+      <Card className="flex flex-col items-start gap-2 p-4">
+        <p className="text-muted-foreground text-sm">
+          Still ahead of the run. Continue to get there.
+        </p>
+        <Link {...link} className={buttonClass("link", "-mx-1.5", "inline")}>
+          Back to where the run is: {cursor}
+        </Link>
+      </Card>
+    </div>
   );
 }

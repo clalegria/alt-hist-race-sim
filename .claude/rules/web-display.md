@@ -14,6 +14,7 @@ paths:
   - "apps/web/src/components/DisclosureButton.tsx"
   - "apps/web/src/components/CompactStandings.tsx"
   - "apps/web/src/components/TitleBanner.tsx"
+  - "apps/web/src/components/EraChampions.tsx"
 ---
 
 # Drawing the sessions and the standings
@@ -38,8 +39,12 @@ The accent, the session sheets and the championship tables.
 - **A phone's classification row is position, name, gap and points**: the car, Grid and
   Status show from `md`, and below it the gap column says DNF or DNQ in `text-loss`.
   A standings row is position, name, points and wins; Pods and Poles show from `sm`.
+- **The roll of honour restacks on a phone, never scrolls** (`RESTACK`): one set of cells
+  at every width, so a name stays one control; each row is its own grid, so its columns
+  are fixed. Child combinators only: an opened year holds tables of its own.
 - **A panel's head band is `CardBand`**: the title and a short mono label, never a
   sentence; its controls go in as children. A how-to goes on its control or in the body.
+  A card under a section's own `h2` passes `as="h3"`.
 - **A dashed box inside a panel is `Notice`** (`ui/notice.tsx`), never hand-rolled.
 - **A small mono-capitals label is `MONO_LABEL`** (`lib/utils.ts`), never a new spelling.
 - **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by

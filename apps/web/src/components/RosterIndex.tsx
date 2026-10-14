@@ -12,6 +12,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { count } from "../lib/history.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
@@ -19,21 +20,38 @@ import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from 
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn } from "../lib/utils.js";
 import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
+import { PageHeading } from "./PageHeading.js";
 import { TeamBadge } from "./TeamBadge.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
-/** The figure columns, in the order drawn. */
-const COLUMNS: readonly { readonly sort: Exclude<IndexSort, "name">; readonly label: string }[] = [
-  { sort: "seasons", label: "Seasons" },
-  { sort: "titles", label: "Titles" },
-  { sort: "wins", label: "Wins" },
-  { sort: "podiums", label: "Podiums" },
-  { sort: "poles", label: "Poles" },
-  { sort: "points", label: "Pts" },
+/**
+ * The figure columns, in the order drawn. A phone keeps the `phone` ones and
+ * the column the list is sorted by, so the table never scrolls sideways.
+ */
+const COLUMNS: readonly {
+  readonly sort: Exclude<IndexSort, "name">;
+  readonly label: string;
+  readonly phone: boolean;
+}[] = [
+  { sort: "seasons", label: "Seasons", phone: false },
+  { sort: "titles", label: "Titles", phone: false },
+  { sort: "wins", label: "Wins", phone: true },
+  { sort: "podiums", label: "Podiums", phone: false },
+  { sort: "poles", label: "Poles", phone: false },
+  { sort: "points", label: "Pts", phone: true },
 ];
+
+/** A figure column's cells: a step tighter on a phone, and hidden there unless kept. */
+function figureClass(column: (typeof COLUMNS)[number], sort: IndexSort): string {
+  return cn(
+    "px-2 text-right sm:px-3",
+    !column.phone && column.sort !== sort && "hidden sm:table-cell",
+  );
+}
 
 /** A column heading that sorts the list by itself. */
 function SortHeading({
@@ -58,7 +76,7 @@ function SortHeading({
       <Link
         {...linkFor(sort)}
         className={cn(
-          "hover:text-foreground transition-colors",
+          "hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none",
           active && "text-foreground font-semibold",
         )}
       >
@@ -103,77 +121,84 @@ export function RosterIndex({
   const noun = kind === "drivers" ? "driver" : "team";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{kind === "drivers" ? "Drivers" : "Teams"}</CardTitle>
-        <CardDescription>
-          Every {noun} in this run so far: {rows.length} of them. Pick a heading to sort, or a name
-          to open their page.
-        </CardDescription>
-      </CardHeader>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <SortHeading
-              label={kind === "drivers" ? "Driver" : "Team"}
-              sort="name"
-              current={sort}
-              linkFor={linkFor}
-            />
-            {COLUMNS.map((column) => (
+    <div className="flex flex-col gap-6">
+      <header>
+        <PageHeading
+          title={kind === "drivers" ? "Drivers" : "Teams"}
+          sub={`${count(rows.length, noun, `${noun}s`)} in the run so far`}
+        />
+      </header>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
               <SortHeading
-                key={column.sort}
-                label={column.label}
-                sort={column.sort}
+                label={kind === "drivers" ? "Driver" : "Team"}
+                sort="name"
                 current={sort}
                 linkFor={linkFor}
-                className="text-right"
               />
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row) => {
-            const country =
-              kind === "drivers" ? driverCountry(row.id) : teamCountryIn(row.id, row.lastYear);
-            return (
-              <TableRow key={row.id}>
-                <TableCell>
-                  <span className="flex items-center gap-1.5">
-                    {kind === "teams" ? (
-                      <Liveries year={row.lastYear}>
-                        <TeamBadge teamId={row.id} />
-                      </Liveries>
-                    ) : null}
-                    {country === undefined ? null : <Flag country={country} title={country} />}
-                    <Link
-                      {...(kind === "drivers" ? pageOf.driver(row.id) : pageOf.team(row.id))}
-                      className="font-medium hover:underline"
-                    >
-                      {nameOf(row)}
-                    </Link>
-                    {row.names > 1 ? (
-                      <span className="text-muted-foreground text-xs">under {row.names} names</span>
-                    ) : null}
-                  </span>
-                </TableCell>
-                {COLUMNS.map((column) => (
-                  <TableCell
-                    key={column.sort}
-                    className={cn(
-                      "text-right tabular-nums",
-                      column.sort === sort ? "font-semibold" : "text-muted-foreground",
-                      row[column.sort] === 0 && "text-subtle font-normal",
-                    )}
-                  >
-                    {row[column.sort]}
+              {COLUMNS.map((column) => (
+                <SortHeading
+                  key={column.sort}
+                  label={column.label}
+                  sort={column.sort}
+                  current={sort}
+                  linkFor={linkFor}
+                  className={figureClass(column, sort)}
+                />
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => {
+              const country =
+                kind === "drivers" ? driverCountry(row.id) : teamCountryIn(row.id, row.lastYear);
+              return (
+                <TableRow key={row.id}>
+                  <TableCell className="whitespace-normal sm:whitespace-nowrap">
+                    {/* The marks stay beside the name; on a phone the words wrap after them. */}
+                    <span className="flex items-center gap-1.5">
+                      {kind === "teams" ? (
+                        <Liveries year={row.lastYear}>
+                          <TeamBadge teamId={row.id} />
+                        </Liveries>
+                      ) : null}
+                      {country === undefined ? null : <Flag country={country} title={country} />}
+                      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+                        <Link
+                          {...(kind === "drivers" ? pageOf.driver(row.id) : pageOf.team(row.id))}
+                          className="font-medium hover:underline"
+                        >
+                          {kind === "drivers" ? <SplitName name={nameOf(row)} /> : nameOf(row)}
+                        </Link>
+                        {row.names > 1 ? (
+                          <span className="text-muted-foreground text-xs">
+                            under {row.names} names
+                          </span>
+                        ) : null}
+                      </span>
+                    </span>
                   </TableCell>
-                ))}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </Card>
+                  {COLUMNS.map((column) => (
+                    <TableCell
+                      key={column.sort}
+                      className={cn(
+                        figureClass(column, sort),
+                        "tabular-nums",
+                        column.sort === sort ? "font-semibold" : "text-muted-foreground",
+                        row[column.sort] === 0 && "text-subtle font-normal",
+                      )}
+                    >
+                      {row[column.sort]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 }
