@@ -1,6 +1,6 @@
 import { decadeOf, isPlayable, SEASON_DECADES, yearsInDecade } from "../lib/seasons.js";
-import { cn } from "../lib/utils.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
+import { Card, CardBand, CardDescription } from "./ui/card.js";
 import { Segmented } from "./ui/segmented.js";
 
 /**
@@ -65,14 +65,13 @@ export function YearPicker({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{lead}</CardDescription>
-      </CardHeader>
+      <CardBand title={title} />
 
       <div className="flex flex-col gap-4 px-5 py-4">
+        {/* A how-to, so the body's, never the band's (`CardBand`). */}
+        <CardDescription>{lead}</CardDescription>
         <div className="flex flex-col gap-1.5">
-          <span className="text-subtle text-xs font-medium tracking-wide uppercase">Decade</span>
+          <span className={MONO_LABEL}>Decade</span>
           <Segmented
             label="Decade"
             className={GRID}
@@ -96,9 +95,7 @@ export function YearPicker({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-subtle text-xs font-medium tracking-wide uppercase">
-            Season in the {decade}s
-          </span>
+          <span className={MONO_LABEL}>Season in the {decade}s</span>
           <Segmented
             label={`Season in the ${decade}s`}
             className={cn(GRID, "grid-cols-5 sm:grid-cols-10")}

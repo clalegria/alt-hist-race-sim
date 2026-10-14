@@ -48,11 +48,7 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem key={item.label} asChild>
-              <Link
-                {...item.link}
-                {...(item.current ? { "aria-current": "page" as const } : {})}
-                className={item.current ? "font-semibold" : undefined}
-              >
+              <Link {...item.link} {...(item.current ? { "aria-current": "page" as const } : {})}>
                 {item.label}
                 {item.current ? (
                   <span aria-hidden="true" className="ml-auto pl-3">
@@ -94,7 +90,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                 {crumb.link !== undefined ? (
                   <Link
                     {...crumb.link}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none"
                   >
                     {crumb.label}
                   </Link>
@@ -262,11 +258,16 @@ export function RunActions(props: RunActionsProps) {
               const action = actions[entry.key];
               const firstEverywhere =
                 !entry.phoneOnly && index > 0 && layout.menu[index - 1]?.phoneOnly === true;
+              // Leaving the run sits apart from the restarts, which keep it.
+              const exitAfterRestart =
+                entry.key === "exit" && index > 0 && layout.menu[index - 1]?.destructive === true;
               return (
                 <Fragment key={entry.key}>
                   {firstEverywhere ? <DropdownMenuSeparator className="md:hidden" /> : null}
+                  {exitAfterRestart ? <DropdownMenuSeparator /> : null}
                   <DropdownMenuItem
                     onSelect={action.onSelect}
+                    destructive={entry.destructive}
                     {...(entry.phoneOnly ? { className: "md:hidden" } : {})}
                   >
                     {action.label}
@@ -321,7 +322,7 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
         ) : (
           <Link
             {...returnTo.link}
-            className="text-muted-foreground hover:text-foreground font-mono text-xs underline-offset-4 hover:underline"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring font-mono text-xs underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
           >
             Run is at {state.cursor}
           </Link>

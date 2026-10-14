@@ -12,8 +12,6 @@ and components; the palette is already in `index.css`.
 - **Take one step per chat, top to bottom**, by its id (for example, do
   `makeover-type-and-palette`). Each step ships on its own; old and new styles side by side
   between steps is expected.
-- **Settle the OPEN points below before the step that needs them.** That chat starts by
-  asking.
 - When a step is built, its lasting rules move to the owning `.claude/rules/web-*.md` and
   the step is deleted here. The last step deletes this file and the mockup.
 - **DECIDED**: the author's choice. **PROPOSED**: confirm before building it if it changes
@@ -36,22 +34,7 @@ and components; the palette is already in `index.css`.
 - Not chosen: the arcade, race programme, livery tiles and year dial directions, and the
   chequer in a corner.
 
-## Settle first
-
-- **`ui-review-overlap`** (DECIDED)
-  - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
-    `page-heading`, `link-focus-ring`, `run-menu-destructive` and
-    `classification-sideways-scroll`.
-  - Fold each into the step that touches its files, and delete it from `ui-review.md` when
-    that step lands. *Sort the UI review* then sorts what is left.
-
 ## Steps
-
-### 14. `makeover-setup-and-dialogs`
-- `SeasonPicker`, `RunSettingsDialog`, `RunSettingsLine`, `RunDialogs`, `SiteFooter`.
-- The rest of `components/ui/`: dialog, alert dialog, popover and dropdown menu.
-- Screenshots: `season-setup`, `season-settings`, `era-setup`, `exit-dialog`,
-  `clear-edits-dialog`.
 
 ### 15. `makeover-wrap-up`
 - Take every screenshot step at both widths and in both themes, and fix what was missed.

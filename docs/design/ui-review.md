@@ -107,15 +107,6 @@ Page structure, navigation, and the phone screens after the two in tier 1.
     - A Not reached page has four ways back to the run: Back to run, the "Run is at…" link, the body link, and the foot copy.
   - Fix: show the sub-line under the crumbs only when away from the cursor ("Run is at …"), and drop the position text from the foot (`App.tsx:~191`).
   - Screenshot steps: `grid`, `not-reached`.
-- **`page-heading`** (PROPOSED)
-  - Setup's h1 (`2xl/3xl`) is the last not drawn by `PageHeading`; Home's hero is its own.
-  - Fix: `PageHeading` on setup, and a test that every page renders exactly one h1 (each
-    page's own tests check theirs today).
-  - Screenshot step: `season-setup`.
-- **`run-menu-destructive`** (PROPOSED)
-  - In the ⋯ menu, "Restart season", "Restart era" and "Exit run" are plain items with no separator and no destructive colour. The only separator divides phone-only items (`RunBar.tsx:~266`). Their confirm dialogs are already red.
-  - Fix: a separator, and `text-destructive` on those items.
-  - Screenshot step: `era-restart-dialog` (the menu is opened on the way).
 - **`title-only-reasons`** (PROPOSED; *Phone layout*)
   - Some reasons live only in a `title` tooltip, which a touch screen never shows:
     - why Continue is disabled ("Nothing after this", "Apply or cancel the grid edit first");
@@ -204,21 +195,10 @@ Visual consistency. The first three settle how a name is drawn, which later item
   - The thresholds are also unexplained colour bands.
   - Proposed: weight or ink steps instead of the accent.
   - Screenshot step: `grid`.
-- **`link-focus-ring`** (PROPOSED)
-  - Buttons show a `focus-visible` ring, but the breadcrumbs rely on the browser default.
-  - Fix: the same ring as buttons.
-- **`ui-primitives`** (PROPOSED)
-  - Hand-rolled repeats that should become shared pieces:
-
-    | Pattern | Copies |
-    |---|---|
-    | Uppercase label | 4 variants of tracking, colour and weight (`RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`); `MONO_LABEL` is the shared one |
-    | Dashed notice box | `RunSettingsDialog.tsx:~220`; `ui/notice.tsx` is the shared one |
-    | Card shell | `RunSettingsLine.tsx:~51` |
-    | Text-link button | `RunSettingsLine.tsx:~60`; Button `link`, size `inline`, is the shared one |
-
-  - Arbitrary text sizes: `text-[0.5rem]`, `text-[0.6875rem]`, `text-[0.65rem]`.
-  - Fix: `MONO_LABEL`, `Notice` and Button `link` on the rest; use `Card` for the shells.
+- **`arbitrary-text-sizes`** (PROPOSED; what is left of `ui-primitives`)
+  - `text-[0.5rem]` on the movement arrows (`CompactStandings.tsx:~38`) and
+    `text-[0.65rem]` on the luck slider's ticks (`RandomnessSlider.tsx:~148`).
+  - Fix: a size from the scale, or a comment on why neither fits one.
 
 ## 5. Words
 
@@ -292,7 +272,7 @@ No visible change.
   - More pluralisation is written by hand as ternaries.
   - `NAME_TARGET` and `HISTORY_TARGET` differ by `min-w-0`.
   - `SETTING_SELECT_CLASS` is retyped in `SeasonGrid.tsx:~507`.
-  - The redundant `font-mono` next to `tabular-nums` appears in `StandingsEvolution.tsx` and `SiteFooter.tsx:~43`.
+  - The redundant `font-mono` next to `tabular-nums` appears in `StandingsEvolution.tsx`.
 - **`yes-no-setting`** (PROPOSED)
   - `EngineSuppliersSetting`, `LiveriesSetting`, `TeamNamesSetting` and `CareerEventsSetting` are the same component, differing in name, key and note.
   - Fix: one `YesNoSetting` driven by a table, in the shape `settings-answer-polarity` settled.

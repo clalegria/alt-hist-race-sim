@@ -126,7 +126,9 @@ describe("the dialog's form", () => {
     const html = renderToStaticMarkup(
       <RunSettingsFields choice={choice()} year={YEAR} unit="era" lock="Fixed for a test." />,
     );
-    expect(html).toMatch(/^<p[^>]*>Fixed for a test\.<\/p><fieldset disabled=""/);
+    // The reason closes the notice that opens the markup, just ahead of the fieldset.
+    expect(html).toMatch(/^<div[^>]*>.*Fixed for a test\.<\/p><\/div><fieldset disabled=""/);
+    expect(html.split("<fieldset disabled").length - 1).toBe(1);
   });
 
   it("is live with no lock", () => {

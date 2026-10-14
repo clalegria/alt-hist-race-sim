@@ -13,6 +13,7 @@ import {
 import type { RunSettings, RunUnit } from "../lib/run-settings.js";
 import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { ERA_RATING_MODE } from "../store/season.js";
+import { PageHeading } from "./PageHeading.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { Button } from "./ui/button.js";
@@ -89,13 +90,12 @@ export function SeasonPicker({
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
+      <header className="flex flex-col gap-3">
+        <PageHeading title={title} />
         {/*
-          Capped, unlike the notes inside the panels below. This one is a real
-          paragraph that runs to two or three lines and is read down, which is
-          the case `max-w-prose` exists for; a single sentence sitting in a
-          full-width card is not.
+          A paragraph, not the heading's mono sub-line, which is for a short
+          fact. Capped, unlike the notes inside the panels below: it runs to
+          two or three lines and is read down, the case `max-w-prose` is for.
         */}
         <p className="text-muted-foreground max-w-prose text-sm">{lead}</p>
       </header>

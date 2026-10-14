@@ -69,6 +69,8 @@ describe("each URL", () => {
       const { html, pathname } = await renderRoute(page.path);
       expect(pathname).toBe(page.path);
       expect(html).toContain(page.shows);
+      // One page heading each; the run's own pages check theirs beside their parts.
+      expect(html.split("<h1").length - 1).toBe(1);
       navOf(html);
       expect(html).toContain(CREDIT);
     });

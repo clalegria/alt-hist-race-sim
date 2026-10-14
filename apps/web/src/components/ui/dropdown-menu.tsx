@@ -19,7 +19,7 @@ export function DropdownMenuContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "bg-card text-card-foreground border-border z-50 min-w-56 rounded-xl border p-1 shadow-xl outline-none",
+          "bg-card text-card-foreground border-border z-50 min-w-56 border p-1 shadow-xl outline-none",
           // As the popover: capped to the room on its side, so it scrolls rather than run off screen.
           "max-h-(--radix-dropdown-menu-content-available-height) overflow-y-auto",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
@@ -31,14 +31,23 @@ export function DropdownMenuContent({
   );
 }
 
+/**
+ * An entry in narrow capitals, as the nav and the buttons are. `destructive`
+ * throws work away: red, and filled as the confirm button is under the cursor,
+ * since red text on the accent fill falls short of 4.5:1 in light.
+ */
 export function DropdownMenuItem({
   className,
+  destructive = false,
   ...props
-}: ComponentProps<typeof DropdownMenuPrimitive.Item>) {
+}: ComponentProps<typeof DropdownMenuPrimitive.Item> & { destructive?: boolean }) {
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "focus:bg-accent flex cursor-pointer items-center rounded-md px-3 py-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:text-subtle",
+        "narrow flex cursor-pointer items-center px-3 py-2 text-sm font-bold tracking-wide uppercase outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:text-subtle",
+        destructive
+          ? "text-destructive focus:bg-destructive focus:text-destructive-foreground"
+          : "focus:bg-accent",
         className,
       )}
       {...props}

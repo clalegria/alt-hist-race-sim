@@ -3,6 +3,7 @@ import { type RunUnit, seasonSettings } from "../lib/run-settings.js";
 import { defaultChoice, type RunChoice, RunSettingsDialog } from "./RunSettingsDialog.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { Button } from "./ui/button.js";
+import { Card } from "./ui/card.js";
 
 /**
  * The run settings in one line, and the ⚙ button that opens them.
@@ -46,21 +47,20 @@ export function RunSettingsLine({
   const lines = settingsOf({ ...choice, settings: inForce });
 
   return (
-    <div className="border-border bg-card flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border px-4 py-2.5 shadow-sm">
+    <Card className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-2">
       <div className="text-muted-foreground min-w-0 text-xs">
         <SimulationSettings settings={lines} className="inline" />
         {lines.length > 0 && lock === null && onCommit !== undefined ? (
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="inline"
+            className="-my-0.5 ml-1.5"
             onClick={() => {
               onCommit(defaultChoice(choice, eraSettings));
             }}
-            // The grid's Clear all edits link, drawn the same way: a fill under
-            // the cursor, never an underline.
-            className="text-primary hover:bg-accent focus-visible:ring-ring ml-1.5 -my-0.5 cursor-pointer rounded px-1.5 py-0.5 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none"
           >
             Restore defaults
-          </button>
+          </Button>
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -89,6 +89,6 @@ export function RunSettingsLine({
         lock={lock}
         {...(onCommit === undefined ? {} : { onCommit })}
       />
-    </div>
+    </Card>
   );
 }

@@ -6,9 +6,21 @@ import { cn } from "../../lib/utils.js";
  * A modal that holds a form, as opposed to `AlertDialog`, which asks a
  * question about throwing something away. The same surface as that one, so the
  * two read as one family; wider by default is the caller's call.
+ *
+ * Drawn as a panel is: a head band (`DialogHeader`) with the title, a body
+ * (`DialogBody`), and the buttons on a strip of their own (`DialogFooter`).
  */
 export const Dialog = DialogPrimitive.Root;
 export const DialogClose = DialogPrimitive.Close;
+
+export const DIALOG_OVERLAY =
+  "data-[state=open]:animate-in data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50";
+
+/** Both dialogs' panel. No padding: the band, body and footer bring their own. */
+export const DIALOG_SURFACE = cn(
+  "bg-card text-card-foreground border-border fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto border shadow-xl outline-none",
+  "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+);
 
 export function DialogContent({
   className,
@@ -16,26 +28,30 @@ export function DialogContent({
 }: ComponentProps<typeof DialogPrimitive.Content>) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="data-[state=open]:animate-in data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50" />
-      <DialogPrimitive.Content
-        className={cn(
-          "bg-card text-card-foreground border-border fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-xl border p-6 shadow-xl outline-none",
-          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-          className,
-        )}
-        {...props}
-      />
+      <DialogPrimitive.Overlay className={DIALOG_OVERLAY} />
+      <DialogPrimitive.Content className={cn(DIALOG_SURFACE, className)} {...props} />
     </DialogPrimitive.Portal>
   );
 }
 
-export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
+/** The head band, darker than the panel as a card's is; it holds the title alone. */
+export function DialogHeader({ className, ...props }: ComponentProps<"div">) {
   return (
-    <DialogPrimitive.Title
-      className={cn("text-base font-semibold tracking-tight", className)}
+    <div
+      className={cn("bg-card-header border-border shrink-0 border-b px-5 py-3", className)}
       {...props}
     />
   );
+}
+
+export function DialogBody({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("flex flex-col gap-4 px-5 py-4", className)} {...props} />;
+}
+
+export const DIALOG_TITLE = "narrow text-xl leading-tight font-extrabold uppercase";
+
+export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
+  return <DialogPrimitive.Title className={cn(DIALOG_TITLE, className)} {...props} />;
 }
 
 export function DialogDescription({
@@ -50,9 +66,15 @@ export function DialogDescription({
   );
 }
 
-/** The dialog's buttons, the confirming one last, as `AlertDialogFooter` has them. */
+/** The dialog's buttons, the confirming one last, at the right where the run bar's are. */
 export function DialogFooter({ className, ...props }: ComponentProps<"div">) {
   return (
-    <div className={cn("flex flex-wrap items-center justify-end gap-2", className)} {...props} />
+    <div
+      className={cn(
+        "border-border flex shrink-0 flex-wrap items-center justify-end gap-2 border-t px-5 py-3",
+        className,
+      )}
+      {...props}
+    />
   );
 }

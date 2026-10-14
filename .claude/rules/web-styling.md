@@ -5,8 +5,7 @@ paths:
   - "apps/web/src/lib/theme.ts"
   - "apps/web/src/theme.test.ts"
   - "apps/web/src/components/ThemeToggle.tsx"
-  - "apps/web/src/components/ui/button.tsx"
-  - "apps/web/src/components/ui/segmented.tsx"
+  - "apps/web/src/components/ui/*.tsx"
   - "apps/web/src/components/TabLinks.tsx"
 ---
 
@@ -29,7 +28,10 @@ reasoning is its comment in `index.css`.
 - **Badges and flags outline with `badge-line`, never `border`**, which is too close to the
   dark card to edge a black livery.
 - **Red is never the primary**: it means something went wrong or is about to be thrown
-  away (`--color-destructive`, `--color-loss`).
+  away (`--color-destructive`, `--color-loss`). A `destructive` menu item fills red under
+  the cursor, since red on `accent` misses 4.5:1 in light.
+- **A dialog is a panel**: `DialogHeader` (the title alone), `DialogBody`, `DialogFooter`,
+  which `AlertDialog` reuses. Never restyle one dialog on its own.
 - **A new primary or destructive value must clear 4.5:1** under its foreground and as text
   on the card and on the header, in both themes. Measure all three before using it.
 - **Never hand-roll a header fill**: `CardHeader`, `TableHeader`, a grid tile's top row
@@ -45,9 +47,8 @@ reasoning is its comment in `index.css`.
   any `bg-*` on a row wins over them. Never move them to an `even:` utility, which beats a
   row's own fill.
 - **Dark is the default, in plain `@theme`; light overrides the variables on
-  `:root[data-theme="light"]`. Never nest a `@theme`**: Tailwind hoists it and drops its
-  selector, pinning the app to whichever palette comes last.
-- **Every dark value needs a light one**, the background pattern's tints included.
+  `:root[data-theme="light"]`**, every one of them, the pattern's tints included. **Never
+  nest a `@theme`**: Tailwind hoists it, pinning the app to whichever palette comes last.
 - **The theme's storage key is spelled in both `lib/theme.ts` and the blocking script in
   `index.html`**, which applies the choice before first paint. `theme.test.ts` reads both
   as text, since no component test can see either.

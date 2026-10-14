@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { type JumpPoint, jumpPlace, jumpTarget, jumpYears } from "../lib/run-bar.js";
 import { comparePlaces, type Place } from "../lib/timeline.js";
+import { MONO_LABEL } from "../lib/utils.js";
 import { cursorPlace, type Run } from "../store/season.js";
 import {
   AlertDialog,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog.js";
 import { Button } from "./ui/button.js";
@@ -85,8 +88,12 @@ export function RunConfirmDialog({
       }}
     >
       <AlertDialogContent>
-        <AlertDialogTitle>{copy.title}</AlertDialogTitle>
-        <AlertDialogDescription>{copy.description}</AlertDialogDescription>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{copy.title}</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <AlertDialogDescription>{copy.description}</AlertDialogDescription>
+        </AlertDialogBody>
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
             <Button variant="ghost">Cancel</Button>
@@ -150,45 +157,47 @@ export function JumpDialog({
       }}
     >
       <AlertDialogContent className="max-w-3xl">
-        <AlertDialogTitle>Jump to…</AlertDialogTitle>
-        <AlertDialogDescription>
-          Every season up to the one you pick is raced in one go. Stop at its start, to change its
-          grid, or at its end.
-        </AlertDialogDescription>
-        {target === null ? null : (
-          <>
-            <YearPicker
-              year={target.year}
-              onSelect={(year) => {
-                setChosen((current) => ({ ...current, year }));
-              }}
-              title="Season"
-              lead="Only seasons you haven't reached yet."
-              describeYear={(year) => `Jump to ${year}`}
-              playable={(year) => years.includes(year)}
-            />
-            <div className="flex flex-col gap-2">
-              <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-                Stop at
-              </span>
-              <Segmented
-                label="Stop at"
-                className="self-start"
-                segment="h-9 px-4 text-sm font-medium"
-                items={POINTS.map(({ point, label }) => ({
-                  key: point,
-                  label,
-                  selected: target.beat.kind === (point === "start" ? "grid" : "summary"),
-                  // The start of a year already begun is behind the run.
-                  disabled: comparePlaces(jumpPlace(target.year, point), cursor) <= 0,
-                  onPick: () => {
-                    setChosen((current) => ({ ...current, point }));
-                  },
-                }))}
+        <AlertDialogHeader>
+          <AlertDialogTitle>Jump to…</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <AlertDialogDescription>
+            Every season up to the one you pick is raced in one go. Stop at its start, to change its
+            grid, or at its end.
+          </AlertDialogDescription>
+          {target === null ? null : (
+            <>
+              <YearPicker
+                year={target.year}
+                onSelect={(year) => {
+                  setChosen((current) => ({ ...current, year }));
+                }}
+                title="Season"
+                lead="Only seasons you haven't reached yet."
+                describeYear={(year) => `Jump to ${year}`}
+                playable={(year) => years.includes(year)}
               />
-            </div>
-          </>
-        )}
+              <div className="flex flex-col gap-2">
+                <span className={MONO_LABEL}>Stop at</span>
+                <Segmented
+                  label="Stop at"
+                  className="self-start"
+                  segment="h-9 px-4 text-sm font-medium"
+                  items={POINTS.map(({ point, label }) => ({
+                    key: point,
+                    label,
+                    selected: target.beat.kind === (point === "start" ? "grid" : "summary"),
+                    // The start of a year already begun is behind the run.
+                    disabled: comparePlaces(jumpPlace(target.year, point), cursor) <= 0,
+                    onPick: () => {
+                      setChosen((current) => ({ ...current, point }));
+                    },
+                  }))}
+                />
+              </div>
+            </>
+          )}
+        </AlertDialogBody>
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
             <Button variant="ghost">Cancel</Button>

@@ -291,6 +291,12 @@ describe("where the bar puts each action", () => {
           expect(entry.phoneOnly, `${name} ${key}`).toBe(false);
         }
       }
+      // Red marks exactly the entries that throw work away.
+      for (const entry of layout.menu) {
+        expect(entry.destructive, `${name} ${entry.key}`).toBe(
+          ["restartSeason", "restartEra", "exit"].includes(entry.key),
+        );
+      }
       expect(
         layout.menu.map((entry) => entry.key),
         name,

@@ -19,7 +19,7 @@ export function PopoverContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "bg-card text-card-foreground border-border z-50 w-72 rounded-xl border p-4 shadow-xl outline-none",
+          "bg-card text-card-foreground border-border z-50 w-72 border p-4 shadow-xl outline-none",
           // Radix flips a panel above or below but never slides it up or down, so one
           // too tall for either side ran off the top; capped, it scrolls instead.
           "max-h-(--radix-popover-content-available-height) overflow-y-auto",

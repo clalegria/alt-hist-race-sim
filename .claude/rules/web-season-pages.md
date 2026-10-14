@@ -18,8 +18,8 @@ shows what, and the gate, are `web-routing.md`.
 - **One season page, finished or not**, cut at the cursor; the champion cards go under
   its heading once the summary is reached (`finished`).
 - **A page's one `<h1>` is `PageHeading`**, which owns the heading flag's size (a team's
-  badge goes in `badge`, ahead of it). Every page but Home's hero and setup uses it;
-  don't hand-roll another.
+  badge goes in `badge`, ahead of it). Every page but Home's hero uses it; don't
+  hand-roll another.
 - **A tab is a search param, not a path** (`seasonSearch`), and the default tab is left
   out of the URL. Tab links pass `activeOptions={{ exact: true }}`: TanStack matches
   search as a subset and would mark the standings link active on every tab.

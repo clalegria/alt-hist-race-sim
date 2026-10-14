@@ -1,3 +1,5 @@
+import { cn } from "../lib/utils.js";
+
 /**
  * The foot of every page.
  *
@@ -25,24 +27,29 @@ function Pending({ label }: { label: string }) {
       type="button"
       disabled
       title="Not available yet"
-      className="text-subtle cursor-not-allowed underline decoration-dotted underline-offset-2"
+      className="text-subtle cursor-not-allowed underline underline-offset-3"
     >
       {label}
     </button>
   );
 }
 
-export function SiteFooter({ seed }: { seed?: number }) {
+/** A strip across the whole window, ruled off at its top; its text keeps to the page's column. */
+export function SiteFooter({ seed, className }: { seed?: number; className?: string }) {
   return (
-    <footer className="border-border text-subtle mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-4 text-xs">
-      <span>Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.</span>
-      <Pending label="About this project" />
-      <Pending label="Submit a bug report" />
-      {seed === undefined ? null : (
-        <span className="ml-auto">
-          Seed <span className="font-mono tabular-nums">{seed}</span>
+    <footer className={cn("border-border border-t", className)}>
+      <div className="text-subtle mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-1.5 px-4 pt-4 pb-6 text-xs sm:px-6 lg:pb-8">
+        <span>
+          Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.
         </span>
-      )}
+        <Pending label="About this project" />
+        <Pending label="Submit a bug report" />
+        {seed === undefined ? null : (
+          <span className="ml-auto">
+            Seed <span className="tabular-nums">{seed}</span>
+          </span>
+        )}
+      </div>
     </footer>
   );
 }

@@ -110,6 +110,8 @@ export interface RunMenuEntry {
   readonly key: RunCommand;
   /** A button on the bar from `md` up, so listed on a phone only. */
   readonly phoneOnly: boolean;
+  /** Throws work away (the restarts, Exit run): drawn in red. */
+  readonly destructive: boolean;
 }
 
 /** Where each of the bar's actions goes, on a wide screen and on a phone. */
@@ -180,8 +182,8 @@ export function runActionsFor(
     // The skip, Continue's bigger brother, is the one beside ⋯.
     bar: [...(away ? (["back"] as const) : []), ...jump, ...skip],
     menu: [
-      ...phoneForward.map((key) => ({ key, phoneOnly: true })),
-      ...over.map((key) => ({ key, phoneOnly: false })),
+      ...phoneForward.map((key) => ({ key, phoneOnly: true, destructive: false })),
+      ...over.map((key) => ({ key, phoneOnly: false, destructive: true })),
     ],
   };
 }

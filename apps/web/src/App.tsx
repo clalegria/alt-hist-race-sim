@@ -61,9 +61,11 @@ export function Shell({
         {children}
       </div>
       {foot}
-      <div className="mx-auto w-full max-w-5xl px-4 pt-6 pb-8 sm:px-6 lg:pb-10">
-        <SiteFooter {...(seed === undefined ? {} : { seed })} />
-      </div>
+      {/* Home's track meets the footer's rule; every other page leaves a gap. */}
+      <SiteFooter
+        {...(seed === undefined ? {} : { seed })}
+        {...(foot === undefined ? { className: "mt-6" } : {})}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   type RunUnit,
   signsDrivers,
 } from "../lib/run-settings.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
@@ -24,12 +25,15 @@ import { TeamsSetting } from "./TeamsSetting.js";
 import { Button } from "./ui/button.js";
 import {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from "./ui/dialog.js";
+import { Notice } from "./ui/notice.js";
 import { WhoDrivesSetting } from "./WhoDrivesSetting.js";
 
 /**
@@ -66,7 +70,7 @@ export function defaultChoice(choice: RunChoice, eraSettings: boolean): RunChoic
 export function RunSettingsGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section aria-label={title} className="flex flex-col">
-      <h3 className="text-subtle pt-2 text-xs font-semibold tracking-wider uppercase">{title}</h3>
+      <h3 className={cn(MONO_LABEL, "text-foreground pt-2")}>{title}</h3>
       <div className="divide-border divide-y [&>*]:py-3">{children}</div>
     </section>
   );
@@ -252,9 +256,9 @@ export function RunSettingsFields({
   return (
     <>
       {lock === null ? null : (
-        <p className="border-border bg-muted/40 text-muted-foreground rounded-lg border border-dashed px-3 py-2 text-xs">
-          {lock}
-        </p>
+        <Notice title="Read only">
+          <p className="text-muted-foreground text-xs">{lock}</p>
+        </Notice>
       )}
       <fieldset disabled={lock !== null} className="m-0 min-w-0 border-0 p-0 disabled:text-subtle">
         <RunSettingsForm {...form} />
@@ -295,7 +299,7 @@ export function RunSettingsDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl gap-3">
+      <DialogContent className="max-w-4xl">
         {/* Inside the content, which Radix unmounts on close: the draft is
             seeded afresh from what is in force each time it opens. */}
         <DraftForm
@@ -339,21 +343,23 @@ function DraftForm({
     );
   return (
     <>
-      <div className="flex flex-col gap-1">
+      <DialogHeader>
         <DialogTitle>Run settings</DialogTitle>
+      </DialogHeader>
+      <DialogBody className="gap-3">
         <DialogDescription>
           Set these before you start. They can't be changed once the racing begins.
         </DialogDescription>
-      </div>
-      <RunSettingsFields
-        choice={draft}
-        year={year}
-        unit={unit}
-        eraSettings={eraSettings}
-        lock={lock}
-        onChange={setDraft}
-      />
-      <DialogFooter className="border-border border-t pt-4">
+        <RunSettingsFields
+          choice={draft}
+          year={year}
+          unit={unit}
+          eraSettings={eraSettings}
+          lock={lock}
+          onChange={setDraft}
+        />
+      </DialogBody>
+      <DialogFooter>
         {lock === null ? (
           <>
             <Button
