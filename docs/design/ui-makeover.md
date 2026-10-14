@@ -38,19 +38,11 @@ and components; the palette is already in `index.css`.
 
 ## Settle first
 
-- **`phone-nav`** (OPEN; settle before `makeover-top-nav`)
-  - The mockup scrolls the nav sideways as one row of tabs.
-  - `ui-review.md` (`top-nav-wrap`) and `publish.md` decided a menu.
-  - Pick one, and correct the other docs.
 - **`phone-classification`** (OPEN; settle before `makeover-race-page`)
   - The mockup's phone row: position, badge, flag, short name, car, gap. A retirement shows
     as DNF or DNQ in the gap column. Grid, Status and Pts are hidden.
   - `ui-review.md` (`classification-sideways-scroll`) proposed the opposite: drop Grid, Gap
     and the car, and keep Pts, with the status under the name.
-- **`wordmark`** (OPEN; settle before `makeover-top-nav`)
-  - The mockup's nav reads "ALT-HIST" beside the chequered mark, with Home as a tab.
-  - The app has no name on screen today (its `<title>` is "Racing history simulator").
-  - Keep "Home" as the mark's label, or pick a name.
 - **`parade-and-track`** (OPEN; settle before `makeover-home-track`)
   - PROPOSED: the track becomes the parade's road. The parade keeps its cars, formations
     and hidden game, but drives on the track instead of over the page.
@@ -61,22 +53,12 @@ and components; the palette is already in `index.css`.
   - This is the "Era mode" row of `one-name-per-thing` in `ui-review.md`.
 - **`ui-review-overlap`** (PROPOSED)
   - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
-    `page-heading`, `link-focus-ring`, `run-menu-destructive`, `top-nav-wrap` and
+    `page-heading`, `link-focus-ring`, `run-menu-destructive` and
     `classification-sideways-scroll`.
   - Fold each into the step that touches its files, and delete it from `ui-review.md` when
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 6. `makeover-top-nav`
-- `TopNav.tsx`:
-  - the header band;
-  - the areas as narrow-capital tabs, with an accent underline on `aria-current`;
-  - unbuilt areas in `text-subtle`;
-  - a square theme toggle.
-- The mark's label follows `wordmark`, the phone form follows `phone-nav`. It keeps
-  `PARADE_COVER`.
-- Screenshots: `menu`, on desktop and phone.
 
 ### 7. `makeover-run-bar`
 - `RunBar.tsx`:

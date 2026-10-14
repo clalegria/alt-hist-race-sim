@@ -12,8 +12,8 @@ five parts. The roadmap holds the order; this holds the design.
   a card; or **scroll the table horizontally** in its own container (a classification,
   where every column is a result).
 - OPEN: the standings evolution charts (six-series legend, ~24 round labels on 360px).
-- Per-screen items: `docs/design/ui-review.md`, tagged *Phone layout*. The run bar's phone
-  form is built; the top nav needs one (a menu). Styling only; the model is untouched.
+- Per-screen items: `docs/design/ui-review.md`, tagged *Phone layout*. The run bar's and the
+  top nav's phone forms are built. Styling only; the model is untouched.
 
 ## The share image
 

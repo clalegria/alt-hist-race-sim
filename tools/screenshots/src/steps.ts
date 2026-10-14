@@ -50,6 +50,19 @@ async function runAction(page: Page, name: string): Promise<void> {
   await page.getByRole("menuitem", { name, exact: true }).click();
 }
 
+/**
+ * Follows one of the top nav's areas: a tab on a wide screen, a row behind the
+ * Menu button on a phone.
+ */
+async function navTo(page: Page, name: string): Promise<void> {
+  const nav = page.getByRole("navigation", { name: "Main" });
+  const link = nav.getByRole("link", { name, exact: true });
+  if (!(await link.isVisible())) {
+    await button(page, "Menu").click();
+  }
+  await link.click();
+}
+
 /** Opens the run settings dialog from the settings line, and waits for it. */
 async function openSettings(page: Page): Promise<Locator> {
   await button(page, "Run settings").click();
@@ -69,6 +82,17 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await page.goto("/");
       await page.getByRole("heading", { name: "Rewrite motorsport history" }).waitFor();
+    },
+  },
+  {
+    // The phone's menu open; on a wide screen the areas are already showing.
+    name: "nav-menu",
+    reach: async (page) => {
+      const menu = page.getByRole("button", { name: "Menu", exact: true });
+      if (await menu.isVisible()) {
+        await menu.click();
+      }
+      await page.getByRole("navigation", { name: "Main" }).getByRole("link").first().waitFor();
     },
   },
   {
@@ -257,7 +281,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-setup",
     reach: async (page) => {
-      await page.getByRole("link", { name: "Era (basic)", exact: true }).click();
+      await navTo(page, "Era (basic)");
       await pickYear(page, `Start an era in ${YEAR}`);
       // What-ifs on the era, set in the dialog and left open, so both columns,
       // a picker and the sub-options are drawn.

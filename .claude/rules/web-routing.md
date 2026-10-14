@@ -30,6 +30,8 @@ and left.
   After adding, renaming or deleting a route file, run `pnpm dev` or `pnpm build`.
 - **A new page inside `/run` resolves twice**: `guardRunPage` in `beforeLoad` and
   `RunPlacePage` in render, since the store can move under a page with no navigation.
+- **The top nav is one `<nav aria-label="Main">` at every width**: below `md`, ☰ shows it
+  in the page's flow (no portal, so static tests see every entry); a new pathname closes it.
 
 ## The gate
 - **Params are untrusted; `resolveRunPage` is the only door.** A page reads the run

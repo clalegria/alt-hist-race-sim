@@ -32,8 +32,8 @@ reasoning is its comment in `index.css`.
   away (`--color-destructive`, `--color-loss`).
 - **A new primary or destructive value must clear 4.5:1** under its foreground and as text
   on the card and on the header, in both themes. Measure all three before using it.
-- **Never hand-roll a header fill**: `CardHeader`, `TableHeader` and a grid tile's top row
-  carry `--color-card-header`.
+- **Never hand-roll a header fill**: `CardHeader`, `TableHeader`, a grid tile's top row
+  and the top nav's band carry `--color-card-header`.
 - **Never fade text with an opacity modifier**: alpha composites in gamma space and lands
   far below the contrast it appears to have. Use `--color-subtle`. Opacity on fills is fine.
   A disabled control reads `text-subtle` and drops its fill.

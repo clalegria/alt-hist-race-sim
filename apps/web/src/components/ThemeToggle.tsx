@@ -55,7 +55,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         setTheme(next);
       }}
       className={cn(
-        "border-border text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-none",
+        "border-border text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border transition-colors focus-visible:ring-2 focus-visible:outline-none",
         className,
       )}
     >

@@ -1,11 +1,22 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useId, useRef, useState } from "react";
 import { AREAS, type Area, isAvailable } from "../lib/areas.js";
 import { PARADE_COVER } from "../lib/parade.js";
+import { cn } from "../lib/utils.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 
 /**
+ * One area's entry. On a wide screen a tab in the band, the current one
+ * underlined; in the phone's open menu a full-width row, the current one barred
+ * on the left. The transparent bar on the other side keeps the label centred.
+ */
+const TAB =
+  "narrow flex items-center px-2.5 py-2.5 text-[15px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors md:py-0 border-l-3 border-transparent md:border-l-0 md:border-y-3";
+
+/**
  * The bar across the top of every page: the Home link, the app's areas, and
- * the theme toggle.
+ * the theme toggle, on the header band (`card-header`), darker than the run bar
+ * below it as a table's header is darker than its rows.
  *
  * Every entry is a `Link` — a real `<a href>`, so it can be opened in a new tab
  * or copied, while a plain click is caught by the router and changes the page
@@ -15,29 +26,73 @@ import { ThemeToggle } from "./ThemeToggle.js";
  * An unbuilt area is a disabled button, not a link: an anchor to nowhere is a
  * link that lies, the same reason the footer's pending entries are buttons.
  *
- * Not sticky: the page's own bar below it is the one that stays, because that
- * is where the way forward is. But it wears that bar's surface — the same
- * translucent background and blur over the page's texture — so the two read as
- * one header rather than two different strips stacked.
+ * Below `md` the areas fold behind ☰. It is a disclosure — a button with
+ * `aria-expanded` that shows and hides the same `<nav>` — not a Radix menu:
+ * ARIA's `menu` role is for commands, and a disclosure renders no portal, so the
+ * nav is one element at every width and the static tests see every entry. The
+ * open list sits in the page's flow, pushing it down rather than covering it.
  *
  * `areas` is a prop only so the tests can hand it an entry that has a page but
  * an unbuilt mode, which today's list does not contain.
  */
 export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
+  const navId = useId();
+  const toggle = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+
+  // Any page change closes the menu: a tab, a Home card, Back. React's way to
+  // reset state when a value changes is to compare during render, not an effect.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const [shownAt, setShownAt] = useState(pathname);
+  if (pathname !== shownAt) {
+    setShownAt(pathname);
+    setOpen(false);
+  }
+
+  // Escape closes it from anywhere, focus back on the button that opened it.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        toggle.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <header {...PARADE_COVER} className="bg-background/85 border-border border-b backdrop-blur">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+    <header {...PARADE_COVER} className="bg-card-header border-border border-b">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-4 px-4 sm:px-6 md:h-[50px] md:flex-nowrap">
+        <Link
+          to="/"
+          className="narrow flex h-[50px] items-center gap-2 text-[17px] font-extrabold tracking-wide uppercase md:h-auto"
+        >
           <ChequeredFlag />
           Home
         </Link>
-        <nav aria-label="Main" className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1">
+        <nav
+          id={navId}
+          aria-label="Main"
+          className={cn(
+            "min-w-0 md:flex md:flex-1 md:basis-auto md:flex-row md:gap-0.5 md:pb-0",
+            open ? "order-last flex basis-full flex-col pb-2 md:order-none" : "hidden",
+          )}
+        >
           {areas.map((area) =>
             area.to !== undefined && isAvailable(area) ? (
               <Link
                 key={area.label}
                 to={area.to}
-                className="text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground text-sm transition-colors"
+                className={cn(
+                  TAB,
+                  "text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground aria-[current=page]:border-l-primary md:aria-[current=page]:border-b-primary",
+                )}
               >
                 {area.label}
               </Link>
@@ -47,16 +102,48 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
                 type="button"
                 disabled
                 title="Not available yet"
-                className="text-subtle cursor-not-allowed text-sm"
+                className={cn(TAB, "text-subtle cursor-not-allowed")}
               >
                 {area.label}
               </button>
             ),
           )}
         </nav>
-        <ThemeToggle />
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            ref={toggle}
+            type="button"
+            aria-label="Menu"
+            aria-expanded={open}
+            aria-controls={navId}
+            onClick={() => {
+              setOpen(!open);
+            }}
+            className="border-border text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border transition-colors focus-visible:ring-2 focus-visible:outline-none md:hidden"
+          >
+            <MenuIcon open={open} />
+          </button>
+        </div>
       </div>
     </header>
+  );
+}
+
+/** Three bars, or a cross while the menu is open: the convention for a menu button. */
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="square"
+      aria-hidden="true"
+      className="h-4 w-4"
+    >
+      <path d={open ? "M5 5l14 14M19 5L5 19" : "M3 6h18M3 12h18M3 18h18"} />
+    </svg>
   );
 }
 

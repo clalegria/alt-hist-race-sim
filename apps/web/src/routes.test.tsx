@@ -45,9 +45,16 @@ const CREDIT = "Developed by Claudio Alegria";
 
 /** The top nav's markup alone, so other disabled buttons on a page are not counted. */
 function navOf(html: string): string {
-  const start = html.indexOf('<nav aria-label="Main"');
+  const start = html.search(/<nav [^>]*aria-label="Main"/);
   expect(start, "the top nav is drawn").toBeGreaterThanOrEqual(0);
   return html.slice(start, html.indexOf("</nav>", start));
+}
+
+/** The top bar's markup, the nav and the Home mark and the buttons around it. */
+function headerOf(html: string): string {
+  const start = html.indexOf("<header");
+  expect(start, "the top bar is drawn").toBeGreaterThanOrEqual(0);
+  return html.slice(start, html.indexOf("</header>", start));
 }
 
 describe("each URL", () => {
@@ -147,6 +154,22 @@ describe("the top nav", () => {
     const nav = navOf(renderToStaticMarkup(<RouterProvider router={router} />));
     expect(nav).not.toContain("<a ");
     expect(nav).toMatch(/<button[^>]*disabled=""[^>]*>Market</);
+  });
+
+  it("folds behind a menu button that names the nav it shows, closed at first", async () => {
+    const header = headerOf((await renderRoute("/")).html);
+    const navId = /<nav [^>]*id="([^"]+)"/.exec(header)?.[1];
+    const button = /<button[^>]*aria-label="Menu"[^>]*>/.exec(header)?.[0];
+    expect(navId, "the nav has an id").toBeDefined();
+    expect(button, "the menu button is drawn").toBeDefined();
+    expect(button).toContain(`aria-controls="${navId}"`);
+    expect(button).toContain('aria-expanded="false"');
+  });
+
+  it("marks the Home link current on Home alone", async () => {
+    const homeLink = (html: string) => /<a [^>]*href="\/"[^>]*>/.exec(headerOf(html))?.[0];
+    expect(homeLink((await renderRoute("/")).html)).toContain('aria-current="page"');
+    expect(homeLink((await renderRoute("/season/new")).html)).not.toContain("aria-current");
   });
 });
 
