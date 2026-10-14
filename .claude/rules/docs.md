@@ -1,6 +1,8 @@
 ---
 paths:
   - "CLAUDE.md"
+  - "AGENTS.md"
+  - ".claude/agents/**"
   - "docs/**"
   - ".claude/rules/**"
 ---
@@ -9,12 +11,14 @@ paths:
 
 Every line here is read on many future tasks and goes stale when the code moves. Write less.
 
-- **Where things go**: project-wide invariants and commands in `CLAUDE.md`; one subsystem's
-  rules in `.claude/rules/<subsystem>.md`, scoped by `paths:`; what to build next in
+- **Where things go**: project-wide invariants and commands in `CLAUDE.md`; model choice and
+  delegation in `AGENTS.md`, subagents in `.claude/agents/`; one subsystem's rules in
+  `.claude/rules/<subsystem>.md`, scoped by `paths:`; what to build next in
   `docs/ROADMAP.md`; open questions in `docs/DECISIONS.md`; a large unbuilt design in
   `docs/design/<name>.md`. Say a thing once, in the file that owns it.
-- **Limits**, checked by `tools/docs`: CLAUDE.md ≤80 lines, a rule file ≤60, ROADMAP ≤120.
-  A DECISIONS entry ≤5 lines; a roadmap item ≤3 lines plus a link to its design doc.
+- **Limits**, checked by `tools/docs`: CLAUDE.md ≤80 lines, AGENTS.md ≤100, a rule file ≤60,
+  ROADMAP ≤120. A DECISIONS entry ≤5 lines; a roadmap item ≤3 lines plus a link to its
+  design doc.
 - **Replace, don't append.** An edit leaves the file within its limit; to add a line, find
   one to cut.
 - **A rule file is a list of instructions.** Each bullet is something not visible in the

@@ -65,3 +65,4 @@ Calibration harnesses (`pnpm race`, `season`, `tune`, `fit`, …): `.claude/rule
 - `.claude/rules/*.md` hold subsystem rules, loaded by path. How to write any doc:
   `.claude/rules/docs.md`.
 - A change that makes a doc wrong fixes it in the same commit.
+- Which model does what, and when to use subagents (`.claude/agents/`): @AGENTS.md

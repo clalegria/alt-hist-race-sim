@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 const ROOT = resolve(import.meta.dirname, "../../..");
 const RULES = join(ROOT, ".claude/rules");
 
-const LIMITS = { claude: 80, rule: 60, roadmap: 120 };
+const LIMITS = { claude: 80, agents: 100, rule: 60, roadmap: 120 };
 
 /** Rule files not yet cut to the limit. Remove each as it is rewritten; never add one. */
 const OVER_LIMIT = new Set<string>([]);
@@ -56,6 +56,10 @@ describe("rule files", () => {
 describe("top-level docs", () => {
   it(`CLAUDE.md is at most ${LIMITS.claude} lines`, () => {
     expect(lineCount(join(ROOT, "CLAUDE.md"))).toBeLessThanOrEqual(LIMITS.claude);
+  });
+
+  it(`AGENTS.md is at most ${LIMITS.agents} lines`, () => {
+    expect(lineCount(join(ROOT, "AGENTS.md"))).toBeLessThanOrEqual(LIMITS.agents);
   });
 
   it(`docs/ROADMAP.md is at most ${LIMITS.roadmap} lines`, () => {
