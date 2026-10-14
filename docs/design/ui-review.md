@@ -69,6 +69,11 @@ Things a fan meets on an ordinary first run: a dead end, a click that throws the
 
 Each is a small, sure commit.
 
+- **`randomized-grid-clear-edits`** (OPEN; found by the author)
+  - With *Who drives where* set to "Randomize grid", the grid shows "This grid was edited" (`SeasonGrid.tsx:~940`). Arguably wrong: it is a setting, not an edit.
+  - Worse, Clear all edits then does nothing. Likely cause: it nulls only lineup, cars, ratings and trends (`GridStage.tsx:~226`), never the arrangement, which comes from the settings.
+  - The author settles first: does an arrangement count as an edit, and if so, does clearing reset the setting?
+  - Screenshot step: `era-grid`.
 - **`qualifying-gap-overflow`** (PROPOSED)
   - A qualifying gap over a minute ("+1:17.230s", 10 characters) overflows its `w-[9ch]` box (`QualifyingResults.tsx:~83`).
   - `formatSeconds` (`lib/format.ts:~18`) also writes "s" after an m:ss time.
