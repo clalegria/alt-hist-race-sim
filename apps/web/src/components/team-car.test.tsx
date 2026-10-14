@@ -104,10 +104,10 @@ describe("the car's colours", () => {
     }
   });
 
-  it("wears no stripe when the badge has none, keeping the accent for the helmet", () => {
+  it("wears no accent at all when the badge has no stripe, the helmet included", () => {
     for (const html of cars(0)) {
       expect(pathsIn(html, ACCENT_2)).toBe(0);
-      expect(pathsIn(html, ACCENT_1)).toBe(1);
+      expect(pathsIn(html, ACCENT_1)).toBe(0);
     }
   });
 

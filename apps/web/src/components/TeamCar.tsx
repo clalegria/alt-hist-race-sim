@@ -48,6 +48,8 @@ const FIXED = {
   x: "#5b5f64",
   m: "#bcc0c5",
   w: "#f4f3ef",
+  // The helmet is the driver's, not the team's: one neutral colour on every car.
+  h: "#d9dcdf",
 } as const;
 
 /** How far a primary colour is darkened for the underside of the body. */
@@ -92,7 +94,6 @@ function coloursFor(livery: Livery): Record<CarRole, string> {
     p: `color-mix(in oklab, ${primaryColor} ${SHADE}%, black)`,
     "1": stripe1,
     "2": stripe2,
-    h: secondaryColor1,
   };
 }
 
