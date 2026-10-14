@@ -77,8 +77,9 @@ export function CompactStandings({
 
   return (
     <Card>
-      <CardHeader className="py-3">
-        <CardTitle className="text-sm">{title}</CardTitle>
+      {/* The classification's slim head band, so the two read as one row of towers. */}
+      <CardHeader className="px-3 py-2.5">
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <Table>
         <TableBody>

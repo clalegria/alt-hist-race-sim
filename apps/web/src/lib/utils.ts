@@ -9,3 +9,7 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
+
+/** A small label in mono capitals: an eyebrow, a fact's name, a panel's head band or foot. */
+export const MONO_LABEL =
+  "text-muted-foreground font-mono text-[11px] font-medium tracking-widest uppercase";

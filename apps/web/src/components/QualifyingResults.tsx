@@ -2,7 +2,7 @@ import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { driverCountry } from "../lib/names.js";
 import type { QualifyingEntry, QualifyingSheet } from "../lib/reveal.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
@@ -18,7 +18,16 @@ import { TeamCar } from "./TeamCar.js";
  * size — a name that wrapped to two lines would throw the whole column out.
  * Names shorten to initials and then truncate instead.
  */
-function GridSlot({ entry, country }: { entry: QualifyingEntry; country?: string | undefined }) {
+function GridSlot({
+  entry,
+  country,
+  out = false,
+}: {
+  entry: QualifyingEntry;
+  country?: string | undefined;
+  /** A car that did not make the cut: its name drawn muted, as a retirement's is. */
+  out?: boolean;
+}) {
   const nameOf = useEntryName();
   const nationality = driverCountry(entry.driverId);
   const pole = entry.gridPosition === 1;
@@ -26,14 +35,19 @@ function GridSlot({ entry, country }: { entry: QualifyingEntry; country?: string
   return (
     <div
       className={cn(
-        "border-border bg-card flex h-[3.25rem] items-center gap-2 rounded-lg border px-2.5",
+        "border-border bg-card flex h-[3.25rem] items-center gap-2 border pr-2.5",
         pole && STANDOUT_SURFACE,
       )}
     >
+      {/*
+        The classification's position block, in the header's fill. Pole's number
+        takes the accent but not the block's fill: on the grid the slot's own
+        tint is the mark, and a filled block is a race win's.
+      */}
       <span
         className={cn(
-          "w-5 shrink-0 text-right text-sm tabular-nums",
-          pole ? cn(STANDOUT_TEXT, "font-semibold") : "text-muted-foreground",
+          "bg-card-header grid w-8 shrink-0 place-items-center self-stretch text-sm font-semibold tabular-nums",
+          pole ? STANDOUT_TEXT : "text-muted-foreground",
         )}
       >
         {entry.gridPosition}
@@ -49,7 +63,8 @@ function GridSlot({ entry, country }: { entry: QualifyingEntry; country?: string
         <DriverHistory driverId={entry.driverId} className={cn(HISTORY_FILL, "flex-col")}>
           <FittedDriverName
             driverId={entry.driverId}
-            className={cn("text-sm", pole && "font-semibold")}
+            className={cn("text-sm", pole && "font-semibold", out && "text-muted-foreground")}
+            split
           />
           {/*
             The star trails the entry name, exactly as it does in the
@@ -149,13 +164,11 @@ export function QualifyingResults({
 
       {nonQualifiers.length === 0 ? null : (
         <div className="border-border mt-2 border-t pt-4">
-          <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-            Did not qualify
-          </p>
+          <p className={cn(MONO_LABEL, "mb-2")}>Did not qualify</p>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-x-6">
             {nonQualifiers.map((entry) => (
-              <li key={entry.driverId} className="opacity-60">
-                <GridSlot entry={entry} country={country} />
+              <li key={entry.driverId}>
+                <GridSlot entry={entry} country={country} out />
               </li>
             ))}
           </ul>

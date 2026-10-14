@@ -107,7 +107,10 @@ export function WeatherBadge({
         "bg-wet text-wet-foreground inline-flex items-center gap-1 rounded-full",
         // Tighter vertical padding than horizontal, so the pill stays the height
         // of the line it sits on rather than growing the row it is in.
-        "px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "px-2 py-0.5 text-xs whitespace-nowrap",
+        // Mono capitals, like every small label; the weight is set rather than
+        // inherited, since the pill sits inside the heavy race heading.
+        "font-mono font-semibold tracking-wider uppercase",
         className,
       )}
       title={label}

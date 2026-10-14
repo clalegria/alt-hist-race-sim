@@ -44,16 +44,14 @@ Things a fan meets on an ordinary first run: a dead end, a click that throws the
   - Fix: pass `finished` through, and title the unfinished chart "How the title race stands".
   - Screenshot step: `season-midseason`.
 - **`classification-sideways-scroll`** (OPEN: which move per table; *Phone layout*)
-  - Every table scrolls sideways today through `ui/table.tsx:~11` (`overflow-x-auto`). The screenshots show what that costs:
-    - the race classification hides Status and Pts, so a reader cannot see points or why a car retired;
+  - Tables scroll sideways through `ui/table.tsx:~11` (`overflow-x-auto`). The screenshots show what that costs:
     - the standings hide Wins, Pods and Poles;
     - the roll of honour hides the constructors' champion.
-  - *Phone layout* gives three moves per screen: drop columns, restack the row, or scroll the table. It leans towards scrolling for the classification ("every column is a result"), but the columns that scroll away are the two a fan reads first.
+  - *Phone layout* gives three moves per screen: drop columns, restack the row, or scroll the table. (The classification's phone row was settled in the makeover.)
   - Proposed:
-    - **Classification:** drop the context columns (Grid, Gap, the car sprite) and fold the status under the name, keeping Pts.
     - **Standings:** keep Pts and let the counts scroll.
     - **Roll of honour:** restack, with the constructors' champion under the drivers' champion.
-  - Screenshot steps: `race --phone`, `season-summary --phone`, `era-champions --phone`.
+  - Screenshot steps: `season-summary --phone`, `era-champions --phone`.
 - **`roll-of-honour-in-progress`** (OPEN)
   - At 1985's season summary, the roll of honour still says "1985 in progress, leaders after round 16" (`EraChampions.tsx:~258`) while the summary page has already crowned both champions.
   - The year only counts as finished at the era's review beat.
@@ -242,7 +240,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
 
     | Pattern | Copies |
     |---|---|
-    | Uppercase label | 5 variants of tracking, colour and weight (`QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
+    | Uppercase label | 4 variants of tracking, colour and weight (`RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`); `MONO_LABEL` is the shared one |
     | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
     | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `NotReached.tsx` |
     | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |

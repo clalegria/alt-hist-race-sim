@@ -33,6 +33,9 @@ The accent, the session sheets and the championship tables.
   margin; a test holds the two numbers at 2:1.
 - **The classification wraps rather than scrolls**: its prose columns wrap, its numeric
   columns never. Its tighter padding goes on each cell through `cn`, not a `[&_td]:` variant.
+- **A phone's classification row is position, name, gap and points**: the car, Grid and
+  Status show from `md`, and below it the gap column says DNF or DNQ in `text-loss`.
+- **A small mono-capitals label is `MONO_LABEL`** (`lib/utils.ts`), never a new spelling.
 - **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by
   `text-loss`.
 - **`SeasonStandings` is the one drawing of a championship**, used by the season summary

@@ -1,4 +1,5 @@
 import type { PointsScale, RaceEntryResult, RaceResult } from "@alt-hist/engine";
+import type { ReactNode } from "react";
 import { formatGap } from "../lib/format.js";
 import { PODIUM_POSITION, STANDOUT_POSITION, STANDOUT_TEXT } from "../lib/highlight.js";
 import { byClassification, pointsFor, statusOf } from "../lib/results.js";
@@ -52,11 +53,30 @@ const CELL = "px-2";
  */
 const CAR_COLUMN = "hidden w-full md:table-cell";
 
-function gapOf(entry: RaceEntryResult): string {
+/**
+ * Grid and Status, which a phone drops: the row there keeps the position, the
+ * name, the gap and the points, and the gap column says why a car stopped.
+ */
+const WIDE_ONLY = "hidden md:table-cell";
+
+/** The position block, a step narrower on a phone, where every pixel goes to the name. */
+const POSITION = "w-8 min-w-8 md:w-10 md:min-w-10";
+
+function gapOf(entry: RaceEntryResult): ReactNode {
   if (entry.finishPosition === 1) {
     return "winner";
   }
-  return entry.raceGapToWinner === null ? "—" : formatGap(entry.raceGapToWinner);
+  if (entry.raceGapToWinner !== null) {
+    return formatGap(entry.raceGapToWinner);
+  }
+  // A car that stopped has no gap. Wide, the Status column says why and this
+  // one is blank; on a phone, where Status is hidden, it carries the short word.
+  return (
+    <>
+      <span className="text-loss md:hidden">{entry.started ? "DNF" : "DNQ"}</span>
+      <span className="hidden md:inline">—</span>
+    </>
+  );
 }
 
 export function RaceClassification({
@@ -88,12 +108,12 @@ export function RaceClassification({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="w-10 px-0 text-center">Pos</TableHead>
+          <TableHead className={cn(POSITION, "px-0 text-center")}>Pos</TableHead>
           <TableHead className={CELL}>Driver</TableHead>
           {car ? <TableHead className={cn(CELL, CAR_COLUMN)} /> : null}
-          <TableHead className={cn(CELL, "text-right")}>Grid</TableHead>
+          <TableHead className={cn(CELL, WIDE_ONLY, "text-right")}>Grid</TableHead>
           <TableHead className={cn(CELL, "text-right")}>Gap</TableHead>
-          <TableHead className={CELL}>Status</TableHead>
+          <TableHead className={cn(CELL, WIDE_ONLY)}>Status</TableHead>
           <TableHead className={cn(CELL, "text-right")}>Pts</TableHead>
         </TableRow>
       </TableHeader>
@@ -108,6 +128,7 @@ export function RaceClassification({
             <TableRow key={entry.driverId} className="border-border/60">
               <TablePosition
                 className={cn(
+                  POSITION,
                   won && STANDOUT_POSITION,
                   podium && PODIUM_POSITION,
                   finished || "text-muted-foreground",
@@ -149,7 +170,9 @@ export function RaceClassification({
                   <TeamCar teamId={entry.teamId} />
                 </TableCell>
               ) : null}
-              <TableCell className={cn(CELL, "text-muted-foreground text-right tabular-nums")}>
+              <TableCell
+                className={cn(CELL, WIDE_ONLY, "text-muted-foreground text-right tabular-nums")}
+              >
                 {entry.gridPosition}
               </TableCell>
               <TableCell
@@ -165,6 +188,7 @@ export function RaceClassification({
               <TableCell
                 className={cn(
                   CELL,
+                  WIDE_ONLY,
                   "whitespace-normal text-xs",
                   finished ? "text-muted-foreground" : "text-loss",
                 )}

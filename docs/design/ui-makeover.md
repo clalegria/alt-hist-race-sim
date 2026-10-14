@@ -38,12 +38,7 @@ and components; the palette is already in `index.css`.
 
 ## Settle first
 
-- **`phone-classification`** (OPEN; settle before `makeover-race-page`)
-  - The mockup's phone row: position, badge, flag, short name, car, gap. A retirement shows
-    as DNF or DNQ in the gap column. Grid, Status and Pts are hidden.
-  - `ui-review.md` (`classification-sideways-scroll`) proposed the opposite: drop Grid, Gap
-    and the car, and keep Pts, with the status under the name.
-- **`ui-review-overlap`** (PROPOSED)
+- **`ui-review-overlap`** (DECIDED)
   - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
     `page-heading`, `link-focus-ring`, `run-menu-destructive` and
     `classification-sideways-scroll`.
@@ -51,18 +46,6 @@ and components; the palette is already in `index.css`.
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 10. `makeover-race-page`
-- The race header: the flag and the name in narrow capitals, the wet pill in mono capitals,
-  and the sub-line in mono.
-- `RaceClassification`:
-  - Desktop columns as in the mockup: position block, badge, name with flag and team, car,
-    grid, gap, status, points.
-  - A retirement in `text-loss`.
-  - The phone row follows `phone-classification`.
-- `CompactStandings`: the sidebar as small towers, with "Show all" as a mono foot.
-- `QualifyingResults` matches; its names take `FittedDriverName`'s `split`.
-- Screenshots: `qualifying`, `race`, `round-menu`, on desktop and phone.
 
 ### 11. `makeover-season-pages`
 - `SeasonOverview` (the champion cards and the tabs), `SeasonStandings`, `StandingsTable`,

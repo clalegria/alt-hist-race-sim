@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { RunLink } from "../lib/run-places.js";
-import { MONO_LABEL } from "./MainMenu.js";
+import { MONO_LABEL } from "../lib/utils.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
 

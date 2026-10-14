@@ -19,6 +19,7 @@ import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { EDITING_LOCK } from "../lib/settings-lock.js";
 import { positionsOf } from "../lib/standings.js";
 import type { View } from "../lib/timeline.js";
+import { MONO_LABEL } from "../lib/utils.js";
 import { BackToSetup } from "./BackToSetup.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
@@ -57,12 +58,13 @@ function plural(count: number, noun: string): string {
 
 /**
  * One session's sheet. The round's name, flag and weather are the page's
- * header (`SessionHeader`), so the card says only which sheet this is.
+ * header (`SessionHeader`), so the card says only which sheet this is, in the
+ * same slim head band as the standings beside it.
  */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-3 py-2.5">
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       {children}
@@ -161,7 +163,7 @@ function RaceStage({
         </Section>
 
         <aside className="flex flex-col gap-4">
-          <p className="text-muted-foreground text-xs">
+          <p className={MONO_LABEL}>
             Championship after {plural(soFar.races.length, "round")}
             {remaining === 0 ? "" : ` (${remaining} remaining)`}
           </p>

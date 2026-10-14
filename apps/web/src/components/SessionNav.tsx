@@ -30,16 +30,16 @@ export function SessionHeader({
 }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
-      <div className="flex flex-col gap-1">
-        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="narrow flex flex-wrap items-center gap-2.5 text-4xl leading-none font-extrabold tracking-[0.01em] uppercase md:text-5xl">
           {race === undefined || race.country === "" ? null : (
-            <Flag country={race.country} title={race.country} className="h-4 w-6" />
+            <Flag country={race.country} title={race.country} className="h-5 w-7.5" />
           )}
           {race?.name ?? `Round ${round + 1}`}
           {/* Only when it rained: `WeatherBadge` draws nothing for a dry weekend. */}
           <WeatherBadge weather={weather} />
         </h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground font-mono text-xs tracking-wider uppercase">
           Round {round + 1} of {rounds}
           {race === undefined || race.circuit === "" ? "" : ` · ${race.circuit}`}
         </p>

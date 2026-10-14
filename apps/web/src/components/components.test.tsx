@@ -203,6 +203,34 @@ describe("the race classification", () => {
     const mixed = renderToStaticMarkup(<RaceClassification race={round} points={world.points} />);
     expect(mixed).toContain("Retired");
     expect(mixed).toContain("Did not qualify");
+    // And in the gap column's short words, which are all a phone shows of them.
+    expect(mixed).toContain(">DNF<");
+    expect(mixed).toContain(">DNQ<");
+  });
+
+  it("keeps position, name, gap and points on a phone, and drops grid and status", () => {
+    // The header's cells in order, each tagged with whether it hides below `md`.
+    // From the header row, not `<thead`, which `<th` would also match.
+    const head = html.slice(html.indexOf("<tr"), html.indexOf("</thead>"));
+    const columns = head
+      .split("<th")
+      .slice(1)
+      .map((cell) => ({
+        name: textOf(`<th${cell}`),
+        wideOnly: cell.slice(0, cell.indexOf(">")).includes("hidden md:table-cell"),
+      }));
+    const shown = columns.filter((column) => !column.wideOnly).map((column) => column.name);
+    expect(shown).toEqual(["Pos", "Driver", "Gap", "Pts"]);
+    expect(columns.filter((column) => column.wideOnly).map((column) => column.name)).toEqual([
+      "Grid",
+      "Status",
+    ]);
+  });
+
+  it("gives a stopped car's short word the loss colour, and only on a phone", () => {
+    const stopped = race.entries.filter((entry) => entry.finishPosition === null);
+    expect(stopped.length).toBeGreaterThan(0);
+    expect(occurrencesOf(html, '<span class="text-loss md:hidden">')).toBe(stopped.length);
   });
 
   it("never prints a gap on a row that did not finish", () => {

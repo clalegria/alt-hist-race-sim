@@ -1,6 +1,6 @@
 import { MODES, type Mode, type ModeId } from "../lib/modes.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 
 /**
  * The opening screen, as a timing tower: the hero and the run in progress on
@@ -10,10 +10,6 @@ import { cn } from "../lib/utils.js";
  * `renderToStaticMarkup` without a DOM — including the unfinished ones, which
  * are the part most likely to be quietly broken by an edit elsewhere.
  */
-
-/** A small label in mono capitals: the hero's eyebrow, the facts, the panels' head bands. */
-export const MONO_LABEL =
-  "text-muted-foreground font-mono text-[11px] font-medium tracking-widest uppercase";
 
 /** How much history there is to run, off the seed data: never written down. */
 function Facts() {
