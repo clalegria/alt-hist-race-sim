@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
-import { settingsForm } from "../test-support.js";
+import { settingsForm, settingsPanel } from "../test-support.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { settingsOf } from "./SimulationSettings.js";
 
@@ -24,15 +24,13 @@ describe("the career events setting", () => {
     }
   });
 
-  it("is offered on the era's setup screen, last in the Drivers group, and not on a season's", () => {
-    const era = settingsForm("era");
-    const at = (label: string) => era.indexOf(`aria-label="${label}"`);
-    expect(at("Drivers")).toBeGreaterThan(at("Points system"));
+  it("is offered on the era's setup screen, last on the Drivers tab, and not on a season's", () => {
+    const drivers = settingsPanel(settingsForm("era"), "drivers");
+    const at = (label: string) => drivers.indexOf(`aria-label="${label}"`);
     expect(at("Driver career events")).toBeGreaterThan(at("Who drives where"));
-    expect(at("Cars")).toBeGreaterThan(at("Driver career events"));
 
     const season = settingsForm("season");
-    expect(season).toContain('aria-label="Drivers"');
+    expect(settingsPanel(season, "drivers")).toContain('aria-label="Who drives where"');
     expect(season).not.toContain('aria-label="Driver career events"');
   });
 

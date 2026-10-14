@@ -30,7 +30,7 @@ its CSS: the app builds the look from its own tokens (`index.css`) and component
 | Voice | Looks like | Used for | Owned by |
 |---|---|---|---|
 | Display capitals | narrow, extrabold, uppercase | page titles, the Home hero, panel and dialog titles, the title banner | `PageHeading`, `CardTitle`/`CardBand`, `DIALOG_TITLE`, `MainMenu` |
-| Control capitals | narrow, bold, uppercase, a little tracking | buttons, nav, tabs, menu items | `ui/button`, `TopNav`, `TabLinks`, `ui/dropdown-menu` |
+| Control capitals | narrow, bold, uppercase, a little tracking | buttons, nav, tabs, menu items | `ui/button`, `TopNav`, `Tabs`, `ui/dropdown-menu` |
 | Timing names | narrow extrabold capitals | a name that stands alone in a table cell: a driver's surname (`SplitName`, given name plain), a team's whole name; a popover's title | `TIMING_NAME`, through `DriverName` and `TeamName` |
 | Mono labels | Plex Mono, small, uppercase, wide tracking | column heads, band labels, kickers, breadcrumbs, statuses like READY | `MONO_LABEL`, `TableHead`, `PageHeading`'s sub-line |
 | Figures | Plex Mono, tabular | every number | the `tabular-nums` class |

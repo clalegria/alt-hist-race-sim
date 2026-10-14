@@ -27,7 +27,7 @@ import { SeasonGrid } from "./SeasonGrid.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
-import { TabLinks } from "./TabLinks.js";
+import { Tabs } from "./Tabs.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamCar } from "./TeamCar.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
@@ -162,10 +162,10 @@ function Champions({ world }: { world: RevealedWorld }) {
  */
 function SeasonTabs({ tabs }: { tabs: readonly SeasonTabLink[] }) {
   return (
-    <TabLinks
+    <Tabs
       label="Season"
       className="self-start"
-      tabs={tabs.map((tab) => ({
+      links={tabs.map((tab) => ({
         key: tab.tab,
         label: tab.label,
         current: tab.current,

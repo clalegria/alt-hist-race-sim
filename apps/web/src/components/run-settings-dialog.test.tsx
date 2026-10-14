@@ -11,11 +11,16 @@ import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
-import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
+import { HISTORICAL_SETTINGS, OPENING_DRIVER_POOL, type RunSettings } from "../lib/run-settings.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
 import { rowName, shownAt, YEAR } from "../test-support.js";
-import { defaultChoice, RunSettingsFields } from "./RunSettingsDialog.js";
+import {
+  changedTabs,
+  defaultChoice,
+  type RunChoice,
+  RunSettingsFields,
+} from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
@@ -122,20 +127,23 @@ describe("the settings line", () => {
 });
 
 describe("the dialog's form", () => {
-  it("is one disabled fieldset under a lock, with the reason above it", () => {
+  it("disables the panels in one fieldset under a lock, the reason and the tabs above it", () => {
     const html = renderToStaticMarkup(
       <RunSettingsFields choice={choice()} year={YEAR} unit="era" lock="Fixed for a test." />,
     );
-    // The reason closes the notice that opens the markup, just ahead of the fieldset.
-    expect(html).toMatch(/^<div[^>]*>.*Fixed for a test\.<\/p><\/div><fieldset disabled=""/);
     expect(html.split("<fieldset disabled").length - 1).toBe(1);
+    const [above = ""] = html.split("<fieldset");
+    expect(above.indexOf("Fixed for a test.")).toBeLessThan(above.indexOf('role="tablist"'));
+    // The tabs stay out of the fieldset, and live: a locked run is still read tab by tab.
+    expect(above).toContain('role="tab"');
+    expect(above).not.toContain('disabled=""');
   });
 
   it("is live with no lock", () => {
     const html = renderToStaticMarkup(
       <RunSettingsFields choice={choice()} year={YEAR} unit="era" lock={null} />,
     );
-    expect(html).toMatch(/^<fieldset class/);
+    expect(html).not.toContain("Read only");
     expect(html).not.toContain('disabled=""');
   });
 
@@ -157,6 +165,75 @@ describe("the dialog's form", () => {
     const historical = notes(HISTORICAL_SETTINGS);
     expect(notes({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" })).toBe(historical + 1);
     expect(notes({ ...HISTORICAL_SETTINGS, careerEvents: "none" })).toBe(historical + 1);
+  });
+});
+
+describe("the dialog's tabs", () => {
+  const form = (unit: "season" | "era", settings: RunSettings = HISTORICAL_SETTINGS) =>
+    renderToStaticMarkup(
+      <RunSettingsFields
+        choice={choice(settings)}
+        year={YEAR}
+        unit={unit}
+        eraSettings={unit === "era"}
+        lock={null}
+      />,
+    );
+  const labels = (html: string) =>
+    [...html.matchAll(/role="tab"[^>]*>([^<]+)/g)].map((match) => match[1]);
+
+  it("draws Over the years on an era only", () => {
+    expect(labels(form("season"))).toEqual(["Races", "Drivers", "Cars"]);
+    expect(labels(form("era"))).toEqual(["Races", "Drivers", "Cars", "Over the years"]);
+  });
+
+  it("opens on Races, with every other panel there but hidden", () => {
+    const html = form("era");
+    expect(html.match(/aria-selected="true"[^>]*>([^<]+)/)?.[1]).toBe("Races");
+    const panels = html.match(/<div role="tabpanel"[^>]*>/g) ?? [];
+    expect(panels).toHaveLength(labels(html).length);
+    expect(panels.filter((panel) => panel.includes('hidden=""'))).toHaveLength(panels.length - 1);
+  });
+
+  it("marks a tab holding a change", () => {
+    expect(form("era")).not.toContain(", changed");
+    expect(form("era", { ...HISTORICAL_SETTINGS, breakdowns: "fewer" })).toMatch(
+      /Cars<span[^>]*><\/span><span class="sr-only">, changed/,
+    );
+  });
+});
+
+describe("which tabs hold a change", () => {
+  const changed = (choice: RunChoice, eraSettings = true) => [...changedTabs(choice, eraSettings)];
+  const otherPool = { ...OPENING_DRIVER_POOL, activeOnly: !OPENING_DRIVER_POOL.activeOnly };
+
+  it("is none at the defaults", () => {
+    expect(changed(choice())).toEqual([]);
+    expect(changed(choice(), false)).toEqual([]);
+  });
+
+  it("is the tab each answer is set on", () => {
+    expect(changed(choice({ ...HISTORICAL_SETTINGS, breakdowns: "fewer" }))).toEqual(["cars"]);
+    expect(changed(choice({ ...HISTORICAL_SETTINGS, careerEvents: "none" }))).toEqual(["drivers"]);
+    const level = RANDOMNESS_LEVELS.find((one) => one !== STARTING_RANDOMNESS_LEVEL);
+    if (level === undefined) {
+      throw new Error("no level but the starting one");
+    }
+    expect(changed({ ...choice(), randomness: level })).toEqual(["races"]);
+    expect(changed({ ...choice(), ratingMode: "peak" }, false)).toEqual(["drivers"]);
+  });
+
+  it("ignores a pool nobody is signed from", () => {
+    expect(changed(choice({ ...HISTORICAL_SETTINGS, driverPool: otherPool }))).toEqual([]);
+    const seating = { kind: "random", includeUnemployed: true } as const;
+    expect(
+      changed(choice({ ...HISTORICAL_SETTINGS, seating, driverPool: otherPool }), false),
+    ).toEqual(["drivers"]);
+  });
+
+  it("never counts a season's era-only answers", () => {
+    expect(changed(choice({ ...HISTORICAL_SETTINGS, teamNames: "first" }), false)).toEqual([]);
+    expect(changed(choice({ ...HISTORICAL_SETTINGS, teamNames: "first" }))).toEqual(["years"]);
   });
 });
 

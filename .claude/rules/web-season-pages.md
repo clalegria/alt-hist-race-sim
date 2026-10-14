@@ -20,6 +20,8 @@ shows what, and the gate, are `web-routing.md`.
 - **A page's one `<h1>` is `PageHeading`**, which owns the heading flag's size (a team's
   badge goes in `badge`, ahead of it). Every page but Home's hero uses it; don't
   hand-roll another.
+- **Every tab strip is `Tabs`**: `links` between places on a page, `panels` between
+  panels on one screen (the settings dialog). Never hand-roll another.
 - **A tab is a search param, not a path** (`seasonSearch`), and the default tab is left
   out of the URL. Tab links pass `activeOptions={{ exact: true }}`: TanStack matches
   search as a subset and would mark the standings link active on every tab.

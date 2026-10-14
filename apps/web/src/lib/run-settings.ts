@@ -197,7 +197,8 @@ export function signsDrivers(settings: RunSettings): boolean {
   return settings.teams !== null || settings.seating?.includeUnemployed === true;
 }
 
-function samePool(a: SigningPool, b: SigningPool): boolean {
+/** Whether two pools sign the same drivers. */
+export function samePool(a: SigningPool, b: SigningPool): boolean {
   return a.minAge === b.minAge && a.maxAge === b.maxAge && a.activeOnly === b.activeOnly;
 }
 

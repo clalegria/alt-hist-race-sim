@@ -6,7 +6,7 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { TabLinks } from "./TabLinks.js";
+import { nextTab, Tabs, tabIds } from "./Tabs.js";
 import { Segmented, type SegmentItem } from "./ui/segmented.js";
 
 const noop = () => {};
@@ -57,9 +57,9 @@ describe("a segmented control", () => {
 
 describe("tab links", () => {
   const html = renderToStaticMarkup(
-    <TabLinks
+    <Tabs
       label="Session"
-      tabs={[
+      links={[
         { key: "q", label: "Qualifying", current: true, link: null },
         { key: "r", label: "Race", current: false, link: null },
       ]}
@@ -74,5 +74,52 @@ describe("tab links", () => {
   it("draws a place not reached as disabled words, never an <a>", () => {
     expect(html).toMatch(/<span aria-disabled="true"[^>]*>Race</);
     expect(html).not.toContain("<a");
+  });
+});
+
+describe("panel tabs", () => {
+  const html = renderToStaticMarkup(
+    <Tabs
+      label="Settings"
+      panels={{
+        items: [
+          { key: "a", label: "First" },
+          { key: "b", label: "Second", marked: true },
+          { key: "c", label: "Third" },
+        ],
+        selected: "a",
+        idPrefix: "t",
+      }}
+    />,
+  );
+  const tabs = html.match(/<button[^>]*>/g) ?? [];
+
+  it("is a tablist of tabs, one selected and only it in the Tab order", () => {
+    expect(html).toMatch(/^<div role="tablist" aria-label="Settings"/);
+    expect(tabs.every((tab) => tab.includes('role="tab"'))).toBe(true);
+    expect(tabs.filter((tab) => tab.includes('aria-selected="true"'))).toHaveLength(1);
+    expect(tabs.filter((tab) => tab.includes('tabindex="0"'))).toEqual(
+      tabs.filter((tab) => tab.includes('aria-selected="true"')),
+    );
+  });
+
+  it("pairs each tab with its panel", () => {
+    expect(tabs[0]).toContain(`id="${tabIds("t", "a").tab}"`);
+    expect(tabs[0]).toContain(`aria-controls="${tabIds("t", "a").panel}"`);
+  });
+
+  it("says a marked tab is changed, and only that one", () => {
+    expect(html.match(/, changed/g)).toHaveLength(1);
+    expect(html).toMatch(/Second<span[^>]*><\/span><span class="sr-only">, changed/);
+  });
+
+  it("moves round with the arrows, and to either end with Home and End", () => {
+    const keys = ["a", "b", "c"];
+    expect(nextTab(keys, "a", "ArrowRight")).toBe("b");
+    expect(nextTab(keys, "c", "ArrowRight")).toBe("a");
+    expect(nextTab(keys, "a", "ArrowLeft")).toBe("c");
+    expect(nextTab(keys, "b", "Home")).toBe("a");
+    expect(nextTab(keys, "b", "End")).toBe("c");
+    expect(nextTab(keys, "b", "Enter")).toBeNull();
   });
 });

@@ -71,6 +71,11 @@ async function openSettings(page: Page): Promise<Locator> {
   return dialog;
 }
 
+/** Shows one tab of the open settings dialog: the others' settings are hidden. */
+async function settingsTab(dialog: Locator, name: string): Promise<void> {
+  await dialog.getByRole("tab", { name: new RegExp(`^${name}`) }).click();
+}
+
 /** Waits for the run bar to say the run has reached `text`. */
 async function cursorAt(page: Page, text: string | RegExp): Promise<void> {
   await page.getByText(text).first().waitFor();
@@ -122,6 +127,7 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // The run is untouched, so its settings can still change from here.
       const dialog = await openSettings(page);
+      await settingsTab(dialog, "Cars");
       const breakdowns = dialog.getByRole("group", { name: "Mechanical failures" });
       await breakdowns.getByRole("button", { name: "Fewer", exact: true }).click();
       // Restore defaults takes the draft back, then Fewer again for the steps after.
@@ -181,6 +187,8 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       const dialog = await openSettings(page);
       await dialog.getByText("Clear all edits to change them").waitFor();
+      // Locked, the tabs still turn: Cars, with the Fewer set on the grid marked.
+      await settingsTab(dialog, "Cars");
     },
   },
   {
@@ -283,33 +291,36 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await navTo(page, "Era (basic)");
       await pickYear(page, `Start an era in ${YEAR}`);
-      // What-ifs on the era, set in the dialog and left open, so both columns,
-      // a picker and the sub-options are drawn.
+      // What-ifs on every tab of the era's dialog, left open on Cars, so the
+      // dots, a picker and the sub-options are drawn.
       const dialog = await openSettings(page);
-      await dialog
-        .getByRole("group", { name: "Mechanical failures" })
-        .getByRole("button", { name: "Fewer", exact: true })
-        .click();
-      await dialog.getByRole("combobox", { name: "Cars as reliable as" }).selectOption("1968");
       await dialog.getByRole("combobox", { name: "Points system" }).selectOption({ index: 1 });
+      await settingsTab(dialog, "Drivers");
       await dialog
         .getByRole("group", { name: "Driver career events" })
         .getByRole("button", { name: "No", exact: true })
         .click();
+      await settingsTab(dialog, "Over the years");
       for (const kept of ["Team name changes", "Livery changes", "Engine supplier changes"]) {
         await dialog
           .getByRole("group", { name: kept })
           .getByRole("button", { name: "No", exact: true })
           .click();
       }
-      await dialog
-        .getByRole("group", { name: "In-season development" })
-        .getByRole("button", { name: "Random", exact: true })
-        .click();
       // The first season's teams, so the year jumped to below races ghost entries.
       await dialog
         .getByRole("group", { name: "Teams" })
         .getByRole("button", { name: "The first season's teams", exact: true })
+        .click();
+      await settingsTab(dialog, "Cars");
+      await dialog
+        .getByRole("group", { name: "Mechanical failures" })
+        .getByRole("button", { name: "Fewer", exact: true })
+        .click();
+      await dialog.getByRole("combobox", { name: "Cars as reliable as" }).selectOption("1968");
+      await dialog
+        .getByRole("group", { name: "In-season development" })
+        .getByRole("button", { name: "Random", exact: true })
         .click();
       // Both rolls at ±20, the chassis walking: the two sets of sub-rows, in order.
       for (const roll of ["Chassis performance", "Engine performance"]) {

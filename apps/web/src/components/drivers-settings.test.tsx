@@ -15,7 +15,7 @@ import {
   OPENING_TEAMS,
   type RunSettings,
 } from "../lib/run-settings.js";
-import { settingsForm } from "../test-support.js";
+import { settingsForm, settingsPanel } from "../test-support.js";
 import { AgeRangeInput, leftAge, typedAge } from "./AgeRangeInput.js";
 import { settingsOf } from "./SimulationSettings.js";
 import { WhoDrivesSetting } from "./WhoDrivesSetting.js";
@@ -34,20 +34,18 @@ const reseat = (includeUnemployed: boolean): RunSettings => ({
 });
 
 describe("the Drivers group", () => {
-  it("sits between Races and Cars on both screens", () => {
+  it("is the Drivers tab on both screens", () => {
     for (const html of [settingsForm("season"), settingsForm("era")]) {
-      expect(at(html, "Drivers")).toBeGreaterThan(at(html, "Points system"));
-      expect(at(html, "Who drives where")).toBeGreaterThan(at(html, "Drivers"));
-      expect(at(html, "Cars")).toBeGreaterThan(at(html, "Who drives where"));
+      expect(at(settingsPanel(html, "drivers"), "Who drives where")).toBeGreaterThan(-1);
     }
   });
 });
 
 describe("Driver ability", () => {
   it("is offered on a season's screen, first in Drivers, and not on an era's", () => {
-    const season = settingsForm("season");
+    const season = settingsPanel(settingsForm("season"), "drivers");
     expect(season).toContain(ABILITY);
-    expect(at(season, "Driver ability")).toBeGreaterThan(at(season, "Drivers"));
+    expect(at(season, "Driver ability")).toBeGreaterThan(-1);
     expect(at(season, "Who drives where")).toBeGreaterThan(at(season, "Driver ability"));
     expect(settingsForm("era")).not.toContain(ABILITY);
   });

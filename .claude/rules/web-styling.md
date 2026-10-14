@@ -6,7 +6,7 @@ paths:
   - "apps/web/src/theme.test.ts"
   - "apps/web/src/components/ThemeToggle.tsx"
   - "apps/web/src/components/ui/*.tsx"
-  - "apps/web/src/components/TabLinks.tsx"
+  - "apps/web/src/components/Tabs.tsx"
 ---
 
 # Type, palette and theme
@@ -40,7 +40,7 @@ reasoning is its comment in `index.css`; the look they serve is `docs/style/timi
   far below the contrast it appears to have. Use `--color-subtle`. Opacity on fills is fine.
   A disabled control reads `text-subtle` and drops its fill.
 - **Every segmented control wears `ui/segmented.tsx`**: `Segmented` for choices, its
-  classes for the sort radios, `TabLinks` for places. Only tabs are in capitals.
+  classes for the sort radios, `Tabs` for places and panels. Only tabs are in capitals.
 - **On dark, a panel is drawn by its border**: to make a surface read as raised, raise
   `border` before darkening `background`.
 - **Row stripes sit in `@layer components`** (`.striped`, tables and the mode tower), so

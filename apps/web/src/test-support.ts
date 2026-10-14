@@ -25,7 +25,7 @@ import {
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SplitName } from "./components/FittedName.js";
-import { RunSettingsForm } from "./components/RunSettingsDialog.js";
+import { RunSettingsForm, type SettingsTab } from "./components/RunSettingsDialog.js";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "./lib/car-drawings.js";
 import { driverName } from "./lib/names.js";
 import { STARTING_RANDOMNESS_LEVEL } from "./lib/preferences.js";
@@ -81,6 +81,19 @@ export function settingsForm(
       eraSettings: unit === "era",
     }),
   );
+}
+
+/**
+ * One tab's panel in a rendered settings form, up to the next panel, or "" when
+ * the form has no such tab. Every panel is in the markup, the hidden ones too.
+ */
+export function settingsPanel(html: string, tab: SettingsTab): string {
+  const start = html.search(new RegExp(`<div role="tabpanel" id="[^"]*-panel-${tab}"`));
+  if (start === -1) {
+    return "";
+  }
+  const next = html.indexOf('<div role="tabpanel"', start + 1);
+  return html.slice(start, next === -1 ? undefined : next);
 }
 
 export function seededWorld(seed = 3, mode?: RatingMode, year = YEAR): World {

@@ -15,7 +15,7 @@ import {
 } from "../lib/run-settings.js";
 import { seasonWithChassis } from "../lib/seasons.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
-import { settingsForm, shownAt, YEAR } from "../test-support.js";
+import { settingsForm, settingsPanel, shownAt, YEAR } from "../test-support.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
 import { chassisNote } from "./LineupChanges.js";
 import { SeasonView } from "./SeasonView.js";
@@ -117,16 +117,11 @@ describe("the car performance setting", () => {
     ).toContain(spreads);
   });
 
-  it("is offered on both setup screens, in a Cars group after Races", () => {
+  it("is offered on both setup screens, on the Cars tab", () => {
     for (const html of [settingsForm("era"), settingsForm("season")]) {
-      const at = (label: string) => html.indexOf(`aria-label="${label}"`);
-      expect(at("Cars")).toBeGreaterThan(at("Points system"));
-      expect(at("Chassis performance")).toBeGreaterThan(at("Cars"));
+      expect(settingsPanel(html, "cars")).toContain('aria-label="Chassis performance"');
+      expect(settingsPanel(html, "races")).not.toContain('aria-label="Chassis performance"');
     }
-    const era = settingsForm("era");
-    expect(era.indexOf('aria-label="Over the years"')).toBeGreaterThan(
-      era.indexOf('aria-label="Chassis performance"'),
-    );
   });
 
   it("talks about every year on the era's screen and about the one on a season's", () => {

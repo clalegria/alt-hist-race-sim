@@ -37,8 +37,9 @@ The what-ifs in the settings dialog, beside the luck on the day and the driver a
 - **A new setting** is: a `RunSettings` field whose historical answer is null, in
   `HISTORICAL_SETTINGS`; read in `parseRunSettings`, accepting only what this build
   offers; its one place into the simulation (`web-store.md`); a line in `whatIfsOf`;
-  a component as a direct child of its group in `RunSettingsForm`. Under another
-  setting, its dependence goes in `settingsInForce`.
+  a component as a direct child of its tab's group in `RunSettingsForm`, and its answer
+  under that tab in `SETTINGS_TABS`, which lights the tab's dot. Under another setting,
+  its dependence goes in `settingsInForce`.
 - **`parseRunSettings` requires every key**: a new required one resets every reader's
   remembered settings and refuses every saved run. Old shapes stay readable
   (`teamsAndSeats`).

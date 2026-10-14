@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils.js";
  * A segmented control's look: one bordered group, the chosen segment filled.
  * Exported as classes, like `buttonClass`, because the controls that wear it
  * differ in what they are — buttons that act (`Segmented`), radios
- * (`SortToggle`), links between places (`TabLinks`).
+ * (`SortToggle`), tabs (`Tabs`).
  */
 export const SEGMENTED_GROUP = "border-border inline-flex border";
 

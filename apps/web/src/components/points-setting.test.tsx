@@ -14,7 +14,7 @@ import {
   samePoints,
 } from "../lib/run-settings.js";
 import { createWorld } from "../store/season.js";
-import { shownAt } from "../test-support.js";
+import { settingsPanel, shownAt } from "../test-support.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RunSettingsForm } from "./RunSettingsDialog.js";
 import { SeasonView } from "./SeasonView.js";
@@ -52,7 +52,7 @@ describe("the points setting", () => {
     }
   });
 
-  it("sits in the Races group of the run settings, on both screens", () => {
+  it("sits on the Races tab of the run settings, on both screens", () => {
     const choice = {
       randomness: STARTING_RANDOMNESS_LEVEL,
       ratingMode: "aged" as const,
@@ -62,12 +62,8 @@ describe("the points setting", () => {
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="season" />),
       renderToStaticMarkup(<RunSettingsForm choice={choice} year={YEAR} unit="era" eraSettings />),
     ]) {
-      const races = html.indexOf('aria-label="Races"');
-      const cars = html.indexOf('aria-label="Cars"');
-      const points = html.indexOf('aria-label="Points system"');
-      expect(races).toBeGreaterThan(-1);
-      expect(points).toBeGreaterThan(races);
-      expect(cars).toBeGreaterThan(points);
+      expect(settingsPanel(html, "races")).toContain('aria-label="Points system"');
+      expect(settingsPanel(html, "cars")).not.toContain('aria-label="Points system"');
     }
   });
 });

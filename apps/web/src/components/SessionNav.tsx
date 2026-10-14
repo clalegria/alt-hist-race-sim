@@ -3,7 +3,7 @@ import type { RaceWeather } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import type { RoundLink, SessionNav } from "../lib/session-nav.js";
 import { PageHeading } from "./PageHeading.js";
-import { TabLinks } from "./TabLinks.js";
+import { Tabs } from "./Tabs.js";
 import { WeatherBadge } from "./WeatherBadge.js";
 
 /**
@@ -44,9 +44,9 @@ export function SessionHeader({
         }`}
       />
       {nav === undefined ? null : (
-        <TabLinks
+        <Tabs
           label="Session"
-          tabs={[
+          links={[
             {
               key: "qualifying",
               label: "Qualifying",
