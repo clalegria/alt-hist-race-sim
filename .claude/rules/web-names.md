@@ -15,9 +15,10 @@ How every table names the same people. Which era's name a team is in is `team-er
 
 - **Every driver and team is named through `DriverName` / `TeamName`**, so a flag sits
   beside every name everywhere. Never draw a name with its own flag markup.
-- **A driver in a table is `SplitName`**: given name plain, surname (`nameParts`, the rule
-  `shortName` also uses) in narrow capitals. Prose, headings and labels use plain
-  `driverName`; the team line under a driver stays plain.
+- **A name alone in a table cell is set in `TIMING_NAME`**: a driver through `SplitName`
+  (given name plain, surname per `nameParts`, as `shortName` splits it), a team whole, by
+  `TeamName`'s default. Prose passes `capitals={false}` and uses plain `driverName`; the
+  team line under a driver stays plain. The look is `docs/style/timing-tower.md`.
 - **An entry is "Williams-Ford"; a works team keeps its bare name** (`entryName`). Lists
   sort on the plain team name, so a team does not move for changing supplier.
 - **The engine supply and the name's year travel by context** (`EntryNames`, `KeptNames`),

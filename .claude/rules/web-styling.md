@@ -12,7 +12,7 @@ paths:
 # Type, palette and theme
 
 The stylesheet, the theme and the blocking script in `index.html`. Each token's
-reasoning is its comment in `index.css`.
+reasoning is its comment in `index.css`; the look they serve is `docs/style/timing-tower.md`.
 
 - **Fonts are self-hosted through `@fontsource`** (`main.tsx`), so a static build makes
   no external request. Import a subset file, never a package root, which ships every

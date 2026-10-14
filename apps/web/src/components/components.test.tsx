@@ -588,6 +588,24 @@ describe("expanding a row of the championship", () => {
     />,
   );
 
+  it("sets every constructor in capitals, as the sidebar does", () => {
+    const html = renderToStaticMarkup(
+      <StandingsTable
+        title="Constructors’ Championship"
+        label="Final"
+        nameColumn="Team"
+        standings={teams}
+        season={world.season}
+        points={world.points}
+        calendar={SEED.calendar}
+      />,
+    );
+    const capitals = inCapitals(html);
+    for (const standing of teams) {
+      expect(capitals, standing.teamId).toContain(asRendered(teamName(standing.teamId)));
+    }
+  });
+
   it("offers every row, and opens none of them", () => {
     expect(occurrencesOf(closed, 'aria-expanded="false"')).toBe(drivers.length);
     expect(closed).not.toContain('aria-expanded="true"');

@@ -38,7 +38,7 @@ import { driverCountry, driverName } from "../lib/names.js";
 import type { TalliedYear } from "../lib/reveal.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import type { RunLink } from "../lib/run-places.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL, TIMING_NAME } from "../lib/utils.js";
 import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
@@ -225,7 +225,7 @@ function HistoryPanel({
       <div className="border-border flex items-center justify-between gap-2 border-b px-4 py-3">
         <span className="flex min-w-0 items-center gap-1.5">
           {country === undefined ? null : <Flag country={country} title={country} />}
-          <span className="min-w-0 truncate font-semibold">{name}</span>
+          <span className={cn(TIMING_NAME, "min-w-0 truncate")}>{name}</span>
           {/*
             Beside the name rather than at the panel's foot: the name is whose
             page it is, and where the reader is looking when they want it.
@@ -233,9 +233,7 @@ function HistoryPanel({
           {page === null ? null : <PageLink link={page} label={`${name}'s page`} />}
         </span>
         {seasons === null ? null : (
-          <span className="text-muted-foreground shrink-0 text-xs">
-            {count(seasons, "season", "seasons")}
-          </span>
+          <span className={cn(MONO_LABEL, "shrink-0")}>{count(seasons, "season", "seasons")}</span>
         )}
       </div>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>

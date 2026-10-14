@@ -15,7 +15,9 @@ Every line here is read on many future tasks and goes stale when the code moves.
   delegation in `AGENTS.md`, subagents in `.claude/agents/`; one subsystem's rules in
   `.claude/rules/<subsystem>.md`, scoped by `paths:`; what to build next in
   `docs/ROADMAP.md`; open questions in `docs/DECISIONS.md`; a large unbuilt design in
-  `docs/design/<name>.md`. Say a thing once, in the file that owns it.
+  `docs/design/<name>.md`; the app's look, kept as a lasting reference with its mockup, in
+  `docs/style/`, which names a voice's owner but never its classes. Say a thing once, in
+  the file that owns it.
 - **Limits**, checked by `tools/docs`: CLAUDE.md ≤80 lines, AGENTS.md ≤100, a rule file ≤60,
   ROADMAP ≤120. A DECISIONS entry ≤5 lines; a roadmap item ≤3 lines plus a link to its
   design doc.

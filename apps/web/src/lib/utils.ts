@@ -13,3 +13,6 @@ export function cn(...inputs: ClassValue[]): string {
 /** A small label in mono capitals: an eyebrow, a fact's name, a panel's head band or foot. */
 export const MONO_LABEL =
   "text-muted-foreground font-mono text-[11px] font-medium tracking-widest uppercase";
+
+/** A name as a timing screen sets it: a surname, a team, a popover's title. */
+export const TIMING_NAME = "narrow font-extrabold uppercase";

@@ -19,57 +19,51 @@ asked for that era by name.
 
 ---
 
-## 1. The timing tower makeover
-
-The whole UI restyled as a pit wall's timing screens, with a racetrack along the foot of
-Home; fifteen steps, one per chat. Before *sort the UI review*, since it redraws several of
-its items. `docs/design/ui-makeover.md`, mockup in `docs/design/ui-makeover-mockup.html`.
-
-## 2. Sort the UI review
+## 1. Sort the UI review
 
 The author goes through `docs/design/ui-review.md` item by item: must-do before *publish
 it*, later, or drop. Must-dos are then built one per chat. Comes before the next two.
 
-## 3. Phone layout
+## 2. Phone layout
 
 Make every screen work on a phone held upright. `docs/design/publish.md`.
 
-## 4. The share image
+## 3. The share image
 
 A portrait PNG of a season's or era's result, sent from a phone. `docs/design/publish.md`.
 
-## 5. Publish it
+## 4. Publish it
 
 The text pass, an About page, What's new, a bug report page, then going live. The author
 decides when. `docs/design/publish.md`.
 
-## 6. The in-app ratings editor
+## 5. The in-app ratings editor
 
 Turns on `edit-ratings`: a player changes a rating and runs their own what-if; export in
 the seed format. After *publish it*. `docs/design/ratings-editor.md`.
 
-## 7. Historical career records
+## 6. Historical career records
 
 Each season file carries every driver's and team's totals before it, so a run opens on
 careers in progress. `docs/design/career-records.md`.
 
-## 8. Seasonal factors
+## 7. Seasonal factors
 
 The cosmetic qualifying and race gaps, per season instead of one scale. Display only. This
 item authorises setting that number per year, and no other.
 
-## 9. Circuit character
+## 8. Circuit character
 
 Circuit attributes in `RoundContext`: engine vs downforce weighting, how hard it is to
 overtake, the chance of rain (`wetChance` is the unused seam). Changes what a rating means;
 adds a block to every round of every season.
 
-## 10. Driver market
+## 9. Driver market
 
 Transfers between seasons; turns on `era-advanced`. Leans on *historical career records*.
 `docs/design/era-advanced.md`, which owns its open questions.
 
-## 11. Game mode
+## 10. Game mode
 
 Run one team (`game`): *era-advanced* from inside a team, so after it. Notes in
 `docs/design/era-advanced.md`.

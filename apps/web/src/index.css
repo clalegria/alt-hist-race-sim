@@ -243,6 +243,17 @@ body {
 }
 
 /*
+ * A name that opens a career is a `<button>`, and browsers reset a button's case
+ * to `none`: inside a heading in capitals, the name came out in mixed case. In
+ * `base`, so a button's own `uppercase` still wins.
+ */
+@layer base {
+  button {
+    text-transform: inherit;
+  }
+}
+
+/*
  * Every figure in this app already carries `tabular-nums` — positions, points,
  * gaps, ages, ratings — so hanging the mono face off that one utility puts
  * timing-screen numerals everywhere at once, without threading a font class

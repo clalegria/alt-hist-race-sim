@@ -24,7 +24,7 @@ import { driverName, engineName, entryName, teamCountry, teamName } from "../lib
 import { ratedAge } from "../lib/people.js";
 import { carOverall, carRacing, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
-import { cn, MONO_LABEL } from "../lib/utils.js";
+import { cn, MONO_LABEL, TIMING_NAME } from "../lib/utils.js";
 import { useNameYear } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
@@ -127,9 +127,6 @@ export const SWAPPED_IN = "bg-muted/70";
 
 /** The row the reader has hold of in the editor. Inset, so the card's edge does not clip it. */
 export const SELECTED_ROW = "ring-primary ring-2 ring-inset";
-
-/** A name heading a popover, set as a panel's title is. */
-const POPOVER_NAME = "narrow font-extrabold uppercase";
 
 /** One rating as a labelled bar, so a 92 and a 44 differ at a glance. */
 function Rating({
@@ -596,7 +593,7 @@ function DriverEntry({
                 {driver === undefined ? null : (
                   <Flag country={driver.nationality} title={driver.nationality} />
                 )}
-                <span className={cn(POPOVER_NAME, "truncate")}>{driverName(entrant.driverId)}</span>
+                <span className={cn(TIMING_NAME, "truncate")}>{driverName(entrant.driverId)}</span>
                 {pageOf === null ? null : (
                   <PageLink
                     link={pageOf.driver(entrant.driverId)}
@@ -1022,7 +1019,7 @@ export function SeasonGrid({
                       <NameTrigger
                         className={cn(
                           "flex min-w-0 flex-1 items-center gap-1.5",
-                          POPOVER_NAME,
+                          TIMING_NAME,
                           marked && SWAPPED_IN,
                         )}
                       >
@@ -1055,7 +1052,7 @@ export function SeasonGrid({
                             {livery === undefined ? null : (
                               <LiveryBadge livery={livery} className="size-3.5" />
                             )}
-                            <span className={cn(POPOVER_NAME, "truncate")}>{name}</span>
+                            <span className={cn(TIMING_NAME, "truncate")}>{name}</span>
                             {/* Not while editing: the editor's popover is for re-rating, not for leaving. */}
                             {pageOf === null || edit !== undefined ? null : (
                               <PageLink link={pageOf.team(entry.teamId)} label={`${name}'s page`} />

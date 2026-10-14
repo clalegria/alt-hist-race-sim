@@ -1,6 +1,6 @@
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { driverName, nameParts, shortDriverName } from "../lib/names.js";
-import { cn } from "../lib/utils.js";
+import { cn, TIMING_NAME } from "../lib/utils.js";
 
 /**
  * A name that shortens before it is cut: the full name where there is room for
@@ -139,7 +139,7 @@ export function SplitName({ name }: { name: string }) {
           <span>{given}</span>{" "}
         </>
       )}
-      <span className="narrow font-extrabold uppercase">{surname}</span>
+      <span className={TIMING_NAME}>{surname}</span>
     </>
   );
 }

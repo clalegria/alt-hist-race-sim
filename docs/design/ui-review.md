@@ -200,6 +200,35 @@ Visual consistency. The first three settle how a name is drawn, which later item
     `text-[0.65rem]` on the luck slider's ticks (`RandomnessSlider.tsx:~148`).
   - Fix: a size from the scale, or a comment on why neither fits one.
 
+Tightening the timing tower look, against `docs/style/timing-tower.md` and its mockup:
+
+- **`one-spelling-per-voice`** (PROPOSED)
+  - Display and control capitals are spelled by hand in about a dozen places (`PageHeading`, `MainMenu`, `ui/card`, `ui/dialog`, `TitleBanner`, `ResumeRun`, `SeasonCalendar`, `CareerStatistics`, `TopNav`, `TabLinks`, `ui/button`, `ui/dropdown-menu`), with tracking that drifts between none, `0.01em` and `wide`.
+  - Mono labels come in three sizes and two trackings: `MONO_LABEL` at 11px, table heads, breadcrumbs and `PageHeading`'s sub-line at `text-xs`.
+  - Fix: `DISPLAY_CAPS` and `CONTROL_CAPS` beside `MONO_LABEL` and `TIMING_NAME`; two label sizes at most, one tracking. Then a voice is tweaked in one line.
+  - Screenshot steps: `menu`, `race`, `season-summary`.
+- **`given-name-narrow`** (PROPOSED)
+  - The mockup sets the given name a little narrower and heavier than body text (80% width, medium), so it reads as part of the name. The app draws it at full width, and on a phone the race page wraps long names onto two lines.
+  - Fix: in `SplitName` only.
+  - Screenshot steps: `race --phone`, `season-summary`.
+- **`popover-head-band`** (PROPOSED)
+  - Panels and dialogs have a darker head band; the popovers (the career panel, the grid's rating popovers) have a title over a rule.
+  - Fix: the band on every popover's heading, one shared piece in `ui/popover.tsx`.
+  - Screenshot steps: `career-panel`, `grid-editor-team`.
+- **`segmented-in-capitals`** (OPEN)
+  - `web-styling.md` keeps choices (Sort A–Z / Rating, Start / End of the season) in sentence case and only tabs in capitals, so on one screen a toggle and a tab look like different kinds of control. The mockup's toggle is in capitals.
+  - Screenshot steps: `grid`, `era-jump`.
+- **`wet-pill-square`** (OPEN; with `weather-badge-forms`)
+  - The wet pill is round by a choice made before the makeover (`WeatherBadge.tsx`); the mockup draws it square, like every other tag.
+  - Screenshot step: `race`.
+- **`chart-legend-names`** (PROPOSED)
+  - The standings chart's legend names drivers in plain text; every table beside it uses timing names.
+  - Screenshot step: `season-summary`.
+- **`grid-popover-labels`** (PROPOSED)
+  - In the grid's popovers, the rating names (Racing, Qualifying…) are body text while the section names above them are mono labels.
+  - Fix: mono labels for the rating names, as a table's column heads are.
+  - Screenshot step: `grid-editor-team`.
+
 ## 5. Words
 
 Mostly OPEN: the author picks the wording.

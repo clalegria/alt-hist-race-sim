@@ -18,7 +18,7 @@ import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from "../lib/roster.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
-import { cn } from "../lib/utils.js";
+import { cn, TIMING_NAME } from "../lib/utils.js";
 import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
@@ -170,7 +170,11 @@ export function RosterIndex({
                           {...(kind === "drivers" ? pageOf.driver(row.id) : pageOf.team(row.id))}
                           className="font-medium hover:underline"
                         >
-                          {kind === "drivers" ? <SplitName name={nameOf(row)} /> : nameOf(row)}
+                          {kind === "drivers" ? (
+                            <SplitName name={nameOf(row)} />
+                          ) : (
+                            <span className={TIMING_NAME}>{nameOf(row)}</span>
+                          )}
                         </Link>
                         {row.names > 1 ? (
                           <span className="text-muted-foreground text-xs">

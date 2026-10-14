@@ -311,7 +311,7 @@ export function DriverPage({
       {latest.year < now ? <span>last with</span> : null}
       <EntryNames field={latestWorld.field}>
         <Liveries year={latest.year}>
-          <TeamName teamId={latest.teamId} badge />
+          <TeamName teamId={latest.teamId} badge capitals={false} />
         </Liveries>
       </EntryNames>
       {best === null ? null : (
