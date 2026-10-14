@@ -332,12 +332,13 @@ body {
  * The track along the foot of Home (`HomeTrack.tsx`): verge, kerbs, tarmac with
  * a dashed line, and a chequered start/finish line. Its colours are the track's
  * own, not `--color-` tokens, so no component can reach for them as `bg-*`.
- * Graphite tarmac at the neutrals' hue so it reads as the same app; on light, a
- * paler verge and tarmac, so the band does not sit like a black bar under a
- * white page. The red and white of the kerbs are the same in both themes.
+ * Graphite tarmac at the neutrals' hue so it reads as the same app, and a grass
+ * green verge, darker on dark so it does not glare; on light, a paler verge and
+ * tarmac, so the band does not sit like a black bar under a white page. The red
+ * and white of the kerbs are the same in both themes.
  */
 :root {
-  --track-verge: oklch(30% 0.035 150);
+  --track-verge: oklch(48% 0.1 145);
   --track-tarmac: oklch(25% 0.008 250);
   --track-line: oklch(70% 0.01 250);
   --track-kerb-red: oklch(58% 0.19 27);
