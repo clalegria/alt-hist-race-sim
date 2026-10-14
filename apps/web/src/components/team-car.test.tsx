@@ -13,7 +13,7 @@ import type { Livery } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { CAR_SPRITES, carSpriteFor, SPRITE_HEIGHT, SPRITE_WIDTH } from "../lib/car-sprites.js";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, CAR_DRAWINGS, carDrawingFor } from "../lib/car-drawings.js";
 import { driverName } from "../lib/names.js";
 import { seededWorld, shownAt, textOf, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
@@ -43,15 +43,15 @@ function pathsIn(html: string, colour: string): number {
 
 /** Every decade's car, in one livery. */
 function cars(stripes: number, animated = false): string[] {
-  return CAR_SPRITES.map((sprite) =>
+  return CAR_DRAWINGS.map((drawing) =>
     renderToStaticMarkup(
-      <LiveryCar livery={livery(stripes)} year={sprite.decade} animated={animated} />,
+      <LiveryCar livery={livery(stripes)} year={drawing.decade} animated={animated} />,
     ),
   );
 }
 
 /** The marker of a car in a rendered tree: its canvas. */
-const CANVAS = `viewBox="0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}"`;
+const CANVAS = `viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}"`;
 
 /** The class list of every car in a rendered tree. */
 function carClasses(html: string): string[] {
@@ -122,9 +122,9 @@ describe("the car's animation", () => {
   const css = readFileSync(fileURLToPath(new URL("../index.css", import.meta.url)), "utf-8");
 
   it("turns every wheel when asked, and only for a reader who has not asked for less motion", () => {
-    CAR_SPRITES.forEach((sprite, i) => {
+    CAR_DRAWINGS.forEach((drawing, i) => {
       const html = cars(1, true)[i] ?? "";
-      expect(html.split("motion-safe:animate-wheel").length - 1).toBe(sprite.wheels.length);
+      expect(html.split("motion-safe:animate-wheel").length - 1).toBe(drawing.wheels.length);
       expect(html).not.toMatch(/(?<!motion-safe:)animate-wheel/);
     });
   });
@@ -135,10 +135,11 @@ describe("the car's animation", () => {
     }
   });
 
-  it("turns them a quarter at a time, the only rotation pixel art survives", () => {
+  it("spins them smoothly and steadily, never in steps", () => {
     const declaration = css.match(/--animate-wheel: *([^;]+);/)?.[1] ?? "";
     expect(declaration).toContain("wheel-turn");
-    expect(declaration).toContain("steps(4)");
+    expect(declaration).toContain("linear");
+    expect(declaration).not.toContain("steps(");
     expect(css).toContain("@keyframes wheel-turn");
   });
 });
@@ -207,7 +208,7 @@ describe("the champion cards", () => {
     const large = carClasses(summary).filter((classes) => hasSize(classes, CAR_SIZES.large));
     expect(large).toHaveLength(2);
     // Every turning wheel on the page belongs to one of those two cars.
-    const wheels = carSpriteFor(YEAR).wheels.length;
+    const wheels = carDrawingFor(YEAR).wheels.length;
     expect(summary.split("motion-safe:animate-wheel").length - 1).toBe(2 * wheels);
   });
 

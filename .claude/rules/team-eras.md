@@ -34,6 +34,6 @@ A team's name, base and livery are era lists on one lineage `id`; how to read th
   `liveriesKeptFrom`, `enginesKeptFrom`). All go through `firstYearInRun`: a year, not a
   name, so everything still resolves through the era lists.
 - `buildField` takes the names' `keptFrom`, because the base is what pays home advantage.
-- **Never route a car sprite through a kept year**: a car's shape follows the season.
+- **Never route a car drawing through a kept year**: a car's shape follows the season.
 - A kept livery can meet a later team in the same colours. Accepted, and the setting's
   note says so: don't add a clash check for it.

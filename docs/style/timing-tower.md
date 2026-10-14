@@ -20,7 +20,7 @@ its CSS: the app builds the look from its own tokens (`index.css`) and component
   Red means a loss or something about to be thrown away. Any other hue names a fact (wet,
   home) and comes with a glyph.
 - **Graphite, cool, in both themes**; dark is the default.
-- **Racing marks carry the colour**: the circular sash badge, the flag, the 1× pixel car in
+- **Racing marks carry the colour**: the circular sash badge, the flag, the small car in
   every row. The chequer is one diagonal sash across the window, at the badge's angle.
 - **Home is a timing tower**: a narrow-capitals hero beside the modes as rows, the run in
   progress as a live session, and a racetrack with the parade along the foot.

@@ -169,11 +169,10 @@
   --radius-4xl: 0;
 
   /*
-   * A car's wheels (`TeamCar.tsx`). A quarter turn per step,
-   * never a smooth spin: a quarter turn lands every pixel of the wheel exactly
-   * on another, and anything in between would blur the pixel art.
+   * A car's wheels (`TeamCar.tsx`): a smooth, steady spin. The cars are
+   * drawn in vector, so a wheel stays sharp at any angle.
    */
-  --animate-wheel: wheel-turn 0.8s steps(4) infinite;
+  --animate-wheel: wheel-turn 0.55s linear infinite;
 
   @keyframes wheel-turn {
     to {

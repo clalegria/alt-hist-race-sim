@@ -26,7 +26,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SplitName } from "./components/FittedName.js";
 import { RunSettingsForm } from "./components/RunSettingsDialog.js";
-import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from "./lib/car-drawings.js";
 import { driverName } from "./lib/names.js";
 import { STARTING_RANDOMNESS_LEVEL } from "./lib/preferences.js";
 import { type RevealedWorld, revealYear } from "./lib/reveal.js";
@@ -152,7 +152,7 @@ export function starterCount(world: World, round = 0): number {
  */
 export function svgsBesideCars(html: string): number {
   const svgs = html.split("<svg").length - 1;
-  const cars = html.split(`viewBox="0 0 ${SPRITE_WIDTH} ${SPRITE_HEIGHT}"`).length - 1;
+  const cars = html.split(`viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}"`).length - 1;
   return svgs - cars;
 }
 

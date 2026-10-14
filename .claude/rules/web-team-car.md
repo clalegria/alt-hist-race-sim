@@ -1,7 +1,7 @@
 ---
 paths:
-  - "apps/web/src/lib/car-sprites.ts"
-  - "apps/web/src/lib/car-sprites.test.ts"
+  - "apps/web/src/lib/car-drawings.ts"
+  - "apps/web/src/lib/car-drawings.test.ts"
   - "apps/web/src/components/TeamCar.tsx"
   - "apps/web/src/components/team-car.test.tsx"
   - "apps/web/src/lib/parade.ts"
@@ -14,24 +14,29 @@ paths:
 
 # The team car and the home track
 
-A pixel-art car per decade in a team's livery (`TeamCar`, `lib/car-sprites.ts`), and the
-parade of them lapping the track along the foot of Home (`HomeTrack`, `lib/track.ts`,
-`lib/parade.ts`).
+A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
+`lib/car-drawings.ts`), and the parade of them lapping the track along the foot of Home
+(`HomeTrack`, `lib/track.ts`, `lib/parade.ts`).
 
 ## The car
-- **Two sizes only, both whole multiples of the sprite** (`CAR_SIZES`). To make a car
-  smaller, redraw it on a smaller canvas; never scale it. Only the champion cards and the
-  track use `large`, and only they turn the wheels.
+- **Two sizes only** (`CAR_SIZES`), so a car is the same size wherever it is met. Only the
+  champion cards and the track use `large`, and only they turn the wheels.
+- **One outline around the silhouette, a fixed width on screen per size** (`OUTLINE_PX`,
+  `non-scaling-stroke`). It is every shape stroked near-black under the paint; never
+  outline parts one by one.
+- **Every drawing shares the canvas and the ground** (`GROUND`): a tyre's bottom sits on
+  it, so cars of different decades stand level side by side.
 - **A call site asks for a car** (`car`, default off). Unlike the badge, a round opened
   from the calendar draws cars (the author's call); the roll of honour's tables don't.
 - **In a table the car has a column of its own** (`CAR_COLUMN`), never a fixed width in
   the name cell. A qualifying slot's time has a fixed width so "pole" cannot move its car.
-- **A sprite character names a role, not a colour**; redraw a car by editing its strings.
-  Wheels are generated (`wheelRows`), not drawn. Stripes follow the badge's `badgeStripes`.
+- **A part names a role, not a colour**; redraw a car by editing its paths. Wheels are
+  described (size, rim, spokes) and built by `TeamCar`. Stripes follow `badgeStripes`.
 - **The livery is drawn as authored, never through `legible()`**: the near-black outline
   is what keeps a car visible in both themes.
 - **Fills go through `style`**: an SVG `fill` attribute does not accept `color-mix()`.
-- **Wheels turn a quarter turn per step**, never a smooth spin, and only `motion-safe:`.
+- **Wheels spin smoothly**, never in steps, and only `motion-safe:`.
+- **Clip path ids come from `useId`**, cleaned of characters `url(#…)` won't take.
 
 ## The track
 - **It never touches the world**, so it may use `Math.random()`, passed in.
