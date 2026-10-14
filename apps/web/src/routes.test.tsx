@@ -396,7 +396,11 @@ describe("the run bar", () => {
   });
 
   it("draws the season as a segment per round, the ones run marked done", async () => {
-    const run: Run = { kind: "season", world, cursor: { kind: "race", round: 1 } };
+    const run: Run = {
+      kind: "season",
+      world: seededWorld(3, "aged", YEAR),
+      cursor: { kind: "race", round: 1 },
+    };
     const state = runBarFor(run);
     const html = await bar(run);
     const start = html.indexOf("grid-template-columns:repeat(");
@@ -439,10 +443,18 @@ describe("the Not reached yet page", () => {
 });
 
 describe("the Resume run card", () => {
+  const grid = linkTo({ year: YEAR, beat: { kind: "grid" } });
+
   it("links to the page the run is on", async () => {
     const place = { year: YEAR, beat: { kind: "race", round: 2 } } as const;
     const html = await inRouter(
-      <ResumeRun title="Era from 1980" detail="somewhere" link={linkTo(place)} />,
+      <ResumeRun
+        title="Era from 1980"
+        detail="somewhere"
+        rounds={16}
+        roundsRun={3}
+        link={linkTo(place)}
+      />,
     );
     expect(html).toContain(`href="/run/${YEAR}/round/3/race"`);
     expect(html).toContain("Resume run");
@@ -450,16 +462,40 @@ describe("the Resume run card", () => {
 
   it("offers Exit run beside the link, not inside it", async () => {
     const html = await inRouter(
-      <ResumeRun
-        title="Era from 1980"
-        detail="somewhere"
-        link={linkTo({ year: YEAR, beat: { kind: "grid" } })}
-      />,
+      <ResumeRun title="Era from 1980" detail="somewhere" rounds={16} roundsRun={0} link={grid} />,
     );
     expect(html).toContain(">Exit run</button>");
     // A button inside an <a> is invalid HTML, and clicking it would follow the link.
     const link = html.slice(html.indexOf("<a "), html.indexOf("</a>"));
     expect(link).not.toContain("<button");
+  });
+
+  it("draws the season as segments, as many run as the run bar counts", async () => {
+    const run: Run = {
+      kind: "season",
+      world: seededWorld(3, "aged", YEAR),
+      cursor: { kind: "race", round: 1 },
+    };
+    const bar = runBarFor(run);
+    const html = await inRouter(
+      <ResumeRun
+        title="Run"
+        detail={bar.cursor}
+        rounds={bar.rounds}
+        roundsRun={bar.roundsRun}
+        link={grid}
+      />,
+    );
+    const count = (needle: string) => html.split(needle).length - 1;
+    // Every segment carries its done fill as a variant; only the run ones are marked.
+    expect(count("data-[done]:bg-primary")).toBe(bar.rounds);
+    expect(count('data-done=""')).toBe(bar.roundsRun);
+  });
+
+  it("shows a car only when it is handed one", async () => {
+    const props = { title: "Run", detail: "Grid", rounds: 16, roundsRun: 0, link: grid };
+    expect(await inRouter(<ResumeRun {...props} />)).not.toContain("<svg");
+    expect(await inRouter(<ResumeRun {...props} car={<svg />} />)).toContain("<svg");
   });
 
   it("gives way to a notice when the saved run could not be resumed", () => {

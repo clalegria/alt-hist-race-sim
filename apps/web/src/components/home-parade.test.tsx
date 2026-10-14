@@ -10,7 +10,6 @@ import { fileURLToPath } from "node:url";
 import type { Livery } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { MODES } from "../lib/modes.js";
 import { FORMATIONS, type Formation, PARADE_SIZE, type Pass } from "../lib/parade.js";
 import { linkTo } from "../lib/run-places.js";
 import { inRouter } from "../test-router.js";
@@ -119,13 +118,15 @@ describe("what the parade cannot be seen through", () => {
   const COVER = 'data-parade-cover=""';
   const count = (html: string) => html.split(COVER).length - 1;
 
-  it("is marked on every mode card, the resume card, the notice in its place and the top nav", async () => {
-    expect(count(renderToStaticMarkup(<MainMenu onChoose={() => {}} />))).toBe(MODES.length);
+  it("is marked on the mode tower, the live session, the notice in its place and the top nav", async () => {
+    expect(count(renderToStaticMarkup(<MainMenu onChoose={() => {}} />))).toBe(1);
     expect(count(renderToStaticMarkup(<RunNotResumed />))).toBe(1);
     const resume = await inRouter(
       <ResumeRun
         title="Run"
         detail="Grid"
+        rounds={16}
+        roundsRun={0}
         link={linkTo({ year: YEAR, beat: { kind: "grid" } })}
         onExit={() => {}}
       />,

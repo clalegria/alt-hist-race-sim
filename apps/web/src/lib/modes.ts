@@ -29,28 +29,26 @@ export const MODES: readonly Mode[] = [
     id: "season",
     title: "Simulate a season",
     blurb:
-      "Race one season, round by round, until a champion is crowned. Start from the real grid, or swap drivers around to see what might have been.",
+      "Race one season, round by round, until a champion is crowned. Start from the real grid, or swap drivers around.",
     available: true,
   },
   {
     id: "era-basic",
-    title: "Simulate an era (basic version)",
+    title: "Simulate an era",
     blurb:
-      "Keep going, year after year. Each season brings its real grid, and you can still swap drivers whenever you like.",
+      "Keep going, year after year. Each season brings its real grid, and you can still swap drivers.",
     available: true,
   },
   {
     id: "era-advanced",
-    title: "Simulate an era (advanced version)",
-    blurb:
-      "Keep going, year after year, while drivers change teams on their own as contracts end and teams chase the best.",
+    title: "Era · advanced",
+    blurb: "Drivers change teams on their own as contracts end and teams chase the best.",
     available: false,
   },
   {
     id: "game",
     title: "Game mode",
-    blurb:
-      "Run one team through the years: sign the drivers, pick the engine and decide where to develop the car.",
+    blurb: "Run one team through the years: sign the drivers, pick the engine, develop the car.",
     available: false,
   },
   {

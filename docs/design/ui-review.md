@@ -127,7 +127,7 @@ Page structure, navigation, and the phone screens after the two in tier 1.
 
     | Size | Where |
     |---|---|
-    | `3xl/4xl` | Home |
+    | `5xl/7xl` | Home |
     | `2xl/3xl` | Setup and the era overview |
     | `2xl` | Season, session and person pages |
     | `xl` | Not reached |
@@ -242,9 +242,9 @@ Visual consistency. The first three settle how a name is drawn, which later item
 
     | Pattern | Copies |
     |---|---|
-    | Uppercase label | 7 variants of tracking, colour and weight (`MainMenu.tsx:~53`, `ResumeRun.tsx:~38`, `QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
+    | Uppercase label | 5 variants of tracking, colour and weight (`QualifyingResults.tsx:~152`, `RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`) |
     | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
-    | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `MainMenu.tsx:~23`, `NotReached.tsx` |
+    | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `NotReached.tsx` |
     | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |
 
   - Arbitrary text sizes: `text-[0.5rem]`, `text-[0.6875rem]`, `text-[0.65rem]`.
@@ -293,7 +293,7 @@ Mostly OPEN: the author picks the wording.
     | Season | Season (`EraChampions.tsx:~198`) / Year (`PersonPages.tsx:~144`) |
     | Round 3 of 16 | Round 3 of 16 / Round 3/16 (`timeline.ts:~129`) |
     | Pick | Pick / Select ("Select any name…", "Select a race…") |
-    | Era mode | "Era (basic)" in the nav (`areas.ts:~32-36`) / "Simulate an era (basic version)" on the card / "Simulate an era" as the h1 |
+    | Era mode | "Era (basic)" in the nav (`areas.ts:~32-36`) / "Simulate an era" on Home and as the h1 |
     | Era overview | Era summary / Champions so far / Roll of honour / Between seasons |
     | Season page | the crumb "1984" / "1984 season page" / "Season summary" (an unseen title) |
     | Not yet | Not reached yet / not yet / (not yet) / Not yet / Not available yet / Not raced yet |

@@ -4,6 +4,7 @@
  * from the wrong beat strands the reader with no way on.
  */
 
+import { championshipStandings } from "@alt-hist/engine";
 import { describe, expect, it } from "vitest";
 import { cursorPlace, type Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
@@ -22,6 +23,7 @@ import {
   returnFor,
   runActionsFor,
   runBarFor,
+  runLeader,
   runTitle,
   sectionsMenu,
 } from "./run-bar.js";
@@ -615,6 +617,31 @@ describe("the way back to where the run is", () => {
           ).toEqual(linkTo({ year: YEAR, beat }));
         }
       }
+    }
+  });
+});
+
+describe("the leader on the Resume card", () => {
+  it("is nobody before the season has shown a race", () => {
+    for (const beat of [{ kind: "grid" }, { kind: "qualifying", round: 0 }] as const) {
+      expect(runLeader(season(beat)), beat.kind).toBeNull();
+      expect(runLeader(era(beat)), beat.kind).toBeNull();
+    }
+  });
+
+  it("is the team of whoever tops the table as far as the cursor, never further", () => {
+    for (const beat of beatsOf(ROUNDS)) {
+      // The races the run bar counts as shown: the table goes no further.
+      const shown = runBarFor(season(beat)).roundsRun;
+      if (shown === 0) {
+        continue;
+      }
+      const table = { ...world.season, races: world.season.races.slice(0, shown) };
+      const leader = championshipStandings(table, world.points)[0];
+      expect(runLeader(season(beat)), JSON.stringify(beat)).toEqual({
+        teamId: leader?.teamId,
+        year: YEAR,
+      });
     }
   });
 });

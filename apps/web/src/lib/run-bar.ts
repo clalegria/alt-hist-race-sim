@@ -13,6 +13,7 @@
  */
 
 import { firstYearInRun } from "@alt-hist/data";
+import { championshipStandings } from "@alt-hist/engine";
 import { cursorPlace, type Run } from "../store/season.js";
 import { driverName, teamName } from "./names.js";
 import { revealed } from "./reveal.js";
@@ -212,6 +213,20 @@ export function returnFor(run: Run, at: Place | RosterLocation): ReturnLink | nu
 /** What a run is called on the Home page's Resume card. */
 export function runTitle(run: Run): string {
   return run.kind === "era" ? `Era from ${run.run.startYear}` : `${run.world.year} season`;
+}
+
+/**
+ * Whose car the Resume card shows: the championship leader's team, as far as
+ * the reader has got, or null before the cursor's season has shown a race.
+ * Read through `revealed`, so Home never shows a leader the run bar has not.
+ */
+export function runLeader(run: Run): { readonly teamId: string; readonly year: number } | null {
+  const year = revealed(run).years.at(-1);
+  if (year === undefined || year.season.races.length === 0) {
+    return null;
+  }
+  const leader = championshipStandings(year.season, year.points)[0];
+  return leader === undefined ? null : { teamId: leader.teamId, year: year.year };
 }
 
 /** Where a crumb or a menu entry can lead: a beat's page, or a people page. */

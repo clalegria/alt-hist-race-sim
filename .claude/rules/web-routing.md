@@ -35,8 +35,8 @@ and left.
 
 ## The gate
 - **Params are untrusted; `resolveRunPage` is the only door.** A page reads the run
-  through what it returns (`revealed(run)`, a `RevealedWorld`), never the store's `Run`.
-  The type is the guard: a raw `World` fails `pnpm typecheck`.
+  through what it returns (`revealed(run)`, a `RevealedWorld`), never the store's `Run`;
+  so does Home's live session (`runLeader`). A raw `World` fails `pnpm typecheck`.
 - **A season's length is `season.rounds`**, never `races.length`, which stops at the
   cursor.
 

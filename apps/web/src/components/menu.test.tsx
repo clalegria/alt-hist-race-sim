@@ -13,6 +13,7 @@
  * out, which is exactly how the test they replaced was passing.
  */
 
+import { authoredSeasons } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { MODES } from "../lib/modes.js";
@@ -67,9 +68,23 @@ describe("the main menu", () => {
     // Named on the card rather than left as a button that silently does
     // nothing when pressed.
     for (const [index, mode] of unfinished.entries()) {
-      expect(disabled[index], mode.id).toContain("Not yet");
+      expect(disabled[index], mode.id).toContain(">Soon<");
       expect(disabled[index], mode.id).toContain(mode.title);
     }
+  });
+
+  it("marks the modes that can be run as ready", () => {
+    const ready = buttons(html).filter((button) => !isDisabled(button));
+    expect(ready).toHaveLength(MODES.filter((mode) => mode.available).length);
+    for (const button of ready) {
+      expect(button).toContain(">Ready<");
+    }
+  });
+
+  it("counts the seasons there are to run off the seed data", () => {
+    expect(html).toContain(`>${authoredSeasons.length}<`);
+    expect(html).toContain(`>${Math.min(...authoredSeasons)}<`);
+    expect(html).toContain(`>${Math.max(...authoredSeasons)}<`);
   });
 
   it("reveals nothing about a season nobody has started", () => {

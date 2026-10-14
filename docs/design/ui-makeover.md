@@ -47,10 +47,6 @@ and components; the palette is already in `index.css`.
   - PROPOSED: the track becomes the parade's road. The parade keeps its cars, formations
     and hidden game, but drives on the track instead of over the page.
   - The alternative: both stay, with the parade still crossing the page above the track.
-- **`mode-titles`** (OPEN; settle before `makeover-home`)
-  - The mockup shortens "Simulate an era (basic version)" to "Simulate an era", and the
-    advanced one to "Era · advanced".
-  - This is the "Era mode" row of `one-name-per-thing` in `ui-review.md`.
 - **`ui-review-overlap`** (PROPOSED)
   - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
     `page-heading`, `link-focus-ring`, `run-menu-destructive` and
@@ -59,22 +55,6 @@ and components; the palette is already in `index.css`.
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 8. `makeover-home`
-- `MainMenu.tsx`:
-  - The hero: eyebrow, narrow-capitals title, lede, and a row of facts: how many seasons,
-    the first year and the last. The facts come from `authoredSeasons`, never written down
-    (`web-app.md`).
-  - The modes as a tower: a stripe, the title, a one-line blurb and a READY or SOON chip.
-    Titles follow `mode-titles`.
-  - Two columns on desktop, one on a phone.
-- `ResumeRun.tsx`: the run as a live session.
-  - A live-dot label, the run's title, the cursor line, `RoundSegments`,
-    and Resume and Exit run.
-  - PROPOSED: the car shown is the current leader's team.
-  - `RunNotResumed` is restyled to match.
-- Both keep `PARADE_COVER`. `MainMenu` still renders through `renderToStaticMarkup`.
-- Screenshots: `menu`, `home-resume`, on desktop and phone, in both themes.
 
 ### 9. `makeover-home-track`
 - A track along the foot of Home:

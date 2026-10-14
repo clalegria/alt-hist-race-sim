@@ -2,18 +2,49 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../App.js";
 import { HomeParade } from "../components/HomeParade.js";
+import { KeptLiveries, Liveries } from "../components/Liveries.js";
 import { MainMenu } from "../components/MainMenu.js";
 import { ResumeRun, RunNotResumed } from "../components/ResumeRun.js";
 import { RunConfirmDialog } from "../components/RunDialogs.js";
-import { runBarFor, runTitle } from "../lib/run-bar.js";
+import { TeamCar } from "../components/TeamCar.js";
+import { runBarFor, runLeader, runTitle } from "../lib/run-bar.js";
 import { linkTo } from "../lib/run-places.js";
-import { cursorPlace, isUntouched, useSeasonStore } from "../store/season.js";
+import { cursorPlace, isUntouched, type Run, useSeasonStore } from "../store/season.js";
 
 /**
  * `/` — the opening screen: what this is, which mode to run, and the run in
  * progress, with a parade of cars across it now and then.
  */
 export const Route = createFileRoute("/")({ component: HomePage });
+
+/** The run in progress, as `ResumeRun` draws it. */
+function LiveSession({ run, onExit }: { run: Run; onExit: () => void }) {
+  const bar = runBarFor(run);
+  const leader = runLeader(run);
+  return (
+    <ResumeRun
+      title={runTitle(run)}
+      detail={bar.cursor}
+      rounds={bar.rounds}
+      roundsRun={bar.roundsRun}
+      {...(leader === null
+        ? {}
+        : {
+            // The providers the run's frame wraps its pages in (`App.tsx`), so the
+            // car is painted as the run's own pages paint it.
+            car: (
+              <KeptLiveries from={run.world.liveriesKeptFrom}>
+                <Liveries year={leader.year}>
+                  <TeamCar teamId={leader.teamId} />
+                </Liveries>
+              </KeptLiveries>
+            ),
+          })}
+      link={linkTo(cursorPlace(run))}
+      onExit={onExit}
+    />
+  );
+}
 
 function HomePage() {
   const navigate = useNavigate();
@@ -32,10 +63,8 @@ function HomePage() {
             : {}
           : {
               resume: (
-                <ResumeRun
-                  title={runTitle(run)}
-                  detail={runBarFor(run).cursor}
-                  link={linkTo(cursorPlace(run))}
+                <LiveSession
+                  run={run}
                   onExit={() => {
                     // Nothing to lose, so nothing to ask.
                     if (isUntouched(run)) {

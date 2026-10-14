@@ -321,15 +321,15 @@ body {
 }
 
 /*
- * A table's alternating rows (`TableBody`). In the components layer, which
- * Tailwind declares before utilities: a later layer wins whatever the
- * specificity, so any `bg-*` on a row (the accent, an opened row, hover) paints
+ * Alternating rows: a table's (`TableBody`) and Home's mode tower. In the
+ * components layer, which Tailwind declares before utilities: a later layer
+ * wins whatever the specificity, so any `bg-*` on a row (the accent, an opened row, hover) paints
  * over the stripe. An `even:bg-*` utility would do the reverse on even rows.
  * An opened row's expansion (`TableExpansion`) is skipped, so opening one does
  * not flip the stripes of every row below it.
  */
 @layer components {
-  .striped > tr:nth-child(even of :not([data-expansion])) {
+  .striped > :nth-child(even of :not([data-expansion])) {
     background-color: var(--color-row-alt);
   }
 }

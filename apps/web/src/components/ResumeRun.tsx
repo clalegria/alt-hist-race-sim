@@ -1,20 +1,37 @@
 import { Link } from "@tanstack/react-router";
 import { PARADE_COVER } from "../lib/parade.js";
 import type { RunLink } from "../lib/run-places.js";
-import { Button } from "./ui/button.js";
+import { MONO_LABEL } from "./MainMenu.js";
+import { RoundSegments } from "./RoundSegments.js";
+import { Button, buttonClass } from "./ui/button.js";
+
+/** A Home panel: bordered, with a head band darker than its body. */
+function HomePanel({ head, children }: { head: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div {...PARADE_COVER} className="bg-card border-border border">
+      <div className="bg-card-header border-border flex items-center gap-2 border-b px-3 py-2">
+        {head}
+      </div>
+      <div className="flex flex-col gap-2 p-3">{children}</div>
+    </div>
+  );
+}
 
 /**
- * The run in progress, from Home: the way back into it, and the way out of it.
+ * The run in progress, from Home, as a live session: the way back into it, and
+ * the way out of it.
  *
- * Going Home does not end a run — it waits, and this card is where it waits.
- * The resume half is a `Link` to the cursor's page rather than a button, so it
- * is a real address that can be opened in a new tab. Exit run sits beside it,
- * not inside it: an `<a>` cannot hold a button, and the two are different
- * answers to the same card.
+ * Going Home does not end a run — it waits, and this panel is where it waits.
+ * Resume is a `Link` to the cursor's page rather than a button, so it is a real
+ * address that can be opened in a new tab. Exit run sits beside it, not inside
+ * it: an `<a>` cannot hold a button.
  */
 export function ResumeRun({
   title,
   detail,
+  rounds,
+  roundsRun,
+  car,
   link,
   onExit,
 }: {
@@ -22,49 +39,63 @@ export function ResumeRun({
   title: string;
   /** How far it has got, as the run bar says it. */
   detail: string;
+  /** The cursor's season, as `runBarFor` counts it. */
+  rounds: number;
+  roundsRun: number;
+  /** The championship leader's car (`runLeader`), once there is one. */
+  car?: React.ReactNode;
   link: RunLink;
   /** Asks, when there is anything to lose, then ends the run. */
   onExit?: () => void;
 }) {
   return (
-    <div
-      {...PARADE_COVER}
-      className="bg-card border-primary/60 flex flex-wrap items-center gap-3 rounded-xl border shadow-sm"
+    <HomePanel
+      head={
+        <>
+          <span
+            aria-hidden="true"
+            className="bg-primary ring-primary/25 size-2 shrink-0 rounded-full ring-3"
+          />
+          <span className={MONO_LABEL}>In progress · Resume run</span>
+        </>
+      }
     >
-      <Link
-        {...link}
-        className="hover:bg-accent focus-visible:ring-ring flex min-w-0 flex-1 flex-col items-start gap-1 rounded-xl p-5 text-left transition focus-visible:ring-2 focus-visible:outline-none"
-      >
-        <span className="text-muted-foreground text-xs font-medium tracking-[0.18em] uppercase">
-          Resume run
+      <div className="flex items-center justify-between gap-3">
+        <span className="narrow text-[1.625rem] leading-none font-extrabold uppercase">
+          {title}
         </span>
-        <span className="text-base font-semibold tracking-tight">{title}</span>
-        <span className="text-muted-foreground text-sm">{detail}</span>
-      </Link>
-      <Button variant="ghost" className="mr-4" onClick={onExit}>
-        Exit run
-      </Button>
-    </div>
+        {car}
+      </div>
+      <span className={MONO_LABEL}>{detail}</span>
+      <RoundSegments rounds={rounds} done={roundsRun} />
+      <div className="mt-1 flex flex-wrap gap-2">
+        <Link {...link} className={buttonClass("primary")}>
+          Resume <span aria-hidden="true">▸</span>
+        </Link>
+        <Button variant="outline" onClick={onExit}>
+          Exit run
+        </Button>
+      </div>
+    </HomePanel>
   );
 }
 
 /**
- * Where the Resume card would be, when the run saved before a reload could not
- * be rebuilt (`store/persist.ts`): this build would replay it differently, and
- * a run quietly rewritten under the reader is worse than one that is gone.
+ * Where the live session would be, when the run saved before a reload could
+ * not be rebuilt (`store/persist.ts`): this build would replay it differently,
+ * and a run quietly rewritten under the reader is worse than one that is gone.
  */
 export function RunNotResumed({ onDismiss }: { onDismiss?: () => void }) {
   return (
-    <div
-      {...PARADE_COVER}
-      className="bg-card flex flex-wrap items-center gap-3 rounded-xl border p-5 shadow-sm"
-    >
-      <p className="text-muted-foreground min-w-0 flex-1 text-sm">
+    <HomePanel head={<span className={MONO_LABEL}>Last run</span>}>
+      <p className="text-muted-foreground text-sm">
         Your last run couldn't be reopened, because the app has been updated since.
       </p>
-      <Button variant="ghost" onClick={onDismiss}>
-        Dismiss
-      </Button>
-    </div>
+      <div className="mt-1 flex">
+        <Button variant="outline" onClick={onDismiss}>
+          Dismiss
+        </Button>
+      </div>
+    </HomePanel>
   );
 }
