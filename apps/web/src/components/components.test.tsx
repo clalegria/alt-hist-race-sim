@@ -24,6 +24,7 @@ import type { World } from "../store/season.js";
 import {
   findWorld,
   OVERSUBSCRIBED_YEAR,
+  rowName,
   SEED,
   seededWorld,
   starterCount,
@@ -270,7 +271,7 @@ describe("the season grid", () => {
     for (const entrant of world.field) {
       const card = html.slice(html.indexOf(`>${entryName(entrant.teamId, entrant.engineId)}<`));
       expect(card.slice(0, card.indexOf("</li></ul></li>")), entrant.driverId).toContain(
-        driverName(entrant.driverId),
+        rowName(entrant.driverId),
       );
     }
   });

@@ -10,12 +10,11 @@ import { authoredLineup, lineupChanges, swapDrivers } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { driverName } from "../lib/names.js";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import { HISTORICAL_SETTINGS, type RunSettings } from "../lib/run-settings.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { createWorld } from "../store/season.js";
-import { shownAt, YEAR } from "../test-support.js";
+import { rowName, shownAt, YEAR } from "../test-support.js";
 import { defaultChoice, RunSettingsFields } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonGrid } from "./SeasonGrid.js";
@@ -116,7 +115,7 @@ describe("the settings line", () => {
       <SeasonView {...shownAt(world, { kind: "grid" })} settingsLock="Fixed for a test." />,
     );
     expect(html.indexOf('aria-label="Run settings"')).toBeLessThan(
-      html.indexOf(driverName(world.field[0]?.driverId ?? "")),
+      html.indexOf(rowName(world.field[0]?.driverId ?? "")),
     );
     expect(html).toContain('title="Fixed for a test."');
   });

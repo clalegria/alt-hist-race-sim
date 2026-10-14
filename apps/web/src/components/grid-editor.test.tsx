@@ -37,7 +37,7 @@ import { carOverall, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder } from "../lib/sort.js";
 import { resetSortOrder, setSortOrder } from "../lib/sort-preference.js";
 import { createWorld } from "../store/season.js";
-import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
+import { rowName, SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
 import { ReserveList } from "./ReserveList.js";
@@ -165,13 +165,13 @@ describe("the grid once a lineup is applied", () => {
 
   it("seats the swapped-in driver at their new team", () => {
     const card = html.slice(html.indexOf(`>${ENTRY_NAME}<`));
-    expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(escaped(driverName(RESERVE)));
+    expect(card.slice(0, card.indexOf("</li></ul></li>"))).toContain(rowName(RESERVE));
   });
 
   it("leaves the driver who lost the seat off the grid entirely", () => {
     // Named in the note above the cards, but in nobody's car: matching the
     // wrapped name rather than the bare string keeps the two apart.
-    expect(html).not.toContain(`>${escaped(driverName(SEATED))}<`);
+    expect(html).not.toContain(rowName(SEATED));
     expect(html).toContain(`for ${escaped(driverName(SEATED))}`);
   });
 
@@ -216,13 +216,13 @@ describe("the grid in edit mode", () => {
     expect(occurrences(html, "aria-pressed")).toBe(SEATS);
     expect(occurrences(html, 'aria-pressed="true"')).toBe(1);
     const pressed = html.slice(html.indexOf('aria-pressed="true"'));
-    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain(escaped(driverName(SEATED)));
+    expect(pressed.slice(0, pressed.indexOf("</button>"))).toContain(rowName(SEATED));
   });
 
   it("still shows the age and overall the reader is choosing on", () => {
     const record = driversById().get(TEAM_MATE === "" ? SEATED : TEAM_MATE);
     expect(record).toBeDefined();
-    expect(html).toContain(escaped(record?.name ?? ""));
+    expect(html).toContain(rowName(record?.id ?? ""));
     expect(html).toContain(`(${record === undefined ? "" : ratedAge(record, YEAR, MODE)}y)`);
   });
 });
@@ -247,17 +247,17 @@ describe("the drivers without a drive", () => {
     expect(shown.length).toBeGreaterThan(0);
     expect(html).toContain(`${SPARE} drivers available`);
     for (const driver of shown) {
-      expect(html, `missing ${driver.id}`).toContain(escaped(driver.name));
+      expect(html, `missing ${driver.id}`).toContain(rowName(driver.id));
     }
     for (const driverId of seatedDriverIds(authored)) {
-      expect(html, `${driverId} has a seat`).not.toContain(`>${escaped(driverName(driverId))}<`);
+      expect(html, `${driverId} has a seat`).not.toContain(rowName(driverId));
     }
   });
 
   it("shows the same age and overall the grid does, so the two compare", () => {
     const record = driversById().get(RESERVE);
     expect(record).toBeDefined();
-    expect(html).toContain(escaped(record?.name ?? ""));
+    expect(html).toContain(rowName(record?.id ?? ""));
     expect(html).toContain(`(${record === undefined ? "" : ratedAge(record, YEAR, MODE)}y)`);
   });
 
@@ -298,7 +298,7 @@ describe("filtering the drivers without a drive", () => {
     reserve.filter((driver) => matchesFilters(driver, YEAR, filters, MODE));
 
   /** Rendered names, so "hidden" means hidden rather than merely unmentioned. */
-  const listed = (html: string, driver: Driver) => html.includes(`>${escaped(driver.name)}<`);
+  const listed = (html: string, driver: Driver) => html.includes(rowName(driver.id));
 
   /**
    * Ticked *filters*. Matched on the input itself rather than on a bare
@@ -403,7 +403,7 @@ describe("filtering the drivers without a drive", () => {
         filters={filters}
       />,
     );
-    expect(html).not.toContain(`>${escaped(driverName(SEATED))}<`);
+    expect(html).not.toContain(rowName(SEATED));
   });
 
   it("still holds a dropped driver on screen while they are selected", () => {
@@ -420,12 +420,12 @@ describe("filtering the drivers without a drive", () => {
         filters={{ hideRetired: false, hideFuture: false, minAge: 16, maxAge: 16 }}
       />,
     );
-    expect(html).toContain(escaped(driverName(SEATED)));
+    expect(html).toContain(rowName(SEATED));
   });
 
   it("keeps whoever is selected, so a pick cannot vanish mid-swap", () => {
     const html = render({ ...SHOW_ALL, minAge: 16, maxAge: 16 }, { selected: RESERVE });
-    expect(html).toContain(escaped(driverName(RESERVE)));
+    expect(html).toContain(rowName(RESERVE));
     expect(html).toContain('aria-pressed="true"');
   });
 
@@ -772,7 +772,7 @@ describe("ordering the grid and the pool", () => {
       const html = renderToStaticMarkup(
         <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} />,
       );
-      const at = (driverId: string) => html.indexOf(`>${driverName(driverId)}<`);
+      const at = (driverId: string) => html.indexOf(rowName(driverId));
 
       let reordered = 0;
       for (const entry of byTeam(world.field, "name")) {
@@ -830,7 +830,7 @@ describe("ordering the grid and the pool", () => {
       const html = render("name");
       const at = reserveDrivers(authored)
         .filter((driver) => matchesFilters(driver, YEAR, DEFAULT_DRIVER_FILTERS, MODE))
-        .map((driver) => html.indexOf(`>${escaped(driver.name)}<`));
+        .map((driver) => html.indexOf(rowName(driver.id)));
       // `reserveDrivers` hands them over by name, so the rendered order is the
       // order it was given.
       expect(at.every((index) => index >= 0)).toBe(true);

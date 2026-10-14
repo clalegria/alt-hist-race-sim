@@ -26,6 +26,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
   `SeatRef`, so never reorder the entrants themselves.
 - **A clickable name is marked by a fill, never an underline**: `NAME_TARGET` is the one
   definition, shared with the editor's buttons, and tests count it as a marker.
+- **A card and the pool are small towers**: a head band, then full-width `striped` rows.
+  The held row's ring is `SELECTED_ROW`, inset so the card's clipping cannot cut it.
 - **A development trend never enters `carOverall`** (`Development` in `SeasonGrid` says why).
   The popover hides a flat year (`DevelopmentPanel`), except in the editor.
 - **`lib/rating.ts` re-exports `@alt-hist/data`**: the overall's weights and

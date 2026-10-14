@@ -24,8 +24,10 @@ import {
 } from "@alt-hist/data";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { SplitName } from "./components/FittedName.js";
 import { RunSettingsForm } from "./components/RunSettingsDialog.js";
 import { SPRITE_HEIGHT, SPRITE_WIDTH } from "./lib/car-sprites.js";
+import { driverName } from "./lib/names.js";
 import { STARTING_RANDOMNESS_LEVEL } from "./lib/preferences.js";
 import { type RevealedWorld, revealYear } from "./lib/reveal.js";
 import { HISTORICAL_SETTINGS, type RunSettings, type RunUnit } from "./lib/run-settings.js";
@@ -163,6 +165,15 @@ export function svgsBesideCars(html: string): number {
  */
 export function textOf(html: string): string {
   return html.replace(/<[^>]*>/g, "");
+}
+
+/**
+ * A driver's name as a row draws it (`SplitName`), escaped as React escapes
+ * it. Only a row draws this markup, so a `not.toContain` on it means "in
+ * nobody's row" even where the name is in a sentence on the same page.
+ */
+export function rowName(driverId: string): string {
+  return renderToStaticMarkup(createElement(SplitName, { name: driverName(driverId) }));
 }
 
 /**

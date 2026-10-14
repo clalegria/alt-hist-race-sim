@@ -15,11 +15,15 @@ const VARIANTS = {
   outline: "border-border hover:bg-accent bg-transparent",
   ghost:
     "text-muted-foreground hover:text-foreground hover:bg-accent border-transparent bg-transparent",
+  /** An action set in a line of text, such as a notice's head: a fill under the cursor, never an underline. */
+  link: "text-primary hover:bg-accent border-transparent bg-transparent",
 } as const;
 
 const SIZES = {
   default: "h-9 px-4 text-sm",
   sm: "h-8 gap-1.5 px-3 text-xs",
+  /** For `link`, inside a line: no taller than the text it sits in. */
+  inline: "h-auto px-1.5 py-0.5 text-xs",
 } as const;
 
 export type ButtonVariant = keyof typeof VARIANTS;

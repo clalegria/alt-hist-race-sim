@@ -9,10 +9,11 @@ import { count } from "../lib/history.js";
 import { type DriverFilters, defaultDriverFilters, filterDrivers } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { AgeRangeInput } from "./AgeRangeInput.js";
-import { DriverLabel, NAME_TARGET, Overall } from "./SeasonGrid.js";
+import { DriverLabel, NAME_TARGET, Overall, SELECTED_ROW } from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
+import { Card, CardBand } from "./ui/card.js";
 
 /**
  * One filter on the pool, as a yes-or-no answer.
@@ -65,8 +66,8 @@ function ReserveFilters({
   onChange: (filters: DriverFilters) => void;
 }) {
   return (
-    <fieldset className="border-border text-muted-foreground flex flex-col gap-1.5 rounded-lg border p-2 text-xs">
-      <legend className="px-1">Hide</legend>
+    <fieldset className="border-border text-muted-foreground flex flex-col gap-1.5 border p-2 text-xs">
+      <legend className={cn(MONO_LABEL, "px-1")}>Hide</legend>
       <Toggle
         label={`Retired before ${seasonYear}`}
         checked={filters.hideRetired}
@@ -190,48 +191,43 @@ export function ReserveList({
   const pool = count(drivers.length, "driver", "drivers");
 
   return (
-    // Card's own classes minus the header, since this panel's heading is a
-    // smaller one inside it: `shadow-sm` included, so it sits at the same
-    // elevation as the grid it stands beside.
-    <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4 shadow-sm">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold tracking-tight">Without a drive</h3>
-          <SortToggle
-            label="Sort drivers without a drive"
-            name="reserve-sort"
-            order={sort}
-            {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
-          />
-        </div>
+    // The same panel as the grid it stands beside: a head band, then a tower
+    // of full-width rows.
+    <Card>
+      <CardBand title="Without a drive">
+        <SortToggle
+          label="Sort drivers without a drive"
+          name="reserve-sort"
+          order={sort}
+          {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
+        />
+      </CardBand>
+      <div className="flex flex-col gap-2 p-3">
         <p className="text-muted-foreground text-xs">
           {shown.length === drivers.length
             ? `${pool} available.`
             : `${shown.length} of ${pool} available.`}
           {shown.length === 0 ? null : " Pick one to put them in the seat."}
         </p>
+        <ReserveFilters
+          seasonYear={seasonYear}
+          ratingMode={ratingMode}
+          filters={filters}
+          onChange={onFiltersChange ?? (() => {})}
+        />
+        {shown.length === 0 ? (
+          <p className="text-muted-foreground text-xs">
+            No driver matches. Try widening the filters.
+          </p>
+        ) : null}
       </div>
-      <ReserveFilters
-        seasonYear={seasonYear}
-        ratingMode={ratingMode}
-        filters={filters}
-        onChange={onFiltersChange ?? (() => {})}
-      />
-      {shown.length === 0 ? (
-        <p className="text-muted-foreground text-xs">
-          No driver matches. Try widening the filters.
-        </p>
-      ) : null}
-      <ul className="flex flex-col gap-1">
+      <ul className="striped border-border flex flex-col border-t empty:hidden">
         {listed.map((driver) => {
           const selected = driver.id === selectedDriverId;
           return (
             <li
               key={driver.id}
-              className={cn(
-                "flex items-center gap-2 rounded px-1 py-0.5 text-sm",
-                selected && "ring-primary ring-2",
-              )}
+              className={cn("flex items-center gap-2 px-3 py-1 text-sm", selected && SELECTED_ROW)}
             >
               <button
                 type="button"
@@ -248,6 +244,6 @@ export function ReserveList({
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }

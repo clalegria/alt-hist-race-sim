@@ -14,6 +14,7 @@ import { driverName, engineName } from "../lib/names.js";
 import { ARRANGEMENT_LABELS } from "../lib/run-settings.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
+import { Notice } from "./ui/notice.js";
 
 /**
  * What a reader did to the grid, said in one place.
@@ -155,14 +156,13 @@ export function KeptNote({
     return null;
   }
   return (
-    <div className="border-border bg-muted/40 flex flex-col gap-1 rounded-lg border border-dashed px-3 py-2">
-      <span className="text-xs font-semibold tracking-tight">Kept from {notes.from}</span>
+    <Notice title={`Kept from ${notes.from}`}>
       {sentences.map((sentence) => (
         <span key={sentence} className="text-muted-foreground text-xs">
           {sentence}
         </span>
       ))}
-    </div>
+    </Notice>
   );
 }
 
@@ -361,21 +361,13 @@ export function EditedGridBanner({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "border-border bg-muted/40 flex flex-col gap-2 rounded-xl border border-dashed px-4 py-3",
-        className,
-      )}
-    >
-      <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className="text-sm font-semibold tracking-tight">Edited grid</span>
-        {/* Counted from the grid the run's settings built, not from history. */}
-        <span className="text-muted-foreground text-xs">
-          You made{" "}
-          {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges, trendChanges)}{" "}
-          to this season's grid.
-        </span>
-      </div>
+    <Notice title="Edited grid" className={cn("gap-2 px-4 py-3", className)}>
+      {/* Counted from the grid the run's settings built, not from history. */}
+      <p className="text-muted-foreground text-xs">
+        You made{" "}
+        {changeCount(changes, engineChanges, chassisChanges, engineRatingChanges, trendChanges)} to
+        this season's grid.
+      </p>
       <GridChanges
         changes={changes}
         engineChanges={engineChanges}
@@ -383,6 +375,6 @@ export function EditedGridBanner({
         engineRatingChanges={engineRatingChanges}
         trendChanges={trendChanges}
       />
-    </div>
+    </Notice>
   );
 }

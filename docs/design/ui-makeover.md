@@ -47,11 +47,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 12. `makeover-grid`
-- `SeasonGrid`'s team cards (square, livery corner kept, names in `split`), `GridStage`,
-  `ReserveList`, `LineupChanges`, and the grid editor and its popovers.
-- Screenshots: `grid`, `grid-editor`, `grid-editor-team`, `grid-edited`.
-
 ### 13. `makeover-era-and-people`
 - `EraChampions`, `CareerStatistics`, `PersonPages`, `RosterIndex`, `NotReached`.
 - Screenshots: `era-champions`, `career-panel`, `driver-page`, `team-page`,

@@ -31,12 +31,14 @@ import type { EraRun, World } from "./store/season.js";
 import {
   findWorld,
   OVERSUBSCRIBED_YEAR,
+  rowName,
   SEED,
   seededWorld,
   shownAt,
   starterCount,
   svgsBesideCars,
   teamCount,
+  textOf,
 } from "./test-support.js";
 
 const world = seededWorld();
@@ -66,9 +68,16 @@ describe("the opening grid", () => {
 
   it("shows the teams and their drivers", () => {
     for (const entrant of world.field) {
-      expect(html, entrant.driverId).toContain(driverName(entrant.driverId));
+      expect(textOf(html), entrant.driverId).toContain(driverName(entrant.driverId));
       expect(html, entrant.teamId).toContain(teamName(entrant.teamId));
     }
+  });
+
+  it("opens with the year's grid as its one page heading", () => {
+    expect(html.split("<h1").length - 1).toBe(1);
+    expect(textOf(html.slice(html.indexOf("<h1"), html.indexOf("</h1>")))).toBe(
+      `${world.year} grid`,
+    );
   });
 
   it("reveals nothing about the season yet", () => {
@@ -542,7 +551,7 @@ describe("a grid the run has moved past", () => {
     expect(locked).toContain("This grid has been raced");
     expect(locked).not.toContain("Edit grid");
     // Still the grid: every seat on it.
-    expect(locked).toContain(driverName(world.field[0]?.driverId ?? ""));
+    expect(locked).toContain(rowName(world.field[0]?.driverId ?? ""));
   });
 
   it("is editable while the run is on it", () => {

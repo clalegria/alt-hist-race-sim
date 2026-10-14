@@ -113,10 +113,8 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Fix: show the sub-line under the crumbs only when away from the cursor ("Run is at …"), and drop the position text from the foot (`App.tsx:~191`).
   - Screenshot steps: `grid`, `not-reached`.
 - **`page-heading`** (PROPOSED)
-  - Three page types have no `<h1>`:
-    - the grid page (`SeasonView.tsx:~317`), whose first heading is the card's h2 "Grid";
-    - the drivers and teams indexes (`RosterIndex.tsx:~108`).
-  - `PageHeading` (title, flag, sub-line) is built: the season and session pages use it.
+  - The drivers and teams indexes have no `<h1>` (`RosterIndex.tsx:~108`).
+  - `PageHeading` (title, flag, sub-line) is built: the season, session and grid pages use it.
   - Existing h1 sizes differ:
 
     | Size | Where |
@@ -131,9 +129,9 @@ Page structure, navigation, and the phone screens after the two in tier 1.
     - `CareerStatistics` nests h2 card titles under an h2.
   - Fix:
     - `PageHeading` on every remaining page;
-    - a test that every page renders exactly one h1 (the season page has one);
+    - a test that every page renders exactly one h1 (the season and grid pages have one);
     - correct the order of the lower headings.
-  - Screenshot steps: `grid`, `drivers-index`.
+  - Screenshot step: `drivers-index`.
 - **`run-menu-destructive`** (PROPOSED)
   - In the ⋯ menu, "Restart season", "Restart era" and "Exit run" are plain items with no separator and no destructive colour. The only separator divides phone-only items (`RunBar.tsx:~266`). Their confirm dialogs are already red.
   - Fix: a separator, and `text-destructive` on those items.
@@ -237,12 +235,12 @@ Visual consistency. The first three settle how a name is drawn, which later item
     | Pattern | Copies |
     |---|---|
     | Uppercase label | 4 variants of tracking, colour and weight (`RunDialogs.tsx:~171`, `RunSettingsDialog.tsx:~55`, `YearPicker.tsx:~69,105`); `MONO_LABEL` is the shared one |
-    | Dashed notice box | 5 (`SeasonGrid.tsx:~744,765`, `LineupChanges.tsx:~166,333`, `RunSettingsDialog.tsx:~220`) |
-    | Card shell | `ReserveList.tsx:~196`, `RunSettingsLine.tsx:~51`, `NotReached.tsx` |
-    | Text-link button | `SeasonGrid.tsx:~776`, `RunSettingsLine.tsx:~60` |
+    | Dashed notice box | `RunSettingsDialog.tsx:~220`; `ui/notice.tsx` is the shared one |
+    | Card shell | `RunSettingsLine.tsx:~51`, `NotReached.tsx` |
+    | Text-link button | `RunSettingsLine.tsx:~60`; Button `link`, size `inline`, is the shared one |
 
   - Arbitrary text sizes: `text-[0.5rem]`, `text-[0.6875rem]`, `text-[0.65rem]`.
-  - Fix: `Eyebrow`, `Notice` and a Button `link` variant; use `Card` for the shells.
+  - Fix: `MONO_LABEL`, `Notice` and Button `link` on the rest; use `Card` for the shells.
 
 ## 5. Words
 

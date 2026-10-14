@@ -37,12 +37,36 @@ export function CardDescription({ className, ...props }: ComponentProps<"p">) {
  * A panel's slim head band, as a timing screen draws one: the title, and a
  * short label in mono capitals on the right (a count, how far the season has
  * got). Never a sentence: one that needs saying goes in the panel's body.
+ *
+ * `children` are the panel's controls (a sort switch, its buttons), set at the
+ * right with the label beside the title instead.
  */
-export function CardBand({ title, label }: { title: ReactNode; label?: ReactNode }) {
+export function CardBand({
+  title,
+  label,
+  children,
+}: {
+  title: ReactNode;
+  label?: ReactNode;
+  children?: ReactNode;
+}) {
+  const labelled = label === undefined ? null : <p className={MONO_LABEL}>{label}</p>;
   return (
-    <CardHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2.5">
-      <CardTitle>{title}</CardTitle>
-      {label === undefined ? null : <p className={MONO_LABEL}>{label}</p>}
+    <CardHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5">
+      {children === undefined ? (
+        <>
+          <CardTitle>{title}</CardTitle>
+          {labelled}
+        </>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <CardTitle>{title}</CardTitle>
+            {labelled}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">{children}</div>
+        </>
+      )}
     </CardHeader>
   );
 }

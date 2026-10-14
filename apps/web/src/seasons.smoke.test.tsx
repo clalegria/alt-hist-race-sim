@@ -15,7 +15,7 @@ import { driverName, teamName } from "./lib/names.js";
 import type { SeasonTab } from "./lib/season-tabs.js";
 import type { View } from "./lib/timeline.js";
 import { createWorld } from "./store/season.js";
-import { shownAt } from "./test-support.js";
+import { shownAt, textOf } from "./test-support.js";
 
 describe("each authored season, through the whole reveal", () => {
   for (const [year, seed] of seasons) {
@@ -37,7 +37,7 @@ describe("each authored season, through the whole reveal", () => {
         for (const entry of seed.entries) {
           expect(html, entry.teamId).toContain(teamName(entry.teamId, year));
           for (const driverId of entry.drivers) {
-            expect(html, driverId).toContain(driverName(driverId));
+            expect(textOf(html), driverId).toContain(driverName(driverId));
           }
         }
       });

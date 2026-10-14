@@ -3,6 +3,7 @@ paths:
   - "apps/web/src/lib/highlight.ts"
   - "apps/web/src/components/ui/table.tsx"
   - "apps/web/src/components/ui/card.tsx"
+  - "apps/web/src/components/ui/notice.tsx"
   - "apps/web/src/lib/results.ts"
   - "apps/web/src/components/QualifyingResults.tsx"
   - "apps/web/src/components/RaceClassification.tsx"
@@ -38,7 +39,8 @@ The accent, the session sheets and the championship tables.
   Status show from `md`, and below it the gap column says DNF or DNQ in `text-loss`.
   A standings row is position, name, points and wins; Pods and Poles show from `sm`.
 - **A panel's head band is `CardBand`**: the title and a short mono label, never a
-  sentence. A row's how-to belongs on its control (the chevron's `label`).
+  sentence; its controls go in as children. A how-to goes on its control or in the body.
+- **A dashed box inside a panel is `Notice`** (`ui/notice.tsx`), never hand-rolled.
 - **A small mono-capitals label is `MONO_LABEL`** (`lib/utils.ts`), never a new spelling.
 - **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by
   `text-loss`.

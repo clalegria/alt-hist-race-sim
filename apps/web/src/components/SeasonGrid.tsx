@@ -24,7 +24,7 @@ import { driverName, engineName, entryName, teamCountry, teamName } from "../lib
 import { ratedAge } from "../lib/people.js";
 import { carOverall, carRacing, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { useNameYear } from "./EntryNames.js";
 import { FittedDriverName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
@@ -43,7 +43,8 @@ import { SortToggle } from "./SortToggle.js";
 import { LiveryBadge, LiveryCorner } from "./TeamBadge.js";
 import { LiveryCar } from "./TeamCar.js";
 import { Button } from "./ui/button.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
+import { Notice } from "./ui/notice.js";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 const drivers = driversById();
@@ -124,6 +125,12 @@ function picksDriver(pick: GridPick | null, driverId: string): boolean {
 /** The soft fill marking a driver — or an engine — that is not where history put it. */
 export const SWAPPED_IN = "bg-muted/70";
 
+/** The row the reader has hold of in the editor. Inset, so the card's edge does not clip it. */
+export const SELECTED_ROW = "ring-primary ring-2 ring-inset";
+
+/** A name heading a popover, set as a panel's title is. */
+const POPOVER_NAME = "narrow font-extrabold uppercase";
+
 /** One rating as a labelled bar, so a 92 and a 44 differ at a glance. */
 function Rating({
   label,
@@ -150,9 +157,9 @@ function Rating({
       >
         {label}
       </span>
-      <span className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
+      <span className="bg-muted h-1.5 flex-1 overflow-hidden">
         <span
-          className={cn("block h-full rounded-full", muted ? "bg-subtle" : "bg-primary")}
+          className={cn("block h-full", muted ? "bg-subtle" : "bg-primary")}
           style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
         />
       </span>
@@ -367,10 +374,10 @@ function Development({
   return (
     <div className="flex items-center gap-2">
       <span className="text-muted-foreground w-24 shrink-0 text-xs">Development</span>
-      <span className="bg-muted relative h-1.5 flex-1 overflow-hidden rounded-full">
+      <span className="bg-muted relative h-1.5 flex-1 overflow-hidden">
         <span className="bg-border absolute inset-y-0 left-1/2 w-px" />
         <span
-          className="bg-primary absolute inset-y-0 rounded-full"
+          className="bg-primary absolute inset-y-0"
           style={trend >= 0 ? { left: "50%", width } : { right: "50%", width }}
         />
       </span>
@@ -422,7 +429,7 @@ export function DevelopmentPanel({
   return (
     <>
       <div className="border-border/60 mt-3 mb-2 border-t pt-3">
-        <span className="text-xs font-semibold">In-season development</span>
+        <span className={cn(MONO_LABEL, "text-foreground")}>In-season development</span>
       </div>
       <Development
         trend={trend}
@@ -447,12 +454,12 @@ export function DevelopmentPanel({
  * paragraph and the wrong one here — this page carries forty-odd names and the
  * grid read as ruled paper, worst of all in dark where a broken line under warm
  * grey text is the highest-frequency thing on the screen. Nothing about a driver
- * name *needs* a permanent mark: the section header already says "Select any
- * name for its full ratings", so the standing instruction is written once
- * instead of restated under every row.
+ * name *needs* a permanent mark: the panel already says "Select any name for
+ * its full ratings", so the standing instruction is written once instead of
+ * restated under every row.
  *
  * The trade is touch, which has no hover and so sees no affordance until it taps
- * — accepted, because the header sentence covers it and the alternative was an
+ * — accepted, because that sentence covers it and the alternative was an
  * information glyph beside all forty-three names.
  *
  * `bg-accent` rather than `bg-muted` because a swapped-in driver's row is
@@ -493,7 +500,7 @@ export function DriverLabel({
       {driver === undefined ? null : (
         <Flag country={driver.nationality} title={driver.nationality} />
       )}
-      <FittedDriverName driverId={driverId} className="min-w-0 flex-1" />
+      <FittedDriverName driverId={driverId} className="min-w-0 flex-1" split />
       {age === null ? null : (
         <span className="text-muted-foreground shrink-0 text-xs">({age}y)</span>
       )}
@@ -515,8 +522,8 @@ function EmptySeat({ teamId, seat, edit }: { teamId: string; seat: number; edit:
   return (
     <li
       className={cn(
-        "border-border/70 flex items-center gap-2 rounded border border-dashed px-1 py-0.5 text-sm",
-        selected && "ring-primary ring-2",
+        "border-border/70 flex items-center gap-2 border border-dashed px-3 py-1 text-sm",
+        selected && SELECTED_ROW,
       )}
     >
       <button
@@ -561,9 +568,9 @@ function DriverEntry({
   return (
     <li
       className={cn(
-        "flex items-center gap-2 rounded px-1 py-0.5 text-sm",
+        "flex items-center gap-2 px-3 py-1 text-sm",
         swappedIn && SWAPPED_IN,
-        selected && "ring-primary ring-2",
+        selected && SELECTED_ROW,
       )}
     >
       {edit === undefined ? (
@@ -585,11 +592,11 @@ function DriverEntry({
                 part of how a driver's name is written throughout the app, and
                 a name that loses it on opening reads as a different component.
               */}
-              <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+              <span className="flex min-w-0 items-center gap-1.5">
                 {driver === undefined ? null : (
                   <Flag country={driver.nationality} title={driver.nationality} />
                 )}
-                <span className="truncate">{driverName(entrant.driverId)}</span>
+                <span className={cn(POPOVER_NAME, "truncate")}>{driverName(entrant.driverId)}</span>
                 {pageOf === null ? null : (
                   <PageLink
                     link={pageOf.driver(entrant.driverId)}
@@ -629,7 +636,9 @@ function DriverEntry({
           />
         </button>
       )}
-      {keptMark === null ? null : <span className="text-subtle shrink-0 text-xs">{keptMark}</span>}
+      {keptMark === null ? null : (
+        <span className={cn(MONO_LABEL, "text-subtle shrink-0")}>{keptMark}</span>
+      )}
       <Overall value={driverOverall(entrant.driver)} />
     </li>
   );
@@ -639,7 +648,7 @@ function DriverEntry({
  * The label of each control row under a card's header — Engine, Chassis — at
  * one width, so the controls beside them start in one line.
  */
-const ROW_LABEL = "text-muted-foreground w-12 shrink-0";
+const ROW_LABEL = cn(MONO_LABEL, "w-16 shrink-0");
 
 /**
  * The supplier picker, on every team card while the editor is open.
@@ -885,43 +894,35 @@ export function SeasonGrid({
     // The team tiles inside stay `bg-card` on a `bg-card` panel, drawn by their
     // borders and liveries; the qualifying grid already nests exactly that way.
     <Card>
-      {/* `flex-row` beats `CardHeader`'s own `flex-col` through `cn`, so the
-          sort switch and the Edit/Apply buttons keep their place opposite the
-          title instead of stacking under the description. */}
-      <CardHeader className="flex-row flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <CardTitle>Grid</CardTitle>
-          <CardDescription>
-            {edit === undefined
-              ? `${field.length} cars, ${entries.length} teams. Select any name for its full ratings.`
-              : "Pick a driver, then who takes their seat. Pick a team's name to change its engine or make its car faster or slower."}
-          </CardDescription>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <SortToggle
-            label="Sort teams"
-            name="team-sort"
-            order={sort}
-            {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
-          />
-          {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
-        </div>
-      </CardHeader>
+      <CardBand title="Grid" label={`${field.length} cars · ${entries.length} teams`}>
+        <SortToggle
+          label="Sort teams"
+          name="team-sort"
+          order={sort}
+          {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
+        />
+        {action === undefined ? null : <div className="flex flex-wrap gap-2">{action}</div>}
+      </CardBand>
 
-      <div className="flex flex-col gap-4 px-5 py-4">
+      <div className="flex flex-col gap-4 px-3 py-4 sm:px-5">
+        <p className="text-muted-foreground text-sm">
+          {edit === undefined
+            ? "Select any name for its full ratings."
+            : "Pick a driver, then who takes their seat. Pick a team's name to change its engine or make its car faster or slower."}
+        </p>
         {openSeats === 0 ? null : (
           // Above the change list rather than beside the Apply button, because
           // it is an instruction about the cards below it: the seats to fill
           // are marked on the grid, and this says how many are left.
-          <div className="border-primary/50 bg-primary/5 flex flex-wrap items-baseline gap-x-2 rounded-lg border border-dashed px-3 py-2">
-            <span className="text-xs font-semibold tracking-tight">
-              {openSeats === 1 ? "1 empty seat" : `${openSeats} empty seats`}
-            </span>
-            <span className="text-muted-foreground text-xs">
+          <Notice
+            tone="accent"
+            title={openSeats === 1 ? "1 empty seat" : `${openSeats} empty seats`}
+          >
+            <p className="text-muted-foreground text-xs">
               Fill {openSeats === 1 ? "it" : "them"} before you apply the grid: pick the seat, then
               a driver.
-            </span>
-          </div>
+            </p>
+          </Notice>
         )}
         {kept === null ? null : (
           <KeptNote
@@ -936,23 +937,17 @@ export function SeasonGrid({
         reratedEngines.size === 0 &&
         retrended.size === 0 &&
         arrangement === null ? null : (
-          <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-lg border border-dashed px-3 py-2">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <span className="text-xs font-semibold tracking-tight">
-                {edit === undefined ? "This grid was edited" : "Changes so far"}
-              </span>
-              {edit === undefined && onClearEdits !== undefined ? (
-                <button
-                  type="button"
-                  onClick={onClearEdits}
-                  // A fill under the cursor, never an underline: the grid's one
-                  // affordance for "this does something" (`NAME_TARGET`).
-                  className="text-primary hover:bg-accent focus-visible:ring-ring -my-0.5 cursor-pointer rounded px-1.5 py-0.5 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none"
-                >
+          <Notice
+            className="gap-2"
+            title={edit === undefined ? "This grid was edited" : "Changes so far"}
+            action={
+              edit === undefined && onClearEdits !== undefined ? (
+                <Button variant="link" size="inline" className="-my-0.5" onClick={onClearEdits}>
                   Clear all edits
-                </button>
-              ) : null}
-            </div>
+                </Button>
+              ) : undefined
+            }
+          >
             {arrangement === null ? null : (
               <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
             )}
@@ -963,7 +958,7 @@ export function SeasonGrid({
               engineRatingChanges={[...reratedEngines.values()]}
               trendChanges={[...retrended.values()]}
             />
-          </div>
+          </Notice>
         )}
 
         <ul
@@ -1003,16 +998,17 @@ export function SeasonGrid({
             return (
               <li
                 key={entry.teamId}
-                // Clipped, so the header band and the corner sash take the card's
-                // rounded corners.
-                className="border-border bg-card overflow-hidden rounded-xl border p-4"
+                // A small tower: the header band, then one full-width row per
+                // driver with alternating fills. Clipped, so the corner sash
+                // stays inside the card.
+                className="border-border bg-card overflow-hidden border"
               >
                 {/*
-                  The header band, run out to the card's edges. The sash is its
-                  first child, so it paints over the band and under the
-                  name and the chip, which are relative to sit above it.
+                  The header band. The sash is its first child, so it paints
+                  over the band and under the name and the chip, which are
+                  relative to sit above it.
                 */}
-                <div className="bg-card-header border-border/60 relative -mx-4 -mt-4 flex items-center gap-2 border-b px-4 pt-3 pb-2.5">
+                <div className="bg-card-header border-border relative flex items-center gap-2 border-b px-3 py-2.5">
                   {livery === undefined ? null : <LiveryCorner livery={livery} />}
                   {/*
                     A marked team (engine, chassis or development changed) carries the soft
@@ -1021,13 +1017,12 @@ export function SeasonGrid({
                     name sits on a card-coloured plate and the fill goes on it:
                     exactly a moved row's colour.
                   */}
-                  <span
-                    className={cn("relative flex min-w-0 flex-1", marked && "bg-card rounded px-1")}
-                  >
+                  <span className={cn("relative flex min-w-0 flex-1", marked && "bg-card px-1")}>
                     <Popover>
                       <NameTrigger
                         className={cn(
-                          "flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold",
+                          "flex min-w-0 flex-1 items-center gap-1.5",
+                          POPOVER_NAME,
                           marked && SWAPPED_IN,
                         )}
                       >
@@ -1055,12 +1050,12 @@ export function SeasonGrid({
                           the documented exception to "nothing that only
                           appears after a click wears a badge".
                         */}
-                          <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+                          <span className="flex min-w-0 items-center gap-1.5">
                             {base === undefined ? null : <Flag country={base} title={base} />}
                             {livery === undefined ? null : (
                               <LiveryBadge livery={livery} className="size-3.5" />
                             )}
-                            <span className="truncate">{name}</span>
+                            <span className={cn(POPOVER_NAME, "truncate")}>{name}</span>
                             {/* Not while editing: the editor's popover is for re-rating, not for leaving. */}
                             {pageOf === null || edit !== undefined ? null : (
                               <PageLink link={pageOf.team(entry.teamId)} label={`${name}'s page`} />
@@ -1077,7 +1072,7 @@ export function SeasonGrid({
                           </p>
                         )}
                         {historical === undefined ? null : (
-                          <p className="text-subtle mb-2 text-right text-xs">Real → this run</p>
+                          <p className={cn(MONO_LABEL, "mb-2 text-right")}>Real → this run</p>
                         )}
                         <div className="flex flex-col gap-2">
                           {CHASSIS_RATINGS.map((rating) => (
@@ -1115,10 +1110,10 @@ export function SeasonGrid({
                           // and a reader who opens this wants the parts.
                           <>
                             <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
-                              <span className="text-xs font-semibold">
+                              <span className={cn(MONO_LABEL, "text-foreground")}>
                                 {engineName(entry.engineId)} engine
                               </span>
-                              <span className="text-muted-foreground text-xs">
+                              <span className={MONO_LABEL}>
                                 {historicalEngine === undefined
                                   ? `${seasonYear} spec`
                                   : "Real → this run"}
@@ -1199,14 +1194,14 @@ export function SeasonGrid({
                   </span>
                 </div>
                 {ghostCar === undefined ? null : (
-                  <p className="text-subtle mt-1.5 text-xs">
+                  <p className="text-subtle border-border border-b px-3 py-1.5 text-xs">
                     Gone in real life, racing its {ghostCar} car
                   </p>
                 )}
 
                 {edit === undefined ? null : (
-                  <>
-                    <div className="mt-2 flex items-center gap-2">
+                  <div className="border-border border-b px-3 py-2">
+                    <div className="flex items-center gap-2">
                       <EnginePicker teamId={entry.teamId} engineId={entry.engineId} edit={edit} />
                       {entry.engine === undefined || entry.engineId === undefined ? null : (
                         <EngineStepper
@@ -1224,7 +1219,7 @@ export function SeasonGrid({
                       // Under the picker, lined up with it: the select takes the
                       // row's width. Names the engine, since the same line
                       // appears on every card running it.
-                      <p className="text-muted-foreground mt-1 pl-14 text-xs">
+                      <p className="text-muted-foreground mt-1 pl-18 text-xs">
                         {engineName(engineChange.engineId)} engine {engineSummary(engineChange)}
                       </p>
                     )}
@@ -1248,10 +1243,10 @@ export function SeasonGrid({
                         </span>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
 
-                <ul className="mt-2.5 flex flex-col gap-1.5">
+                <ul className="striped flex flex-col">
                   {/*
                     Keyed by seat rather than by driver: a team can have two
                     open seats, and two rows keyed on the same sentinel would

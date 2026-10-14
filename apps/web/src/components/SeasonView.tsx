@@ -26,6 +26,7 @@ import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
 import { GridStage } from "./GridStage.js";
 import { HomeAdvantage } from "./HomeAdvantage.js";
 import { Liveries } from "./Liveries.js";
+import { PageHeading } from "./PageHeading.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
@@ -286,8 +287,14 @@ function SeasonBody({
   if (view.kind === "grid") {
     return (
       <div className="flex flex-col gap-6">
+        <header>
+          <PageHeading
+            title={`${world.year} grid`}
+            sub={locked ? "As raced" : `Before round 1 of ${world.season.rounds}`}
+          />
+        </header>
         {/*
-          The run settings first, in the place the setup screen has them, with
+          The run settings next, in the place the setup screen has them, with
           the years next door beside them: both are facts about *which season
           this is*.
 
