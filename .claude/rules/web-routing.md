@@ -47,6 +47,8 @@ and left.
   router to act.
 - **`runBarFor` and `runActionsFor` (`lib/run-bar.ts`) decide** what is offered and
   where; `RunBar` only draws them. A new action starts there.
+- **A run's progress is `runBarFor`'s `roundsRun` of `rounds`** (a round counts once its
+  race is shown), drawn by `RoundSegments` wherever it shows, never counted by a page.
 - **Forward pushes a history entry; a restart replaces it** (the page left belongs to
   results that no longer exist).
 - **Navigation never discards a run.** Only an explicit way out does (*Exit run*,

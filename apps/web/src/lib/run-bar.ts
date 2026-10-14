@@ -40,6 +40,10 @@ export interface RunBarState {
   readonly restartSeason: boolean;
   /** Whether Restart era is offered: an era past its first grid. */
   readonly restartEra: boolean;
+  /** How many rounds the cursor's season has. */
+  readonly rounds: number;
+  /** How many of them have had their race shown: none on the grid, all from the summary on. */
+  readonly roundsRun: number;
 }
 
 export function runBarFor(run: Run): RunBarState {
@@ -69,6 +73,16 @@ export function runBarFor(run: Run): RunBarState {
     jump: jumpYears(run).some((year) => year > world.year),
     restartSeason: cursor.kind !== "grid" && cursor.kind !== "review",
     restartEra: run.kind === "era" && (run.run.seasons.length > 0 || cursor.kind !== "grid"),
+    rounds,
+    // A round counts once its race is shown, so its qualifying leaves it to come.
+    roundsRun:
+      cursor.kind === "grid"
+        ? 0
+        : cursor.kind === "qualifying"
+          ? cursor.round
+          : cursor.kind === "race"
+            ? cursor.round + 1
+            : rounds,
   };
 }
 

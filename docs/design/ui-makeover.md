@@ -60,17 +60,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 7. `makeover-run-bar`
-- `RunBar.tsx`:
-  - the crumb in mono capitals behind a live dot;
-  - under it, the season as one segment per round, done or to come;
-  - square buttons, with Continue in the accent.
-- The phone keeps its ⋯ form.
-- The segments' numbers come from `lib/run-bar.ts` (`runBarFor` decides, `RunBar` draws).
-  Add the round and the season's round count there, with a test.
-- PROPOSED: none done at the grid, all done at the summary.
-- Screenshots: `grid`, `race`, `season-summary`, on desktop and phone.
-
 ### 8. `makeover-home`
 - `MainMenu.tsx`:
   - The hero: eyebrow, narrow-capitals title, lede, and a row of facts: how many seasons,
@@ -80,7 +69,7 @@ and components; the palette is already in `index.css`.
     Titles follow `mode-titles`.
   - Two columns on desktop, one on a phone.
 - `ResumeRun.tsx`: the run as a live session.
-  - A live-dot label, the run's title, the cursor line, the round segments from step 7,
+  - A live-dot label, the run's title, the cursor line, `RoundSegments`,
     and Resume and Exit run.
   - PROPOSED: the car shown is the current leader's team.
   - `RunNotResumed` is restyled to match.

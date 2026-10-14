@@ -395,6 +395,23 @@ describe("the run bar", () => {
     expect(home).not.toContain("Run is at");
   });
 
+  it("draws the season as a segment per round, the ones run marked done", async () => {
+    const run: Run = { kind: "season", world, cursor: { kind: "race", round: 1 } };
+    const state = runBarFor(run);
+    const html = await bar(run);
+    const start = html.indexOf("grid-template-columns:repeat(");
+    expect(start).toBeGreaterThan(-1);
+    const segments = html.slice(start, html.indexOf("</div>", start));
+    expect(segments.match(/<span/g)).toHaveLength(state.rounds);
+    expect(segments.match(/data-done=""/g)).toHaveLength(state.roundsRun);
+  });
+
+  it("lights the live dot on the cursor's own page only", async () => {
+    const run: Run = { kind: "season", world, cursor: { kind: "grid" } };
+    expect(await bar(run)).toContain('data-live=""');
+    expect(await bar(run, { year: YEAR, beat: { kind: "summary" } })).not.toContain("data-live");
+  });
+
   it("keeps Continue, disabled, at the end of a one-year run, and still the way out", async () => {
     const html = await bar({ kind: "season", world, cursor: { kind: "summary" } });
     expect(html).toMatch(

@@ -63,7 +63,31 @@ describe("the run bar's actions", () => {
       jump: false,
       restartSeason: false,
       restartEra: false,
+      rounds: ROUNDS,
+      roundsRun: 0,
     });
+  });
+
+  it("counts a round run once its race is shown, all of them from the summary on", () => {
+    const beats = [...beatsOf(ROUNDS), { kind: "review" } as const];
+    let before = 0;
+    for (const beat of beats) {
+      const bar = runBarFor(era(beat));
+      const name = JSON.stringify(beat);
+      expect(bar.rounds, name).toBe(ROUNDS);
+      const expected =
+        beat.kind === "grid"
+          ? 0
+          : beat.kind === "qualifying"
+            ? beat.round
+            : beat.kind === "race"
+              ? beat.round + 1
+              : ROUNDS;
+      expect(bar.roundsRun, name).toBe(expected);
+      expect(bar.roundsRun, name).toBeGreaterThanOrEqual(before);
+      before = bar.roundsRun;
+    }
+    expect(before).toBe(ROUNDS);
   });
 
   it("offers Continue, the skip and Restart season through the season", () => {

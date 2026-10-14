@@ -10,6 +10,7 @@ import {
   runActionsFor,
 } from "../lib/run-bar.js";
 import { cn } from "../lib/utils.js";
+import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
 import {
   DropdownMenu,
@@ -79,7 +80,7 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
 export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-x-1.5 text-sm">
+      <ol className="flex flex-wrap items-center gap-x-1.5 font-mono text-xs tracking-wider uppercase">
         {crumbs.map((crumb, index) => {
           const last = index === crumbs.length - 1;
           return (
@@ -100,7 +101,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                 ) : (
                   <span
                     {...(last ? { "aria-current": "page" as const } : {})}
-                    className={last ? "font-semibold tracking-tight" : "text-muted-foreground"}
+                    className={last ? "text-foreground font-semibold" : "text-muted-foreground"}
                   >
                     {crumb.label}
                   </span>
@@ -291,9 +292,48 @@ export function RunActions(props: RunActionsProps) {
 }
 
 /**
- * The run bar's contents: the trail to this page on the left, how far the run
- * has got and the way on at the right — navigation is the right-hand end of
- * the bar on every page.
+ * The run as a live session: a dot, the trail to this page, and under them
+ * the season's rounds and where the run is. The dot is lit on the cursor's
+ * own page and dims on any other, like a stream's LIVE badge once you have
+ * scrolled back. From `sm` up the segments and the cursor line share a row.
+ */
+function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: readonly Crumb[] }) {
+  const live = returnTo === undefined || returnTo === null;
+  return (
+    <div className="flex flex-col gap-1.5 leading-tight">
+      <div className="flex items-start gap-2">
+        <span
+          aria-hidden="true"
+          title={live ? "Live" : "Looking back"}
+          {...(live ? { "data-live": "" } : {})}
+          className="bg-subtle data-[live]:bg-primary ring-subtle/25 data-[live]:ring-primary/25 mt-1.5 size-2 shrink-0 rounded-full ring-3"
+        />
+        <Breadcrumbs crumbs={crumbs} />
+      </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:flex-nowrap">
+        <div className="flex min-w-24 flex-1 sm:w-[260px] sm:flex-initial">
+          <RoundSegments rounds={state.rounds} done={state.roundsRun} />
+        </div>
+        {live ? (
+          <span className="text-muted-foreground font-mono text-xs sm:whitespace-nowrap">
+            {state.cursor}
+          </span>
+        ) : (
+          <Link
+            {...returnTo.link}
+            className="text-muted-foreground hover:text-foreground font-mono text-xs underline-offset-4 hover:underline"
+          >
+            Run is at {state.cursor}
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The run bar's contents: where the run is on the left, the way on at the
+ * right — navigation is the right-hand end of the bar on every page.
  *
  * One line that never wraps, top-aligned, so the actions cannot drop under
  * the trail and take Continue with them. Short of room, the trail and the
@@ -303,19 +343,7 @@ export function RunActions(props: RunActionsProps) {
 export function RunBar({ crumbs, ...actions }: RunActionsProps & { crumbs: readonly Crumb[] }) {
   return (
     <div className="flex flex-1 items-start gap-3">
-      <div className="flex flex-col gap-0.5 leading-tight">
-        <Breadcrumbs crumbs={crumbs} />
-        {actions.returnTo === undefined || actions.returnTo === null ? (
-          <span className="text-muted-foreground text-xs">{actions.state.cursor}</span>
-        ) : (
-          <Link
-            {...actions.returnTo.link}
-            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
-          >
-            Run is at {actions.state.cursor}
-          </Link>
-        )}
-      </div>
+      <RunPlace crumbs={crumbs} {...actions} />
       <RunActions {...actions} />
     </div>
   );
