@@ -1,8 +1,8 @@
 /**
  * A team's car: that it wears the team's colours by the same rule the badge
  * does, where it appears, that it is one size everywhere but the champion
- * cards, and that only there (and in the home screen's parade, tested in
- * `home-parade.test.tsx`) do its wheels turn.
+ * cards, and that only there (and on the home screen's track, tested in
+ * `home-track.test.tsx`) do its wheels turn.
  *
  * Synthetic liveries throughout; the real ones are seed data.
  */

@@ -164,3 +164,17 @@ export function svgsBesideCars(html: string): number {
 export function textOf(html: string): string {
   return html.replace(/<[^>]*>/g, "");
 }
+
+/**
+ * A small seeded generator (mulberry32), numbers in `[0, 1)`: a random source
+ * for the home screen's decoration, which takes `Math.random` in the app.
+ */
+export function randomSource(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../App.js";
-import { HomeParade } from "../components/HomeParade.js";
+import { HomeTrack } from "../components/HomeTrack.js";
 import { KeptLiveries, Liveries } from "../components/Liveries.js";
 import { MainMenu } from "../components/MainMenu.js";
 import { ResumeRun, RunNotResumed } from "../components/ResumeRun.js";
@@ -13,7 +13,7 @@ import { cursorPlace, isUntouched, type Run, useSeasonStore } from "../store/sea
 
 /**
  * `/` — the opening screen: what this is, which mode to run, and the run in
- * progress, with a parade of cars across it now and then.
+ * progress, with the parade lapping a track along its foot.
  */
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -54,8 +54,7 @@ function HomePage() {
   const dismissResumeFailed = useSeasonStore((state) => state.dismissResumeFailed);
   const [asking, setAsking] = useState(false);
   return (
-    <Shell>
-      <HomeParade />
+    <Shell foot={<HomeTrack />}>
       <MainMenu
         {...(run === null
           ? resumeFailed

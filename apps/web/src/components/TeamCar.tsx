@@ -16,7 +16,7 @@ import { useLivery, useSeasonYear } from "./Liveries.js";
  *
  * **Two sizes, and only two.** Every row, slot and panel that shows a car uses
  * `small`, so a car is the same size wherever it is met; only the champion
- * cards and the home screen's parade use `large`, and only they turn the wheels. Both are whole multiples of
+ * cards and the home screen's track use `large`, and only they turn the wheels. Both are whole multiples of
  * the sprite (1× and 3×), which is what keeps every pixel square.
  *
  * **An inline SVG, drawn as one path per colour**, with `crispEdges` so the
@@ -109,7 +109,7 @@ export function LiveryCar({
   /** Which decade's car. Outside a season, the newest. */
   year?: number | undefined;
   size?: CarSize;
-  /** Turn the wheels. The champion cards and the parade only. */
+  /** Turn the wheels. The champion cards and the track only. */
   animated?: boolean;
   className?: string | undefined;
 }) {

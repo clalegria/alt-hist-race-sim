@@ -43,10 +43,6 @@ and components; the palette is already in `index.css`.
     as DNF or DNQ in the gap column. Grid, Status and Pts are hidden.
   - `ui-review.md` (`classification-sideways-scroll`) proposed the opposite: drop Grid, Gap
     and the car, and keep Pts, with the status under the name.
-- **`parade-and-track`** (OPEN; settle before `makeover-home-track`)
-  - PROPOSED: the track becomes the parade's road. The parade keeps its cars, formations
-    and hidden game, but drives on the track instead of over the page.
-  - The alternative: both stay, with the parade still crossing the page above the track.
 - **`ui-review-overlap`** (PROPOSED)
   - The makeover redraws what some `ui-review.md` items are about: `ui-primitives`,
     `page-heading`, `link-focus-ring`, `run-menu-destructive` and
@@ -55,22 +51,6 @@ and components; the palette is already in `index.css`.
     that step lands. *Sort the UI review* then sorts what is left.
 
 ## Steps
-
-### 9. `makeover-home-track`
-- A track along the foot of Home:
-  - a verge, kerbs, and tarmac with a dashed line;
-  - a chequered start/finish line labelled S/F;
-  - cars from several decades lapping in two lanes at different paces, so they overtake.
-- On desktop it sits at the bottom of the window, above the footer: Home's main column
-  grows to push it there. On a phone it comes after the modes.
-- The cars are `LiveryCar` at the large size, with turning wheels. They are picked the
-  parade's way (`lib/parade.ts`, `Math.random()` passed in, never the world). How the track
-  and the parade share the screen follows `parade-and-track`.
-- With reduced motion, the cars stand still, spread along the track.
-- The logic (picks, lanes, paces) lives in `lib/` with tests; the component gets a smoke
-  test. Rules go to `web-team-car.md`.
-- Screenshots: `menu`, on desktop and phone. Screenshots run with reduced motion, so the
-  cars are still.
 
 ### 10. `makeover-race-page`
 - The race header: the flag and the name in narrow capitals, the wet pill in mono capitals,

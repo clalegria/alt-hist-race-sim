@@ -180,23 +180,6 @@
       transform: rotate(360deg);
     }
   }
-
-  /*
-   * A car of the home screen's parade (`HomeParade.tsx`) crossing the window:
-   * from just past the left edge (its own width) to just past the right. The
-   * duration and delay are set per car, inline: the duration follows the
-   * window's width so every car keeps the same speed.
-   */
-  --animate-drive: drive linear both;
-
-  @keyframes drive {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(100vw);
-    }
-  }
 }
 
 /*
@@ -332,6 +315,73 @@ body {
   .striped > :nth-child(even of :not([data-expansion])) {
     background-color: var(--color-row-alt);
   }
+}
+
+/*
+ * The track along the foot of Home (`HomeTrack.tsx`): verge, kerbs, tarmac with
+ * a dashed line, and a chequered start/finish line. Its colours are the track's
+ * own, not `--color-` tokens, so no component can reach for them as `bg-*`.
+ * Graphite tarmac at the neutrals' hue so it reads as the same app; on light, a
+ * paler verge and tarmac, so the band does not sit like a black bar under a
+ * white page. The red and white of the kerbs are the same in both themes.
+ */
+:root {
+  --track-verge: oklch(30% 0.035 150);
+  --track-tarmac: oklch(25% 0.008 250);
+  --track-line: oklch(70% 0.01 250);
+  --track-kerb-red: oklch(58% 0.19 27);
+  --track-kerb-white: oklch(93% 0.005 250);
+  --track-chequer-dark: oklch(15% 0.01 250);
+}
+
+:root[data-theme="light"] {
+  --track-verge: oklch(72% 0.09 145);
+  --track-tarmac: oklch(42% 0.008 250);
+  --track-line: oklch(92% 0.004 250);
+  --track-kerb-red: oklch(57% 0.2 27);
+  --track-kerb-white: oklch(99% 0.002 250);
+  --track-chequer-dark: oklch(20% 0.01 250);
+}
+
+.track-verge {
+  background-color: var(--track-verge);
+}
+
+.track-kerb {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--track-kerb-red) 0 18px,
+    var(--track-kerb-white) 18px 36px
+  );
+}
+
+.track-tarmac {
+  background-color: var(--track-tarmac);
+}
+
+.track-tarmac::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - 1px);
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--track-line) 0 22px,
+    transparent 22px 50px
+  );
+  opacity: 0.55;
+}
+
+.track-start {
+  background:
+    repeating-conic-gradient(var(--track-kerb-white) 0% 25%, var(--track-chequer-dark) 0% 50%) 0 0 /
+    12px 12px;
+  opacity: 0.9;
+}
+
+.track-label {
+  color: var(--track-line);
 }
 
 /*

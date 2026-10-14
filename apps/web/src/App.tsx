@@ -21,7 +21,9 @@ import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from 
 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
- * footer.
+ * footer, with `foot` full width between the column and the footer (Home's
+ * track). The column grows to fill the window, so on a short page the foot and
+ * the footer sit at the bottom of it.
  *
  * The footer is rendered here rather than by each screen so that every screen
  * has one — the attribution belongs to the app, not to the season screen that
@@ -32,10 +34,12 @@ import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from 
 export function Shell({
   bar,
   seed,
+  foot,
   children,
 }: {
   bar?: React.ReactNode;
   seed?: number;
+  foot?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -53,13 +57,12 @@ export function Shell({
           </div>
         </div>
       )}
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 pb-8 sm:px-6 lg:pb-10">
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 sm:px-6">
         {children}
-        {/* Pushed to the bottom of the viewport on a short page, so the credit
-            sits at the foot of the window rather than under the last button. */}
-        <div className="mt-auto">
-          <SiteFooter {...(seed === undefined ? {} : { seed })} />
-        </div>
+      </div>
+      {foot}
+      <div className="mx-auto w-full max-w-5xl px-4 pt-6 pb-8 sm:px-6 lg:pb-10">
+        <SiteFooter {...(seed === undefined ? {} : { seed })} />
       </div>
     </div>
   );

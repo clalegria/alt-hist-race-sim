@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { PARADE_COVER } from "../lib/parade.js";
 import type { RunLink } from "../lib/run-places.js";
 import { MONO_LABEL } from "./MainMenu.js";
 import { RoundSegments } from "./RoundSegments.js";
@@ -8,7 +7,7 @@ import { Button, buttonClass } from "./ui/button.js";
 /** A Home panel: bordered, with a head band darker than its body. */
 function HomePanel({ head, children }: { head: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div {...PARADE_COVER} className="bg-card border-border border">
+    <div className="bg-card border-border border">
       <div className="bg-card-header border-border flex items-center gap-2 border-b px-3 py-2">
         {head}
       </div>

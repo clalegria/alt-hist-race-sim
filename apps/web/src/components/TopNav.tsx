@@ -1,7 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import { AREAS, type Area, isAvailable } from "../lib/areas.js";
-import { PARADE_COVER } from "../lib/parade.js";
 import { cn } from "../lib/utils.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 
@@ -67,7 +66,7 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
   }, [open]);
 
   return (
-    <header {...PARADE_COVER} className="bg-card-header border-border border-b">
+    <header className="bg-card-header border-border border-b">
       <div className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-4 px-4 sm:px-6 md:h-[50px] md:flex-nowrap">
         <Link
           to="/"

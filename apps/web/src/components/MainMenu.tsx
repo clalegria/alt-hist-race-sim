@@ -1,5 +1,4 @@
 import { MODES, type Mode, type ModeId } from "../lib/modes.js";
-import { PARADE_COVER } from "../lib/parade.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 
@@ -101,7 +100,7 @@ export function MainMenu({
         {resume === undefined ? null : <div className="mt-2.5">{resume}</div>}
       </div>
 
-      <section {...PARADE_COVER} aria-label="Modes" className="bg-card border-border border">
+      <section aria-label="Modes" className="bg-card border-border border">
         <div className="bg-card-header border-border flex justify-between border-b py-2 pr-3.5 pl-5">
           <span className={MONO_LABEL}>Mode</span>
           <span className={MONO_LABEL}>Status</span>
