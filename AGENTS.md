@@ -26,6 +26,7 @@ work, runs the final checks and commits. Delegation hands off labour, never owne
 | Well-defined slice of an agreed plan | Sonnet 5.5 | medium; high if subtle | `implementer` |
 | Tests for written or specified code | Sonnet 5.5 | medium | `test-writer` |
 | Focused correctness and convention review | Sonnet 5.5 | medium | `reviewer` |
+| Screenshots of a visible change | Sonnet 5.5 | medium | `screenshot-checker`, briefed with the steps, one variant and what should show; the main agent never loads the PNGs itself |
 | Searches, call sites, doc summaries | Haiku 5.5 | medium; low for a plain lookup | `Explore` |
 | Bulk mechanical edit across many files | Haiku 5.5 | low | `implementer` with `model: "haiku"` |
 | Small, explicit edit | — | — | Main agent inline: a spawn costs more than the edit |
@@ -42,6 +43,15 @@ re-reads what you already know), and can come back as a summary:
 
 Keep it inline for a small edit, phases that share a lot of context, two agents on one
 file, or when the author is iterating with you. Use the fewest agents that help.
+
+## Working economically
+Every call re-sends the whole context, so cost grows with calls × context size.
+- Read the lines you need (`Read` with offset and limit, `grep -n`), not whole files, and
+  never re-read a rule file that already loaded by path.
+- Edit with the Edit tool, one call per file where possible. Not Python: on Windows it
+  writes CRLF.
+- Line endings are git's and Biome's job (`eol=lf`, `pnpm format`); never convert them.
+- Run the checks once, in one call, filtered to their summary lines.
 
 ## Briefing a subagent
 - **Every brief carries**: the objective; context (files, plan, decisions made); the
@@ -63,7 +73,7 @@ file, or when the author is iterating with you. Use the fewest agents that help.
 - The main agent reads every diff a subagent made and re-runs `pnpm typecheck`,
   `pnpm test` (check `Test Files`) and `pnpm lint` on the integrated tree. A subagent's
   "tests pass" is a claim, not evidence.
-- Screenshots only for a visible change (`screenshots.md`).
+- Screenshots only for a visible change (`CLAUDE.md`), through `screenshot-checker`.
 - Report to the author: what changed and why, which agents and models did what, the
   checks run and their results, anything unresolved.
 

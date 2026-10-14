@@ -54,8 +54,8 @@ Calibration harnesses (`pnpm race`, `season`, `tune`, `fit`, …): `.claude/rule
 - Every engine module ships Vitest tests; `apps/web` is tested at store and smoke-render
   level. **No test asserts an authored number or what a seed produced** (`testing.md`).
   Read `Test Files`, not just `Tests`: a file that fails to compile isn't counted.
-- Screenshots only for a visible change: the changed steps, one variant
-  (`pnpm screenshots era-setup --phone --light`, `screenshots.md`).
+- Screenshots only when how a screen looks changes (layout, styling, a new element), not
+  for behaviour the tests cover: the changed steps, one variant, via `screenshot-checker`.
 - Dependencies: if pnpm's release-age policy rejects a version, take the previous stable
   one; never add `minimumReleaseAgeExclude`. Secrets only in the gitignored `.env`.
 
