@@ -211,15 +211,13 @@ describe("the champion cards", () => {
     expect(summary.split("motion-safe:animate-wheel").length - 1).toBe(2 * wheels);
   });
 
-  it("draw no rule under their words", () => {
-    // A header's bottom rule separates it from a body, and these cards have
-    // none. Two cards side by side stretch to one height, so on the one with
-    // fewer words the rule floated across the middle of the card.
+  it("head each card with its label alone, the name and the car in the body", () => {
+    // The band is the label's; the body under it stretches, so the two cards
+    // stand at one height and their cars park in the same corner.
     for (const label of ["Drivers’ champion", "Constructors’ champion"]) {
-      const header = summary.slice(0, summary.indexOf(label)).split("<header").at(-1) ?? "";
-      const classes = header.match(/class="([^"]*)"/)?.[1]?.split(" ") ?? [];
-      expect(classes).toContain("border-b-0");
-      expect(classes).not.toContain("border-b");
+      const start = summary.lastIndexOf("<header", summary.indexOf(label));
+      const band = summary.slice(start, summary.indexOf("</header>", start));
+      expect(textOf(band)).toBe(label);
     }
   });
 
@@ -274,12 +272,7 @@ describe("the championship tables", () => {
     // `SeasonStandings` with no `car`, as `EraChampions` renders it.
     const expansion = renderToStaticMarkup(
       <Liveries year={YEAR}>
-        <SeasonStandings
-          season={world.season}
-          calendar={[]}
-          points={world.points}
-          description="Final classification."
-        />
+        <SeasonStandings season={world.season} calendar={[]} points={world.points} label="Final" />
       </Liveries>,
     );
     expect(carClasses(expansion)).toHaveLength(0);

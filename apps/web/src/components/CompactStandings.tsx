@@ -6,7 +6,7 @@ import { DriverName } from "./DriverName.js";
 import { DriverHistory, HISTORY_FILL, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
-import { Card, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import { Table, TableBody, TableCell, TablePosition, TableRow } from "./ui/table.js";
 
 /**
@@ -78,9 +78,7 @@ export function CompactStandings({
   return (
     <Card>
       {/* The classification's slim head band, so the two read as one row of towers. */}
-      <CardHeader className="px-3 py-2.5">
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
+      <CardBand title={title} />
       <Table>
         <TableBody>
           {rows.map((standing, index) => {

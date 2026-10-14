@@ -22,7 +22,7 @@ import { driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
 import { useEntryName } from "./EntryNames.js";
 import { useLivery } from "./Liveries.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 
 /**
  * The championship as a line per competitor, round by round.
@@ -310,7 +310,7 @@ function EndLabel({
       y={y + nudge}
       dominantBaseline="middle"
       fontSize={11}
-      className="fill-muted-foreground"
+      className="fill-muted-foreground font-mono"
     >
       {position}
     </text>
@@ -327,12 +327,12 @@ function EndLabel({
  */
 function EvolutionChart({
   title,
-  description,
+  label,
   lines,
   calendar,
 }: {
   title: string;
-  description: string;
+  label: string;
   lines: readonly Plotted[];
   calendar: readonly CalendarRace[];
 }) {
@@ -348,10 +348,7 @@ function EvolutionChart({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
+      <CardBand title={title} label={label} />
       <div className="px-2 py-4 text-xs" style={colours}>
         <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
           <LineChart
@@ -365,7 +362,7 @@ function EvolutionChart({
             <XAxis
               dataKey="round"
               stroke="currentColor"
-              className="text-muted-foreground"
+              className="text-muted-foreground font-mono"
               tick={{ fill: "currentColor", fontSize: 11 }}
               tickLine={false}
               axisLine={false}
@@ -373,7 +370,7 @@ function EvolutionChart({
             />
             <YAxis
               stroke="currentColor"
-              className="text-muted-foreground"
+              className="text-muted-foreground font-mono"
               tick={{ fill: "currentColor", fontSize: 11 }}
               tickLine={false}
               axisLine={false}
@@ -489,14 +486,14 @@ export function StandingsEvolution({
   return championship === "drivers" ? (
     <EvolutionChart
       title="How the drivers&rsquo; title was won"
-      description="Championship points after every round."
+      label="Points after every round"
       lines={plot(drivers, driverName, colourOf)}
       calendar={calendar}
     />
   ) : (
     <EvolutionChart
       title="How the constructors&rsquo; title was won"
-      description="Championship points after every round."
+      label="Points after every round"
       lines={plot(teams, nameOf, colourOf)}
       calendar={calendar}
     />

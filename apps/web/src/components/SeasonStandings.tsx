@@ -26,7 +26,7 @@ export function SeasonStandings({
   calendar,
   year,
   points,
-  description,
+  label,
   badge = false,
   car = false,
   charts = false,
@@ -38,8 +38,8 @@ export function SeasonStandings({
   year?: number | undefined;
   /** The scale the year was scored on, never assumed. */
   points: PointsScale;
-  /** What the table is of — "Final classification.", or a round count. */
-  description: string;
+  /** The tables' head-band label: "Final", or how far the season has got. */
+  label: string;
   /**
    * Draw a livery badge on every row. The season summary does; the roll of
    * honour, where this pair *is* an expansion, does not.
@@ -63,7 +63,7 @@ export function SeasonStandings({
     <>
       <StandingsTable
         title="Drivers&rsquo; Championship"
-        description={description}
+        label={label}
         nameColumn="Driver"
         standings={drivers}
         season={season}
@@ -87,7 +87,7 @@ export function SeasonStandings({
       ) : null}
       <StandingsTable
         title="Constructors&rsquo; Championship"
-        description={description}
+        label={label}
         nameColumn="Team"
         standings={constructors}
         season={season}

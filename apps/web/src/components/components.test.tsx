@@ -578,7 +578,7 @@ describe("expanding a row of the championship", () => {
   const closed = renderToStaticMarkup(
     <StandingsTable
       title="Drivers’ Championship"
-      description="Final classification."
+      label="Final"
       nameColumn="Driver"
       standings={drivers}
       season={world.season}
@@ -592,6 +592,30 @@ describe("expanding a row of the championship", () => {
     expect(closed).not.toContain('aria-expanded="true"');
   });
 
+  it("keeps position, name, points and wins on a phone, and drops podiums and poles", () => {
+    // The header's cells in order, each tagged with whether it hides below `sm`.
+    const head = closed.slice(closed.indexOf("<tr"), closed.indexOf("</thead>"));
+    const columns = head
+      .split("<th")
+      .slice(1)
+      .map((cell) => ({
+        name: textOf(`<th${cell}`),
+        wideOnly: cell.slice(0, cell.indexOf(">")).includes("hidden sm:table-cell"),
+      }));
+    expect(columns.filter((column) => !column.wideOnly).map((column) => column.name)).toEqual([
+      "Pos",
+      "Driver",
+      "Pts",
+      "Wins",
+    ]);
+    expect(columns.filter((column) => column.wideOnly).map((column) => column.name)).toEqual([
+      "Pods",
+      "Poles",
+    ]);
+    // And every row's cells with them, two to a row.
+    expect(occurrencesOf(closed, "hidden sm:table-cell")).toBe(2 + 2 * drivers.length);
+  });
+
   it("keeps the race-by-race out of the closed table", () => {
     // A summary that shipped every driver's fourteen rounds in the markup would
     // be the whole season rendered 28 times over.
@@ -599,8 +623,10 @@ describe("expanding a row of the championship", () => {
     expect(closed).not.toContain("Did not qualify");
   });
 
-  it("says what a row does", () => {
-    expect(closed).toContain("opens a driver");
+  it("says what a row's arrow does, on the arrow", () => {
+    // The head band holds a short label, not a how-to: the chevron names itself.
+    // Counted rather than matched by name, which the markup may escape.
+    expect(closed.split(' race by race"').length - 1).toBe(drivers.length);
   });
 
   it("gives a driver one row per round, naming each one", () => {

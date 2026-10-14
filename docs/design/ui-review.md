@@ -44,14 +44,10 @@ Things a fan meets on an ordinary first run: a dead end, a click that throws the
   - Fix: pass `finished` through, and title the unfinished chart "How the title race stands".
   - Screenshot step: `season-midseason`.
 - **`classification-sideways-scroll`** (OPEN: which move per table; *Phone layout*)
-  - Tables scroll sideways through `ui/table.tsx:~11` (`overflow-x-auto`). The screenshots show what that costs:
-    - the standings hide Wins, Pods and Poles;
-    - the roll of honour hides the constructors' champion.
-  - *Phone layout* gives three moves per screen: drop columns, restack the row, or scroll the table. (The classification's phone row was settled in the makeover.)
-  - Proposed:
-    - **Standings:** keep Pts and let the counts scroll.
-    - **Roll of honour:** restack, with the constructors' champion under the drivers' champion.
-  - Screenshot steps: `season-summary --phone`, `era-champions --phone`.
+  - Tables scroll sideways through `ui/table.tsx:~11` (`overflow-x-auto`): the roll of honour hides the constructors' champion.
+  - *Phone layout* gives three moves per screen: drop columns, restack the row, or scroll the table. (The classification's and the standings' phone rows were settled in the makeover.)
+  - Proposed: **roll of honour:** restack, with the constructors' champion under the drivers' champion.
+  - Screenshot step: `era-champions --phone`.
 - **`roll-of-honour-in-progress`** (OPEN)
   - At 1985's season summary, the roll of honour still says "1985 in progress, leaders after round 16" (`EraChampions.tsx:~258`) while the summary page has already crowned both champions.
   - The year only counts as finished at the era's review beat.
@@ -117,27 +113,27 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Fix: show the sub-line under the crumbs only when away from the cursor ("Run is at …"), and drop the position text from the foot (`App.tsx:~191`).
   - Screenshot steps: `grid`, `not-reached`.
 - **`page-heading`** (PROPOSED)
-  - Four page types have no `<h1>`:
+  - Three page types have no `<h1>`:
     - the grid page (`SeasonView.tsx:~317`), whose first heading is the card's h2 "Grid";
-    - the finished season page (`SeasonOverview.tsx:~257`), which shows only the champion cards;
     - the drivers and teams indexes (`RosterIndex.tsx:~108`).
+  - `PageHeading` (title, flag, sub-line) is built: the season and session pages use it.
   - Existing h1 sizes differ:
 
     | Size | Where |
     |---|---|
     | `5xl/7xl` | Home |
     | `2xl/3xl` | Setup and the era overview |
-    | `2xl` | Season, session and person pages |
+    | `2xl` | Person pages |
     | `xl` | Not reached |
 
   - Flags beside an h1 are sized `h-4 w-6` in one place and default in another.
   - Lower headings are out of order:
     - `CareerStatistics` nests h2 card titles under an h2.
   - Fix:
-    - a shared `PageHeading` (title, optional flag or badge, subtitle) on every page except Home's hero;
-    - a test that every page renders exactly one h1;
+    - `PageHeading` on every remaining page;
+    - a test that every page renders exactly one h1 (the season page has one);
     - correct the order of the lower headings.
-  - Screenshot steps: `grid`, `season-summary`, `drivers-index`.
+  - Screenshot steps: `grid`, `drivers-index`.
 - **`run-menu-destructive`** (PROPOSED)
   - In the ⋯ menu, "Restart season", "Restart era" and "Exit run" are plain items with no separator and no destructive colour. The only separator divides phone-only items (`RunBar.tsx:~266`). Their confirm dialogs are already red.
   - Fix: a separator, and `text-destructive` on those items.

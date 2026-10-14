@@ -456,7 +456,7 @@ describe("names open their panel everywhere", () => {
       const markup = inRun(
         <StandingsTable
           title="Championship"
-          description=""
+          label=""
           nameColumn={nameColumn}
           standings={standings}
           season={world.season}

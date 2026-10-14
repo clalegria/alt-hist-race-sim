@@ -2,7 +2,7 @@ import type { CalendarRace } from "@alt-hist/data";
 import type { RaceWeather } from "@alt-hist/engine";
 import { Link } from "@tanstack/react-router";
 import type { RoundLink, SessionNav } from "../lib/session-nav.js";
-import { Flag } from "./Flag.js";
+import { PageHeading } from "./PageHeading.js";
 import { TabLinks } from "./TabLinks.js";
 import { WeatherBadge } from "./WeatherBadge.js";
 
@@ -30,20 +30,19 @@ export function SessionHeader({
 }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="narrow flex flex-wrap items-center gap-2.5 text-4xl leading-none font-extrabold tracking-[0.01em] uppercase md:text-5xl">
-          {race === undefined || race.country === "" ? null : (
-            <Flag country={race.country} title={race.country} className="h-5 w-7.5" />
-          )}
-          {race?.name ?? `Round ${round + 1}`}
-          {/* Only when it rained: `WeatherBadge` draws nothing for a dry weekend. */}
-          <WeatherBadge weather={weather} />
-        </h1>
-        <p className="text-muted-foreground font-mono text-xs tracking-wider uppercase">
-          Round {round + 1} of {rounds}
-          {race === undefined || race.circuit === "" ? "" : ` · ${race.circuit}`}
-        </p>
-      </div>
+      <PageHeading
+        flag={race?.country}
+        title={
+          <>
+            {race?.name ?? `Round ${round + 1}`}
+            {/* Only when it rained: `WeatherBadge` draws nothing for a dry weekend. */}
+            <WeatherBadge weather={weather} />
+          </>
+        }
+        sub={`Round ${round + 1} of ${rounds}${
+          race === undefined || race.circuit === "" ? "" : ` · ${race.circuit}`
+        }`}
+      />
       {nav === undefined ? null : (
         <TabLinks
           label="Session"

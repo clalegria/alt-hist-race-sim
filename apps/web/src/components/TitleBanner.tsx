@@ -22,14 +22,17 @@ export function TitleBanner({
   return (
     <p
       className={cn(
-        "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-4 py-3 text-sm",
+        "flex flex-wrap items-center gap-x-2.5 gap-y-1 border px-4 py-3 text-sm",
         STANDOUT_SURFACE,
       )}
     >
       {country === undefined || country === "" ? null : (
-        <Flag country={country} title={country} className="h-3.5 w-5" />
+        <Flag country={country} title={country} className="h-4 w-6" />
       )}
-      <span className={cn("font-semibold", STANDOUT_TEXT)}>{name}</span>
+      {/* The name as the tower sets a name, and the words after it plain. */}
+      <span className={cn("narrow text-2xl leading-none font-extrabold uppercase", STANDOUT_TEXT)}>
+        {name}
+      </span>
       <span>{`wins the ${title}’ Championship!`}</span>
     </p>
   );

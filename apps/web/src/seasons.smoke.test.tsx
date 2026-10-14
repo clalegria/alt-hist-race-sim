@@ -57,7 +57,7 @@ describe("each authored season, through the whole reveal", () => {
         for (const race of seed.calendar) {
           expect(html, `${year} ${race.name}`).toContain(race.name);
         }
-        expect(render({ kind: "summary" })).toContain("Final classification.");
+        expect(render({ kind: "summary" })).toContain("Final classification");
       });
 
       it("crowns a champion", () => {

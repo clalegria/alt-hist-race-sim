@@ -9,7 +9,7 @@ import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { DriverHistory } from "./SeasonHistory.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
   TableBody,
@@ -56,11 +56,16 @@ function RoundName({
   race?: RaceResult | undefined;
   disclosure?: { readonly open: boolean; readonly onToggle: () => void } | undefined;
   link?: React.ReactNode;
-  /** A round not reached: its words greyed, its link (if any) not. */
+  /** A round not reached: its words in `text-subtle`, its link (if any) not. */
   dim?: boolean;
 }) {
   const name = (
-    <span className={cn("flex items-center gap-1.5 font-medium", dim && "opacity-70")}>
+    <span
+      className={cn(
+        "narrow flex items-center gap-1.5 font-extrabold tracking-[0.01em] uppercase",
+        dim && "text-subtle",
+      )}
+    >
       {round === undefined ? null : <Flag country={round.country} title={round.country} />}
       {roundLabel(round, index)}
     </span>
@@ -77,14 +82,21 @@ function RoundName({
         )}
         {link}
       </span>
-      <span className={cn("flex items-center gap-2", dim && "opacity-70")}>
+      <span className="flex items-center gap-2">
         {disclosure === undefined ? null : (
           <span aria-hidden="true" className="invisible text-xs">
             ▶
           </span>
         )}
         {round === undefined ? null : (
-          <span className="text-muted-foreground text-xs">{round.circuit}</span>
+          <span
+            className={cn(
+              "font-mono text-xs tracking-wider uppercase",
+              dim ? "text-subtle" : "text-muted-foreground",
+            )}
+          >
+            {round.circuit}
+          </span>
         )}
         {/*
           Under the circuit rather than beside the name: a wet round is a fact
@@ -231,13 +243,10 @@ export function SeasonCalendar({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Calendar</CardTitle>
-        <CardDescription>
-          {raced === rounds ? `${rounds} rounds.` : `${raced} of ${rounds} rounds raced.`}{" "}
-          {raced === 0 ? "" : "Select a race for its full classification."}
-        </CardDescription>
-      </CardHeader>
+      <CardBand
+        title="Calendar"
+        label={raced === rounds ? `${rounds} rounds` : `${raced} of ${rounds} raced`}
+      />
       <Table>
         <TableHeader>
           <TableRow>

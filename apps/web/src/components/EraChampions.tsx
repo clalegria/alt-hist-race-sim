@@ -134,7 +134,7 @@ export function ChampionRow({
               calendar={seasonSeed(season.year).calendar}
               year={season.year}
               points={season.world.points}
-              description="Final classification."
+              label="Final"
             />
           </TableExpansion>
         ) : null}

@@ -1,5 +1,5 @@
-import type { ComponentProps } from "react";
-import { cn } from "../../lib/utils.js";
+import type { ComponentProps, ReactNode } from "react";
+import { cn, MONO_LABEL } from "../../lib/utils.js";
 
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
@@ -31,4 +31,18 @@ export function CardTitle({ className, ...props }: ComponentProps<"h2">) {
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {
   return <p className={cn("text-muted-foreground text-sm", className)} {...props} />;
+}
+
+/**
+ * A panel's slim head band, as a timing screen draws one: the title, and a
+ * short label in mono capitals on the right (a count, how far the season has
+ * got). Never a sentence: one that needs saying goes in the panel's body.
+ */
+export function CardBand({ title, label }: { title: ReactNode; label?: ReactNode }) {
+  return (
+    <CardHeader className="flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2.5">
+      <CardTitle>{title}</CardTitle>
+      {label === undefined ? null : <p className={MONO_LABEL}>{label}</p>}
+    </CardHeader>
+  );
 }

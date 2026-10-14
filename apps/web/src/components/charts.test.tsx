@@ -163,7 +163,7 @@ describe("the season summary", () => {
           season={world.season}
           calendar={SEED.calendar}
           points={world.points}
-          description="Final classification."
+          label="Final"
         />
       </Liveries>,
     );

@@ -47,12 +47,6 @@ and components; the palette is already in `index.css`.
 
 ## Steps
 
-### 11. `makeover-season-pages`
-- `SeasonOverview` (the champion cards and the tabs), `SeasonStandings`, `StandingsTable`,
-  `SeasonCalendar`, `TitleBanner`.
-- The charts' frame (`StandingsEvolution`); the lines are unchanged (`web-charts.md`).
-- Screenshots: `season-midseason`, `season-calendar`, `season-summary`.
-
 ### 12. `makeover-grid`
 - `SeasonGrid`'s team cards (square, livery corner kept, names in `split`), `GridStage`,
   `ReserveList`, `LineupChanges`, and the grid editor and its popovers.

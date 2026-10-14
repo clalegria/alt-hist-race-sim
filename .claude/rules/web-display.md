@@ -2,6 +2,7 @@
 paths:
   - "apps/web/src/lib/highlight.ts"
   - "apps/web/src/components/ui/table.tsx"
+  - "apps/web/src/components/ui/card.tsx"
   - "apps/web/src/lib/results.ts"
   - "apps/web/src/components/QualifyingResults.tsx"
   - "apps/web/src/components/RaceClassification.tsx"
@@ -35,6 +36,9 @@ The accent, the session sheets and the championship tables.
   columns never. Its tighter padding goes on each cell through `cn`, not a `[&_td]:` variant.
 - **A phone's classification row is position, name, gap and points**: the car, Grid and
   Status show from `md`, and below it the gap column says DNF or DNQ in `text-loss`.
+  A standings row is position, name, points and wins; Pods and Poles show from `sm`.
+- **A panel's head band is `CardBand`**: the title and a short mono label, never a
+  sentence. A row's how-to belongs on its control (the chevron's `label`).
 - **A small mono-capitals label is `MONO_LABEL`** (`lib/utils.ts`), never a new spelling.
 - **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by
   `text-loss`.

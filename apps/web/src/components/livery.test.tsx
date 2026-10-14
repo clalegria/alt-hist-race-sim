@@ -321,7 +321,7 @@ describe("keeping badges out of what a click opens", () => {
           season={world.season}
           calendar={SEED.calendar}
           points={world.points}
-          description="Final classification."
+          label="Final"
         />
       </Liveries>,
     );
@@ -337,7 +337,7 @@ describe("keeping badges out of what a click opens", () => {
           season={world.season}
           calendar={SEED.calendar}
           points={world.points}
-          description="Final classification."
+          label="Final"
           badge
         />
       </Liveries>,

@@ -2,6 +2,7 @@
 paths:
   - "apps/web/src/components/SeasonOverview.tsx"
   - "apps/web/src/components/SessionNav.tsx"
+  - "apps/web/src/components/PageHeading.tsx"
   - "apps/web/src/components/SeasonCalendar.tsx"
   - "apps/web/src/components/season-pages.test.tsx"
   - "apps/web/src/lib/season-tabs.ts"
@@ -14,8 +15,10 @@ paths:
 `/run/<year>` (`SeasonOverview`), and a session page's header and round links. Which URL
 shows what, and the gate, are `web-routing.md`.
 
-- **One season page, finished or not**, cut at the cursor; the champion cards go on top
-  once the summary is reached (`finished`).
+- **One season page, finished or not**, cut at the cursor; the champion cards go under
+  its heading once the summary is reached (`finished`).
+- **A page's one `<h1>` is `PageHeading`**, which owns the heading flag's size. Every
+  page but Home's hero uses it; don't hand-roll another.
 - **A tab is a search param, not a path** (`seasonSearch`), and the default tab is left
   out of the URL. Tab links pass `activeOptions={{ exact: true }}`: TanStack matches
   search as a subset and would mark the standings link active on every tab.

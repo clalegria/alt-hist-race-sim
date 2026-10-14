@@ -15,7 +15,7 @@ import { seasonTabLinks } from "../lib/season-tabs.js";
 import { racePage, roundPages, sessionNav } from "../lib/session-nav.js";
 import type { Beat } from "../lib/timeline.js";
 import { inRouter } from "../test-router.js";
-import { SEED, seededWorld, YEAR } from "../test-support.js";
+import { SEED, seededWorld, textOf, YEAR } from "../test-support.js";
 import { ChampionRow, EraChampions } from "./EraChampions.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { CalendarRow, NOT_YET } from "./SeasonCalendar.js";
@@ -63,21 +63,40 @@ describe("the season's page, partway through the year", () => {
 
   it("says how far the season has got, and crowns nobody", () => {
     const html = seasonPage({ kind: "race", round: MID }, "standings");
-    expect(html).toContain(`After round ${MID + 1} of ${ROUNDS}.`);
+    expect(html).toContain(`After round ${MID + 1} of ${ROUNDS}`);
     expect(html).not.toContain("champion");
     expect(html).toContain("Drivers’ Championship");
   });
 
   it("has no tables to show before the first race", () => {
     const html = seasonPage({ kind: "grid" }, "standings");
-    expect(html).toContain("No round raced yet.");
+    expect(html).toContain("No round raced yet");
     expect(html).not.toContain("Drivers’ Championship");
+  });
+
+  it("opens with the year as its one page heading, finished or not", () => {
+    for (const cursor of [
+      { kind: "grid" },
+      { kind: "race", round: MID },
+      { kind: "summary" },
+    ] as const) {
+      const html = seasonPage(cursor, "standings");
+      expect(count(html, "<h1"), cursor.kind).toBe(1);
+      expect(textOf(html.slice(html.indexOf("<h1"), html.indexOf("</h1>")))).toBe(`${YEAR} season`);
+    }
+  });
+
+  it("dims a round not reached through its colour, never its opacity", () => {
+    const html = seasonPage({ kind: "race", round: MID }, "calendar");
+    expect(html).not.toContain("opacity-");
+    // Its name and its circuit, on each round still ahead.
+    expect(count(html, "text-subtle")).toBeGreaterThanOrEqual(2 * (ROUNDS - MID - 1));
   });
 
   it("crowns the champions once the summary is reached", () => {
     const html = seasonPage({ kind: "summary" }, "standings");
     expect(html).toContain("Drivers’ champion");
-    expect(html).toContain("Final classification.");
+    expect(html).toContain("Final classification");
   });
 
   it("links every tab but the one on screen, the standings at the season's own address", async () => {

@@ -17,10 +17,11 @@ import type { SeasonTab, SeasonTabLink } from "../lib/season-tabs.js";
 import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seasons.js";
 import type { RoundPages } from "../lib/session-nav.js";
 import { useSortOrder } from "../lib/sort-preference.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { useEntryName, useTeamCountry } from "./EntryNames.js";
 import { Flag } from "./Flag.js";
 import { EditedGridBanner } from "./LineupChanges.js";
+import { PageHeading } from "./PageHeading.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
@@ -29,7 +30,7 @@ import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TabLinks } from "./TabLinks.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamCar } from "./TeamCar.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardHeader, CardTitle } from "./ui/card.js";
 
 function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
@@ -37,7 +38,7 @@ function plural(count: number, noun: string): string {
 
 /** How far the season has got, in words, for a season not finished. */
 export function seasonProgress(raced: number, rounds: number): string {
-  return raced === 0 ? "No round raced yet." : `After round ${raced} of ${rounds}.`;
+  return raced === 0 ? "No round raced yet" : `After round ${raced} of ${rounds}`;
 }
 
 function Champion({
@@ -63,22 +64,33 @@ function Champion({
     // screen looks the same wherever you meet them.
     //
     // The two cards stand side by side at the same height, whatever their
-    // words, so the header fills its card: the car then parks in the same
-    // bottom-right corner of both, and the header's bottom rule — drawn to
-    // separate a header from a body this card does not have — is dropped
-    // rather than left floating wherever the shorter card's words end.
+    // words, so the body fills its card: the car then parks in the same
+    // bottom-right corner of both.
     <Card className={cn("flex flex-1 flex-col", STANDOUT_SURFACE)}>
-      <CardHeader className="flex-1 gap-3 border-b-0 lg:flex-row lg:gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className={cn("flex items-center gap-2 text-xl", STANDOUT_TEXT)}>
-            {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
-            {country === undefined || country === "" ? null : (
-              <Flag country={country} title={country} className="h-4 w-6" />
-            )}
-            {name}
+      <CardHeader className="px-3 py-2.5">
+        <p className={MONO_LABEL}>{label}</p>
+      </CardHeader>
+      <div className="flex flex-1 flex-col gap-3 p-4 lg:flex-row lg:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {/*
+            The name wraps within itself, beside the badge and flag: wrapping
+            the row instead sent a long team name to a line of its own, and the
+            two cards' names to different heights. The marks sit in a box one
+            line tall, so they centre on the first line and every name starts
+            at the same height.
+          */}
+          <CardTitle
+            className={cn("flex items-start gap-2.5 text-3xl leading-none", STANDOUT_TEXT)}
+          >
+            <span className="flex h-[1em] shrink-0 items-center gap-2.5">
+              {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
+              {country === undefined || country === "" ? null : (
+                <Flag country={country} title={country} className="h-5 w-7.5" />
+              )}
+            </span>
+            <span className="min-w-0">{name}</span>
           </CardTitle>
-          <CardDescription>{detail}</CardDescription>
+          <p className="text-muted-foreground text-sm">{detail}</p>
         </div>
         {/*
           After the words, so the card still reads label, name, detail, and in
@@ -90,7 +102,7 @@ function Champion({
         {teamId === undefined ? null : (
           <TeamCar teamId={teamId} size="large" animated className="mt-auto self-end" />
         )}
-      </CardHeader>
+      </div>
     </Card>
   );
 }
@@ -234,8 +246,14 @@ export function SeasonOverview({
 
   return (
     <>
+      <header>
+        <PageHeading
+          title={`${year} season`}
+          sub={finished ? `Final classification · ${plural(season.rounds, "round")}` : progress}
+        />
+      </header>
       {/*
-        Above everything, because a championship won on a grid the reader
+        Above the result, because a championship won on a grid the reader
         assembled is a different claim from one won on the grid of 1980, and
         finding that out at the foot of the page is finding it out too late.
       */}
@@ -252,14 +270,7 @@ export function SeasonOverview({
           trendChanges={retrended}
         />
       )}
-      {finished ? (
-        <Champions world={world} />
-      ) : (
-        <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{year} season</h1>
-          <p className="text-muted-foreground text-sm">{progress}</p>
-        </header>
-      )}
+      {finished ? <Champions world={world} /> : null}
       {/* The terms the season is being settled under, between the result and the tables. */}
       <SimulationSettings
         settings={settingsOf(world)}
@@ -311,7 +322,7 @@ export function SeasonOverview({
             calendar={seed.calendar}
             year={year}
             points={points}
-            description={finished ? "Final classification." : progress}
+            label={finished ? "Final" : progress}
             badge
             car
             charts

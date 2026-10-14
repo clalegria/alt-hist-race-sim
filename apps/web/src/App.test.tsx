@@ -291,7 +291,7 @@ describe("the season summary", () => {
   });
 
   it("shows the final standings in full, not the compact sidebar", () => {
-    expect(html).toContain("Final classification.");
+    expect(html).toContain("Final classification");
     expect(html).not.toContain("Championship after");
     // The summary is where the full breakdown belongs.
     expect(html).toContain(">Wins<");

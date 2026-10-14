@@ -34,7 +34,7 @@ import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { RoundLinks, SessionHeader } from "./SessionNav.js";
 import { TitleBanner } from "./TitleBanner.js";
-import { Card, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import type { GridEdit } from "./useGridDraft.js";
 
 /** Where a round is held, for home advantage; empty if the calendar is short. */
@@ -64,9 +64,7 @@ function plural(count: number, noun: string): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
-      <CardHeader className="px-3 py-2.5">
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
+      <CardBand title={title} />
       {children}
     </Card>
   );

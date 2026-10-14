@@ -239,7 +239,7 @@ export const STEPS: readonly Step[] = [
         .getByRole("link", { name: "Calendar", exact: true })
         .click();
       await page.waitForURL(`**/run/${YEAR}?tab=calendar`);
-      await page.getByText(/rounds raced\./).waitFor();
+      await page.getByText(/^\d+ of \d+ raced$/).waitFor();
     },
   },
   {

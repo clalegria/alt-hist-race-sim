@@ -12,7 +12,7 @@ import { RaceByRace } from "./RaceByRace.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card.js";
+import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
   TableBody,
@@ -34,11 +34,23 @@ import {
  * cause, which is where a reader who wants the failures should find them.
  */
 const COLUMNS = [
-  { key: "points", label: "Pts", emphasis: true },
-  { key: "wins", label: "Wins", emphasis: false },
-  { key: "podiums", label: "Pods", emphasis: false },
-  { key: "poles", label: "Poles", emphasis: false },
+  { key: "points", label: "Pts", emphasis: true, wide: false },
+  { key: "wins", label: "Wins", emphasis: false, wide: false },
+  { key: "podiums", label: "Pods", emphasis: false, wide: true },
+  { key: "poles", label: "Poles", emphasis: false, wide: true },
 ] as const;
+
+/**
+ * A `wide` column, which a phone drops: its row is the position, the name, the
+ * points and the wins, so the table never scrolls sideways.
+ */
+const WIDE_ONLY = "hidden sm:table-cell";
+
+/** The numeric cells, a step tighter on a phone, where the room goes to the name. */
+const FIGURE = "px-2 text-right sm:px-3";
+
+/** The position block, a step narrower on a phone, as the classification's is. */
+const POSITION = "w-8 min-w-8 sm:w-10 sm:min-w-10";
 
 /**
  * One championship table, each row opening into its own season.
@@ -64,7 +76,7 @@ const CAR_COLUMN = "hidden w-full sm:table-cell";
 
 export function StandingsTable({
   title,
-  description,
+  label,
   nameColumn,
   standings,
   season,
@@ -75,7 +87,8 @@ export function StandingsTable({
   car = false,
 }: {
   title: string;
-  description: string;
+  /** The head band's short label: "Final", or how far the season has got. */
+  label: string;
   nameColumn: string;
   standings: readonly Standing[];
   /**
@@ -103,21 +116,15 @@ export function StandingsTable({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>
-          {description} The arrow opens a {nameColumn.toLowerCase()}’s season race by race, the name
-          their career.
-        </CardDescription>
-      </CardHeader>
+      <CardBand title={title} label={label} />
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10 px-0 text-center">Pos</TableHead>
+            <TableHead className={cn(POSITION, "px-0 text-center")}>Pos</TableHead>
             <TableHead>{nameColumn}</TableHead>
             {car ? <TableHead className={CAR_COLUMN} /> : null}
             {COLUMNS.map((column) => (
-              <TableHead key={column.key} className="text-right">
+              <TableHead key={column.key} className={cn(FIGURE, column.wide && WIDE_ONLY)}>
                 {column.label}
               </TableHead>
             ))}
@@ -131,8 +138,12 @@ export function StandingsTable({
             return (
               <Fragment key={key}>
                 <TableRow className={cn(isOpen && "bg-muted/60")}>
-                  <TablePosition>{index + 1}</TablePosition>
-                  <TableCell>
+                  <TablePosition className={POSITION}>{index + 1}</TablePosition>
+                  {/*
+                    The name wraps on a phone, where a long team name would
+                    otherwise push the figures past the card's edge.
+                  */}
+                  <TableCell className="whitespace-normal sm:whitespace-nowrap">
                     {/*
                       Two controls, as on a record card's lineage row: the
                       chevron opens the season race by race, the name opens the
@@ -174,7 +185,9 @@ export function StandingsTable({
                     <TableCell
                       key={column.key}
                       className={cn(
-                        "text-right tabular-nums",
+                        FIGURE,
+                        "tabular-nums",
+                        column.wide && WIDE_ONLY,
                         column.emphasis ? "font-semibold" : "text-muted-foreground",
                         standing[column.key] === 0 && "text-subtle font-normal",
                       )}
