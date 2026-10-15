@@ -113,9 +113,9 @@ export type RunResolution =
   | {
       readonly kind: "review";
       readonly place: Place;
-      /** The crowned years. */
+      /** The decided years: the crowned ones, and the cursor's own from its summary. */
       readonly run: EraRun;
-      /** The cursor's year as far as it has got; null while the cursor is on its review. */
+      /** The cursor's year as far as it has got; null from its summary on. */
       readonly inProgress: RevealedWorld | null;
     }
   | { readonly kind: "unreached"; readonly place: Place }
@@ -175,14 +175,21 @@ export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunR
     if (shown.crowned === null) {
       return { kind: "redirect", to: linkTo({ year: run.world.year, beat: { kind: "summary" } }) };
     }
+    // A year is decided from its summary, where its champions are named, not
+    // only from its review: the roll of honour must not call it in progress.
+    const over = run.cursor.kind === "summary" || run.cursor.kind === "review";
+    const decided =
+      run.cursor.kind === "summary"
+        ? { ...shown.crowned, seasons: [...shown.crowned.seasons, run.world] }
+        : shown.crowned;
     return {
       kind: "review",
       place: {
         year: shown.crowned.seasons.at(-1)?.year ?? run.world.year,
         beat: { kind: "review" },
       },
-      run: shown.crowned,
-      inProgress: run.cursor.kind === "review" ? null : (shown.years.at(-1) ?? null),
+      run: decided,
+      inProgress: over ? null : (shown.years.at(-1) ?? null),
     };
   }
 

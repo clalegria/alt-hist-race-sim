@@ -204,10 +204,12 @@ describe("what a page inside an era shows", () => {
     }
   });
 
-  it("counts the year on the cursor as crowned once the cursor reaches its review", () => {
-    const resolved = resolveRunPage(era({ kind: "review" }), "review", {});
-    expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first, second]);
-    expect(resolved.kind === "review" && resolved.inProgress).toBeNull();
+  it("counts the year on the cursor as decided from its summary, where its champions are named", () => {
+    for (const cursor of [{ kind: "summary" }, { kind: "review" }] as const) {
+      const resolved = resolveRunPage(era(cursor), "review", {});
+      expect(resolved.kind === "review" && resolved.run.seasons).toEqual([first, second]);
+      expect(resolved.kind === "review" && resolved.inProgress).toBeNull();
+    }
   });
 
   it("shows the overview from the era's first grid, before anything is crowned", () => {

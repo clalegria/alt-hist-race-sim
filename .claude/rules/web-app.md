@@ -21,6 +21,9 @@ each subsystem's are in the `web-*` file scoped to its code.
 - **An era is the season flow with an `EraRun` beside it**: the same beats, pages and
   store actions, written once for both. Never fork one per mode; `SeasonPage`'s
   optional `run` is the whole difference.
+- **A year is decided from its summary**, where its champions are named, and the overview
+  shows it crowned from there. The store's `crowned()` waits for the review, where
+  Continue files it; never read it as "decided".
 - **`nextEraWorld` is the seam `era-advanced` replaces** (what is handed to
   `createWorld` for the next year). Keep it the one step Continue and a jump share.
 - **Never write a year down.** Which years exist is `authoredSeasons` (`@alt-hist/data`);

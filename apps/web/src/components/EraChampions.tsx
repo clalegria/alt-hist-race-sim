@@ -206,7 +206,7 @@ export function RollOfHonour({
   seasonLink,
 }: {
   seasons: readonly SeasonChampions[];
-  /** The year the cursor is in, drawn last; null on the review. */
+  /** The year the cursor is in, drawn last; null once it is decided. */
   inProgress?: RevealedWorld | null;
   /** Whether the year last crowned carries the accent; not once the era has ended. */
   accentLatest?: boolean;
@@ -407,8 +407,8 @@ function eraLead(seasons: readonly SeasonChampions[], inProgress: RevealedWorld 
  * than who won each year — crowned years only, so they are left out until
  * there is one.
  *
- * `inProgress` is the cursor's year as far as it has got, null while the
- * cursor is on the review. Props-driven like every other screen here, so it
+ * `inProgress` is the cursor's year as far as it has got, null from its
+ * summary on, where it joins the record. Props-driven like every other screen here, so it
  * renders without a DOM and without a store.
  */
 export function EraChampions({

@@ -25,22 +25,7 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 ---
 
-## 1. What every run trips over
-
-Things a fan meets on an ordinary first run: a dead end, a click that throws the run away, a wrong headline, the phone hiding the result.
-
-- **`roll-of-honour-in-progress`** (OPEN)
-  - At 1985's season summary, the roll of honour still says "1985 in progress, leaders after round 16" (`EraChampions.tsx:~258`) while the summary page has already crowned both champions.
-  - The year only counts as finished at the era's review beat.
-  - Proposed: count a year as decided from its summary beat.
-  - Screenshot step: `career-panel`.
-- **`dnq-grid-slot`** (PROPOSED)
-  - A car that did not qualify still shows a number in the Grid column, but it never started.
-  - Affected: `RaceClassification.tsx:~149` and `RaceByRace.tsx:~100`.
-  - Fix: show "—".
-  - Screenshot step: `race`.
-
-## 2. Small bugs
+## 1. Small bugs
 
 Each is a small, sure commit.
 
@@ -83,7 +68,7 @@ Each is a small, sure commit.
   - `SeasonHistory.tsx:~203` says nothing in the panel wears a badge or a flag, but the heading draws a flag (`~227`).
   - Fix: correct the comment.
 
-## 3. Finding your way
+## 2. Finding your way
 
 Page structure, navigation, and the phone screens after the two in tier 1.
 
@@ -132,7 +117,7 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Builds on `chart-labels-collide`.
   - Screenshot step: `season-summary --phone`.
 
-## 4. One way to draw each thing
+## 3. One way to draw each thing
 
 Visual consistency. The first three settle how a name is drawn, which later items lean on.
 
@@ -215,7 +200,7 @@ Tightening the timing tower look, against `docs/style/timing-tower.md` and its m
   - Fix: mono labels for the rating names, as a table's column heads are.
   - Screenshot step: `grid-editor-team`.
 
-## 5. Words
+## 4. Words
 
 Mostly OPEN: the author picks the wording.
 
@@ -273,7 +258,7 @@ Mostly OPEN: the author picks the wording.
     | Spelling | "Randomize grid" (`LineupChanges.tsx:~43`) in a British-spelling app |
     | Capitals | "Drivers' Championship" / "Drivers' champion" / "drivers' title" |
 
-## 6. Code health
+## 5. Code health
 
 No visible change.
 
