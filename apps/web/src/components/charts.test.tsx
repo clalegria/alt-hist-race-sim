@@ -24,7 +24,7 @@ import { Liveries } from "./Liveries.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
-import { dashGradient, endLabelNudges, legendColumns, plotSeries } from "./StandingsEvolution.js";
+import { dashGradient, legendColumns, plotSeries } from "./StandingsEvolution.js";
 
 const world = seededWorld();
 const summary = renderToStaticMarkup(
@@ -90,29 +90,6 @@ describe("plotSeries", () => {
       () => undefined,
     );
     expect(line?.colour).toBeTruthy();
-  });
-});
-
-describe("endLabelNudges", () => {
-  it("leaves a line alone when nothing finished level with it", () => {
-    expect(endLabelNudges([30, 24, 11])).toEqual([0, 0, 0]);
-  });
-
-  it("stacks the numbers of lines that end on the same total", () => {
-    // A tie is the season most worth looking at, and two numbers printed in one
-    // place is a smudge rather than a result.
-    const [first, second, third] = endLabelNudges([24, 24, 24]);
-    expect(first).toBe(0);
-    expect(second).toBeGreaterThan(0);
-    expect(third).toBeGreaterThan(second ?? 0);
-  });
-
-  it("counts each total's stack separately", () => {
-    // Two ties at different heights are two stacks, not one of four.
-    const [first, second, third, fourth] = endLabelNudges([24, 18, 24, 18]);
-    expect([first, second]).toEqual([0, 0]);
-    expect(third).toBeGreaterThan(0);
-    expect(fourth).toBe(third);
   });
 });
 

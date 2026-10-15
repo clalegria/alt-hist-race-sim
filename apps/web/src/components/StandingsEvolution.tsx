@@ -3,14 +3,17 @@ import type { PointsScale, SeasonResult } from "@alt-hist/engine";
 import { useMemo } from "react";
 import {
   CartesianGrid,
-  LabelList,
   Line,
   LineChart,
   ResponsiveContainer,
   Tooltip,
+  usePlotArea,
+  useXAxisScale,
+  useYAxisScale,
   XAxis,
   YAxis,
 } from "recharts";
+import { niceTicks, spreadLabels } from "../lib/chart-layout.js";
 import {
   driversEvolution,
   type EvolutionSeries,
@@ -238,29 +241,17 @@ function EvolutionTooltip({
 const END_LABEL_ROOM = 22;
 
 /**
- * How far apart two numbers have to sit to be read as two numbers.
- *
- * Lines that end level — two drivers tied on points, which is exactly the
- * season worth looking at — would otherwise stack their labels in one place.
+ * How far apart two end-of-line numbers have to sit to be read as two numbers: a
+ * label's height. Lines that finish level, or a point apart, would otherwise print
+ * one on top of the other.
  */
 const END_LABEL_STEP = 11;
 
 /**
- * How far each line's end label is pushed down, so that tied lines do not print
- * their numbers on top of one another.
- *
- * Only the chart can work this out: a label knows where its own line ends and
- * nothing about the others. Ordered by championship position within a tie, so
- * the numbers still read downward.
+ * How many gaps the y axis aims for, at most. Five over a plot this tall puts a
+ * rule about every sixty pixels; `niceTicks` then rounds the step up.
  */
-export function endLabelNudges(finals: readonly number[]): number[] {
-  const stacked = new Map<number, number>();
-  return finals.map((points) => {
-    const above = stacked.get(points) ?? 0;
-    stacked.set(points, above + 1);
-    return above * END_LABEL_STEP;
-  });
-}
+const Y_TICK_INTERVALS = 5;
 
 /**
  * How many names a legend puts across a row on a full-width window.
@@ -276,44 +267,52 @@ export function legendColumns(count: number): number {
 }
 
 /**
- * A line's number from the legend, drawn once at the end of that line.
+ * Every line's number from the legend, drawn once each, at the end of its line.
  *
- * Recharts calls a `LabelList` content function for **every** point, so this
- * returns null for all but the last one — a number on every data point is the
- * chaos the legend exists to avoid. It wears the muted text token rather than
- * the series colour: text stays ink, and the mark beside it carries identity.
+ * One component for all the lines rather than a `LabelList` per line, because
+ * only the whole set can be kept apart: a label knows where its own line ends and
+ * nothing about the others. So this reads the chart's own scales (it must sit
+ * inside the chart), asks `spreadLabels` where the numbers go, and draws them.
+ * It wears the muted text token rather than the series colour: text stays ink, and
+ * the mark beside it carries identity.
  */
-function EndLabel({
-  x,
-  y,
-  index,
-  position,
-  rounds,
-  nudge,
+function EndLabels({
+  finals,
+  round,
 }: {
-  x?: string | number | undefined;
-  y?: string | number | undefined;
-  index?: number | undefined;
-  /** Where this line finished the championship — what the legend numbers it. */
-  position: number;
-  /** How many rounds the chart has, so the last point can be recognised. */
-  rounds: number;
-  /** Pushed down by this much, to clear a line that finished level with it. */
-  nudge: number;
+  /** Each line in position order, with the total it ends on. */
+  finals: readonly { key: string; points: number }[];
+  /** The last round, where the lines end. */
+  round: number;
 }) {
-  if (index !== rounds - 1 || typeof x !== "number" || typeof y !== "number") {
+  const area = usePlotArea();
+  const xScale = useXAxisScale();
+  const yScale = useYAxisScale();
+  const x = xScale?.(round, { position: "middle" });
+  const wanted = finals.map(({ points }) => yScale?.(points) ?? Number.NaN);
+  if (area === undefined || x === undefined || wanted.some(Number.isNaN)) {
     return null;
   }
+  const placed = spreadLabels(wanted, {
+    top: area.y,
+    bottom: area.y + area.height,
+    gap: END_LABEL_STEP,
+  });
   return (
-    <text
-      x={x + 6}
-      y={y + nudge}
-      dominantBaseline="middle"
-      fontSize={11}
-      className="fill-muted-foreground font-mono"
-    >
-      {position}
-    </text>
+    <g>
+      {placed.map((y, index) => (
+        <text
+          key={finals[index]?.key}
+          x={x + 6}
+          y={y}
+          dominantBaseline="middle"
+          fontSize={11}
+          className="fill-muted-foreground font-mono"
+        >
+          {index + 1}
+        </text>
+      ))}
+    </g>
   );
 }
 
@@ -337,9 +336,13 @@ function EvolutionChart({
   calendar: readonly CalendarRace[];
 }) {
   const rows = useMemo(() => evolutionRows(lines.map((line) => line.series)), [lines]);
-  // Tied lines end in the same place; their numbers must not.
-  const nudges = useMemo(
-    () => endLabelNudges(lines.map((line) => line.series.points.at(-1) ?? 0)),
+  const finals = useMemo(
+    () => lines.map((line) => ({ key: line.series.key, points: line.series.points.at(-1) ?? 0 })),
+    [lines],
+  );
+  // The axis tops out on a round number above the highest total any line reaches.
+  const ticks = useMemo(
+    () => niceTicks(Math.max(0, ...lines.flatMap((line) => line.series.points)), Y_TICK_INTERVALS),
     [lines],
   );
   const colours = Object.fromEntries(
@@ -375,6 +378,8 @@ function EvolutionChart({
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
+              domain={[0, ticks.at(-1) ?? 1]}
+              ticks={ticks}
               width={32}
             />
             <Tooltip
@@ -401,23 +406,12 @@ function EvolutionChart({
                 dot={false}
                 activeDot={{ r: 3 }}
                 isAnimationActive={false}
-              >
-                {/* The number the legend gives this line, at the end of it. Six
-                    lines in four shades of one red is what 1950 actually looks
-                    like, and colour alone cannot carry six identities. */}
-                <LabelList
-                  dataKey={line.series.key}
-                  content={(props) => (
-                    <EndLabel
-                      {...props}
-                      position={index + 1}
-                      rounds={rows.length}
-                      nudge={nudges[index] ?? 0}
-                    />
-                  )}
-                />
-              </Line>
+              />
             ))}
+            {/* The number the legend gives each line, at the end of it. Six lines
+                in four shades of one red is what 1950 actually looks like, and
+                colour alone cannot carry six identities. */}
+            <EndLabels finals={finals} round={rows.at(-1)?.round ?? 0} />
           </LineChart>
         </ResponsiveContainer>
         {/*

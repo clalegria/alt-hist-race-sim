@@ -29,13 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Each is a small, sure commit.
 
-- **`chart-labels-collide`** (PROPOSED; a bug at every width, and the start of `chart-phone`)
-  - In `StandingsEvolution.tsx`:
-    - End-of-line labels move apart only for exactly equal totals (`~256-263`), so lines a point apart overlap, as 1985 drivers 3 and 4 do in the screenshot.
-    - Labels move only downward with `margin.bottom` 0, so one can be clipped.
-    - Axis ticks can land on odd steps (0/45/90/135).
-  - Fix: separate labels by a line height in both directions, and round the tick steps.
-  - Screenshot step: `era-summary`.
 - **`fitted-name-menu-flip`** (OPEN; investigate first)
   - With the round ▾ menu open, the race page's championship sidebar flips from "Nelson Piquet" to "N. Piquet". Without the menu it does not.
   - Likely cause: the Radix scroll lock changes the width `FittedName` measures.
@@ -96,7 +89,6 @@ Page structure, navigation, and the phone screens after the two in tier 1.
 - **`chart-phone`** (OPEN; *Phone layout* calls it unsolved)
   - On a phone the legend wraps each name over two lines, and the round labels crowd the axis.
   - What the chart should become at 390px is still open: fewer series, a one-column legend, or a different chart.
-  - Builds on `chart-labels-collide`.
   - Screenshot step: `season-summary --phone`.
 
 ## 3. One way to draw each thing
