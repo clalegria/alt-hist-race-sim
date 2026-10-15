@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
+import { teamName } from "../lib/names.js";
 import {
   type CareerRecord,
   careerRecords,
@@ -191,7 +192,7 @@ export function RecordRow({
               <DisclosureButton
                 open={open}
                 onToggle={onToggle}
-                label={`Names ${label?.name ?? record.id} scored under`}
+                label={`Names ${label?.name ?? teamName(record.id, year)} scored under`}
               />
             ) : null}
             <Career kind={kind} id={record.id} className="min-w-0 flex-1">

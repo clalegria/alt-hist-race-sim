@@ -376,6 +376,11 @@ describe("a team that raced under more than one name", () => {
     expect(shut).toContain(">100<");
   });
 
+  it("labels the chevron with the team's name, never its id", () => {
+    // Drawn with no `label`, as a row handed no lineage naming is.
+    expect(shut).toContain(`aria-label="Names ${teamName("tyrrell", 2026)} scored under"`);
+  });
+
   it("says on the shut row that the total is more than one name", () => {
     // The chevron alone does not say what is behind it, and an aggregate that
     // did not announce itself would quietly claim a Tyrrell decade for a name

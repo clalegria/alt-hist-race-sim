@@ -29,10 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Each is a small, sure commit.
 
-- **`record-card-raw-id`** (PROPOSED)
-  - A record card's chevron label falls back to `record.id`, such as "toleman" (`CareerStatistics.tsx:~193`).
-  - Fix: use the driver's or team's name.
-  - Screenshot step: `era-champions`.
 - **`development-minus-sign`** (PROPOSED)
   - In-season development prints "-3" with a hyphen-minus (`SeasonGrid.tsx:~265`), while the stepper's delta uses `signed()` (`LineupChanges.tsx:~182`), a real "−".
   - Fix: use `signed()` in both.
