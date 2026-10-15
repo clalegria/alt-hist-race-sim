@@ -40,8 +40,11 @@ export const RUN_CONFIRM_COPY = {
     confirm: "Restart season",
   },
   clearEdits: {
-    title: "Clear all grid edits?",
-    description: "All your changes are undone and the grid goes back to the real one.",
+    // Not "the real one": a reseat or the run's own cars are where the season
+    // started, and clearing keeps them.
+    title: "Clear your grid edits?",
+    description:
+      "Every change you made is undone, and the grid goes back to how the season started.",
     confirm: "Clear edits",
   },
   restartEra: {

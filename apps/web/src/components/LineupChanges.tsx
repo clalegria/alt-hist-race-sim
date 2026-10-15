@@ -65,11 +65,11 @@ export function arrangementNote(arrangement: GridArrangement, mode: RatingMode):
 /**
  * The rule a grid was arranged by, said on the grid it arranged.
  *
- * Its own line rather than a row of `GridChanges`, because it is not a change to
- * a team: it is the answer to "why does this grid look like that", and the seat
- * swaps underneath it are the working. It also has to be able to stand alone —
- * a shuffle can land on the grid the season was entered with, and the reader who
- * pressed the button is still owed a word about what happened.
+ * Its own notice, like `KeptNote`, never a part of the edited-grid one: a reseat
+ * is a setting, the year's starting grid, and clearing the edits leaves it alone,
+ * so filing it under the edits offered a clear that did nothing. It has to stand
+ * alone too — a shuffle can land on the grid the season was entered with, and
+ * the reader who chose the rule is still owed a word about what happened.
  */
 export function ArrangementNote({
   arrangement,
@@ -80,12 +80,14 @@ export function ArrangementNote({
   ratingMode: RatingMode;
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2">
-      <span className="text-xs font-medium">{ARRANGEMENT_LABELS[arrangement.kind]}</span>
-      <span className="text-muted-foreground text-xs">
-        {arrangementNote(arrangement, ratingMode)}
-      </span>
-    </div>
+    <Notice title="Grid arranged automatically">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <span className="text-xs font-medium">{ARRANGEMENT_LABELS[arrangement.kind]}</span>
+        <span className="text-muted-foreground text-xs">
+          {arrangementNote(arrangement, ratingMode)}
+        </span>
+      </div>
+    </Notice>
   );
 }
 

@@ -29,11 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Each is a small, sure commit.
 
-- **`randomized-grid-clear-edits`** (OPEN; found by the author)
-  - With *Who drives where* set to "Randomize grid", the grid shows "This grid was edited" (`SeasonGrid.tsx:~940`). Arguably wrong: it is a setting, not an edit.
-  - Worse, Clear all edits then does nothing. Likely cause: it nulls only lineup, cars, ratings and trends (`GridStage.tsx:~226`), never the arrangement, which comes from the settings.
-  - The author settles first: does an arrangement count as an edit, and if so, does clearing reset the setting?
-  - Screenshot step: `era-grid`.
 - **`qualifying-gap-overflow`** (PROPOSED)
   - A qualifying gap over a minute ("+1:17.230s", 10 characters) overflows its `w-[9ch]` box (`QualifyingResults.tsx:~83`).
   - `formatSeconds` (`lib/format.ts:~18`) also writes "s" after an m:ss time.
@@ -251,7 +246,7 @@ Mostly OPEN: the author picks the wording.
     | Drivers without a seat | Without a drive / unemployed / without a seat (`ReserveList.tsx:~199`, `LineupChanges.tsx:~66`) |
     | Age | (34y) / 34 years old. The grid and its popover show the rated age (the peak age in peak mode, unlabelled); the driver page shows the calendar age. |
     | Settings | Run settings / Settings / Default settings / Simulation settings |
-    | Clearing edits | "Clear all edits" / "Clear all grid edits?" / "Clear edits" |
+    | Clearing edits | "Clear all edits" or "Clear manual edits" / "Clear your grid edits?" / "Clear edits" / "Clear your edits to change them" |
     | Restarts | "Restart this season?" / "Restart the era?" |
     | Start buttons | "Start an era in 1984" (screen-reader label) / "Begin an era from 1984" (`SeasonPicker.tsx:~157`) |
     | Skip | "Simulate full season" / "Simulate rest of the season" (`run-bar.ts:~64`) |

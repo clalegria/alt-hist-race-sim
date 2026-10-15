@@ -34,6 +34,7 @@ import {
   engineSummary,
   GridChanges,
   KeptNote,
+  keptSentences,
   signed,
 } from "./LineupChanges.js";
 import { useLiveryYear } from "./Liveries.js";
@@ -830,10 +831,9 @@ export function SeasonGrid({
   /**
    * The rule the run's settings reseat the grid by, or null for none.
    *
-   * Drawn in the same dashed notice the swaps are, above them, because it is the
-   * reason the swaps look like that. It renders on its own too: a rule can land
-   * on the grid the season was entered with — a shuffle that happens to — and
-   * the reader is still owed the word that it is in force.
+   * Its own notice, above the edited-grid one (`ArrangementNote`): it is a
+   * setting, not an edit, and clearing the edits keeps it. Beside it, the edits'
+   * link reads Clear manual edits, so it never promises to undo the rule.
    */
   arrangement?: GridArrangement | null;
   /**
@@ -882,6 +882,11 @@ export function SeasonGrid({
     (engineRatingChanges ?? []).map((change) => [change.engineId, change]),
   );
   const retrended = new Map((trendChanges ?? []).map((change) => [change.teamId, change]));
+  const nameOf = (teamId: string) => teamName(teamId, nameYear(teamId, seasonYear));
+  // Whether a setting's own note is on screen above the edits: a reseat, or a
+  // kept grid that changed something (`KeptNote` draws nothing otherwise).
+  const automatic =
+    arrangement !== null || (kept !== null && keptSentences(kept, seasonYear, nameOf).length > 0);
 
   return (
     // A `Card`, like every results panel, rather than the bare section this was:
@@ -921,33 +926,28 @@ export function SeasonGrid({
             </p>
           </Notice>
         )}
-        {kept === null ? null : (
-          <KeptNote
-            notes={kept}
-            seasonYear={seasonYear}
-            nameOf={(teamId) => teamName(teamId, nameYear(teamId, seasonYear))}
-          />
+        {kept === null ? null : <KeptNote notes={kept} seasonYear={seasonYear} nameOf={nameOf} />}
+        {arrangement === null ? null : (
+          <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
         )}
         {edited.length === 0 &&
         resupplied.length === 0 &&
         rerated.size === 0 &&
         reratedEngines.size === 0 &&
-        retrended.size === 0 &&
-        arrangement === null ? null : (
+        retrended.size === 0 ? null : (
           <Notice
             className="gap-2"
             title={edit === undefined ? "This grid was edited" : "Changes so far"}
             action={
               edit === undefined && onClearEdits !== undefined ? (
                 <Button variant="link" size="inline" className="-my-0.5" onClick={onClearEdits}>
-                  Clear all edits
+                  {/* Beside a grid the settings also arranged, "all" would
+                      promise to undo that too, which clearing never does. */}
+                  {automatic ? "Clear manual edits" : "Clear all edits"}
                 </Button>
               ) : undefined
             }
           >
-            {arrangement === null ? null : (
-              <ArrangementNote arrangement={arrangement} ratingMode={ratingMode} />
-            )}
             <GridChanges
               changes={edited}
               engineChanges={resupplied}

@@ -25,7 +25,7 @@ describe("when a run's settings can still be changed", () => {
 
   it("cannot once that grid is edited, and says how to get back", () => {
     const lock = settingsLock({ kind: "season", world: edited, cursor: grid });
-    expect(lock).toContain("Clear all edits");
+    expect(lock).toContain("Clear your edits");
   });
 
   it("cannot past the grid, or in a later year of an era", () => {
@@ -38,7 +38,7 @@ describe("when a run's settings can still be changed", () => {
     for (const run of runs) {
       const lock = settingsLock(run);
       expect(lock).not.toBeNull();
-      expect(lock).not.toContain("Clear all edits");
+      expect(lock).not.toContain("Clear your edits");
     }
   });
 });

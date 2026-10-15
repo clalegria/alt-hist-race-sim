@@ -19,7 +19,7 @@ export function settingsLock(run: Run): string | null {
   const firstGrid =
     run.cursor.kind === "grid" && (run.kind === "season" || run.run.seasons.length === 0);
   return firstGrid
-    ? "Fixed while the grid is edited. Clear all edits to change them."
+    ? "Fixed while the grid is edited. Clear your edits to change them."
     : `Fixed once the ${run.kind} is under way.`;
 }
 

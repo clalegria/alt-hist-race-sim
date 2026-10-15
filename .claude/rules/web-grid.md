@@ -51,7 +51,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **An engine step is per engine** (`stepEngine`, `World.engineRatings`): it moves every
   team running it, so the notice lists it once per engine, never per team.
 - **Clear all edits sets every edit part to null**; the run's rolled cars, kept seats and
-  reseat stay, being the baseline.
+  reseat stay, being the baseline. So it is offered only with a hand edit, and reads
+  *Clear manual edits* while a setting's note (`ArrangementNote`, `KeptNote`) is shown.
 - **An edited grid is marked by the muted dashed frame and `SWAPPED_IN`, never the
   `lib/highlight.ts` accent**: it is a caveat, not a win. Every kind of change shares one
   notice, one row per team (`GridChanges`).

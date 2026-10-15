@@ -186,7 +186,7 @@ export const STEPS: readonly Step[] = [
     name: "grid-settings-locked",
     reach: async (page) => {
       const dialog = await openSettings(page);
-      await dialog.getByText("Clear all edits to change them").waitFor();
+      await dialog.getByText("Clear your edits to change them").waitFor();
       // Locked, the tabs still turn: Cars, with the Fewer set on the grid marked.
       await settingsTab(dialog, "Cars");
     },
@@ -196,7 +196,7 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
       await button(page, "Clear all edits").click();
-      await page.getByRole("alertdialog", { name: "Clear all grid edits?" }).waitFor();
+      await page.getByRole("alertdialog", { name: "Clear your grid edits?" }).waitFor();
     },
   },
   {
@@ -296,6 +296,10 @@ export const STEPS: readonly Step[] = [
       const dialog = await openSettings(page);
       await dialog.getByRole("combobox", { name: "Points system" }).selectOption({ index: 1 });
       await settingsTab(dialog, "Drivers");
+      // A reseat, so the era's grids carry its own notice above any edits.
+      await dialog
+        .getByRole("combobox", { name: "Who drives where" })
+        .selectOption({ label: "Randomize grid" });
       await dialog
         .getByRole("group", { name: "Driver career events" })
         .getByRole("button", { name: "No", exact: true })

@@ -18,6 +18,7 @@ import {
   DEFAULT_DRIVER_FILTERS,
   type DriverFilters,
   type GridArrangement,
+  lineupChanges,
   type RatingMode,
   reserveDrivers,
   swapDrivers,
@@ -131,6 +132,7 @@ describe("what the grid says about a rule in force", () => {
     );
     expect(unchangedWorld.lineup).toBeNull();
     expect(landed).toContain(RANKED_LABEL);
+    expect(landed).not.toContain("This grid was edited");
   });
 
   it("draws the note on its own, with no change list beside it", () => {
@@ -178,6 +180,42 @@ describe("the grid card on its own", () => {
       />,
     );
     expect(html).toContain(RANKED_LABEL);
+  });
+
+  it("is not an edit: no edited-grid notice and nothing to clear", () => {
+    // A reseat is the year's starting grid, which clearing keeps, so a Clear
+    // link here would do nothing when pressed.
+    const html = renderToStaticMarkup(
+      <SeasonGrid
+        field={plainWorld.field}
+        seasonYear={YEAR}
+        ratingMode={MODE}
+        arrangement={RANKED}
+        onClearEdits={() => {}}
+      />,
+    );
+    expect(html).toContain("Grid arranged automatically");
+    expect(html).not.toContain("This grid was edited");
+    expect(html).not.toContain("Clear");
+  });
+
+  it("calls a hand edit's clear manual beside it, since the rule stays", () => {
+    const changes = lineupChanges(SEED, swapDrivers(authored, SEATED, RESERVE));
+    const grid = (arrangement: GridArrangement | null) =>
+      renderToStaticMarkup(
+        <SeasonGrid
+          field={plainWorld.field}
+          seasonYear={YEAR}
+          ratingMode={MODE}
+          changes={changes}
+          arrangement={arrangement}
+          onClearEdits={() => {}}
+        />,
+      );
+    expect(grid(RANKED)).toContain("This grid was edited");
+    expect(grid(RANKED)).toContain("Clear manual edits");
+    expect(grid(RANKED)).not.toContain("Clear all edits");
+    expect(grid(null)).toContain("Clear all edits");
   });
 
   it("draws no notice without one", () => {
