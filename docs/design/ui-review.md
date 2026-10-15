@@ -29,11 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Each is a small, sure commit.
 
-- **`qualifying-gap-overflow`** (PROPOSED)
-  - A qualifying gap over a minute ("+1:17.230s", 10 characters) overflows its `w-[9ch]` box (`QualifyingResults.tsx:~83`).
-  - `formatSeconds` (`lib/format.ts:~18`) also writes "s" after an m:ss time.
-  - Fix: write "+1:17.230" past a minute, and size the box to fit it.
-  - Screenshot step: `qualifying` (needs a year with big gaps).
 - **`record-card-raw-id`** (PROPOSED)
   - A record card's chevron label falls back to `record.id`, such as "toleman" (`CareerStatistics.tsx:~193`).
   - Fix: use the driver's or team's name.

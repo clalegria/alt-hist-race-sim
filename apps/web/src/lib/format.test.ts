@@ -8,14 +8,19 @@ describe("formatSeconds", () => {
   });
 
   it("breaks out minutes past sixty seconds", () => {
-    expect(formatSeconds(77.23)).toBe("+1:17.230s");
-    expect(formatSeconds(60)).toBe("+1:00.000s");
-    expect(formatSeconds(125.5)).toBe("+2:05.500s");
+    expect(formatSeconds(77.23)).toBe("+1:17.230");
+    expect(formatSeconds(60)).toBe("+1:00.000");
+    expect(formatSeconds(125.5)).toBe("+2:05.500");
+  });
+
+  it("writes no trailing s on an m:ss time", () => {
+    expect(formatSeconds(77.23).endsWith("s")).toBe(false);
+    expect(formatSeconds(5.234).endsWith("s")).toBe(true);
   });
 
   it("rounds to milliseconds before splitting, not after", () => {
     // Formatting first and splitting after would render this as "+60.000s".
-    expect(formatSeconds(59.9999)).toBe("+1:00.000s");
+    expect(formatSeconds(59.9999)).toBe("+1:00.000");
   });
 });
 

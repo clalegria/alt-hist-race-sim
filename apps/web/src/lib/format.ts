@@ -5,9 +5,9 @@
 
 import type { RaceGap } from "@alt-hist/engine";
 
-/** "+5.234s", or "+1:17.230s" once a gap runs past the minute. */
+/** "+5.234s", or "+1:17.230" once a gap runs past the minute (an m:ss time takes no "s"). */
 export function formatSeconds(seconds: number): string {
-  // Round to milliseconds before splitting, so 59.9999s reads as +1:00.000s
+  // Round to milliseconds before splitting, so 59.9999s reads as +1:00.000
   // rather than +60.000s.
   const totalMs = Math.round(seconds * 1000);
   const minutes = Math.floor(totalMs / 60000);
@@ -15,7 +15,7 @@ export function formatSeconds(seconds: number): string {
   if (minutes === 0) {
     return `+${rest.toFixed(3)}s`;
   }
-  return `+${minutes}:${rest.toFixed(3).padStart(6, "0")}s`;
+  return `+${minutes}:${rest.toFixed(3).padStart(6, "0")}`;
 }
 
 /** A race gap: seconds as above, or "+2 laps" once a car is lapped. */

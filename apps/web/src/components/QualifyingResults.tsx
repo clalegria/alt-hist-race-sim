@@ -91,11 +91,12 @@ function GridSlot({
         A fixed width, right-aligned, so the car beside it lands in the same
         place in every slot: "pole" is narrower than a time, and at its own
         width it let the pole-sitter's car drift right of everyone else's.
-        Nine characters of the mono face holds "+12.345s" with room to spare.
+        Ten characters of the mono face holds "+12:17.230", a gap of ten minutes
+        or more, so no realistic gap overflows it.
       */}
       <span
         className={cn(
-          "w-[9ch] shrink-0 text-right text-xs tabular-nums",
+          "w-[10ch] shrink-0 text-right text-xs tabular-nums",
           pole ? STANDOUT_TEXT : "text-muted-foreground",
         )}
       >
