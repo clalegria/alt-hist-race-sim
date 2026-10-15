@@ -84,6 +84,16 @@ describe("the development section of the team popover", () => {
     );
     expect(html).toContain(`${MINUS}2`);
   });
+
+  it("writes a falling trend with a real minus, and a flat one as 0", () => {
+    const falling = renderToStaticMarkup(<DevelopmentPanel teamName="Blue" trend={-3} />);
+    expect(falling).toContain(`>${MINUS}3<`);
+    expect(falling).not.toContain(">-3<");
+    const flat = renderToStaticMarkup(
+      <DevelopmentPanel teamName="Blue" trend={0} onStep={() => {}} />,
+    );
+    expect(flat).toContain(">0<");
+  });
 });
 
 describe("what moved on a car's year", () => {

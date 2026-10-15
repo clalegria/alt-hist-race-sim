@@ -29,10 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Each is a small, sure commit.
 
-- **`development-minus-sign`** (PROPOSED)
-  - In-season development prints "-3" with a hyphen-minus (`SeasonGrid.tsx:~265`), while the stepper's delta uses `signed()` (`LineupChanges.tsx:~182`), a real "−".
-  - Fix: use `signed()` in both.
-  - Screenshot step: `era-grid-team`.
 - **`chart-labels-collide`** (PROPOSED; a bug at every width, and the start of `chart-phone`)
   - In `StandingsEvolution.tsx`:
     - End-of-line labels move apart only for exactly equal totals (`~256-263`), so lines a point apart overlap, as 1985 drivers 3 and 4 do in the screenshot.

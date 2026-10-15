@@ -380,7 +380,7 @@ function Development({
         />
       </span>
       <span className="w-7 shrink-0 text-right text-xs font-medium tabular-nums">
-        {trend > 0 ? `+${trend}` : trend}
+        {trend === 0 ? 0 : signed(trend)}
       </span>
       {control}
     </div>
