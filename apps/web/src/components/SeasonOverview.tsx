@@ -326,6 +326,7 @@ export function SeasonOverview({
             badge
             car
             charts
+            finished={finished}
           />
         )}
       </div>

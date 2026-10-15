@@ -29,15 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Things a fan meets on an ordinary first run: a dead end, a click that throws the run away, a wrong headline, the phone hiding the result.
 
-- **`restore-defaults-two-meanings`** (OPEN)
-  - "Restore defaults" in the dialog resets the draft.
-  - The same words on the settings line (`RunSettingsLine.tsx:~53-63`) commit at once, without asking. On a grid that redraws the season on a new seed.
-  - Proposed: rename the line's action, or confirm it like the other run-replacing actions.
-  - Screenshot step: `era-grid`.
-- **`chart-title-midseason`** (PROPOSED)
-  - "How the drivers' title was won" (`StandingsEvolution.tsx:~491,498`) also shows mid-season, because `SeasonOverview.tsx:~317` passes `charts` before the season is finished.
-  - Fix: pass `finished` through, and title the unfinished chart "How the title race stands".
-  - Screenshot step: `season-midseason`.
 - **`roll-of-honour-in-progress`** (OPEN)
   - At 1985's season summary, the roll of honour still says "1985 in progress, leaders after round 16" (`EraChampions.tsx:~258`) while the summary page has already crowned both champions.
   - The year only counts as finished at the era's review beat.

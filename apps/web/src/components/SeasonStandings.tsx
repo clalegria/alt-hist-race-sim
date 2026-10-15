@@ -30,6 +30,7 @@ export function SeasonStandings({
   badge = false,
   car = false,
   charts = false,
+  finished = false,
 }: {
   season: SeasonResult;
   /** Names the rounds inside a row's expansion. From the season's own year. */
@@ -55,6 +56,8 @@ export function SeasonStandings({
    * expansion of a row — does not.
    */
   charts?: boolean;
+  /** The season is over, so the charts can say how the titles were won. */
+  finished?: boolean;
 }) {
   const drivers = useMemo(() => championshipStandings(season, points), [season, points]);
   const constructors = useMemo(() => constructorStandings(season, points), [season, points]);
@@ -83,6 +86,7 @@ export function SeasonStandings({
           season={season}
           points={points}
           calendar={calendar}
+          finished={finished}
         />
       ) : null}
       <StandingsTable
@@ -103,6 +107,7 @@ export function SeasonStandings({
           season={season}
           points={points}
           calendar={calendar}
+          finished={finished}
         />
       ) : null}
     </>

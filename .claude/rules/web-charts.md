@@ -22,4 +22,5 @@ The season summary's standings evolution (`StandingsEvolution.tsx`, `lib/evoluti
 - **Recharts renders nothing without a DOM**: test the data in `lib/evolution.ts` and the
   exported display rules directly. No test sees whether the lines are drawn; if the colour
   mechanism changes, read `getComputedStyle(path).stroke` back in a real browser.
-- **Only the season summary draws them** (`charts` on `SeasonStandings`, default off).
+- **Only the season page draws them** (`charts` on `SeasonStandings`, default off), and
+  heads them "was won" only once the season is `finished`: before that, "race stands".

@@ -21,6 +21,7 @@ import { legible, liveryFor } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
+import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
 import { dashGradient, endLabelNudges, legendColumns, plotSeries } from "./StandingsEvolution.js";
@@ -152,6 +153,22 @@ describe("the season summary", () => {
     expect(at("Constructors’ Championship")).toBeLessThan(
       at("How the constructors’ title was won"),
     );
+  });
+
+  it("says how the titles stand, not how they were won, before the season is over", () => {
+    // Mid-season nobody has won anything yet.
+    const midSeason = renderToStaticMarkup(
+      <Liveries year={YEAR}>
+        <SeasonOverview
+          {...shownAt(world, { kind: "race", round: world.season.races.length - 1 })}
+          finished={false}
+          tab="standings"
+        />
+      </Liveries>,
+    );
+    expect(midSeason).toContain("How the drivers’ title race stands");
+    expect(midSeason).toContain("How the constructors’ title race stands");
+    expect(midSeason).not.toContain("title was won");
   });
 
   it("leaves them off a year opened out of the roll of honour", () => {

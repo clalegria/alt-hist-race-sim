@@ -462,12 +462,15 @@ export function StandingsEvolution({
   season,
   points,
   calendar,
+  finished,
 }: {
   /** Which table this chart belongs under. */
   championship: "drivers" | "constructors";
   season: SeasonResult;
   points: PointsScale;
   calendar: readonly CalendarRace[];
+  /** The season is over. Until then nobody has won, so the heading says how it stands. */
+  finished: boolean;
 }) {
   const nameOf = useEntryName();
   const liveryOf = useLivery();
@@ -485,14 +488,14 @@ export function StandingsEvolution({
 
   return championship === "drivers" ? (
     <EvolutionChart
-      title="How the drivers&rsquo; title was won"
+      title={`How the drivers’ title ${finished ? "was won" : "race stands"}`}
       label="Points after every round"
       lines={plot(drivers, driverName, colourOf)}
       calendar={calendar}
     />
   ) : (
     <EvolutionChart
-      title="How the constructors&rsquo; title was won"
+      title={`How the constructors’ title ${finished ? "was won" : "race stands"}`}
       label="Points after every round"
       lines={plot(teams, nameOf, colourOf)}
       calendar={calendar}
