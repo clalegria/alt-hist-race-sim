@@ -45,8 +45,8 @@ and left.
   cursor's own grid excepted), so a read-only run later is these pages with the bar's
   actions hidden. `SeasonPage` and `RunFrame` take actions as props and never use the
   router to act.
-- **`runBarFor` and `runActionsFor` (`lib/run-bar.ts`) decide** what is offered and
-  where; `RunBar` only draws them. A new action starts there.
+- **`runBarFor`/`runActionsFor` (`lib/run-bar.ts`) decide** what is offered and where,
+  `RunBar` draws. The end is always the way on: Continue, or at the run's end its restart.
 - **A run's progress is `runBarFor`'s `roundsRun` of `rounds`** (a round counts once its
   race is shown), drawn by `RoundSegments` wherever it shows, never counted by a page.
 - **Forward pushes a history entry; a restart replaces it** (the page left belongs to

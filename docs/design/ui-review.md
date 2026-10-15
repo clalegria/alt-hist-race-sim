@@ -29,11 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Things a fan meets on an ordinary first run: a dead end, a click that throws the run away, a wrong headline, the phone hiding the result.
 
-- **`one-year-run-dead-end`** (OPEN)
-  - A one-year run ends on the summary with Continue greyed out (`lib/timeline.ts:~79`). Only Restart and Exit remain, inside ⋯.
-  - Proposed: on the final summary, swap Continue for "Next year: 1985" (the year switcher's action) and "Race another season" (to `/season/new`).
-  - The open question is which of the two is primary.
-  - Screenshot step: `season-summary`.
 - **`restore-defaults-two-meanings`** (OPEN)
   - "Restore defaults" in the dialog resets the draft.
   - The same words on the settings line (`RunSettingsLine.tsx:~53-63`) commit at once, without asking. On a grid that redraws the season on a new seed.
@@ -109,7 +104,7 @@ Page structure, navigation, and the phone screens after the two in tier 1.
   - Screenshot steps: `grid`, `not-reached`.
 - **`title-only-reasons`** (PROPOSED; *Phone layout*)
   - Some reasons live only in a `title` tooltip, which a touch screen never shows:
-    - why Continue is disabled ("Nothing after this", "Apply or cancel the grid edit first");
+    - why Continue is disabled ("Apply or cancel the grid edit first");
     - why Back to setup is locked (`BackToSetup`, `RunSettingsLine.tsx:~69`);
     - "Not available yet" on the nav (`TopNav.tsx:~49`) and the footer (`SiteFooter.tsx:~27`);
     - the movement arrows in the sidebar standings (`CompactStandings.tsx:~36`).

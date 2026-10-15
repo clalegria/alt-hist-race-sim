@@ -24,8 +24,9 @@ import { ResumeRun, RunNotResumed } from "./components/ResumeRun.js";
 import { RunBar } from "./components/RunBar.js";
 import { TopNav } from "./components/TopNav.js";
 import { AREAS, type Area, isAvailable } from "./lib/areas.js";
-import { CONTINUE_BLOCKED, crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
+import { crumbsFor, returnFor, runBarFor } from "./lib/run-bar.js";
 import { linkTo } from "./lib/run-places.js";
+import { PLAYABLE_SEASONS } from "./lib/seasons.js";
 import type { Place } from "./lib/timeline.js";
 import { Route as GridRoute } from "./routes/run/$year/grid.js";
 import { Route as SeasonRoute } from "./routes/run/$year/index.js";
@@ -349,7 +350,7 @@ describe("the run bar", () => {
     expect(html).toMatch(/<button[^>]*aria-label="More run actions"/);
   });
 
-  it("ends on every beat with Continue, ⋯ just before it", async () => {
+  it("ends on every beat with the way on, ⋯ just before it", async () => {
     const rounds = world.season.races.length;
     const beats: Run["cursor"][] = [
       { kind: "grid" },
@@ -362,7 +363,8 @@ describe("the run bar", () => {
     for (const cursor of beats) {
       const html = await bar({ kind: "season", world, cursor });
       const menu = html.lastIndexOf('aria-label="More run actions"');
-      const end = html.lastIndexOf(">Continue");
+      // The way on is Continue, or at a one-year run's end, Restart season.
+      const end = html.lastIndexOf(cursor.kind === "summary" ? ">Restart season" : ">Continue");
       expect(menu, cursor.kind).toBeGreaterThan(-1);
       expect(end, cursor.kind).toBeGreaterThan(menu);
       // Nothing between ⋯ and Continue but Continue's own tag, nothing after.
@@ -418,12 +420,25 @@ describe("the run bar", () => {
     expect(await bar(run, { year: YEAR, beat: { kind: "summary" } })).not.toContain("data-live");
   });
 
-  it("keeps Continue, disabled, at the end of a one-year run, and still the way out", async () => {
+  it("ends a one-year run on Restart season in Continue's place, the primary button", async () => {
     const html = await bar({ kind: "season", world, cursor: { kind: "summary" } });
-    expect(html).toMatch(
-      new RegExp(`<span[^>]*title="${CONTINUE_BLOCKED.end}"><button[^>]*disabled=""[^>]*>Continue`),
-    );
+    expect(html).not.toContain(">Continue");
+    expect(html).not.toContain('disabled=""');
+    expect(html).toMatch(/<button[^>]*class="[^"]*bg-primary[^"]*"[^>]*>Restart season/);
     expect(html).toContain('aria-label="More run actions"');
+  });
+
+  it("ends an era on Restart era in Continue's place", async () => {
+    // The last year the data has, so its review has no year after it.
+    const last = seededWorld(3, "aged", PLAYABLE_SEASONS.at(-1) ?? 0);
+    const html = await bar({
+      kind: "era",
+      run: { startYear: last.year, seasons: [] },
+      world: last,
+      cursor: { kind: "review" },
+    });
+    expect(html).not.toContain(">Continue");
+    expect(html).toMatch(/<button[^>]*class="[^"]*bg-primary[^"]*"[^>]*>Restart era/);
   });
 });
 

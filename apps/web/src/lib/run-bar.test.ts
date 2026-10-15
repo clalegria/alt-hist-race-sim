@@ -20,6 +20,7 @@ import {
   type RunActionKey,
   type RunActionsLayout,
   type RunBarState,
+  type RunSlot,
   returnFor,
   runActionsFor,
   runBarFor,
@@ -226,29 +227,37 @@ describe("where the bar puts each action", () => {
   /** Every run, on the cursor's own page and away from it. */
   const cases = runs.flatMap((run) =>
     [false, true].map((away) => ({
+      run,
       state: runBarFor(run),
       away,
       name: `${run.kind} ${runBarFor(run).cursor}${away ? " away" : ""}`,
     })),
   );
 
-  /** What a wide screen lets the reader press: the bar, Continue if it can be, ⋯. */
+  /** What the slot lets the reader press, if anything. */
+  function inSlot(slot: RunSlot): RunActionKey[] {
+    switch (slot.kind) {
+      case "back":
+        return ["back"];
+      case "restart":
+        return [slot.key];
+      case "continue":
+        return slot.disabled === null ? ["continue"] : [];
+    }
+  }
+
+  /** What a wide screen lets the reader press: the bar, the slot, ⋯. */
   function wide(layout: RunActionsLayout): RunActionKey[] {
     return [
       ...layout.bar,
-      ...(layout.wideSlot.disabled === null ? (["continue"] as const) : []),
+      ...inSlot(layout.wideSlot),
       ...layout.menu.filter((entry) => !entry.phoneOnly).map((entry) => entry.key),
     ];
   }
 
-  /** What a phone lets the reader press: the slot, if it can be, and ⋯. */
+  /** What a phone lets the reader press: the slot and ⋯. */
   function phone(layout: RunActionsLayout): RunActionKey[] {
-    const slot = layout.phoneSlot;
-    return [
-      ...(slot.kind === "back" ? (["back"] as const) : []),
-      ...(slot.kind === "continue" && slot.disabled === null ? (["continue"] as const) : []),
-      ...layout.menu.map((entry) => entry.key),
-    ];
+    return [...inSlot(layout.phoneSlot), ...layout.menu.map((entry) => entry.key)];
   }
 
   /** Everything `runBarFor` offers, plus the way back away from the cursor. */
@@ -264,12 +273,18 @@ describe("where the bar puts each action", () => {
     ];
   }
 
-  it("keeps Continue at a wide screen's end on every beat, disabled only where nothing is next", () => {
-    for (const { state, away, name } of cases) {
+  it("ends a wide screen with Continue, or the run's restart where nothing is next", () => {
+    for (const { run, state, away, name } of cases) {
       const { wideSlot } = runActionsFor(state, { away, editingGrid: false });
-      expect(wideSlot.kind, name).toBe("continue");
-      expect(wideSlot.disabled, name).toBe(state.next === null ? CONTINUE_BLOCKED.end : null);
-      expect(wideSlot.primary, name).toBe(!away);
+      expect(wideSlot, name).toEqual(
+        state.next === null
+          ? {
+              kind: "restart",
+              key: run.kind === "era" ? "restartEra" : "restartSeason",
+              primary: !away,
+            }
+          : { kind: "continue", primary: !away, disabled: null },
+      );
     }
   });
 
@@ -282,13 +297,15 @@ describe("where the bar puts each action", () => {
     }
   });
 
-  it("keeps the restarts and Exit run in ⋯ at every width, never on the bar", () => {
+  it("keeps the restarts and Exit run in ⋯, never on the bar, but the one in the slot", () => {
     for (const { state, away, name } of cases) {
       const layout = runActionsFor(state, { away, editingGrid: false });
+      const slot = layout.wideSlot.kind === "restart" ? layout.wideSlot.key : null;
       for (const key of ["restartSeason", "restartEra", "exit"] as const) {
         expect(layout.bar, name).not.toContain(key);
         for (const entry of layout.menu.filter((each) => each.key === key)) {
-          expect(entry.phoneOnly, `${name} ${key}`).toBe(false);
+          // Only a phone away from the cursor, whose slot is the way back, lists the slot's.
+          expect(entry.phoneOnly, `${name} ${key}`).toBe(key === slot && away);
         }
       }
       // Red marks exactly the entries that throw work away.
@@ -326,7 +343,11 @@ describe("where the bar puts each action", () => {
   it("holds Continue, disabled, while the grid is being edited, and offers nothing else", () => {
     const state = runBarFor(season({ kind: "grid" }));
     const layout = runActionsFor(state, { away: false, editingGrid: true });
-    expect(layout.wideSlot.disabled).toBe(CONTINUE_BLOCKED.editing);
+    expect(layout.wideSlot).toEqual({
+      kind: "continue",
+      primary: true,
+      disabled: CONTINUE_BLOCKED.editing,
+    });
     expect(layout.phoneSlot).toEqual(layout.wideSlot);
     expect(layout.bar).toEqual([]);
     expect(layout.menu).toEqual([]);

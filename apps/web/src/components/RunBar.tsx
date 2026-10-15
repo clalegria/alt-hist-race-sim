@@ -7,6 +7,7 @@ import {
   type ReturnLink,
   type RunBarState,
   type RunCommand,
+  type RunMenuEntry,
   runActionsFor,
 } from "../lib/run-bar.js";
 import { cn } from "../lib/utils.js";
@@ -173,6 +174,38 @@ function ContinueButton({
   );
 }
 
+/**
+ * The run's restart in Continue's slot, at the run's end: the way on once
+ * there is nowhere further to go. It still asks first, like any restart.
+ */
+function RestartButton({
+  primary,
+  action,
+  className,
+}: {
+  primary: boolean;
+  action: Action;
+  className?: string;
+}) {
+  return (
+    <Button
+      onClick={action.onSelect}
+      variant={primary ? "primary" : "outline"}
+      className={cn("shrink-0", className)}
+    >
+      {action.label}
+      <span aria-hidden="true" className="ml-1.5">
+        ↻
+      </span>
+    </Button>
+  );
+}
+
+/** Which of ⋯'s groups an entry is in: on, over again, or out. */
+function menuGroup(entry: RunMenuEntry): "forward" | "over" | "out" {
+  return entry.key === "exit" ? "out" : entry.destructive ? "over" : "forward";
+}
+
 /** The way back to the cursor's page: it navigates, so a link in a button's clothes. */
 function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
   return (
@@ -195,9 +228,9 @@ function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
  * **out** (Exit run). Nothing goes back in time; Back is the browser's, and
  * moves between pages.
  *
- * **Continue is always the right-hand end, with ⋯ just left of it**, so
+ * **The way on is always the right-hand end, with ⋯ just left of it**, so
  * neither moves as the set changes from beat to beat (`runActionsFor` decides
- * where each goes). The other ways forward are buttons to their left on a wide
+ * where each goes): Continue, or at the run's end, its restart. The other ways forward are buttons to their left on a wide
  * screen, and the only part of the bar that wraps; the ones that throw work
  * away, and Exit run, are in ⋯. On a phone there is room for one button beside
  * ⋯, so the other ways forward fold into it too: one list, its phone-only
@@ -256,15 +289,18 @@ export function RunActions(props: RunActionsProps) {
           <DropdownMenuContent align="end">
             {layout.menu.map((entry, index) => {
               const action = actions[entry.key];
-              const firstEverywhere =
-                !entry.phoneOnly && index > 0 && layout.menu[index - 1]?.phoneOnly === true;
-              // Leaving the run sits apart from the restarts, which keep it.
-              const exitAfterRestart =
-                entry.key === "exit" && index > 0 && layout.menu[index - 1]?.destructive === true;
+              const before = layout.menu[index - 1];
+              // A rule between the groups; leaving the run sits apart from the
+              // restarts, which keep it. Phone-only entries come first, so after
+              // one, an entry is ⋯'s first from `md` up and needs no rule there.
+              const rule = before !== undefined && menuGroup(before) !== menuGroup(entry);
               return (
                 <Fragment key={entry.key}>
-                  {firstEverywhere ? <DropdownMenuSeparator className="md:hidden" /> : null}
-                  {exitAfterRestart ? <DropdownMenuSeparator /> : null}
+                  {rule ? (
+                    <DropdownMenuSeparator
+                      {...(before.phoneOnly ? { className: "md:hidden" } : {})}
+                    />
+                  ) : null}
                   <DropdownMenuItem
                     onSelect={action.onSelect}
                     destructive={entry.destructive}
@@ -278,13 +314,22 @@ export function RunActions(props: RunActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      <ContinueButton
-        slot={layout.wideSlot}
-        next={state.next}
-        onContinue={props.onContinue}
-        // Away, a phone's slot is the way back's.
-        {...(layout.phoneSlot.kind === "back" ? { className: "hidden md:inline-flex" } : {})}
-      />
+      {layout.wideSlot.kind === "restart" ? (
+        <RestartButton
+          primary={layout.wideSlot.primary}
+          action={actions[layout.wideSlot.key]}
+          // Away, a phone's slot is the way back's.
+          {...(layout.phoneSlot.kind === "back" ? { className: "hidden md:inline-flex" } : {})}
+        />
+      ) : (
+        <ContinueButton
+          slot={layout.wideSlot}
+          next={state.next}
+          onContinue={props.onContinue}
+          // Away, a phone's slot is the way back's.
+          {...(layout.phoneSlot.kind === "back" ? { className: "hidden md:inline-flex" } : {})}
+        />
+      )}
       {layout.phoneSlot.kind !== "back" || away === null ? null : (
         <BackLink to={away} className="md:hidden" />
       )}
@@ -337,9 +382,9 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
  * right — navigation is the right-hand end of the bar on every page.
  *
  * One line that never wraps, top-aligned, so the actions cannot drop under
- * the trail and take Continue with them. Short of room, the trail and the
+ * the trail and take the way on with them. Short of room, the trail and the
  * buttons left of ⋯ wrap inside themselves instead: a flex item will not
- * shrink below its own narrowest layout, so ⋯ and Continue keep their width.
+ * shrink below its own narrowest layout, so ⋯ and the way on keep their width.
  */
 export function RunBar({ crumbs, ...actions }: RunActionsProps & { crumbs: readonly Crumb[] }) {
   return (

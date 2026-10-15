@@ -102,8 +102,19 @@ export interface ContinueSlot {
   readonly disabled: string | null;
 }
 
-/** What the bar's right-hand end holds: Continue, or on a phone away from the cursor, the way back. */
-export type RunSlot = ContinueSlot | { readonly kind: "back" };
+/** The run's restart in Continue's slot, where the run has nowhere further to go. */
+export interface RestartSlot {
+  readonly kind: "restart";
+  readonly key: "restartSeason" | "restartEra";
+  /** Primary on the cursor's own page; outlined beside the way back. */
+  readonly primary: boolean;
+}
+
+/** The bar's end from `md` up: Continue, or at the run's end, its restart. */
+export type EndSlot = ContinueSlot | RestartSlot;
+
+/** What the bar's right-hand end holds; on a phone away from the cursor, the way back. */
+export type RunSlot = EndSlot | { readonly kind: "back" };
 
 /** One entry of the ⋯ menu. */
 export interface RunMenuEntry {
@@ -116,8 +127,8 @@ export interface RunMenuEntry {
 
 /** Where each of the bar's actions goes, on a wide screen and on a phone. */
 export interface RunActionsLayout {
-  /** The right-hand end from `md` up: always Continue. */
-  readonly wideSlot: ContinueSlot;
+  /** The right-hand end from `md` up: Continue, or at the run's end, its restart. */
+  readonly wideSlot: EndSlot;
   /** The right-hand end on a phone. */
   readonly phoneSlot: RunSlot;
   /** The buttons left of ⋯ from `md` up, in order; a phone shows none. */
@@ -133,12 +144,13 @@ export const CONTINUE_BLOCKED = {
 } as const;
 
 /**
- * Lays the bar's actions out. **Continue is always the right-hand end**, with
- * ⋯ just left of it, so neither moves from beat to beat: an action that comes
- * and goes is either to their left or inside ⋯. Continue not on offer is
- * shown disabled rather than removed. The ones that throw work away — the
- * restarts — and Exit run are in ⋯ at every width; the other ways forward
- * are buttons from `md` up and ⋯ entries on a phone.
+ * Lays the bar's actions out. **The way on is always the right-hand end**,
+ * with ⋯ just left of it, so neither moves from beat to beat: an action that
+ * comes and goes is either to their left or inside ⋯. The way on is Continue;
+ * where the run has nowhere further to go (a one-year run's summary, the era's
+ * end) it is the run's restart instead, Restart season or Restart era, and
+ * leaves ⋯. Otherwise the restarts and Exit run are in ⋯ at every width; the
+ * other ways forward are buttons from `md` up and ⋯ entries on a phone.
  *
  * Away from the cursor's page the way back leads the bar and Continue drops
  * to outline, since it acts on the cursor, not on the page on screen. A
@@ -157,7 +169,18 @@ export function runActionsFor(
     : state.next === null
       ? CONTINUE_BLOCKED.end
       : null;
-  const wideSlot: ContinueSlot = { kind: "continue", primary: !away, disabled: blocked };
+  const restart =
+    blocked !== CONTINUE_BLOCKED.end
+      ? null
+      : state.restartEra
+        ? ("restartEra" as const)
+        : state.restartSeason
+          ? ("restartSeason" as const)
+          : null;
+  const wideSlot: EndSlot =
+    restart === null
+      ? { kind: "continue", primary: !away, disabled: blocked }
+      : { kind: "restart", key: restart, primary: !away };
   if (editingGrid) {
     // No way forward, or out, while a grid is half-rearranged: the draft would
     // go with it.
@@ -171,11 +194,13 @@ export function runActionsFor(
     ...skip,
     ...jump,
   ];
-  const over: RunCommand[] = [
-    ...(state.restartSeason ? (["restartSeason"] as const) : []),
-    ...(state.restartEra ? (["restartEra"] as const) : []),
-    "exit",
-  ];
+  const over = (
+    [
+      ...(state.restartSeason ? (["restartSeason"] as const) : []),
+      ...(state.restartEra ? (["restartEra"] as const) : []),
+      "exit",
+    ] as const
+  ).filter((key) => key !== restart);
   return {
     wideSlot,
     phoneSlot: away ? { kind: "back" } : wideSlot,
@@ -183,6 +208,9 @@ export function runActionsFor(
     bar: [...(away ? (["back"] as const) : []), ...jump, ...skip],
     menu: [
       ...phoneForward.map((key) => ({ key, phoneOnly: true, destructive: false })),
+      // On a phone away from the cursor the way back has the slot, so the
+      // restart the slot holds from `md` up is in ⋯ there.
+      ...(restart !== null && away ? [{ key: restart, phoneOnly: true, destructive: true }] : []),
       ...over.map((key) => ({ key, phoneOnly: false, destructive: true })),
     ],
   };
