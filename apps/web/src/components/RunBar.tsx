@@ -339,9 +339,11 @@ export function RunActions(props: RunActionsProps) {
 
 /**
  * The run as a live session: a dot, the trail to this page, and under them
- * the season's rounds and where the run is. The dot is lit on the cursor's
- * own page and dims on any other, like a stream's LIVE badge once you have
- * scrolled back. From `sm` up the segments and the cursor line share a row.
+ * the season's rounds. The dot is lit on the cursor's own page and dims on
+ * any other, like a stream's LIVE badge once you have scrolled back. Away,
+ * a "Run is at" link joins the rounds (on their row from `sm` up); on the
+ * cursor's page the trail already says where the run is, so the place is
+ * there for screen readers only.
  */
 function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: readonly Crumb[] }) {
   const live = returnTo === undefined || returnTo === null;
@@ -361,9 +363,8 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
           <RoundSegments rounds={state.rounds} done={state.roundsRun} />
         </div>
         {live ? (
-          <span className="text-muted-foreground font-mono text-xs sm:whitespace-nowrap">
-            {state.cursor}
-          </span>
+          // The segments are hidden from screen readers, so this says them in words.
+          <span className="sr-only">{state.cursor}</span>
         ) : (
           <Link
             {...returnTo.link}

@@ -29,12 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Page structure, navigation, and the phone screens after the two in tier 1.
 
-- **`location-said-thrice`** (PROPOSED)
-  - The run's position is repeated:
-    - The grid shows the crumbs "1984 › Grid", the line "1984 · Grid" under them, and "1984 · Grid" again at the page foot.
-    - A Not reached page has four ways back to the run: Back to run, the "Run is at…" link, the body link, and the foot copy.
-  - Fix: show the sub-line under the crumbs only when away from the cursor ("Run is at …"), and drop the position text from the foot (`App.tsx:~191`).
-  - Screenshot steps: `grid`, `not-reached`.
 - **`title-only-reasons`** (PROPOSED; *Phone layout*)
   - Some reasons live only in a `title` tooltip, which a touch screen never shows:
     - why Continue is disabled ("Apply or cancel the grid edit first");

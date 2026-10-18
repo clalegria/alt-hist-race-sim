@@ -394,9 +394,12 @@ describe("the run bar", () => {
     expect(away).toMatch(/<button[^>]*class="[^"]*border-border[^"]*"[^>]*title="Next:/);
     expect(away.lastIndexOf("Back to run")).toBeGreaterThan(away.lastIndexOf(">Continue"));
 
+    // On the cursor's own page the trail says where the run is, so the place
+    // under it is only for screen readers, which cannot see the segments.
     const home = await bar(run);
     expect(home).not.toContain("Back to");
     expect(home).not.toContain("Run is at");
+    expect(home).toContain(`<span class="sr-only">${YEAR} · Grid</span>`);
   });
 
   it("draws the season as a segment per round, the ones run marked done", async () => {

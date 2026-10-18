@@ -76,9 +76,15 @@ async function settingsTab(dialog: Locator, name: string): Promise<void> {
   await dialog.getByRole("tab", { name: new RegExp(`^${name}`) }).click();
 }
 
-/** Waits for the run bar to say the run has reached `text`. */
-async function cursorAt(page: Page, text: string | RegExp): Promise<void> {
-  await page.getByText(text).first().waitFor();
+/**
+ * Waits for the run bar to say the run has reached `place`, a pattern: on the
+ * cursor's page as text for screen readers, on any other as "Run is at".
+ */
+async function cursorAt(page: Page, place: string): Promise<void> {
+  await page
+    .getByText(new RegExp(`^(Run is at )?${place}$`))
+    .first()
+    .waitFor();
 }
 
 export const STEPS: readonly Step[] = [
@@ -206,7 +212,7 @@ export const STEPS: readonly Step[] = [
       await page.getByText("This grid was edited").waitFor({ state: "detached" });
       await button(page, /^Continue/).click();
       await page.waitForURL(`**/run/${YEAR}/round/1/qualifying`);
-      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Qualifying$`));
+      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Qualifying`);
     },
   },
   {
@@ -214,7 +220,7 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await button(page, /^Continue/).click();
       await page.waitForURL(`**/run/${YEAR}/round/1/race`);
-      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Race$`));
+      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Race`);
     },
   },
   {
@@ -604,9 +610,9 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // Round 1 raced: a driver's year reads as a place so far.
       await runAction(page, "Continue");
-      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Qualifying$`));
+      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Qualifying`);
       await runAction(page, "Continue");
-      await cursorAt(page, new RegExp(`^${YEAR} · Round 1/\\d+ · Race$`));
+      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Race`);
       await page.goto("/run/drivers");
       await page.getByRole("cell").getByRole("link").first().click();
       await page.waitForURL("**/run/driver/*");

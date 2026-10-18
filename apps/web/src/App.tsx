@@ -218,8 +218,7 @@ export function RunFrame({
             </SeasonHistoryProvider>
           </KeptLiveries>
         </KeptNames>
-        <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
-          <span className="text-muted-foreground text-xs">{state.cursor}</span>
+        <div className="border-border flex border-t pt-6">
           <RunActions {...actions} />
         </div>
       </Shell>
