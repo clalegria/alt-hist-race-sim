@@ -335,7 +335,7 @@ describe("the era picker", () => {
 
   it("asks for the year the era starts from", () => {
     expect(picker).toContain("Simulate an era");
-    expect(picker).toContain("Pick the year to start from");
+    expect(picker).toContain("Pick the season to start from");
   });
 
   it("says where the era can run to, off the data rather than a fixed year", () => {

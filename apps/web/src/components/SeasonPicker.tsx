@@ -51,7 +51,7 @@ export function SeasonPicker({
   onStart,
   title = "Simulate a season",
   yearTitle = "Season",
-  yearLead = `Every season from ${FIRST_SEASON} to ${LAST_SEASON}. Pick a decade, then a year in it.`,
+  yearLead = `Pick the season to simulate, from ${FIRST_SEASON} to ${LAST_SEASON}.`,
   describeYear = (year: number) => `Simulate the ${year} season`,
   describeStart = (year: number) => `Begin the ${year} season`,
   unit = "season",
@@ -157,7 +157,7 @@ export function EraPicker({
       onStart={onStart}
       title="Simulate an era"
       yearTitle="Starting season"
-      yearLead={`Pick the year to start from. The era carries on one season at a time, for as long as you like or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
+      yearLead={`Pick the season to start from. The simulation will then carry on for as many years as you like, until it ends in ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       describeYear={(year) => `Start an era in ${year}`}
       describeStart={(year) => `Begin an era starting in ${year}`}
       unit="era"

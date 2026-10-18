@@ -41,7 +41,7 @@ export const PRESETS: readonly Preset[] = [
     id: "default",
     name: "Default",
     blurb: (unit) =>
-      `Simulates ${unit === "era" ? "every season" : "the season"} as it happened in real life. Results will be very similar to what happened in reality.`,
+      `Simulates ${unit === "era" ? "every season" : "the season"} as it happened in real life. Results will be very similar to what happened in reality, but may differ slightly.`,
     units: BOTH,
     settings: {},
   },
@@ -49,7 +49,7 @@ export const PRESETS: readonly Preset[] = [
     id: "random-teams",
     name: "Drivers drive for random teams",
     blurb: () =>
-      "What happens if drivers were placed in teams at random? Schumacher could end up at Minardi, or Lance Stroll at Ferrari.",
+      "What happens if drivers were placed in teams at random? Michael Schumacher could end up at Minardi, or Lance Stroll at Ferrari.",
     units: BOTH,
     settings: { seating: { kind: "random", includeUnemployed: false } },
   },
@@ -57,21 +57,23 @@ export const PRESETS: readonly Preset[] = [
     id: "fastest-in-slowest",
     name: "Fastest drivers in slowest teams",
     blurb: () =>
-      "What happens if the grid is reversed, and the best drivers end up in the worst cars?",
+      "What happens if the grid is reversed, and the best drivers end up in the worst cars and vice-versa?",
     units: BOTH,
     settings: { seating: { kind: "fastest-in-slowest", includeUnemployed: false } },
   },
   {
     id: "drift",
     name: "Car performance drifts from real life",
-    blurb: () => "What if instead of Ferrari dominating the early 2000s it was Sauber? Or Toyota?",
+    blurb: () =>
+      "Performance keeps changing a bit year to year, until it ends up very different from real life. What if instead of Ferrari dominating the early 2000s it was Sauber? Or Toyota?",
     units: ["era"],
     settings: { carPerformance: DRIFT, enginePerformance: DRIFT, development: "random" },
   },
   {
     id: "all-time-best",
     name: "The all-time best drivers",
-    blurb: () => "The top drivers of all time, at their best, are all put on the grid.",
+    blurb: () =>
+      "The top drivers of all time, at their best, are all put on the grid, with the cars of the season you choose.",
     units: ["season"],
     ratingMode: "peak",
     settings: {

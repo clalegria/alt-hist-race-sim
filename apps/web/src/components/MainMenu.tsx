@@ -88,9 +88,9 @@ export function MainMenu({
           {/* Smaller on a short window, and the column's full width, so it takes fewer lines. */}
           <p className="text-muted-foreground max-w-[52ch] lg:short:max-w-none lg:short:text-sm">
             Re-live and re-race any season in motorsport history from{" "}
-            <Year>{PLAYABLE_SEASONS[0]}</Year> to <Year>{PLAYABLE_SEASONS.at(-1)}</Year>. Try
-            swapping drivers between teams to see how history could've played out differently, or
-            try the settings to see how things could've changed in many other ways.
+            <Year>{PLAYABLE_SEASONS[0]}</Year> to <Year>{PLAYABLE_SEASONS.at(-1)}</Year>. Try the
+            various buttons and options or edit the grid to swap drivers between teams, to see how
+            history could've played out differently.
           </p>
         </header>
         {resume === undefined ? null : <div className="mt-2.5 lg:short:mt-0">{resume}</div>}
