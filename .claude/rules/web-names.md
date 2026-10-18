@@ -25,8 +25,9 @@ How every table names the same people. Which era's name a team is in is `team-er
   built from `world.field`. The empty default must leave a component rendered alone
   drawable.
 - **`FittedName`'s caller gives it the width it may use** (`flex-1`, or a block in a
-  column): a content-sized box measures the short name and never widens back. Its
-  `render` draws the probe too, so a styled name is measured styled.
+  column), through every box out to the cell: one sized to its text keeps a name short
+  for good after any brief narrowing. Its `render` draws the probe too, so a styled name
+  is measured styled.
 - **`tight` is opted into per table**: the race sidebar fits names to its column, the full
   classification wraps them. Don't unify the two without deciding which behaviour wins.
 - **Tests count flags by counting `<svg>`**, so nothing else beside a name may be an

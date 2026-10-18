@@ -71,20 +71,24 @@ export function DriverName({
     // block inside a `<button>`, which may only contain phrasing content. The
     // layout is unchanged — `flex` is a display, and a span takes it as
     // happily as a div does.
-    <span className={cn("flex items-center gap-1.5", tight && "min-w-0", className)}>
+    //
+    // A tight name fills every box out to the cell, `flex-1` at each level: the
+    // fitted name measures its own box as its room, and a box sized to the text
+    // shrinks with the short name and never widens back.
+    <span className={cn("flex items-center gap-1.5", tight && "min-w-0 flex-1", className)}>
       {badge && teamId !== undefined ? (
         // Centred against the whole two-line block, not against the name: the
         // badge belongs to the entry — driver, team and all — rather than to
         // the line of text it happens to start beside.
         <TeamBadge teamId={teamId} />
       ) : null}
-      <span className="flex min-w-0 flex-col leading-tight">
+      <span className={cn("flex min-w-0 flex-col leading-tight", tight && "flex-1")}>
         <span className="flex min-w-0 items-center gap-1.5">
           {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
           {tight ? (
             <FittedDriverName
               driverId={driverId}
-              className={cn(emphasis && "font-semibold")}
+              className={cn("min-w-0 flex-1", emphasis && "font-semibold")}
               split
             />
           ) : (

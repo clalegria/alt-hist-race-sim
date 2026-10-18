@@ -2,7 +2,8 @@
  * Renders the app's main screens to PNGs, for Claude to read and look at.
  *
  * Every variant — viewport × theme — gets its own fresh browser context and
- * walks `STEPS`, capturing each screen full-page. Arguments narrow it: step
+ * walks `STEPS`, capturing each screen full-page (only the viewport while a
+ * menu or dialog locks the scroll). Arguments narrow it: step
  * names capture only those (the walk still clicks through the steps before
  * them, and stops after the last), and `--desktop`, `--phone`, `--light` or
  * `--dark` only those variants.
@@ -156,9 +157,13 @@ async function main(): Promise<void> {
             }
             await settle(page);
             const file = `${String(index + 1).padStart(2, "0")}-${step.name}-${variant}.png`;
+            // An open menu or dialog locks the page's scroll, and a full-page
+            // capture of a locked page shrinks the viewport to 1×1 for a moment,
+            // which every fitted name reacts to. Locked, the viewport is all there is.
+            const locked = await page.locator("body[data-scroll-locked]").count();
             await page.screenshot({
               path: join(OUT_DIR, file),
-              fullPage: true,
+              fullPage: locked === 0,
               animations: "disabled",
             });
             written.push(file);
