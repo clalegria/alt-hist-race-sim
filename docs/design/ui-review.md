@@ -25,24 +25,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 ---
 
-## 1. Small bugs
-
-Each is a small, sure commit.
-
-- **`fitted-name-menu-flip`** (OPEN; investigate first)
-  - With the round ▾ menu open, the race page's championship sidebar flips from "Nelson Piquet" to "N. Piquet". Without the menu it does not.
-  - Likely cause: the Radix scroll lock changes the width `FittedName` measures.
-  - Fix: confirm the cause, then measure past it or ignore the lock's resize.
-  - Screenshot steps: `race` vs `round-menu`.
-- **`parade-tooltip-key`** (PROPOSED)
-  - The parade tooltip keys its lines by text (`HomeParade.tsx:~290`).
-  - Two teams with one name in one year (2011 has two "Lotus") give the same key twice.
-  - Fix: key by index and text together.
-  - Screenshot step: `menu`.
-- **`stale-history-comment`** (PROPOSED)
-  - `SeasonHistory.tsx:~203` says nothing in the panel wears a badge or a flag, but the heading draws a flag (`~227`).
-  - Fix: correct the comment.
-
 ## 2. Finding your way
 
 Page structure, navigation, and the phone screens after the two in tier 1.
