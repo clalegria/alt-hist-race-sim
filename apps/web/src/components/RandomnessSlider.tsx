@@ -115,12 +115,18 @@ export function RandomnessSlider({
         middle one off its mark, by half a thumb at the ends.
 
         9px is half of a native thumb, which browsers draw at roughly 16-20px
-        and none of them expose to CSS. The input is pulled back out of the
-        padding so the track still spans the card; only the labels sit inside
-        it. The height is left tall enough for the thumb not to be clipped —
-        a track thinner than the handle is a control that looks broken.
+        and none of them expose to CSS. The input is pulled back out by that
+        much, so its thumb centre still travels the labels' box. The height is
+        left tall enough for the thumb not to be clipped — a track thinner than
+        the handle is a control that looks broken.
+
+        The box itself is inset by half a label (w-14 / sm:w-16), not half a
+        thumb: the end labels are centred on the end stops, so anything less
+        lets them hang past the panel, which the dialog's scrolling body then
+        answers with a horizontal scrollbar. The inset is the same on both
+        sides, so the slider stays centred in the panel.
       */}
-      <div className="px-[9px]">
+      <div className="px-7 sm:px-8">
         <input
           type="range"
           min={first}
