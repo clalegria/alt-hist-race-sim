@@ -200,9 +200,10 @@ function HistoryLine({
  * back to it. The cap is on the list rather than on the panel, so the heading
  * stays put while the years move under it.
  *
- * Nothing in here wears a badge or a flag: this only appears after a click, and
- * an expansion repeating the row the reader just left is noise rather than
- * detail — the same rule the record cards' spell rows follow.
+ * Nothing in the list wears a badge or a flag: this only appears after a click,
+ * and an expansion repeating the row the reader just left is noise rather than
+ * detail — the same rule the record cards' spell rows follow. Only the heading
+ * carries a flag, to say whose panel it is.
  */
 function HistoryPanel({
   name,
