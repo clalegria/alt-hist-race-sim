@@ -358,7 +358,7 @@ describe("the era picker", () => {
   it("commits on its own button, which says an era rather than a season", () => {
     // The era and the season share one component, so the one thing that must
     // not be shared is the sentence on the button that starts the run.
-    expect(picker).toContain(`Begin an era from ${DEFAULT_SEASON_YEAR}`);
+    expect(picker).toContain(`Begin an era starting in ${DEFAULT_SEASON_YEAR}`);
     expect(picker).not.toContain("Begin the");
   });
 });

@@ -81,9 +81,9 @@ export const PRESETS: readonly Preset[] = [
   },
   {
     id: "frozen-grid",
-    name: "New teams don't come in, old teams don't retire",
+    name: "Same teams as the starting season",
     blurb: () =>
-      `What if the 1980 grid stays the same until ${PLAYABLE_SEASONS.at(-1) ?? ""}? Lotus, Brabham and Tyrrell continue to race. Mercedes and Red Bull never come to exist.`,
+      `What if the 1980 grid stays the same until ${PLAYABLE_SEASONS.at(-1) ?? ""}? Lotus, Brabham and Tyrrell continue to race. Mercedes and Red Bull never come to exist. Pick a year and it'll stay the same as that year.`,
     units: ["era"],
     settings: {
       teams: { fill: "last" },
@@ -96,7 +96,7 @@ export const PRESETS: readonly Preset[] = [
     id: "attrition",
     name: "High attrition, high randomness",
     blurb: () =>
-      "The same teams and cars, but everyone can be good on their day, and any car can retire at any moment. Who wins?",
+      "Same teams and drivers as real life, but everyone can be good on their day, and any car can retire at any moment. Who wins?",
     units: BOTH,
     randomness: RANDOMNESS_LEVELS.at(-1) ?? 5,
     settings: { reliability: PLAYABLE_SEASONS[0] ?? FIRST_SEASON },

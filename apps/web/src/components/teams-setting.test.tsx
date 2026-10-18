@@ -108,7 +108,7 @@ describe("the kept year's sentences", () => {
       ],
     };
     expect(keptSentences(notes, 2001, name)).toEqual([
-      "Gone by 2001 in real life, still racing their last real car: RED (2000) and BLUE (1999).",
+      "Gone by 2001 in real life, still racing with the same level of performance as their last real season: RED (2000) and BLUE (1999).",
       "Seats that were empty in real life: 2 kept last year's driver, 1 new signing.",
       "No free driver to sign, so RED runs one car and GREEN sits the year out.",
     ]);

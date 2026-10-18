@@ -113,7 +113,7 @@ export function keptSentences(
   if (ghosts.length > 0) {
     const named = ghosts.map(([teamId, year]) => `${nameOf(teamId)} (${year})`);
     sentences.push(
-      `Gone by ${seasonYear} in real life, still racing their last real car: ${listed(named)}.`,
+      `Gone by ${seasonYear} in real life, still racing with the same level of performance as their last real season: ${listed(named)}.`,
     );
   }
   const counts = [

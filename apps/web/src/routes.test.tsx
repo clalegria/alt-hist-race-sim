@@ -62,7 +62,7 @@ describe("each URL", () => {
   const pages = [
     { path: "/", shows: "Rewrite motorsport history" },
     { path: "/season/new", shows: "Begin the " },
-    { path: "/era/new", shows: "Begin an era from " },
+    { path: "/era/new", shows: "Begin an era starting in " },
   ];
 
   for (const page of pages) {

@@ -344,7 +344,7 @@ export const STEPS: readonly Step[] = [
     name: "replace-dialog",
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-      await button(page, `Begin an era from ${YEAR}`).click();
+      await button(page, `Begin an era starting in ${YEAR}`).click();
       await page.getByRole("alertdialog", { name: "Start a new run?" }).waitFor();
     },
   },
@@ -372,7 +372,7 @@ export const STEPS: readonly Step[] = [
     name: "era-grid-team",
     reach: async (page) => {
       // Begun again from the same setup: the untouched run is replaced unasked.
-      await button(page, `Begin an era from ${YEAR}`).click();
+      await button(page, `Begin an era starting in ${YEAR}`).click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
       // A team's ratings on varied cars: history beside this run's, rating by
       // rating, for the chassis and for the engine.

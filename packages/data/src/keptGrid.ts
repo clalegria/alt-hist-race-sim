@@ -4,8 +4,8 @@
  *
  * Each team of the first year enters every year, with as many cars as it had
  * then. A team history still has that year races its real car with its real
- * drivers; a team history has dropped is a **ghost entry**, racing its last
- * real car. Teams new in history never appear, and their drivers are free.
+ * drivers; a team history has dropped is a **ghost entry**, keeping the
+ * performance of its last real car. Teams new in history never appear, and their drivers are free.
  * What is left is seats with nobody in them — a ghost's, and a **short seat**
  * where history ran fewer cars than the first year — and the run's
  * `EmptySeatRules` say who takes them.
@@ -102,7 +102,7 @@ function lastEntry(
  * - **A team history has this year** takes its car and its authored drivers.
  *   Given more cars than the first year, the weakest drop out
  *   (`strongestOf`).
- * - **A ghost entry** races its last real car — chassis, engine and paint, but
+ * - **A ghost entry** keeps the performance of its last real car — chassis, engine and paint, but
  *   no `developmentTrend`, which describes that one year. Its engine has this
  *   year's values if the year rates it; if not, its latest authored values are
  *   added to the year's engines.

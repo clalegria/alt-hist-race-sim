@@ -227,7 +227,7 @@ Mostly OPEN: the author picks the wording.
     | Settings | Run settings / Settings / Default settings / Simulation settings |
     | Clearing edits | "Clear all edits" or "Clear manual edits" / "Clear your grid edits?" / "Clear edits" / "Clear your edits to change them" |
     | Restarts | "Restart this season?" / "Restart the era?" |
-    | Start buttons | "Start an era in 1984" (screen-reader label) / "Begin an era from 1984" (`SeasonPicker.tsx:~157`) |
+    | Start buttons | "Start an era in 1984" (screen-reader label) / "Begin an era starting in 1984" (`SeasonPicker.tsx:~157`) |
     | Skip | "Simulate full season" / "Simulate rest of the season" (`run-bar.ts:~64`) |
     | Spelling | "Randomize grid" (`LineupChanges.tsx:~43`) in a British-spelling app |
     | Capitals | "Drivers' Championship" / "Drivers' champion" / "drivers' title" |

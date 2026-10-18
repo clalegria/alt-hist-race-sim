@@ -1064,8 +1064,8 @@ export function SeasonGrid({
                         </div>
                         {ghostCar === undefined ? null : (
                           <p className="text-muted-foreground mb-2 text-xs">
-                            Gone by {seasonYear} in real life, so it races on with its {ghostCar}{" "}
-                            car.
+                            Gone by {seasonYear} in real life, so it keeps the performance of its{" "}
+                            {ghostCar} car.
                           </p>
                         )}
                         {historical === undefined ? null : (
@@ -1192,7 +1192,7 @@ export function SeasonGrid({
                 </div>
                 {ghostCar === undefined ? null : (
                   <p className="text-subtle border-border border-b px-3 py-1.5 text-xs">
-                    Gone in real life, racing its {ghostCar} car
+                    Gone in real life, assumed the performance of their {ghostCar} car
                   </p>
                 )}
 

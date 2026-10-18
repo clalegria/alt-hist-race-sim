@@ -159,7 +159,7 @@ export function EraPicker({
       yearTitle="Starting season"
       yearLead={`Pick the year to start from. The era carries on one season at a time, for as long as you like or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       describeYear={(year) => `Start an era in ${year}`}
-      describeStart={(year) => `Begin an era from ${year}`}
+      describeStart={(year) => `Begin an era starting in ${year}`}
       unit="era"
     />
   );
