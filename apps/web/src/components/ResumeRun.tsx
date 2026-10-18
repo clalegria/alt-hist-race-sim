@@ -4,14 +4,14 @@ import { MONO_LABEL } from "../lib/utils.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
 
-/** A Home panel: bordered, with a head band darker than its body. */
+/** A Home panel: bordered, with a head band darker than its body; tighter on a short window (`MainMenu`). */
 function HomePanel({ head, children }: { head: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="bg-card border-border border">
-      <div className="bg-card-header border-border flex items-center gap-2 border-b px-3 py-2">
+      <div className="bg-card-header border-border flex items-center gap-2 border-b px-3 py-2 lg:short:py-1.5">
         {head}
       </div>
-      <div className="flex flex-col gap-2 p-3">{children}</div>
+      <div className="flex flex-col gap-2 p-3 lg:short:gap-1.5 lg:short:p-2.5">{children}</div>
     </div>
   );
 }
@@ -60,14 +60,14 @@ export function ResumeRun({
       }
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="narrow text-[1.625rem] leading-none font-extrabold uppercase">
+        <span className="narrow text-[1.625rem] leading-none font-extrabold uppercase lg:short:text-[1.375rem]">
           {title}
         </span>
         {car}
       </div>
       <span className={MONO_LABEL}>{detail}</span>
       <RoundSegments rounds={rounds} done={roundsRun} />
-      <div className="mt-1 flex flex-wrap gap-2">
+      <div className="mt-1 flex flex-wrap gap-2 lg:short:mt-0">
         <Link {...link} className={buttonClass("primary")}>
           Resume <span aria-hidden="true">▸</span>
         </Link>

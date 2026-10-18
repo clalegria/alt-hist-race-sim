@@ -17,7 +17,7 @@ import { cn, MONO_LABEL } from "../lib/utils.js";
  */
 function Year({ children }: { children: React.ReactNode }) {
   return (
-    <span className="narrow text-foreground text-[1.375rem] leading-none font-extrabold tabular-nums">
+    <span className="narrow text-foreground text-[1.375rem] leading-none font-extrabold tabular-nums lg:short:text-lg">
       {children}
     </span>
   );
@@ -74,27 +74,23 @@ export function MainMenu({
 }) {
   // On a wide screen the page fills the window above the track (`Shell`'s
   // `fit`), so the two columns share one row of what is left. A short window
-  // gets a headline sized to its height and less padding; past that the modes
-  // scroll, and the hero too as a last resort, rather than push the track off.
+  // gets a headline sized to its height, smaller copy, a tighter run panel and
+  // less padding; past that the modes scroll, and the hero too as a last
+  // resort, rather than push the track off.
   return (
     <div className="grid grid-cols-1 gap-6 py-6 sm:py-10 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:grid-rows-[minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:short:py-3">
-      <div className="flex flex-col gap-2.5 lg:max-h-full lg:overflow-y-auto">
-        <header className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5 lg:max-h-full lg:overflow-y-auto lg:short:gap-2">
+        <header className="flex flex-col gap-2.5 lg:short:gap-2">
           <p className={MONO_LABEL}>Alternate history motorsport simulator</p>
-          <h1 className="narrow text-5xl leading-[0.9] font-extrabold tracking-[0.01em] text-balance uppercase md:text-[clamp(2.75rem,8dvh,4.5rem)]">
+          <h1 className="narrow text-5xl leading-[0.9] font-extrabold tracking-[0.01em] text-balance uppercase md:text-[clamp(2.75rem,12.2dvh_-_2rem,4.5rem)]">
             Rewrite motorsport history
           </h1>
-          {/* A player with a run to resume knows what this is: on a short window it makes room for the run. */}
-          <p
-            className={cn(
-              "text-muted-foreground max-w-[52ch]",
-              resume !== undefined && "lg:short:hidden",
-            )}
-          >
+          {/* Smaller on a short window, and the column's full width, so it takes fewer lines. */}
+          <p className="text-muted-foreground max-w-[52ch] lg:short:max-w-none lg:short:text-sm">
             Re-live and re-race any season in motorsport history from{" "}
             <Year>{PLAYABLE_SEASONS[0]}</Year> to <Year>{PLAYABLE_SEASONS.at(-1)}</Year>. Try
             swapping drivers between teams to see how history could've played out differently, or
-            try new settings to see how things could've changed in so many other ways.
+            try the settings to see how things could've changed in many other ways.
           </p>
         </header>
         {resume === undefined ? null : <div className="mt-2.5 lg:short:mt-0">{resume}</div>}
