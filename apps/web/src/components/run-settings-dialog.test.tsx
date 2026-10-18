@@ -183,8 +183,8 @@ describe("the dialog's tabs", () => {
     [...html.matchAll(/role="tab"[^>]*>([^<]+)/g)].map((match) => match[1]);
 
   it("draws Over the years on an era only", () => {
-    expect(labels(form("season"))).toEqual(["Races", "Drivers", "Cars"]);
-    expect(labels(form("era"))).toEqual(["Races", "Drivers", "Cars", "Over the years"]);
+    expect(labels(form("season"))).toEqual(["What if?", "Races", "Drivers", "Cars"]);
+    expect(labels(form("era"))).toEqual(["What if?", "Races", "Drivers", "Cars", "Over the years"]);
   });
 
   it("opens on Races, with every other panel there but hidden", () => {

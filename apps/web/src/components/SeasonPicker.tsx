@@ -15,27 +15,29 @@ import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { ERA_RATING_MODE } from "../store/season.js";
 import { PageHeading } from "./PageHeading.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
-import { RunSettingsLine } from "./RunSettingsLine.js";
 import { Button } from "./ui/button.js";
+import { WhatIfCard } from "./WhatIfPresets.js";
 import { YearPicker } from "./YearPicker.js";
 
 /**
  * The setup screen: which year to run, under what rules, and a button to go.
  *
- * **Nothing is simulated until the button at the foot of the page.** Every
- * control on this screen only *answers* something; one button commits all of
- * it at once, so the year and the settings reach `onStart` together and what
- * was on screen is what gets simulated.
+ * **Nothing is simulated until the button under the year.** Every control on
+ * this screen only *answers* something; one button commits all of it at once,
+ * so the year and the settings reach `onStart` together and what was on screen
+ * is what gets simulated.
  *
- * The year picker is `YearPicker` — a rail of decades and the years in one of
- * them, controlled by the selected year alone. The run settings are a line
- * under the heading (`RunSettingsLine`) whose ⚙ button opens them in a dialog,
- * the same line in the same place the grid has.
+ * Two cards: the year (`YearPicker`, a rail of decades and the years in one of
+ * them, controlled by the selected year alone) and *What if?* (`WhatIfCard`:
+ * the presets, the ⚙ button that opens every setting, and what is in force).
+ * One column, year first, then What if?, then the button; from `lg` the year
+ * and the button on the left and What if? on the right, as Home splits, so a
+ * laptop sees the whole screen without scrolling.
  *
  * Every answer is seeded from the remembered preference and written back when
- * it is given — a year on the moment it is picked, the settings when the dialog
- * is closed with Done — so they survive a reader who goes back to the menu, or
- * who comes back tomorrow. See `readSeasonYear`.
+ * it is given — a year on the moment it is picked, the settings when a preset
+ * is picked or the dialog is closed with Done — so they survive a reader who
+ * goes back to the menu, or who comes back tomorrow. See `readSeasonYear`.
  *
  * One picker serves both modes. A season and an era ask the same question of
  * the same years and differ only in what the answer starts — which is copy, so
@@ -48,31 +50,27 @@ import { YearPicker } from "./YearPicker.js";
 export function SeasonPicker({
   onStart,
   title = "Simulate a season",
-  lead = "Pick the year to run.",
   yearTitle = "Season",
   yearLead = `Every season from ${FIRST_SEASON} to ${LAST_SEASON}. Pick a decade, then a year in it.`,
   describeYear = (year: number) => `Simulate the ${year} season`,
   describeStart = (year: number) => `Begin the ${year} season`,
   unit = "season",
-  eraSettings = false,
 }: {
   onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
   title?: string;
-  lead?: string;
-  /** The year panel's own heading, and the subtitle under it. */
+  /** The year panel's own heading, and the how-to under it: the page's only lead. */
   yearTitle?: string;
   yearLead?: string;
   /** The accessible label on a playable year's button. */
   describeYear?: (year: number) => string;
-  /** What the button at the foot of the page says. */
+  /** What the button under the year says. */
   describeStart?: (year: number) => string;
-  /** What the settings are fixed for, which their copy follows. */
-  unit?: RunUnit;
   /**
-   * Whether to offer the era-only settings. A season's screen hides them, and
-   * the store drops them from a season (`seasonSettings`) whatever is remembered.
+   * What the settings are fixed for, which their copy follows. An era's screen
+   * offers the era-only settings; a season's hides them, and the store drops
+   * them from a season (`seasonSettings`) whatever is remembered.
    */
-  eraSettings?: boolean;
+  unit?: RunUnit;
 }) {
   // Read once, on mount: this is the seed for the controls, not a live mirror
   // of storage, and nothing else on the screen can change it underneath.
@@ -87,59 +85,57 @@ export function SeasonPicker({
   // against the playable list — a stored year with no seed file behind it would
   // reach `seasonSeed` and throw.
   const [year, setYear] = useState<number>(readSeasonYear);
+  const commit = (changed: RunChoice) => {
+    setChoice(changed);
+    rememberRandomness(changed.randomness);
+    rememberRunSettings(changed.settings);
+    if (unit === "season") {
+      rememberRatingMode(changed.ratingMode);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
-      <header className="flex flex-col gap-3">
-        <PageHeading title={title} />
-        {/*
-          A paragraph, not the heading's mono sub-line, which is for a short
-          fact. Capped, unlike the notes inside the panels below: it runs to
-          two or three lines and is read down, the case `max-w-prose` is for.
-        */}
-        <p className="text-muted-foreground max-w-prose text-sm">{lead}</p>
-      </header>
-
-      <RunSettingsLine
-        choice={choice}
-        year={year}
-        unit={unit}
-        eraSettings={eraSettings}
-        onCommit={(changed) => {
-          setChoice(changed);
-          rememberRandomness(changed.randomness);
-          rememberRunSettings(changed.settings);
-          if (unit === "season") {
-            rememberRatingMode(changed.ratingMode);
-          }
-        }}
-      />
-
-      <YearPicker
-        year={year}
-        onSelect={(picked) => {
-          setYear(picked);
-          rememberSeasonYear(picked);
-        }}
-        title={yearTitle}
-        lead={yearLead}
-        describeYear={describeYear}
-      />
+      <PageHeading title={title} />
 
       {/*
-        Full width and last on the page, because it is the only thing here that
-        does anything: everything above it is a question, and this is the answer
-        being handed over. It names the year it will start so the commitment is
-        legible without scrolling back up to check which button is lit.
+        One grid for both layouts, in reading order: year, What if?, button. From
+        `lg` What if? spans both rows on the right, and the button sits under
+        the year, the second row taking any height What if? needs.
       */}
-      <Button
-        className="h-12 w-full text-base"
-        onClick={() => {
-          onStart(year, choice.randomness, choice.settings);
-        }}
-      >
-        {describeStart(year)}
-      </Button>
+      <div className="grid gap-6 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start">
+        <div className="lg:col-start-1 lg:row-start-1">
+          <YearPicker
+            year={year}
+            onSelect={(picked) => {
+              setYear(picked);
+              rememberSeasonYear(picked);
+            }}
+            title={yearTitle}
+            lead={yearLead}
+            describeYear={describeYear}
+          />
+        </div>
+
+        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <WhatIfCard choice={choice} year={year} unit={unit} onCommit={commit} />
+        </div>
+
+        {/*
+          Full width of its column, and after every question, because it is the
+          only thing here that does anything: this is the answer being handed
+          over. It names the year it will start so the commitment is legible
+          without looking back to check which button is lit.
+        */}
+        <Button
+          className="h-12 w-full text-base lg:col-start-1 lg:row-start-2"
+          onClick={() => {
+            onStart(year, choice.randomness, choice.settings);
+          }}
+        >
+          {describeStart(year)}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -160,13 +156,11 @@ export function EraPicker({
     <SeasonPicker
       onStart={onStart}
       title="Simulate an era"
-      lead={`Pick the year to start from. The era carries on one season at a time, for as long as you like or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       yearTitle="Starting season"
-      yearLead="Pick a decade, then a year."
+      yearLead={`Pick the year to start from. The era carries on one season at a time, for as long as you like or until ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
       describeYear={(year) => `Start an era in ${year}`}
       describeStart={(year) => `Begin an era from ${year}`}
       unit="era"
-      eraSettings
     />
   );
 }

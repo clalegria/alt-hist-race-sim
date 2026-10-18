@@ -294,6 +294,7 @@ export const STEPS: readonly Step[] = [
       // What-ifs on every tab of the era's dialog, left open on Cars, so the
       // dots, a picker and the sub-options are drawn.
       const dialog = await openSettings(page);
+      await settingsTab(dialog, "Races");
       await dialog.getByRole("combobox", { name: "Points system" }).selectOption({ index: 1 });
       await settingsTab(dialog, "Drivers");
       // A reseat, so the era's grids carry its own notice above any edits.

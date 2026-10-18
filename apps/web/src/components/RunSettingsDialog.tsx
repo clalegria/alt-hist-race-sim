@@ -1,6 +1,6 @@
 import { DEFAULT_RATING_MODE, type RatingMode } from "@alt-hist/data";
 import type { RandomnessLevel } from "@alt-hist/engine";
-import { type ReactNode, useId, useState } from "react";
+import { Fragment, type ReactNode, useId, useState } from "react";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
 import {
   historicalSettings,
@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "./ui/dialog.js";
 import { Notice } from "./ui/notice.js";
+import { PresetList } from "./WhatIfPresets.js";
 import { WhoDrivesSetting } from "./WhoDrivesSetting.js";
 
 /**
@@ -65,14 +66,15 @@ export function defaultChoice(choice: RunChoice, eraSettings: boolean): RunChoic
   };
 }
 
-export type SettingsTab = "races" | "drivers" | "cars" | "years";
+export type SettingsTab = "presets" | "races" | "drivers" | "cars" | "years";
 
 /** An answer in a `RunChoice`: one of its settings, or the two it carries beside them. */
 type Answer = "randomness" | "ratingMode" | keyof RunSettings;
 
 /**
- * The dialog's tabs, in order, and the answers each one's settings set — which
- * is what lights a tab's dot. A new setting's answer goes under its tab here.
+ * The dialog's settings tabs, in order after *What if?*, and the answers each
+ * one's settings set — which is what lights a tab's dot. A new setting's
+ * answer goes under its tab here.
  */
 const SETTINGS_TABS: readonly {
   readonly key: SettingsTab;
@@ -165,7 +167,8 @@ export function RunSettingsGroup({
 }
 
 /**
- * The settings themselves, one tab per thing they are about: **Races** (how
+ * The settings themselves, after the **What if?** presets (`PresetList`), one
+ * tab per thing they are about: **Races** (how
  * much the dice decide, how a result is scored), **Drivers** (how good they
  * are, who drives where, who can be signed, their careers), **Cars** (how
  * quick, how they develop, how often they break), and the era's **Over the
@@ -182,6 +185,10 @@ export function RunSettingsGroup({
  * the remembered settings hold is passed through, era-only answers included,
  * so a season's screen never drops an era's choice it does not show
  * (`seasonSettings` does that for the world, not for the reader's preference).
+ *
+ * A preset mounts the settings tabs afresh (`picks`, a React key), so a
+ * sub-option a setting remembers while the dialog is open starts from the
+ * preset's answer rather than the one before it.
  */
 export function RunSettingsForm({
   choice,
@@ -216,6 +223,7 @@ export function RunSettingsForm({
   const idPrefix = useId();
   const changed = changedTabs(choice, eraSettings);
   const group = { idPrefix, shown: tab };
+  const [picks, setPicks] = useState(0);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -223,11 +231,14 @@ export function RunSettingsForm({
         label="Run settings"
         className="shrink-0 self-start"
         panels={{
-          items: SETTINGS_TABS.filter((one) => eraSettings || !one.eraOnly).map((one) => ({
-            key: one.key,
-            label: one.label,
-            marked: changed.has(one.key),
-          })),
+          items: [
+            { key: "presets", label: "What if?" },
+            ...SETTINGS_TABS.filter((one) => eraSettings || !one.eraOnly).map((one) => ({
+              key: one.key,
+              label: one.label,
+              marked: changed.has(one.key),
+            })),
+          ],
           selected: tab,
           idPrefix,
           onPick: (key) => {
@@ -238,114 +249,131 @@ export function RunSettingsForm({
       {/* Out to the body's own padding, so a label that overhangs its control is not clipped. */}
       <div className="-mx-5 min-h-0 flex-1 overflow-y-auto px-5">
         <fieldset disabled={disabled} className="m-0 min-w-0 border-0 p-0 disabled:text-subtle">
-          <RunSettingsGroup tab="races" {...group}>
-            <RandomnessSlider
-              level={randomness}
-              onChange={(level) => {
-                onChange?.({ ...choice, randomness: level });
-              }}
-            />
-            <PointsSetting
-              points={settings.points}
-              year={year}
-              unit={unit}
-              onChange={(points) => {
-                set({ points });
-              }}
-            />
+          <RunSettingsGroup tab="presets" {...group}>
+            <div className="flex flex-col gap-3">
+              <p className="text-muted-foreground text-sm">
+                Pick one to start from. The other tabs show what it changes.
+              </p>
+              <PresetList
+                choice={choice}
+                unit={unit}
+                onPick={(picked) => {
+                  setPicks((count) => count + 1);
+                  onChange?.(picked);
+                }}
+              />
+            </div>
           </RunSettingsGroup>
-          <RunSettingsGroup tab="drivers" {...group}>
-            {eraSettings ? null : (
-              <DriverAbilitySetting
-                ratingMode={ratingMode}
-                onChange={(mode) => {
-                  onChange?.({ ...choice, ratingMode: mode });
+          <Fragment key={picks}>
+            <RunSettingsGroup tab="races" {...group}>
+              <RandomnessSlider
+                level={randomness}
+                onChange={(level) => {
+                  onChange?.({ ...choice, randomness: level });
                 }}
               />
-            )}
-            <WhoDrivesSetting
-              seating={settings.seating}
-              unit={unit}
-              onChange={(seating) => {
-                set({ seating });
-              }}
-            />
-            {signing ? (
-              <DriverPoolSetting
-                pool={settings.driverPool}
-                ratingMode={ratingMode}
-                onChange={(driverPool) => {
-                  set({ driverPool });
-                }}
-              />
-            ) : null}
-            {eraSettings ? (
-              <CareerEventsSetting
-                careerEvents={settings.careerEvents}
-                onChange={(careerEvents) => {
-                  set({ careerEvents });
-                }}
-              />
-            ) : null}
-          </RunSettingsGroup>
-          <RunSettingsGroup tab="cars" {...group}>
-            <CarPerformanceSetting
-              carPerformance={settings.carPerformance}
-              unit={unit}
-              onChange={(carPerformance) => {
-                set({ carPerformance });
-              }}
-            />
-            <EnginePerformanceSetting
-              enginePerformance={settings.enginePerformance}
-              unit={unit}
-              onChange={(enginePerformance) => {
-                set({ enginePerformance });
-              }}
-            />
-            <DevelopmentSetting
-              development={settings.development}
-              unit={unit}
-              onChange={(development) => {
-                set({ development });
-              }}
-            />
-            <BreakdownsSetting
-              breakdowns={settings.breakdowns}
-              reliability={settings.reliability}
-              unit={unit}
-              onChange={set}
-            />
-          </RunSettingsGroup>
-          {eraSettings ? (
-            <RunSettingsGroup tab="years" {...group}>
-              <TeamsSetting
-                teams={settings.teams}
-                reseated={settings.seating !== null}
-                onChange={(teams) => {
-                  set({ teams });
-                }}
-              />
-              <TeamNamesSetting
-                teamNames={settings.teamNames}
-                onChange={(teamNames) => {
-                  set({ teamNames });
-                }}
-              />
-              <LiveriesSetting
-                liveries={settings.liveries}
-                onChange={(liveries) => {
-                  set({ liveries });
-                }}
-              />
-              <EngineSuppliersSetting
-                engineSuppliers={settings.engineSuppliers}
-                onChange={(engineSuppliers) => {
-                  set({ engineSuppliers });
+              <PointsSetting
+                points={settings.points}
+                year={year}
+                unit={unit}
+                onChange={(points) => {
+                  set({ points });
                 }}
               />
             </RunSettingsGroup>
-          ) : null}
+            <RunSettingsGroup tab="drivers" {...group}>
+              {eraSettings ? null : (
+                <DriverAbilitySetting
+                  ratingMode={ratingMode}
+                  onChange={(mode) => {
+                    onChange?.({ ...choice, ratingMode: mode });
+                  }}
+                />
+              )}
+              <WhoDrivesSetting
+                seating={settings.seating}
+                unit={unit}
+                onChange={(seating) => {
+                  set({ seating });
+                }}
+              />
+              {signing ? (
+                <DriverPoolSetting
+                  pool={settings.driverPool}
+                  ratingMode={ratingMode}
+                  onChange={(driverPool) => {
+                    set({ driverPool });
+                  }}
+                />
+              ) : null}
+              {eraSettings ? (
+                <CareerEventsSetting
+                  careerEvents={settings.careerEvents}
+                  onChange={(careerEvents) => {
+                    set({ careerEvents });
+                  }}
+                />
+              ) : null}
+            </RunSettingsGroup>
+            <RunSettingsGroup tab="cars" {...group}>
+              <CarPerformanceSetting
+                carPerformance={settings.carPerformance}
+                unit={unit}
+                onChange={(carPerformance) => {
+                  set({ carPerformance });
+                }}
+              />
+              <EnginePerformanceSetting
+                enginePerformance={settings.enginePerformance}
+                unit={unit}
+                onChange={(enginePerformance) => {
+                  set({ enginePerformance });
+                }}
+              />
+              <DevelopmentSetting
+                development={settings.development}
+                unit={unit}
+                onChange={(development) => {
+                  set({ development });
+                }}
+              />
+              <BreakdownsSetting
+                breakdowns={settings.breakdowns}
+                reliability={settings.reliability}
+                unit={unit}
+                onChange={set}
+              />
+            </RunSettingsGroup>
+            {eraSettings ? (
+              <RunSettingsGroup tab="years" {...group}>
+                <TeamsSetting
+                  teams={settings.teams}
+                  reseated={settings.seating !== null}
+                  onChange={(teams) => {
+                    set({ teams });
+                  }}
+                />
+                <TeamNamesSetting
+                  teamNames={settings.teamNames}
+                  onChange={(teamNames) => {
+                    set({ teamNames });
+                  }}
+                />
+                <LiveriesSetting
+                  liveries={settings.liveries}
+                  onChange={(liveries) => {
+                    set({ liveries });
+                  }}
+                />
+                <EngineSuppliersSetting
+                  engineSuppliers={settings.engineSuppliers}
+                  onChange={(engineSuppliers) => {
+                    set({ engineSuppliers });
+                  }}
+                />
+              </RunSettingsGroup>
+            ) : null}
+          </Fragment>
         </fieldset>
       </div>
     </div>
@@ -450,7 +478,8 @@ function DraftForm({
   onDone: (choice: RunChoice) => void;
 }) {
   const [draft, setDraft] = useState<RunChoice>(choice);
-  const [tab, setTab] = useState<SettingsTab>("races");
+  // A run that can still change opens on the presets; a locked one on the settings it ran.
+  const [tab, setTab] = useState<SettingsTab>(lock === null ? "presets" : "races");
   const defaults = defaultChoice(draft, eraSettings);
   // A reset answer is null and a kept one the draft's own object, so `===` is enough.
   const atDefaults =
