@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
 /*
+ * A short window: a laptop screen, or one with the browser's toolbars open.
+ * Home tightens under it so its track stays in view (`MainMenu`).
+ */
+@custom-variant short (@media (max-height: 800px));
+
+/*
+ * The top nav's band on a wide screen, its rule not included: `h-nav` there, and
+ * what Home subtracts from the window to fill the rest of it exactly (`Shell`).
+ */
+@theme {
+  --spacing-nav: 50px;
+}
+
+/*
  * Design tokens, in the shadcn/ui shape: every colour is a CSS variable so a
  * component references `bg-card` rather than a literal, and a theme swap is a
  * change to these blocks alone.

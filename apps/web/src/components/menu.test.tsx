@@ -81,8 +81,7 @@ describe("the main menu", () => {
     }
   });
 
-  it("counts the seasons there are to run off the seed data", () => {
-    expect(html).toContain(`>${authoredSeasons.length}<`);
+  it("spans the seasons there are to run off the seed data", () => {
     expect(html).toContain(`>${Math.min(...authoredSeasons)}<`);
     expect(html).toContain(`>${Math.max(...authoredSeasons)}<`);
   });

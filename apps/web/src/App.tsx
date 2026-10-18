@@ -17,6 +17,7 @@ import type { SeasonTab, SeasonTabLink } from "./lib/season-tabs.js";
 import { adjacentSeason } from "./lib/seasons.js";
 import { type RoundPages, racePage, type SessionNav } from "./lib/session-nav.js";
 import type { Place, View } from "./lib/timeline.js";
+import { cn } from "./lib/utils.js";
 import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from "./store/season.js";
 
 /**
@@ -35,13 +36,33 @@ export function Shell({
   bar,
   seed,
   foot,
+  fit = false,
   children,
 }: {
   bar?: React.ReactNode;
   seed?: number;
   foot?: React.ReactNode;
+  /**
+   * On a wide screen, the column and `foot` fill the window below the nav
+   * exactly, so the foot is always in view and the footer waits below it. What
+   * the column holds must then scroll within itself (Home's modes).
+   */
+  fit?: boolean;
   children: React.ReactNode;
 }) {
+  const page = (
+    <>
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 sm:px-6",
+          fit && "lg:min-h-0",
+        )}
+      >
+        {children}
+      </div>
+      {foot}
+    </>
+  );
   return (
     <div className="flex flex-1 flex-col">
       {/*
@@ -57,10 +78,15 @@ export function Shell({
           </div>
         </div>
       )}
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 sm:px-6">
-        {children}
-      </div>
-      {foot}
+      {fit ? (
+        // The window's height less the nav's band and its rule. A floor, so a
+        // window too short for even the tightened page scrolls instead.
+        <div className="flex flex-col lg:h-[calc(100dvh-var(--spacing-nav)-1px)] lg:min-h-[30rem]">
+          {page}
+        </div>
+      ) : (
+        page
+      )}
       {/* Home's track meets the footer's rule; every other page leaves a gap. */}
       <SiteFooter
         {...(seed === undefined ? {} : { seed })}

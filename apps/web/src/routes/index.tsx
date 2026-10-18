@@ -54,7 +54,7 @@ function HomePage() {
   const dismissResumeFailed = useSeasonStore((state) => state.dismissResumeFailed);
   const [asking, setAsking] = useState(false);
   return (
-    <Shell foot={<HomeTrack />}>
+    <Shell foot={<HomeTrack />} fit>
       <MainMenu
         {...(run === null
           ? resumeFailed

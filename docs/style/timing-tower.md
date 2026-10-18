@@ -23,7 +23,9 @@ its CSS: the app builds the look from its own tokens (`index.css`) and component
 - **Racing marks carry the colour**: the circular sash badge, the flag, the small car in
   every row. The chequer is one diagonal sash across the window, at the badge's angle.
 - **Home is a timing tower**: a narrow-capitals hero beside the modes as rows, the run in
-  progress as a live session, and a racetrack with the parade along the foot.
+  progress as a live session, and a racetrack with the parade along the foot. On a wide
+  screen it fits the window, so the track is always in view: a short one shrinks the
+  headline, and the modes scroll.
 
 ## The five voices
 

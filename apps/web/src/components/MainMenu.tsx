@@ -11,22 +11,15 @@ import { cn, MONO_LABEL } from "../lib/utils.js";
  * are the part most likely to be quietly broken by an edit elsewhere.
  */
 
-/** How much history there is to run, off the seed data: never written down. */
-function Facts() {
-  const facts = [
-    { label: "Seasons", value: PLAYABLE_SEASONS.length },
-    { label: "First", value: PLAYABLE_SEASONS[0] },
-    { label: "Latest", value: PLAYABLE_SEASONS.at(-1) },
-  ];
+/**
+ * A year in the hero's copy, set in the headline's face so the range stands
+ * out. The range is the seed data's, never written down.
+ */
+function Year({ children }: { children: React.ReactNode }) {
   return (
-    <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-2">
-      {facts.map((fact) => (
-        <div key={fact.label} className="flex flex-col-reverse">
-          <dt className={MONO_LABEL}>{fact.label}</dt>
-          <dd className="text-[1.375rem] leading-tight font-semibold tabular-nums">{fact.value}</dd>
-        </div>
-      ))}
-    </dl>
+    <span className="narrow text-foreground text-[1.375rem] leading-none font-extrabold tabular-nums">
+      {children}
+    </span>
   );
 }
 
@@ -79,29 +72,43 @@ export function MainMenu({
   /** The run in progress, if there is one: drawn under the hero, since it is the likeliest next click. */
   resume?: React.ReactNode;
 }) {
+  // On a wide screen the page fills the window above the track (`Shell`'s
+  // `fit`), so the two columns share one row of what is left. A short window
+  // gets a headline sized to its height and less padding; past that the modes
+  // scroll, and the hero too as a last resort, rather than push the track off.
   return (
-    <div className="grid grid-cols-1 gap-6 py-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start lg:gap-x-10">
-      <div className="flex flex-col gap-2.5">
+    <div className="grid grid-cols-1 gap-6 py-6 sm:py-10 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:grid-rows-[minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:short:py-3">
+      <div className="flex flex-col gap-2.5 lg:max-h-full lg:overflow-y-auto">
         <header className="flex flex-col gap-2.5">
           <p className={MONO_LABEL}>Alternate history motorsport simulator</p>
-          <h1 className="narrow text-5xl leading-[0.9] font-extrabold tracking-[0.01em] text-balance uppercase md:text-7xl">
+          <h1 className="narrow text-5xl leading-[0.9] font-extrabold tracking-[0.01em] text-balance uppercase md:text-[clamp(2.75rem,8dvh,4.5rem)]">
             Rewrite motorsport history
           </h1>
-          <p className="text-muted-foreground max-w-[46ch]">
-            Pick a real season and race it again. The drivers and cars are the real ones; the
-            results are new every time.
+          {/* A player with a run to resume knows what this is: on a short window it makes room for the run. */}
+          <p
+            className={cn(
+              "text-muted-foreground max-w-[52ch]",
+              resume !== undefined && "lg:short:hidden",
+            )}
+          >
+            Re-live and re-race any season in motorsport history from{" "}
+            <Year>{PLAYABLE_SEASONS[0]}</Year> to <Year>{PLAYABLE_SEASONS.at(-1)}</Year>. Try
+            swapping drivers between teams to see how history could've played out differently, or
+            try new settings to see how things could've changed in so many other ways.
           </p>
         </header>
-        <Facts />
-        {resume === undefined ? null : <div className="mt-2.5">{resume}</div>}
+        {resume === undefined ? null : <div className="mt-2.5 lg:short:mt-0">{resume}</div>}
       </div>
 
-      <section aria-label="Modes" className="bg-card border-border border">
+      <section
+        aria-label="Modes"
+        className="bg-card border-border border lg:flex lg:max-h-full lg:flex-col"
+      >
         <div className="bg-card-header border-border flex justify-between border-b py-2 pr-3.5 pl-5">
           <span className={MONO_LABEL}>Mode</span>
           <span className={MONO_LABEL}>Status</span>
         </div>
-        <div className="striped">
+        <div className="striped lg:min-h-0 lg:overflow-y-auto">
           {MODES.map((mode) => (
             <ModeRow key={mode.id} mode={mode} onChoose={onChoose} />
           ))}

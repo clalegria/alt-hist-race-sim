@@ -67,7 +67,7 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
 
   return (
     <header className="bg-card-header border-border border-b">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-4 px-4 sm:px-6 md:h-[50px] md:flex-nowrap">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-4 px-4 sm:px-6 md:h-nav md:flex-nowrap">
         <Link
           to="/"
           className="narrow flex h-[50px] items-center gap-2 text-[17px] font-extrabold tracking-wide uppercase md:h-auto"
