@@ -118,9 +118,9 @@ function PersonHeader({
 
 /**
  * Which width a showcase car first shows at, by its place in the row. The
- * latest car comes first, as the badge and name beside it are the latest
- * year's; then the first; the one between only on a wide screen. On a phone,
- * none: the name needs the room.
+ * latest car comes first, as the header beside it describes the latest year;
+ * then the first; the one between only on a wide screen. On a phone, none: the
+ * name needs the room.
  */
 function showcaseClass(index: number, shown: number): string {
   if (index === shown - 1) {
@@ -129,19 +129,30 @@ function showcaseClass(index: number, shown: number): string {
   return index === 0 ? "md:flex" : "lg:flex";
 }
 
+/** A year on the grid and the team raced for in it: one car to draw. */
+interface ShowcaseYear {
+  readonly year: number;
+  readonly teamId: string;
+}
+
 /**
- * A team's cars across the run: its first, one from the years between and its
- * latest, each only if it looks different from the others (`showcaseYears`).
- * The car between is picked afresh each time the page opens. Still, not
- * turning: these are a gallery, not a winner's lap.
+ * The cars across someone's run — a team's own, or those of each team a driver
+ * raced for: the first, one from the years between and the latest, each only if
+ * it looks different from the others (`showcaseYears`). The car between is
+ * picked afresh each time the page opens. Still, not turning: these are a
+ * gallery, not a winner's lap.
  */
-function TeamCars({ teamId, years }: { teamId: string; years: readonly number[] }) {
+function ShowcaseCars({ cars }: { cars: readonly ShowcaseYear[] }) {
   const liveryYear = useLiveryYear();
   // Drawn once per visit, so the page does not change car as the reader opens a row.
   const [pick] = useState(Math.random);
-  const liveryIn = (year: number) => liveryFor(teamId, liveryYear(teamId, year));
+  const teamIn = new Map(cars.map(({ year, teamId }) => [year, teamId]));
+  const liveryIn = (year: number) => {
+    const teamId = teamIn.get(year);
+    return teamId === undefined ? undefined : liveryFor(teamId, liveryYear(teamId, year));
+  };
   const shown = showcaseYears(
-    years,
+    cars.map((each) => each.year),
     (year) => {
       const livery = liveryIn(year);
       return livery === undefined ? "" : carLook(livery, year);
@@ -413,6 +424,15 @@ export function DriverPage({
         name={driverName(driverId)}
         details={details}
         totals={totalsLine(records.drivers.find((each) => each.id === driverId))}
+        cars={
+          <ShowcaseCars
+            cars={appearances.map(({ year, teamId }) => ({
+              year,
+              // The team the row names: off the table once they have raced.
+              teamId: seasons.find((each) => each.year === year)?.teamId ?? teamId,
+            }))}
+          />
+        }
       />
       <CareerSeasons years={rows} />
     </div>
@@ -487,7 +507,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
               : `In the run ${first === latest.year ? first : `${first}–${latest.year}`}`
           }
           totals={totalsLine(record)}
-          cars={<TeamCars teamId={teamId} years={appearances.map((each) => each.year)} />}
+          cars={<ShowcaseCars cars={appearances.map(({ year }) => ({ year, teamId }))} />}
         />
       </Liveries>
       <CareerSeasons years={rows} teams />

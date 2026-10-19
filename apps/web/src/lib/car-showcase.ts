@@ -1,7 +1,7 @@
 /**
- * Which of a team's cars its page shows: its first of the run, its latest, and
- * one picked from the years between — each only if it looks different from the
- * ones already chosen.
+ * Which cars a team's or driver's page shows: the first of the run, the latest,
+ * and one picked from the years between — each only if it looks different from
+ * the ones already chosen.
  *
  * A car's look is its decade's drawing and its livery (`lookOf`): two years
  * with the same drawing in the same colours are the same picture, so the second

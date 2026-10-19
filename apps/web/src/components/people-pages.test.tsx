@@ -50,6 +50,15 @@ function phoneHeadings(html: string): [string, boolean][] {
   );
 }
 
+/** A page's showcase: one to three large cars, none turning, the row hidden on a phone. */
+function expectShowcase(html: string): void {
+  const cars = html.split(CAR_SIZES.large).length - 1;
+  expect(cars).toBeGreaterThanOrEqual(1);
+  expect(cars).toBeLessThanOrEqual(3);
+  expect(html).not.toContain("animate-wheel");
+  expect(html).toContain('class="hidden shrink-0 items-end gap-4 sm:flex"');
+}
+
 /** Someone on both years' grids, so their page has two rows. */
 const twoYears = second.field.find((entrant) =>
   first.field.some((each) => each.driverId === entrant.driverId),
@@ -66,6 +75,14 @@ describe("a driver's page", () => {
         all: roster.drivers.get(entrant.driverId)?.length,
         open: 0,
       });
+    }
+  });
+
+  it("draws the cars they raced, large and standing still, at most three, and none on a phone", () => {
+    for (const entrant of second.field) {
+      expectShowcase(
+        renderToStaticMarkup(<DriverPage years={midSeason} driverId={entrant.driverId} />),
+      );
     }
   });
 
@@ -177,12 +194,7 @@ describe("a team's page", () => {
 
   it("draws its cars large and standing still, at most three, and none on a phone", () => {
     for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
-      const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
-      const cars = html.split(CAR_SIZES.large).length - 1;
-      expect(cars).toBeGreaterThanOrEqual(1);
-      expect(cars).toBeLessThanOrEqual(3);
-      expect(html).not.toContain("animate-wheel");
-      expect(html).toContain('class="hidden shrink-0 items-end gap-4 sm:flex"');
+      expectShowcase(renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />));
     }
   });
 });

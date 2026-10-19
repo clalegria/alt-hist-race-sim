@@ -20,8 +20,8 @@ import { useLivery, useSeasonYear } from "./Liveries.js";
  *
  * **Two sizes, and only two.** Every row, slot and panel that shows a car uses
  * `small`, so a car is the same size wherever it is met; only the champion
- * cards, a team's page and the home screen's track use `large`, and only the
- * champion cards and the track turn the wheels.
+ * cards, the team and driver pages and the home screen's track use `large`, and
+ * only the champion cards and the track turn the wheels.
  *
  * **An inline SVG** rather than an `<img>`, because the colours are the team's
  * and are only known at render time, and because the page's own stylesheet can
