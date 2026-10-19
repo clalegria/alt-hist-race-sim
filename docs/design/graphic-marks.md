@@ -1,25 +1,14 @@
 # Graphic marks
 
-Three new drawn elements, chosen from a longer brainstorm, each in the timing-tower look
+Two new drawn elements, chosen from a longer brainstorm, each in the timing-tower look
 (`docs/style/timing-tower.md`). **The mockup is `docs/design/graphics-mockup.html`**: open it
-in a browser. Its sections 4, 5 and 7 are this design; 1, 2, 3 and 8 (gap bars, places
-gained, form strip, pit board) were not chosen and stay in it only as drawn examples.
+in a browser. Its sections 5 and 7 are this design; 4 (title stars) is built as
+`TitleCount`; 1, 2, 3 and 8 (gap bars, places gained, form strip, pit board) were not
+chosen and stay in it only as drawn examples.
 
 - DECIDED: **no new hue and no new voice.** Teal means "won the thing on screen" and is the
   only colour a mark adds; team colours go through `legible()`.
 - DECIDED: **every figure is derived on read** from result rows (`CLAUDE.md`), never kept.
-
-## Title stars
-
-A small teal star per championship after a name, on the driver and team page headings and
-in the era champions list, where the count builds row by row (★, ★★, ★★★).
-
-- DECIDED: stars count titles up to and including the season on screen.
-- DECIDED: **a trophy and a count** (`×3`), not a row of stars. The home mark is already a
-  yellow five-point star (`HomeAdvantage.tsx`), so stars would clash with it.
-- OPEN: **drivers' and constructors' titles** both get stars, or only the driver's.
-- PROPOSED: before *historical career records* a run counts only titles it has simulated;
-  that item adds the opening balance, which the star then includes.
 
 ## Livery barcode
 

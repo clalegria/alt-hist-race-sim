@@ -31,6 +31,7 @@ How every table names the same people. Which era's name a team is in is `team-er
 - **`tight` is opted into per table**: the race sidebar fits names to its column, the full
   classification wraps them. Don't unify the two without deciding which behaviour wins.
 - **Tests count flags by counting `<svg>`**, so nothing else beside a name may be an
-  inline SVG: the badge, the chevron, the page icon and the chart legend's marks are CSS.
-  The team car is the one SVG; flag counts skip it with `svgsBesideCars` (`test-support.ts`).
+  inline SVG: the badge, the chevron, the page icon, the title trophy and the chart
+  legend's marks are CSS. The team car is the one SVG; flag counts skip it with
+  `svgsBesideCars` (`test-support.ts`).
 - **`Flag.tsx` imports every flag in `country-flag-icons`**; never trim it to a subset.

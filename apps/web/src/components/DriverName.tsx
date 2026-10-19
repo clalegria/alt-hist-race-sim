@@ -28,6 +28,7 @@ export function DriverName({
   emphasis = false,
   badge = false,
   tight = false,
+  after,
 }: {
   driverId: string | null;
   /** Omit to show the name alone, with no team line. */
@@ -53,6 +54,8 @@ export function DriverName({
    * name in the app is a decision to make once it has been seen somewhere.
    */
   badge?: boolean;
+  /** A mark drawn right after the name, on its line: a champion's trophy. */
+  after?: React.ReactNode;
 }) {
   const nameOf = useEntryName();
   if (driverId === null) {
@@ -96,6 +99,7 @@ export function DriverName({
               <SplitName name={driverName(driverId)} />
             </span>
           )}
+          {after}
         </span>
         {teamId === undefined ? null : (
           // Indented to start under the name rather than under the flag.

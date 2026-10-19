@@ -9,6 +9,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { driverBirthYear, driverName } from "../lib/names.js";
+import { careerRecords } from "../lib/records.js";
 import { revealed } from "../lib/reveal.js";
 import { bestOverall, rosterOf } from "../lib/roster.js";
 import { driversLink, PAGE_OF, teamsLink } from "../lib/roster-places.js";
@@ -20,6 +21,7 @@ import { DriverPage, TeamPage } from "./PersonPages.js";
 import { RosterIndex } from "./RosterIndex.js";
 import { SeasonHistoryProvider } from "./SeasonHistory.js";
 import { CAR_SIZES } from "./TeamCar.js";
+import { TitleCount, titlesLabel } from "./TitleCount.js";
 
 const first = seededWorld(3, "aged", YEAR);
 const second = seededWorld(4, "aged", YEAR + 1);
@@ -180,6 +182,46 @@ describe("a driver's page", () => {
     }
     const bare = renderToStaticMarkup(<DriverPage years={midSeason} driverId={driverId} />);
     expect(bare).not.toContain("<a ");
+  });
+});
+
+describe("the title trophy on a page's heading", () => {
+  // A year in progress crowns nobody, so only the first year's champions have one.
+  const records = careerRecords(midSeason);
+  /** The trophy's tooltip in a page's `<h1>`, or null where it has none. */
+  const headingTrophy = (html: string): string | null =>
+    /<h1[^>]*>.*?role="img" aria-label="([^"]+)".*?<\/h1>/
+      .exec(html)?.[1]
+      ?.replaceAll("&#x27;", "'") ?? null;
+
+  it("counts a driver's titles of the run, and draws nothing for none", () => {
+    for (const record of records.drivers) {
+      const html = renderToStaticMarkup(<DriverPage years={midSeason} driverId={record.id} />);
+      expect(headingTrophy(html), record.id).toBe(
+        record.titles === 0 ? null : titlesLabel(record.titles, "driver"),
+      );
+    }
+  });
+
+  it("counts a team's constructors' titles of the run, and draws nothing for none", () => {
+    for (const record of records.teams) {
+      const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={record.id} />);
+      expect(headingTrophy(html), record.id).toBe(
+        record.titles === 0 ? null : titlesLabel(record.titles, "team"),
+      );
+    }
+  });
+
+  it("is a count from the second title, and says which championship", () => {
+    expect(renderToStaticMarkup(<TitleCount titles={0} kind="driver" />)).toBe("");
+    const one = renderToStaticMarkup(<TitleCount titles={1} kind="driver" />);
+    expect(one).toContain("1 drivers&#x27; title");
+    expect(one).not.toContain("×");
+    const three = renderToStaticMarkup(<TitleCount titles={3} kind="team" />);
+    expect(three).toContain("3 constructors&#x27; titles");
+    expect(three).toContain("×3");
+    // Drawn by the stylesheet: a flag is the only `<svg>` beside a name.
+    expect(three).not.toContain("<svg");
   });
 });
 

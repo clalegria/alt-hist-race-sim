@@ -250,6 +250,54 @@ describe("the roll of honour on a phone", () => {
   });
 });
 
+describe("the title trophies", () => {
+  /** The trophies a markup draws, by their tooltips. */
+  const trophies = (markup: string): string[] =>
+    [...markup.matchAll(/role="img" aria-label="([^"]+)"/g)].map((match) =>
+      (match[1] ?? "").replaceAll("&#x27;", "'"),
+    );
+
+  it("numbers each champion's titles up to and including that year", () => {
+    // The same season three times over crowns the same two names three times,
+    // whoever they are.
+    const world = createWorld(1, YEAR);
+    const crowned = eraChampions([world, world, world]);
+    expect(crowned.map((season) => season.driverTitle)).toEqual([1, 2, 3]);
+    expect(crowned.map((season) => season.teamTitle)).toEqual([1, 2, 3]);
+    // And in any run, each row counts the rows so far that crowned the same id.
+    const seasons = eraChampions(run.seasons);
+    seasons.forEach((season, index) => {
+      const sofar = seasons.slice(0, index + 1);
+      const driverId = season.driver?.driverId;
+      const teamId = season.team?.teamId;
+      expect(season.driverTitle).toBe(sofar.filter((s) => s.driver?.driverId === driverId).length);
+      expect(season.teamTitle).toBe(sofar.filter((s) => s.team?.teamId === teamId).length);
+    });
+  });
+
+  it("marks both champions of every year, with a count from the second title", () => {
+    const world = createWorld(1, YEAR);
+    expect(trophies(honour([world, world]))).toEqual([
+      "1 drivers' title",
+      "1 constructors' title",
+      "2 drivers' titles",
+      "2 constructors' titles",
+    ]);
+    expect(trophies(roll)).toHaveLength(run.seasons.length * 2);
+    const repeat = honour([world, world]);
+    expect(repeat.match(/×1</g)).toBeNull();
+    expect(repeat.match(/×2</g)).toHaveLength(2);
+  });
+
+  it("gives the year in progress none: a leader is not a champion", () => {
+    const year = revealYear(createWorld(5, YEAR + 3), { kind: "race", round: 3 });
+    const markup = renderToStaticMarkup(
+      <RollOfHonour seasons={eraChampions(run.seasons)} inProgress={year} />,
+    );
+    expect(trophies(markup)).toHaveLength(run.seasons.length * 2);
+  });
+});
+
 describe("a year opened out of the roll of honour", () => {
   // Controlled, so both states render on their own — a click is exactly what
   // this level of test cannot make.

@@ -24,22 +24,46 @@ export interface SeasonChampions {
   /** Null only if nobody scored at all, which a real season never does. */
   readonly driver: DriverStanding | null;
   readonly team: ConstructorStanding | null;
+  /**
+   * Which title of the run this is for each champion, counting this one: 1 for
+   * a first. A team's counts by lineage, as its career record does. 0 where
+   * nobody was crowned.
+   */
+  readonly driverTitle: number;
+  readonly teamTitle: number;
   /** The season as it was raced — the grid, the results and the scale. */
   readonly world: World;
 }
 
-function championsOf(world: World): SeasonChampions {
-  return {
-    year: world.year,
-    driver: championshipStandings(world.season, world.points)[0] ?? null,
-    team: constructorStandings(world.season, world.points)[0] ?? null,
-    world,
-  };
+/** Adds one title to `id`'s tally and returns the new total. */
+function crown(tally: Map<string, number>, id: string | undefined): number {
+  if (id === undefined) {
+    return 0;
+  }
+  const titles = (tally.get(id) ?? 0) + 1;
+  tally.set(id, titles);
+  return titles;
 }
 
-/** Every crowned season of a run, in the order they were raced. */
+/**
+ * Every crowned season of a run, in the order they were raced, each numbering
+ * its champions' titles so far — so a career reads as it builds, row by row.
+ */
 export function eraChampions(seasons: readonly World[]): readonly SeasonChampions[] {
-  return seasons.map(championsOf);
+  const drivers = new Map<string, number>();
+  const teams = new Map<string, number>();
+  return seasons.map((world) => {
+    const driver = championshipStandings(world.season, world.points)[0] ?? null;
+    const team = constructorStandings(world.season, world.points)[0] ?? null;
+    return {
+      year: world.year,
+      driver,
+      team,
+      driverTitle: crown(drivers, driver?.driverId),
+      teamTitle: crown(teams, team?.teamId),
+      world,
+    };
+  });
 }
 
 /**

@@ -17,6 +17,7 @@ export function TeamName({
   badge = false,
   tight = false,
   capitals = true,
+  after,
 }: {
   teamId: string;
   emphasis?: boolean;
@@ -27,6 +28,8 @@ export function TeamName({
   tight?: boolean;
   /** Bold narrow capitals, as a surname in a table is; off for a team named in prose. */
   capitals?: boolean;
+  /** A mark drawn right after the name: a champion's trophy. */
+  after?: React.ReactNode;
 }) {
   const base = useTeamCountry()(teamId);
   const nameOf = useEntryName();
@@ -40,6 +43,7 @@ export function TeamName({
       >
         {nameOf(teamId)}
       </span>
+      {after}
     </span>
   );
 }

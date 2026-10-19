@@ -17,6 +17,7 @@ import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
+import { TitleCount } from "./TitleCount.js";
 import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
@@ -123,6 +124,7 @@ export function ChampionRow({
                   teamId={season.driver.teamId}
                   emphasis
                   badge
+                  after={<TitleCount titles={season.driverTitle} kind="driver" />}
                 />
               </DriverHistory>
             )}
@@ -138,7 +140,12 @@ export function ChampionRow({
               <span className="text-muted-foreground">—</span>
             ) : (
               <TeamHistory teamId={season.team.teamId}>
-                <TeamName teamId={season.team.teamId} emphasis badge />
+                <TeamName
+                  teamId={season.team.teamId}
+                  emphasis
+                  badge
+                  after={<TitleCount titles={season.teamTitle} kind="team" />}
+                />
               </TeamHistory>
             )}
           </TableCell>

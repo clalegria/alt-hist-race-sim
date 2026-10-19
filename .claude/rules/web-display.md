@@ -21,9 +21,9 @@ paths:
 
 The accent, the session sheets and the championship tables.
 
-- **One accent (`lib/highlight.ts`) means "won the thing on screen"**: pole, a race
-  winner, each champion, and the sidebar's champion row from the round the title is
-  settled. One accented row or card per view; never give it a second meaning.
+- **One accent (`lib/highlight.ts`) means "won"**: pole, a race winner, each champion, the
+  sidebar's champion row once the title is settled, and `TitleCount`'s trophy on any title.
+  One accented row or card per view; never give it a second meaning.
 - **A row with a rank carries the accent on its `TablePosition` block, never as a row
   tint**: the winner's block filled (`STANDOUT_POSITION`), second and third's number in
   the accent (`PODIUM_POSITION`, race classification only). `STANDOUT_ROW` is for a row

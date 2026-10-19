@@ -42,6 +42,7 @@ import { DriverHistory, HISTORY_FILL, TeamHistory, usePageOf } from "./SeasonHis
 import { TeamBadge } from "./TeamBadge.js";
 import { carLook, LiveryCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
+import { TitleCount } from "./TitleCount.js";
 import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
@@ -85,13 +86,15 @@ export function totalsLine(record: CareerRecord | undefined): string {
 }
 
 /**
- * A page's heading: who, their totals in the mono sub-line, and the line under
- * it, with a team's cars across from them where the width allows.
+ * A page's heading: who, with their titles' trophy after the name, their totals
+ * in the mono sub-line, and the line under it, with a team's cars across from
+ * them where the width allows.
  */
 function PersonHeader({
   country,
   name,
   badge,
+  titles,
   details,
   totals,
   cars,
@@ -99,6 +102,7 @@ function PersonHeader({
   country: string | undefined;
   name: string;
   badge?: React.ReactNode;
+  titles?: React.ReactNode;
   details: React.ReactNode;
   totals: string;
   cars?: React.ReactNode;
@@ -106,7 +110,17 @@ function PersonHeader({
   return (
     <header className="flex items-end justify-between gap-6">
       <div className="flex min-w-0 flex-col gap-3">
-        <PageHeading title={name} flag={country} badge={badge} sub={totals} />
+        <PageHeading
+          title={
+            <>
+              {name}
+              {titles}
+            </>
+          }
+          flag={country}
+          badge={badge}
+          sub={totals}
+        />
         <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">
           {details}
         </p>
@@ -380,6 +394,7 @@ export function DriverPage({
   // were last seen.
   const now = Math.max(...years.map((each) => each.year));
   const best = bestOverall(years, driverId);
+  const record = records.drivers.find((each) => each.id === driverId);
   const details = (
     <>
       {born === undefined ? null : (
@@ -422,8 +437,9 @@ export function DriverPage({
       <PersonHeader
         country={driverCountry(driverId)}
         name={driverName(driverId)}
+        titles={<TitleCount titles={record?.titles ?? 0} kind="driver" size="heading" />}
         details={details}
-        totals={totalsLine(records.drivers.find((each) => each.id === driverId))}
+        totals={totalsLine(record)}
         cars={
           <ShowcaseCars
             cars={appearances.map(({ year, teamId }) => ({
@@ -501,6 +517,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
           badge={<TeamBadge teamId={teamId} />}
           country={teamCountryIn(teamId, latest.year)}
           name={teamNameIn(teamId, latest.year)}
+          titles={<TitleCount titles={record?.titles ?? 0} kind="team" size="heading" />}
           details={
             spells.length > 1
               ? `Raced as ${spells.map((spell) => `${spell.name} (${spellSpan(spell)})`).join(" · ")}`
