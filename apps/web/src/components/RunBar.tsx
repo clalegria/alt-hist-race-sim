@@ -368,7 +368,7 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
         ) : (
           <Link
             {...returnTo.link}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring font-mono text-xs underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring font-mono text-xs underline-offset-4 sm:whitespace-nowrap hover:underline focus-visible:ring-2 focus-visible:outline-none"
           >
             Run is at {state.cursor}
           </Link>
