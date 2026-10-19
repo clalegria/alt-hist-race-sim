@@ -340,10 +340,17 @@ describe("the season grid", () => {
     ).toBe(html);
   });
 
-  it("orders teams alphabetically, not by pace", () => {
-    // Sorting by car rating would give the season away before it started.
+  it("orders teams by the plain team name when sorted alphabetically", () => {
     // Located by the entry name the card carries, ordered by the team name it
     // is sorted on: a team does not move down the page for changing engine.
+    const html = renderToStaticMarkup(
+      <SeasonGrid
+        field={world.field}
+        seasonYear={YEAR}
+        ratingMode={world.ratingMode}
+        sort="name"
+      />,
+    );
     const teamIds = [...new Set(world.field.map((entrant) => entrant.teamId))];
     const shown = new Map(
       world.field.map((entrant) => [entrant.teamId, entryName(entrant.teamId, entrant.engineId)]),

@@ -1,5 +1,5 @@
 /**
- * The order every list is in, shared and remembered for the session.
+ * The order every list is in, shared and remembered between visits.
  *
  * There are three sort switches on the app — the opening grid, the pool of
  * drivers without a drive, and the grid at the foot of a finished season — and
@@ -16,13 +16,13 @@
  * `useSyncExternalStore` is what makes the three switches move together: they
  * subscribe to the same value, so setting one re-renders all of them.
  *
- * `sessionStorage`, not `localStorage`, because the ask was that it last the
- * session — and because the alphabetical default has a reason behind it (a grid
- * ordered by pace gives the pecking order away before a wheel has turned) that
- * should still be what a fresh visit opens on. Access is wrapped exactly as
- * `theme.ts` wraps it: it throws outright in Safari's private browsing and in
- * embeddings that block third-party storage, and is simply absent under Vitest,
- * which runs without a DOM.
+ * `localStorage`, like the theme, so a choice outlasts the visit: whichever
+ * order the reader last picked is the one the app opens on next time, and best
+ * first until they pick. Storage belongs to the address the app is served from,
+ * so a new tunnel address starts afresh on the default. Access is wrapped
+ * exactly as `theme.ts` wraps it: it throws outright in Safari's private
+ * browsing and in embeddings that block third-party storage, and is simply
+ * absent under Vitest, which runs without a DOM.
  */
 
 import { useSyncExternalStore } from "react";
@@ -36,11 +36,11 @@ export function parseSortOrder(raw: string | null): SortOrder {
 }
 
 function read(): SortOrder {
-  if (typeof sessionStorage === "undefined") {
+  if (typeof localStorage === "undefined") {
     return DEFAULT_SORT_ORDER;
   }
   try {
-    return parseSortOrder(sessionStorage.getItem(STORAGE_KEY));
+    return parseSortOrder(localStorage.getItem(STORAGE_KEY));
   } catch {
     return DEFAULT_SORT_ORDER;
   }
@@ -73,15 +73,15 @@ export function sortOrder(): SortOrder {
   return current;
 }
 
-/** Sets the order for every list on the app, and remembers it for the session. */
+/** Sets the order for every list on the app, and remembers it for next time. */
 export function setSortOrder(order: SortOrder): void {
   if (order === current) {
     return;
   }
   current = order;
-  if (typeof sessionStorage !== "undefined") {
+  if (typeof localStorage !== "undefined") {
     try {
-      sessionStorage.setItem(STORAGE_KEY, order);
+      localStorage.setItem(STORAGE_KEY, order);
     } catch {
       // Remembering is a convenience; failing to is not worth surfacing.
     }

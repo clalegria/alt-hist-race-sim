@@ -4,8 +4,8 @@
  * A *display* choice and nothing more: it reorders a list, it does not change
  * who is in it, and nothing here reaches the simulation. The two orders answer
  * two different questions — "where is Tyrrell in this list" and "who is quick
- * this year" — and the first is the one the grid opens on, because the pecking
- * order is not something the opening page should give away.
+ * this year" — and the second is the one every list opens on, because it is the
+ * one a reader keeps asking.
  *
  * The rule is a pure function so it can be tested against synthetic ratings,
  * the way `lib/people.ts` tests the pool filters: what an order does is a rule,
@@ -16,8 +16,8 @@ import { compareByRating } from "./rating.js";
 
 export type SortOrder = "name" | "overall";
 
-/** What every list opens on. Alphabetical — see the note above. */
-export const DEFAULT_SORT_ORDER: SortOrder = "name";
+/** What every list opens on until the reader picks the other. Best first — see the note above. */
+export const DEFAULT_SORT_ORDER: SortOrder = "overall";
 
 /**
  * Ordered: by name ascending, or by rating descending — best first, because

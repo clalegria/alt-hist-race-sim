@@ -132,6 +132,7 @@ describe("the supplier picker", () => {
       field={world.field}
       seasonYear={YEAR}
       ratingMode={world.ratingMode}
+      sort="name"
       edit={editing}
       changes={[]}
     />,
@@ -151,7 +152,7 @@ describe("the supplier picker", () => {
   });
 
   it("starts each team on the engine it actually ran", () => {
-    // Read off the markup in card order — the cards are alphabetical by team —
+    // Read off the markup in card order — sorted alphabetically by team here —
     // rather than by searching for a name: a works team is called the same
     // thing as one of the options in every other team's picker.
     const selected = [...html.matchAll(/<option value="(\w+)" selected=""/g)].map(

@@ -16,10 +16,11 @@ paths:
 How the grid and the pool of drivers without a seat are arranged. The grid itself is
 `web-grid.md`.
 
-- **Both lists sort alphabetically or best first** (`sortBy`); alphabetical stays the
-  default. Teams sort on the plain team name, not the entry name.
-- **The sort is one shared choice** (`lib/sort-preference.ts`, `sessionStorage`), so every
-  switch moves together; each `SortToggle` still needs its own radio group name.
+- **Both lists sort alphabetically or best first** (`sortBy`); best first is the
+  default (the author's call). Teams sort on the plain team name, not the entry name.
+- **The sort is one shared choice** (`lib/sort-preference.ts`, `localStorage`), so every
+  switch moves together and the last pick opens the next visit; each `SortToggle` still
+  needs its own radio group name.
 - **The pool filters only narrow the list on screen**: a hidden driver can still take a
   seat, and who the run may sign is the settings' own pool (`web-run-settings.md`).
 - **The filter rules live in `@alt-hist/data`**, re-exported by `lib/people.ts`, because

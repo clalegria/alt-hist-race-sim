@@ -14,8 +14,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 `ReserveList`). How the lists are ordered and the pool narrowed is `web-lists.md`.
 
 ## The grid
-- **The grid opens closed**: one overall per row, teams alphabetical, the individual
-  ratings behind a popover. Never put the pecking order on the opening page by default.
+- **The grid opens closed**: one overall per row, teams in the shared sort order (best
+  first by default, `web-lists.md`), the individual ratings behind a popover.
 - **An age is `ratedAge`**, the age the ratings beside it describe (peak age under
   `peak`). Ratings arrive resolved on the entrants and ages don't, so whatever draws an
   age takes the rating mode.

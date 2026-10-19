@@ -739,7 +739,7 @@ describe("ordering the grid and the pool", () => {
   describe("the team cards", () => {
     const names = (order: SortOrder) => byTeam(world.field, order).map((e) => teamName(e.teamId));
 
-    it("opens alphabetically, so the pecking order is not given away", () => {
+    it("puts the teams A to Z alphabetically", () => {
       expect(names("name")).toEqual([...names("name")].sort((a, b) => a.localeCompare(b)));
     });
 
@@ -772,9 +772,9 @@ describe("ordering the grid and the pool", () => {
     it("lists a team's own drivers best first, whatever order the cards are in", () => {
       // The pecking order *inside* a card is not the sort switch's business:
       // which of a team's drivers is its first driver is the comparison the
-      // card exists to make, so it holds in the alphabetical default too.
+      // card exists to make, so it holds when the cards are alphabetical too.
       const html = renderToStaticMarkup(
-        <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} />,
+        <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode={MODE} sort="name" />,
       );
       const at = (driverId: string) => html.indexOf(rowName(driverId));
 
@@ -830,7 +830,7 @@ describe("ordering the grid and the pool", () => {
       expect(overalls(render("overall")).toSorted()).toEqual(overalls(render("name")).toSorted());
     });
 
-    it("opens alphabetically", () => {
+    it("lists the pool in the order it was handed, alphabetically", () => {
       const html = render("name");
       const at = reserveDrivers(authored)
         .filter((driver) => matchesFilters(driver, YEAR, DEFAULT_DRIVER_FILTERS, MODE))

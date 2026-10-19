@@ -34,8 +34,11 @@ const sorted = (mode: Parameters<typeof sortBy>[1], rows: readonly Row[] = ROWS)
   );
 
 describe("ordering a list", () => {
-  it("opens alphabetically", () => {
-    expect(DEFAULT_SORT_ORDER).toBe("name");
+  it("opens best first", () => {
+    expect(DEFAULT_SORT_ORDER).toBe("overall");
+  });
+
+  it("puts the names A to Z alphabetically", () => {
     expect(order(sorted("name"))).toEqual(["Alpha", "Bravo", "Charlie", "Delta"]);
   });
 
