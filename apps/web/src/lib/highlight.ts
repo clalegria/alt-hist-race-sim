@@ -10,6 +10,12 @@
 export const STANDOUT_SURFACE = "border-primary/40 bg-primary/5";
 
 /**
+ * The surface's border alone, for a frame around accented cards (the
+ * champions' panel on a phone) that must not tint them twice.
+ */
+export const STANDOUT_BORDER = "border-primary/40";
+
+/**
  * For a table row with no position block (the roll of honour's year), which
  * cannot carry a border of its own — so the fill does the whole job and is set
  * stronger than the bordered surface's. A row that has a block carries the

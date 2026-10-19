@@ -212,32 +212,26 @@ describe("the champion cards", () => {
     expect(summary.split("motion-safe:animate-wheel").length - 1).toBe(2 * wheels);
   });
 
-  it("head each card with its label alone, the name and the car in the body", () => {
-    // The band is the label's; the body under it stretches, so the two cards
-    // stand at one height and their cars park in the same corner.
-    for (const label of ["Drivers’ champion", "Constructors’ champion"]) {
-      const start = summary.lastIndexOf("<header", summary.indexOf(label));
-      const band = summary.slice(start, summary.indexOf("</header>", start));
-      expect(textOf(band)).toBe(label);
-    }
-  });
-
-  it("draw each car after the words, at the card's right-hand edge", () => {
+  it("draw each car in the band beside the label, and the words beneath", () => {
+    // The car's place never depends on how long the name is: it rides in the
+    // band, the same in both cards, and the name and detail are the body's.
     const champion = championshipStandings(world.season, world.points)[0];
     const topTeam = constructorStandings(world.season, world.points)[0];
     if (champion === undefined || topTeam === undefined) {
       throw new Error("seeded world crowned nobody");
     }
-    const drivers = summary.indexOf("Drivers’ champion");
-    const constructors = summary.indexOf("Constructors’ champion");
-    const driversCard = summary.slice(drivers, constructors);
-    expect(driversCard.indexOf(CANVAS)).toBeGreaterThan(
-      driversCard.indexOf(driverName(champion.driverId)),
-    );
-    const constructorsCard = summary.slice(constructors);
-    expect(constructorsCard.indexOf(CANVAS)).toBeGreaterThan(
-      constructorsCard.indexOf(`${topTeam.points} points`),
-    );
+    const cards = [
+      { label: "Drivers’ champion", words: driverName(champion.driverId) },
+      { label: "Constructors’ champion", words: `${topTeam.points} points` },
+    ];
+    for (const { label, words } of cards) {
+      const start = summary.lastIndexOf("<header", summary.indexOf(label));
+      const end = summary.indexOf("</header>", start);
+      const band = summary.slice(start, end);
+      expect(textOf(band)).toBe(label);
+      expect(band).toContain(CANVAS);
+      expect(summary.indexOf(words, end)).toBeGreaterThan(end);
+    }
   });
 });
 

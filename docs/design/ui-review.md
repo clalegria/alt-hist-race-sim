@@ -72,7 +72,7 @@ Visual consistency. The first three settle how a name is drawn, which later item
 - **`names-outside-shared-components`** (PROPOSED)
   - These places draw a name by hand instead of through `DriverName`/`TeamName`:
     - `RosterIndex.tsx:~144`
-    - `SeasonOverview.tsx:~106,124` (champion cards)
+    - `SeasonOverview.tsx:~140,159` (champion cards)
     - `QualifyingResults.tsx:~63`
     - the grid popover header (`SeasonGrid.tsx:~426`)
   - The team page's lineup line has no flags at all (`PersonPages.tsx:~377-390`), which breaks the flag rule in `web-names.md`. Its `pl-6` also differs from `TEAM_LINE`'s `pl-[1.625rem]`.

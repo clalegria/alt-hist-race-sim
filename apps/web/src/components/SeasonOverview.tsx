@@ -8,7 +8,7 @@ import {
 } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { useMemo } from "react";
-import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
+import { STANDOUT_BORDER, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import type { RevealedWorld } from "../lib/reveal.js";
@@ -63,51 +63,59 @@ function Champion({
     // The same accent pole and the race winner carry: whoever won the thing on
     // screen looks the same wherever you meet them.
     //
-    // The two cards stand side by side at the same height, whatever their
-    // words, so the body fills its card: the car then parks in the same
-    // bottom-right corner of both.
-    <Card className={cn("flex flex-1 flex-col", STANDOUT_SURFACE)}>
-      <CardHeader className="px-3 py-2.5">
-        <p className={MONO_LABEL}>{label}</p>
+    // On a phone the two cards are the halves of one panel (`Champions`), so
+    // each drops its own border and corners, and the first keeps its bottom
+    // edge as the line between them.
+    <Card
+      className={cn(
+        "flex flex-col rounded-none border-0 first:border-b md:flex-1 md:rounded-xl md:border",
+        STANDOUT_SURFACE,
+      )}
+    >
+      {/*
+        The car rides in the band, beside the label, never beside the words:
+        parked against the text, its height followed the name's length, and the
+        two cards' cars sat at different heights to their words. Here it is in
+        the same place in both, and the name and detail get the card's whole
+        width. The one car on the app drawn large, and the one whose wheels
+        turn. Drawn after the label, which wraps to make room on a narrow card.
+      */}
+      <CardHeader className="flex-row items-center justify-between gap-3 px-3 py-2">
+        <p className={cn(MONO_LABEL, "min-w-0")}>{label}</p>
+        {teamId === undefined ? null : <TeamCar teamId={teamId} size="large" animated />}
       </CardHeader>
-      <div className="flex flex-1 flex-col gap-3 p-4 lg:flex-row lg:gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          {/*
-            The name wraps within itself, beside the badge and flag: wrapping
-            the row instead sent a long team name to a line of its own, and the
-            two cards' names to different heights. The marks sit in a box one
-            line tall, so they centre on the first line and every name starts
-            at the same height.
-          */}
-          <CardTitle
-            className={cn("flex items-start gap-2.5 text-3xl leading-none", STANDOUT_TEXT)}
-          >
-            <span className="flex h-[1em] shrink-0 items-center gap-2.5">
-              {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
-              {country === undefined || country === "" ? null : (
-                <Flag country={country} title={country} className="h-5 w-7.5" />
-              )}
-            </span>
-            <span className="min-w-0">{name}</span>
-          </CardTitle>
-          <p className="text-muted-foreground text-sm">{detail}</p>
-        </div>
+      <div className="flex flex-col gap-2 p-3 md:p-4">
         {/*
-          After the words, so the card still reads label, name, detail, and in
-          the bottom-right corner. Beside them only once the card is wide
-          enough: narrower, it would squeeze a team's name onto three lines, so
-          it drops beneath instead. The one car on the app drawn large, and
-          the one whose wheels turn.
+          The name wraps within itself, beside the badge and flag: wrapping the
+          row instead sent a long team name to a line of its own. The marks sit
+          in a box one line tall, so they centre on the first line. A size down
+          until the cards are wide enough for a team's whole name on one line.
         */}
-        {teamId === undefined ? null : (
-          <TeamCar teamId={teamId} size="large" animated className="mt-auto self-end" />
-        )}
+        <CardTitle
+          className={cn(
+            "flex items-start gap-2.5 text-2xl leading-none lg:text-3xl",
+            STANDOUT_TEXT,
+          )}
+        >
+          <span className="flex h-[1em] shrink-0 items-center gap-2.5">
+            {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
+            {country === undefined || country === "" ? null : (
+              <Flag country={country} title={country} className="h-5 w-7.5" />
+            )}
+          </span>
+          <span className="min-w-0">{name}</span>
+        </CardTitle>
+        <p className="text-muted-foreground text-sm">{detail}</p>
       </div>
     </Card>
   );
 }
 
-/** The season's two champions, side by side. */
+/**
+ * The season's two champions: one panel on a phone, the two stacked in it
+ * where side by side would squeeze each name to a word a line; two cards side
+ * by side once there is room.
+ */
 function Champions({ world }: { world: RevealedWorld }) {
   const nameOf = useEntryName();
   const countryOf = useTeamCountry();
@@ -115,7 +123,14 @@ function Champions({ world }: { world: RevealedWorld }) {
   const champion = useMemo(() => championshipStandings(season, points)[0], [season, points]);
   const topTeam = useMemo(() => constructorStandings(season, points)[0], [season, points]);
   return (
-    <div className="flex flex-col gap-4 sm:flex-row">
+    // The panel's border is the cards' own accent colour; from `md` the panel
+    // steps aside (no border, no corners) and leaves the cards to draw theirs.
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-xl border md:flex-row md:gap-4 md:overflow-visible md:rounded-none md:border-0",
+        STANDOUT_BORDER,
+      )}
+    >
       <Champion
         label="Drivers&rsquo; champion"
         name={
