@@ -286,12 +286,7 @@ export function SeasonOverview({
         />
       )}
       {finished ? <Champions world={world} /> : null}
-      {/* The terms the season is being settled under, between the result and the tables. */}
-      <SimulationSettings
-        settings={settingsOf(world)}
-        className="text-muted-foreground py-5 text-xs"
-      />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pt-5">
         {tabs === undefined ? null : <SeasonTabs tabs={tabs} />}
         {tab === "calendar" ? (
           <SeasonCalendar
@@ -345,6 +340,14 @@ export function SeasonOverview({
           />
         )}
       </div>
+      {/*
+        The terms the season is being settled under, at the foot of the page:
+        the line runs long and would push the result and the tables down.
+      */}
+      <SimulationSettings
+        settings={settingsOf(world)}
+        className="text-muted-foreground pt-8 text-xs"
+      />
     </>
   );
 }

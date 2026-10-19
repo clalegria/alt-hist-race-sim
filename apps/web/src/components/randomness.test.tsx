@@ -131,22 +131,20 @@ describe("the settings a finished championship was run under", () => {
     }
   });
 
-  it("sits between the champions and the season they came out of", () => {
-    // Where it goes is the point: overlaying the champion is what the first
-    // attempt did. The summary's sections are stacked with no gap of their own,
-    // so this line has to bring its own padding and sit in the break.
+  it("sits at the foot of the page, under the season it was run on", () => {
+    // The line runs long, so it waits below the tables rather than pushing the
+    // champions and the standings down the screen.
     const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     const champion = html.indexOf("champion");
     const note = html.indexOf("Simulation settings");
-    // The standings, the first tab, are the tables under the break.
+    // The standings, the first tab, are the tables above it.
     const seasonCard = html.indexOf("Drivers’ Championship");
     expect(champion).toBeGreaterThan(-1);
-    expect(seasonCard).toBeGreaterThan(-1);
-    expect(note).toBeGreaterThan(champion);
-    expect(note).toBeLessThan(seasonCard);
+    expect(seasonCard).toBeGreaterThan(champion);
+    expect(note).toBeGreaterThan(seasonCard);
     expect(html.indexOf(randomnessLabel(5), note)).toBeGreaterThan(note);
-    // And it is spaced rather than pulled into its neighbours.
-    expect(html.slice(note - 200, note)).toContain("py-5");
+    // And it is spaced rather than pulled into the tables.
+    expect(html.slice(note - 200, note)).toContain("pt-8");
   });
 
   it("reaches the roll of honour, off the season that fixed the settings", () => {
