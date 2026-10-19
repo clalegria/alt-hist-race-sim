@@ -66,6 +66,8 @@ describe("the season's page, partway through the year", () => {
     // The heading and every row's pole cell, raced, pending and ahead alike.
     expect(count(html, "hidden sm:table-cell")).toBe(1 + ROUNDS);
     expect(count(html, "whitespace-normal")).toBeGreaterThanOrEqual(ROUNDS);
+    // Every round's circuit line, so a wet one never sets the column's width.
+    expect(count(html, "max-sm:flex-wrap")).toBe(ROUNDS);
   });
 
   it("says how far the season has got, and crowns nobody", () => {

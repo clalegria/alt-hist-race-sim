@@ -34,7 +34,8 @@ shows what, and the gate, are `web-routing.md`.
   revealed shows `NOT_YET`, for its winner. A reached round's name links its page
   (`pagesOf`), and opening the row is the quick look. `CalendarRow` is controlled.
 - **A phone's calendar row is round and winner**: Pole shows from `sm`, the Grand Prix
-  wraps, and the names are `tight` in `max-w-0` cells. Never a sideways scroll.
+  wraps, and the names are `tight` in `max-w-0` cells. Never a sideways scroll, and
+  nothing in a Grand Prix that cannot wrap: one row's widest line sets every row's.
 - **Session links move between places and never reveal** (`sessionNav`): a place ahead is
   a disabled `span`, never an `<a>`. Moving between rounds goes through `roundLink`,
   shared with the breadcrumbs' menus.

@@ -24,7 +24,8 @@ import { WeatherBadge } from "./WeatherBadge.js";
 /**
  * A phone's calendar row is the round and its winner, never a sideways scroll:
  * the pole shows from `sm`, as Pods and Poles do on the standings, and the
- * Grand Prix's name wraps rather than widening the table.
+ * Grand Prix's name wraps, and its rain pill drops under the circuit, rather
+ * than widening the column.
  *
  * The two name columns split the slack between them, `max-w-0` so a name never
  * sizes its column — the provisional standings' trick — and each name fits to
@@ -107,23 +108,31 @@ function RoundName({
             ▶
           </span>
         )}
-        {round === undefined ? null : (
-          <span
-            className={cn(
-              "font-mono text-xs tracking-wider uppercase",
-              dim ? "text-subtle" : "text-muted-foreground",
-            )}
-          >
-            {round.circuit}
-          </span>
-        )}
         {/*
-          Under the circuit rather than beside the name: a wet round is a fact
-          about the afternoon, and the line that already says where it was held
-          is where the rest of the conditions belong. Dry rounds draw nothing,
-          so the column stays quiet.
+          On a phone the pill drops under the circuit when the two don't fit:
+          one wet Hockenheimring would otherwise set the column's width for
+          every row and squeeze the winners. Inside its own box, so a dropped
+          pill keeps the circuit's indent.
         */}
-        {race === undefined ? null : <WeatherBadge weather={race.weather} compact />}
+        <span className="flex items-center gap-x-2 gap-y-1 max-sm:flex-wrap">
+          {round === undefined ? null : (
+            <span
+              className={cn(
+                "font-mono text-xs tracking-wider uppercase",
+                dim ? "text-subtle" : "text-muted-foreground",
+              )}
+            >
+              {round.circuit}
+            </span>
+          )}
+          {/*
+            Under the circuit rather than beside the name: a wet round is a fact
+            about the afternoon, and the line that already says where it was held
+            is where the rest of the conditions belong. Dry rounds draw nothing,
+            so the column stays quiet.
+          */}
+          {race === undefined ? null : <WeatherBadge weather={race.weather} compact />}
+        </span>
       </span>
     </span>
   );
