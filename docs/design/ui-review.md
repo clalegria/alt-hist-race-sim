@@ -29,14 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Page structure, navigation, and the phone screens after the two in tier 1.
 
-- **`title-only-reasons`** (PROPOSED; *Phone layout*)
-  - Some reasons live only in a `title` tooltip, which a touch screen never shows:
-    - why Continue is disabled ("Apply or cancel the grid edit first");
-    - why Back to setup is locked (`BackToSetup`, `RunSettingsLine.tsx:~69`);
-    - "Not available yet" on the nav (`TopNav.tsx:~49`) and the footer (`SiteFooter.tsx:~27`);
-    - the movement arrows in the sidebar standings (`CompactStandings.tsx:~36`).
-  - Fix: visible small text, or sr-only text plus a visible cue.
-  - Screenshot step: `season-summary --phone`.
 - **`settings-dialog-phone`** (PROPOSED; *Phone layout*)
   - On a phone the run settings dialog scrolls as a whole: the title scrolls away and Cancel/Done sit below the fold.
   - Fix: pin the header and footer, and scroll only the body.
