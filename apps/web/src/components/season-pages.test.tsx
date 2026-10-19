@@ -50,15 +50,22 @@ describe("the season's page, partway through the year", () => {
     }
   });
 
-  it("names no pole or winner for a round not reached", () => {
+  it("leaves a round not reached empty, without the dots", () => {
     const html = seasonPage({ kind: "race", round: MID }, "calendar");
-    expect(count(html, `title="${NOT_YET}"`)).toBe(2 * (ROUNDS - MID - 1));
+    expect(count(html, `title="${NOT_YET}"`)).toBe(0);
   });
 
-  it("shows the pole of a round whose qualifying alone is revealed, and not its winner", () => {
+  it("shows the pole of a round whose qualifying alone is revealed, and dots for its winner", () => {
     const html = seasonPage({ kind: "qualifying", round: MID }, "calendar");
-    expect(count(html, `title="${NOT_YET}"`)).toBe(2 * (ROUNDS - MID) - 1);
+    expect(count(html, `title="${NOT_YET}"`)).toBe(1);
     expect(count(html, "aria-expanded")).toBe(MID);
+  });
+
+  it("keeps the pole off a phone, and lets the Grand Prix wrap", () => {
+    const html = seasonPage({ kind: "qualifying", round: MID }, "calendar");
+    // The heading and every row's pole cell, raced, pending and ahead alike.
+    expect(count(html, "hidden sm:table-cell")).toBe(1 + ROUNDS);
+    expect(count(html, "whitespace-normal")).toBeGreaterThanOrEqual(ROUNDS);
   });
 
   it("says how far the season has got, and crowns nobody", () => {

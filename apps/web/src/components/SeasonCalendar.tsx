@@ -8,7 +8,7 @@ import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { DriverHistory } from "./SeasonHistory.js";
+import { DriverHistory, HISTORY_FILL } from "./SeasonHistory.js";
 import { Card, CardBand } from "./ui/card.js";
 import {
   Table,
@@ -21,10 +21,29 @@ import {
 } from "./ui/table.js";
 import { WeatherBadge } from "./WeatherBadge.js";
 
-/** What a round not reached shows in place of a name. */
+/**
+ * A phone's calendar row is the round and its winner, never a sideways scroll:
+ * the pole shows from `sm`, as Pods and Poles do on the standings, and the
+ * Grand Prix's name wraps rather than widening the table.
+ *
+ * The two name columns split the slack between them, `max-w-0` so a name never
+ * sizes its column — the provisional standings' trick — and each name fits to
+ * what it is given rather than pushing a scrollbar under the card.
+ */
+const GRAND_PRIX = "max-sm:whitespace-normal max-sm:px-2";
+const NAME_COLUMN = "w-1/2 max-w-0 max-sm:px-2";
+/** The round number, narrowed on a phone to give the winner its room. */
+const ROUND = "w-12 text-right tabular-nums max-sm:w-8 max-sm:px-2";
+const POLE = cn(NAME_COLUMN, "hidden sm:table-cell");
+
+/** What the pending round shows in place of its winner. */
 export const NOT_YET = "Not reached yet";
 
-/** A pole or a winner the reader has not reached: dots, and words for a screen reader. */
+/**
+ * The winner of the round whose qualifying alone is revealed: dots, and words
+ * for a screen reader. A round further ahead leaves both cells empty — the dots
+ * mark the one race that is next, not every race still to come.
+ */
 function NotYet() {
   return (
     <span title={NOT_YET} className="text-muted-foreground">
@@ -122,9 +141,11 @@ function RoundDriver({
     return <DriverName driverId={null} />;
   }
   return (
-    <DriverHistory driverId={driverId}>
-      <DriverName driverId={driverId} teamId={teamFor.get(driverId)} badge />
-    </DriverHistory>
+    <span className="flex min-w-0">
+      <DriverHistory driverId={driverId} className={HISTORY_FILL}>
+        <DriverName driverId={driverId} teamId={teamFor.get(driverId)} badge tight />
+      </DriverHistory>
+    </span>
   );
 }
 
@@ -165,8 +186,8 @@ export function CalendarRow({
   return (
     <>
       <TableRow className={cn(open && "bg-muted/60")}>
-        <TableCell className="text-muted-foreground text-right tabular-nums">{index + 1}</TableCell>
-        <TableCell>
+        <TableCell className={cn(ROUND, "text-muted-foreground")}>{index + 1}</TableCell>
+        <TableCell className={GRAND_PRIX}>
           <RoundName
             round={round}
             index={index}
@@ -179,10 +200,10 @@ export function CalendarRow({
             }
           />
         </TableCell>
-        <TableCell>
+        <TableCell className={POLE}>
           <RoundDriver driverId={race.poleDriverId} teamFor={teamFor} />
         </TableCell>
-        <TableCell>
+        <TableCell className={NAME_COLUMN}>
           <RoundDriver driverId={race.winnerDriverId} teamFor={teamFor} />
         </TableCell>
       </TableRow>
@@ -207,7 +228,8 @@ export function CalendarRow({
  * `season` is the season as far as the reader has got, so a round past the
  * cursor has no result to draw: it is listed, greyed, and does not open.
  * `rounds` says how many there are in all; `pending` is the round whose
- * qualifying is revealed and whose race is not, which shows its pole only.
+ * qualifying is revealed and whose race is not, which shows its pole and
+ * dots for its winner.
  *
  * `pagesOf` gives a round's pages, and with it each name gains the page icon:
  * to its race on a round raced, to its qualifying on the pending round,
@@ -250,10 +272,10 @@ export function SeasonCalendar({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12 text-right">Rnd</TableHead>
+            <TableHead className={ROUND}>Rnd</TableHead>
             <TableHead>Grand Prix</TableHead>
-            <TableHead>Pole</TableHead>
-            <TableHead>Winner</TableHead>
+            <TableHead className={POLE}>Pole</TableHead>
+            <TableHead className={NAME_COLUMN}>Winner</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -265,8 +287,8 @@ export function SeasonCalendar({
               const pole = pending?.round === index ? pending.poleDriverId : null;
               return (
                 <TableRow key={key} className="text-muted-foreground hover:bg-transparent">
-                  <TableCell className="text-right tabular-nums">{index + 1}</TableCell>
-                  <TableCell>
+                  <TableCell className={ROUND}>{index + 1}</TableCell>
+                  <TableCell className={GRAND_PRIX}>
                     {/* Not a button: there is nothing yet to open. */}
                     <RoundName
                       round={round}
@@ -283,12 +305,10 @@ export function SeasonCalendar({
                       }
                     />
                   </TableCell>
-                  <TableCell>
-                    {pole === null ? <NotYet /> : <RoundDriver driverId={pole} teamFor={teamFor} />}
+                  <TableCell className={POLE}>
+                    {pole === null ? null : <RoundDriver driverId={pole} teamFor={teamFor} />}
                   </TableCell>
-                  <TableCell>
-                    <NotYet />
-                  </TableCell>
+                  <TableCell className={NAME_COLUMN}>{pole === null ? null : <NotYet />}</TableCell>
                 </TableRow>
               );
             }
