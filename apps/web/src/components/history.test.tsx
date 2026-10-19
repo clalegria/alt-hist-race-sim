@@ -517,7 +517,7 @@ describe("names open their panel everywhere", () => {
   it("opens one from both champions' cards on the season page", () => {
     const page = (html: string) => html.slice(0, html.indexOf("<table"));
     const overview = (
-      <SeasonOverview world={revealYear(world, { kind: "summary" })} finished tab="calendar" />
+      <SeasonOverview world={revealYear(world, { kind: "summary" })} finished tab="standings" />
     );
     // The cards come before the first table, whose names open panels of their own.
     expect(panelTriggers(page(inRun(overview)))).toHaveLength(2);

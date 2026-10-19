@@ -15,8 +15,8 @@ paths:
 `/run/<year>` (`SeasonOverview`), and a session page's header and round links. Which URL
 shows what, and the gate, are `web-routing.md`.
 
-- **One season page, finished or not**, cut at the cursor; the champion cards go under
-  its heading once the summary is reached (`finished`).
+- **One season page, finished or not**, cut at the cursor; the champion cards head
+  the standings tab, under the tab strip, once the summary is reached (`finished`).
 - **A page's one `<h1>` is `PageHeading`**, which owns the heading flag's size (a team's
   badge goes in `badge`, ahead of it). Every page but Home's hero uses it; don't
   hand-roll another.

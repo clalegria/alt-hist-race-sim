@@ -287,11 +287,11 @@ describe("where liveries appear", () => {
     const drivers = championshipStandings(world.season, world.points).length;
     const teams = constructorStandings(world.season, world.points).length;
     const rounds = world.season.races.length;
-    // The champions head every tab; the tables, the calendar and the grid
-    // panel (which badges its cards too) are one tab each.
+    // The champions head the standings tab; the tables, the calendar and the
+    // grid panel (which badges its cards too) are one tab each.
     expect(badgeCount(summaryTab("standings"))).toBe(2 + drivers + teams);
-    expect(badgeCount(summaryTab("calendar"))).toBe(2 + 2 * rounds);
-    expect(badgeCount(summaryTab("grid"))).toBe(2 + badgedCards);
+    expect(badgeCount(summaryTab("calendar"))).toBe(2 * rounds);
+    expect(badgeCount(summaryTab("grid"))).toBe(badgedCards);
   });
 });
 

@@ -106,6 +106,12 @@ describe("the season's page, partway through the year", () => {
     expect(html).toContain("Final classification");
   });
 
+  it("keeps the champions on the standings tab, off the calendar and the grid", () => {
+    for (const tab of ["calendar", "grid"] as const) {
+      expect(seasonPage({ kind: "summary" }, tab), tab).not.toContain("Drivers’ champion");
+    }
+  });
+
   it("links every tab but the one on screen, the standings at the season's own address", async () => {
     const html = await inRouter(
       <SeasonView

@@ -502,11 +502,15 @@ describe("what the season summary says about an edited grid", () => {
   const html = renderToStaticMarkup(
     <SeasonView {...shownAt(editedWorld, { kind: "summary" })} tab="grid" />,
   );
+  // The standings tab, where the champions are.
+  const standings = renderToStaticMarkup(
+    <SeasonView {...shownAt(editedWorld, { kind: "summary" })} />,
+  );
   const plain = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
 
   it("declares it at the top, before the champions", () => {
-    expect(html).toContain("Edited grid");
-    expect(html.indexOf("Edited grid")).toBeLessThan(html.indexOf("champion"));
+    expect(standings).toContain("Edited grid");
+    expect(standings.indexOf("Edited grid")).toBeLessThan(standings.indexOf("champion"));
   });
 
   it("repeats it on the grid tab, on the grid it happened to", () => {
@@ -530,7 +534,7 @@ describe("what the season summary says about an edited grid", () => {
   it("does not borrow the accent the champions wear", () => {
     // "The grid was changed" is a caveat on the result, not a thing that was
     // won — and the accent test counts exactly two accented cards per summary.
-    expect(occurrences(html, "bg-primary/5")).toBe(occurrences(plain, "bg-primary/5"));
+    expect(occurrences(standings, "bg-primary/5")).toBe(occurrences(plain, "bg-primary/5"));
   });
 });
 

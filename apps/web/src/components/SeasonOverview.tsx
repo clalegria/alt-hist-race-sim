@@ -196,8 +196,8 @@ function SeasonTabs({ tabs }: { tabs: readonly SeasonTabLink[] }) {
  *
  * `world` is cut at the cursor like every page's, so mid-season the
  * standings are as of the last race revealed and the calendar greys the
- * rounds still ahead. `finished` is the summary reached: the champions go on
- * top, above the same tabs.
+ * rounds still ahead. `finished` is the summary reached: the champions head
+ * the standings tab.
  *
  * `tabs` is the links; absent in a test without a router, where the tab named
  * by `tab` still draws.
@@ -285,9 +285,14 @@ export function SeasonOverview({
           trendChanges={retrended}
         />
       )}
-      {finished ? <Champions world={world} /> : null}
       <div className="flex flex-col gap-4 pt-5">
         {tabs === undefined ? null : <SeasonTabs tabs={tabs} />}
+        {/*
+          The champions are the standings' headline, so they live on that tab:
+          above the tabs they pushed the calendar and the grid most of a phone's
+          screen down.
+        */}
+        {finished && tab === "standings" ? <Champions world={world} /> : null}
         {tab === "calendar" ? (
           <SeasonCalendar
             season={season}
