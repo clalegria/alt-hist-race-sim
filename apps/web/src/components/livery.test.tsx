@@ -25,6 +25,7 @@ import { SeasonView } from "./SeasonView.js";
 import {
   BADGE_SHAPE,
   badgeBackground,
+  barcodeBackground,
   CORNER_SASH,
   CORNER_SHAPE,
   cornerBackground,
@@ -357,6 +358,18 @@ describe("the grid card's corner", () => {
       }
       expect(corner.includes("#222222")).toBe(stripes >= 1);
       expect(corner.includes("#333333")).toBe(stripes >= 2);
+    }
+  });
+
+  it("draws a barcode stripe's accents as the badge's stripes, along the bottom", () => {
+    for (const stripes of [0, 1, 2]) {
+      const stripe = barcodeBackground(livery(stripes));
+      expect(stripe.includes("#222222")).toBe(stripes >= 1);
+      expect(stripe.includes("#333333")).toBe(stripes >= 2);
+      // The primary on top, the accents after it, running to the bottom edge.
+      const colours = stops(stripe).map(([colour]) => colour);
+      expect(colours.slice(0, 1)).toEqual(stripes === 0 ? [] : ["#111111"]);
+      expect(colours.slice(1).includes("#111111")).toBe(false);
     }
   });
 

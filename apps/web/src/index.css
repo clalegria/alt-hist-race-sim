@@ -454,11 +454,24 @@ body {
   --pattern-minor: 20px;
   --pattern-major-tint: oklch(100% 0 0 / 0.032);
   --pattern-minor-tint: oklch(100% 0 0 / 0.019);
+  --pattern-gap-tint: oklch(100% 0 0 / 0.09);
 }
 
 :root[data-theme="light"] {
   --pattern-major-tint: oklch(0% 0 0 / 0.052);
   --pattern-minor-tint: oklch(0% 0 0 / 0.032);
+  --pattern-gap-tint: oklch(0% 0 0 / 0.1);
+}
+
+/*
+ * A year the livery barcode's team or driver sat out: the sash's chequer, small
+ * and stronger (`--pattern-gap-tint`), so it reads as "empty" beside a white
+ * livery on the light theme and a black one on the dark: a light grey on light,
+ * a dark grey on dark.
+ */
+.barcode-gap {
+  background-image: repeating-conic-gradient(var(--pattern-gap-tint) 0% 25%, transparent 0% 50%);
+  background-size: 6px 6px;
 }
 
 body::before {

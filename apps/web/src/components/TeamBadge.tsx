@@ -79,6 +79,26 @@ function sash(livery: Livery, angle: string, centre: number): string {
   return primaryColor;
 }
 
+/** How far up a livery barcode stripe its accents reach, from the bottom. */
+const BARCODE_ACCENTS = 34;
+
+/**
+ * A livery barcode stripe, top to bottom: the primary over the badge's stripes
+ * as a band along the bottom, split in two where the badge has two.
+ */
+export function barcodeBackground(livery: Livery): string {
+  const { primaryColor, secondaryColor1, secondaryColor2, badgeStripes } = livery;
+  const from = 100 - BARCODE_ACCENTS;
+  if (badgeStripes === 1) {
+    return `linear-gradient(${primaryColor} ${from}%, ${secondaryColor1} ${from}%)`;
+  }
+  if (badgeStripes >= 2) {
+    const split = from + BARCODE_ACCENTS / 2;
+    return `linear-gradient(${primaryColor} ${from}%, ${secondaryColor1} ${from}%, ${secondaryColor1} ${split}%, ${secondaryColor2} ${split}%)`;
+  }
+  return primaryColor;
+}
+
 /**
  * The corner's sash runs up to the right, so its axis crosses the diagonal the
  * corner is cut along; the corner is the far half of that axis, 50 to 100.

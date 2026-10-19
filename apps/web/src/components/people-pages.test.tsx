@@ -8,7 +8,7 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { seasonsBefore } from "../lib/barcode.js";
+import { driverSeasonsBefore, seasonsBefore } from "../lib/barcode.js";
 import { driverBirthYear, driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import { revealed } from "../lib/reveal.js";
@@ -242,18 +242,60 @@ describe("a team's page", () => {
   });
 
   it("draws a livery stripe per season of its life, up to the run's year and no further", () => {
-    const now = second.year;
     const roster = rosterOf(midSeason);
-    for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
+    for (const teamId of new Set([...first.field, ...second.field].map(({ teamId }) => teamId))) {
       const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
-      const years = [...html.matchAll(/data-year="(\d+)"/g)].map(([, year]) => Number(year));
-      const start = seasonsBefore(teamId, YEAR)[0] ?? roster.teams.get(teamId)?.[0]?.year ?? now;
-      expect(years).toEqual(Array.from({ length: now - start + 1 }, (_, i) => start + i));
-      // The caret sits on the season the heading describes: this team is on the cursor's grid.
-      expect(html.match(/data-year="(\d+)"[^>]*>(?:(?!<\/span>).)*data-caret/)?.[1]).toBe(
-        String(now),
-      );
-      expect(html.split("data-caret").length - 1).toBe(1);
+      const start = seasonsBefore(teamId, YEAR)[0] ?? roster.teams.get(teamId)?.[0]?.year;
+      expectBarcode(html, start ?? second.year);
+    }
+  });
+});
+
+/**
+ * A strip from `start` to the run's year, the caret on that year whether the
+ * page's own latest season is it or not, and every year sat out a chequer.
+ */
+function expectBarcode(html: string, start: number): Stripe[] {
+  const now = second.year;
+  const stripes = [
+    ...html.matchAll(
+      /data-year="(\d+)" title="\d+(?: \(([^)]+)\)|(, not racing))?" class="([^"]*)"/g,
+    ),
+  ].map(([, year, name, gap, classes]) => ({
+    year: Number(year),
+    name,
+    gap: gap !== undefined,
+    chequer: classes?.includes("barcode-gap") ?? false,
+  }));
+  expect(stripes.map(({ year }) => year)).toEqual(
+    Array.from({ length: now - start + 1 }, (_, i) => start + i),
+  );
+  for (const { gap, chequer } of stripes) {
+    expect(chequer).toBe(gap);
+  }
+  expect(html.match(/data-year="(\d+)"[^>]*>(?:(?!<\/span>).)*data-caret/)?.[1]).toBe(String(now));
+  expect(html.split("data-caret").length - 1).toBe(1);
+  return stripes;
+}
+
+interface Stripe {
+  readonly year: number;
+  readonly name: string | undefined;
+  readonly gap: boolean;
+}
+
+describe("a driver's barcode", () => {
+  it("runs from their first season to the run's year, naming the team on every one raced", () => {
+    const roster = rosterOf(midSeason);
+    for (const { driverId } of [...first.field, ...second.field]) {
+      const html = renderToStaticMarkup(<DriverPage years={midSeason} driverId={driverId} />);
+      const start =
+        [...driverSeasonsBefore(driverId, YEAR).keys()][0] ??
+        roster.drivers.get(driverId)?.[0]?.year;
+      const stripes = expectBarcode(html, start ?? second.year);
+      for (const { name, gap } of stripes) {
+        expect(gap || name !== undefined).toBe(true);
+      }
     }
   });
 });

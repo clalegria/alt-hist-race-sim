@@ -13,7 +13,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { seasonsBefore, stripesOf } from "../lib/barcode.js";
+import { driverSeasonsBefore, seasonsBefore, stripesOf } from "../lib/barcode.js";
 import { showcaseYears } from "../lib/car-showcase.js";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
@@ -30,7 +30,7 @@ import { driverBirthYear, driverCountry, driverName } from "../lib/names.js";
 import { type CareerRecord, careerRecords, spellSpan } from "../lib/records.js";
 import { driverRounds, type RoundEntry, teamRounds } from "../lib/results.js";
 import type { RevealedWorld } from "../lib/reveal.js";
-import { bestOverall, rosterOf } from "../lib/roster.js";
+import { bestOverall, type DriverAppearance, rosterOf } from "../lib/roster.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
@@ -439,6 +439,18 @@ export function DriverPage({
       rounds: driverRounds(world.season, world.points, driverId),
     };
   });
+  // The team each row names: off the table once they have raced.
+  const teamOf = ({ year, teamId }: DriverAppearance) =>
+    seasons.find((each) => each.year === year)?.teamId ?? teamId;
+  // Their career, as the team page's life: before the run as history had it,
+  // then the run's own, up to the year the run has reached.
+  const stripes = stripesOf(
+    new Map([
+      ...driverSeasonsBefore(driverId, years[0]?.year ?? latest.year),
+      ...appearances.map((appearance) => [appearance.year, teamOf(appearance)] as const),
+    ]),
+    now,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -450,13 +462,13 @@ export function DriverPage({
         totals={totalsLine(record)}
         cars={
           <ShowcaseCars
-            cars={appearances.map(({ year, teamId }) => ({
-              year,
-              // The team the row names: off the table once they have raced.
-              teamId: seasons.find((each) => each.year === year)?.teamId ?? teamId,
+            cars={appearances.map((appearance) => ({
+              year: appearance.year,
+              teamId: teamOf(appearance),
             }))}
           />
         }
+        strip={<LiveryBarcode stripes={stripes} current={now} nameEvery />}
       />
       <CareerSeasons years={rows} />
     </div>
@@ -483,9 +495,15 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
   // The team's life: its seasons before the run as history had them, then the
   // run's own, up to the year the run has reached and never past it.
   const runFirst = years[0]?.year ?? first;
+  const now = Math.max(...years.map((each) => each.year));
   const stripes = stripesOf(
-    new Set([...seasonsBefore(teamId, runFirst), ...appearances.map(({ year }) => year)]),
-    Math.max(...years.map((each) => each.year)),
+    new Map(
+      [...seasonsBefore(teamId, runFirst), ...appearances.map(({ year }) => year)].map((year) => [
+        year,
+        teamId,
+      ]),
+    ),
+    now,
   );
 
   const rows: CareerYear[] = [...appearances].reverse().map(({ year, driverIds }) => {
@@ -540,7 +558,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
           }
           totals={totalsLine(record)}
           cars={<ShowcaseCars cars={appearances.map(({ year }) => ({ year, teamId }))} />}
-          strip={<LiveryBarcode teamId={teamId} stripes={stripes} current={latest.year} />}
+          strip={<LiveryBarcode stripes={stripes} current={now} />}
         />
       </Liveries>
       <CareerSeasons years={rows} teams />

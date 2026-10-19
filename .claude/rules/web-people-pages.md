@@ -37,10 +37,13 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
   at random from the years between and the latest, each only if its drawing or livery
   differs from the others'. The latest shows first as the width grows, then the first,
   then the one between; a phone has none.
-- **A team's page draws its livery barcode under the heading**, a stripe per season from
-  its first authored one to the run's year, never past it: the years before the run off the
-  entry lists (`seasonsBefore`), the run's off its grids. Livery drawn as authored, like a
-  badge, not through `legible()`; the teal caret marks the heading's year.
+- **Both pages draw a livery barcode under the heading**, a stripe per season from the
+  first authored one to the run's year, never past it: the years before the run off the
+  entry lists (`seasonsBefore`, `driverSeasonsBefore`), the run's off its grids. A driver's
+  stripe is that year's team. Livery drawn as authored, like a badge, not through
+  `legible()`: the badge's stripes as a band along the bottom (`barcodeBackground`), never
+  an accent the badge doesn't draw; a year sat out is a chequer. The teal caret marks the run's year. A stripe's
+  tooltip names its team on every driver's, and on a team's only once it has had two names.
 - **An index's order is a search param** (`indexSearch`), the default left out of the
   URL; `sortIndex` is total, ending on the id.
 - **On a phone an index row is the name, wins, points and the sorted column**; a page's

@@ -91,7 +91,7 @@ describe("the stylesheet", () => {
     const patternLight = css.lastIndexOf(LIGHT_SELECTOR);
     const tintOf = (token: string, from: number): string | undefined =>
       css.slice(from).match(new RegExp(`--pattern-${token}-tint: *([^;]+);`))?.[1];
-    for (const token of ["major", "minor"]) {
+    for (const token of ["major", "minor", "gap"]) {
       expect(tintOf(token, 0), `--pattern-${token}-tint has no dark value`).toBeDefined();
       expect(
         tintOf(token, patternLight),

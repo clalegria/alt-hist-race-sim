@@ -1,27 +1,42 @@
 import { authoredSeasons, seasonSeed } from "@alt-hist/data";
 import { describe, expect, it } from "vitest";
-import { decadeTicks, seasonsBefore, stripesOf } from "./barcode.js";
+import { decadeTicks, driverSeasonsBefore, seasonsBefore, stripesOf } from "./barcode.js";
 
 describe("stripesOf", () => {
-  it("runs from the first season raced to now, marking the years sat out", () => {
-    expect(stripesOf(new Set([1971, 1973, 1974]), 1976)).toEqual([
-      { year: 1971, raced: true },
-      { year: 1972, raced: false },
-      { year: 1973, raced: true },
-      { year: 1974, raced: true },
-      { year: 1975, raced: false },
-      { year: 1976, raced: false },
+  it("runs from the first season raced to now, with each year's team and none for a year sat out", () => {
+    expect(
+      stripesOf(
+        new Map([
+          [1971, "a"],
+          [1973, "b"],
+          [1974, "a"],
+        ]),
+        1976,
+      ),
+    ).toEqual([
+      { year: 1971, teamId: "a" },
+      { year: 1972, teamId: undefined },
+      { year: 1973, teamId: "b" },
+      { year: 1974, teamId: "a" },
+      { year: 1975, teamId: undefined },
+      { year: 1976, teamId: undefined },
     ]);
   });
 
   it("draws nothing past now, and nothing for no seasons", () => {
     expect(
-      stripesOf(new Set([1980, 1990]), 1985)
+      stripesOf(
+        new Map([
+          [1980, "a"],
+          [1990, "a"],
+        ]),
+        1985,
+      )
         .map(({ year }) => year)
         .at(-1),
     ).toBe(1985);
-    expect(stripesOf(new Set([1990]), 1985)).toEqual([]);
-    expect(stripesOf(new Set(), 1985)).toEqual([]);
+    expect(stripesOf(new Map([[1990, "a"]]), 1985)).toEqual([]);
+    expect(stripesOf(new Map(), 1985)).toEqual([]);
   });
 });
 
@@ -46,5 +61,18 @@ describe("seasonsBefore", () => {
     );
     expect(seasonsBefore(teamId, year)).toEqual(expected);
     expect(seasonsBefore("no-such-team", year)).toEqual([]);
+  });
+});
+
+describe("driverSeasonsBefore", () => {
+  it("maps each authored season before a year a driver is entered in to their first team", () => {
+    const year = authoredSeasons.at(-1) ?? 0;
+    const driverId = seasonSeed(year).entries[0]?.drivers[0] ?? "";
+    const expected = authoredSeasons.flatMap((each) => {
+      const entry = seasonSeed(each).entries.find(({ drivers }) => drivers.includes(driverId));
+      return each < year && entry !== undefined ? [[each, entry.teamId] as const] : [];
+    });
+    expect([...driverSeasonsBefore(driverId, year)]).toEqual(expected);
+    expect(driverSeasonsBefore("no-such-driver", year).size).toBe(0);
   });
 });

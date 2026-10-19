@@ -1,33 +1,44 @@
 import { decadeTicks, type Stripe } from "../lib/barcode.js";
 import { liveryFor } from "../lib/livery.js";
+import { useTeamNameIn } from "./EntryNames.js";
 import { useLiveryYear } from "./Liveries.js";
+import { barcodeBackground } from "./TeamBadge.js";
 
 /** The widest a stripe grows, so a short life is a short strip rather than a few wide blocks. */
 const MAX_STRIPE_REM = 1.5;
 
 /**
- * A team's colours over its life, one stripe per season: the primary over the
- * first accent, as authored like the badge, inside the badge's outline. A teal
- * caret marks `current`, the season the heading describes; a year the team sat
- * out is left empty. Hover names a stripe's year.
+ * Colours over a life, one stripe per season in that season's team's livery,
+ * drawn as its badge is (`barcodeBackground`): the badge's stripes as a band
+ * along the bottom, as many accents as the badge has. Inside the badge's outline. A teal caret marks
+ * `current`, the year the run has reached; a year sat out is a chequer
+ * (`.barcode-gap`). Hover names a stripe's year, and its team's name where the
+ * strip has more than one or `nameEvery` asks for it, as a driver's does.
  *
  * CSS on `span`s, not an SVG, for the badge's reason: tests count flags by `<svg>`.
  */
 export function LiveryBarcode({
-  teamId,
   stripes,
   current,
+  nameEvery = false,
 }: {
-  teamId: string;
   stripes: readonly Stripe[];
   current: number;
+  nameEvery?: boolean;
 }) {
   const liveryYear = useLiveryYear();
+  const teamNameIn = useTeamNameIn();
   const first = stripes[0]?.year;
   const last = stripes.at(-1)?.year;
   if (first === undefined || last === undefined) {
     return null;
   }
+  const names = new Map(
+    stripes.flatMap(({ year, teamId }) =>
+      teamId === undefined ? [] : [[year, teamNameIn(teamId, year)] as const],
+    ),
+  );
+  const named = nameEvery || new Set(names.values()).size > 1;
   const at = (year: number) => `${((year - first) / stripes.length) * 100}%`;
   return (
     <div className="w-full" style={{ maxWidth: `${stripes.length * MAX_STRIPE_REM}rem` }}>
@@ -36,21 +47,23 @@ export function LiveryBarcode({
         aria-label={`Colours by season, ${first}–${last}`}
         className="border-badge-line flex h-3.5 border"
       >
-        {stripes.map(({ year, raced }) => {
-          const livery = raced ? liveryFor(teamId, liveryYear(teamId, year)) : undefined;
+        {stripes.map(({ year, teamId }) => {
+          const livery =
+            teamId === undefined ? undefined : liveryFor(teamId, liveryYear(teamId, year));
+          const name = names.get(year);
           return (
             <span
               key={year}
               data-year={year}
-              title={raced ? String(year) : `${year}, not racing`}
-              className="hover:outline-foreground relative flex-1 hover:z-10 hover:outline-2 hover:-outline-offset-1"
-              style={
-                livery === undefined
-                  ? undefined
-                  : {
-                      background: `linear-gradient(${livery.primaryColor} 0 66%, ${livery.secondaryColor1} 66%)`,
-                    }
+              title={
+                teamId === undefined
+                  ? `${year}, not racing`
+                  : named && name !== undefined
+                    ? `${year} (${name})`
+                    : String(year)
               }
+              className={`hover:outline-foreground relative flex-1 hover:z-10 hover:outline-2 hover:-outline-offset-1${livery === undefined ? " barcode-gap" : ""}`}
+              style={livery === undefined ? undefined : { background: barcodeBackground(livery) }}
             >
               {year === current ? (
                 <span
