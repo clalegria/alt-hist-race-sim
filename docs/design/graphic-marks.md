@@ -12,12 +12,12 @@ chosen and stay in it only as drawn examples.
 
 ## Podium
 
-On the race page heading, above the classification: the top three on stepped blocks in
-2-1-3 order, each with its large car, flag, surname and team.
+Built as `Podium`, at the head of the race page's classification card: the top three on
+stepped blocks in 2-1-3 order, each with its large car, badge, flag, name and team.
 
-- DECIDED: the blocks are the position block grown. The winner's is filled teal, second and
-  third have a teal number on the band colour.
-- DECIDED: the classification table below is unchanged.
+- DECIDED: the table below still lists the top three. The gap and points share a line.
+- DECIDED: the race page only, which exists only once its race is revealed; a round opened
+  from the calendar keeps its whole table.
 - PROPOSED: fewer than three classified finishers draws only the blocks that have a driver.
-- OPEN: phone width, where three steps with large cars do not fit (*Phone layout* settles it).
-- OPEN: a race in progress or not yet run shows no podium.
+- OPEN: phone width. Built as three columns with the large car shrunk to two thirds and
+  names wrapping; the author is to judge it.

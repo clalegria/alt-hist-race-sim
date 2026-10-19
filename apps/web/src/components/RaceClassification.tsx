@@ -6,6 +6,7 @@ import { byClassification, pointsFor, statusOf } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { HomeStar } from "./HomeAdvantage.js";
+import { Podium } from "./Podium.js";
 import { DriverHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 import {
@@ -27,6 +28,11 @@ import {
  */
 function classify(race: RaceResult): readonly RaceEntryResult[] {
   return [...race.entries].sort(byClassification);
+}
+
+/** A classified finish in the top three: a car that stopped has no place to stand on. */
+function isOnPodium(entry: RaceEntryResult): boolean {
+  return entry.finishPosition !== null && entry.finishPosition <= 3;
 }
 
 /**
@@ -85,6 +91,7 @@ export function RaceClassification({
   country,
   badge = false,
   car = false,
+  podium = false,
 }: {
   race: RaceResult;
   /** The season's points scale. What a finish is worth depends on the year. */
@@ -103,108 +110,124 @@ export function RaceClassification({
   badge?: boolean;
   /** Draw the team's car on every row, by the same rule and with the same default. */
   car?: boolean;
+  /**
+   * Stand the top three on a podium above the table, which still lists them.
+   * The race screen's alone: it only ever shows a race already run.
+   */
+  podium?: boolean;
 }) {
+  const classified = classify(race);
+  const onPodium = podium ? classified.filter(isOnPodium) : [];
   return (
-    <Table>
-      <TableHeader>
-        <TableRow className="hover:bg-transparent">
-          <TableHead className={cn(POSITION, "px-0 text-center")}>Pos</TableHead>
-          <TableHead className={CELL}>Driver</TableHead>
-          {car ? <TableHead className={cn(CELL, CAR_COLUMN)} /> : null}
-          <TableHead className={cn(CELL, WIDE_ONLY, "text-right")}>Grid</TableHead>
-          <TableHead className={cn(CELL, "text-right")}>Gap</TableHead>
-          <TableHead className={cn(CELL, WIDE_ONLY)}>Status</TableHead>
-          <TableHead className={cn(CELL, "text-right")}>Pts</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {classify(race).map((entry) => {
-          const finished = entry.finishPosition !== null;
-          const won = entry.finishPosition === 1;
-          // The other two on the podium, marked a step below the winner.
-          const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
-          const scored = pointsFor(entry, points);
-          return (
-            <TableRow key={entry.driverId} className="border-border/60">
-              <TablePosition
-                className={cn(
-                  POSITION,
-                  won && STANDOUT_POSITION,
-                  podium && PODIUM_POSITION,
-                  finished || "text-muted-foreground",
-                )}
-              >
-                {entry.finishPosition ?? "—"}
-              </TablePosition>
-              <TableCell
-                className={cn(
-                  CELL,
-                  // The spare width goes to the car column once it shows, and the
-                  // names stop wrapping then: squeezed by that column, they
-                  // folded onto two lines when there was room for one.
-                  "w-full whitespace-normal",
-                  car && "md:w-auto md:whitespace-nowrap",
-                  finished || "text-muted-foreground",
-                )}
-              >
-                {/*
+    <>
+      {onPodium.length === 0 ? null : (
+        <Podium entries={onPodium} points={points} country={country} />
+      )}
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className={cn(POSITION, "px-0 text-center")}>Pos</TableHead>
+            <TableHead className={CELL}>Driver</TableHead>
+            {car ? <TableHead className={cn(CELL, CAR_COLUMN)} /> : null}
+            <TableHead className={cn(CELL, WIDE_ONLY, "text-right")}>Grid</TableHead>
+            <TableHead className={cn(CELL, "text-right")}>Gap</TableHead>
+            <TableHead className={cn(CELL, WIDE_ONLY)}>Status</TableHead>
+            <TableHead className={cn(CELL, "text-right")}>Pts</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {classified.map((entry) => {
+            const finished = entry.finishPosition !== null;
+            const won = entry.finishPosition === 1;
+            // The other two on the podium, marked a step below the winner.
+            const podium = entry.finishPosition !== null && entry.finishPosition <= 3 && !won;
+            const scored = pointsFor(entry, points);
+            return (
+              <TableRow key={entry.driverId} className="border-border/60">
+                <TablePosition
+                  className={cn(
+                    POSITION,
+                    won && STANDOUT_POSITION,
+                    podium && PODIUM_POSITION,
+                    finished || "text-muted-foreground",
+                  )}
+                >
+                  {entry.finishPosition ?? "—"}
+                </TablePosition>
+                <TableCell
+                  className={cn(
+                    CELL,
+                    // The spare width goes to the car column once it shows, and the
+                    // names stop wrapping then: squeezed by that column, they
+                    // folded onto two lines when there was room for one.
+                    "w-full whitespace-normal",
+                    car && "md:w-auto md:whitespace-nowrap",
+                    finished || "text-muted-foreground",
+                  )}
+                >
+                  {/*
                   The star trails the name block, aligned to its foot rather
                   than its middle: the name is two lines, and a mark hung off
                   the first of them would read as part of the driver's name
                   rather than as a note on the entry.
                 */}
-                <span className="flex items-end gap-1.5">
-                  <DriverHistory driverId={entry.driverId}>
-                    <DriverName
-                      driverId={entry.driverId}
-                      teamId={entry.teamId}
-                      emphasis={won}
-                      badge={badge}
-                    />
-                  </DriverHistory>
-                  <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
-                </span>
-              </TableCell>
-              {car ? (
-                <TableCell className={cn(CELL, CAR_COLUMN)}>
-                  <TeamCar teamId={entry.teamId} />
+                  <span className="flex items-end gap-1.5">
+                    <DriverHistory driverId={entry.driverId}>
+                      <DriverName
+                        driverId={entry.driverId}
+                        teamId={entry.teamId}
+                        emphasis={won}
+                        badge={badge}
+                      />
+                    </DriverHistory>
+                    <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
+                  </span>
                 </TableCell>
-              ) : null}
-              <TableCell
-                className={cn(CELL, WIDE_ONLY, "text-muted-foreground text-right tabular-nums")}
-              >
-                {entry.gridPosition}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  CELL,
-                  "text-right tabular-nums",
-                  won && cn(STANDOUT_TEXT, "font-semibold"),
-                  won || (finished ? "text-muted-foreground" : "text-subtle"),
-                )}
-              >
-                {gapOf(entry)}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  CELL,
-                  WIDE_ONLY,
-                  "whitespace-normal text-xs",
-                  finished ? "text-muted-foreground" : "text-loss",
-                )}
-              >
-                {statusOf(entry)}
-              </TableCell>
-              <TableCell
-                className={cn(CELL, "text-right font-semibold tabular-nums", won && STANDOUT_TEXT)}
-              >
-                {/* Blank rather than a column of zeroes: only six cars score. */}
-                {scored === 0 ? "" : scored}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+                {car ? (
+                  <TableCell className={cn(CELL, CAR_COLUMN)}>
+                    <TeamCar teamId={entry.teamId} />
+                  </TableCell>
+                ) : null}
+                <TableCell
+                  className={cn(CELL, WIDE_ONLY, "text-muted-foreground text-right tabular-nums")}
+                >
+                  {entry.gridPosition}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    CELL,
+                    "text-right tabular-nums",
+                    won && cn(STANDOUT_TEXT, "font-semibold"),
+                    won || (finished ? "text-muted-foreground" : "text-subtle"),
+                  )}
+                >
+                  {gapOf(entry)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    CELL,
+                    WIDE_ONLY,
+                    "whitespace-normal text-xs",
+                    finished ? "text-muted-foreground" : "text-loss",
+                  )}
+                >
+                  {statusOf(entry)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    CELL,
+                    "text-right font-semibold tabular-nums",
+                    won && STANDOUT_TEXT,
+                  )}
+                >
+                  {/* Blank rather than a column of zeroes: only six cars score. */}
+                  {scored === 0 ? "" : scored}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </>
   );
 }

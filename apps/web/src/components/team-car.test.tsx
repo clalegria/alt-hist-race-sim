@@ -184,7 +184,9 @@ describe("the race screens", () => {
     const screen = renderToStaticMarkup(
       <SeasonView {...shownAt(world, { kind: "race", round: 0 })} />,
     );
-    expect(carClasses(screen)).toHaveLength(race.entries.length);
+    // The podium's large cars aside: those are its own, not the table's.
+    const rows = carClasses(screen).filter((classes) => hasSize(classes, CAR_SIZES.small));
+    expect(rows).toHaveLength(race.entries.length);
   });
 
   it("draw every one at the shared small size, standing still", () => {

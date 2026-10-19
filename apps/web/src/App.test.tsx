@@ -353,12 +353,33 @@ describe("flags", () => {
     return world.field.filter((entrant) => isAtHome(homeAllegiances(entrant, { country }))).length;
   };
 
+  /**
+   * The podium names its top three again above the table: a flag each, and a
+   * star for each of them racing at home. Counted off the round's result.
+   */
+  const podiumSvgs = (round: number): number => {
+    const country = SEED.calendar[round]?.country;
+    const top = (world.season.races[round]?.entries ?? []).filter(
+      (entry) => entry.finishPosition !== null && entry.finishPosition <= 3,
+    );
+    return top.reduce((count, entry) => {
+      const entrant = world.field.find((candidate) => candidate.driverId === entry.driverId);
+      const home =
+        entrant !== undefined &&
+        country !== undefined &&
+        isAtHome(homeAllegiances(entrant, { country }));
+      return count + 1 + (home ? 1 : 0);
+    }, 0);
+  };
+
   it("flies a flag on every name on the race page", () => {
     const html = render({ kind: "race", round: 0 });
-    // One for the round, one per car down the classification, then the
-    // collapsed sidebar: eight drivers and eight teams — plus a star on each
-    // car racing at home, and the cloud if it rained. Not the cars.
-    expect(svgsBesideCars(html)).toBe(1 + SEATS + 8 + 8 + rainIcons(0) + homeStars(0));
+    // One for the round, the podium's, one per car down the classification,
+    // then the collapsed sidebar: eight drivers and eight teams — plus a star
+    // on each car racing at home, and the cloud if it rained. Not the cars.
+    expect(svgsBesideCars(html)).toBe(
+      1 + podiumSvgs(0) + SEATS + 8 + 8 + rainIcons(0) + homeStars(0),
+    );
   });
 
   it("flies a flag beside every driver in qualifying", () => {

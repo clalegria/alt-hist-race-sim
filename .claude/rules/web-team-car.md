@@ -22,7 +22,7 @@ A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
 
 ## The car
 - **Two sizes only** (`CAR_SIZES`), so a car is the same size wherever it is met. Only the
-  champion cards, the team and driver pages and the track use `large`; only the champion
+  champion cards, the team and driver pages, the podium and the track use `large`; only the champion
   cards and the track turn the wheels.
 - **One outline around the silhouette, a fixed width on screen per size** (`OUTLINE_PX`,
   `non-scaling-stroke`). It is every shape stroked near-black under the paint; never

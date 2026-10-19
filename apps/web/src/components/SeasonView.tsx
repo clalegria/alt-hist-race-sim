@@ -158,7 +158,7 @@ function RaceStage({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
         <Section title="Classification">
-          <RaceClassification race={race} points={points} country={country} badge car />
+          <RaceClassification race={race} points={points} country={country} badge car podium />
         </Section>
 
         <aside className="flex flex-col gap-4">
