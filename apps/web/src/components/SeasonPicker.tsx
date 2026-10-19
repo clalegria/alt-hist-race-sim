@@ -15,8 +15,8 @@ import { FIRST_SEASON, LAST_SEASON, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { ERA_RATING_MODE } from "../store/season.js";
 import { PageHeading } from "./PageHeading.js";
 import type { RunChoice } from "./RunSettingsDialog.js";
+import { ScenarioCard } from "./Scenarios.js";
 import { Button } from "./ui/button.js";
-import { WhatIfCard } from "./WhatIfPresets.js";
 import { YearPicker } from "./YearPicker.js";
 
 /**
@@ -28,10 +28,10 @@ import { YearPicker } from "./YearPicker.js";
  * is what gets simulated.
  *
  * Two cards: the year (`YearPicker`, a rail of decades and the years in one of
- * them, controlled by the selected year alone) and *What if?* (`WhatIfCard`:
- * the presets, the ⚙ button that opens every setting, and what is in force).
- * One column, year first, then What if?, then the button; from `lg` the year
- * and the button on the left and What if? on the right, as Home splits, so a
+ * them, controlled by the selected year alone) and *Scenarios* (`ScenarioCard`:
+ * the scenarios, the ⚙ button that opens every setting, and what is in force).
+ * One column, year first, then Scenarios, then the button; from `lg` the year
+ * and the button on the left and Scenarios on the right, as Home splits, so a
  * laptop sees the whole screen without scrolling.
  *
  * Every answer is seeded from the remembered preference and written back when
@@ -99,9 +99,9 @@ export function SeasonPicker({
       <PageHeading title={title} />
 
       {/*
-        One grid for both layouts, in reading order: year, What if?, button. From
-        `lg` What if? spans both rows on the right, and the button sits under
-        the year, the second row taking any height What if? needs.
+        One grid for both layouts, in reading order: year, Scenarios, button. From
+        `lg` Scenarios spans both rows on the right, and the button sits under
+        the year, the second row taking any height Scenarios needs.
       */}
       <div className="grid gap-6 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start">
         <div className="lg:col-start-1 lg:row-start-1">
@@ -118,7 +118,7 @@ export function SeasonPicker({
         </div>
 
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-          <WhatIfCard choice={choice} year={year} unit={unit} onCommit={commit} />
+          <ScenarioCard choice={choice} year={year} unit={unit} onCommit={commit} />
         </div>
 
         {/*

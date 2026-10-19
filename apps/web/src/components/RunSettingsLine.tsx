@@ -63,6 +63,10 @@ export function SettingsSummary({
  *
  * `lock` opens the dialog read-only, with the reason; the button itself stays
  * live, since seeing what a run was set up with is still worth a click.
+ *
+ * Holds whether the dialog is open unless `open` and `onOpenChange` are given,
+ * React's controlled-or-not pattern, so a card can open it from elsewhere too
+ * (`ScenarioCard`'s Custom row).
  */
 export function RunSettingsButton({
   choice,
@@ -71,8 +75,11 @@ export function RunSettingsButton({
   eraSettings = false,
   lock = null,
   onCommit,
-}: SettingsProps) {
-  const [open, setOpen] = useState(false);
+  ...controlled
+}: SettingsProps & { open?: boolean; onOpenChange?: (open: boolean) => void }) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = controlled.open ?? ownOpen;
+  const setOpen = controlled.onOpenChange ?? setOwnOpen;
   return (
     <>
       <Button
@@ -106,7 +113,7 @@ export function RunSettingsButton({
  * The grid's run settings: what is in force, and the ⚙ button that opens them,
  * the first thing under the page's heading, so a reader sees what the season is
  * simulated under without opening anything. The setup screen puts the same two
- * parts in its *What if?* card (`WhatIfCard`). `extra` is whatever else belongs
+ * parts in its *Scenarios* card (`ScenarioCard`). `extra` is whatever else belongs
  * on the row — the grid's year switcher.
  */
 export function RunSettingsLine({ extra, ...props }: SettingsProps & { extra?: ReactNode }) {

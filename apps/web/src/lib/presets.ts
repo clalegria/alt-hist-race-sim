@@ -1,12 +1,12 @@
 /**
- * The *What if?* presets: a handful of runs a reader can set up with one
- * click, on the setup screen's card and the settings dialog's first tab.
+ * The *Scenarios* presets: a handful of runs a reader can set up with one
+ * click, on the setup screen's card.
  *
  * **A preset is a shortcut, never a setting.** It names only what it changes;
  * everything else goes back to its default, as Restore defaults does, and the
  * result is an ordinary set of answers. Nothing records which preset was
  * picked: the one on show is whichever the answers equal (`chosenPreset` in
- * `WhatIfPresets.tsx`), so tweaking anything afterwards simply lights none.
+ * `Scenarios.tsx`), so tweaking anything afterwards lights Custom.
  *
  * Pure: the presets as data, applied over the defaults by the component.
  */
@@ -38,8 +38,8 @@ const DRIFT = { kind: "varied", spread: 30, from: "last" } as const;
 
 export const PRESETS: readonly Preset[] = [
   {
-    id: "default",
-    name: "Default",
+    id: "historical",
+    name: "Historical",
     blurb: (unit) =>
       `Simulates ${unit === "era" ? "every season" : "the season"} as it happened in real life. Results will be very similar to what happened in reality, but may differ slightly.`,
     units: BOTH,

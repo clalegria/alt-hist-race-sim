@@ -1,3 +1,4 @@
+import { type ReactNode, useState } from "react";
 import { type Preset, presetsFor } from "../lib/presets.js";
 import {
   type RunSettings,
@@ -48,73 +49,108 @@ export function chosenPreset(choice: RunChoice, unit: RunUnit): Preset | null {
   );
 }
 
-/** What the description says when no preset is lit. */
+/** What the description says when Custom is lit. */
 export const OWN_MIX = "Your own mix of settings.";
 
+/** The line above the rows, saying what they are. */
+export const SCENARIOS_INTRO = "Pick a scenario to start from, or open Settings to make your own.";
+
+/** One row of the list: a bar down its left edge, lit when `lit`. */
+function ScenarioRow({
+  lit,
+  title,
+  onClick,
+  dialog = false,
+  children,
+}: {
+  lit: boolean;
+  title: string;
+  onClick: () => void;
+  /** Whether a press opens a dialog rather than picking. */
+  dialog?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={lit}
+      {...(dialog ? { "aria-haspopup": "dialog" } : {})}
+      title={title}
+      onClick={onClick}
+      className={cn(
+        "group ring-border focus-visible:ring-ring grid grid-cols-[0.375rem_minmax(0,1fr)] gap-3 pr-3 text-left ring-1 transition focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset disabled:cursor-not-allowed",
+        lit ? "bg-primary/12 disabled:bg-muted" : "hover:not-disabled:bg-accent cursor-pointer",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn("self-stretch", lit ? "bg-primary group-disabled:bg-subtle" : "bg-border")}
+      />
+      <span className="narrow group-disabled:text-subtle py-2 text-base leading-tight font-extrabold uppercase">
+        {children}
+      </span>
+    </button>
+  );
+}
+
 /**
- * The presets a screen offers, as a tower of titled rows like Home's modes,
- * and under them what the lit one does (`chosenPreset`) — the luck slider's
+ * The scenarios a screen offers, as a tower of titled rows like Home's modes,
+ * then **Custom**, and under them what the lit one does — the luck slider's
  * shape, one description at a time, so the rows stay one line each. Picking is
  * free until the run begins, so a reader browses by clicking; each row also
  * carries its description as a tooltip.
  *
+ * Always exactly one row lit, as a graphics menu's Low / High / Custom: the
+ * preset the answers equal (`chosenPreset`), or Custom when they equal none.
+ * Custom picks nothing; pressing it opens the settings (`onCustom`).
+ *
  * `aria-pressed` buttons, like the year picker's, since each one acts the
- * moment it is pressed. Inside the locked dialog's fieldset they are disabled
- * with it, the lit one still showing. `columns` lays the rows out.
+ * moment it is pressed. `columns` lays the rows out.
  */
 export function PresetList({
   choice,
   unit,
   columns = "sm:grid-cols-2",
   onPick,
+  onCustom,
 }: {
   choice: RunChoice;
   unit: RunUnit;
   columns?: string;
   /** Absent in tests, where nothing is clicked. */
   onPick?: (choice: RunChoice) => void;
+  /** Absent in tests, where nothing is clicked. */
+  onCustom?: () => void;
 }) {
   const chosen = chosenPreset(choice, unit);
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-muted-foreground text-sm">{SCENARIOS_INTRO}</p>
       {/* Every row ringed in the border colour, so neighbours meet in the gap as one line. */}
       <fieldset
-        aria-label="What if?"
+        aria-label="Scenarios"
         className={cn("m-0 grid min-w-0 gap-px border-0 p-px", columns)}
       >
         {presetsFor(unit).map((preset) => {
           const lit = preset.id === chosen?.id;
           return (
-            <button
+            <ScenarioRow
               key={preset.id}
-              type="button"
-              aria-pressed={lit}
+              lit={lit}
               title={preset.blurb(unit)}
               onClick={() => {
                 if (!lit) {
                   onPick?.(presetChoice(preset, choice, unit));
                 }
               }}
-              className={cn(
-                "group ring-border focus-visible:ring-ring grid grid-cols-[0.375rem_minmax(0,1fr)] gap-3 pr-3 text-left ring-1 transition focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset disabled:cursor-not-allowed",
-                lit
-                  ? "bg-primary/12 disabled:bg-muted"
-                  : "hover:not-disabled:bg-accent cursor-pointer",
-              )}
             >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "self-stretch",
-                  lit ? "bg-primary group-disabled:bg-subtle" : "bg-border",
-                )}
-              />
-              <span className="narrow group-disabled:text-subtle py-2 text-base leading-tight font-extrabold uppercase">
-                {preset.name}
-              </span>
-            </button>
+              {preset.name}
+            </ScenarioRow>
           );
         })}
+        <ScenarioRow lit={chosen === null} title={OWN_MIX} dialog onClick={() => onCustom?.()}>
+          Custom
+        </ScenarioRow>
       </fieldset>
       {/* Polite: a pick is announced after the press itself. */}
       <p aria-live="polite" className="text-muted-foreground text-sm">
@@ -125,13 +161,13 @@ export function PresetList({
 }
 
 /**
- * The setup screen's *What if?* card: the presets, the ⚙ button that opens
+ * The setup screen's *Scenarios* card: the scenarios, the ⚙ button that opens
  * every setting in its band, and what is in force at its foot — the grid's
  * settings line, folded into the one card about how the run is simulated. A
  * pick commits at once, like Restore defaults; nothing is simulated until
- * Begin.
+ * Begin. Custom opens the same dialog as the ⚙ button.
  */
-export function WhatIfCard({
+export function ScenarioCard({
   choice,
   year,
   unit,
@@ -144,6 +180,7 @@ export function WhatIfCard({
   /** Absent in tests, where nothing is clicked. */
   onCommit?: (choice: RunChoice) => void;
 }) {
+  const [open, setOpen] = useState(false);
   const settings = {
     choice,
     unit,
@@ -152,8 +189,8 @@ export function WhatIfCard({
   };
   return (
     <Card>
-      <CardBand title="What if?">
-        <RunSettingsButton {...settings} year={year} />
+      <CardBand title="Scenarios">
+        <RunSettingsButton {...settings} year={year} open={open} onOpenChange={setOpen} />
       </CardBand>
       <div className="px-5 py-4">
         <PresetList
@@ -161,6 +198,9 @@ export function WhatIfCard({
           unit={unit}
           // Two across a full-width card; one in the wide screen's half.
           columns="sm:grid-cols-2 lg:grid-cols-1"
+          onCustom={() => {
+            setOpen(true);
+          }}
           {...(onCommit === undefined ? {} : { onPick: onCommit })}
         />
       </div>

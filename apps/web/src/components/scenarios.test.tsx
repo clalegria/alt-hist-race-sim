@@ -1,6 +1,6 @@
 /**
- * The *What if?* presets: each one lights itself once picked, from any
- * starting choice; none lights after a tweak; every answer is one this build
+ * The *Scenarios* presets: each one lights itself once picked, from any
+ * starting choice; none lights after a tweak, and Custom does; every answer is one this build
  * offers. Picking one is a click, out of reach here; where it lands is the
  * same commit the settings line makes.
  */
@@ -18,9 +18,16 @@ import {
   type RunUnit,
   sameSettings,
 } from "../lib/run-settings.js";
-import { settingsPanel, YEAR } from "../test-support.js";
-import { defaultChoice, type RunChoice, RunSettingsFields } from "./RunSettingsDialog.js";
-import { chosenPreset, OWN_MIX, PresetList, presetChoice, WhatIfCard } from "./WhatIfPresets.js";
+import { YEAR } from "../test-support.js";
+import { defaultChoice, type RunChoice } from "./RunSettingsDialog.js";
+import {
+  chosenPreset,
+  OWN_MIX,
+  PresetList,
+  presetChoice,
+  SCENARIOS_INTRO,
+  ScenarioCard,
+} from "./Scenarios.js";
 
 const UNITS: readonly RunUnit[] = ["season", "era"];
 
@@ -131,54 +138,43 @@ describe("the presets", () => {
   });
 });
 
-describe("the What if? card and tab", () => {
-  it.each(UNITS)("draws the %s screen's presets, one pressed at the defaults", (unit) => {
-    const html = renderToStaticMarkup(<WhatIfCard choice={atDefaults} year={YEAR} unit={unit} />);
-    expect(html).toContain("What if?");
-    expect(html.split("aria-pressed=").length - 1).toBe(presetsFor(unit).length);
-    expect(pressed(html)).toBe(1);
-  });
+describe("the Scenarios card", () => {
+  it.each(UNITS)(
+    "draws the %s screen's scenarios and Custom, one pressed at the defaults",
+    (unit) => {
+      const html = renderToStaticMarkup(
+        <ScenarioCard choice={atDefaults} year={YEAR} unit={unit} />,
+      );
+      expect(html).toContain("Scenarios");
+      expect(html).toContain(SCENARIOS_INTRO);
+      expect(html.split("aria-pressed=").length - 1).toBe(presetsFor(unit).length + 1);
+      expect(pressed(html)).toBe(1);
+    },
+  );
 
   it("carries the settings button and what is in force", () => {
     const card = (choice: RunChoice) =>
-      renderToStaticMarkup(<WhatIfCard choice={choice} year={YEAR} unit="era" />);
+      renderToStaticMarkup(<ScenarioCard choice={choice} year={YEAR} unit="era" />);
     expect(card(atDefaults)).toContain('aria-label="Run settings"');
     expect(card(atDefaults)).toContain("Default settings");
     expect(card(tweaked)).toContain("Mechanical failures:");
   });
 
-  it.each(UNITS)("describes the lit preset alone on the %s screen", (unit) => {
+  it.each(UNITS)("describes the lit scenario alone on the %s screen", (unit) => {
     for (const preset of presetsFor(unit)) {
       const html = renderToStaticMarkup(
         <PresetList choice={presetChoice(preset, atDefaults, unit)} unit={unit} />,
       );
+      expect(pressed(html)).toBe(1);
+      expect(html).toMatch(/aria-pressed="false"[^>]*aria-haspopup="dialog"/);
       expect(described(html)).toBe(preset.blurb(unit));
     }
   });
 
-  it("presses none for a choice of the reader's own, and says so", () => {
+  it("presses Custom alone for a choice of the reader's own, and says so", () => {
     const html = renderToStaticMarkup(<PresetList choice={tweaked} unit="era" />);
-    expect(pressed(html)).toBe(0);
+    expect(pressed(html)).toBe(1);
+    expect(html).toMatch(/aria-pressed="true"[^>]*aria-haspopup="dialog"/);
     expect(described(html)).toBe(OWN_MIX);
-  });
-
-  it("is the dialog's first tab, disabled with the rest under a lock", () => {
-    const fields = (lock: string | null) =>
-      renderToStaticMarkup(
-        <RunSettingsFields
-          choice={atDefaults}
-          year={YEAR}
-          unit="era"
-          eraSettings
-          tab="presets"
-          lock={lock}
-        />,
-      );
-    const open = fields(null);
-    expect(settingsPanel(open, "presets")).toContain('aria-pressed="true"');
-    expect(open.search(/role="tab"[^>]*>What if\?/)).toBe(open.indexOf('role="tab"'));
-    expect(fields("Locked")).toMatch(
-      /<fieldset disabled=""[^>]*><div role="tabpanel" id="[^"]*-panel-presets"/,
-    );
   });
 });
