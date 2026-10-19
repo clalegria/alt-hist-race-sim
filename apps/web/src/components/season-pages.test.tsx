@@ -112,7 +112,7 @@ describe("the season's page, partway through the year", () => {
     }
   });
 
-  it("links every tab but the one on screen, the standings at the season's own address", async () => {
+  it("links every tab but the one on screen, each by name", async () => {
     const html = await inRouter(
       <SeasonView
         world={revealYear(world, { kind: "race", round: MID })}
@@ -125,7 +125,8 @@ describe("the season's page, partway through the year", () => {
     const tabs = html.slice(html.indexOf('<nav aria-label="Season"'), html.indexOf("</nav>"));
     expect(tabs).toMatch(/aria-current="page"[^>]*>Calendar</);
     expect(count(tabs, 'aria-current="page"')).toBe(1);
-    expect(tabs).toContain(`href="/run/${YEAR}"`);
+    // The standings named too: a bare season address opens the tab last left on.
+    expect(tabs).toContain(`href="/run/${YEAR}?tab=standings"`);
     expect(tabs).toContain(`href="/run/${YEAR}?tab=grid"`);
     expect(tabs).not.toContain("?tab=calendar");
   });

@@ -6,6 +6,7 @@ paths:
   - "apps/web/src/components/SeasonCalendar.tsx"
   - "apps/web/src/components/season-pages.test.tsx"
   - "apps/web/src/lib/season-tabs.ts"
+  - "apps/web/src/lib/tab-memory.ts"
   - "apps/web/src/lib/session-nav.ts"
   - "apps/web/src/routes/run/$year/index.tsx"
 ---
@@ -22,9 +23,12 @@ shows what, and the gate, are `web-routing.md`.
   hand-roll another.
 - **Every tab strip is `Tabs`**: `links` between places on a page, `panels` between
   panels on one screen (the settings dialog). Never hand-roll another.
-- **A tab is a search param, not a path** (`seasonSearch`), and the default tab is left
-  out of the URL. Tab links pass `activeOptions={{ exact: true }}`: TanStack matches
-  search as a subset and would mark the standings link active on every tab.
+- **A tab is a search param, not a path** (`seasonSearch`). Tab links pass
+  `activeOptions={{ exact: true }}`: TanStack matches search as a subset and would mark
+  the standings link active on every tab.
+- **Every tab strip opens on the tab last left on** (`lib/tab-memory.ts`, for the visit).
+  A season URL with no tab shows `lastSeasonTab`, so a tab's own link always names it,
+  standings included; links to a season never do.
 - **The calendar lists every round of the season.** A round not reached is greyed, does
   not open and leaves its pole and winner empty; only the round whose qualifying alone is
   revealed shows `NOT_YET`, for its winner. A reached round's name links its page

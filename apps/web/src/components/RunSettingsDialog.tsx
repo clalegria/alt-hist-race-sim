@@ -10,6 +10,7 @@ import {
   settingsInForce,
   signsDrivers,
 } from "../lib/run-settings.js";
+import { tabMemory } from "../lib/tab-memory.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
 import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
@@ -101,6 +102,12 @@ const SETTINGS_TABS: readonly {
     answers: ["teams", "teamNames", "liveries", "engineSuppliers"],
   },
 ];
+
+/** The tab the dialog was last left on, which it opens on next (`lib/tab-memory.ts`). */
+const settingsTabs = tabMemory<SettingsTab>(
+  "run-settings",
+  SETTINGS_TABS.map((one) => one.key),
+);
 
 /**
  * The settings as the screen runs them. A season never runs the era-only
@@ -452,7 +459,14 @@ function DraftForm({
   onDone: (choice: RunChoice) => void;
 }) {
   const [draft, setDraft] = useState<RunChoice>(choice);
-  const [tab, setTab] = useState<SettingsTab>("races");
+  // Opens on the tab last left on, unless a season's dialog would be handed
+  // the era's own tab, which it does not have.
+  const [tab, setTab] = useState<SettingsTab>(() => {
+    const last = settingsTabs.last();
+    return eraSettings || !SETTINGS_TABS.some((one) => one.key === last && one.eraOnly)
+      ? last
+      : "races";
+  });
   const defaults = defaultChoice(draft, eraSettings);
   // A reset answer is null and a kept one the draft's own object, so `===` is enough.
   const atDefaults =
@@ -477,7 +491,10 @@ function DraftForm({
           eraSettings={eraSettings}
           lock={lock}
           tab={tab}
-          onTabChange={setTab}
+          onTabChange={(picked) => {
+            setTab(picked);
+            settingsTabs.remember(picked);
+          }}
           onChange={setDraft}
         />
       </DialogBody>
