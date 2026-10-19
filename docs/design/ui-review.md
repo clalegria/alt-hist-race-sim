@@ -29,10 +29,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 Page structure, navigation, and the phone screens after the two in tier 1.
 
-- **`settings-dialog-phone`** (PROPOSED; *Phone layout*)
-  - On a phone the run settings dialog scrolls as a whole: the title scrolls away and Cancel/Done sit below the fold.
-  - Fix: pin the header and footer, and scroll only the body.
-  - Screenshot step: `era-setup --phone`.
 - **`grid-editor-pool-phone`** (PROPOSED; *Phone layout*)
   - The "Without a drive" pool is a sticky sidebar only from `lg` (`GridStage.tsx:~225`). On a phone it sits below about fifteen team cards, so filling one seat means scrolling the whole page and back.
   - Fix: a bottom sheet, or a sticky "Pick a driver" bar.
