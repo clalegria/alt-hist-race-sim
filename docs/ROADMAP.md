@@ -74,5 +74,5 @@ A link that rebuilds a run on another machine. Unscheduled. `docs/design/ratings
 
 ## Someday: Graphic marks
 
-A livery barcode on the team page, a podium on the race page. Unscheduled; the podium waits
-on *Phone layout*. `docs/design/graphic-marks.md`.
+A podium on the race page. Unscheduled; it waits on *Phone layout*.
+`docs/design/graphic-marks.md`.

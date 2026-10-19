@@ -1,25 +1,14 @@
 # Graphic marks
 
-Two new drawn elements, chosen from a longer brainstorm, each in the timing-tower look
+A new drawn element, chosen from a longer brainstorm, in the timing-tower look
 (`docs/style/timing-tower.md`). **The mockup is `docs/design/graphics-mockup.html`**: open it
-in a browser. Its sections 5 and 7 are this design; 4 (title stars) is built as
-`TitleCount`; 1, 2, 3 and 8 (gap bars, places gained, form strip, pit board) were not
+in a browser. Its section 7 is this design; 4 (title stars) is built as `TitleCount` and 5
+as `LiveryBarcode`; 1, 2, 3 and 8 (gap bars, places gained, form strip, pit board) were not
 chosen and stay in it only as drawn examples.
 
 - DECIDED: **no new hue and no new voice.** Teal means "won the thing on screen" and is the
   only colour a mark adds; team colours go through `legible()`.
 - DECIDED: **every figure is derived on read** from result rows (`CLAUDE.md`), never kept.
-
-## Livery barcode
-
-On the team page heading, under the three cars: one stripe per season over the team's whole
-life, the primary colour over the first accent, read through `liveryFor()`.
-
-- DECIDED: a stripe's hover names its year; decade ticks sit beneath.
-- DECIDED: a teal caret marks the season on screen.
-- PROPOSED: in a run the strip ends at the run's current season, so it never shows colours
-  the run has not reached.
-- OPEN: phone width. 60-odd stripes fit, but the tick labels need thinning.
 
 ## Podium
 

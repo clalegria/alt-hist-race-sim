@@ -8,6 +8,7 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { seasonsBefore } from "../lib/barcode.js";
 import { driverBirthYear, driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import { revealed } from "../lib/reveal.js";
@@ -237,6 +238,22 @@ describe("a team's page", () => {
   it("draws its cars large and standing still, at most three, and none on a phone", () => {
     for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
       expectShowcase(renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />));
+    }
+  });
+
+  it("draws a livery stripe per season of its life, up to the run's year and no further", () => {
+    const now = second.year;
+    const roster = rosterOf(midSeason);
+    for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
+      const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
+      const years = [...html.matchAll(/data-year="(\d+)"/g)].map(([, year]) => Number(year));
+      const start = seasonsBefore(teamId, YEAR)[0] ?? roster.teams.get(teamId)?.[0]?.year ?? now;
+      expect(years).toEqual(Array.from({ length: now - start + 1 }, (_, i) => start + i));
+      // The caret sits on the season the heading describes: this team is on the cursor's grid.
+      expect(html.match(/data-year="(\d+)"[^>]*>(?:(?!<\/span>).)*data-caret/)?.[1]).toBe(
+        String(now),
+      );
+      expect(html.split("data-caret").length - 1).toBe(1);
     }
   });
 });

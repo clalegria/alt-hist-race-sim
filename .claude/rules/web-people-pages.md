@@ -10,6 +10,9 @@ paths:
   - "apps/web/src/lib/roster.ts"
   - "apps/web/src/lib/roster-places.ts"
   - "apps/web/src/lib/roster.test.ts"
+  - "apps/web/src/components/LiveryBarcode.tsx"
+  - "apps/web/src/lib/barcode.ts"
+  - "apps/web/src/lib/barcode.test.ts"
 ---
 
 # The people pages
@@ -34,6 +37,10 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
   at random from the years between and the latest, each only if its drawing or livery
   differs from the others'. The latest shows first as the width grows, then the first,
   then the one between; a phone has none.
+- **A team's page draws its livery barcode under the heading**, a stripe per season from
+  its first authored one to the run's year, never past it: the years before the run off the
+  entry lists (`seasonsBefore`), the run's off its grids. Livery drawn as authored, like a
+  badge, not through `legible()`; the teal caret marks the heading's year.
 - **An index's order is a search param** (`indexSearch`), the default left out of the
   URL; `sortIndex` is total, ending on the id.
 - **On a phone an index row is the name, wins, points and the sorted column**; a page's

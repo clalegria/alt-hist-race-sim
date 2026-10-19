@@ -13,6 +13,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { seasonsBefore, stripesOf } from "../lib/barcode.js";
 import { showcaseYears } from "../lib/car-showcase.js";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
@@ -35,6 +36,7 @@ import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Liveries, useLiveryYear } from "./Liveries.js";
+import { LiveryBarcode } from "./LiveryBarcode.js";
 import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
 import { RaceByRace } from "./RaceByRace.js";
@@ -98,6 +100,7 @@ function PersonHeader({
   details,
   totals,
   cars,
+  strip,
 }: {
   country: string | undefined;
   name: string;
@@ -106,26 +109,31 @@ function PersonHeader({
   details: React.ReactNode;
   totals: string;
   cars?: React.ReactNode;
+  /** Under it all, on a team's page: the livery barcode. */
+  strip?: React.ReactNode;
 }) {
   return (
-    <header className="flex items-end justify-between gap-6">
-      <div className="flex min-w-0 flex-col gap-3">
-        <PageHeading
-          title={
-            <>
-              {name}
-              {titles}
-            </>
-          }
-          flag={country}
-          badge={badge}
-          sub={totals}
-        />
-        <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">
-          {details}
-        </p>
+    <header className="flex flex-col gap-3">
+      <div className="flex items-end justify-between gap-6">
+        <div className="flex min-w-0 flex-col gap-3">
+          <PageHeading
+            title={
+              <>
+                {name}
+                {titles}
+              </>
+            }
+            flag={country}
+            badge={badge}
+            sub={totals}
+          />
+          <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">
+            {details}
+          </p>
+        </div>
+        {cars}
       </div>
-      {cars}
+      {strip}
     </header>
   );
 }
@@ -472,6 +480,13 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
   const record = records.teams.find((each) => each.id === teamId);
   const spells = record?.spells ?? [];
   const first = appearances[0]?.year ?? latest.year;
+  // The team's life: its seasons before the run as history had them, then the
+  // run's own, up to the year the run has reached and never past it.
+  const runFirst = years[0]?.year ?? first;
+  const stripes = stripesOf(
+    new Set([...seasonsBefore(teamId, runFirst), ...appearances.map(({ year }) => year)]),
+    Math.max(...years.map((each) => each.year)),
+  );
 
   const rows: CareerYear[] = [...appearances].reverse().map(({ year, driverIds }) => {
     const world = worldOf(years, year);
@@ -525,6 +540,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
           }
           totals={totalsLine(record)}
           cars={<ShowcaseCars cars={appearances.map(({ year }) => ({ year, teamId }))} />}
+          strip={<LiveryBarcode teamId={teamId} stripes={stripes} current={latest.year} />}
         />
       </Liveries>
       <CareerSeasons years={rows} teams />
