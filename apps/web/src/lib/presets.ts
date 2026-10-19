@@ -11,9 +11,9 @@
  * Pure: the presets as data, applied over the defaults by the component.
  */
 
-import type { RatingMode } from "@alt-hist/data";
+import { AGE_RANGE, type RatingMode } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS, type RandomnessLevel } from "@alt-hist/engine";
-import { OPENING_DRIVER_POOL, type RunSettings, type RunUnit } from "./run-settings.js";
+import type { RunSettings, RunUnit } from "./run-settings.js";
 import { FIRST_SEASON, PLAYABLE_SEASONS } from "./seasons.js";
 
 export interface Preset {
@@ -78,7 +78,7 @@ export const PRESETS: readonly Preset[] = [
     ratingMode: "peak",
     settings: {
       seating: { kind: "fastest-in-fastest", includeUnemployed: true },
-      driverPool: { ...OPENING_DRIVER_POOL, activeOnly: false },
+      driverPool: { minAge: AGE_RANGE.min, maxAge: AGE_RANGE.max, activeOnly: false },
     },
   },
   {
