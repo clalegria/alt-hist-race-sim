@@ -15,9 +15,8 @@ A small teal star per championship after a name, on the driver and team page hea
 in the era champions list, where the count builds row by row (★, ★★, ★★★).
 
 - DECIDED: stars count titles up to and including the season on screen.
-- OPEN: **the shape.** The mockup draws two: (A) a row of stars, (B) a trophy and `×3`. The
-  home mark is already a yellow five-point star (`HomeAdvantage.tsx`); A leans on size and
-  hue to stay apart, B avoids the clash. Needs a choice before building.
+- DECIDED: **a trophy and a count** (`×3`), not a row of stars. The home mark is already a
+  yellow five-point star (`HomeAdvantage.tsx`), so stars would clash with it.
 - OPEN: **drivers' and constructors' titles** both get stars, or only the driver's.
 - PROPOSED: before *historical career records* a run counts only titles it has simulated;
   that item adds the opening balance, which the star then includes.
