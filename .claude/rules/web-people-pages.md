@@ -29,6 +29,10 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
 - **A name is never a link, except on an index.** Everywhere else it opens its career
   panel; the page icon (`PageLink`) sits in that panel's heading and in the grid's
   popovers (`usePageOf`). No icon beside a name in a table, card or list.
+- **A team's page shows up to three cars** across from its name (`TeamCars`,
+  `lib/car-showcase.ts`): its first of the run, one picked at random from the years between
+  and its latest, each only if its drawing or livery differs from the others'. The latest
+  shows first as the width grows, then the first, then the one between; a phone has none.
 - **An index's order is a search param** (`indexSearch`), the default left out of the
   URL; `sortIndex` is total, ending on the id.
 - **On a phone an index row is the name, wins, points and the sorted column**; a page's

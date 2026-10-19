@@ -20,7 +20,8 @@ import { useLivery, useSeasonYear } from "./Liveries.js";
  *
  * **Two sizes, and only two.** Every row, slot and panel that shows a car uses
  * `small`, so a car is the same size wherever it is met; only the champion
- * cards and the home screen's track use `large`, and only they turn the wheels.
+ * cards, a team's page and the home screen's track use `large`, and only the
+ * champion cards and the track turn the wheels.
  *
  * **An inline SVG** rather than an `<img>`, because the colours are the team's
  * and are only known at render time, and because the page's own stylesheet can
@@ -95,6 +96,15 @@ function coloursFor(livery: Livery): Record<CarRole, string> {
     "1": stripe1,
     "2": stripe2,
   };
+}
+
+/**
+ * What a car looks like, as a string: its decade's drawing and the colours it
+ * is painted. Two years with the same look draw the same picture.
+ */
+export function carLook(livery: Livery, year: number): string {
+  const colours = coloursFor(livery);
+  return [carDrawingFor(year).decade, colours.P, colours[1], colours[2]].join(" ");
 }
 
 function rect(x: number, y: number, width: number, height: number): string {

@@ -13,6 +13,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { showcaseYears } from "../lib/car-showcase.js";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
   count,
@@ -23,6 +24,7 @@ import {
   seasonHistories,
   type TeamSeason,
 } from "../lib/history.js";
+import { liveryFor } from "../lib/livery.js";
 import { driverBirthYear, driverCountry, driverName } from "../lib/names.js";
 import { type CareerRecord, careerRecords, spellSpan } from "../lib/records.js";
 import { driverRounds, type RoundEntry, teamRounds } from "../lib/results.js";
@@ -32,12 +34,13 @@ import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
-import { Liveries } from "./Liveries.js";
+import { Liveries, useLiveryYear } from "./Liveries.js";
 import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { DriverHistory, HISTORY_FILL, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { TeamBadge } from "./TeamBadge.js";
+import { carLook, LiveryCar } from "./TeamCar.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardBand } from "./ui/card.js";
 import {
@@ -81,25 +84,90 @@ export function totalsLine(record: CareerRecord | undefined): string {
   return parts.filter((part) => part !== null).join(" · ");
 }
 
-/** A page's heading: who, their totals in the mono sub-line, and the line under it. */
+/**
+ * A page's heading: who, their totals in the mono sub-line, and the line under
+ * it, with a team's cars across from them where the width allows.
+ */
 function PersonHeader({
   country,
   name,
   badge,
   details,
   totals,
+  cars,
 }: {
   country: string | undefined;
   name: string;
   badge?: React.ReactNode;
   details: React.ReactNode;
   totals: string;
+  cars?: React.ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-3">
-      <PageHeading title={name} flag={country} badge={badge} sub={totals} />
-      <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">{details}</p>
+    <header className="flex items-end justify-between gap-6">
+      <div className="flex min-w-0 flex-col gap-3">
+        <PageHeading title={name} flag={country} badge={badge} sub={totals} />
+        <p className="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">
+          {details}
+        </p>
+      </div>
+      {cars}
     </header>
+  );
+}
+
+/**
+ * Which width a showcase car first shows at, by its place in the row. The
+ * latest car comes first, as the badge and name beside it are the latest
+ * year's; then the first; the one between only on a wide screen. On a phone,
+ * none: the name needs the room.
+ */
+function showcaseClass(index: number, shown: number): string {
+  if (index === shown - 1) {
+    return "sm:flex";
+  }
+  return index === 0 ? "md:flex" : "lg:flex";
+}
+
+/**
+ * A team's cars across the run: its first, one from the years between and its
+ * latest, each only if it looks different from the others (`showcaseYears`).
+ * The car between is picked afresh each time the page opens. Still, not
+ * turning: these are a gallery, not a winner's lap.
+ */
+function TeamCars({ teamId, years }: { teamId: string; years: readonly number[] }) {
+  const liveryYear = useLiveryYear();
+  // Drawn once per visit, so the page does not change car as the reader opens a row.
+  const [pick] = useState(Math.random);
+  const liveryIn = (year: number) => liveryFor(teamId, liveryYear(teamId, year));
+  const shown = showcaseYears(
+    years,
+    (year) => {
+      const livery = liveryIn(year);
+      return livery === undefined ? "" : carLook(livery, year);
+    },
+    pick,
+  );
+  return (
+    <div className="hidden shrink-0 items-end gap-4 sm:flex">
+      {shown.map((year, index) => {
+        const livery = liveryIn(year);
+        return livery === undefined ? null : (
+          <figure
+            key={year}
+            className={cn(
+              "hidden flex-col items-center gap-1.5",
+              showcaseClass(index, shown.length),
+            )}
+          >
+            <LiveryCar livery={livery} year={year} size="large" />
+            <figcaption className="text-muted-foreground font-mono text-xs tabular-nums">
+              {year}
+            </figcaption>
+          </figure>
+        );
+      })}
+    </div>
   );
 }
 
@@ -419,6 +487,7 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
               : `In the run ${first === latest.year ? first : `${first}–${latest.year}`}`
           }
           totals={totalsLine(record)}
+          cars={<TeamCars teamId={teamId} years={appearances.map((each) => each.year)} />}
         />
       </Liveries>
       <CareerSeasons years={rows} teams />

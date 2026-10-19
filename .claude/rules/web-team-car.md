@@ -4,6 +4,8 @@ paths:
   - "apps/web/src/lib/car-drawings.test.ts"
   - "apps/web/src/components/TeamCar.tsx"
   - "apps/web/src/components/team-car.test.tsx"
+  - "apps/web/src/lib/car-showcase.ts"
+  - "apps/web/src/lib/car-showcase.test.ts"
   - "apps/web/src/lib/parade.ts"
   - "apps/web/src/lib/parade.test.ts"
   - "apps/web/src/lib/track.ts"
@@ -20,7 +22,8 @@ A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
 
 ## The car
 - **Two sizes only** (`CAR_SIZES`), so a car is the same size wherever it is met. Only the
-  champion cards and the track use `large`, and only they turn the wheels.
+  champion cards, a team's page and the track use `large`; only the champion cards and
+  the track turn the wheels.
 - **One outline around the silhouette, a fixed width on screen per size** (`OUTLINE_PX`,
   `non-scaling-stroke`). It is every shape stroked near-black under the paint; never
   outline parts one by one.

@@ -19,6 +19,7 @@ import { seededWorld, textOf, YEAR } from "../test-support.js";
 import { DriverPage, TeamPage } from "./PersonPages.js";
 import { RosterIndex } from "./RosterIndex.js";
 import { SeasonHistoryProvider } from "./SeasonHistory.js";
+import { CAR_SIZES } from "./TeamCar.js";
 
 const first = seededWorld(3, "aged", YEAR);
 const second = seededWorld(4, "aged", YEAR + 1);
@@ -171,6 +172,17 @@ describe("a team's page", () => {
     for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
       const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
       expect(disclosures(html)).toEqual({ all: roster.teams.get(teamId)?.length, open: 0 });
+    }
+  });
+
+  it("draws its cars large and standing still, at most three, and none on a phone", () => {
+    for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
+      const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
+      const cars = html.split(CAR_SIZES.large).length - 1;
+      expect(cars).toBeGreaterThanOrEqual(1);
+      expect(cars).toBeLessThanOrEqual(3);
+      expect(html).not.toContain("animate-wheel");
+      expect(html).toContain('class="hidden shrink-0 items-end gap-4 sm:flex"');
     }
   });
 });
