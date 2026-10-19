@@ -71,3 +71,8 @@ Run one team (`game`): *era-advanced* from inside a team, so after it. Notes in
 ## Someday: the Share link
 
 A link that rebuilds a run on another machine. Unscheduled. `docs/design/ratings-editor.md`.
+
+## Someday: Graphic marks
+
+Title stars, a livery barcode on the team page, a podium on the race page. Unscheduled; the
+podium waits on *Phone layout*, the stars on *Historical career records*. `docs/design/graphic-marks.md`.
