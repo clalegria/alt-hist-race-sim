@@ -8,13 +8,15 @@ paths:
   - "apps/web/src/lib/season-tabs.ts"
   - "apps/web/src/lib/tab-memory.ts"
   - "apps/web/src/lib/session-nav.ts"
+  - "apps/web/src/lib/page-steps.ts"
+  - "apps/web/src/components/PageSteps.tsx"
   - "apps/web/src/routes/run/$year/index.tsx"
 ---
 
-# The season page and the links around a session
+# The season page and the links around a page
 
-`/run/<year>` (`SeasonOverview`), and a session page's header and round links. Which URL
-shows what, and the gate, are `web-routing.md`.
+`/run/<year>` (`SeasonOverview`), a session page's header, and the steps to the page
+either side. Which URL shows what, and the gate, are `web-routing.md`.
 
 - **One season page, finished or not**, cut at the cursor; the champion cards head
   the standings tab, under the tab strip, once the summary is reached (`finished`).
@@ -36,8 +38,15 @@ shows what, and the gate, are `web-routing.md`.
 - **A phone's calendar row is round and winner**: Pole shows from `sm`, the Grand Prix
   wraps, and the names are `tight` in `max-w-0` cells. Never a sideways scroll, and
   nothing in a Grand Prix that cannot wrap: one row's widest line sets every row's.
-- **Session links move between places and never reveal** (`sessionNav`): a place ahead is
-  a disabled `span`, never an `<a>`. Moving between rounds goes through `roundLink`,
-  shared with the breadcrumbs' menus.
+- **Session links move between places and never reveal** (`sessionNav`, the
+  qualifying/race switch): a place ahead is a disabled `span`, never an `<a>`. Moving
+  between rounds goes through `roundPlace`, shared by the breadcrumbs' menus and the steps.
+- **One `stepsFor` per page, drawn twice**: `‹` `›` after the run bar's trail
+  (`StepArrows`) and named at the foot (`StepLinks`), on a session, season, driver or team
+  page, never "Not reached yet". A place ahead is a disabled span saying "not yet"; both
+  squares always draw, so `›` never moves.
+- **A session step keeps its kind and crosses years** in an era; a season steps among the
+  years reached; people go A to Z over the roster, drivers by surname
+  (`compareBySurname`), unlike the index's own name sort.
 - **Links come in as props**, so `SeasonView` renders without a router; a test that needs
   them renders inside `inRouter` (`test-router.tsx`).

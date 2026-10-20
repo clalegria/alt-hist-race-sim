@@ -33,7 +33,7 @@ import type { RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
-import { RoundLinks, SessionHeader } from "./SessionNav.js";
+import { SessionHeader } from "./SessionNav.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardBand } from "./ui/card.js";
 import type { GridEdit } from "./useGridDraft.js";
@@ -384,8 +384,6 @@ function SeasonBody({
       {...(sessionNav === undefined || sessionNav === null ? {} : { nav: sessionNav })}
     />
   );
-  const footer =
-    sessionNav === undefined || sessionNav === null ? null : <RoundLinks nav={sessionNav} />;
 
   const sheet = view.kind === "qualifying" ? qualifyingOf(world.season, view.round) : undefined;
   if (view.kind === "qualifying" && sheet !== undefined) {
@@ -401,7 +399,6 @@ function SeasonBody({
         <Section title="Starting grid">
           <QualifyingResults race={sheet} country={country} />
         </Section>
-        {footer}
       </>
     );
   }
@@ -412,7 +409,6 @@ function SeasonBody({
       <>
         {header(race.weather)}
         <RaceStage world={world} view={view} race={race} />
-        {footer}
       </>
     );
   }

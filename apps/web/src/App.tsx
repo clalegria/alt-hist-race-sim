@@ -2,6 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { KeptNames } from "./components/EntryNames.js";
 import { KeptLiveries } from "./components/Liveries.js";
+import { StepLinks } from "./components/PageSteps.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
 import type { RunChoice } from "./components/RunSettingsDialog.js";
@@ -10,6 +11,7 @@ import { SeasonView } from "./components/SeasonView.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TopNav } from "./components/TopNav.js";
 import type { GridEdit } from "./components/useGridDraft.js";
+import type { PageSteps } from "./lib/page-steps.js";
 import { type RevealedWorld, revealed } from "./lib/reveal.js";
 import { PAGE_OF } from "./lib/roster-places.js";
 import { type Crumb, type ReturnLink, runBarFor } from "./lib/run-bar.js";
@@ -120,6 +122,7 @@ const GridEditingContext = createContext<(editing: boolean) => void>(() => {});
 export function RunFrame({
   run,
   crumbs,
+  steps = null,
   returnTo,
   onContinue,
   onSkip,
@@ -132,6 +135,11 @@ export function RunFrame({
 }: {
   run: Run;
   crumbs: readonly Crumb[];
+  /**
+   * The page either side: arrows after the trail and named links at the foot,
+   * from this one value so the two always agree. Null on a page with none.
+   */
+  steps?: PageSteps | null;
   /** The way back to where the run is, while the page is elsewhere. */
   returnTo: ReturnLink | null;
   onContinue: () => void;
@@ -201,7 +209,7 @@ export function RunFrame({
 
   return (
     <GridEditingContext.Provider value={setEditingGrid}>
-      <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} {...actions} />}>
+      <Shell seed={run.world.seed} bar={<RunBar crumbs={crumbs} steps={steps} {...actions} />}>
         {/* Every team on every page of the run is named by the run's own rule. */}
         <KeptNames from={run.world.namesKeptFrom}>
           <KeptLiveries from={run.world.liveriesKeptFrom}>
@@ -214,7 +222,10 @@ export function RunFrame({
               pageOf={run.kind === "era" ? PAGE_OF : null}
               racePage={racePage}
             >
-              <div className="flex flex-col gap-6 pt-8 lg:pt-10">{children}</div>
+              <div className="flex flex-col gap-6 pt-8 lg:pt-10">
+                {children}
+                {steps === null ? null : <StepLinks steps={steps} />}
+              </div>
             </SeasonHistoryProvider>
           </KeptLiveries>
         </KeptNames>

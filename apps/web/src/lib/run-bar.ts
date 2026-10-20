@@ -286,7 +286,7 @@ export interface Crumb {
 }
 
 /** The years the run has reached, earliest first. */
-function yearsReached(run: Run): readonly number[] {
+export function yearsReached(run: Run): readonly number[] {
   return [
     ...(run.kind === "era" ? run.run.seasons.map((world) => world.year) : []),
     run.world.year,

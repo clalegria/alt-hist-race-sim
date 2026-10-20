@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nameParts, shortName } from "./names.js";
+import { compareBySurname, nameParts, shortName } from "./names.js";
 
 /**
  * Synthetic names throughout: the rule is about the shape of a name, not about
@@ -72,6 +72,44 @@ describe("nameParts", () => {
   it("splits a short form the way it split the full name", () => {
     for (const name of ["Aaaa Bbbb", "Aaaa de Bbbb", "Aaaa-Cccc Dddd Bbbb Sr."]) {
       expect(nameParts(shortName(name)).surname).toBe(nameParts(name).surname);
+    }
+  });
+});
+
+describe("compareBySurname", () => {
+  const sorted = (names: string[]) => [...names].sort(compareBySurname);
+
+  it("orders by surname before given name", () => {
+    expect(sorted(["Aaaa Dddd", "Zzzz Bbbb", "Mmmm Cccc"])).toEqual([
+      "Zzzz Bbbb",
+      "Mmmm Cccc",
+      "Aaaa Dddd",
+    ]);
+  });
+
+  it("breaks a shared surname by given name", () => {
+    expect(sorted(["Mmmm Bbbb", "Aaaa Bbbb"])).toEqual(["Aaaa Bbbb", "Mmmm Bbbb"]);
+  });
+
+  it("files a particle where it stands, not under the name after it", () => {
+    expect(sorted(["Aaaa Eeee", "Aaaa de Cccc", "Aaaa Bbbb"])).toEqual([
+      "Aaaa Bbbb",
+      "Aaaa de Cccc",
+      "Aaaa Eeee",
+    ]);
+  });
+
+  it("keeps a suffix with its surname rather than treating it as a name", () => {
+    expect(sorted(["Aaaa Dddd", "Aaaa Bbbb Jr."])).toEqual(["Aaaa Bbbb Jr.", "Aaaa Dddd"]);
+  });
+
+  it("is antisymmetric, and zero between a name and itself", () => {
+    const names = ["Aaaa Bbbb", "Cccc de Bbbb", "Aaaa Bbbb Jr.", "Bbbb"];
+    for (const a of names) {
+      expect(compareBySurname(a, a)).toBe(0);
+      for (const b of names) {
+        expect(Math.sign(compareBySurname(a, b)) + Math.sign(compareBySurname(b, a))).toBe(0);
+      }
     }
   });
 });

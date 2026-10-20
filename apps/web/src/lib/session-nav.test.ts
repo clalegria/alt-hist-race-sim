@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { seededWorld, YEAR } from "../test-support.js";
 import { linkTo, type RunLink } from "./run-places.js";
-import { sessionNav } from "./session-nav.js";
+import { roundLink, roundPlace, sessionNav } from "./session-nav.js";
 import { type Beat, isReached, type Place } from "./timeline.js";
 
 const ROUNDS = seededWorld(3, "aged", YEAR).season.races.length;
@@ -49,10 +49,10 @@ function everyPair(): { cursor: Place; place: Place }[] {
 describe("the links around a session", () => {
   it("never link past the cursor, from any session the reader has reached", () => {
     for (const { cursor, place } of everyPair()) {
-      const nav = sessionNav(cursor, place, ROUNDS);
+      const nav = sessionNav(cursor, place);
       const label = `${JSON.stringify(cursor.beat)} → ${JSON.stringify(place.beat)}`;
       expect(nav, label).not.toBeNull();
-      for (const link of [nav?.qualifying, nav?.race, nav?.previous?.link, nav?.next?.link]) {
+      for (const link of [nav?.qualifying, nav?.race]) {
         if (link !== null && link !== undefined) {
           expect(isReached(cursor, placeOf(link)), label).toBe(true);
         }
@@ -62,7 +62,7 @@ describe("the links around a session", () => {
 
   it("offer this round's race only once it is reached, and its qualifying always", () => {
     for (const { cursor, place } of everyPair()) {
-      const nav = sessionNav(cursor, place, ROUNDS);
+      const nav = sessionNav(cursor, place);
       const round =
         place.beat.kind === "race" || place.beat.kind === "qualifying" ? place.beat.round : -1;
       expect(nav?.qualifying).toEqual(linkTo(at({ kind: "qualifying", round })));
@@ -71,41 +71,44 @@ describe("the links around a session", () => {
     }
   });
 
-  it("keep to the session on screen, or the next round's qualifying while its race is ahead", () => {
-    for (const { cursor, place } of everyPair()) {
-      const beat = place.beat;
-      if (beat.kind !== "qualifying" && beat.kind !== "race") {
-        continue;
+  it("are not drawn on a page that is not a session", () => {
+    const summary = at({ kind: "summary" });
+    expect(sessionNav(summary, at({ kind: "grid" }))).toBeNull();
+    expect(sessionNav(summary, summary)).toBeNull();
+  });
+});
+
+describe("moving to another round", () => {
+  it("keeps the session where it is reached, falls back to qualifying, else goes nowhere", () => {
+    for (const cursorBeat of beatsOf(ROUNDS)) {
+      const cursor = at(cursorBeat);
+      for (let round = 0; round < ROUNDS; round += 1) {
+        for (const kind of ["qualifying", "race"] as const) {
+          const label = `${JSON.stringify(cursorBeat)} → ${kind} ${round}`;
+          const same = at({ kind, round });
+          const qualifying = at({ kind: "qualifying", round });
+          const place = roundPlace(cursor, YEAR, kind, round);
+          if (isReached(cursor, same)) {
+            expect(place, label).toEqual(same);
+          } else if (isReached(cursor, qualifying)) {
+            expect(place, label).toEqual(qualifying);
+          } else {
+            expect(place, label).toBeNull();
+          }
+          expect(roundLink(cursor, YEAR, kind, round), label).toEqual(
+            place === null ? null : linkTo(place),
+          );
+        }
       }
-      const nav = sessionNav(cursor, place, ROUNDS);
-      if (beat.round > 0) {
-        expect(nav?.previous?.link).toEqual(linkTo(at({ kind: beat.kind, round: beat.round - 1 })));
-      }
-      const next = beat.round + 1;
-      if (next >= ROUNDS) {
-        continue;
-      }
-      const same = at({ kind: beat.kind, round: next });
-      const qualifying = at({ kind: "qualifying", round: next });
-      const expected = isReached(cursor, same)
-        ? linkTo(same)
-        : isReached(cursor, qualifying)
-          ? linkTo(qualifying)
-          : null;
-      expect(nav?.next?.link ?? null).toEqual(expected);
-      expect(nav?.next?.label).toBe(`Round ${next + 1}`);
     }
   });
 
-  it("have no round before the first or after the last", () => {
-    const summary = at({ kind: "summary" });
-    expect(sessionNav(summary, at({ kind: "race", round: 0 }), ROUNDS)?.previous).toBeNull();
-    expect(sessionNav(summary, at({ kind: "race", round: ROUNDS - 1 }), ROUNDS)?.next).toBeNull();
-  });
-
-  it("are not drawn on a page that is not a session", () => {
-    const summary = at({ kind: "summary" });
-    expect(sessionNav(summary, at({ kind: "grid" }), ROUNDS)).toBeNull();
-    expect(sessionNav(summary, summary, ROUNDS)).toBeNull();
+  it("reaches all three outcomes across a season's cursors", () => {
+    const outcomes = new Set<string>();
+    for (const cursorBeat of beatsOf(ROUNDS)) {
+      const place = roundPlace(at(cursorBeat), YEAR, "race", ROUNDS - 1);
+      outcomes.add(place === null ? "none" : place.beat.kind);
+    }
+    expect([...outcomes].sort()).toEqual(["none", "qualifying", "race"]);
   });
 });

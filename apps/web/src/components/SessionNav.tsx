@@ -1,7 +1,6 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { RaceWeather } from "@alt-hist/engine";
-import { Link } from "@tanstack/react-router";
-import type { RoundLink, SessionNav } from "../lib/session-nav.js";
+import type { SessionNav } from "../lib/session-nav.js";
 import { PageHeading } from "./PageHeading.js";
 import { Tabs } from "./Tabs.js";
 import { WeatherBadge } from "./WeatherBadge.js";
@@ -58,40 +57,5 @@ export function SessionHeader({
         />
       )}
     </header>
-  );
-}
-
-/** A round either side, as a link — or, while it is still ahead, as words. */
-function RoundStep({ step, direction }: { step: RoundLink; direction: "previous" | "next" }) {
-  const text = direction === "previous" ? `‹ ${step.label}` : `${step.label} ›`;
-  return step.link === null ? (
-    <span aria-disabled="true" className="text-subtle text-sm">
-      {step.label} (not yet) ›
-    </span>
-  ) : (
-    <Link
-      {...step.link}
-      rel={direction === "previous" ? "prev" : "next"}
-      className="text-primary text-sm font-medium underline-offset-4 hover:underline"
-    >
-      {text}
-    </Link>
-  );
-}
-
-/**
- * The rounds either side of a session, at the foot of its page. They move
- * between places and never reveal: a round ahead is drawn but not linked, and
- * the way there is Continue.
- */
-export function RoundLinks({ nav }: { nav: SessionNav }) {
-  if (nav.previous === null && nav.next === null) {
-    return null;
-  }
-  return (
-    <nav aria-label="Rounds" className="flex items-center justify-between gap-3">
-      {nav.previous === null ? <span /> : <RoundStep step={nav.previous} direction="previous" />}
-      {nav.next === null ? <span /> : <RoundStep step={nav.next} direction="next" />}
-    </nav>
   );
 }

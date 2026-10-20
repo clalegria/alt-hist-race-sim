@@ -140,23 +140,19 @@ describe("the links around a session", () => {
       <SeasonView
         world={revealYear(world, cursor)}
         view={shown as Exclude<Beat, { kind: "review" }>}
-        sessionNav={sessionNav({ year: YEAR, beat: cursor }, { year: YEAR, beat: shown }, ROUNDS)}
+        sessionNav={sessionNav({ year: YEAR, beat: cursor }, { year: YEAR, beat: shown })}
       />,
     );
 
-  it("disable the race and the next round while the cursor is on this qualifying", async () => {
+  it("disable the race while the cursor is on this qualifying", async () => {
     const html = await page({ kind: "qualifying", round: MID }, { kind: "qualifying", round: MID });
     expect(html).toMatch(/aria-disabled="true"[^>]*>Race</);
-    expect(html).toContain(`Round ${MID + 2} (not yet)`);
-    expect(html).not.toContain(`/round/${MID + 2}/`);
-    expect(html).toContain(`href="/run/${YEAR}/round/${MID}/qualifying"`);
+    expect(html).not.toContain(`href="/run/${YEAR}/round/${MID + 1}/race"`);
   });
 
-  it("link the next round once it is reached, and the race beside its qualifying", async () => {
+  it("link the race beside its qualifying once it is reached", async () => {
     const html = await page({ kind: "summary" }, { kind: "qualifying", round: MID });
     expect(html).toContain(`href="/run/${YEAR}/round/${MID + 1}/race"`);
-    expect(html).toContain(`href="/run/${YEAR}/round/${MID + 2}/qualifying"`);
-    expect(html).not.toContain("(not yet)");
   });
 
   it("name the round in the page's header", async () => {

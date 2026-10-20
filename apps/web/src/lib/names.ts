@@ -143,6 +143,17 @@ export function nameParts(full: string): { given: string; surname: string } {
 }
 
 /**
+ * Two names in A-to-Z order by surname, then given name: "Alan Jones" before
+ * "Nelson Piquet Jr." before "Alain Prost". Particles count where they stand,
+ * so "de Graffenried" files under d.
+ */
+export function compareBySurname(a: string, b: string): number {
+  const first = nameParts(a);
+  const second = nameParts(b);
+  return first.surname.localeCompare(second.surname) || first.given.localeCompare(second.given);
+}
+
+/**
  * A name cut down to initials and surname: "Michael Schumacher" →
  * "M. Schumacher", "Jean-Pierre Jarier" → "J-P. Jarier", "Juan Manuel Fangio" →
  * "J.M. Fangio". The surname is `nameParts`'.

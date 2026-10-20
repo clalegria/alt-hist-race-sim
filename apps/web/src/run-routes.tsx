@@ -23,6 +23,7 @@ import { NotReached } from "./components/NotReached.js";
 import { DriverPage, TeamPage } from "./components/PersonPages.js";
 import { RosterIndex } from "./components/RosterIndex.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
+import { stepsFor } from "./lib/page-steps.js";
 import type { IndexSort } from "./lib/roster.js";
 import {
   driversLink,
@@ -135,7 +136,7 @@ export function RunPlacePage({
           tab={tab}
           tabs={seasonTabLinks(resolved.place.year, tab)}
           pagesOf={(round) => roundPages(resolved.place.year, round)}
-          sessionNav={sessionNav(cursorPlace(run), resolved.place, resolved.world.season.rounds)}
+          sessionNav={sessionNav(cursorPlace(run), resolved.place)}
           {...(run.kind === "era" ? { run: run.run } : {})}
           locked={resolved.view.kind === "grid" && !resolved.editable}
           settingsLock={settingsLock(run)}
@@ -299,6 +300,9 @@ export function RunLayout() {
     <RunFrame
       run={run}
       crumbs={crumbsFor(run, place)}
+      // Only on a page drawn as itself: a place ahead says "Not reached yet",
+      // and has no neighbours to offer.
+      steps={resolved?.kind === "unreached" ? null : stepsFor(run, place)}
       returnTo={returnFor(run, place)}
       onContinue={() => {
         continueRun();

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
+import type { PageSteps } from "../lib/page-steps.js";
 import {
   type ContinueSlot,
   type Crumb,
@@ -11,6 +12,7 @@ import {
   runActionsFor,
 } from "../lib/run-bar.js";
 import { cn } from "../lib/utils.js";
+import { StepArrows, TRAIL_SQUARE, TRAIL_SQUARE_LIVE } from "./PageSteps.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
 import {
@@ -37,7 +39,11 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={menu.label}
-        className="text-muted-foreground hover:text-foreground hover:bg-accent data-[state=open]:bg-accent data-[state=open]:text-foreground focus-visible:ring-ring border-border relative -my-0.5 inline-flex size-6 cursor-pointer items-center justify-center rounded-md border text-xs transition-colors before:absolute before:-top-3 before:-right-2.5 before:-bottom-1 before:-left-0.5 focus-visible:ring-2 focus-visible:outline-none"
+        className={cn(
+          TRAIL_SQUARE,
+          TRAIL_SQUARE_LIVE,
+          "data-[state=open]:bg-accent data-[state=open]:text-foreground -my-0.5 text-xs before:absolute before:-top-3 before:-right-2.5 before:-bottom-1 before:-left-0.5",
+        )}
       >
         ▾
       </DropdownMenuTrigger>
@@ -73,11 +79,22 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
  * link is a `Link`, so it can be opened in a new tab like any other. A crumb
  * with siblings has a menu of them beside it — the breadcrumb switcher — so
  * the trail moves across years and rounds as well as up.
+ *
+ * `after` follows the last crumb in the trail's own flow — the arrows to the
+ * page either side — so it wraps like one more crumb rather than narrowing the
+ * trail beside it. Wrapped lines are spaced so a square's tap area, which
+ * reaches up, stays off the middle of one on the line above.
  */
-export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
+export function Breadcrumbs({
+  crumbs,
+  after,
+}: {
+  crumbs: readonly Crumb[];
+  after?: React.ReactNode;
+}) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-x-1.5 font-mono text-xs tracking-wider uppercase">
+      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-2 font-mono text-xs tracking-wider uppercase">
         {crumbs.map((crumb, index) => {
           const last = index === crumbs.length - 1;
           return (
@@ -108,6 +125,12 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
             </Fragment>
           );
         })}
+        {/* Not a crumb, so no list item to a screen reader; clear of a ▾'s reach. */}
+        {after === undefined ? null : (
+          <li role="none" className="ml-1 flex items-center">
+            {after}
+          </li>
+        )}
       </ol>
     </nav>
   );
@@ -345,7 +368,12 @@ export function RunActions(props: RunActionsProps) {
  * cursor's page the trail already says where the run is, so the place is
  * there for screen readers only.
  */
-function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: readonly Crumb[] }) {
+function RunPlace({
+  crumbs,
+  steps,
+  state,
+  returnTo,
+}: RunActionsProps & { crumbs: readonly Crumb[]; steps: PageSteps | null }) {
   const live = returnTo === undefined || returnTo === null;
   return (
     <div className="flex flex-col gap-1.5 leading-tight">
@@ -356,7 +384,10 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
           {...(live ? { "data-live": "" } : {})}
           className="bg-subtle data-[live]:bg-primary ring-subtle/25 data-[live]:ring-primary/25 mt-1.5 size-2 shrink-0 rounded-full ring-3"
         />
-        <Breadcrumbs crumbs={crumbs} />
+        <Breadcrumbs
+          crumbs={crumbs}
+          {...(steps === null ? {} : { after: <StepArrows steps={steps} /> })}
+        />
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:flex-nowrap">
         <div className="flex min-w-24 flex-1 sm:w-[260px] sm:flex-initial">
@@ -387,10 +418,18 @@ function RunPlace({ crumbs, state, returnTo }: RunActionsProps & { crumbs: reado
  * buttons left of ⋯ wrap inside themselves instead: a flex item will not
  * shrink below its own narrowest layout, so ⋯ and the way on keep their width.
  */
-export function RunBar({ crumbs, ...actions }: RunActionsProps & { crumbs: readonly Crumb[] }) {
+export function RunBar({
+  crumbs,
+  steps = null,
+  ...actions
+}: RunActionsProps & {
+  crumbs: readonly Crumb[];
+  /** The page either side, as arrows after the trail; null on a page with none. */
+  steps?: PageSteps | null;
+}) {
   return (
     <div className="flex flex-1 items-start gap-3">
-      <RunPlace crumbs={crumbs} {...actions} />
+      <RunPlace crumbs={crumbs} steps={steps} {...actions} />
       <RunActions {...actions} />
     </div>
   );
