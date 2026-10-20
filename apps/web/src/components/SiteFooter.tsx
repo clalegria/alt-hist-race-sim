@@ -34,20 +34,64 @@ function Pending({ label }: { label: string }) {
   );
 }
 
-/** A strip across the whole window, ruled off at its top; its text keeps to the page's column. */
-export function SiteFooter({ seed, className }: { seed?: number; className?: string }) {
+/** One of the footer's parts: as it is in the strip, or on a board of its own on the verge. */
+function Part({
+  onVerge,
+  className,
+  children,
+}: {
+  onVerge: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <footer className={cn("border-border border-t", className)}>
-      <div className="text-subtle mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-1.5 px-4 pt-4 pb-6 text-xs sm:px-6 lg:pb-8">
-        <span>
+    <span className={cn(onVerge && "bg-card border-border border px-2 py-0.5", className)}>
+      {children}
+    </span>
+  );
+}
+
+/**
+ * A strip across the whole window, ruled off at its top; its text keeps to the
+ * page's column.
+ *
+ * `onVerge` is for a page whose foot is the track (Home): the footer becomes the
+ * track's lower verge, its parts trackside boards along it, so it sits in the
+ * window with the track instead of a scroll below it.
+ */
+export function SiteFooter({
+  seed,
+  onVerge = false,
+  className,
+}: {
+  seed?: number;
+  onVerge?: boolean;
+  className?: string;
+}) {
+  return (
+    <footer className={cn(onVerge ? "track-verge" : "border-border border-t", className)}>
+      <div
+        className={cn(
+          "text-subtle mx-auto flex max-w-5xl flex-wrap items-center px-4 text-xs sm:px-6",
+          // On the verge, the track's own strip of grass is the space above the boards.
+          onVerge
+            ? "short:pb-1 justify-center gap-x-3 gap-y-1.5 pb-2"
+            : "gap-x-4 gap-y-1.5 pt-4 pb-6 lg:pb-8",
+        )}
+      >
+        <Part onVerge={onVerge}>
           Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.
-        </span>
-        <Pending label="About this project" />
-        <Pending label="Submit a bug report" />
+        </Part>
+        <Part onVerge={onVerge}>
+          <Pending label="About this project" />
+        </Part>
+        <Part onVerge={onVerge}>
+          <Pending label="Submit a bug report" />
+        </Part>
         {seed === undefined ? null : (
-          <span className="ml-auto">
+          <Part onVerge={onVerge} className={cn(!onVerge && "ml-auto")}>
             Run <span className="tabular-nums">{seed}</span>
-          </span>
+          </Part>
         )}
       </div>
     </footer>

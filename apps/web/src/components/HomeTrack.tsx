@@ -7,7 +7,15 @@ import {
   type ParadeCar,
   type ParadeGame,
 } from "../lib/parade.js";
-import { carAt, type Field, START_LINE, spreadField, startField, stepField } from "../lib/track.js";
+import {
+  carAt,
+  type Field,
+  refitField,
+  START_LINE,
+  spreadField,
+  startField,
+  stepField,
+} from "../lib/track.js";
 import { cn } from "../lib/utils.js";
 import { CarTooltip, type Point } from "./CarTooltip.js";
 import { LiveryCar } from "./TeamCar.js";
@@ -25,6 +33,9 @@ const Sprite = memo(function Sprite({ livery, year }: { livery: Livery; year: nu
  * start/finish line, kerb, verge, and the field on the tarmac where `field`
  * puts it. A screen reader skips the whole band: it is decoration.
  *
+ * Thinner all through on a short window, so the page above keeps the room; the
+ * field reads the tarmac's height off the page (`refitField`).
+ *
  * Props-driven, so it renders without a DOM; `HomeTrack` drives it.
  */
 export function Track({
@@ -38,12 +49,13 @@ export function Track({
 }) {
   return (
     <div aria-hidden="true" className="border-border border-t select-none">
-      <div className="track-verge h-2" />
-      <div className="track-kerb h-2" />
+      <div className="track-verge short:h-1 h-2" />
+      <div className="track-kerb short:h-1.5 h-2" />
       <div
         ref={tarmac}
         className={cn(
-          "track-tarmac relative h-28 overflow-hidden",
+          // 112px and 96px: `TARMAC_HEIGHT_PX`, and the short window's, which `laneTops` fits two lanes into.
+          "track-tarmac short:h-24 relative h-28 overflow-hidden",
           // A held car stops the whole field, wheels too.
           game.pressed && "[&_*]:[animation-play-state:paused]",
         )}
@@ -75,8 +87,8 @@ export function Track({
           </div>
         ))}
       </div>
-      <div className="track-kerb h-2" />
-      <div className="track-verge h-2" />
+      <div className="track-kerb short:h-1.5 h-2" />
+      <div className="track-verge short:h-1 h-2" />
     </div>
   );
 }
@@ -109,7 +121,11 @@ export function HomeTrack() {
       return;
     }
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let current = (still ? spreadField : startField)(Math.random, element.clientWidth);
+    let current = (still ? spreadField : startField)(
+      Math.random,
+      element.clientWidth,
+      element.clientHeight,
+    );
     setField(current);
     let state = PARADE_START;
     // The pointer's last place in the window, or null when it has left it (or a finger lifted).
@@ -139,6 +155,12 @@ export function HomeTrack() {
     const tick = (time: number) => {
       const dt = (time - last) / 1000;
       last = time;
+      // The window crossed into or out of short, so the tarmac changed height.
+      const refitted = refitField(current, element.clientHeight);
+      if (refitted !== current) {
+        current = refitted;
+        setField(current);
+      }
       if (!still && !state.pressed) {
         current = stepField(current, {
           dt,

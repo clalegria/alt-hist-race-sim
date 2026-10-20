@@ -44,8 +44,8 @@ A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
 ## The track
 - **It never touches the world**, so it may use `Math.random()`, passed in.
 - **The track is the parade's only road**: no car drives over the page.
-- **`Shell`'s `foot` is where it sits**: full width between the column and the footer;
-  the column grows, so on a desktop it meets the bottom of the window.
+- **`Shell`'s `foot`**, above the footer as its lower verge, meets the window's bottom.
+- **The lanes fit the measured tarmac** (`laneTops`, `refitField`): a short window's is thinner.
 - **The field is stepped in `lib/track.ts`, not animated in CSS**: the cars react to one
   another. Keep the step pure and every rule in `stepField`; the component only feeds it
   frames and the pointer.

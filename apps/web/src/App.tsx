@@ -25,8 +25,8 @@ import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from 
 /**
  * A page inside the frame: its sticky bar, a centred column, and the site
  * footer, with `foot` full width between the column and the footer (Home's
- * track). The column grows to fill the window, so on a short page the foot and
- * the footer sit at the bottom of it.
+ * track, whose lower verge the footer then becomes). The column grows to fill
+ * the window, so on a short page the foot and the footer sit at the bottom of it.
  *
  * The footer is rendered here rather than by each screen so that every screen
  * has one — the attribution belongs to the app, not to the season screen that
@@ -45,9 +45,9 @@ export function Shell({
   seed?: number;
   foot?: React.ReactNode;
   /**
-   * On a wide screen, the column and `foot` fill the window below the nav
-   * exactly, so the foot is always in view and the footer waits below it. What
-   * the column holds must then scroll within itself (Home's modes).
+   * On a wide screen, the column, `foot` and the footer fill the window below
+   * the nav exactly, so the foot and the footer are always in view. What the
+   * column holds must then scroll within itself (Home's modes).
    */
   fit?: boolean;
   children: React.ReactNode;
@@ -63,6 +63,11 @@ export function Shell({
         {children}
       </div>
       {foot}
+      {/* Home's track meets the footer, which becomes its verge; every other page leaves a gap. */}
+      <SiteFooter
+        {...(seed === undefined ? {} : { seed })}
+        {...(foot === undefined ? { className: "mt-6" } : { onVerge: true })}
+      />
     </>
   );
   return (
@@ -89,11 +94,6 @@ export function Shell({
       ) : (
         page
       )}
-      {/* Home's track meets the footer's rule; every other page leaves a gap. */}
-      <SiteFooter
-        {...(seed === undefined ? {} : { seed })}
-        {...(foot === undefined ? { className: "mt-6" } : {})}
-      />
     </div>
   );
 }

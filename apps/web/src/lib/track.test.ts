@@ -18,6 +18,7 @@ import {
   type Formation,
   gridField,
   LANE_TOPS,
+  laneTops,
   MAX_CARS,
   MAX_STEP_S,
   MIN_CARS,
@@ -25,16 +26,20 @@ import {
   PACE_OLDEST_PX_PER_S,
   PACE_SPREAD,
   paceFor,
+  refitField,
   START_LINE,
   spreadField,
   startField,
   stepField,
+  TARMAC_HEIGHT_PX,
   type TrackCar,
 } from "./track.js";
 
 const SEEDS = Array.from({ length: 40 }, (_, i) => i + 1);
 const WIDTHS = [360, 768, 1280, 2560];
 const FRAME_S = 1 / 30;
+/** The tarmac on a short window (`h-24`). */
+const SHORT_TARMAC_PX = 96;
 
 const LIVERY: Livery = {
   primaryColor: "#aa0000",
@@ -86,7 +91,7 @@ function faults(field: Field, width: number): string[] {
     if (c.id >= field.nextId) {
       found.push(`car ${c.id} at or past the next id`);
     }
-    if (c.y < LANE_TOPS[0] || c.y > LANE_TOPS[1]) {
+    if (c.y < field.lanes[0] || c.y > field.lanes[1]) {
       found.push(`car ${c.id} off the lanes`);
     }
     if (c.speed < 0 || c.speed > c.pace) {
@@ -128,6 +133,38 @@ function run(
   }
   return current;
 }
+
+describe("laneTops", () => {
+  it("fits two cars on the tarmac, one either side of its middle line, the same way in from each kerb", () => {
+    for (let height = 2 * CAR_HEIGHT_PX + 6; height <= 160; height++) {
+      const [upper, lower] = laneTops(height);
+      expect(upper).toBeGreaterThanOrEqual(0);
+      expect(upper + CAR_HEIGHT_PX).toBeLessThanOrEqual(height / 2);
+      expect(lower).toBeGreaterThanOrEqual(height / 2);
+      expect(height - (lower + CAR_HEIGHT_PX)).toBe(upper);
+    }
+  });
+});
+
+describe("refitField", () => {
+  it("is the same field while the tarmac keeps its height", () => {
+    const field = startField(randomSource(1), 1280);
+    expect(refitField(field, TARMAC_HEIGHT_PX)).toBe(field);
+  });
+
+  it("moves every car into its lane on the new tarmac, where it laps soundly", () => {
+    for (const seed of SEEDS.slice(0, 10)) {
+      const tall = run(startField(randomSource(seed), 1280), { seconds: 5, width: 1280, seed });
+      const short = refitField(tall, SHORT_TARMAC_PX);
+      expect(short.lanes).toEqual(laneTops(SHORT_TARMAC_PX));
+      for (const c of short.cars) {
+        expect(c.y).toBe(short.lanes[c.lane]);
+        expect(c.x).toBe(tall.cars.find((t) => t.id === c.id)?.x);
+      }
+      run(short, { seconds: 10, width: 1280, seed });
+    }
+  });
+});
 
 describe("carsFor", () => {
   it("puts more cars on a wider track, within the fewest and the most", () => {
@@ -269,7 +306,7 @@ describe("stepField", () => {
   });
 
   it("drives the cars the way it is told", () => {
-    const field: Field = { cars: [car(0, { lane: 0, x: 500 })], nextId: 1 };
+    const field: Field = { cars: [car(0, { lane: 0, x: 500 })], nextId: 1, lanes: LANE_TOPS };
     const step = { dt: 0.02, width: 1280, random: randomSource(1) };
     const right = stepField(field, { ...step, direction: 1 }).cars.find((c) => c.id === 0);
     const left = stepField(field, { ...step, direction: -1 }).cars.find((c) => c.id === 0);
@@ -278,7 +315,7 @@ describe("stepField", () => {
   });
 
   it("never jumps further than its longest step, however long the frame", () => {
-    const field: Field = { cars: [car(0, { lane: 0, x: 500 })], nextId: 1 };
+    const field: Field = { cars: [car(0, { lane: 0, x: 500 })], nextId: 1, lanes: LANE_TOPS };
     const moved = stepField(field, { dt: 10, width: 1280, direction: 1, random: randomSource(1) });
     const c = moved.cars.find((c) => c.id === 0);
     expect(c?.x).toBeCloseTo(500 + 200 * MAX_STEP_S);
@@ -287,7 +324,7 @@ describe("stepField", () => {
   it("has a faster car pull out past a slower one when the other lane is clear", () => {
     const slow = car(0, { lane: 0, x: 400, pace: 150 });
     const fast = car(1, { lane: 0, x: 400 - CAR_WIDTH_PX - 60, pace: 300 });
-    let field: Field = { cars: [slow, fast], nextId: 2 };
+    let field: Field = { cars: [slow, fast], nextId: 2, lanes: LANE_TOPS };
     let pulledOut = false;
     for (let t = 0; t < 4; t += FRAME_S) {
       // Wide enough that neither leaves, so no new car joins the test.
@@ -309,7 +346,7 @@ describe("stepField", () => {
     const slow = car(0, { lane: 0, x: 400, pace: 150 });
     const beside = car(2, { lane: 1, x: 300, pace: 150 });
     const fast = car(1, { lane: 0, x: 400 - CAR_WIDTH_PX - 60, pace: 300 });
-    let field: Field = { cars: [slow, beside, fast], nextId: 3 };
+    let field: Field = { cars: [slow, beside, fast], nextId: 3, lanes: LANE_TOPS };
     for (let t = 0; t < 2; t += FRAME_S) {
       field = stepField(field, {
         dt: FRAME_S,
@@ -328,7 +365,7 @@ describe("stepField", () => {
 describe("carAt", () => {
   const upper = car(0, { lane: 0, x: 100 });
   const lower = car(1, { lane: 1, x: 150, y: LANE_TOPS[0] + 20 });
-  const field: Field = { cars: [upper, lower], nextId: 2 };
+  const field: Field = { cars: [upper, lower], nextId: 2, lanes: LANE_TOPS };
 
   it("finds the car under a point, edges included", () => {
     expect(carAt(field, { x: 100, y: upper.y })?.id).toBe(0);

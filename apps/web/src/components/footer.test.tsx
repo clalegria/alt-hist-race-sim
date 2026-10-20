@@ -43,6 +43,27 @@ describe("the footer", () => {
     expect(renderToStaticMarkup(<SiteFooter />)).not.toContain("Seed");
   });
 
+  it("on the verge, is the track's grass with every part on a board of its own", () => {
+    const BOARD = "bg-card";
+    const strip = renderToStaticMarkup(<SiteFooter seed={4242} />);
+    const verge = renderToStaticMarkup(<SiteFooter seed={4242} onVerge />);
+    expect(strip).not.toContain("track-verge");
+    expect(strip).not.toContain(BOARD);
+    expect(verge).toContain("track-verge");
+    expect(verge).toContain(CREDIT);
+    // The credit, the two destinations and the run.
+    expect(verge.split(BOARD).length - 1).toBe(4);
+  });
+
+  it("is the lower verge of Home's track, straight after it", async () => {
+    const { html } = await renderRoute("/");
+    const track = html.indexOf("track-tarmac");
+    const footer = html.indexOf("<footer");
+    expect(track).toBeGreaterThan(-1);
+    expect(footer).toBeGreaterThan(track);
+    expect(html.slice(footer)).toMatch(/^<footer class="track-verge/);
+  });
+
   it("is part of the frame, so a screen with no seed still has one", async () => {
     // The main menu is the case the bug was about: it had nothing to print in
     // a footer, so it had no footer. Rendered through the router, at the store's

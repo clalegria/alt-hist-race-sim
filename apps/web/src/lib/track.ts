@@ -22,13 +22,27 @@ import { PLAYABLE_SEASONS } from "./seasons.js";
 export const CAR_WIDTH_PX = 144;
 export const CAR_HEIGHT_PX = 42;
 
-/** The tarmac's height in px (`h-28` in `HomeTrack`). */
+/**
+ * The tarmac's height in px: `h-28` in `HomeTrack`, `h-24` on a short window.
+ * The page measures it; this is the height a field is laid out for when not told.
+ */
 export const TARMAC_HEIGHT_PX = 112;
 
-/** Each lane's top on the tarmac, in px: either side of the dashed line. */
-export const LANE_TOPS = [8, 62] as const;
+/** Of the tarmac the two lanes leave free, the gap between them gets this many times each edge's share. */
+export const LANE_GAP_TO_EDGE = 1.5;
+
+/** Each lane's top in px on tarmac `height` high: either side of the dashed line down its middle. */
+export function laneTops(height: number): LaneTops {
+  const edge = Math.round((height - 2 * CAR_HEIGHT_PX) / (2 + LANE_GAP_TO_EDGE));
+  return [edge, height - edge - CAR_HEIGHT_PX];
+}
+
+/** Each lane's top on the tarmac at its full height. */
+export const LANE_TOPS = laneTops(TARMAC_HEIGHT_PX);
 
 export type Lane = 0 | 1;
+
+export type LaneTops = readonly [number, number];
 
 /** Where the start/finish line is, as a share of the track's width. */
 export const START_LINE = 0.22;
@@ -95,6 +109,8 @@ export interface Field {
   cars: readonly TrackCar[];
   /** The next car's `id`. */
   nextId: number;
+  /** Each lane's top, for the tarmac the field is on (`laneTops`). */
+  lanes: LaneTops;
 }
 
 /** How many cars run on a track this wide. */
@@ -115,15 +131,17 @@ export function paceFor(year: number, random: () => number): number {
 function fieldOf(
   random: () => number,
   count: number,
+  height: number,
   place: (index: number) => { lane: Lane; x: number },
   speed: (pace: number) => number,
 ): Field {
+  const lanes = laneTops(height);
   const cars = pickCars(random, count).map((car, id): TrackCar => {
     const { lane, x } = place(id);
     const pace = paceFor(car.year, random);
-    return { ...car, id, lane, x, y: LANE_TOPS[lane], pace, speed: speed(pace) };
+    return { ...car, id, lane, x, y: lanes[lane], pace, speed: speed(pace) };
   });
-  return { cars, nextId: cars.length };
+  return { cars, nextId: cars.length, lanes };
 }
 
 /**
@@ -131,12 +149,18 @@ function fieldOf(
  * nose to tail in one lane, or each car half a length behind the one before,
  * in the other lane. The grid runs back off the left of a narrow track.
  */
-export function gridField(random: () => number, width: number, formation: Formation): Field {
+export function gridField(
+  random: () => number,
+  width: number,
+  formation: Formation,
+  height = TARMAC_HEIGHT_PX,
+): Field {
   const front = START_LINE * width - CAR_WIDTH_PX;
   const first: Lane = random() < 0.5 ? 0 : 1;
   return fieldOf(
     random,
     carsFor(width),
+    height,
     (i) =>
       formation === "file"
         ? { lane: first, x: front - i * (CAR_WIDTH_PX + GRID_GAP_PX) }
@@ -146,24 +170,38 @@ export function gridField(random: () => number, width: number, formation: Format
 }
 
 /** The field on the grid in either formation, as the track first shows it. */
-export function startField(random: () => number, width: number): Field {
-  return gridField(random, width, FORMATIONS[below(FORMATIONS.length, random)] ?? "file");
+export function startField(random: () => number, width: number, height = TARMAC_HEIGHT_PX): Field {
+  return gridField(random, width, FORMATIONS[below(FORMATIONS.length, random)] ?? "file", height);
 }
 
 /** The field standing still, spread evenly along the track in alternate lanes: for reduced motion. */
-export function spreadField(random: () => number, width: number): Field {
+export function spreadField(random: () => number, width: number, height = TARMAC_HEIGHT_PX): Field {
   const count = carsFor(width);
   return fieldOf(
     random,
     count,
+    height,
     (i) => ({ lane: (i % 2) as Lane, x: ((i + 0.5) * width) / count - CAR_WIDTH_PX / 2 }),
     () => 0,
   );
 }
 
+/**
+ * The field moved onto tarmac `height` high, when the window makes the track
+ * taller or shorter: every car straight into its lane, the same field if
+ * nothing changes.
+ */
+export function refitField(field: Field, height: number): Field {
+  const lanes = laneTops(height);
+  if (lanes[0] === field.lanes[0] && lanes[1] === field.lanes[1]) {
+    return field;
+  }
+  return { ...field, lanes, cars: field.cars.map((car) => ({ ...car, y: lanes[car.lane] })) };
+}
+
 /** Whether a car takes up any of a lane: in it, moving into it, or still partly across it. */
-function occupies(car: TrackCar, lane: Lane): boolean {
-  return car.lane === lane || Math.abs(car.y - LANE_TOPS[lane]) < CAR_HEIGHT_PX;
+function occupies(car: TrackCar, lane: Lane, lanes: LaneTops): boolean {
+  return car.lane === lane || Math.abs(car.y - lanes[lane]) < CAR_HEIGHT_PX;
 }
 
 const LANES: readonly Lane[] = [0, 1];
@@ -184,19 +222,20 @@ export function stepField(
   }: { dt: number; width: number; direction: 1 | -1; random: () => number },
 ): Field {
   const step = Math.min(Math.max(0, dt), MAX_STEP_S);
+  const { lanes } = field;
   // Distances along the direction of travel: a car's rear, measured so that
   // ahead is always larger, whichever way the field is driving.
   const rear = (car: TrackCar) => (direction === 1 ? car.x : -(car.x + CAR_WIDTH_PX));
   const now = new Map(field.cars.map((car) => [car.id, car]));
   const others = (car: TrackCar) => [...now.values()].filter((other) => other.id !== car.id);
   // The nearest car ahead taking up any of these lanes, with the gap to it.
-  const leader = (car: TrackCar, lanes: readonly Lane[]) => {
+  const leader = (car: TrackCar, among: readonly Lane[]) => {
     let nearest: { car: TrackCar; gap: number } | undefined;
     for (const other of others(car)) {
       const gap = rear(other) - rear(car) - CAR_WIDTH_PX;
       if (
         rear(other) > rear(car) &&
-        lanes.some((lane) => occupies(other, lane)) &&
+        among.some((lane) => occupies(other, lane, lanes)) &&
         (nearest === undefined || gap < nearest.gap)
       ) {
         nearest = { car: other, gap };
@@ -220,7 +259,8 @@ export function stepField(
   // Whether no other car takes up any of `lane` between these two rears.
   const clear = (car: TrackCar, lane: Lane, from: number, to: number) =>
     others(car).every(
-      (other) => !occupies(other, lane) || rear(other) + CAR_WIDTH_PX <= from || rear(other) >= to,
+      (other) =>
+        !occupies(other, lane, lanes) || rear(other) + CAR_WIDTH_PX <= from || rear(other) >= to,
     );
 
   // Front first, so each car sees the cars ahead where they have just moved to.
@@ -229,7 +269,7 @@ export function stepField(
   const order = [...field.cars].sort((a, b) => rear(b) - rear(a));
   for (const start of order) {
     let car = start;
-    const across = car.y !== LANE_TOPS[car.lane];
+    const across = car.y !== lanes[car.lane];
     const ahead = leader(car, [car.lane]);
     if (
       !across &&
@@ -249,7 +289,7 @@ export function stepField(
     // Whatever is ahead in any lane the car takes up, so it never runs into a car mid-move.
     const queue = leader(
       car,
-      LANES.filter((lane) => occupies(car, lane)),
+      LANES.filter((lane) => occupies(car, lane, lanes)),
     );
     const limit =
       queue === undefined
@@ -258,7 +298,7 @@ export function stepField(
     const target = Math.max(0, limit);
     const speed =
       target < car.speed ? target : Math.min(target, car.speed + ACCELERATION_PX_PER_S2 * step);
-    const laneTop = LANE_TOPS[car.lane];
+    const laneTop = lanes[car.lane];
     const y =
       car.y < laneTop
         ? Math.min(laneTop, car.y + LANE_CHANGE_PX_PER_S * step)
@@ -275,7 +315,7 @@ export function stepField(
     const open = LANES.filter((lane) =>
       cars.every(
         (car) =>
-          !occupies(car, lane) ||
+          !occupies(car, lane, lanes) ||
           car.x + CAR_WIDTH_PX + ENTRY_GAP_PX <= entry ||
           car.x >= entry + CAR_WIDTH_PX + ENTRY_GAP_PX,
       ),
@@ -296,14 +336,14 @@ export function stepField(
         id: nextId,
         lane,
         x: entry,
-        y: LANE_TOPS[lane],
+        y: lanes[lane],
         pace,
         speed: pace,
       });
       nextId += 1;
     }
   }
-  return { cars, nextId };
+  return { cars, nextId, lanes };
 }
 
 /**
