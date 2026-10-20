@@ -159,6 +159,8 @@ export interface RunActionsProps {
    * null or absent on the cursor's own page.
    */
   readonly returnTo?: ReturnLink | null;
+  /** Layout from outside: the widths this copy shows at. */
+  readonly className?: string;
 }
 
 /** One action that does something, as the bar and ⋯ draw it. */
@@ -287,8 +289,9 @@ function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
  * stylesheet (media queries, `md:` and `lg:`) rather than in script.
  *
  * As wide as its buttons and no wider, so the foot of the page right-aligns it.
- * Drawn twice, in the sticky bar and at the foot of the page, from one set of
- * props, so the two copies always show the same thing.
+ * Drawn twice, in the run bar and at the foot of the page, from one set of
+ * props, so the two copies always show the same thing. On a phone only the
+ * foot's is drawn, pinned to the bottom of the screen (`RunFrame`).
  */
 export function RunActions(props: RunActionsProps) {
   const { state } = props;
@@ -310,7 +313,7 @@ export function RunActions(props: RunActionsProps) {
   return (
     // `flex-initial`: its own width, never more; less only for the editing
     // note, which wraps, while the buttons' labels never do.
-    <div className="flex flex-initial items-start justify-end gap-2">
+    <div className={cn("flex flex-initial items-start justify-end gap-2", props.className)}>
       {props.editingGrid ? (
         // No way forward while a grid is half-rearranged: the draft would go
         // with it, and the season simulated would be the one being replaced.
@@ -445,6 +448,10 @@ function RunPlace({
  * first and the place gets the rest, its trail wrapping and its rounds
  * narrowing to fit: in a toolbar the controls hold their size and the text
  * beside them gives way. `runActionsFor` folds into ⋯ whatever would not fit.
+ *
+ * Below `md` the bar is the place alone, its trail the full width, and it
+ * scrolls away with the page: the actions are the foot's copy, pinned to the
+ * bottom of the screen where a thumb reaches (`RunFrame`).
  */
 export function RunBar({
   crumbs,
@@ -458,7 +465,7 @@ export function RunBar({
   return (
     <div className="flex flex-1 items-start gap-3">
       <RunPlace crumbs={crumbs} steps={steps} {...actions} />
-      <RunActions {...actions} />
+      <RunActions {...actions} className="hidden md:flex" />
     </div>
   );
 }

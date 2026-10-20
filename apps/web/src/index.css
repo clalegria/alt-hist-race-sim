@@ -10,8 +10,14 @@
  * The top nav's band on a wide screen, its rule not included: `h-nav` there, and
  * what Home subtracts from the window to fill the rest of it exactly (`Shell`).
  */
+/*
+ * The run actions' band on a phone, pinned to the screen's foot: a button's 36px,
+ * 8px above and below it, its rule, and the room the home indicator takes.
+ * `bottom-actions` is where anything else pinned to the foot stacks above it.
+ */
 @theme {
   --spacing-nav: 50px;
+  --spacing-actions: calc(53px + env(safe-area-inset-bottom));
 }
 
 /*

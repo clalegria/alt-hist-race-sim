@@ -126,15 +126,21 @@ export function SeasonPicker({
           only thing here that does anything: this is the answer being handed
           over. It names the year it will start so the commitment is legible
           without looking back to check which button is lit.
+
+          On a phone it is pinned to the bottom of the screen while the
+          questions scroll above it, as a run's way on is (`RunFrame`), and
+          comes to rest here after them. Full bleed, out to the page's padding.
         */}
-        <Button
-          className="h-12 w-full text-base lg:col-start-1 lg:row-start-2"
-          onClick={() => {
-            onStart(year, choice.randomness, choice.settings);
-          }}
-        >
-          {describeStart(year)}
-        </Button>
+        <div className="bg-background/85 border-border sticky bottom-0 z-40 -mx-4 border-t px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 md:static md:mx-0 md:border-t-0 md:bg-transparent md:p-0 md:backdrop-blur-none lg:col-start-1 lg:row-start-2">
+          <Button
+            className="h-12 w-full text-base"
+            onClick={() => {
+              onStart(year, choice.randomness, choice.settings);
+            }}
+          >
+            {describeStart(year)}
+          </Button>
+        </div>
       </div>
     </div>
   );

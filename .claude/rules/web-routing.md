@@ -19,8 +19,7 @@ paths:
 
 # Routing, the gate and the run bar
 
-Which URL shows what, what a page may read of the run, and how a run is moved, entered
-and left.
+Which URL shows what, what a page may read of the run, and how a run is moved and left.
 
 ## Routes
 - **Route names are public once *publish it* ships**: add routes, never rename them.
@@ -37,8 +36,7 @@ and left.
 - **Params are untrusted; `resolveRunPage` is the only door.** A page reads the run
   through what it returns (`revealed(run)`, a `RevealedWorld`), never the store's `Run`;
   so does Home's live session (`runLeader`). A raw `World` fails `pnpm typecheck`.
-- **A season's length is `season.rounds`**, never `races.length`, which stops at the
-  cursor.
+- **A season's length is `season.rounds`**, never `races.length` (it stops at the cursor).
 
 ## The run bar
 - **Pages read, the run bar acts.** A page never advances or edits the run (the
@@ -47,6 +45,8 @@ and left.
   router to act.
 - **`runBarFor`/`runActionsFor` (`lib/run-bar.ts`) decide** what is offered and where,
   `RunBar` draws. The end is always the way on: Continue, or at the run's end its restart.
+- **On a phone the way on is pinned to the screen's foot** (the foot's copy; the bar above
+  scrolls away), not a floating button. Anything else pinned there stacks at `bottom-actions`.
 - **A run's progress is `runBarFor`'s `roundsRun` of `rounds`** (a round counts once its
   race is shown), drawn by `RoundSegments` wherever it shows, never counted by a page.
 - **Forward pushes a history entry; a restart replaces it** (the page left belongs to

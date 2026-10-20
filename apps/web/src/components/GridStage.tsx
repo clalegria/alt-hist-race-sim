@@ -278,8 +278,8 @@ export function GridStage({
  * `sticky bottom-0` inside the editor's own container rather than `fixed`: it
  * holds the screen's foot while the grid is in view and comes to rest at the
  * container's end, so it never covers the run actions or footer below and the
- * page needs no padding to clear it. (The run bar is pinned to the *top*, so
- * the two never meet.)
+ * page needs no padding to clear it. Below `md` the run actions are pinned to
+ * the foot too, so it stacks just above them (`bottom-actions`).
  *
  * `children` draws the pool and is handed `close`, to call once a driver is
  * picked so the reader lands back at the seats.
@@ -295,7 +295,7 @@ export function ReserveSheet({
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <div className="bg-card border-border sticky bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <div className="bg-card border-border bottom-actions sticky z-30 border-t md:bottom-0 md:pb-[env(safe-area-inset-bottom)] lg:hidden">
         <SheetTrigger asChild>
           <button
             type="button"

@@ -84,10 +84,12 @@ export function Shell({
         Sticky, so the way forward is always one click away rather than a scroll
         past a 28-row table. The same buttons repeat at the foot of the page,
         which is where a reader who has just finished reading actually is. The
-        top nav above it scrolls away; this is the bar that stays.
+        top nav above it scrolls away; this is the bar that stays. From `md` up
+        only: on a phone the way forward is pinned to the foot instead
+        (`RunFrame`), so this one scrolls away and leaves the page the screen.
       */}
       {bar === undefined ? null : (
-        <div className="bg-background/85 border-border sticky top-0 z-40 border-b backdrop-blur">
+        <div className="bg-background/85 border-border top-0 z-40 border-b backdrop-blur md:sticky">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
             {bar}
           </div>
@@ -115,7 +117,8 @@ const GridEditingContext = createContext<(editing: boolean) => void>(() => {});
 
 /**
  * Everything a page inside a run sits in: the run bar at the top, the same
- * actions again at the foot, and the dialogs those actions open.
+ * actions again at the foot (on a phone, the only copy, pinned to the bottom
+ * of the screen), and the dialogs those actions open.
  *
  * Every action is a prop, because each one moves the store *and* the URL and
  * that is the route's job (`run-routes.tsx`); this keeps the frame free of the
@@ -241,7 +244,15 @@ export function RunFrame({
             </SeasonHistoryProvider>
           </KeptLiveries>
         </KeptNames>
-        <div className="border-border flex justify-end border-t pt-6">
+        {/*
+          On a phone, the run's only actions: a band pinned to the bottom of
+          the screen, where a thumb reaches and where nothing on the page sits
+          under it for good. `sticky`, not `fixed`, so it comes to rest here at
+          the page's end and the last row is never left behind it. Full bleed,
+          out to the column's own padding. From `md` up, the run bar's copy is
+          pinned instead and this is a plain row at the foot.
+        */}
+        <div className="bg-background/85 border-border sticky bottom-0 z-40 -mx-4 flex justify-end border-t px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 md:static md:mx-0 md:bg-transparent md:px-0 md:pt-6 md:pb-0 md:backdrop-blur-none">
           <RunActions {...actions} />
         </div>
       </Shell>
