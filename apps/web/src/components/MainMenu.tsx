@@ -81,7 +81,7 @@ export function MainMenu({
 }) {
   // On a wide screen the page fills the window above the track (`Shell`'s
   // `fit`), and the two columns, tops level, sit in the middle of what is left
-  // (`Shell` centres every page). A short window gets a headline sized to its height,
+  // (`Shell` starts every page a little way down). A short window gets a headline sized to its height,
   // smaller copy, a tighter run panel and less padding; past that the columns
   // shrink to the room there is and the modes scroll, and the hero too as a
   // last resort, rather than push the track off.
