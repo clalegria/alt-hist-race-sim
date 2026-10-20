@@ -31,10 +31,10 @@ its CSS: the app builds the look from its own tokens (`index.css`) and component
 
 | Voice | Looks like | Used for | Owned by |
 |---|---|---|---|
-| Display capitals | narrow, extrabold, uppercase | page titles, the Home hero, panel and dialog titles, the title banner | `PageHeading`, `CardTitle`/`CardBand`, `DIALOG_TITLE`, `MainMenu` |
-| Control capitals | narrow, bold, uppercase, a little tracking | buttons, nav, tabs, menu items | `ui/button`, `TopNav`, `Tabs`, `ui/dropdown-menu` |
-| Timing names | narrow extrabold capitals | a name that stands alone in a table cell: a driver's surname (`SplitName`, given name plain), a team's whole name; a popover's title | `TIMING_NAME`, through `DriverName` and `TeamName` |
-| Mono labels | Plex Mono, small, uppercase, wide tracking | column heads, band labels, kickers, breadcrumbs, statuses like READY | `MONO_LABEL`, `TableHead`, `PageHeading`'s sub-line |
+| Display capitals | narrow, extrabold, uppercase, a hair of tracking | page titles, the Home hero, panel and dialog titles, the title banner | `DISPLAY_CAPS` |
+| Control capitals | narrow, bold, uppercase, a little tracking | buttons, nav, tabs, menu items | `CONTROL_CAPS` |
+| Timing names | narrow extrabold capitals | a name that stands alone in a table cell: a driver's surname (`SplitName`, given name a little condensed), a team's whole name; a popover's title | `TIMING_NAME`, through `DriverName` and `TeamName` |
+| Mono labels | Plex Mono, uppercase: a small label with wide tracking, or a running line a size up | column heads, band labels, kickers, statuses like READY; breadcrumbs, a heading's sub-line, the rain tag | `MONO_LABEL`; `MONO_LINE` |
 | Figures | Plex Mono, tabular | every number | the `tabular-nums` class |
 
 Everything else is body text: Archivo at full width, sentence case. That includes the team
@@ -48,11 +48,11 @@ line under a driver, a name inside a sentence, and settings captions.
 
 - **A panel**: a border, a head band (`CardHeader`/`CardBand`, `--color-card-header`), then
   striped full-width rows. Square corners everywhere, through the radius tokens.
-- **A dialog is a panel**: band, body, footer.
+- **A dialog is a panel**: band, body, footer. A popover wears the same band over its title.
 - **The position block**: the rank in mono on a band-coloured square at the row's start.
   The winner's block is filled teal; second and third have a teal number.
-- **Round things are deliberate exceptions**: the livery badge, the live-session dot, the
-  wet pill.
+- **Round things are deliberate exceptions**: the livery badge and the live-session dot.
+  The wet tag is square, like every other tag.
 
 ## Changing the look
 

@@ -25,8 +25,8 @@ import { ratedAge } from "../lib/people.js";
 import { carOverall, carRacing, driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
 import { cn, MONO_LABEL, TIMING_NAME } from "../lib/utils.js";
-import { useNameYear } from "./EntryNames.js";
-import { FittedDriverName } from "./FittedName.js";
+import { EntryNames, useNameYear } from "./EntryNames.js";
+import { FittedDriverName, SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import {
   ArrangementNote,
@@ -46,7 +46,13 @@ import { LiveryCar } from "./TeamCar.js";
 import { Button } from "./ui/button.js";
 import { Card, CardBand } from "./ui/card.js";
 import { Notice } from "./ui/notice.js";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
+import {
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
+} from "./ui/popover.js";
 
 const drivers = driversById();
 
@@ -150,11 +156,7 @@ function Rating({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span
-        className={cn("w-24 shrink-0 text-xs", muted ? "text-subtle" : "text-muted-foreground")}
-      >
-        {label}
-      </span>
+      <span className={cn(MONO_LABEL, "w-28 shrink-0", muted && "text-subtle")}>{label}</span>
       <span className="bg-muted h-1.5 flex-1 overflow-hidden">
         <span
           className={cn("block h-full", muted ? "bg-subtle" : "bg-primary")}
@@ -326,7 +328,10 @@ function listed(names: readonly string[]): string {
     : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-/** The headline number, tinted by how good it is. */
+/**
+ * The headline number, tinted by how good it is. Teal at the top though teal
+ * otherwise means a win: the author's call, kept after the UI review.
+ */
 export function Overall({ value }: { value: number }) {
   return (
     <span
@@ -580,8 +585,8 @@ function DriverEntry({
               ratingMode={ratingMode}
             />
           </NameTrigger>
-          <PopoverContent>
-            <div className="mb-3 flex items-baseline justify-between gap-2">
+          <PopoverContent className="p-0">
+            <PopoverHeader>
               {/*
                 Flag then name, as the row that opened this reads and as a
                 driver is named everywhere else. It is the one thing the badge
@@ -589,12 +594,15 @@ function DriverEntry({
                 team the reader can already see on the card, while a flag is
                 part of how a driver's name is written throughout the app, and
                 a name that loses it on opening reads as a different component.
+                The name is set as every table sets one (`SplitName`).
               */}
               <span className="flex min-w-0 items-center gap-1.5">
                 {driver === undefined ? null : (
                   <Flag country={driver.nationality} title={driver.nationality} />
                 )}
-                <span className={cn(TIMING_NAME, "truncate")}>{driverName(entrant.driverId)}</span>
+                <span className="truncate">
+                  <SplitName name={driverName(entrant.driverId)} />
+                </span>
                 {pageOf === null ? null : (
                   <PageLink
                     link={pageOf.driver(entrant.driverId)}
@@ -605,8 +613,8 @@ function DriverEntry({
               <span className="text-muted-foreground shrink-0 text-xs">
                 {age === null ? "" : `${age} years old`}
               </span>
-            </div>
-            <div className="flex flex-col gap-2">
+            </PopoverHeader>
+            <PopoverBody className="flex flex-col gap-2">
               {DRIVER_RATINGS.map((rating) => (
                 <Rating
                   key={rating.key}
@@ -615,7 +623,7 @@ function DriverEntry({
                   muted={rating.key === "adaptability"}
                 />
               ))}
-            </div>
+            </PopoverBody>
           </PopoverContent>
         </Popover>
       ) : (
@@ -948,13 +956,17 @@ export function SeasonGrid({
               ) : undefined
             }
           >
-            <GridChanges
-              changes={edited}
-              engineChanges={resupplied}
-              chassisChanges={[...rerated.values()]}
-              engineRatingChanges={[...reratedEngines.values()]}
-              trendChanges={[...retrended.values()]}
-            />
+            {/* The entry names of this grid's own field, which a draft may have
+                resupplied, never those of the world around it. */}
+            <EntryNames field={field}>
+              <GridChanges
+                changes={edited}
+                engineChanges={resupplied}
+                chassisChanges={[...rerated.values()]}
+                engineRatingChanges={[...reratedEngines.values()]}
+                trendChanges={[...retrended.values()]}
+              />
+            </EntryNames>
           </Notice>
         )}
 
@@ -1023,7 +1035,6 @@ export function SeasonGrid({
                           marked && SWAPPED_IN,
                         )}
                       >
-                        {base === undefined ? null : <Flag country={base} title={base} />}
                         {livery === undefined ? null : (
                           // Sized down from the 1.5em the badge takes elsewhere:
                           // there it is a mark for a whole row, here it sits in a
@@ -1032,26 +1043,28 @@ export function SeasonGrid({
                           // the team's colours.
                           <LiveryBadge livery={livery} className="size-3.5" />
                         )}
+                        {base === undefined ? null : <Flag country={base} title={base} />}
                         <span className="truncate">{name}</span>
                       </NameTrigger>
                       {/* A little wider than a driver's panel: its header carries the car beside the name. */}
                       {/* Wider again in the editor, where each chassis row carries a stepper. */}
-                      <PopoverContent className={edit === undefined ? "w-80" : "w-96"}>
-                        <div className="mb-3 flex items-center justify-between gap-2">
+                      <PopoverContent className={cn("p-0", edit === undefined ? "w-80" : "w-96")}>
+                        <PopoverHeader>
                           {/*
-                          Flag, badge, name — the card header this opened out
-                          of, read back in the same order, for the reason the
-                          driver panel repeats a driver's flag: a name written
-                          one way everywhere else reads as a different
-                          component when it loses its marks on opening. It is
-                          the documented exception to "nothing that only
-                          appears after a click wears a badge".
+                          Badge, flag, name — the card header this opened out
+                          of, read back in the same order, which is the order
+                          every table draws a team in (`TeamName`). Repeated,
+                          as the driver panel repeats a driver's flag, because
+                          a name written one way everywhere else reads
+                          as a different component when it loses its marks on
+                          opening. It is the documented exception to "nothing
+                          that only appears after a click wears a badge".
                         */}
                           <span className="flex min-w-0 items-center gap-1.5">
-                            {base === undefined ? null : <Flag country={base} title={base} />}
                             {livery === undefined ? null : (
                               <LiveryBadge livery={livery} className="size-3.5" />
                             )}
+                            {base === undefined ? null : <Flag country={base} title={base} />}
                             <span className={cn(TIMING_NAME, "truncate")}>{name}</span>
                             {/* Not while editing: the editor's popover is for re-rating, not for leaving. */}
                             {pageOf === null || edit !== undefined ? null : (
@@ -1061,117 +1074,127 @@ export function SeasonGrid({
                           {livery === undefined ? null : (
                             <LiveryCar livery={livery} year={seasonYear} />
                           )}
-                        </div>
-                        {ghostCar === undefined ? null : (
-                          <p className="text-muted-foreground mb-2 text-xs">
-                            Gone by {seasonYear} in real life, so it keeps the performance of its{" "}
-                            {ghostCar} car.
-                          </p>
-                        )}
-                        {historical === undefined ? null : (
-                          <p className={cn(MONO_LABEL, "mb-2 text-right")}>Real → this run</p>
-                        )}
-                        <div className="flex flex-col gap-2">
-                          {CHASSIS_RATINGS.map((rating) => (
-                            <Rating
-                              key={rating.key}
-                              label={rating.label}
-                              value={entry.chassis[rating.key]}
-                              {...(historical === undefined ? {} : { was: historical[rating.key] })}
-                              {...(edit === undefined
-                                ? {}
-                                : {
-                                    control: (
-                                      <ChassisStepper
-                                        teamName={name}
-                                        chassis={entry.chassis}
-                                        delta={
-                                          chassisChange === undefined
-                                            ? 0
-                                            : chassisChange.to[rating.key] -
-                                              chassisChange.from[rating.key]
-                                        }
-                                        rating={rating}
-                                        onStep={(step) => {
-                                          edit.onChassisStep(entry.teamId, step, rating.key);
-                                        }}
-                                      />
-                                    ),
-                                  })}
-                            />
-                          ))}
-                        </div>
-                        {entry.engine === undefined || entry.engineId === undefined ? null : (
-                          // The chassis above and the engine below it, separately,
-                          // because the headline number is already the two blended
-                          // and a reader who opens this wants the parts.
-                          <>
-                            <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
-                              <span className={cn(MONO_LABEL, "text-foreground")}>
-                                {engineName(entry.engineId)} engine
-                              </span>
-                              <span className={MONO_LABEL}>
-                                {historicalEngine === undefined
-                                  ? `${seasonYear} spec`
-                                  : "Real → this run"}
-                              </span>
-                            </div>
-                            {edit === undefined || sharing.length === 0 ? null : (
-                              <p className="text-muted-foreground mb-2 text-xs">
-                                Also moves {listed(sharing)}.
-                              </p>
-                            )}
-                            <div className="flex flex-col gap-2">
-                              {ENGINE_RATINGS.map((rating) => (
-                                <Rating
-                                  key={rating.key}
-                                  label={rating.label}
-                                  value={entry.engine?.[rating.key] ?? 0}
-                                  {...(historicalEngine === undefined
-                                    ? {}
-                                    : { was: historicalEngine[rating.key] })}
-                                  {...(edit === undefined ||
-                                  entry.engine === undefined ||
-                                  entry.engineId === undefined
-                                    ? {}
-                                    : {
-                                        control: (
-                                          <EngineStepper
-                                            engineId={entry.engineId}
-                                            engine={entry.engine}
-                                            delta={
-                                              engineChange === undefined
-                                                ? 0
-                                                : engineChange.to[rating.key] -
-                                                  engineChange.from[rating.key]
-                                            }
-                                            rating={rating}
-                                            onStep={(step) => {
-                                              if (entry.engineId !== undefined) {
-                                                edit.onEngineStep(entry.engineId, step, rating.key);
+                        </PopoverHeader>
+                        <PopoverBody>
+                          {ghostCar === undefined ? null : (
+                            <p className="text-muted-foreground mb-2 text-xs">
+                              Gone by {seasonYear} in real life, so it keeps the performance of its{" "}
+                              {ghostCar} car.
+                            </p>
+                          )}
+                          {historical === undefined ? null : (
+                            <p className={cn(MONO_LABEL, "mb-2 text-right")}>Real → this run</p>
+                          )}
+                          <div className="flex flex-col gap-2">
+                            {CHASSIS_RATINGS.map((rating) => (
+                              <Rating
+                                key={rating.key}
+                                label={rating.label}
+                                value={entry.chassis[rating.key]}
+                                {...(historical === undefined
+                                  ? {}
+                                  : { was: historical[rating.key] })}
+                                {...(edit === undefined
+                                  ? {}
+                                  : {
+                                      control: (
+                                        <ChassisStepper
+                                          teamName={name}
+                                          chassis={entry.chassis}
+                                          delta={
+                                            chassisChange === undefined
+                                              ? 0
+                                              : chassisChange.to[rating.key] -
+                                                chassisChange.from[rating.key]
+                                          }
+                                          rating={rating}
+                                          onStep={(step) => {
+                                            edit.onChassisStep(entry.teamId, step, rating.key);
+                                          }}
+                                        />
+                                      ),
+                                    })}
+                              />
+                            ))}
+                          </div>
+                          {entry.engine === undefined || entry.engineId === undefined ? null : (
+                            // The chassis above and the engine below it, separately,
+                            // because the headline number is already the two blended
+                            // and a reader who opens this wants the parts.
+                            <>
+                              <div className="border-border/60 mt-3 mb-2 flex items-baseline justify-between gap-2 border-t pt-3">
+                                <span className={cn(MONO_LABEL, "text-foreground")}>
+                                  {engineName(entry.engineId)} engine
+                                </span>
+                                <span className={MONO_LABEL}>
+                                  {historicalEngine === undefined
+                                    ? `${seasonYear} spec`
+                                    : "Real → this run"}
+                                </span>
+                              </div>
+                              {edit === undefined || sharing.length === 0 ? null : (
+                                <p className="text-muted-foreground mb-2 text-xs">
+                                  Also moves {listed(sharing)}.
+                                </p>
+                              )}
+                              <div className="flex flex-col gap-2">
+                                {ENGINE_RATINGS.map((rating) => (
+                                  <Rating
+                                    key={rating.key}
+                                    label={rating.label}
+                                    value={entry.engine?.[rating.key] ?? 0}
+                                    {...(historicalEngine === undefined
+                                      ? {}
+                                      : { was: historicalEngine[rating.key] })}
+                                    {...(edit === undefined ||
+                                    entry.engine === undefined ||
+                                    entry.engineId === undefined
+                                      ? {}
+                                      : {
+                                          control: (
+                                            <EngineStepper
+                                              engineId={entry.engineId}
+                                              engine={entry.engine}
+                                              delta={
+                                                engineChange === undefined
+                                                  ? 0
+                                                  : engineChange.to[rating.key] -
+                                                    engineChange.from[rating.key]
                                               }
-                                            }}
-                                          />
-                                        ),
-                                      })}
-                                />
-                              ))}
-                            </div>
-                          </>
-                        )}
-                        <DevelopmentPanel
-                          teamName={name}
-                          trend={entry.developmentTrend ?? 0}
-                          {...(edit === undefined
-                            ? {}
-                            : {
-                                delta:
-                                  trendChange === undefined ? 0 : trendChange.to - trendChange.from,
-                                onStep: (step: 1 | -1) => {
-                                  edit.onTrendStep(entry.teamId, step);
-                                },
-                              })}
-                        />
+                                              rating={rating}
+                                              onStep={(step) => {
+                                                if (entry.engineId !== undefined) {
+                                                  edit.onEngineStep(
+                                                    entry.engineId,
+                                                    step,
+                                                    rating.key,
+                                                  );
+                                                }
+                                              }}
+                                            />
+                                          ),
+                                        })}
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                          <DevelopmentPanel
+                            teamName={name}
+                            trend={entry.developmentTrend ?? 0}
+                            {...(edit === undefined
+                              ? {}
+                              : {
+                                  delta:
+                                    trendChange === undefined
+                                      ? 0
+                                      : trendChange.to - trendChange.from,
+                                  onStep: (step: 1 | -1) => {
+                                    edit.onTrendStep(entry.teamId, step);
+                                  },
+                                })}
+                          />
+                        </PopoverBody>
                       </PopoverContent>
                     </Popover>
                   </span>

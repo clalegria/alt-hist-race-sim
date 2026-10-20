@@ -19,14 +19,14 @@ reasoning is its comment in `index.css`; the look they serve is `docs/style/timi
   script's cut of every weight. Archivo's must be `standard.css`: `wght.css` has no
   width axis, and `narrow` silently does nothing.
 - **`.tabular-nums` puts text in the mono face**: mark only figures with it.
-- **`narrow` is the one width utility.** Never name a custom utility `font-*`:
-  tailwind-merge reads it as a font family and drops it beside `font-mono`.
-- **Capitals come from `uppercase`, never the source text**: tests and the screenshot
-  steps find elements by their text.
+- **The width utilities are `narrow`, and `semi-narrow` for a given name.** Never name a
+  custom utility `font-*`: tailwind-merge reads it as a font family and drops it.
+- **Capitals come from a voice constant in `lib/utils.ts`** (`DISPLAY_CAPS`, `CONTROL_CAPS`,
+  `TIMING_NAME`, `MONO_LABEL`, `MONO_LINE`), never the source text (tests find elements by
+  it) nor a hand-spelled `uppercase`. A call site adds only size, colour and layout.
 - **Corners are square through the `--radius-*` tokens**, `--radius` included (bare
   `rounded`). A shape that must stay round uses `rounded-full` or an arbitrary value.
-- **Badges and flags outline with `badge-line`, never `border`**, which is too close to the
-  dark card to edge a black livery.
+- **Badges and flags outline with `badge-line`, never `border`**: too dark to edge a black livery.
 - **Red is never the primary**: it means something went wrong or is about to be thrown
   away (`--color-destructive`, `--color-loss`). A `destructive` menu item fills red under
   the cursor, since red on `accent` misses 4.5:1 in light.

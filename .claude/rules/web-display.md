@@ -22,8 +22,8 @@ paths:
 The accent, the session sheets and the championship tables.
 
 - **One accent (`lib/highlight.ts`) means "won"**: pole, a race winner, each champion, the
-  sidebar's champion row once the title is settled, and `TitleCount`'s trophy on any title.
-  One accented row or card per view; never give it a second meaning.
+  sidebar's champion row once settled, `TitleCount`'s trophy. One accented row or card per
+  view. Its one other use, the author's call, is the grid's 85+ chip and seats notice.
 - **A row with a rank carries the accent on its `TablePosition` block, never as a row
   tint**: the winner's block filled (`STANDOUT_POSITION`), second and third's number in
   the accent (`PODIUM_POSITION`, race classification only). `STANDOUT_ROW` is for a row
@@ -44,9 +44,9 @@ The accent, the session sheets and the championship tables.
   are fixed. Child combinators only: an opened year holds tables of its own.
 - **A panel's head band is `CardBand`**: the title and a short mono label, never a
   sentence; its controls go in as children. A how-to goes on its control or in the body.
-  A card under a section's own `h2` passes `as="h3"`.
+  A card under a section's own `h2` passes `as="h3"`. A popover's is `PopoverHeader`, over
+  a `PopoverBody`, in a `PopoverContent` set to `p-0`.
 - **A dashed box inside a panel is `Notice`** (`ui/notice.tsx`), never hand-rolled.
-- **A small mono-capitals label is `MONO_LABEL`** (`lib/utils.ts`), never a new spelling.
 - **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by
   `text-loss`.
 - **`SeasonStandings` is the one drawing of a championship**, used by the season summary

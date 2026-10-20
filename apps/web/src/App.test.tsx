@@ -21,6 +21,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { SeasonPage } from "./App.js";
 import { SeasonView } from "./components/SeasonView.js";
+import { TOP_DRIVERS, TOP_TEAMS } from "./lib/evolution.js";
 import { STANDOUT_POSITION } from "./lib/highlight.js";
 import { driverName, teamName } from "./lib/names.js";
 import { driverOverall } from "./lib/rating.js";
@@ -416,10 +417,11 @@ describe("flags", () => {
   it("flies a flag on every row of both championship tables", () => {
     const html = render({ kind: "summary" });
     const drivers = between(html, "Drivers’ Championship", "Constructors’ Championship");
-    expect(svgsBesideCars(drivers)).toBe(SEATS);
+    // Each table is followed by its chart, whose legend names every line with a flag too.
+    expect(svgsBesideCars(drivers)).toBe(SEATS + Math.min(TOP_DRIVERS, SEATS));
     // The standings tab ends on the constructors' table and its chart.
     const teams = html.slice(html.indexOf("Constructors’ Championship"));
-    expect(svgsBesideCars(teams)).toBe(TEAMS);
+    expect(svgsBesideCars(teams)).toBe(TEAMS + Math.min(TOP_TEAMS, TEAMS));
   });
 });
 

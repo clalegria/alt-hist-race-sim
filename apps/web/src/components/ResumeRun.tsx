@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { RunLink } from "../lib/run-places.js";
-import { MONO_LABEL } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS, MONO_LABEL } from "../lib/utils.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
 
@@ -60,7 +60,13 @@ export function ResumeRun({
       }
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="narrow text-[1.625rem] leading-none font-extrabold uppercase lg:short:text-[1.375rem]">
+        <span
+          className={cn(
+            DISPLAY_CAPS,
+            // A one-off headline size between the scale's text-2xl and text-3xl.
+            "text-[1.625rem] leading-none lg:short:text-[1.375rem]",
+          )}
+        >
           {title}
         </span>
         {car}

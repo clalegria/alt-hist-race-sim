@@ -35,6 +35,7 @@ function Movement({ places }: { places: number | null }) {
     <span
       title={`${gained ? "Up" : "Down"} ${Math.abs(places)} ${Math.abs(places) === 1 ? "place" : "places"}`}
       className={cn(
+        // A glyph, not text, so no scale size applies.
         "inline-block w-2.5 shrink-0 text-[0.5rem] leading-none",
         gained ? "text-gain" : "text-loss",
       )}

@@ -23,8 +23,10 @@ import {
 import { legible } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
 import { cn } from "../lib/utils.js";
+import { DriverName } from "./DriverName.js";
 import { useEntryName } from "./EntryNames.js";
 import { useLivery } from "./Liveries.js";
+import { TeamName } from "./TeamName.js";
 import { Card, CardBand } from "./ui/card.js";
 
 /**
@@ -108,6 +110,17 @@ const TEAM_DASHES = ["", "5 4", "1 4", "9 3 1 3"];
  * that the table it belongs to is still on screen above it.
  */
 const CHART_HEIGHT = 325;
+
+type Championship = "drivers" | "constructors";
+
+/**
+ * A line's competitor, named as every table names them: flag beside it, a
+ * driver's name alone (no team line) and a team as it raced the season.
+ * `id` is the series key, a driver id or a team id by the table.
+ */
+function LineName({ championship, id }: { championship: Championship; id: string }) {
+  return championship === "drivers" ? <DriverName driverId={id} /> : <TeamName teamId={id} />;
+}
 
 /** A line, ready to draw: the fold's series plus what this screen calls it. */
 interface Plotted {
@@ -200,12 +213,14 @@ function EvolutionTooltip({
   label,
   lines,
   calendar,
+  championship,
 }: {
   /** Both come off Recharts' own `TooltipContentProps`, and both can be absent. */
   active?: boolean | undefined;
   label?: string | number | undefined;
   lines: readonly Plotted[];
   calendar: readonly CalendarRace[];
+  championship: Championship;
 }) {
   if (active !== true || typeof label !== "number") {
     return null;
@@ -224,7 +239,9 @@ function EvolutionTooltip({
       {standing.map(({ line, points }) => (
         <p key={line.series.key} className="flex items-center gap-2 py-0.5">
           <Swatch colour={line.colour} dash={line.dash} />
-          <span className="grow">{line.name}</span>
+          <span className="grow">
+            <LineName championship={championship} id={line.series.key} />
+          </span>
           <span className="font-mono tabular-nums">{points}</span>
         </p>
       ))}
@@ -358,11 +375,13 @@ function EvolutionChart({
   label,
   lines,
   calendar,
+  championship,
 }: {
   title: string;
   label: string;
   lines: readonly Plotted[];
   calendar: readonly CalendarRace[];
+  championship: Championship;
 }) {
   const rows = useMemo(() => evolutionRows(lines.map((line) => line.series)), [lines]);
   const finals = useMemo(
@@ -422,6 +441,7 @@ function EvolutionChart({
                   label={props.label}
                   lines={lines}
                   calendar={calendar}
+                  championship={championship}
                 />
               )}
             />
@@ -462,7 +482,7 @@ function EvolutionChart({
             <li key={line.series.key} className="flex items-center gap-2">
               <Swatch colour={line.colour} dash={line.dash} />
               <span className="text-muted-foreground tabular-nums">{index + 1}</span>
-              <span>{line.name}</span>
+              <LineName championship={championship} id={line.series.key} />
               <span className="font-mono tabular-nums">{line.series.points.at(-1) ?? 0}</span>
             </li>
           ))}
@@ -519,6 +539,7 @@ export function StandingsEvolution({
       label="Points after every round"
       lines={plot(drivers, driverName, colourOf)}
       calendar={calendar}
+      championship={championship}
     />
   ) : (
     <EvolutionChart
@@ -526,6 +547,7 @@ export function StandingsEvolution({
       label="Points after every round"
       lines={plot(teams, nameOf, colourOf)}
       calendar={calendar}
+      championship={championship}
     />
   );
 }

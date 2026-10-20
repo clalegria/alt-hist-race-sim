@@ -59,13 +59,14 @@ describe("the podium", () => {
   it("stands the top three on it, in finishing order, and leaves them in the table", () => {
     const steps = stepsOf(html);
     expect(steps).toHaveLength(top.length);
+    // The winner's name is drawn with emphasis, a weight up.
     top.forEach((entry, index) => {
-      expect(steps[index]).toContain(rowName(entry.driverId));
+      expect(steps[index]).toContain(rowName(entry.driverId, index === 0));
     });
     const rows = bodyRows(html);
     expect(rows).toHaveLength(race.entries.length);
     top.forEach((entry, index) => {
-      expect(rows[index]).toContain(rowName(entry.driverId));
+      expect(rows[index]).toContain(rowName(entry.driverId, index === 0));
     });
   });
 

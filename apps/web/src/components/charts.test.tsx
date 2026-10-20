@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 import { TOP_DRIVERS, TOP_TEAMS } from "../lib/evolution.js";
 import { legible, liveryFor } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
-import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
+import { SEED, seededWorld, shownAt, textOf, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonStandings } from "./SeasonStandings.js";
@@ -180,12 +180,23 @@ describe("the season summary", () => {
 
   it("names the top few of each table, in the order the table has them", () => {
     const drivers = championshipStandings(world.season, world.points).slice(0, TOP_DRIVERS);
+    const text = textOf(driversLegend);
     let at = 0;
     for (const standing of drivers) {
-      const found = driversLegend.indexOf(driverName(standing.driverId), at);
+      const found = text.indexOf(driverName(standing.driverId), at);
       expect(found, standing.driverId).toBeGreaterThan(-1);
       at = found;
     }
+  });
+
+  it("flies a flag beside every name, drivers and teams alike", () => {
+    // Counted in the list itself: the chart above it draws no SVG here, and the
+    // legend's swatches are CSS, so every `<svg>` is a flag.
+    const flags = (html: string) => html.slice(html.indexOf("<ul")).split("<svg").length - 1;
+    const drivers = championshipStandings(world.season, world.points).slice(0, TOP_DRIVERS);
+    expect(flags(driversLegend)).toBe(drivers.length);
+    const teams = constructorStandings(world.season, world.points).slice(0, TOP_TEAMS);
+    expect(flags(teamsLegend)).toBe(teams.length);
   });
 
   it("puts each competitor's final total beside their name", () => {

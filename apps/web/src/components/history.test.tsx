@@ -25,6 +25,7 @@ import {
   seasonHistories,
   type TeamSeason,
 } from "../lib/history.js";
+import { engineName, teamName } from "../lib/names.js";
 import type { CareerSpell, RankedRecord } from "../lib/records.js";
 import { careerRecords, rankBy } from "../lib/records.js";
 import { teamRounds } from "../lib/results.js";
@@ -34,6 +35,7 @@ import { createWorld, type EraRun, type World } from "../store/season.js";
 import { YEAR } from "../test-support.js";
 import { CareerStatistics, RecordRow } from "./CareerStatistics.js";
 import { CompactStandings } from "./CompactStandings.js";
+import { useEntryNameIn } from "./EntryNames.js";
 import { EraChampions, InProgressRow, RollOfHonour } from "./EraChampions.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceByRace } from "./RaceByRace.js";
@@ -91,6 +93,7 @@ describe("a career, season by season", () => {
         expect(season).toEqual({
           year: world.year,
           teamId: standing.teamId,
+          engineId: world.field.find((entrant) => entrant.teamId === standing.teamId)?.engineId,
           position: index + 1,
           points: standing.points,
           wins: standing.wins,
@@ -178,6 +181,7 @@ describe("a team's season", () => {
   it("says nothing about a lineup it does not have", () => {
     const empty: TeamSeason = {
       year: 1980,
+      engineId: undefined,
       position: 4,
       points: 10,
       wins: 0,
@@ -187,6 +191,64 @@ describe("a team's season", () => {
       drivers: [],
     };
     expect(lineupOf(empty)).toEqual([]);
+  });
+});
+
+/** A row of a career, named the way the panel names it. */
+function EntryRow({
+  teamId,
+  engineId,
+  year,
+}: {
+  teamId: string;
+  engineId: string | undefined;
+  year: number;
+}) {
+  const entryNameIn = useEntryNameIn();
+  return <span>{entryNameIn(teamId, engineId, year)}</span>;
+}
+
+describe("a season row names the entry as raced", () => {
+  it("carries each year's engine off that year's field, for drivers and teams", () => {
+    for (const world of run.seasons) {
+      const engineOf = (teamId: string) =>
+        world.field.find((entrant) => entrant.teamId === teamId)?.engineId;
+      for (const [teamId, career] of histories.teams) {
+        const season = career.find((each) => each.year === world.year);
+        if (season !== undefined) {
+          expect(season.engineId, teamId).toBe(engineOf(teamId));
+        }
+      }
+      for (const [driverId, career] of histories.drivers) {
+        const season = career.find((each) => each.year === world.year);
+        if (season !== undefined) {
+          expect(season.engineId, driverId).toBe(engineOf(season.teamId));
+        }
+      }
+    }
+  });
+
+  it("reads as the team and its supplier for that year, a works team as itself", () => {
+    let customers = 0;
+    for (const [teamId, career] of histories.teams) {
+      for (const season of career) {
+        const team = teamName(teamId, season.year);
+        const engine = season.engineId === undefined ? team : engineName(season.engineId);
+        // Spelled out, not taken from `entryName`: the hook is what is under test.
+        const expected = engine.toLowerCase() === team.toLowerCase() ? team : `${team}-${engine}`;
+        const html = renderToStaticMarkup(
+          <EntryRow teamId={teamId} engineId={season.engineId} year={season.year} />,
+        );
+        expect(html, `${teamId} ${season.year}`).toBe(
+          renderToStaticMarkup(<span>{expected}</span>),
+        );
+        if (expected !== team) {
+          customers += 1;
+        }
+      }
+    }
+    // The run holds at least one customer car, or the half above proves nothing.
+    expect(customers).toBeGreaterThan(0);
   });
 });
 

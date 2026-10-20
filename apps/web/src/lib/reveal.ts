@@ -59,6 +59,8 @@ export type RevealedWorld = Omit<World, "season"> & { readonly season: SeasonSoF
 export interface TalliedYear {
   readonly year: number;
   readonly points: World["points"];
+  /** Who raced it and with which engine, for a row that names the entry. */
+  readonly field: World["field"];
   readonly season: SeasonResult & { readonly rounds?: number };
 }
 

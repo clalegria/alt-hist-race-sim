@@ -11,6 +11,7 @@ import {
   spellSpan,
   spellsBy,
 } from "../lib/records.js";
+import { cn, DISPLAY_CAPS } from "../lib/utils.js";
 import type { World } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
@@ -315,7 +316,7 @@ function RecordSection({
   return (
     <section className="flex flex-col gap-3">
       <header>
-        <h2 className="narrow text-2xl leading-none font-extrabold uppercase">{heading}</h2>
+        <h2 className={cn(DISPLAY_CAPS, "text-2xl leading-none")}>{heading}</h2>
       </header>
       {/* Two by two on anything above a phone, which is the pairing asked for:
           championships beside wins, podiums beside poles. */}

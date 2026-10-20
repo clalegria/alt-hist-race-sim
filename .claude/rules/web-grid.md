@@ -19,8 +19,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **An age is `ratedAge`**, the age the ratings beside it describe (peak age under
   `peak`). Ratings arrive resolved on the entrants and ages don't, so whatever draws an
   age takes the rating mode.
-- **`SeasonGrid` is a plain function of the field it is handed**, never the `EntryNames`
-  or `Liveries` context, so the editor can draw a draft the world has never seen.
+- **`SeasonGrid` is a plain function of the field it is handed**, never the outer `EntryNames`
+  or `Liveries`, so the editor can draw a draft the world hasn't seen (a child gets its own).
 - **A card's drivers follow the ranking rule whatever the sort switch says.**
   `seatsInOrder` returns `{ entrant, seat }` pairs: the seat index is the editor's
   `SeatRef`, so never reorder the entrants themselves.

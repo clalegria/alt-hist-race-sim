@@ -4,7 +4,10 @@ import { cn, MONO_LABEL } from "../../lib/utils.js";
 const TONES = {
   /** A caveat: an edited grid, a kept one. Never the accent, which means a win. */
   muted: "border-border bg-muted/40",
-  /** An instruction the reader has to act on before going on: empty seats to fill. */
+  /**
+   * An instruction the reader has to act on before going on: empty seats to fill.
+   * Teal outside a win, like the grid's top overall chips: the author's call.
+   */
   accent: "border-primary/50 bg-primary/5",
 } as const;
 

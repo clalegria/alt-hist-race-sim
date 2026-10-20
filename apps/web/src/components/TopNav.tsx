@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import { AREAS, type Area, isAvailable } from "../lib/areas.js";
-import { cn } from "../lib/utils.js";
+import { CONTROL_CAPS, cn, DISPLAY_CAPS } from "../lib/utils.js";
 import { ThemeToggle } from "./ThemeToggle.js";
 
 /**
@@ -9,8 +9,11 @@ import { ThemeToggle } from "./ThemeToggle.js";
  * underlined; in the phone's open menu a full-width row, the current one barred
  * on the left. The transparent bar on the other side keeps the label centred.
  */
-const TAB =
-  "narrow flex items-center px-2.5 py-2.5 text-[15px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors md:py-0 border-l-3 border-transparent md:border-l-0 md:border-y-3";
+const TAB = cn(
+  CONTROL_CAPS,
+  // 15px sits between text-sm and text-base to fit the nav band.
+  "flex items-center px-2.5 py-2.5 text-[15px] whitespace-nowrap transition-colors md:py-0 border-l-3 border-transparent md:border-l-0 md:border-y-3",
+);
 
 /**
  * The bar across the top of every page: the Home link, the app's areas, and
@@ -70,7 +73,11 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
       <div className="mx-auto flex max-w-5xl flex-wrap items-stretch gap-x-4 px-4 sm:px-6 md:h-nav md:flex-nowrap">
         <Link
           to="/"
-          className="narrow flex h-[50px] items-center gap-2 text-[17px] font-extrabold tracking-wide uppercase md:h-auto"
+          className={cn(
+            DISPLAY_CAPS,
+            // 17px and 50px match the nav band's height; the scale has no fit.
+            "flex h-[50px] items-center gap-2 text-[17px] tracking-wide md:h-auto",
+          )}
         >
           <ChequeredFlag />
           Home

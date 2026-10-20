@@ -7,7 +7,7 @@ import {
   seasonSettings,
   settingsInForce,
 } from "../lib/run-settings.js";
-import { cn } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS } from "../lib/utils.js";
 import { defaultChoice, type RunChoice } from "./RunSettingsDialog.js";
 import { RunSettingsButton, SettingsSummary } from "./RunSettingsLine.js";
 import { Card, CardBand } from "./ui/card.js";
@@ -86,7 +86,7 @@ function ScenarioRow({
         aria-hidden="true"
         className={cn("self-stretch", lit ? "bg-primary group-disabled:bg-subtle" : "bg-border")}
       />
-      <span className="narrow group-disabled:text-subtle py-2 text-base leading-tight font-extrabold uppercase">
+      <span className={cn(DISPLAY_CAPS, "group-disabled:text-subtle py-2 text-base leading-tight")}>
         {children}
       </span>
     </button>

@@ -35,6 +35,7 @@ import { bestOverall, type DriverAppearance, rosterOf } from "../lib/roster.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
+import { DriverName, TEAM_LINE } from "./DriverName.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Liveries, useLiveryYear } from "./Liveries.js";
 import { LiveryBarcode } from "./LiveryBarcode.js";
@@ -530,7 +531,12 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
       world,
       who: <TeamName teamId={teamId} badge tight />,
       under: (
-        <span className="text-muted-foreground flex flex-wrap gap-x-2 pl-6 text-xs">
+        <span
+          className={cn(
+            "text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-xs",
+            TEAM_LINE,
+          )}
+        >
           {drivers.map(({ driverId, position }) => (
             <DriverHistory key={driverId} driverId={driverId}>
               <span
@@ -538,8 +544,10 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
                   position === 1 && season?.afterRound === null && `${STANDOUT_TEXT} font-semibold`,
                 )}
               >
-                {driverName(driverId)}
-                {position === null ? null : ` ${ordinal(position)}`}
+                <DriverName
+                  driverId={driverId}
+                  after={position === null ? null : <span>{ordinal(position)}</span>}
+                />
               </span>
             </DriverHistory>
           ))}

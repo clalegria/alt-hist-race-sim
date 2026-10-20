@@ -237,15 +237,19 @@ describe("where liveries appear", () => {
     expect(badgeCount(grid)).toBe(badgedCards);
   });
 
-  it("draws the grid card's badge after its flag and before the team name", () => {
+  it("draws the grid card's badge before its flag and the flag before the team name", () => {
     // Scoped to one card header rather than to the whole page: a bare
-    // "an svg appears before a badge somewhere in this markup" would pass on
-    // any icon anywhere above the grid, and assert nothing.
+    // "an svg appears after a badge somewhere in this markup" would pass on
+    // any icon anywhere in the grid, and assert nothing. The order is the one
+    // every table draws a team in (`TeamName`).
     const badgeAt = grid.indexOf(BADGE_SHAPE);
-    const beforeTheBadge = grid.slice(grid.lastIndexOf(NAME_TARGET, badgeAt), badgeAt);
-    expect(beforeTheBadge).toContain("<svg");
-    // The name is the truncating span, and it has not been drawn yet.
-    expect(beforeTheBadge).not.toContain("truncate");
+    const trigger = grid.lastIndexOf(NAME_TARGET, badgeAt);
+    // Nothing of the name, flag included, has been drawn when the badge is.
+    expect(grid.slice(trigger, badgeAt)).not.toContain("<svg");
+    expect(grid.slice(trigger, badgeAt)).not.toContain("truncate");
+    // The flag comes next, and then the name: the truncating span.
+    const afterTheBadge = grid.slice(badgeAt, grid.indexOf("truncate", badgeAt));
+    expect(afterTheBadge).toContain("<svg");
     // As in the classification: order in the markup is only half of it if the
     // row is then flipped visually.
     expect(grid).not.toContain("row-reverse");

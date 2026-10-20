@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { cn } from "../../lib/utils.js";
+import { CONTROL_CAPS, cn } from "../../lib/utils.js";
 
 /**
  * Every variant carries a border, so a filled button and an outlined one are
@@ -40,7 +40,8 @@ export function buttonClass(
   size: ButtonSize = "default",
 ): string {
   return cn(
-    "focus-visible:ring-ring narrow inline-flex cursor-pointer items-center justify-center border font-bold tracking-wide uppercase transition focus-visible:ring-2 focus-visible:outline-none disabled:text-subtle disabled:pointer-events-none",
+    CONTROL_CAPS,
+    "focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center border transition focus-visible:ring-2 focus-visible:outline-none disabled:text-subtle disabled:pointer-events-none",
     SIZES[size],
     VARIANTS[variant],
     className,

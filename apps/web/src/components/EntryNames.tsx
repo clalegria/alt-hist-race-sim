@@ -81,6 +81,25 @@ export function useTeamNameIn(): (teamId: string, year?: number) => string {
   );
 }
 
+/**
+ * An entry's name for a row of `year` — "McLaren-TAG Porsche" — the team as it
+ * raced that season, for a row about one season of a career. The engine comes
+ * with the row (the career's own, off the field of that year), so no context
+ * but the naming is read. A row across seasons stays on `useTeamNameIn`.
+ */
+export function useEntryNameIn(): (
+  teamId: string,
+  engineId: string | undefined,
+  year?: number,
+) => string {
+  const nameYear = useNameYear();
+  return useCallback(
+    (teamId: string, engineId: string | undefined, year?: number) =>
+      entryName(teamId, engineId, nameYear(teamId, year)),
+    [nameYear],
+  );
+}
+
 /** Where a team is based in a row of `year`: the flag beside `useTeamNameIn`'s name. */
 export function useTeamCountryIn(): (teamId: string, year?: number) => string | undefined {
   const nameYear = useNameYear();

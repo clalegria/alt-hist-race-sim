@@ -11,7 +11,7 @@ import {
   type RunMenuEntry,
   runActionsFor,
 } from "../lib/run-bar.js";
-import { cn } from "../lib/utils.js";
+import { cn, MONO_LINE } from "../lib/utils.js";
 import { StepArrows, TRAIL_SQUARE, TRAIL_SQUARE_LIVE } from "./PageSteps.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
@@ -94,7 +94,7 @@ export function Breadcrumbs({
 }) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-2 font-mono text-xs tracking-wider uppercase">
+      <ol className={cn(MONO_LINE, "flex flex-wrap items-center gap-x-1.5 gap-y-2")}>
         {crumbs.map((crumb, index) => {
           const last = index === crumbs.length - 1;
           return (

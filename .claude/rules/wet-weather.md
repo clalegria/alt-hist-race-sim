@@ -23,5 +23,8 @@ The weather roll, the wet constants and driver, and the badge that reports them.
 - **Authoring `wetWeather`** (`drivers.json`): `round(0.7 · racing + 0.3 · qualifying)`
   for a driver nobody has an opinion about, so they are unaffected by rain; a
   hand-written delta only for drivers the sport remembers as good or bad in the wet.
+- **The badge names a wet race in a word** (`rainWord`): the wetness range in equal
+  thirds, read off `WEATHER_CONSTANTS`, so moving the floor or ceiling moves the words.
+  Never write the cut-offs into the app. The percentage lives only in its tooltip.
 - A test counting `<svg>` on a race or qualifying screen must count the rain cloud too,
   off `race.weather.wet`, never assuming a dry fixture (`App.test.tsx`).

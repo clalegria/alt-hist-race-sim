@@ -1,14 +1,10 @@
 import { formatSeconds } from "../lib/format.js";
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { driverCountry } from "../lib/names.js";
 import type { QualifyingEntry, QualifyingSheet } from "../lib/reveal.js";
 import { cn, MONO_LABEL } from "../lib/utils.js";
-import { useEntryName } from "./EntryNames.js";
-import { FittedDriverName } from "./FittedName.js";
-import { Flag } from "./Flag.js";
+import { DriverName } from "./DriverName.js";
 import { HomeStar } from "./HomeAdvantage.js";
 import { DriverHistory, HISTORY_FILL } from "./SeasonHistory.js";
-import { TeamBadge } from "./TeamBadge.js";
 import { TeamCar } from "./TeamCar.js";
 
 /**
@@ -28,8 +24,6 @@ function GridSlot({
   /** A car that did not make the cut: its name drawn muted, as a retirement's is. */
   out?: boolean;
 }) {
-  const nameOf = useEntryName();
-  const nationality = driverCountry(entry.driverId);
   const pole = entry.gridPosition === 1;
 
   return (
@@ -52,33 +46,23 @@ function GridSlot({
       >
         {entry.gridPosition}
       </span>
-      <TeamBadge teamId={entry.teamId} />
-      {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
-      <span className="flex min-w-0 flex-1 flex-col leading-tight">
-        {/*
-          The two lines are the driver's name, and open their career panel as a
-          name does everywhere in a run — filling the column, since the name is
-          fitted to it.
-        */}
-        <DriverHistory driverId={entry.driverId} className={cn(HISTORY_FILL, "flex-col")}>
-          <FittedDriverName
+      {/*
+        The entry opens its career panel, filling the column since the name is
+        fitted to it. The home star trails the name block at its foot, as in the
+        classification: a note on the entry, not part of the driver's name.
+      */}
+      <span className="flex min-w-0 flex-1 items-end gap-1.5">
+        <DriverHistory driverId={entry.driverId} className={HISTORY_FILL}>
+          <DriverName
             driverId={entry.driverId}
-            className={cn("text-sm", pole && "font-semibold", out && "text-muted-foreground")}
-            split
+            teamId={entry.teamId}
+            badge
+            tight
+            emphasis={pole}
+            className={cn("text-sm", out && "text-muted-foreground")}
           />
-          {/*
-            The star trails the entry name, exactly as it does in the
-            classification — the two sheets show the same mark in the same place
-            relative to the same words, rather than one of them putting it in the
-            corner of the slot. `min-w-0` on the name and `shrink-0` on the star
-            keep the truncation on the name where it belongs: it is the team that
-            has to give way when the column is tight, never the mark.
-          */}
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="text-muted-foreground truncate text-xs">{nameOf(entry.teamId)}</span>
-            <HomeStar driverId={entry.driverId} country={country} className="shrink-0" />
-          </span>
         </DriverHistory>
+        <HomeStar driverId={entry.driverId} country={country} className="shrink-0 pb-0.5" />
       </span>
       {/*
         In the gap between the names and the time. The names keep `flex-1`, so

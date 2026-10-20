@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { cn } from "../../lib/utils.js";
+import { cn, MONO_LABEL } from "../../lib/utils.js";
 
 /**
  * A table that scrolls horizontally rather than squashing its columns, which
@@ -35,10 +35,7 @@ export function TableRow({ className, ...props }: ComponentProps<"tr">) {
 export function TableHead({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
-      className={cn(
-        "text-muted-foreground h-9 px-3 text-left align-middle font-mono text-xs font-medium tracking-widest uppercase whitespace-nowrap",
-        className,
-      )}
+      className={cn(MONO_LABEL, "h-9 px-3 text-left align-middle whitespace-nowrap", className)}
       {...props}
     />
   );

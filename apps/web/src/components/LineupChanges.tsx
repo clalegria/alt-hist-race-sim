@@ -14,6 +14,7 @@ import { driverName, engineName } from "../lib/names.js";
 import { ARRANGEMENT_LABELS } from "../lib/run-settings.js";
 import { cn } from "../lib/utils.js";
 import { useTeamName } from "./EntryNames.js";
+import { TeamName } from "./TeamName.js";
 import { Notice } from "./ui/notice.js";
 
 /**
@@ -325,7 +326,7 @@ export function GridChanges({
         ];
         return (
           <li key={teamId} className="flex flex-wrap items-baseline gap-x-2">
-            <span className="font-medium">{teamName(teamId)}</span>
+            <TeamName teamId={teamId} capitals={false} className="font-medium" />
             <span className="text-muted-foreground">{said.join(", ")}</span>
           </li>
         );

@@ -124,19 +124,23 @@ export function FittedName({
 }
 
 /**
- * A name as a timing screen sets it: the given name plain, the SURNAME in bold
- * narrow capitals. For names in tables; prose and headings keep `driverName`.
+ * A name as a timing screen sets it: the given name a little condensed, the
+ * SURNAME in bold narrow capitals. For names in tables; prose and headings keep
+ * `driverName`.
  *
  * The capitals are CSS, so the text keeps its own case, and the space between
  * the two is real text, so the name still reads whole with the tags stripped.
  */
-export function SplitName({ name }: { name: string }) {
+export function SplitName({ name, emphasis = false }: { name: string; emphasis?: boolean }) {
   const { given, surname } = nameParts(name);
   return (
     <>
       {given === "" ? null : (
         <>
-          <span>{given}</span>{" "}
+          {/* Its own weight, so an emphasised row says so here: the surname is already extrabold. */}
+          <span className={cn("semi-narrow", emphasis ? "font-semibold" : "font-medium")}>
+            {given}
+          </span>{" "}
         </>
       )}
       <span className={TIMING_NAME}>{surname}</span>
@@ -144,27 +148,28 @@ export function SplitName({ name }: { name: string }) {
   );
 }
 
-function splitName(name: string): ReactNode {
-  return <SplitName name={name} />;
-}
-
 /** The same, for a driver id: both forms come from `lib/names.ts`. */
 export function FittedDriverName({
   driverId,
   className,
   split = false,
+  emphasis = false,
 }: {
   driverId: string;
   className?: string;
   /** Set both forms as `SplitName` does: "Nelson PIQUET", "N. PIQUET". */
   split?: boolean;
+  /** With `split`, the given name a weight up, as `SplitName`'s. */
+  emphasis?: boolean;
 }) {
   return (
     <FittedName
       full={driverName(driverId)}
       short={shortDriverName(driverId)}
       className={className}
-      {...(split ? { render: splitName } : {})}
+      {...(split
+        ? { render: (name: string) => <SplitName name={name} emphasis={emphasis} /> }
+        : {})}
     />
   );
 }

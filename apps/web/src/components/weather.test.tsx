@@ -8,13 +8,13 @@
  * seeds are wet is a fact about the dice, not something a test may pin.
  */
 
-import type { RaceWeather } from "@alt-hist/engine";
+import { type RaceWeather, WEATHER_CONSTANTS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { findWorld, type seededWorld, shownAt } from "../test-support.js";
 import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonView } from "./SeasonView.js";
-import { WeatherBadge, wetnessPercent } from "./WeatherBadge.js";
+import { RAIN_WORDS, rainWord, WeatherBadge, wetnessPercent } from "./WeatherBadge.js";
 
 const DRY_WEATHER: RaceWeather = { wet: false, wetness: 0 };
 
@@ -35,19 +35,24 @@ describe("the weather badge", () => {
     expect(renderToStaticMarkup(<WeatherBadge weather={DRY_WEATHER} />)).toBe("");
   });
 
-  it("draws the cloud and the percentage on a wet one", () => {
-    const html = renderToStaticMarkup(<WeatherBadge weather={{ wet: true, wetness: 0.62 }} />);
+  it("draws the cloud and a word on a wet one, with the percentage in its tooltip", () => {
+    const weather = { wet: true, wetness: 0.62 };
+    const html = renderToStaticMarkup(<WeatherBadge weather={weather} />);
     expect(html).toContain("<svg");
-    expect(html).toContain("62%");
-    expect(html).toContain("Wet");
+    expect(html).toContain(`>${rainWord(weather)}</span>`);
+    expect(html).toMatch(/ title="[^"]*62% wet/);
   });
 
-  it("keeps the number when the word is dropped", () => {
-    const compact = renderToStaticMarkup(
-      <WeatherBadge weather={{ wet: true, wetness: 0.4 }} compact />,
-    );
-    expect(compact).toContain("40%");
-    expect(compact).toContain("<svg");
+  it("cuts the engine's wetness range into one third per word, lightest first", () => {
+    const { wetnessFloor, wetnessCeiling } = WEATHER_CONSTANTS;
+    const at = (share: number) =>
+      rainWord({ wet: true, wetness: wetnessFloor + share * (wetnessCeiling - wetnessFloor) });
+    expect(at(0)).toBe(RAIN_WORDS[0]);
+    expect(at(0.3)).toBe(RAIN_WORDS[0]);
+    expect(at(0.36)).toBe(RAIN_WORDS[1]);
+    expect(at(0.64)).toBe(RAIN_WORDS[1]);
+    expect(at(0.7)).toBe(RAIN_WORDS[2]);
+    expect(at(1)).toBe(RAIN_WORDS[2]);
   });
 
   it("reports wetness as whole percentage points", () => {
@@ -72,15 +77,15 @@ describe("a wet round in a season", () => {
       />,
     );
     const wetRounds = world.season.races.filter((race) => race.weather.wet);
-    // One badge per wet round, counted by the percentage each one states, so a
+    // One badge per wet round, found by the percentage its tooltip states, so a
     // dry season would render none and a wet one cannot quietly render two.
     for (const race of wetRounds) {
-      expect(html).toContain(`${wetnessPercent(race.weather)}%`);
+      expect(html).toContain(`${wetnessPercent(race.weather)}% wet`);
     }
     // Counted on the badge's own `title` attribute: the label also appears
     // inside the icon twice over (`aria-label` and `<title>`), so a bare text
     // match would count three per round and say nothing about how many.
-    expect((html.match(/title="Wet race/g) ?? []).length).toBe(wetRounds.length);
+    expect((html.match(/ title="[^"]*% wet/g) ?? []).length).toBe(wetRounds.length);
   });
 
   it("is stated on the race screen and on its qualifying", () => {

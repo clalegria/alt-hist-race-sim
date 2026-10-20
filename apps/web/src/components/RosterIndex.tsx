@@ -13,19 +13,18 @@
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { count } from "../lib/history.js";
-import { driverCountry, driverName } from "../lib/names.js";
+import { driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from "../lib/roster.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
-import { cn, TIMING_NAME } from "../lib/utils.js";
-import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { cn } from "../lib/utils.js";
+import { DriverName } from "./DriverName.js";
+import { useTeamNameIn } from "./EntryNames.js";
 import { EraTabs } from "./EraTabs.js";
-import { SplitName } from "./FittedName.js";
-import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
 import { PageHeading } from "./PageHeading.js";
-import { TeamBadge } from "./TeamBadge.js";
+import { TeamName } from "./TeamName.js";
 import { Card } from "./ui/card.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
@@ -111,7 +110,6 @@ export function RosterIndex({
   pageOf: PageOf;
 }) {
   const teamNameIn = useTeamNameIn();
-  const teamCountryIn = useTeamCountryIn();
   const index = useMemo(
     () => rosterIndex(rosterOf(years), careerRecords(years, teamNameIn)),
     [years, teamNameIn],
@@ -154,36 +152,30 @@ export function RosterIndex({
           </TableHeader>
           <TableBody>
             {rows.map((row) => {
-              const country =
-                kind === "drivers" ? driverCountry(row.id) : teamCountryIn(row.id, row.lastYear);
               return (
                 <TableRow key={row.id}>
                   <TableCell className="whitespace-normal sm:whitespace-nowrap">
                     {/* The marks stay beside the name; on a phone the words wrap after them. */}
-                    <span className="flex items-center gap-1.5">
-                      {kind === "teams" ? (
-                        <Liveries year={row.lastYear}>
-                          <TeamBadge teamId={row.id} />
-                        </Liveries>
+                    <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+                      <Link
+                        {...(kind === "drivers" ? pageOf.driver(row.id) : pageOf.team(row.id))}
+                        className="font-medium hover:underline"
+                      >
+                        {kind === "drivers" ? (
+                          <DriverName driverId={row.id} />
+                        ) : (
+                          // The team as of its last year on the grid, in no engine's name:
+                          // this list spans seasons, so there is no `EntryNames` above it.
+                          <Liveries year={row.lastYear}>
+                            <TeamName teamId={row.id} badge />
+                          </Liveries>
+                        )}
+                      </Link>
+                      {row.names > 1 ? (
+                        <span className="text-muted-foreground text-xs">
+                          under {row.names} names
+                        </span>
                       ) : null}
-                      {country === undefined ? null : <Flag country={country} title={country} />}
-                      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-                        <Link
-                          {...(kind === "drivers" ? pageOf.driver(row.id) : pageOf.team(row.id))}
-                          className="font-medium hover:underline"
-                        >
-                          {kind === "drivers" ? (
-                            <SplitName name={nameOf(row)} />
-                          ) : (
-                            <span className={TIMING_NAME}>{nameOf(row)}</span>
-                          )}
-                        </Link>
-                        {row.names > 1 ? (
-                          <span className="text-muted-foreground text-xs">
-                            under {row.names} names
-                          </span>
-                        ) : null}
-                      </span>
                     </span>
                   </TableCell>
                   {COLUMNS.map((column) => (

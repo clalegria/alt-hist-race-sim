@@ -1,6 +1,6 @@
 import { MODES, type Mode, type ModeId } from "../lib/modes.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
-import { cn, MONO_LABEL } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS, MONO_LABEL } from "../lib/utils.js";
 
 /**
  * The opening screen, as a timing tower: the hero and the run in progress on
@@ -15,6 +15,7 @@ import { cn, MONO_LABEL } from "../lib/utils.js";
  * A year in the hero's copy, set in the headline's face so the range stands
  * out. The range is the seed data's, never written down.
  */
+// The year's 1.375rem sits between the scale's text-xl and text-2xl.
 function Year({ children }: { children: React.ReactNode }) {
   return (
     <span className="narrow text-foreground text-[1.375rem] leading-none font-extrabold tabular-nums lg:short:text-lg">
@@ -43,20 +44,26 @@ function ModeRow({ mode, onChoose }: { mode: Mode; onChoose: (id: ModeId) => voi
       <span className="flex min-w-0 flex-col py-2.5">
         <span
           className={cn(
-            "narrow text-xl leading-tight font-extrabold uppercase",
+            DISPLAY_CAPS,
+            "text-xl leading-tight",
             !mode.available && "text-muted-foreground",
           )}
         >
           {mode.title}
         </span>
-        <span className="text-muted-foreground text-[0.8125rem]">{mode.blurb}</span>
+        <span className="text-muted-foreground text-xs">{mode.blurb}</span>
       </span>
       {mode.available ? (
-        <span className="bg-primary text-primary-foreground px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-wider uppercase">
+        <span
+          className={cn(
+            MONO_LABEL,
+            "bg-primary text-primary-foreground px-1.5 py-0.5 font-semibold tracking-wider",
+          )}
+        >
           Ready
         </span>
       ) : (
-        <span className="border-border text-muted-foreground border px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-wider uppercase">
+        <span className={cn(MONO_LABEL, "border-border border px-1.5 py-0.5 tracking-wider")}>
           Soon
         </span>
       )}
@@ -82,7 +89,13 @@ export function MainMenu({
       <div className="flex flex-col gap-2.5 lg:max-h-full lg:overflow-y-auto lg:short:gap-2">
         <header className="flex flex-col gap-2.5 lg:short:gap-2">
           <p className={MONO_LABEL}>Alternate history motorsport simulator</p>
-          <h1 className="narrow text-5xl leading-[0.9] font-extrabold tracking-[0.01em] text-balance uppercase md:text-[clamp(2.75rem,12.2dvh_-_2rem,4.5rem)]">
+          <h1
+            className={cn(
+              DISPLAY_CAPS,
+              // The clamp fits the hero to the viewport height; no scale size does.
+              "text-5xl leading-[0.9] text-balance md:text-[clamp(2.75rem,12.2dvh_-_2rem,4.5rem)]",
+            )}
+          >
             Rewrite motorsport history
           </h1>
           {/* Smaller on a short window, and the column's full width, so it takes fewer lines. */}

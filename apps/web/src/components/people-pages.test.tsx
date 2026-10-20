@@ -18,6 +18,7 @@ import { isPlayable, PLAYABLE_SEASONS } from "../lib/seasons.js";
 import type { Run } from "../store/season.js";
 import { inRouter } from "../test-router.js";
 import { seededWorld, textOf, YEAR } from "../test-support.js";
+import { TEAM_LINE } from "./DriverName.js";
 import { DriverPage, TeamPage } from "./PersonPages.js";
 import { RosterIndex } from "./RosterIndex.js";
 import { SeasonHistoryProvider } from "./SeasonHistory.js";
@@ -236,6 +237,25 @@ describe("a team's page", () => {
     for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
       const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
       expect(disclosures(html)).toEqual({ all: roster.teams.get(teamId)?.length, open: 0 });
+    }
+  });
+
+  it("flies a flag beside each driver in a year's line of drivers", () => {
+    const roster = rosterOf(midSeason);
+    const everyone = [...roster.drivers.keys()];
+    for (const teamId of new Set(second.field.map((entrant) => entrant.teamId))) {
+      const html = renderToStaticMarkup(<TeamPage years={midSeason} teamId={teamId} />);
+      // Each row's line of drivers is the one block set in the shared indent.
+      const lines = html
+        .split(TEAM_LINE)
+        .slice(1)
+        .map((from) => from.slice(0, from.indexOf("</td>")));
+      expect(lines.length, teamId).toBe(roster.teams.get(teamId)?.length);
+      for (const line of lines) {
+        const named = everyone.filter((id) => textOf(line).includes(driverName(id)));
+        expect(named.length, teamId).toBeGreaterThan(0);
+        expect(line.split("<svg").length - 1, teamId).toBe(named.length);
+      }
     }
   });
 

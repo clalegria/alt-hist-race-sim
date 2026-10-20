@@ -55,6 +55,8 @@ export interface DriverSeason extends SeasonFigures {
    * hold two seats in a year.
    */
   readonly teamId: string;
+  /** The engine that team raced with that year, for the entry's name. */
+  readonly engineId: string | undefined;
 }
 
 /** One driver of a team's season, as the team's panel lists them. */
@@ -75,6 +77,8 @@ export interface TeamDriverSeason {
  * championship order for free, which is the order the line wants anyway.
  */
 export interface TeamSeason extends SeasonFigures {
+  /** The engine the team raced with that year, for the entry's name. */
+  readonly engineId: string | undefined;
   readonly drivers: readonly TeamDriverSeason[];
 }
 
@@ -115,12 +119,20 @@ export function seasonHistories(seasons: readonly TalliedYear[]): SeasonHistorie
 
   for (const world of [...seasons].sort((a, b) => a.year - b.year)) {
     const lineups = new Map<string, TeamDriverSeason[]>();
+    // Each team's engine off the field as raced, the same source `EntryNames` reads.
+    const engines = new Map<string, string>();
+    for (const entrant of world.field) {
+      if (entrant.engineId !== undefined) {
+        engines.set(entrant.teamId, entrant.engineId);
+      }
+    }
     const afterRound = isComplete(world) ? null : world.season.races.length;
     championshipStandings(world.season, world.points).forEach((standing, index) => {
       const position = index + 1;
       append(drivers, standing.driverId, {
         year: world.year,
         teamId: standing.teamId,
+        engineId: engines.get(standing.teamId),
         position,
         points: standing.points,
         wins: standing.wins,
@@ -138,6 +150,7 @@ export function seasonHistories(seasons: readonly TalliedYear[]): SeasonHistorie
     constructorStandings(world.season, world.points).forEach((standing, index) => {
       append(teams, standing.teamId, {
         year: world.year,
+        engineId: engines.get(standing.teamId),
         position: index + 1,
         points: standing.points,
         wins: standing.wins,

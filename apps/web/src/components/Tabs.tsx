@@ -1,5 +1,5 @@
 import { Link, type LinkOptions } from "@tanstack/react-router";
-import { cn } from "../lib/utils.js";
+import { CONTROL_CAPS, cn } from "../lib/utils.js";
 import { SEGMENTED_GROUP, type SegmentState, segmentClass } from "./ui/segmented.js";
 
 /** One tab between places: the page on screen, a link to another, or a place not reached (`link` null). */
@@ -27,8 +27,7 @@ export interface TabPanels {
   readonly onPick?: (key: string) => void;
 }
 
-const TAB =
-  "narrow px-2 py-1.5 text-sm font-bold whitespace-nowrap uppercase sm:px-3 sm:tracking-wide";
+const TAB = `${CONTROL_CAPS} px-2 py-1.5 text-sm whitespace-nowrap max-sm:tracking-normal sm:px-3`;
 
 /** The ids a panel tab and its panel carry, for `aria-controls` and `aria-labelledby`. */
 export function tabIds(idPrefix: string, key: string): { tab: string; panel: string } {

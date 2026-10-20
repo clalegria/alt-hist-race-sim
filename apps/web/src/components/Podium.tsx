@@ -82,7 +82,7 @@ function Step({
           // A size down on a phone, where a column is a third of the screen.
           // Still free to wrap, for a gap of a minute or more: the heights
           // above are minimums for that.
-          <span className="text-center text-[11px] leading-none tabular-nums md:text-xs md:leading-none">
+          <span className="text-center text-2xs leading-none tabular-nums md:text-xs md:leading-none">
             {facts.join(" · ")}
           </span>
         )}

@@ -184,9 +184,11 @@ export function textOf(html: string): string {
  * A driver's name as a row draws it (`SplitName`), escaped as React escapes
  * it. Only a row draws this markup, so a `not.toContain` on it means "in
  * nobody's row" even where the name is in a sentence on the same page.
+ * An emphasised row (a winner's) sets its given name a weight up: pass
+ * `emphasis` to find it, and check both forms before saying a name is absent.
  */
-export function rowName(driverId: string): string {
-  return renderToStaticMarkup(createElement(SplitName, { name: driverName(driverId) }));
+export function rowName(driverId: string, emphasis = false): string {
+  return renderToStaticMarkup(createElement(SplitName, { name: driverName(driverId), emphasis }));
 }
 
 /**

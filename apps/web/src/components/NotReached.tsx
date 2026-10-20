@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { driverName, teamName } from "../lib/names.js";
+import { driverCountry, driverName, teamName } from "../lib/names.js";
 import { driversLink, teamsLink } from "../lib/roster-places.js";
 import type { RunLink } from "../lib/run-places.js";
 import type { Place } from "../lib/timeline.js";
+import { useTeamCountryIn } from "./EntryNames.js";
 import { PageHeading } from "./PageHeading.js";
+import { TeamBadge } from "./TeamBadge.js";
 import { buttonClass } from "./ui/button.js";
 import { Card } from "./ui/card.js";
 
@@ -69,10 +71,16 @@ export function NotReached({
  */
 export function NotInRun({ page, id }: { page: "driver" | "team"; id: string }) {
   const driver = page === "driver";
+  const teamCountry = useTeamCountryIn();
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <PageHeading title={driver ? driverName(id) : teamName(id)} sub="Not in this run yet" />
+        <PageHeading
+          title={driver ? driverName(id) : teamName(id)}
+          flag={driver ? driverCountry(id) : teamCountry(id)}
+          badge={driver ? undefined : <TeamBadge teamId={id} />}
+          sub="Not in this run yet"
+        />
       </header>
       <Card className="flex flex-col items-start gap-2 p-4">
         <p className="text-muted-foreground text-sm">Hasn't raced in this run so far.</p>

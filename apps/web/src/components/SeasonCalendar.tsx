@@ -2,7 +2,7 @@ import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, RaceResult, SeasonResult } from "@alt-hist/engine";
 import { useState } from "react";
 import type { RoundPages } from "../lib/session-nav.js";
-import { cn } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS, MONO_LINE } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { Flag } from "./Flag.js";
@@ -80,12 +80,7 @@ function RoundName({
   dim?: boolean;
 }) {
   const name = (
-    <span
-      className={cn(
-        "narrow flex items-center gap-1.5 font-extrabold tracking-[0.01em] uppercase",
-        dim && "text-subtle",
-      )}
-    >
+    <span className={cn(DISPLAY_CAPS, "flex items-center gap-1.5", dim && "text-subtle")}>
       {round === undefined ? null : <Flag country={round.country} title={round.country} />}
       {roundLabel(round, index)}
     </span>
@@ -116,12 +111,7 @@ function RoundName({
         */}
         <span className="flex items-center gap-x-2 gap-y-1 max-sm:flex-wrap">
           {round === undefined ? null : (
-            <span
-              className={cn(
-                "font-mono text-xs tracking-wider uppercase",
-                dim ? "text-subtle" : "text-muted-foreground",
-              )}
-            >
+            <span className={cn(MONO_LINE, dim ? "text-subtle" : "text-muted-foreground")}>
               {round.circuit}
             </span>
           )}
@@ -131,7 +121,7 @@ function RoundName({
             is where the rest of the conditions belong. Dry rounds draw nothing,
             so the column stays quiet.
           */}
-          {race === undefined ? null : <WeatherBadge weather={race.weather} compact />}
+          {race === undefined ? null : <WeatherBadge weather={race.weather} />}
         </span>
       </span>
     </span>

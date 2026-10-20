@@ -157,6 +157,8 @@
    * the same size. Tailwind's paired line-heights are unitless ratios, so they
    * follow the font size on their own and are deliberately not repeated here.
    */
+  /* The mono label's size (`MONO_LABEL`): capitals with wide tracking read a step smaller. */
+  --text-2xs: 0.6875rem;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-base: 1.0625rem;
@@ -291,6 +293,14 @@ body {
  */
 @utility narrow {
   font-stretch: 72%;
+}
+
+/*
+ * The given name beside a narrow surname (`SplitName`): a little condensed, so
+ * the two read as one name and a long one fits a phone's row.
+ */
+@utility semi-narrow {
+  font-stretch: 80%;
 }
 
 /*

@@ -151,6 +151,7 @@ export function RandomnessSlider({
             into its neighbour on a phone. The row is as tall as two lines for
             that reason: the copy underneath should not jump when the wrapping
             changes. */}
+        {/* 0.65rem tick labels: smaller than any scale size. */}
         <div aria-hidden="true" className="relative mt-2 h-7 text-[0.65rem] leading-tight">
           {RANDOMNESS_OPTIONS.map((option, index) => (
             <span

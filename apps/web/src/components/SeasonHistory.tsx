@@ -39,10 +39,11 @@ import type { TalliedYear } from "../lib/reveal.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import type { RunLink } from "../lib/run-places.js";
 import { cn, MONO_LABEL, TIMING_NAME } from "../lib/utils.js";
-import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { useEntryNameIn, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
+import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "./ui/popover.js";
 
 /** A race's page, by year and zero-based round. */
 export type RacePage = (year: number, round: number) => RunLink;
@@ -207,12 +208,15 @@ function HistoryLine({
  */
 function HistoryPanel({
   name,
+  split = false,
   country,
   seasons,
   page,
   children,
 }: {
   name: string;
+  /** Set a driver's name as a table does (`SplitName`); a team's stays whole. */
+  split?: boolean;
   /** A driver's nationality, a team's base — the flag every table names them with. */
   country: string | undefined;
   /** How many seasons the career spans; null in a one-year run, where it is always one. */
@@ -223,10 +227,12 @@ function HistoryPanel({
 }) {
   return (
     <PopoverContent className="w-80 p-0">
-      <div className="border-border flex items-center justify-between gap-2 border-b px-4 py-3">
+      <PopoverHeader>
         <span className="flex min-w-0 items-center gap-1.5">
           {country === undefined ? null : <Flag country={country} title={country} />}
-          <span className={cn(TIMING_NAME, "min-w-0 truncate")}>{name}</span>
+          <span className={cn(!split && TIMING_NAME, "min-w-0 truncate")}>
+            {split ? <SplitName name={name} /> : name}
+          </span>
           {/*
             Beside the name rather than at the panel's foot: the name is whose
             page it is, and where the reader is looking when they want it.
@@ -236,7 +242,7 @@ function HistoryPanel({
         {seasons === null ? null : (
           <span className={cn(MONO_LABEL, "shrink-0")}>{count(seasons, "season", "seasons")}</span>
         )}
-      </div>
+      </PopoverHeader>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>
     </PopoverContent>
   );
@@ -266,9 +272,11 @@ function HistoryName({
 /**
  * A driver's name, opening into every season of their career.
  *
- * Each year names the **team they finished it with**, resolved as of that year
+ * Each year names the **entry they finished it with**, resolved as of that year
  * — the lineage that raced as Toleman in 1984 is Benetton by 1986, and a career
- * spanning both has to say each of them on its own line.
+ * spanning both has to say each of them on its own line. A row is about one
+ * season, so it names the car as raced ("McLaren-TAG Porsche"); the heading of
+ * a team's panel, across seasons, stays the plain name.
  */
 export function DriverHistory({
   driverId,
@@ -280,12 +288,13 @@ export function DriverHistory({
   children: React.ReactNode;
 }) {
   const { histories, pageOf } = useContext(Histories);
-  const teamNameIn = useTeamNameIn();
+  const entryNameIn = useEntryNameIn();
   const seasons = histories.drivers.get(driverId);
   const panel =
     seasons === undefined || seasons.length === 0 ? null : (
       <HistoryPanel
         name={driverName(driverId)}
+        split
         country={driverCountry(driverId)}
         seasons={pageOf === null ? null : seasons.length}
         page={pageOf?.driver(driverId) ?? null}
@@ -293,7 +302,7 @@ export function DriverHistory({
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            middle={teamNameIn(season.teamId, season.year)}
+            middle={entryNameIn(season.teamId, season.engineId, season.year)}
             season={season}
             seasonLink={pageOf?.season}
           />
@@ -329,6 +338,7 @@ export function TeamHistory({
 }) {
   const { histories, pageOf } = useContext(Histories);
   const teamNameIn = useTeamNameIn();
+  const entryNameIn = useEntryNameIn();
   const teamCountryIn = useTeamCountryIn();
   const seasons = histories.teams.get(teamId);
   // The team as of its last season in the run — its name, its flag and, on the
@@ -345,7 +355,7 @@ export function TeamHistory({
         {seasons.map((season) => (
           <HistoryLine
             key={season.year}
-            middle={teamNameIn(teamId, season.year)}
+            middle={entryNameIn(teamId, season.engineId, season.year)}
             season={season}
             lineup={lineupOf(season)}
             seasonLink={pageOf?.season}

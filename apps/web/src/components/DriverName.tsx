@@ -91,12 +91,13 @@ export function DriverName({
           {tight ? (
             <FittedDriverName
               driverId={driverId}
-              className={cn("min-w-0 flex-1", emphasis && "font-semibold")}
+              className="min-w-0 flex-1"
               split
+              emphasis={emphasis}
             />
           ) : (
-            <span className={cn(emphasis && "font-semibold")}>
-              <SplitName name={driverName(driverId)} />
+            <span>
+              <SplitName name={driverName(driverId)} emphasis={emphasis} />
             </span>
           )}
           {after}

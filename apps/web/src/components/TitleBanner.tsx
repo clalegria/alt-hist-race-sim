@@ -1,5 +1,5 @@
 import { STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
-import { cn } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
 
 /**
@@ -30,9 +30,7 @@ export function TitleBanner({
         <Flag country={country} title={country} className="h-4 w-6" />
       )}
       {/* The name as the tower sets a name, and the words after it plain. */}
-      <span className={cn("narrow text-2xl leading-none font-extrabold uppercase", STANDOUT_TEXT)}>
-        {name}
-      </span>
+      <span className={cn(DISPLAY_CAPS, "text-2xl leading-none", STANDOUT_TEXT)}>{name}</span>
       <span>{`wins the ${title}’ Championship!`}</span>
     </p>
   );

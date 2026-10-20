@@ -31,3 +31,27 @@ export function PopoverContent({
     </PopoverPrimitive.Portal>
   );
 }
+
+/**
+ * The head band, darker than the panel as a card's and a dialog's are: the title
+ * at the left, and at the right whatever is said of it (an age, a count, a car).
+ *
+ * The band runs to the panel's edges, so a popover that wears one sets
+ * `PopoverContent` to `p-0` and pads what is under the band with `PopoverBody`.
+ */
+export function PopoverHeader({ className, ...props }: ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "bg-card-header border-border flex items-center justify-between gap-2 border-b px-4 py-3",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** What is under the band, padded as the panel was before it had one. */
+export function PopoverBody({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("p-4", className)} {...props} />;
+}

@@ -1,5 +1,5 @@
-import type { RaceWeather } from "@alt-hist/engine";
-import { cn } from "../lib/utils.js";
+import { type RaceWeather, WEATHER_CONSTANTS } from "@alt-hist/engine";
+import { cn, MONO_LINE } from "../lib/utils.js";
 
 /**
  * How wet a race was, as a whole percentage.
@@ -14,6 +14,20 @@ export function wetnessPercent(weather: RaceWeather): number {
   return Math.round(weather.wetness * 100);
 }
 
+/** How wet a race was in a fan's words, lightest first. */
+export const RAIN_WORDS = ["Damp", "Wet", "Heavy rain"] as const;
+
+/**
+ * The word for a wet race: the engine's wetness range cut into equal thirds,
+ * read off its own constants so the words follow the range if it moves.
+ */
+export function rainWord(weather: RaceWeather): (typeof RAIN_WORDS)[number] {
+  const { wetnessFloor, wetnessCeiling } = WEATHER_CONSTANTS;
+  const share = (weather.wetness - wetnessFloor) / (wetnessCeiling - wetnessFloor);
+  const step = Math.min(RAIN_WORDS.length - 1, Math.max(0, Math.floor(share * RAIN_WORDS.length)));
+  return RAIN_WORDS[step] ?? RAIN_WORDS[0];
+}
+
 /**
  * A rain cloud, drawn rather than fetched.
  *
@@ -24,7 +38,7 @@ export function wetnessPercent(weather: RaceWeather): number {
  * both themes without a second copy.
  *
  * Deliberately one icon rather than a scale of them. How wet the race was is
- * stated in words next to it; a drizzle icon and a downpour icon would be two
+ * stated in a word next to it; a drizzle icon and a downpour icon would be two
  * ways of saying the same thing, and the reader would have to learn which was
  * which.
  *
@@ -58,18 +72,16 @@ export function RainIcon({ className, title }: { className?: string; title?: str
 }
 
 /**
- * The label a wet round wears wherever it appears: the icon, the word, and how
- * wet it was.
+ * The tag a wet round wears wherever it appears, the same on the race page and
+ * in the calendar: the icon and how wet it was, in a word.
  *
  * **Renders nothing at all for a dry race.** Six rounds in seven are dry, and a
  * column reading "Dry" down the whole calendar is a column that says nothing —
  * the same argument the classification's status column already makes. What a
  * reader is scanning for is the round where the sky changed the result.
  *
- * `compact` drops the word and keeps the icon and the number, for a table cell
- * where the round's name is already using the width.
- *
- * **A filled blue pill, and both halves of that are deliberate.**
+ * **A word, not the percentage**: a bare "72%" beside a cloud reads as a chance
+ * of rain, when the race is certainly wet. The percentage stays in the tooltip.
  *
  * *Blue*, because blue means rain. Not the primary, which this app spends on
  * "won the thing on screen" (`lib/highlight.ts`), and not red, which reads as a
@@ -78,46 +90,34 @@ export function RainIcon({ className, title }: { className?: string; title?: str
  * world rather than emphasising a result. Both tokens are per-theme and were
  * picked by measuring contrast — see the note in `index.css`.
  *
- * *A pill*, at `rounded-full`, against a house style that deliberately runs the
- * radius scale tight so corners read as instrument panel. The departure is the
- * point: everything else on these pages is a table cell or a card, so the one
- * fully round thing on the page is unmistakably a tag on a round rather than
- * part of the furniture.
+ * *Square*, like every other tag: the blue and the cloud already set it apart.
  *
  * It stays paired with the icon, never colour alone — the same rule the gain and
  * loss arrows follow.
  */
-export function WeatherBadge({
-  weather,
-  compact = false,
-  className,
-}: {
-  weather: RaceWeather;
-  compact?: boolean;
-  className?: string;
-}) {
+export function WeatherBadge({ weather, className }: { weather: RaceWeather; className?: string }) {
   if (!weather.wet) {
     return null;
   }
-  const percent = wetnessPercent(weather);
-  const label = `Wet race — ${percent}% wet`;
+  const word = rainWord(weather);
+  const label = `${word}, ${wetnessPercent(weather)}% wet: the wetter the track, the more it's down to the drivers rather than the cars`;
   return (
     <span
       className={cn(
-        "bg-wet text-wet-foreground inline-flex items-center gap-1 rounded-full",
-        // Tighter vertical padding than horizontal, so the pill stays the height
+        "bg-wet text-wet-foreground inline-flex items-center gap-1",
+        // Tighter vertical padding than horizontal, so the tag stays the height
         // of the line it sits on rather than growing the row it is in.
-        "px-2 py-0.5 text-xs whitespace-nowrap",
-        // Mono capitals, like every small label; the weight is set rather than
-        // inherited, since the pill sits inside the heavy race heading.
-        "font-mono font-semibold tracking-wider uppercase",
+        "px-2 py-0.5 whitespace-nowrap",
+        // The weight is set rather than inherited, since the tag sits inside the
+        // heavy race heading.
+        MONO_LINE,
+        "font-semibold",
         className,
       )}
       title={label}
     >
       <RainIcon title={label} />
-      {compact ? null : "Wet"}
-      <span className="tabular-nums">{percent}%</span>
+      {word}
     </span>
   );
 }

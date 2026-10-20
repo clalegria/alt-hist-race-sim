@@ -16,11 +16,16 @@ How every table names the same people. Which era's name a team is in is `team-er
 - **Every driver and team is named through `DriverName` / `TeamName`**, so a flag sits
   beside every name everywhere. Never draw a name with its own flag markup.
 - **A name alone in a table cell is set in `TIMING_NAME`**: a driver through `SplitName`
-  (given name plain, surname per `nameParts`, as `shortName` splits it), a team whole, by
-  `TeamName`'s default. Prose passes `capitals={false}` and uses plain `driverName`; the
-  team line under a driver stays plain. The look is `docs/style/timing-tower.md`.
+  (given name `semi-narrow`, carrying the row's `emphasis`; surname per `nameParts`, as
+  `shortName` splits it), a team whole, by `TeamName`'s default. A team's marks read
+  badge, flag, name everywhere, grid cards included. Prose passes `capitals={false}` and
+  uses plain `driverName`; the team line under a driver stays plain. The look is
+  `docs/style/timing-tower.md`.
 - **An entry is "Williams-Ford"; a works team keeps its bare name** (`entryName`). Lists
   sort on the plain team name, so a team does not move for changing supplier.
+- **A row about one season names the entry; a row across seasons the plain team**
+  (records, the roster, a career panel's heading). A career panel's years are each the
+  entry of its own year, as the standings row that opened it reads.
 - **The engine supply and the name's year travel by context** (`EntryNames`, `KeptNames`),
   built from `world.field`. The empty default must leave a component rendered alone
   drawable.

@@ -52,6 +52,7 @@ export function Track({
           className="track-start absolute inset-y-0 w-3"
           style={{ left: `${START_LINE * 100}%` }}
         />
+        {/* 10.5px: a map label tucked in a thin band; the scale has no size this small. */}
         <span
           className="track-label absolute top-1.5 font-mono text-[10.5px] tracking-widest"
           style={{ left: `calc(${START_LINE * 100}% + 18px)` }}

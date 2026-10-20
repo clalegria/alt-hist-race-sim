@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type { ComponentProps } from "react";
-import { cn } from "../../lib/utils.js";
+import { cn, DISPLAY_CAPS } from "../../lib/utils.js";
 
 /**
  * A modal that holds a form, as opposed to `AlertDialog`, which asks a
@@ -48,7 +48,7 @@ export function DialogBody({ className, ...props }: ComponentProps<"div">) {
   return <div className={cn("flex flex-col gap-4 px-5 py-4", className)} {...props} />;
 }
 
-export const DIALOG_TITLE = "narrow text-xl leading-tight font-extrabold uppercase";
+export const DIALOG_TITLE = cn(DISPLAY_CAPS, "text-xl leading-tight");
 
 export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
   return <DialogPrimitive.Title className={cn(DIALOG_TITLE, className)} {...props} />;

@@ -1,6 +1,6 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import type { ComponentProps } from "react";
-import { cn } from "../../lib/utils.js";
+import { CONTROL_CAPS, cn } from "../../lib/utils.js";
 
 export const DropdownMenu = DropdownMenuPrimitive.Root;
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -44,7 +44,8 @@ export function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "narrow flex cursor-pointer items-center px-3 py-2 text-sm font-bold tracking-wide uppercase outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:text-subtle",
+        CONTROL_CAPS,
+        "flex cursor-pointer items-center px-3 py-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:text-subtle",
         destructive
           ? "text-destructive focus:bg-destructive focus:text-destructive-foreground"
           : "focus:bg-accent",

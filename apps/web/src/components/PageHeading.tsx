@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "../lib/utils.js";
+import { cn, DISPLAY_CAPS, MONO_LINE } from "../lib/utils.js";
 import { Flag } from "./Flag.js";
 
 /**
@@ -26,16 +26,19 @@ export function PageHeading({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <h1 className="narrow flex flex-wrap items-center gap-2.5 text-4xl leading-none font-extrabold tracking-[0.01em] uppercase md:text-5xl">
+      <h1
+        className={cn(
+          DISPLAY_CAPS,
+          "flex flex-wrap items-center gap-2.5 text-4xl leading-none md:text-5xl",
+        )}
+      >
         {badge}
         {flag === undefined || flag === "" ? null : (
           <Flag country={flag} title={flag} className="h-5 w-7.5" />
         )}
         {title}
       </h1>
-      {sub === undefined ? null : (
-        <p className="text-muted-foreground font-mono text-xs tracking-wider uppercase">{sub}</p>
-      )}
+      {sub === undefined ? null : <p className={cn(MONO_LINE, "text-muted-foreground")}>{sub}</p>}
     </div>
   );
 }

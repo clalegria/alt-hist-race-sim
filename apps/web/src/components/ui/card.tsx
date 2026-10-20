@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { cn, MONO_LABEL } from "../../lib/utils.js";
+import { cn, DISPLAY_CAPS, MONO_LABEL } from "../../lib/utils.js";
 
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
@@ -31,9 +31,7 @@ export function CardTitle({
   as: Heading = "h2",
   ...props
 }: ComponentProps<"h2"> & { as?: "h2" | "h3" | undefined }) {
-  return (
-    <Heading className={cn("narrow text-lg font-extrabold uppercase", className)} {...props} />
-  );
+  return <Heading className={cn(DISPLAY_CAPS, "text-lg", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {

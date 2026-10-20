@@ -79,6 +79,7 @@ export function LiveryBarcode({
         {decadeTicks(first, last).map(({ year, label }) => (
           <span
             key={year}
+            // 10px: a tick label under a 12px rail; the scale has no size this small.
             className="border-subtle text-subtle absolute top-0 h-full border-l pl-0.5 font-mono text-[10px] leading-3 tabular-nums"
             style={{ left: at(year) }}
           >
