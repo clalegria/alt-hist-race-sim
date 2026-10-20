@@ -16,9 +16,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 ## The grid
 - **The grid opens closed**: one overall per row, teams in the shared sort order (best
   first by default, `web-lists.md`), the individual ratings behind a popover.
-- **An age is `ratedAge`**, the age the ratings beside it describe (peak age under
-  `peak`). Ratings arrive resolved on the entrants and ages don't, so whatever draws an
-  age takes the rating mode.
+- **An age is `ratedAge`**, the peak age under `peak` ("at their best"), unresolved on the
+  entrants: whatever draws one takes the rating mode. No Adaptability until a race reads it.
 - **`SeasonGrid` is a plain function of the field it is handed**, never the outer `EntryNames`
   or `Liveries`, so the editor can draw a draft the world hasn't seen (a child gets its own).
 - **A card's drivers follow the ranking rule whatever the sort switch says.**

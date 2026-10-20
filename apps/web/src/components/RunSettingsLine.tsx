@@ -29,15 +29,16 @@ export function SettingsSummary({
   eraSettings = false,
   lock = null,
   onCommit,
+  scenario = true,
   className,
-}: Omit<SettingsProps, "year"> & { className?: string }) {
+}: Omit<SettingsProps, "year"> & { scenario?: boolean; className?: string }) {
   // A season's screen states only what a season races: the remembered set can
   // hold an era's answers too.
   const inForce = unit === "season" ? seasonSettings(choice.settings) : choice.settings;
   const lines = settingsOf({ ...choice, settings: inForce });
   return (
     <div className={cn("text-muted-foreground min-w-0 text-xs", className)}>
-      <SimulationSettings settings={lines} className="inline" />
+      <SimulationSettings settings={lines} scenario={scenario} className="inline" />
       {lines.length > 0 && lock === null && onCommit !== undefined ? (
         <Button
           variant="link"
@@ -85,7 +86,6 @@ export function RunSettingsButton({
       <Button
         variant="outline"
         size="sm"
-        aria-label="Run settings"
         aria-haspopup="dialog"
         {...(lock === null ? {} : { title: lock })}
         onClick={() => {

@@ -59,7 +59,7 @@ export function arrangementNote(arrangement: GridArrangement, mode: RatingMode):
   const { filters } = arrangement;
   const band = `${mode === "peak" ? "peak age" : "aged"} ${filters.minAge} to ${filters.maxAge}`;
   return arrangement.includeUnemployed
-    ? `Drivers without a seat could be picked too, ${band}.`
+    ? `Drivers without a drive could be picked too, ${band}.`
     : "Only that season's drivers.";
 }
 

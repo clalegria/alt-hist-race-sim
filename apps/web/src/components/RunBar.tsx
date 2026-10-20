@@ -51,7 +51,8 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
         {menu.items.map((item) =>
           item.link === null ? (
             <DropdownMenuItem key={item.label} disabled>
-              {item.label} <span className="text-muted-foreground ml-auto pl-3">not yet</span>
+              {item.label}{" "}
+              <span className="text-muted-foreground ml-auto pl-3">not reached yet</span>
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem key={item.label} asChild>
@@ -285,7 +286,7 @@ export function RunActions(props: RunActionsProps) {
         // No way forward while a grid is half-rearranged: the draft would go
         // with it, and the season simulated would be the one being replaced.
         <span className="text-muted-foreground self-center text-right text-xs">
-          Editing the grid. Apply or cancel it to carry on.
+          Editing the grid. Apply or cancel your edit to carry on.
         </span>
       ) : (
         <div className="hidden flex-1 flex-wrap justify-end gap-2 md:flex">

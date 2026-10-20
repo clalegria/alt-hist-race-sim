@@ -126,11 +126,11 @@ export function describeBeat(beat: Beat, rounds: number, hasNextYear: boolean): 
     case "grid":
       return "Grid";
     case "qualifying":
-      return `Round ${beat.round + 1}/${rounds} · Qualifying`;
+      return `Round ${beat.round + 1} of ${rounds} · Qualifying`;
     case "race":
-      return `Round ${beat.round + 1}/${rounds} · Race`;
+      return `Round ${beat.round + 1} of ${rounds} · Race`;
     case "summary":
-      return "Season summary";
+      return "End of the season";
     case "review":
       return hasNextYear ? "Between seasons" : "End of the era";
   }

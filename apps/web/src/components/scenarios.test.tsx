@@ -28,6 +28,7 @@ import {
   SCENARIOS_INTRO,
   ScenarioCard,
 } from "./Scenarios.js";
+import { settingsOf } from "./SimulationSettings.js";
 
 const UNITS: readonly RunUnit[] = ["season", "era"];
 
@@ -155,9 +156,15 @@ describe("the Scenarios card", () => {
   it("carries the settings button and what is in force", () => {
     const card = (choice: RunChoice) =>
       renderToStaticMarkup(<ScenarioCard choice={choice} year={YEAR} unit="era" />);
-    expect(card(atDefaults)).toContain('aria-label="Run settings"');
+    expect(card(atDefaults)).toContain(">Settings<");
     expect(card(atDefaults)).toContain("Default settings");
-    expect(card(tweaked)).toContain("Mechanical failures:");
+    // Past three settings the rest wait behind "N more", so name the first three.
+    const lines = settingsOf(tweaked);
+    const html = card(tweaked);
+    for (const line of lines.slice(0, 3)) {
+      expect(html).toContain(`${line.name}:`);
+    }
+    expect(html).toContain(`${lines.length - 3} more`);
   });
 
   it.each(UNITS)("describes the lit scenario alone on the %s screen", (unit) => {

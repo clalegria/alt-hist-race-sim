@@ -2,9 +2,9 @@ import { STANDOUT_BORDER, STANDOUT_TEXT } from "../lib/highlight.js";
 import { count } from "../lib/history.js";
 import { cn } from "../lib/utils.js";
 
-/** What the tooltip calls a title: "3 drivers' titles", "1 constructors' title". */
+/** What the tooltip calls a title: "3 drivers’ titles", "1 constructors’ title". */
 export function titlesLabel(titles: number, kind: "driver" | "team"): string {
-  const title = kind === "driver" ? "drivers' title" : "constructors' title";
+  const title = kind === "driver" ? "drivers’ title" : "constructors’ title";
   return count(titles, title, `${title}s`);
 }
 

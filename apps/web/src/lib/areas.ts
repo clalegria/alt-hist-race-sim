@@ -30,8 +30,8 @@ export interface Area {
 
 export const AREAS: readonly Area[] = [
   { label: "Season", to: "/season/new", mode: "season" },
-  { label: "Era (basic)", to: "/era/new", mode: "era-basic" },
-  { label: "Era (advanced)", mode: "era-advanced" },
+  { label: "Era", to: "/era/new", mode: "era-basic" },
+  { label: "Advanced era", mode: "era-advanced" },
   { label: "Game", mode: "game" },
   { label: "Editor", mode: "edit-ratings" },
   // A stub until *publish it*, like the footer's link to it.

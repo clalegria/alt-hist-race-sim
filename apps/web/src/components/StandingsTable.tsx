@@ -36,7 +36,7 @@ import {
 const COLUMNS = [
   { key: "points", label: "Pts", emphasis: true, wide: false },
   { key: "wins", label: "Wins", emphasis: false, wide: false },
-  { key: "podiums", label: "Pods", emphasis: false, wide: true },
+  { key: "podiums", label: "Podiums", emphasis: false, wide: true },
   { key: "poles", label: "Poles", emphasis: false, wide: true },
 ] as const;
 

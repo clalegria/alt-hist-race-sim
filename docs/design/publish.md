@@ -11,8 +11,8 @@ five parts. The roadmap holds the order; this holds the design.
   content (gaps, grid position, engine), with the full row on tap; **restack the row** into
   a card; or **scroll the table horizontally** in its own container (a classification,
   where every column is a result).
-- Per-screen items: `docs/design/ui-review.md`, tagged *Phone layout*. The run bar's and the
-  top nav's phone forms are built. Styling only; the model is untouched.
+- The run bar's and the top nav's phone forms are built. Styling only; the model is
+  untouched.
 
 ## The share image
 
@@ -32,8 +32,7 @@ whole authoring pass, nor after the ratings editor.
 - **The text pass.** Cut every on-screen string to what the reader is looking at
   (`.claude/rules/ui-copy.md`). Worst offenders: the setup leads (`SeasonPicker`), the
   `RandomnessSlider` option details, the settings dialog's what-if notes, the
-  `CareerStatistics` section descriptions; plus the items tagged *The text pass* in
-  `ui-review.md`.
+  `CareerStatistics` section descriptions.
 - **The About page** (the footer's disabled `Pending` button): an alternate history, not a
   prediction; how the model works in one plain paragraph; the ratings are the author's
   opinions and mostly first drafts; the AI-collaboration credit; data sources and their

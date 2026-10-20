@@ -69,7 +69,7 @@ export function StepArrows({ steps }: { steps: PageSteps }) {
 
 /** One side of the foot's pair: the arrow and where it leads, or that it is not yet. */
 function StepLink({ step, direction }: { step: Step; direction: "previous" | "next" }) {
-  const label = step.link === null ? `${step.label} (not yet)` : step.label;
+  const label = step.link === null ? `${step.label} (not reached yet)` : step.label;
   const text = direction === "previous" ? `${GLYPH.previous} ${label}` : `${label} ${GLYPH.next}`;
   const align = direction === "next" && "text-right";
   return step.link === null ? (

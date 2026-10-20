@@ -109,7 +109,7 @@ describe("the season picker", () => {
     // so these two cannot disagree — this checks the screen a reader actually
     // lands on, not the invariant.
     expect(isPlayable(DEFAULT_SEASON_YEAR)).toBe(true);
-    expect(html).toContain(`aria-label="Simulate the ${DEFAULT_SEASON_YEAR} season"`);
+    expect(html).toContain(`aria-label="The ${DEFAULT_SEASON_YEAR} season"`);
     expect(html).toContain(`Season in the ${decadeOf(DEFAULT_SEASON_YEAR)}s`);
   });
 
@@ -187,7 +187,7 @@ describe("the season picker", () => {
     // The whole point of the commit button: a reader who reaches for a year
     // first — as most will — used to be into the season before they had seen
     // that the run settings above it were theirs to choose.
-    expect(html).toContain(`Begin the ${DEFAULT_SEASON_YEAR} season`);
-    expect(html).toContain("Run settings");
+    expect(html).toContain(`Start the ${DEFAULT_SEASON_YEAR} season`);
+    expect(html).toContain("Settings");
   });
 });

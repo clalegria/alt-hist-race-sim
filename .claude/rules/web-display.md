@@ -38,7 +38,7 @@ The accent, the session sheets and the championship tables.
   columns never. Its tighter padding goes on each cell through `cn`, not a `[&_td]:` variant.
 - **A phone's classification row is position, name, gap and points**: the car, Grid and
   Status show from `md`, and below it the gap column says DNF or DNQ in `text-loss`.
-  A standings row is position, name, points and wins; Pods and Poles show from `sm`.
+  A standings row is position, name, points and wins; Podiums and Poles show from `sm`.
 - **The roll of honour restacks on a phone, never scrolls** (`RESTACK`): one set of cells
   at every width, so a name stays one control; each row is its own grid, so its columns
   are fixed. Child combinators only: an opened year holds tables of its own.

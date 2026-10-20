@@ -267,7 +267,7 @@ describe("a race", () => {
   it("carries points alongside the result, and nothing else", () => {
     // The sidebar exists to be scannable: after one round the full table's
     // wins, podiums and poles are almost all zeroes.
-    for (const column of ["Wins", "Pods", "Poles"]) {
+    for (const column of ["Wins", "Podiums", "Poles"]) {
       expect(html, `${column} should not be in the race sidebar`).not.toContain(`>${column}<`);
     }
     // The leader's points are on screen, whatever the scale pays for a win.
@@ -317,7 +317,7 @@ describe("the season summary", () => {
 
   it("keeps the grid on its own tab, in the same simplified form", () => {
     expect(render({ kind: "summary" }, world, "grid")).toContain(
-      "Select any name for its full ratings",
+      "Pick any name for its full ratings",
     );
   });
 });

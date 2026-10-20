@@ -26,10 +26,10 @@ const YEAR = FIRST_AUTHORED_SEASON;
 const OTHER = PLAYABLE_SEASONS.at(-1) ?? YEAR;
 
 describe("the breakdowns setting", () => {
-  it("presses Realistic while historical, and the chosen answer otherwise", () => {
+  it("presses Historical while historical, and the chosen answer otherwise", () => {
     expect(
       renderToStaticMarkup(<BreakdownsSetting breakdowns={null} reliability={null} unit="era" />),
-    ).toMatch(/aria-pressed="true"[^>]*>Realistic</);
+    ).toMatch(/aria-pressed="true"[^>]*>Historical</);
     for (const breakdowns of ["fewer", "none"] as const) {
       const html = renderToStaticMarkup(
         <BreakdownsSetting breakdowns={breakdowns} reliability={null} unit="era" />,

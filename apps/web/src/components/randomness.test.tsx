@@ -7,19 +7,21 @@
  * choosing a level *does* is the store's tests; what it means is the engine's.
  */
 
-import { FIRST_AUTHORED_SEASON } from "@alt-hist/data";
+import { DEFAULT_RATING_MODE, FIRST_AUTHORED_SEASON } from "@alt-hist/data";
 import { RANDOMNESS_LEVELS } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
+import { PRESETS } from "../lib/presets.js";
 import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld } from "../store/season.js";
 import { shownAt } from "../test-support.js";
 import { EraChampions } from "./EraChampions.js";
 import { RANDOMNESS_OPTIONS, RandomnessSlider, randomnessLabel } from "./RandomnessSlider.js";
 import { RunSettingsForm } from "./RunSettingsDialog.js";
+import { SettingsSummary } from "./RunSettingsLine.js";
 import { SeasonView } from "./SeasonView.js";
-import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
+import { SimulationSettings, settingsOf, withScenario } from "./SimulationSettings.js";
 
 const choice = {
   randomness: STARTING_RANDOMNESS_LEVEL,
@@ -109,7 +111,7 @@ describe("where the level is chosen", () => {
     const world = createWorld(3, FIRST_AUTHORED_SEASON, "peak", null, null, 5);
     const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "grid" })} />);
     expect(html).toContain(randomnessLabel(5));
-    expect(html).toContain('aria-label="Run settings"');
+    expect(html).toContain(">Settings<");
     expect(html).not.toContain('type="range"');
   });
 });
@@ -136,7 +138,7 @@ describe("the settings a finished championship was run under", () => {
     // champions and the standings down the screen.
     const html = renderToStaticMarkup(<SeasonView {...shownAt(world, { kind: "summary" })} />);
     const champion = html.indexOf("champion");
-    const note = html.indexOf("Simulation settings");
+    const note = html.indexOf("Settings: ");
     // The standings, the first tab, are the tables above it.
     const seasonCard = html.indexOf("Drivers’ Championship");
     expect(champion).toBeGreaterThan(-1);
@@ -171,5 +173,108 @@ describe("the settings a finished championship was run under", () => {
       expect(html).toContain("Default settings");
       expect(html).not.toContain("Luck on the day:");
     }
+  });
+});
+
+/** The lines one *Scenarios* preset gives a run, built from its own data. */
+const linesOf = (preset: (typeof PRESETS)[number]) =>
+  settingsOf({
+    randomness: preset.randomness ?? STARTING_RANDOMNESS_LEVEL,
+    ratingMode: preset.ratingMode ?? DEFAULT_RATING_MODE,
+    settings: { ...HISTORICAL_SETTINGS, ...preset.settings },
+  });
+
+/** The most lines the settings line shows before the rest wait behind "N more". */
+const SHOWN = 3;
+
+const synthetic = (count: number) =>
+  Array.from({ length: count }, (_, index) => ({
+    name: `Setting ${index}`,
+    value: `value ${index}`,
+  }));
+
+describe("the settings line's length", () => {
+  it("shows at most three settings, and counts the rest behind a button", () => {
+    for (const count of [SHOWN + 1, SHOWN + 4]) {
+      const html = renderToStaticMarkup(
+        <SimulationSettings settings={synthetic(count)} scenario={false} />,
+      );
+      for (const setting of synthetic(count).slice(0, SHOWN)) {
+        expect(html, `${count}`).toContain(setting.name);
+      }
+      for (const setting of synthetic(count).slice(SHOWN)) {
+        expect(html, `${count}`).not.toContain(setting.name);
+      }
+      expect(html, `${count}`).toContain(`${count - SHOWN} more`);
+      expect(html, `${count}`).toContain("<button");
+    }
+  });
+
+  it("offers no button for exactly three, or fewer", () => {
+    for (const count of [1, SHOWN]) {
+      const html = renderToStaticMarkup(
+        <SimulationSettings settings={synthetic(count)} scenario={false} />,
+      );
+      for (const setting of synthetic(count)) {
+        expect(html, `${count}`).toContain(setting.name);
+      }
+      expect(html, `${count}`).not.toContain("<button");
+      expect(html, `${count}`).not.toContain(" more");
+    }
+  });
+});
+
+describe("a scenario said by its name", () => {
+  const extra = { name: "Not from any scenario", value: "extra" };
+
+  it("replaces the lines a scenario gives with one Scenario line, first, and keeps the rest", () => {
+    for (const preset of PRESETS) {
+      const lines = linesOf(preset);
+      if (lines.length === 0) {
+        continue;
+      }
+      const folded = withScenario([extra, ...lines]);
+      expect(folded[0]?.name, preset.id).toBe("Scenario");
+      expect(
+        PRESETS.map((one) => one.name),
+        preset.id,
+      ).toContain(folded[0]?.value);
+      // Nothing is lost that the scenario does not account for: only the extra stays.
+      expect(folded.slice(1), preset.id).toEqual([extra]);
+    }
+  });
+
+  it("leaves a partial match alone", () => {
+    const partial = PRESETS.map((preset) => linesOf(preset).slice(1)).find(
+      (lines) =>
+        lines.length > 0 &&
+        !PRESETS.some((other) => {
+          const own = linesOf(other);
+          return (
+            own.length > 0 &&
+            own.every((line) =>
+              lines.some((each) => each.name === line.name && each.value === line.value),
+            )
+          );
+        }),
+    );
+    expect(partial, "a preset with a line to spare").toBeDefined();
+    expect(withScenario(partial ?? [])).toEqual(partial);
+  });
+
+  it("is named on a settings summary, but never on the Scenarios card's own", () => {
+    const preset = PRESETS.find((one) => linesOf(one).length > 0);
+    expect(preset).toBeDefined();
+    const given = {
+      randomness: preset?.randomness ?? STARTING_RANDOMNESS_LEVEL,
+      ratingMode: preset?.ratingMode ?? DEFAULT_RATING_MODE,
+      settings: { ...HISTORICAL_SETTINGS, ...preset?.settings },
+    };
+    const named = renderToStaticMarkup(<SettingsSummary choice={given} unit="era" />);
+    expect(named).toContain("Scenario:");
+    const card = renderToStaticMarkup(
+      <SettingsSummary choice={given} unit="era" scenario={false} />,
+    );
+    expect(card).not.toContain("Scenario:");
   });
 });

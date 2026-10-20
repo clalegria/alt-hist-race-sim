@@ -23,7 +23,7 @@ function decades(): readonly { decade: number; years: readonly number[] }[] {
   return groups;
 }
 
-/** How often, against the cars it is measured by: Realistic's, or Fewer's. */
+/** How often, against the cars it is measured by: Historical's, or Fewer's. */
 const HOW_OFTEN: Readonly<Record<Exclude<Breakdowns, "none">, string>> = {
   realistic: "as often",
   fewer: "half as often",
@@ -63,12 +63,12 @@ const NEVER = "Cars never break down. Drivers can still crash out.";
 const OWN = "";
 
 /**
- * Mechanical failures: how often the run's cars break down. *Realistic* or
+ * Mechanical failures: how often the run's cars break down. *Historical* or
  * *Fewer* (half as often), each measured against *Cars as reliable as* — each
  * year's own cars, or one season's, every year — or *None*. Mechanical failures
  * only; driver error is a driver rating and stays.
  *
- * *Cars as reliable as* is a sub-option, set in under Realistic and Fewer and
+ * *Cars as reliable as* is a sub-option, set in under Historical and Fewer and
  * hidden under None, where no car breaks down to be measured; the choice is kept
  * for a look at None and back. A year rather than a number, because a season's
  * retirement factor is an authored dial a reader has no reason to know; "as
@@ -81,7 +81,7 @@ export function BreakdownsSetting({
   unit,
   onChange,
 }: {
-  /** Null is Realistic, the historical answer. */
+  /** Null is Historical. */
   breakdowns: FewerBreakdowns | null;
   /** The season whose breakdown rate every year takes, or null for each year's own. */
   reliability: number | null;

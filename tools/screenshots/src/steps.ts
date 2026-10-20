@@ -65,8 +65,8 @@ async function navTo(page: Page, name: string): Promise<void> {
 
 /** Opens the run settings dialog from the settings line, and waits for it. */
 async function openSettings(page: Page): Promise<Locator> {
-  await button(page, "Run settings").click();
-  const dialog = page.getByRole("dialog", { name: "Run settings" });
+  await button(page, "Settings").click();
+  const dialog = page.getByRole("dialog", { name: "Settings" });
   await dialog.waitFor();
   return dialog;
 }
@@ -110,7 +110,7 @@ export const STEPS: readonly Step[] = [
     name: "season-setup",
     reach: async (page) => {
       await button(page, /^Simulate a season/).click();
-      await pickYear(page, `Simulate the ${YEAR} season`);
+      await pickYear(page, `The ${YEAR} season`);
     },
   },
   {
@@ -123,7 +123,7 @@ export const STEPS: readonly Step[] = [
     name: "grid",
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
-      await button(page, `Begin the ${YEAR} season`).click();
+      await button(page, `Start the ${YEAR} season`).click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
       await cursorAt(page, `${YEAR} · Grid`);
     },
@@ -139,7 +139,7 @@ export const STEPS: readonly Step[] = [
       // Restore defaults takes the draft back, then Fewer again for the steps after.
       await dialog.getByRole("button", { name: "Restore defaults" }).click();
       await breakdowns
-        .getByRole("button", { name: "Realistic", exact: true, pressed: true })
+        .getByRole("button", { name: "Historical", exact: true, pressed: true })
         .waitFor();
       await breakdowns.getByRole("button", { name: "Fewer", exact: true }).click();
     },
@@ -162,7 +162,7 @@ export const STEPS: readonly Step[] = [
         .first()
         .waitFor();
       // One engine stepped up twice: every card running it says so.
-      const stronger = page.getByRole("button", { name: /^Strengthen .* engine$/ }).first();
+      const stronger = page.getByRole("button", { name: /^Raise .* engine$/ }).first();
       await stronger.click();
       await stronger.click();
     },
@@ -195,10 +195,10 @@ export const STEPS: readonly Step[] = [
         .getByRole("button", { name: /engine racing$/ })
         .first()
         .waitFor();
-      const faster = popover.getByRole("button", { name: /^Strengthen .* development$/ });
+      const faster = popover.getByRole("button", { name: /^Raise .* development$/ });
       await ((await faster.isEnabled())
         ? faster
-        : popover.getByRole("button", { name: /^Weaken .* development$/ })
+        : popover.getByRole("button", { name: /^Lower .* development$/ })
       ).click();
     },
   },
@@ -234,7 +234,7 @@ export const STEPS: readonly Step[] = [
       await page.getByText("This grid was edited").waitFor({ state: "detached" });
       await button(page, /^Continue/).click();
       await page.waitForURL(`**/run/${YEAR}/round/1/qualifying`);
-      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Qualifying`);
+      await cursorAt(page, `${YEAR} · Round 1 of \\d+ · Qualifying`);
     },
   },
   {
@@ -242,7 +242,7 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       await button(page, /^Continue/).click();
       await page.waitForURL(`**/run/${YEAR}/round/1/race`);
-      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Race`);
+      await cursorAt(page, `${YEAR} · Round 1 of \\d+ · Race`);
     },
   },
   {
@@ -281,9 +281,9 @@ export const STEPS: readonly Step[] = [
   {
     name: "season-summary",
     reach: async (page) => {
-      await runAction(page, "Simulate rest of the season");
+      await runAction(page, "Simulate the rest of the season");
       await page.waitForURL(`**/run/${YEAR}`);
-      await cursorAt(page, `${YEAR} · Season summary`);
+      await cursorAt(page, `${YEAR} · End of the season`);
     },
   },
   {
@@ -334,8 +334,8 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-setup",
     reach: async (page) => {
-      await navTo(page, "Era (basic)");
-      await pickYear(page, `Start an era in ${YEAR}`);
+      await navTo(page, "Era");
+      await pickYear(page, `Start from ${YEAR}`);
       // What-ifs on every tab of the era's dialog, left open on Cars, so the
       // dots, a picker and the sub-options are drawn.
       const dialog = await openSettings(page);
@@ -345,7 +345,7 @@ export const STEPS: readonly Step[] = [
       // A reseat, so the era's grids carry its own notice above any edits.
       await dialog
         .getByRole("combobox", { name: "Who drives where" })
-        .selectOption({ label: "Randomize grid" });
+        .selectOption({ label: "Drivers in random teams" });
       await dialog
         .getByRole("group", { name: "Driver career events" })
         .getByRole("button", { name: "No", exact: true })
@@ -389,7 +389,7 @@ export const STEPS: readonly Step[] = [
     name: "replace-dialog",
     reach: async (page) => {
       await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-      await button(page, `Begin an era starting in ${YEAR}`).click();
+      await button(page, `Start an era in ${YEAR}`).click();
       await page.getByRole("alertdialog", { name: "Start a new run?" }).waitFor();
     },
   },
@@ -417,12 +417,12 @@ export const STEPS: readonly Step[] = [
     name: "era-grid-team",
     reach: async (page) => {
       // Begun again from the same setup: the untouched run is replaced unasked.
-      await button(page, `Begin an era starting in ${YEAR}`).click();
+      await button(page, `Start an era in ${YEAR}`).click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
       // A team's ratings on varied cars: history beside this run's, rating by
       // rating, for the chassis and for the engine.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
-      await page.getByRole("dialog").getByText("Real → this run").nth(1).waitFor();
+      await page.getByRole("dialog").getByText("Real life → this run").nth(1).waitFor();
     },
   },
   {
@@ -442,8 +442,8 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-summary",
     reach: async (page) => {
-      await runAction(page, "Simulate full season");
-      await cursorAt(page, `${YEAR} · Season summary`);
+      await runAction(page, "Simulate the whole season");
+      await cursorAt(page, `${YEAR} · End of the season`);
     },
   },
   {
@@ -465,9 +465,9 @@ export const STEPS: readonly Step[] = [
     name: "era-jumped",
     reach: async (page) => {
       // The dialog opens on the end of the next year.
-      await button(page, `Simulate through ${YEAR + 1}`).click();
+      await button(page, `Jump to the end of ${YEAR + 1}`).click();
       await page.waitForURL(`**/run/${YEAR + 1}`);
-      await cursorAt(page, `${YEAR + 1} · Season summary`);
+      await cursorAt(page, `${YEAR + 1} · End of the season`);
     },
   },
   {
@@ -536,7 +536,7 @@ export const STEPS: readonly Step[] = [
         .first()
         .click();
       await page.waitForURL(`**/run/${YEAR + 1}`);
-      await cursorAt(page, `${YEAR + 1} · Season summary`);
+      await cursorAt(page, `${YEAR + 1} · End of the season`);
     },
   },
   {
@@ -615,7 +615,7 @@ export const STEPS: readonly Step[] = [
     name: "era-restart-dialog",
     reach: async (page) => {
       await runAction(page, "Restart era");
-      await page.getByRole("alertdialog", { name: "Restart the era?" }).waitFor();
+      await page.getByRole("alertdialog", { name: "Restart this era?" }).waitFor();
     },
   },
   {
@@ -624,7 +624,7 @@ export const STEPS: readonly Step[] = [
       // The page the restart leaves names a year the new run has not reached;
       // it goes to the new grid rather than saying "Not reached yet".
       await page
-        .getByRole("alertdialog", { name: "Restart the era?" })
+        .getByRole("alertdialog", { name: "Restart this era?" })
         .getByRole("button", { name: "Restart era" })
         .click();
       await page.waitForURL(`**/run/${YEAR}/grid`);
@@ -652,9 +652,9 @@ export const STEPS: readonly Step[] = [
     reach: async (page) => {
       // Round 1 raced: a driver's year reads as a place so far.
       await runAction(page, "Continue");
-      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Qualifying`);
+      await cursorAt(page, `${YEAR} · Round 1 of \\d+ · Qualifying`);
       await runAction(page, "Continue");
-      await cursorAt(page, `${YEAR} · Round 1/\\d+ · Race`);
+      await cursorAt(page, `${YEAR} · Round 1 of \\d+ · Race`);
       await page.goto("/run/drivers");
       await page.getByRole("cell").getByRole("link").first().click();
       await page.waitForURL("**/run/driver/*");

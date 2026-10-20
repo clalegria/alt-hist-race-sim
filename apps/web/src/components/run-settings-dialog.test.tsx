@@ -41,7 +41,7 @@ describe("the settings line", () => {
       />,
     );
     expect(html).toContain("Mechanical failures:");
-    expect(html).toContain('aria-label="Run settings"');
+    expect(html).toContain(">Settings<");
     expect(html).not.toContain("<svg");
     // The luck on the day is at its default, so it goes unsaid.
     expect(html).not.toContain("Luck on the day:");
@@ -119,7 +119,7 @@ describe("the settings line", () => {
     const html = renderToStaticMarkup(
       <SeasonView {...shownAt(world, { kind: "grid" })} settingsLock="Fixed for a test." />,
     );
-    expect(html.indexOf('aria-label="Run settings"')).toBeLessThan(
+    expect(html.indexOf(">Settings<")).toBeLessThan(
       html.indexOf(rowName(world.field[0]?.driverId ?? "")),
     );
     expect(html).toContain('title="Fixed for a test."');

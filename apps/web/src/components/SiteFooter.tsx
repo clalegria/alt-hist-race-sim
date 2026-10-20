@@ -46,7 +46,7 @@ export function SiteFooter({ seed, className }: { seed?: number; className?: str
         <Pending label="Submit a bug report" />
         {seed === undefined ? null : (
           <span className="ml-auto">
-            Seed <span className="tabular-nums">{seed}</span>
+            Run <span className="tabular-nums">{seed}</span>
           </span>
         )}
       </div>

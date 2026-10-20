@@ -1,7 +1,7 @@
 import { isUntouched, type Run } from "../store/season.js";
 
 /** Why the grid's settings dialog is read-only while the grid editor is open. */
-export const EDITING_LOCK = "Finish or cancel the grid edit first.";
+export const EDITING_LOCK = "Apply or cancel your grid edit first.";
 
 /**
  * Why a run's settings can no longer be changed from its grid, or null while

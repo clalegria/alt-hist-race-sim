@@ -278,10 +278,10 @@ describe("the title trophies", () => {
   it("marks both champions of every year, with a count from the second title", () => {
     const world = createWorld(1, YEAR);
     expect(trophies(honour([world, world]))).toEqual([
-      "1 drivers' title",
-      "1 constructors' title",
-      "2 drivers' titles",
-      "2 constructors' titles",
+      "1 drivers’ title",
+      "1 constructors’ title",
+      "2 drivers’ titles",
+      "2 constructors’ titles",
     ]);
     expect(trophies(roll)).toHaveLength(run.seasons.length * 2);
     const repeat = honour([world, world]);
@@ -397,7 +397,7 @@ describe("the era picker", () => {
     const open = yearsInDecade(decadeOf(DEFAULT_SEASON_YEAR));
     const buttons = picker.split("<button").slice(1);
     for (const year of open.filter(isPlayable)) {
-      expect(picker, `${year}`).toContain(`aria-label="Start an era in ${year}"`);
+      expect(picker, `${year}`).toContain(`aria-label="Start from ${year}"`);
     }
     const drawn = buttons.filter((button) => open.some((year) => button.includes(`>${year}<`)));
     expect(drawn).toHaveLength(open.length);
@@ -406,7 +406,7 @@ describe("the era picker", () => {
   it("commits on its own button, which says an era rather than a season", () => {
     // The era and the season share one component, so the one thing that must
     // not be shared is the sentence on the button that starts the run.
-    expect(picker).toContain(`Begin an era starting in ${DEFAULT_SEASON_YEAR}`);
-    expect(picker).not.toContain("Begin the");
+    expect(picker).toContain(`Start an era in ${DEFAULT_SEASON_YEAR}`);
+    expect(picker).not.toContain("Start the");
   });
 });

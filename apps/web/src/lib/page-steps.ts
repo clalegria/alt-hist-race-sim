@@ -48,7 +48,7 @@ export interface PageSteps {
 
 type Direction = "Previous" | "Next";
 
-/** A step to a place, with " (not yet)" on the tooltip of one still ahead. */
+/** A step to a place, with " (not reached yet)" on the tooltip of one still ahead. */
 function step(
   direction: Direction,
   noun: string,
@@ -57,7 +57,7 @@ function step(
   link: CrumbLink | null,
 ): Step {
   return {
-    title: `${direction} ${noun}: ${place}${link === null ? " (not yet)" : ""}`,
+    title: `${direction} ${noun}: ${place}${link === null ? " (not reached yet)" : ""}`,
     label,
     link,
   };

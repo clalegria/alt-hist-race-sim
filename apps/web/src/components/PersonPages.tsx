@@ -261,8 +261,8 @@ export function CareerSeasons({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="px-2 sm:w-20 sm:px-3">Year</TableHead>
-            <TableHead className="px-2 sm:px-3">{teams ? "Entry" : "Team"}</TableHead>
+            <TableHead className="px-2 sm:w-20 sm:px-3">Season</TableHead>
+            <TableHead className="px-2 sm:px-3">{teams ? "Entered as" : "Team"}</TableHead>
             <TableHead className="px-2 text-right sm:px-3">Pos</TableHead>
             <TableHead className={figureClass("points")}>Pts</TableHead>
             <TableHead className={figureClass("wins")}>Wins</TableHead>

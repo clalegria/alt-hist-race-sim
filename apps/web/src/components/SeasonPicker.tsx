@@ -52,8 +52,8 @@ export function SeasonPicker({
   title = "Simulate a season",
   yearTitle = "Season",
   yearLead = `Pick the season to simulate, from ${FIRST_SEASON} to ${LAST_SEASON}.`,
-  describeYear = (year: number) => `Simulate the ${year} season`,
-  describeStart = (year: number) => `Begin the ${year} season`,
+  describeYear = (year: number) => `The ${year} season`,
+  describeStart = (year: number) => `Start the ${year} season`,
   unit = "season",
 }: {
   onStart: (year: number, randomness: RandomnessLevel, settings: RunSettings) => void;
@@ -158,8 +158,8 @@ export function EraPicker({
       title="Simulate an era"
       yearTitle="Starting season"
       yearLead={`Pick the season to start from. The simulation will then carry on for as many years as you like, until it ends in ${PLAYABLE_SEASONS.at(-1) ?? ""}.`}
-      describeYear={(year) => `Start an era in ${year}`}
-      describeStart={(year) => `Begin an era starting in ${year}`}
+      describeYear={(year) => `Start from ${year}`}
+      describeStart={(year) => `Start an era in ${year}`}
       unit="era"
     />
   );

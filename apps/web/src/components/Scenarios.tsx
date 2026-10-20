@@ -204,7 +204,12 @@ export function ScenarioCard({
           {...(onCommit === undefined ? {} : { onPick: onCommit })}
         />
       </div>
-      <SettingsSummary {...settings} className="border-border border-t px-5 py-2.5" />
+      {/* The lit row already names the scenario: the line spells out its settings. */}
+      <SettingsSummary
+        {...settings}
+        scenario={false}
+        className="border-border border-t px-5 py-2.5"
+      />
     </Card>
   );
 }

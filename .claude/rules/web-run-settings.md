@@ -56,5 +56,5 @@ The what-ifs in the settings dialog, beside the luck on the day and the driver a
   on-off; a note only under a what-if, following `unit`. Never call driver career events
   "form": the planned driver market owns that word.
 - **`SimulationSettings` over `settingsOf` is the only list** of what a run was
-  simulated under, on the grid, the summary and the roll of honour. Add to it, never
-  write the copy on a screen.
+  simulated under. Add to it, never write copy on a screen; folding a scenario into its
+  name (`withScenario`) and "N more" are drawing only, so `settingsOf` stays whole.

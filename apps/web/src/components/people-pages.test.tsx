@@ -221,10 +221,10 @@ describe("the title trophy on a page's heading", () => {
   it("is a count from the second title, and says which championship", () => {
     expect(renderToStaticMarkup(<TitleCount titles={0} kind="driver" />)).toBe("");
     const one = renderToStaticMarkup(<TitleCount titles={1} kind="driver" />);
-    expect(one).toContain("1 drivers&#x27; title");
+    expect(one).toContain("1 drivers’ title");
     expect(one).not.toContain("×");
     const three = renderToStaticMarkup(<TitleCount titles={3} kind="team" />);
-    expect(three).toContain("3 constructors&#x27; titles");
+    expect(three).toContain("3 constructors’ titles");
     expect(three).toContain("×3");
     // Drawn by the stylesheet: a flag is the only `<svg>` beside a name.
     expect(three).not.toContain("<svg");

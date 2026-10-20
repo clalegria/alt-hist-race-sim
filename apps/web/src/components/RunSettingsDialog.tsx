@@ -229,7 +229,7 @@ export function RunSettingsForm({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <Tabs
-        label="Run settings"
+        label="Settings"
         className="shrink-0 self-start"
         panels={{
           items: SETTINGS_TABS.filter((one) => eraSettings || !one.eraOnly).map((one) => ({
@@ -478,12 +478,15 @@ function DraftForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Run settings</DialogTitle>
+        <DialogTitle>Settings</DialogTitle>
       </DialogHeader>
       <DialogBody className="min-h-0 flex-1 gap-3">
-        <DialogDescription>
-          Set these before you start. They can't be changed once the racing begins.
-        </DialogDescription>
+        {/* Read-only, the lock's notice says why instead. */}
+        {lock === null ? (
+          <DialogDescription>
+            Set these before you start. They can't be changed once the racing begins.
+          </DialogDescription>
+        ) : null}
         <RunSettingsFields
           choice={draft}
           year={year}

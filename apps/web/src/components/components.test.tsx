@@ -478,7 +478,7 @@ describe("the compact standings", () => {
     for (const standing of drivers.slice(0, 8)) {
       expect(driverHtml, standing.teamId).toContain(teamName(standing.teamId));
     }
-    for (const column of ["Wins", "Pods", "Poles"]) {
+    for (const column of ["Wins", "Podiums", "Poles"]) {
       expect(driverHtml, `${column} should not be here`).not.toContain(`>${column}<`);
     }
   });
@@ -635,7 +635,7 @@ describe("expanding a row of the championship", () => {
       "Wins",
     ]);
     expect(columns.filter((column) => column.wideOnly).map((column) => column.name)).toEqual([
-      "Pods",
+      "Podiums",
       "Poles",
     ]);
     // And every row's cells with them, two to a row.

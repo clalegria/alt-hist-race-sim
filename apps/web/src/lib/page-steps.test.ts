@@ -91,12 +91,14 @@ describe("session steps", () => {
       at(YEAR, { kind: "race", round: MID }),
     );
     expect(steps?.next?.link).toBeNull();
-    expect(steps?.next?.title).toBe(`Next race: ${YEAR} ${gpName(YEAR, MID + 1)} (not yet)`);
+    expect(steps?.next?.title).toBe(
+      `Next race: ${YEAR} ${gpName(YEAR, MID + 1)} (not reached yet)`,
+    );
     expect(steps?.next?.label).toBe(gpName(YEAR, MID + 1));
     expect(steps?.previous?.link).not.toBeNull();
   });
 
-  it("links only reached places, and a step has no link exactly when its title says not yet", () => {
+  it("links only reached places, and a step has no link exactly when its title says not reached yet", () => {
     const years = [
       { year: YEAR, rounds: ROUNDS },
       { year: YEAR + 1, rounds: SECOND_ROUNDS },
@@ -123,7 +125,7 @@ describe("session steps", () => {
               if (step === null || step === undefined) {
                 continue;
               }
-              expect(step.link === null, label).toBe(step.title.endsWith(" (not yet)"));
+              expect(step.link === null, label).toBe(step.title.endsWith(" (not reached yet)"));
               if (step.link !== null) {
                 expect(isReached(cursor, placeOf(step.link)), label).toBe(true);
               }
@@ -155,7 +157,9 @@ describe("session steps", () => {
       at(YEAR, { kind: "race", round: ROUNDS - 1 }),
     );
     expect(steps?.next?.link).toBeNull();
-    expect(steps?.next?.title).toBe(`Next race: ${YEAR + 1} ${gpName(YEAR + 1, 0)} (not yet)`);
+    expect(steps?.next?.title).toBe(
+      `Next race: ${YEAR + 1} ${gpName(YEAR + 1, 0)} (not reached yet)`,
+    );
   });
 
   it("falls back to qualifying across a year edge while the race is ahead", () => {
@@ -171,7 +175,9 @@ describe("session steps", () => {
     const steps = stepsFor(run, at(YEAR, { kind: "race", round: ROUNDS - 1 }));
     expect(steps?.next?.link).toBeNull();
     expect(steps?.next?.label).toBe(`${YEAR + 1} ${gpName(YEAR + 1, 0)}`);
-    expect(steps?.next?.title).toBe(`Next race: ${YEAR + 1} ${gpName(YEAR + 1, 0)} (not yet)`);
+    expect(steps?.next?.title).toBe(
+      `Next race: ${YEAR + 1} ${gpName(YEAR + 1, 0)} (not reached yet)`,
+    );
   });
 });
 
@@ -194,7 +200,7 @@ describe("season steps", () => {
     expect(later).toBeDefined();
     const steps = stepsFor(run, at(YEAR + 1, END));
     expect(steps?.next?.link).toBeNull();
-    expect(steps?.next?.title).toBe(`Next season: ${later} (not yet)`);
+    expect(steps?.next?.title).toBe(`Next season: ${later} (not reached yet)`);
     expect(steps?.next?.label).toBe(`${later} season`);
   });
 

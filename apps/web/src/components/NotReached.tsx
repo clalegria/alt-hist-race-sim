@@ -20,9 +20,9 @@ export function placeLabel(place: Place): string {
     case "race":
       return `${place.year} · Round ${beat.round + 1} · Race`;
     case "summary":
-      return `${place.year} · Season summary`;
+      return `${place.year} · End of the season`;
     case "review":
-      return "The era's roll of honour";
+      return "The era's champions";
   }
 }
 
@@ -53,7 +53,7 @@ export function NotReached({
       </header>
       <Card className="flex flex-col items-start gap-2 p-4">
         <p className="text-muted-foreground text-sm">
-          Still ahead of the run. Continue to get there.
+          The run hasn't got here yet. Continue to reach it.
         </p>
         <Link {...link} className={buttonClass("link", "-mx-1.5", "inline")}>
           Back to where the run is: {cursor}

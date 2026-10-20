@@ -62,7 +62,7 @@ const DRIVER_RATINGS = [
   { key: "consistency", label: "Consistency" },
   { key: "composure", label: "Composure" },
   { key: "wetWeather", label: "Wet weather" },
-  { key: "adaptability", label: "Adaptability" },
+  // No adaptability: no race reads it yet, so it waits for the careers it is for.
 ] as const;
 
 const CHASSIS_RATINGS = [
@@ -139,13 +139,11 @@ export const SELECTED_ROW = "ring-primary ring-2 ring-inset";
 function Rating({
   label,
   value,
-  muted,
   was,
   control,
 }: {
   label: string;
   value: number;
-  muted?: boolean;
   /**
    * The rating history gave, drawn muted before this run's — a chassis under
    * *Chassis performance*. The bar is this run's.
@@ -156,10 +154,10 @@ function Rating({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className={cn(MONO_LABEL, "w-28 shrink-0", muted && "text-subtle")}>{label}</span>
+      <span className={cn(MONO_LABEL, "w-28 shrink-0")}>{label}</span>
       <span className="bg-muted h-1.5 flex-1 overflow-hidden">
         <span
-          className={cn("block h-full", muted ? "bg-subtle" : "bg-primary")}
+          className="bg-primary block h-full"
           style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
         />
       </span>
@@ -205,7 +203,7 @@ function RatingStepper({
       <Button
         variant="outline"
         className={button}
-        aria-label={`Weaken ${what}`}
+        aria-label={`Lower ${what}`}
         disabled={!canStep(-1)}
         onClick={() => {
           onStep(-1);
@@ -221,7 +219,7 @@ function RatingStepper({
       <Button
         variant="outline"
         className={button}
-        aria-label={`Strengthen ${what}`}
+        aria-label={`Raise ${what}`}
         disabled={!canStep(1)}
         onClick={() => {
           onStep(1);
@@ -611,17 +609,16 @@ function DriverEntry({
                 )}
               </span>
               <span className="text-muted-foreground shrink-0 text-xs">
-                {age === null ? "" : `${age} years old`}
+                {age === null
+                  ? ""
+                  : ratingMode === "peak"
+                    ? `${age} at their best`
+                    : `${age} years old`}
               </span>
             </PopoverHeader>
             <PopoverBody className="flex flex-col gap-2">
               {DRIVER_RATINGS.map((rating) => (
-                <Rating
-                  key={rating.key}
-                  label={rating.label}
-                  value={entrant.driver[rating.key]}
-                  muted={rating.key === "adaptability"}
-                />
+                <Rating key={rating.key} label={rating.label} value={entrant.driver[rating.key]} />
               ))}
             </PopoverBody>
           </PopoverContent>
@@ -917,7 +914,7 @@ export function SeasonGrid({
       <div className="flex flex-col gap-4 px-3 py-4 sm:px-5">
         <p className="text-muted-foreground text-sm">
           {edit === undefined
-            ? "Select any name for its full ratings."
+            ? "Pick any name for its full ratings."
             : "Pick a driver, then who takes their seat. Pick a team's name to change its engine or make its car faster or slower."}
         </p>
         {openSeats === 0 ? null : (
@@ -1083,7 +1080,9 @@ export function SeasonGrid({
                             </p>
                           )}
                           {historical === undefined ? null : (
-                            <p className={cn(MONO_LABEL, "mb-2 text-right")}>Real → this run</p>
+                            <p className={cn(MONO_LABEL, "mb-2 text-right")}>
+                              Real life → this run
+                            </p>
                           )}
                           <div className="flex flex-col gap-2">
                             {CHASSIS_RATINGS.map((rating) => (
@@ -1126,11 +1125,9 @@ export function SeasonGrid({
                                 <span className={cn(MONO_LABEL, "text-foreground")}>
                                   {engineName(entry.engineId)} engine
                                 </span>
-                                <span className={MONO_LABEL}>
-                                  {historicalEngine === undefined
-                                    ? `${seasonYear} spec`
-                                    : "Real → this run"}
-                                </span>
+                                {historicalEngine === undefined ? null : (
+                                  <span className={MONO_LABEL}>Real life → this run</span>
+                                )}
                               </div>
                               {edit === undefined || sharing.length === 0 ? null : (
                                 <p className="text-muted-foreground mb-2 text-xs">

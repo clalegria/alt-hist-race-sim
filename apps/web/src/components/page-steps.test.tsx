@@ -50,7 +50,7 @@ describe("StepLinks", () => {
   it("names each side, with not yet on a place ahead and no anchor for it", async () => {
     const html = await inRouter(<StepLinks steps={steps} />);
     expect(anchors(html)).toBe(1);
-    expect(html).toContain("Aaaa Prix (not yet)");
+    expect(html).toContain("Aaaa Prix (not reached yet)");
     expect(html).toMatch(/<a [^>]*rel="next"[^>]*>Bbbb Prix/);
   });
 

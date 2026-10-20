@@ -26,7 +26,7 @@ import { comparePlaces, describeBeat, isReached, nextBeat, type Place } from "./
 
 /** Where the cursor is, and which of the bar's actions it allows. */
 export interface RunBarState {
-  /** The cursor in words: "1984 · Round 3/16 · Race". */
+  /** The cursor in words: "1984 · Round 3 of 16 · Race". */
   readonly cursor: string;
   /** What Continue reveals, in the same words; null where there is nothing next. */
   readonly next: string | null;
@@ -66,9 +66,9 @@ export function runBarFor(run: Run): RunBarState {
     next: nextLabel,
     skip:
       cursor.kind === "grid"
-        ? "Simulate full season"
+        ? "Simulate the whole season"
         : (cursor.kind === "qualifying" || cursor.kind === "race") && !lastRace
-          ? "Simulate rest of the season"
+          ? "Simulate the rest of the season"
           : null,
     // This year's end alone is what the skip already offers.
     jump: jumpYears(run).some((year) => year > world.year),
@@ -140,7 +140,7 @@ export interface RunActionsLayout {
 /** Why Continue cannot be pressed, as its tooltip says. */
 export const CONTINUE_BLOCKED = {
   end: "Nothing after this",
-  editing: "Apply or cancel the grid edit first",
+  editing: "Apply or cancel your grid edit first",
 } as const;
 
 /**
@@ -314,7 +314,7 @@ const ERA_SECTIONS: readonly {
   readonly tab: string;
   readonly link: CrumbLink;
 }[] = [
-  { key: "overview", menu: "Era summary", tab: "Champions", link: REVIEW_LINK },
+  { key: "overview", menu: "Champions", tab: "Champions", link: REVIEW_LINK },
   { key: "drivers", menu: "All drivers", tab: "Drivers", link: driversLink() },
   { key: "teams", menu: "All teams", tab: "Teams", link: teamsLink() },
 ];

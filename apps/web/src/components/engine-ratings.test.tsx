@@ -73,16 +73,16 @@ describe("the engine stepper on each card", () => {
     const html = renderToStaticMarkup(
       <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode="peak" edit={editing} />,
     );
-    expect(html.match(/aria-label="Strengthen [^"]* engine"/g)).toHaveLength(TEAMS);
-    expect(html.match(/aria-label="Weaken [^"]* engine"/g)).toHaveLength(TEAMS);
-    expect(count(html, `aria-label="Strengthen ${engineName(ENGINE)} engine"`)).toBe(CUSTOMERS);
+    expect(html.match(/aria-label="Raise [^"]* engine"/g)).toHaveLength(TEAMS);
+    expect(html.match(/aria-label="Lower [^"]* engine"/g)).toHaveLength(TEAMS);
+    expect(count(html, `aria-label="Raise ${engineName(ENGINE)} engine"`)).toBe(CUSTOMERS);
   });
 
   it("is not drawn outside the editor", () => {
     const html = renderToStaticMarkup(
       <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode="peak" />,
     );
-    expect(html).not.toContain("Strengthen ");
+    expect(html).not.toContain("Raise ");
   });
 
   it("disables the button that could move nothing further, and names one rating", () => {
@@ -96,9 +96,9 @@ describe("the engine stepper on each card", () => {
         onStep={() => {}}
       />,
     );
-    const strengthen = html.slice(html.indexOf('aria-label="Strengthen'));
+    const strengthen = html.slice(html.indexOf('aria-label="Raise'));
     expect(strengthen.slice(0, strengthen.indexOf(">"))).toContain('disabled=""');
-    expect(html).toContain(`aria-label="Strengthen ${engineName(ENGINE)} engine racing"`);
+    expect(html).toContain(`aria-label="Raise ${engineName(ENGINE)} engine racing"`);
   });
 });
 

@@ -1,8 +1,12 @@
+import { DEFAULT_RATING_MODE } from "@alt-hist/data";
+import { useState } from "react";
 import { STARTING_RANDOMNESS_LEVEL } from "../lib/preferences.js";
-import { type Setting, whatIfsOf } from "../lib/run-settings.js";
+import { PRESETS, type Preset } from "../lib/presets.js";
+import { HISTORICAL_SETTINGS, type Setting, whatIfsOf } from "../lib/run-settings.js";
 import type { World } from "../store/season.js";
 import { PEAK_LABEL } from "./DriverAbilitySetting.js";
 import { randomnessLabel } from "./RandomnessSlider.js";
+import { Button } from "./ui/button.js";
 
 /**
  * What this championship was simulated under, in one line.
@@ -21,7 +25,8 @@ import { randomnessLabel } from "./RandomnessSlider.js";
  * small muted line for the same reason: it has to still fit when there are four.
  *
  * It names only what differs from the defaults, and says "Default settings"
- * when nothing does.
+ * when nothing does. A scenario's settings are said by its name, and past
+ * three the rest wait behind "N more", so a busy run stays a short line.
  */
 
 export type { Setting };
@@ -44,8 +49,51 @@ export function settingsOf(
   ];
 }
 
+/** How many settings the line shows before the rest go behind "N more". */
+const SHOWN = 3;
+
+const sameSetting = (a: Setting, b: Setting) => a.name === b.name && a.value === b.value;
+
+/**
+ * The lines a *Scenarios* preset gives a run: applied over real history and
+ * the default luck, as its card applies it.
+ */
+function presetLines(preset: Preset): readonly Setting[] {
+  return settingsOf({
+    randomness: preset.randomness ?? STARTING_RANDOMNESS_LEVEL,
+    ratingMode: preset.ratingMode ?? DEFAULT_RATING_MODE,
+    settings: { ...HISTORICAL_SETTINGS, ...preset.settings },
+  });
+}
+
+/**
+ * `settings` with a scenario's own lines folded into its name, when every line
+ * of one is there: what was changed on top of it is still listed. The scenario
+ * that covers the most lines wins.
+ */
+export function withScenario(settings: readonly Setting[]): readonly Setting[] {
+  let best: { name: string; lines: readonly Setting[] } | null = null;
+  for (const preset of PRESETS) {
+    const lines = presetLines(preset);
+    const covered =
+      lines.length > 0 && lines.every((line) => settings.some((each) => sameSetting(each, line)));
+    if (covered && (best === null || lines.length > best.lines.length)) {
+      best = { name: preset.name, lines };
+    }
+  }
+  if (best === null) {
+    return settings;
+  }
+  const own = best.lines;
+  return [
+    { name: "Scenario", value: best.name },
+    ...settings.filter((each) => !own.some((line) => sameSetting(each, line))),
+  ];
+}
+
 export function SimulationSettings({
   settings,
+  scenario = true,
   className,
 }: {
   /**
@@ -54,21 +102,41 @@ export function SimulationSettings({
    * can keep taking pieces of a world rather than the whole thing.
    */
   settings: readonly Setting[];
+  /** Whether a scenario's settings are said by its name; off beside the scenarios themselves. */
+  scenario?: boolean;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
   if (settings.length === 0) {
     return <p className={className}>Default settings</p>;
   }
 
+  const lines = scenario ? withScenario(settings) : settings;
+  const shown = open ? lines : lines.slice(0, SHOWN);
+  const hidden = lines.length - shown.length;
   return (
     <p className={className}>
-      <span className="sr-only">Simulation settings: </span>
-      {settings.map((setting, index) => (
+      <span className="sr-only">Settings: </span>
+      {shown.map((setting, index) => (
         <span key={setting.name}>
           {index === 0 ? "" : " · "}
           {setting.name}: <span className="text-foreground font-medium">{setting.value}</span>
         </span>
       ))}
+      {hidden === 0 ? null : (
+        <>
+          {" · "}
+          <Button
+            variant="link"
+            size="inline"
+            onClick={() => {
+              setOpen(true);
+            }}
+          >
+            {hidden} more
+          </Button>
+        </>
+      )}
     </p>
   );
 }

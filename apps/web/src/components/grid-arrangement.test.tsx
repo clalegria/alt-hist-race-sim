@@ -88,7 +88,7 @@ describe("what the rules are called", () => {
   it("says which cast a rule drew on", () => {
     expect(arrangementNote(rules("random"), MODE)).toContain("Only that season");
     expect(arrangementNote(rules("random", { includeUnemployed: true }), MODE)).toContain(
-      "without a seat",
+      "without a drive",
     );
   });
 

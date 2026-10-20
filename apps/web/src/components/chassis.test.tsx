@@ -65,8 +65,8 @@ describe("the stepper on each card", () => {
     const html = renderToStaticMarkup(
       <SeasonGrid field={world.field} seasonYear={YEAR} ratingMode="peak" edit={editing} />,
     );
-    expect(html.match(/aria-label="Strengthen [^"]* chassis"/g)).toHaveLength(TEAMS);
-    expect(html.match(/aria-label="Weaken [^"]* chassis"/g)).toHaveLength(TEAMS);
+    expect(html.match(/aria-label="Raise [^"]* chassis"/g)).toHaveLength(TEAMS);
+    expect(html.match(/aria-label="Lower [^"]* chassis"/g)).toHaveLength(TEAMS);
   });
 
   it("sits on a row of its own, labelled, once per team", () => {
@@ -90,8 +90,8 @@ describe("the stepper on each card", () => {
         />,
       ),
     ]) {
-      expect(html).not.toContain("Strengthen ");
-      expect(html).not.toContain("Weaken ");
+      expect(html).not.toContain("Raise ");
+      expect(html).not.toContain("Lower ");
       expect(html).not.toContain(">Chassis</span>");
     }
   });
@@ -112,8 +112,8 @@ describe("the stepper on each card", () => {
     const html = renderToStaticMarkup(
       <ChassisStepper teamName="Team" chassis={top} onStep={() => {}} />,
     );
-    const strengthen = html.slice(html.indexOf('aria-label="Strengthen'));
-    const weaken = html.slice(html.indexOf('aria-label="Weaken'), html.indexOf("</button>"));
+    const strengthen = html.slice(html.indexOf('aria-label="Raise'));
+    const weaken = html.slice(html.indexOf('aria-label="Lower'), html.indexOf("</button>"));
     expect(strengthen.slice(0, strengthen.indexOf(">"))).toContain('disabled=""');
     expect(weaken).not.toContain('disabled=""');
   });
@@ -128,7 +128,7 @@ describe("the stepper on each card", () => {
         onStep={() => {}}
       />,
     );
-    expect(html).toContain('aria-label="Strengthen Team chassis reliability"');
+    expect(html).toContain('aria-label="Raise Team chassis reliability"');
   });
 });
 

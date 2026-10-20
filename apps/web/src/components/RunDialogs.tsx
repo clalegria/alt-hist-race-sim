@@ -48,7 +48,7 @@ export const RUN_CONFIRM_COPY = {
     confirm: "Clear edits",
   },
   restartEra: {
-    title: "Restart the era?",
+    title: "Restart this era?",
     description:
       "Every season so far is thrown away and the era starts again from its first grid, with new results.",
     confirm: "Restart era",
@@ -212,8 +212,8 @@ export function JumpDialog({
               }}
             >
               {target.beat.kind === "grid"
-                ? `Simulate to the ${target.year} grid`
-                : `Simulate through ${target.year}`}
+                ? `Jump to the ${target.year} grid`
+                : `Jump to the end of ${target.year}`}
             </Button>
           )}
         </AlertDialogFooter>

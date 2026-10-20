@@ -61,8 +61,8 @@ describe("the run bar's actions", () => {
   it("offers Continue and the full-season skip on the grid, and no restart", () => {
     expect(runBarFor(season({ kind: "grid" }))).toEqual({
       cursor: `${YEAR} · Grid`,
-      next: `${YEAR} · Round 1/${ROUNDS} · Qualifying`,
-      skip: "Simulate full season",
+      next: `${YEAR} · Round 1 of ${ROUNDS} · Qualifying`,
+      skip: "Simulate the whole season",
       jump: false,
       restartSeason: false,
       restartEra: false,
@@ -98,19 +98,19 @@ describe("the run bar's actions", () => {
       for (const kind of ["qualifying", "race"] as const) {
         const bar = runBarFor(season({ kind, round }));
         expect(bar.next, `${kind} ${round}`).not.toBeNull();
-        expect(bar.skip, `${kind} ${round}`).toBe("Simulate rest of the season");
+        expect(bar.skip, `${kind} ${round}`).toBe("Simulate the rest of the season");
         expect(bar.restartSeason, `${kind} ${round}`).toBe(true);
       }
     }
     // Qualifying for the last round still has a race left to skip past.
     expect(runBarFor(season({ kind: "qualifying", round: ROUNDS - 1 })).skip).toBe(
-      "Simulate rest of the season",
+      "Simulate the rest of the season",
     );
   });
 
   it("drops the skip after the last race, where Continue is the summary", () => {
     const bar = runBarFor(season({ kind: "race", round: ROUNDS - 1 }));
-    expect(bar.next).toBe(`${YEAR} · Season summary`);
+    expect(bar.next).toBe(`${YEAR} · End of the season`);
     expect(bar.skip).toBeNull();
   });
 
@@ -539,7 +539,7 @@ describe("the breadcrumbs' menus", () => {
     const onYear = crumbsFor(many, { year: YEAR, beat: { kind: "grid" } });
     expect(onYear[0]?.menu?.label).toBe("Run sections");
     expect(sections(onYear)?.items.map((item) => item.label)).toEqual([
-      "Era summary",
+      "Champions",
       "All drivers",
       "All teams",
     ]);

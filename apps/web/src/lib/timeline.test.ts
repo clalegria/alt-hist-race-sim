@@ -110,16 +110,16 @@ describe("the beat in words", () => {
   it("names where in the season the run is", () => {
     expect(describeBeat({ kind: "grid" }, 14, true)).toBe("Grid");
     expect(describeBeat({ kind: "qualifying", round: 0 }, 14, true)).toBe(
-      "Round 1/14 · Qualifying",
+      "Round 1 of 14 · Qualifying",
     );
-    expect(describeBeat({ kind: "race", round: 13 }, 14, true)).toBe("Round 14/14 · Race");
-    expect(describeBeat({ kind: "summary" }, 14, true)).toBe("Season summary");
+    expect(describeBeat({ kind: "race", round: 13 }, 14, true)).toBe("Round 14 of 14 · Race");
+    expect(describeBeat({ kind: "summary" }, 14, true)).toBe("End of the season");
     expect(describeBeat({ kind: "review" }, 14, true)).toBe("Between seasons");
   });
 
   it("calls a review with no year after it the end of the era", () => {
     expect(describeBeat({ kind: "review" }, 14, false)).toBe("End of the era");
     // Only the review: the last year's own beats read as any other year's.
-    expect(describeBeat({ kind: "summary" }, 14, false)).toBe("Season summary");
+    expect(describeBeat({ kind: "summary" }, 14, false)).toBe("End of the season");
   });
 });

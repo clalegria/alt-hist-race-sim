@@ -57,13 +57,13 @@ describe("the development section of the team popover", () => {
     );
     expect(html).toContain("In-season development");
     expect(html).toContain("Same pace all year.");
-    expect(button(html, "Strengthen Blue development")).not.toContain('disabled=""');
-    expect(button(html, "Weaken Blue development")).not.toContain('disabled=""');
+    expect(button(html, "Raise Blue development")).not.toContain('disabled=""');
+    expect(button(html, "Lower Blue development")).not.toContain('disabled=""');
   });
 
   it("has no stepper outside the editor", () => {
     const html = renderToStaticMarkup(<DevelopmentPanel teamName="Blue" trend={4} />);
-    expect(html).not.toContain("Strengthen ");
+    expect(html).not.toContain("Raise ");
   });
 
   it("disables the button that could move it no further", () => {
@@ -73,9 +73,9 @@ describe("the development section of the team popover", () => {
     const bottom = renderToStaticMarkup(
       <DevelopmentPanel teamName="Blue" trend={-DEVELOPMENT_TREND_LIMIT} onStep={() => {}} />,
     );
-    expect(button(top, "Strengthen Blue development")).toContain('disabled=""');
-    expect(button(top, "Weaken Blue development")).not.toContain('disabled=""');
-    expect(button(bottom, "Weaken Blue development")).toContain('disabled=""');
+    expect(button(top, "Raise Blue development")).toContain('disabled=""');
+    expect(button(top, "Lower Blue development")).not.toContain('disabled=""');
+    expect(button(bottom, "Lower Blue development")).toContain('disabled=""');
   });
 
   it("tags how far the reader has moved it", () => {

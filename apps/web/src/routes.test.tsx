@@ -61,8 +61,8 @@ function headerOf(html: string): string {
 describe("each URL", () => {
   const pages = [
     { path: "/", shows: "Rewrite motorsport history" },
-    { path: "/season/new", shows: "Begin the " },
-    { path: "/era/new", shows: "Begin an era starting in " },
+    { path: "/season/new", shows: "Start the " },
+    { path: "/era/new", shows: "Start an era in " },
   ];
 
   for (const page of pages) {
@@ -347,7 +347,7 @@ describe("the run bar", () => {
     // The ways forward are buttons in a row hidden below `md`, where ⋯ lists
     // them instead; ⋯'s entries render into a portal, so the rest are not in
     // the markup at all (`lib/run-bar.test.ts` has them as data).
-    for (const label of ["Simulate rest of the season", "Jump to…"]) {
+    for (const label of ["Simulate the rest of the season", "Jump to…"]) {
       expect(html, label).toContain(`>${label}</button>`);
     }
     for (const label of ["Restart season", "Restart era", "Exit run"]) {

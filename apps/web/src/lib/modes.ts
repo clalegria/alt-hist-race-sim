@@ -39,7 +39,7 @@ export const MODES: readonly Mode[] = [
   },
   {
     id: "era-advanced",
-    title: "Era · advanced",
+    title: "Advanced era",
     blurb:
       "Race multiple seasons, as teams hire drivers automatically according to a driver market system.",
     available: false,

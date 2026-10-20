@@ -43,7 +43,7 @@ import { isPlayable, PLAYABLE_SEASONS, seasonSeed } from "./seasons.js";
 /** What a setup screen's settings are fixed for, which is what their copy says. */
 export type RunUnit = "season" | "era";
 
-/** The Mechanical failures answers that are what-ifs; Realistic is null. */
+/** The Mechanical failures answers that are what-ifs; Historical is null. */
 export type FewerBreakdowns = Exclude<Breakdowns, "realistic">;
 
 /** How far *Random factor is added* may move a chassis or an engine, either way: the stops it offers. */
@@ -476,7 +476,7 @@ export function carPerformanceLabel(roll: CarPerformance, noun: "chassis" | "eng
 export const ARRANGEMENT_LABELS: Readonly<Record<ArrangementKind, string>> = {
   "fastest-in-fastest": "Fastest drivers in fastest teams",
   "fastest-in-slowest": "Fastest drivers in slowest teams",
-  random: "Randomize grid",
+  random: "Drivers in random teams",
 };
 
 /** What the reader is shown for each In-season development answer. */
@@ -487,7 +487,7 @@ export const DEVELOPMENT_LABELS: Readonly<Record<Development, string>> = {
 
 /** What the reader is shown for each Mechanical failures answer. */
 export const BREAKDOWNS_LABELS: Readonly<Record<Breakdowns, string>> = {
-  realistic: "Realistic",
+  realistic: "Historical",
   fewer: "Fewer",
   none: "None",
 };
