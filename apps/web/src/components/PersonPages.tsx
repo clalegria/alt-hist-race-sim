@@ -27,12 +27,14 @@ import {
 } from "../lib/history.js";
 import { liveryFor } from "../lib/livery.js";
 import { driverBirthYear, driverCountry, driverName } from "../lib/names.js";
+import { carLabel } from "../lib/parade.js";
 import { type CareerRecord, careerRecords, spellSpan } from "../lib/records.js";
 import { driverRounds, type RoundEntry, teamRounds } from "../lib/results.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import { bestOverall, type DriverAppearance, rosterOf } from "../lib/roster.js";
 import { seasonSeed } from "../lib/seasons.js";
 import { cn } from "../lib/utils.js";
+import { CarTooltip, type Point } from "./CarTooltip.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { Liveries, useLiveryYear } from "./Liveries.js";
@@ -162,12 +164,14 @@ interface ShowcaseYear {
  * raced for: the first, one from the years between and the latest, each only if
  * it looks different from the others (`showcaseYears`). The car between is
  * picked afresh each time the page opens. Still, not turning: these are a
- * gallery, not a winner's lap.
+ * gallery, not a winner's lap. Pointing at one names its team, as on the track.
  */
 function ShowcaseCars({ cars }: { cars: readonly ShowcaseYear[] }) {
   const liveryYear = useLiveryYear();
+  const teamNameIn = useTeamNameIn();
   // Drawn once per visit, so the page does not change car as the reader opens a row.
   const [pick] = useState(Math.random);
+  const [tooltip, setTooltip] = useState<{ line: string; at: Point } | null>(null);
   const teamIn = new Map(cars.map(({ year, teamId }) => [year, teamId]));
   const liveryIn = (year: number) => {
     const teamId = teamIn.get(year);
@@ -185,13 +189,22 @@ function ShowcaseCars({ cars }: { cars: readonly ShowcaseYear[] }) {
     <div className="hidden shrink-0 items-end gap-4 sm:flex">
       {shown.map((year, index) => {
         const livery = liveryIn(year);
-        return livery === undefined ? null : (
+        const teamId = teamIn.get(year);
+        if (livery === undefined || teamId === undefined) {
+          return null;
+        }
+        const line = carLabel({ teamId, year }, teamNameIn);
+        return (
           <figure
             key={year}
             className={cn(
               "hidden flex-col items-center gap-1.5",
               showcaseClass(index, shown.length),
             )}
+            onPointerMove={(event) =>
+              setTooltip({ line, at: { x: event.clientX, y: event.clientY } })
+            }
+            onPointerLeave={() => setTooltip(null)}
           >
             <LiveryCar livery={livery} year={year} size="large" />
             <figcaption className="text-muted-foreground font-mono text-xs tabular-nums">
@@ -200,6 +213,7 @@ function ShowcaseCars({ cars }: { cars: readonly ShowcaseYear[] }) {
           </figure>
         );
       })}
+      {tooltip === null ? null : <CarTooltip line={tooltip.line} at={tooltip.at} />}
     </div>
   );
 }

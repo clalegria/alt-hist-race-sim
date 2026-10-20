@@ -108,7 +108,13 @@ export function nextGame(game: ParadeGame, event: "press" | "release" | "cancel"
   return { pressed: false, reversed: event === "release" ? !game.reversed : game.reversed };
 }
 
-/** What the tooltip says of a car: its team as named that year, and the year. */
-export function carLabel(car: ParadeCar): string {
-  return `${teamName(car.teamId, car.year)} (${car.year})`;
+/**
+ * What a car's tooltip says: its team as named that year, and the year. A run's
+ * page passes its own `nameOf`, which knows a team renamed in the run.
+ */
+export function carLabel(
+  car: Pick<ParadeCar, "teamId" | "year">,
+  nameOf: (teamId: string, year: number) => string = teamName,
+): string {
+  return `${nameOf(car.teamId, car.year)} (${car.year})`;
 }

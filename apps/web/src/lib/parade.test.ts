@@ -97,4 +97,9 @@ describe("carLabel", () => {
       }
     }
   });
+
+  it("takes the team's name from the namer it is given", () => {
+    const nameOf = (teamId: string, year: number) => `${teamId}@${year}`;
+    expect(carLabel({ teamId: "t1", year: 1970 }, nameOf)).toBe("t1@1970 (1970)");
+  });
 });
