@@ -26,7 +26,8 @@ import { type EraRun, isUntouched, type Run, racedLineup, useSeasonStore } from 
  * A page inside the frame: its sticky bar, a centred column, and the site
  * footer, with `foot` full width between the column and the footer (Home's
  * track, whose lower verge the footer then becomes). The column grows to fill
- * the window, so on a short page the foot and the footer sit at the bottom of it.
+ * the window, so on a short page the foot and the footer sit at the bottom of it
+ * and the page sits in the middle of the room above them.
  *
  * The footer is rendered here rather than by each screen so that every screen
  * has one — the attribution belongs to the app, not to the season screen that
@@ -54,9 +55,10 @@ export function Shell({
 }) {
   const page = (
     <>
+      {/* A page shorter than the window sits in the middle of it; a longer one starts at the top. */}
       <div
         className={cn(
-          "mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 sm:px-6",
+          "mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center-safe gap-6 px-4 sm:px-6",
           fit && "lg:min-h-0",
         )}
       >
