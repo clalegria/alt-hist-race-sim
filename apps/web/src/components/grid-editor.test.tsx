@@ -41,8 +41,9 @@ import { rowName, SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage } from "./GridStage.js";
 import { changeCount, EditedGridBanner, GridChanges } from "./LineupChanges.js";
 import { ReserveList } from "./ReserveList.js";
-import { byTeam, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
+import { byTeam, SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
+import { SWAPPED_IN } from "./TeamCard.js";
 import { pickUp, previewField } from "./useGridDraft.js";
 
 const authored = authoredLineup(SEED);

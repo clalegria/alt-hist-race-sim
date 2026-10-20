@@ -18,6 +18,7 @@
  */
 
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
+import { count } from "./format.js";
 import { driverName } from "./names.js";
 import { isComplete, type TalliedYear } from "./reveal.js";
 
@@ -189,11 +190,6 @@ export function isTitle(figures: SeasonFigures): boolean {
   return figures.afterRound === null && figures.position === 1;
 }
 
-/** "1 win", "4 wins" — a figure nobody has to read past a wrong plural. */
-export function count(value: number, singular: string, plural: string): string {
-  return `${value} ${value === 1 ? singular : plural}`;
-}
-
 /**
  * A season's figures as one line: points always, the rest only when they
  * happened.
@@ -206,13 +202,13 @@ export function count(value: number, singular: string, plural: string): string {
 export function figuresLine(figures: SeasonFigures): string {
   const parts = [`${figures.points} pts`];
   if (figures.wins > 0) {
-    parts.push(count(figures.wins, "win", "wins"));
+    parts.push(count(figures.wins, "win"));
   }
   if (figures.podiums > 0) {
-    parts.push(count(figures.podiums, "podium", "podiums"));
+    parts.push(count(figures.podiums, "podium"));
   }
   if (figures.poles > 0) {
-    parts.push(count(figures.poles, "pole", "poles"));
+    parts.push(count(figures.poles, "pole"));
   }
   return parts.join(" · ");
 }

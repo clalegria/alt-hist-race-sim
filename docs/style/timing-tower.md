@@ -58,4 +58,3 @@ line under a driver, a name inside a sentence, and settings captions.
 
 - Change a voice in its owner, not at a call site, and look at the mockup first: if the
   change moves away from it, say so and update this file.
-- Proposed tweaks are items in `docs/design/ui-review.md` (section 3), sorted with the rest.

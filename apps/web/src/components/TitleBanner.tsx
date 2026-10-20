@@ -27,7 +27,7 @@ export function TitleBanner({
       )}
     >
       {country === undefined || country === "" ? null : (
-        <Flag country={country} title={country} className="h-4 w-6" />
+        <Flag country={country} className="h-4 w-6" />
       )}
       {/* The name as the tower sets a name, and the words after it plain. */}
       <span className={cn(DISPLAY_CAPS, "text-2xl leading-none", STANDOUT_TEXT)}>{name}</span>

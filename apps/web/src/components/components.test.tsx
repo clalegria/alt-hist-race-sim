@@ -20,6 +20,7 @@ import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { positionsOf } from "../lib/standings.js";
+import { NAME_TARGET } from "../lib/utils.js";
 import type { World } from "../store/season.js";
 import {
   findWorld,
@@ -32,12 +33,11 @@ import {
   textOf,
   YEAR,
 } from "../test-support.js";
-
 import { CompactStandings } from "./CompactStandings.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { NAME_TARGET, SeasonGrid } from "./SeasonGrid.js";
+import { SeasonGrid } from "./SeasonGrid.js";
 import { StandingsTable } from "./StandingsTable.js";
 
 const world = seededWorld();
@@ -372,6 +372,17 @@ describe("the compact standings", () => {
   const teamHtml = renderToStaticMarkup(
     <CompactStandings title="Constructors" standings={teams} />,
   );
+
+  it("names its columns to a screen reader, without drawing a header", () => {
+    for (const [html, name] of [
+      [driverHtml, "Driver"],
+      [teamHtml, "Team"],
+    ] as const) {
+      const heads = [...html.matchAll(/<th scope="col"[^>]*><span class="sr-only">([^<]*)</g)];
+      expect(heads.map((head) => head[1])).toEqual(["Pos", name, "Points"]);
+      expect(html.match(/<th\b/g)).toHaveLength(heads.length);
+    }
+  });
 
   it("shows only the top eight until it is expanded", () => {
     expect(drivers.length).toBe(SEATS);

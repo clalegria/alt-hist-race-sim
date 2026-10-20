@@ -13,11 +13,8 @@ paths:
   - "apps/web/src/components/WhoDrivesSetting.tsx"
   - "apps/web/src/components/DriverPoolSetting.tsx"
   - "apps/web/src/components/AgeRangeInput.tsx"
-  - "apps/web/src/components/CareerEventsSetting.tsx"
+  - "apps/web/src/components/YesNoSetting.tsx"
   - "apps/web/src/components/TeamsSetting.tsx"
-  - "apps/web/src/components/TeamNamesSetting.tsx"
-  - "apps/web/src/components/LiveriesSetting.tsx"
-  - "apps/web/src/components/EngineSuppliersSetting.tsx"
   - "apps/web/src/components/SimulationSettings.tsx"
   - "apps/web/src/components/ui/dialog.tsx"
   - "apps/web/src/components/SeasonPicker.tsx"
@@ -55,6 +52,8 @@ The what-ifs in the settings dialog, beside the luck on the day and the driver a
 - Copy: the historical answer comes first, named *Historical*, or *Yes* / *No* for an
   on-off; a note only under a what-if, following `unit`. Never call driver career events
   "form": the planned driver market owns that word.
+- **A Yes / No setting is a row in `YesNoSetting`'s table**, never a component of its own.
+  Every native `select`, the grid's engine picker too, takes `SETTING_SELECT_CLASS`.
 - **`SimulationSettings` over `settingsOf` is the only list** of what a run was
   simulated under. Add to it, never write copy on a screen; folding a scenario into its
   name (`withScenario`) and "N more" are drawing only, so `settingsOf` stays whole.

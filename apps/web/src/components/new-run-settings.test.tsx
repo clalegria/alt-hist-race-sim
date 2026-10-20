@@ -19,15 +19,14 @@ import { createWorld, ERA_RATING_MODE } from "../store/season.js";
 import { settingsForm, YEAR } from "../test-support.js";
 import { DevelopmentSetting } from "./DevelopmentSetting.js";
 import { EnginePerformanceSetting } from "./EnginePerformanceSetting.js";
-import { EngineSuppliersSetting } from "./EngineSuppliersSetting.js";
 import { KeptNames } from "./EntryNames.js";
 import { KeptLiveries, Liveries } from "./Liveries.js";
-import { LiveriesSetting } from "./LiveriesSetting.js";
 import { RunSettingsForm } from "./RunSettingsDialog.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { settingsOf } from "./SimulationSettings.js";
 import { badgeBackground } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
+import { YesNoSetting } from "./YesNoSetting.js";
 
 /** The pressed segments' labels, in order, with React's escaped apostrophe read back. */
 function pressed(html: string): string[] {
@@ -127,10 +126,13 @@ describe("the in-season development setting", () => {
 describe("the livery and engine supplier settings", () => {
   it("press Yes while historical, and No otherwise", () => {
     const pairs = [
-      [<LiveriesSetting key="h" liveries={null} />, <LiveriesSetting key="k" liveries="first" />],
       [
-        <EngineSuppliersSetting key="h" engineSuppliers={null} />,
-        <EngineSuppliersSetting key="k" engineSuppliers="first" />,
+        <YesNoSetting key="h" setting="liveries" value={null} />,
+        <YesNoSetting key="k" setting="liveries" value="first" />,
+      ],
+      [
+        <YesNoSetting key="h" setting="engineSuppliers" value={null} />,
+        <YesNoSetting key="k" setting="engineSuppliers" value="first" />,
       ],
     ] as const;
     for (const [historical, kept] of pairs) {

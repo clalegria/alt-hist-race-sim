@@ -4,14 +4,15 @@ paths:
   - "apps/web/src/components/useGridDraft.ts"
   - "apps/web/src/components/ReserveList.tsx"
   - "apps/web/src/components/SeasonGrid.tsx"
+  - "apps/web/src/components/TeamCard.tsx"
   - "apps/web/src/components/LineupChanges.tsx"
   - "apps/web/src/lib/rating.ts"
 ---
 
 # The grid and its editor
 
-The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridDraft`,
-`ReserveList`). How the lists are ordered and the pool narrowed is `web-lists.md`.
+The opening grid (`SeasonGrid`, a `TeamCard` per team) and the editor around it (`GridStage`,
+`useGridDraft`, `ReserveList`). How the lists are ordered and the pool narrowed is `web-lists.md`.
 
 ## The grid
 - **The grid opens closed**: one overall per row, teams in the shared sort order (best
@@ -23,11 +24,11 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 - **A card's drivers follow the ranking rule whatever the sort switch says.**
   `seatsInOrder` returns `{ entrant, seat }` pairs: the seat index is the editor's
   `SeatRef`, so never reorder the entrants themselves.
-- **A clickable name is marked by a fill, never an underline**: `NAME_TARGET` is the one
-  definition, shared with the editor's buttons, and tests count it as a marker.
+- **A clickable name is marked by a fill, never an underline**: `NAME_TARGET` (`lib/utils.ts`),
+  everywhere. Tests count the whole string, so a call site never restates one of its classes.
 - **A card and the pool are small towers**: a head band, then full-width `striped` rows.
   The held row's ring is `SELECTED_ROW`, inset so the card's clipping cannot cut it.
-- **A development trend never enters `carOverall`** (`Development` in `SeasonGrid` says why).
+- **A development trend never enters `carOverall`** (`Development` in `TeamCard` says why).
   The popover hides a flat year (`DevelopmentPanel`), except in the editor.
 - **`lib/rating.ts` re-exports `@alt-hist/data`**: the overall's weights and
   `compareByRating` are shared with the reseat. Never re-implement them in the app;

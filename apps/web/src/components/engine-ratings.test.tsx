@@ -20,8 +20,9 @@ import { engineName } from "../lib/names.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { changeCount, engineSummary } from "./LineupChanges.js";
-import { EngineStepper, type GridEditing, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
+import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
+import { EngineStepper, type GridEditing, SWAPPED_IN } from "./TeamCard.js";
 
 const world = seededWorld();
 const TEAMS = new Set(world.field.map((entrant) => entrant.teamId)).size;

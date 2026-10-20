@@ -8,6 +8,7 @@ import {
 } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { useMemo } from "react";
+import { count } from "../lib/format.js";
 import { STANDOUT_BORDER, STANDOUT_SURFACE, STANDOUT_TEXT } from "../lib/highlight.js";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
@@ -31,10 +32,6 @@ import { Tabs } from "./Tabs.js";
 import { TeamBadge } from "./TeamBadge.js";
 import { TeamCar } from "./TeamCar.js";
 import { Card, CardHeader, CardTitle } from "./ui/card.js";
-
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
 
 /** How far the season has got, in words, for a season not finished. */
 export function seasonProgress(raced: number, rounds: number): string {
@@ -100,7 +97,7 @@ function Champion({
           <span className="flex h-[1em] shrink-0 items-center gap-2.5">
             {teamId === undefined ? null : <TeamBadge teamId={teamId} />}
             {country === undefined || country === "" ? null : (
-              <Flag country={country} title={country} className="h-5 w-7.5" />
+              <Flag country={country} className="h-5 w-7.5" />
             )}
           </span>
           <span className="min-w-0">{name}</span>
@@ -147,7 +144,7 @@ function Champions({ world }: { world: RevealedWorld }) {
         detail={
           champion === undefined
             ? "Nobody scored."
-            : `${nameOf(champion.teamId)} — ${champion.points} points from ${plural(champion.wins, "win")}.`
+            : `${nameOf(champion.teamId)} — ${champion.points} points from ${count(champion.wins, "win")}.`
         }
       />
       <Champion
@@ -164,7 +161,7 @@ function Champions({ world }: { world: RevealedWorld }) {
         detail={
           topTeam === undefined
             ? "Nobody scored."
-            : `${topTeam.points} points from ${plural(topTeam.wins, "win")}.`
+            : `${topTeam.points} points from ${count(topTeam.wins, "win")}.`
         }
       />
     </div>
@@ -264,7 +261,7 @@ export function SeasonOverview({
       <header>
         <PageHeading
           title={`${year} season`}
-          sub={finished ? `Final classification · ${plural(season.rounds, "round")}` : progress}
+          sub={finished ? `Final classification · ${count(season.rounds, "round")}` : progress}
         />
       </header>
       {/*

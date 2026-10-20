@@ -39,11 +39,12 @@ const seasons: readonly World[] = PLAYABLE_SEASONS.slice(0, 3).map((year, index)
 const records = careerRecords(seasons);
 const html = renderToStaticMarkup(<CareerStatistics seasons={seasons} />);
 
-const noop = () => {};
-
-/** Every `<tr>` of a rendered card. */
+/** Every body `<tr>` of a rendered card: not the header row a screen reader reads. */
 function rows(markup: string): string[] {
-  return markup.split("<tr").slice(1);
+  return markup
+    .split("<tr")
+    .slice(1)
+    .filter((row) => !row.includes("<th "));
 }
 
 function career(id: string, over: Partial<CareerRecord> = {}): CareerRecord {
@@ -98,8 +99,8 @@ describe("the career statistics", () => {
       expect(html).toContain(heading);
     }
     for (const title of ["Championships", "Race wins", "Podiums", "Pole positions"]) {
-      // Once per half of the screen.
-      expect(html.split(`>${title}<`)).toHaveLength(3);
+      // Once per half of the screen, as a card's heading (its figure column is named too).
+      expect(html.split(`>${title}</h3>`)).toHaveLength(3);
     }
   });
 
@@ -364,7 +365,7 @@ describe("a team that raced under more than one name", () => {
     renderToStaticMarkup(
       <table>
         <tbody>
-          <RecordRow ranked={ranked} kind="team" metric="wins" open={open} onToggle={noop} />
+          <RecordRow ranked={ranked} kind="team" metric="wins" defaultOpen={open} />
         </tbody>
       </table>,
     );
@@ -437,8 +438,7 @@ describe("a team that raced under more than one name", () => {
             }}
             kind="team"
             metric="wins"
-            open
-            onToggle={noop}
+            defaultOpen
           />
         </tbody>
       </table>,
@@ -465,7 +465,7 @@ describe("a team that raced under more than one name", () => {
     const drawn = renderToStaticMarkup(
       <table>
         <tbody>
-          <RecordRow ranked={only} kind="team" metric="wins" open onToggle={noop} />
+          <RecordRow ranked={only} kind="team" metric="wins" defaultOpen />
         </tbody>
       </table>,
     );

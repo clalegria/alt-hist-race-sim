@@ -87,7 +87,7 @@ export function DriverName({
       ) : null}
       <span className={cn("flex min-w-0 flex-col leading-tight", tight && "flex-1")}>
         <span className="flex min-w-0 items-center gap-1.5">
-          {nationality === undefined ? null : <Flag country={nationality} title={nationality} />}
+          {nationality === undefined ? null : <Flag country={nationality} />}
           {tight ? (
             <FittedDriverName
               driverId={driverId}

@@ -5,6 +5,11 @@
 
 import type { RaceGap } from "@alt-hist/engine";
 
+/** "1 win", "4 wins": the one way to put a number before a noun. */
+export function count(value: number, singular: string, plural = `${singular}s`): string {
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
 /** "+5.234s", or "+1:17.230" once a gap runs past the minute (an m:ss time takes no "s"). */
 export function formatSeconds(seconds: number): string {
   // Round to milliseconds before splitting, so 59.9999s reads as +1:00.000
@@ -21,7 +26,7 @@ export function formatSeconds(seconds: number): string {
 /** A race gap: seconds as above, or "+2 laps" once a car is lapped. */
 export function formatGap(gap: RaceGap): string {
   if (gap.kind === "laps") {
-    return `+${gap.laps} lap${gap.laps === 1 ? "" : "s"}`;
+    return `+${count(gap.laps, "lap")}`;
   }
   return formatSeconds(gap.seconds);
 }

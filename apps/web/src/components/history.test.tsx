@@ -54,8 +54,6 @@ function runTo(last: number, length: number): EraRun {
   return { startYear: last - length + 1, seasons };
 }
 
-const noop = () => {};
-
 const run = runTo(YEAR + 3, 4);
 const histories = seasonHistories(run.seasons);
 
@@ -450,7 +448,7 @@ describe("a record row that both expands and opens a panel", () => {
     <SeasonHistoryProvider seasons={run.seasons}>
       <table>
         <tbody>
-          <RecordRow ranked={ranked} kind="team" metric="wins" open={false} onToggle={noop} />
+          <RecordRow ranked={ranked} kind="team" metric="wins" />
         </tbody>
       </table>
     </SeasonHistoryProvider>,
@@ -538,7 +536,8 @@ describe("names open their panel everywhere", () => {
   it("opens one from every name in the sidebar", () => {
     for (const standings of [drivers, teams]) {
       const markup = inRun(<CompactStandings title="Championship" standings={standings} />);
-      const rows = markup.split("<tr").length - 1;
+      // Body rows only: the header row a screen reader reads holds no name.
+      const rows = markup.split("<tr").filter((row) => row.includes("<td")).length;
       expect(panelTriggers(markup)).toHaveLength(rows);
     }
   });

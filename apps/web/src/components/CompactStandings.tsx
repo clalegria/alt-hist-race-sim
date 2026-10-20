@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { count } from "../lib/format.js";
 import { STANDOUT_POSITION, STANDOUT_TEXT } from "../lib/highlight.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
 import { cn } from "../lib/utils.js";
@@ -7,7 +8,14 @@ import { DriverHistory, HISTORY_FILL, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardBand } from "./ui/card.js";
-import { Table, TableBody, TableCell, TablePosition, TableRow } from "./ui/table.js";
+import {
+  HiddenTableHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TablePosition,
+  TableRow,
+} from "./ui/table.js";
 
 /**
  * How many rows show before the table is expanded.
@@ -33,7 +41,7 @@ function Movement({ places }: { places: number | null }) {
   const gained = places > 0;
   return (
     <span
-      title={`${gained ? "Up" : "Down"} ${Math.abs(places)} ${Math.abs(places) === 1 ? "place" : "places"}`}
+      title={`${gained ? "Up" : "Down"} ${count(Math.abs(places), "place")}`}
       className={cn(
         // A glyph, not text, so no scale size applies.
         "inline-block w-2.5 shrink-0 text-[0.5rem] leading-none",
@@ -81,6 +89,13 @@ export function CompactStandings({
       {/* The classification's slim head band, so the two read as one row of towers. */}
       <CardBand title={title} />
       <Table>
+        <HiddenTableHeader
+          columns={[
+            "Pos",
+            standings[0] !== undefined && isDriverStanding(standings[0]) ? "Driver" : "Team",
+            "Points",
+          ]}
+        />
         <TableBody>
           {rows.map((standing, index) => {
             const key = standingKey(standing);

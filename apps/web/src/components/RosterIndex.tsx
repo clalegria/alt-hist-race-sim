@@ -12,7 +12,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { count } from "../lib/history.js";
+import { count } from "../lib/format.js";
 import { driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
@@ -124,7 +124,7 @@ export function RosterIndex({
       <header className="flex flex-col gap-3">
         <PageHeading
           title={kind === "drivers" ? "Drivers" : "Teams"}
-          sub={`${count(rows.length, noun, `${noun}s`)} in the run so far`}
+          sub={`${count(rows.length, noun)} in the run so far`}
         />
         <EraTabs current={kind} />
       </header>

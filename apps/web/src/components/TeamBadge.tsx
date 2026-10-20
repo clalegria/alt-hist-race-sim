@@ -148,7 +148,7 @@ export function LiveryCorner({ livery }: { livery: Livery }) {
  * `aria-hidden` is the obvious thing to count and the wrong one: chevrons,
  * layout spacers and the theme toggle all carry it, so counting that finds
  * badges only in a tree that happens to have none of them. Following
- * `NAME_TARGET` in `SeasonGrid`, the whole string is the marker.
+ * `NAME_TARGET` in `lib/utils.ts`, the whole string is the marker.
  *
  * The hairline keeps a white or near-black primary from dissolving into the
  * page in one theme or the other.

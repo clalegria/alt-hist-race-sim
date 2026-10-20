@@ -15,9 +15,9 @@
 import { useMemo, useState } from "react";
 import { driverSeasonsBefore, seasonsBefore, stripesOf } from "../lib/barcode.js";
 import { showcaseYears } from "../lib/car-showcase.js";
+import { count } from "../lib/format.js";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
-  count,
   type DriverSeason,
   isTitle,
   ordinal,
@@ -37,6 +37,7 @@ import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName, TEAM_LINE } from "./DriverName.js";
 import { EntryNames, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { ExpandableRow } from "./ExpandableRow.js";
 import { Liveries, useLiveryYear } from "./Liveries.js";
 import { LiveryBarcode } from "./LiveryBarcode.js";
 import { PageHeading } from "./PageHeading.js";
@@ -80,10 +81,10 @@ export function totalsLine(record: CareerRecord | undefined): string {
     return "No races yet";
   }
   const parts = [
-    record.titles > 0 ? count(record.titles, "title", "titles") : null,
-    record.wins > 0 ? count(record.wins, "win", "wins") : null,
-    record.podiums > 0 ? count(record.podiums, "podium", "podiums") : null,
-    record.poles > 0 ? count(record.poles, "pole", "poles") : null,
+    record.titles > 0 ? count(record.titles, "title") : null,
+    record.wins > 0 ? count(record.wins, "win") : null,
+    record.podiums > 0 ? count(record.podiums, "podium") : null,
+    record.poles > 0 ? count(record.poles, "pole") : null,
     `${record.points} pts`,
   ];
   return parts.filter((part) => part !== null).join(" · ");
@@ -251,13 +252,12 @@ export function CareerSeasons({
   years: readonly CareerYear[];
   teams?: boolean;
 }) {
-  const [open, setOpen] = useState<ReadonlySet<number>>(() => new Set());
   // Each year's season page, inside the run's frame; none in a test without one.
   const pageOf = usePageOf();
   const columns = 3 + FIGURES.length;
   return (
     <Card>
-      <CardBand title="Season by season" label={count(years.length, "season", "seasons")} />
+      <CardBand title="Season by season" label={count(years.length, "season")} />
       <Table>
         <TableHeader>
           <TableRow>
@@ -272,99 +272,93 @@ export function CareerSeasons({
         </TableHeader>
         <TableBody>
           {years.map((each) => {
-            const isOpen = open.has(each.year);
             const toCome = each.world.season.rounds - each.world.season.races.length;
             return (
               <Liveries key={each.year} year={each.year}>
                 <EntryNames field={each.world.field}>
-                  <TableRow className={cn(isOpen && "bg-muted/60")}>
-                    <TableCell className="px-2 sm:px-3">
-                      <span className="flex items-center gap-1 max-sm:flex-col max-sm:items-start">
-                        <DisclosureButton
-                          open={isOpen}
-                          onToggle={() => {
-                            const next = new Set(open);
-                            if (isOpen) {
-                              next.delete(each.year);
-                            } else {
-                              next.add(each.year);
-                            }
-                            setOpen(next);
-                          }}
-                        >
-                          <span className="font-medium tabular-nums">{each.year}</span>
-                        </DisclosureButton>
-                        {pageOf === null ? null : (
-                          <PageLink
-                            link={pageOf.season(each.year)}
-                            label={`${each.year} season page`}
-                          />
-                        )}
-                      </span>
-                    </TableCell>
-                    {/*
+                  <ExpandableRow
+                    row={(disclosure) => (
+                      <>
+                        <TableCell className="px-2 sm:px-3">
+                          <span className="flex items-center gap-1 max-sm:flex-col max-sm:items-start">
+                            <DisclosureButton {...disclosure}>
+                              <span className="font-medium tabular-nums">{each.year}</span>
+                            </DisclosureButton>
+                            {pageOf === null ? null : (
+                              <PageLink
+                                link={pageOf.season(each.year)}
+                                label={`${each.year} season page`}
+                              />
+                            )}
+                          </span>
+                        </TableCell>
+                        {/*
                       `w-full max-w-0`, as on a record card: the team takes the
                       slack and ends in an ellipsis, so a phone never scrolls.
                     */}
-                    <TableCell className="w-full max-w-0 px-2 whitespace-normal sm:px-3">
-                      <span className="flex flex-col gap-0.5">
-                        {each.who}
-                        {each.under}
-                      </span>
-                    </TableCell>
-                    {each.figures === undefined ? (
-                      <TableCell
-                        colSpan={1 + FIGURES.length}
-                        className="text-muted-foreground text-right text-xs"
-                      >
-                        On the grid
-                      </TableCell>
-                    ) : (
-                      <>
-                        <TableCell className="px-2 text-right tabular-nums sm:px-3">
-                          <span
-                            className={cn(
-                              isTitle(each.figures) ? `${STANDOUT_TEXT} font-semibold` : undefined,
-                            )}
-                          >
-                            {ordinal(each.figures.position)}
+                        <TableCell className="w-full max-w-0 px-2 whitespace-normal sm:px-3">
+                          <span className="flex flex-col gap-0.5">
+                            {each.who}
+                            {each.under}
                           </span>
-                          {each.figures.afterRound === null ? null : (
-                            <span className="text-muted-foreground block text-xs">
-                              after round {each.figures.afterRound}
-                            </span>
-                          )}
                         </TableCell>
-                        {FIGURES.map((key) => (
+                        {each.figures === undefined ? (
                           <TableCell
-                            key={key}
-                            className={cn(
-                              figureClass(key),
-                              "tabular-nums",
-                              key === "points" ? "font-semibold" : "text-muted-foreground",
-                            )}
+                            colSpan={1 + FIGURES.length}
+                            className="text-muted-foreground text-right text-xs"
                           >
-                            {each.figures?.[key]}
+                            On the grid
                           </TableCell>
-                        ))}
+                        ) : (
+                          <>
+                            <TableCell className="px-2 text-right tabular-nums sm:px-3">
+                              <span
+                                className={cn(
+                                  isTitle(each.figures)
+                                    ? `${STANDOUT_TEXT} font-semibold`
+                                    : undefined,
+                                )}
+                              >
+                                {ordinal(each.figures.position)}
+                              </span>
+                              {each.figures.afterRound === null ? null : (
+                                <span className="text-muted-foreground block text-xs">
+                                  after round {each.figures.afterRound}
+                                </span>
+                              )}
+                            </TableCell>
+                            {FIGURES.map((key) => (
+                              <TableCell
+                                key={key}
+                                className={cn(
+                                  figureClass(key),
+                                  "tabular-nums",
+                                  key === "points" ? "font-semibold" : "text-muted-foreground",
+                                )}
+                              >
+                                {each.figures?.[key]}
+                              </TableCell>
+                            ))}
+                          </>
+                        )}
                       </>
                     )}
-                  </TableRow>
-                  {isOpen ? (
-                    <TableExpansion colSpan={columns}>
-                      <RaceByRace
-                        rounds={each.rounds}
-                        calendar={seasonSeed(each.year).calendar}
-                        year={each.year}
-                        showDriver={teams}
-                      />
-                      {toCome > 0 ? (
-                        <p className="text-muted-foreground px-3 pt-2 text-xs">
-                          {count(toCome, "round", "rounds")} to come
-                        </p>
-                      ) : null}
-                    </TableExpansion>
-                  ) : null}
+                    expansion={() => (
+                      <TableExpansion colSpan={columns}>
+                        <RaceByRace
+                          rounds={each.rounds}
+                          calendar={seasonSeed(each.year).calendar}
+                          year={each.year}
+                          showDriver={teams}
+                        />
+                        {toCome > 0 ? (
+                          <p className="text-muted-foreground px-3 pt-2 text-xs">
+                            {count(toCome, "round")} to come
+                          </p>
+                        ) : null}
+                      </TableExpansion>
+                    )}
+                  />
                 </EntryNames>
               </Liveries>
             );

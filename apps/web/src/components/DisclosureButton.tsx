@@ -1,10 +1,8 @@
 /**
  * The control that opens a row into its own panel.
  *
- * Three tables use it — the championship standings, the season calendar and the
- * era's roll of honour — and each had its own copy of the same markup, down to
- * the class string. One definition, so the affordance cannot end up meaning
- * three slightly different things.
+ * Every row that opens draws it, inside an `ExpandableRow`: one definition, so
+ * the affordance cannot end up meaning slightly different things per table.
  *
  * **The name is the control**, not a separate chevron beside it: one action does
  * not deserve two tab stops, and the name is what the reader is aiming at. The
@@ -28,15 +26,19 @@
 
 import { cn } from "../lib/utils.js";
 
+/** Whether a row is open, and how to flip it: what `ExpandableRow` hands its cells. */
+export interface Disclosure {
+  readonly open: boolean;
+  readonly onToggle: () => void;
+}
+
 export function DisclosureButton({
   open,
   onToggle,
   className,
   label,
   children,
-}: {
-  open: boolean;
-  onToggle: () => void;
+}: Disclosure & {
   className?: string;
   /** Name the control itself, for a chevron drawn without the row's text. */
   label?: string;

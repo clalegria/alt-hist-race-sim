@@ -76,9 +76,7 @@ export function RaceByRace({
               <TableCell>
                 {sameRound ? null : (
                   <span className="flex items-center gap-1.5">
-                    {race === undefined ? null : (
-                      <Flag country={race.country} title={race.country} />
-                    )}
+                    {race === undefined ? null : <Flag country={race.country} />}
                     {race?.name ?? `Round ${round + 1}`}
                     {racePage === null || year === undefined ? null : (
                       <PageLink

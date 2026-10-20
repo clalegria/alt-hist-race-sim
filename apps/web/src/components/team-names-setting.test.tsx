@@ -18,11 +18,12 @@ import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
 import { settingsForm } from "../test-support.js";
 import { KeptNames } from "./EntryNames.js";
+import { countryName } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
 import { settingsOf } from "./SimulationSettings.js";
 import { badgeBackground } from "./TeamBadge.js";
 import { TeamName } from "./TeamName.js";
-import { TeamNamesSetting } from "./TeamNamesSetting.js";
+import { YesNoSetting } from "./YesNoSetting.js";
 
 /**
  * A team entered in `from` and again in a later `year` under another name, a
@@ -52,9 +53,9 @@ function renamed(): { teamId: string; from: number; year: number } | undefined {
 
 describe("the team names setting", () => {
   it("presses Yes while historical, and No otherwise", () => {
-    const historical = renderToStaticMarkup(<TeamNamesSetting teamNames={null} />);
+    const historical = renderToStaticMarkup(<YesNoSetting setting="teamNames" value={null} />);
     expect(historical).toMatch(/aria-pressed="true"[^>]*>Yes</);
-    const kept = renderToStaticMarkup(<TeamNamesSetting teamNames="first" />);
+    const kept = renderToStaticMarkup(<YesNoSetting setting="teamNames" value="first" />);
     expect(kept).toMatch(/aria-pressed="true"[^>]*>No</);
     for (const html of [historical, kept]) {
       expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
@@ -114,11 +115,11 @@ describe("a team name under kept names", () => {
     const kept = draw(from);
     expect(kept).toContain(teamIdentityIn(team, from).name);
     expect(kept).not.toContain(teamIdentityIn(team, year).name);
-    expect(kept).toContain(`<title>${teamIdentityIn(team, from).base}</title>`);
+    expect(kept).toContain(`<title>${countryName(teamIdentityIn(team, from).base)}</title>`);
     expect(kept).toContain(badgeBackground(teamLiveryIn(team, year)));
 
     const historical = draw(null);
     expect(historical).toContain(teamIdentityIn(team, year).name);
-    expect(historical).toContain(`<title>${teamIdentityIn(team, year).base}</title>`);
+    expect(historical).toContain(`<title>${countryName(teamIdentityIn(team, year).base)}</title>`);
   });
 });

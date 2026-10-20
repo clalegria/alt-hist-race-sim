@@ -1,6 +1,5 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, SeasonResult } from "@alt-hist/engine";
-import { Fragment, useState } from "react";
 import { driverName } from "../lib/names.js";
 import { driverRounds, teamRounds } from "../lib/results.js";
 import { isDriverStanding, type Standing, standingKey } from "../lib/standings.js";
@@ -8,6 +7,7 @@ import { cn } from "../lib/utils.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { useEntryName } from "./EntryNames.js";
+import { ExpandableRow } from "./ExpandableRow.js";
 import { RaceByRace } from "./RaceByRace.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
@@ -107,10 +107,6 @@ export function StandingsTable({
   /** The season's year, so an expansion's rounds link to their races. */
   year?: number | undefined;
 }) {
-  // Which row is expanded, or null for none — keyed by driver or team id, so
-  // the two tables on the summary open independently. Purely view state: it
-  // says nothing about the simulation, so it stays here rather than the store.
-  const [openKey, setOpenKey] = useState<string | null>(null);
   const nameOf = useEntryName();
   const columnCount = COLUMNS.length + (car ? 3 : 2);
 
@@ -134,69 +130,72 @@ export function StandingsTable({
           {standings.map((standing, index) => {
             const key = standingKey(standing);
             const isDriver = isDriverStanding(standing);
-            const isOpen = openKey === key;
             return (
-              <Fragment key={key}>
-                <TableRow className={cn(isOpen && "bg-muted/60")}>
-                  <TablePosition className={POSITION}>{index + 1}</TablePosition>
-                  {/*
+              <ExpandableRow
+                key={key}
+                row={(disclosure) => (
+                  <>
+                    <TablePosition className={POSITION}>{index + 1}</TablePosition>
+                    {/*
                     The name wraps on a phone, where a long team name would
                     otherwise push the figures past the card's edge.
                   */}
-                  <TableCell className="whitespace-normal sm:whitespace-nowrap">
-                    {/*
+                    <TableCell className="whitespace-normal sm:whitespace-nowrap">
+                      {/*
                       Two controls, as on a record card's lineage row: the
                       chevron opens the season race by race, the name opens the
                       career panel every name in a run opens. A name cannot be
                       both a button and the trigger of another one.
                     */}
-                    <span className="flex items-center gap-1">
-                      <DisclosureButton
-                        open={isOpen}
-                        onToggle={() => {
-                          setOpenKey(isOpen ? null : key);
-                        }}
-                        label={`${
-                          isDriver ? driverName(standing.driverId) : nameOf(standing.teamId)
-                        } race by race`}
-                      />
-                      {isDriver ? (
-                        <DriverHistory driverId={standing.driverId}>
-                          <DriverName
-                            driverId={standing.driverId}
-                            teamId={standing.teamId}
-                            emphasis={index === 0}
-                            badge={badge}
-                          />
-                        </DriverHistory>
-                      ) : (
-                        <TeamHistory teamId={standing.teamId}>
-                          <TeamName teamId={standing.teamId} emphasis={index === 0} badge={badge} />
-                        </TeamHistory>
-                      )}
-                    </span>
-                  </TableCell>
-                  {car ? (
-                    <TableCell className={CAR_COLUMN}>
-                      <TeamCar teamId={standing.teamId} />
+                      <span className="flex items-center gap-1">
+                        <DisclosureButton
+                          {...disclosure}
+                          label={`${
+                            isDriver ? driverName(standing.driverId) : nameOf(standing.teamId)
+                          } race by race`}
+                        />
+                        {isDriver ? (
+                          <DriverHistory driverId={standing.driverId}>
+                            <DriverName
+                              driverId={standing.driverId}
+                              teamId={standing.teamId}
+                              emphasis={index === 0}
+                              badge={badge}
+                            />
+                          </DriverHistory>
+                        ) : (
+                          <TeamHistory teamId={standing.teamId}>
+                            <TeamName
+                              teamId={standing.teamId}
+                              emphasis={index === 0}
+                              badge={badge}
+                            />
+                          </TeamHistory>
+                        )}
+                      </span>
                     </TableCell>
-                  ) : null}
-                  {COLUMNS.map((column) => (
-                    <TableCell
-                      key={column.key}
-                      className={cn(
-                        FIGURE,
-                        "tabular-nums",
-                        column.wide && WIDE_ONLY,
-                        column.emphasis ? "font-semibold" : "text-muted-foreground",
-                        standing[column.key] === 0 && "text-subtle font-normal",
-                      )}
-                    >
-                      {standing[column.key]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-                {isOpen ? (
+                    {car ? (
+                      <TableCell className={CAR_COLUMN}>
+                        <TeamCar teamId={standing.teamId} />
+                      </TableCell>
+                    ) : null}
+                    {COLUMNS.map((column) => (
+                      <TableCell
+                        key={column.key}
+                        className={cn(
+                          FIGURE,
+                          "tabular-nums",
+                          column.wide && WIDE_ONLY,
+                          column.emphasis ? "font-semibold" : "text-muted-foreground",
+                          standing[column.key] === 0 && "text-subtle font-normal",
+                        )}
+                      >
+                        {standing[column.key]}
+                      </TableCell>
+                    ))}
+                  </>
+                )}
+                expansion={() => (
                   <TableExpansion colSpan={columnCount}>
                     <RaceByRace
                       rounds={
@@ -209,8 +208,8 @@ export function StandingsTable({
                       showDriver={!isDriver}
                     />
                   </TableExpansion>
-                ) : null}
-              </Fragment>
+                )}
+              />
             );
           })}
         </TableBody>

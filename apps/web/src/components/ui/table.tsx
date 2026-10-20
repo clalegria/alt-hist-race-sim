@@ -32,12 +32,32 @@ export function TableRow({ className, ...props }: ComponentProps<"tr">) {
   );
 }
 
+/** A column's head; `scope` defaults to the column, so a screen reader reads it with each cell. */
 export function TableHead({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
+      scope="col"
       className={cn(MONO_LABEL, "h-9 px-3 text-left align-middle whitespace-nowrap", className)}
       {...props}
     />
+  );
+}
+
+/**
+ * A header row a screen reader reads and the page does not draw, for a table
+ * whose columns its look already makes plain (a position block, a name, a figure).
+ */
+export function HiddenTableHeader({ columns }: { columns: readonly string[] }) {
+  return (
+    <thead>
+      <tr>
+        {columns.map((column) => (
+          <th key={column} scope="col" className="h-0 p-0">
+            <span className="sr-only">{column}</span>
+          </th>
+        ))}
+      </tr>
+    </thead>
   );
 }
 

@@ -242,7 +242,7 @@ function EvolutionTooltip({
           <span className="grow">
             <LineName championship={championship} id={line.series.key} />
           </span>
-          <span className="font-mono tabular-nums">{points}</span>
+          <span className="tabular-nums">{points}</span>
         </p>
       ))}
     </div>
@@ -483,7 +483,7 @@ function EvolutionChart({
               <Swatch colour={line.colour} dash={line.dash} />
               <span className="text-muted-foreground tabular-nums">{index + 1}</span>
               <LineName championship={championship} id={line.series.key} />
-              <span className="font-mono tabular-nums">{line.series.points.at(-1) ?? 0}</span>
+              <span className="tabular-nums">{line.series.points.at(-1) ?? 0}</span>
             </li>
           ))}
         </ul>

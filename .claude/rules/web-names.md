@@ -40,3 +40,5 @@ How every table names the same people. Which era's name a team is in is `team-er
   legend's marks are CSS. The team car is the one SVG; flag counts skip it with
   `svgsBesideCars` (`test-support.ts`).
 - **`Flag.tsx` imports every flag in `country-flag-icons`**; never trim it to a subset.
+- **A flag names its country** (`Intl.DisplayNames`, as its `<title>`): never pass the ISO
+  code as a title.

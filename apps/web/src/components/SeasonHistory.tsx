@@ -21,9 +21,9 @@
  */
 
 import { createContext, useContext, useMemo } from "react";
+import { count } from "../lib/format.js";
 import { STANDOUT_TEXT } from "../lib/highlight.js";
 import {
-  count,
   figuresLine,
   isTitle,
   type LineupEntry,
@@ -38,7 +38,7 @@ import { driverCountry, driverName } from "../lib/names.js";
 import type { TalliedYear } from "../lib/reveal.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import type { RunLink } from "../lib/run-places.js";
-import { cn, MONO_LABEL, TIMING_NAME } from "../lib/utils.js";
+import { cn, MONO_LABEL, NAME_TARGET, TIMING_NAME } from "../lib/utils.js";
 import { useEntryNameIn, useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
 import { SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
@@ -102,29 +102,16 @@ export function useRacePage(): RacePage | null {
 }
 
 /**
- * How a name with a panel behind it behaves: nothing at rest, a soft fill under
- * the cursor or the keyboard focus, held open while the panel is.
- *
- * `NAME_TARGET` in `SeasonGrid` says the same thing and is deliberately not
- * reused: that one is sized for a grid row and carries the full-width layout
- * that keeps a button flush with its column. These names sit inside table cells
- * that are already padded, and some of them are the second half of a row whose
- * first half is a chevron.
- */
-export const HISTORY_TARGET =
-  "hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent -mx-1 min-w-0 cursor-pointer rounded px-1 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none";
-
-/**
  * A trigger that takes the whole width of the box it is in, for a name that is
  * fitted to its room (`FittedName`): a button is sized to its content, and a
  * fitted name inside one would measure the short form and never widen back.
- * The width is the box's plus the two margins `HISTORY_TARGET` hangs the
+ * The width is the box's plus the two margins `NAME_TARGET` hangs the
  * trigger out by, so the name inside gets exactly the room it had before.
  *
  * Pass it to the trigger *inside* the call site's own layout box, never in
  * place of it: outside a run the trigger is not drawn, and its class with it.
  */
-export const HISTORY_FILL = "flex w-[calc(100%_+_0.5rem)] min-w-0";
+export const HISTORY_FILL = "flex w-[calc(100%_+_0.5rem)]";
 
 /**
  * One year of a career: the year, what it was spent doing, and where it ended.
@@ -229,7 +216,7 @@ function HistoryPanel({
     <PopoverContent className="w-80 p-0">
       <PopoverHeader>
         <span className="flex min-w-0 items-center gap-1.5">
-          {country === undefined ? null : <Flag country={country} title={country} />}
+          {country === undefined ? null : <Flag country={country} />}
           <span className={cn(!split && TIMING_NAME, "min-w-0 truncate")}>
             {split ? <SplitName name={name} /> : name}
           </span>
@@ -240,7 +227,7 @@ function HistoryPanel({
           {page === null ? null : <PageLink link={page} label={`${name}'s page`} />}
         </span>
         {seasons === null ? null : (
-          <span className={cn(MONO_LABEL, "shrink-0")}>{count(seasons, "season", "seasons")}</span>
+          <span className={cn(MONO_LABEL, "shrink-0")}>{count(seasons, "season")}</span>
         )}
       </PopoverHeader>
       <ul className="max-h-80 overflow-y-auto px-4 py-3">{children}</ul>
@@ -263,7 +250,7 @@ function HistoryName({
   }
   return (
     <Popover>
-      <PopoverTrigger className={cn(HISTORY_TARGET, className)}>{children}</PopoverTrigger>
+      <PopoverTrigger className={cn(NAME_TARGET, className)}>{children}</PopoverTrigger>
       {panel}
     </Popover>
   );

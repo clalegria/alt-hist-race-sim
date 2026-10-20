@@ -15,11 +15,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { legible, liveryFor } from "../lib/livery.js";
 import type { SeasonTab } from "../lib/season-tabs.js";
+import { NAME_TARGET } from "../lib/utils.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { QualifyingResults } from "./QualifyingResults.js";
 import { RaceClassification } from "./RaceClassification.js";
-import { NAME_TARGET, SeasonGrid } from "./SeasonGrid.js";
+import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SeasonView } from "./SeasonView.js";
 import {

@@ -21,4 +21,4 @@ The record cards under the era's roll of honour (`CareerStatistics`, `lib/record
 - **No accent on a record card**: this screen spends its one accent on the season just
   finished.
 - **A lineage row has two controls**: the chevron opens its spells, the name opens its
-  career panel (`web-careers.md`). `RecordRow` is controlled; `RecordCard` holds the open set.
+  career panel (`web-careers.md`).

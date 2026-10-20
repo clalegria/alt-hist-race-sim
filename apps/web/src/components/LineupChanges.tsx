@@ -9,6 +9,7 @@ import {
   type SeatChange,
   type TrendChange,
 } from "@alt-hist/data";
+import { count } from "../lib/format.js";
 import type { KeptNotes } from "../lib/kept.js";
 import { driverName, engineName } from "../lib/names.js";
 import { ARRANGEMENT_LABELS } from "../lib/run-settings.js";
@@ -266,7 +267,7 @@ export function changeCount(
     chassisChanges.length +
     engineRatingChanges.length +
     trendChanges.length;
-  return `${total} change${total === 1 ? "" : "s"}`;
+  return count(total, "change");
 }
 
 /**

@@ -39,7 +39,7 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
 - **The calendar lists every round of the season.** A round not reached is greyed, does
   not open and leaves its pole and winner empty; only the round whose qualifying alone is
   revealed shows `NOT_YET`, for its winner. A reached round's name links its page
-  (`pagesOf`), and opening the row is the quick look. `CalendarRow` is controlled.
+  (`pagesOf`), and opening the row is the quick look.
 - **A phone's calendar row is round and winner**: Pole shows from `sm`, the Grand Prix
   wraps, and the names are `tight` in `max-w-0` cells. Never a sideways scroll, and
   nothing in a Grand Prix that cannot wrap: one row's widest line sets every row's.

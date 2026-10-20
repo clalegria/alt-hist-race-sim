@@ -5,14 +5,14 @@ import {
   readDriverFilters,
   rememberDriverFilters,
 } from "../lib/filter-preference.js";
-import { count } from "../lib/history.js";
+import { count } from "../lib/format.js";
 import { type DriverFilters, defaultDriverFilters, filterDrivers } from "../lib/people.js";
 import { driverOverall } from "../lib/rating.js";
 import { DEFAULT_SORT_ORDER, type SortOrder, sortBy } from "../lib/sort.js";
-import { cn, MONO_LABEL } from "../lib/utils.js";
+import { cn, MONO_LABEL, NAME_TARGET } from "../lib/utils.js";
 import { AgeRangeInput } from "./AgeRangeInput.js";
-import { DriverLabel, NAME_TARGET, Overall, SELECTED_ROW } from "./SeasonGrid.js";
 import { SortToggle } from "./SortToggle.js";
+import { DriverLabel, Overall, SELECTED_ROW } from "./TeamCard.js";
 import { Card, CardBand } from "./ui/card.js";
 
 /**
@@ -194,7 +194,7 @@ export function ReserveList({
       ),
     [shown, sort, seasonYear, ratingMode],
   );
-  const pool = count(drivers.length, "driver", "drivers");
+  const pool = count(drivers.length, "driver");
 
   return (
     // The same panel as the grid it stands beside: a head band, then a tower
@@ -241,7 +241,7 @@ export function ReserveList({
                 onClick={() => {
                   onSelect(driver.id);
                 }}
-                className={cn(NAME_TARGET, "flex min-w-0 flex-1 items-center gap-1.5")}
+                className={cn(NAME_TARGET, "flex flex-1 items-center gap-1.5")}
               >
                 <DriverLabel driverId={driver.id} seasonYear={seasonYear} ratingMode={ratingMode} />
               </button>

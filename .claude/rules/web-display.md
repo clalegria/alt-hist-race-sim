@@ -12,6 +12,7 @@ paths:
   - "apps/web/src/components/StandingsTable.tsx"
   - "apps/web/src/components/RaceByRace.tsx"
   - "apps/web/src/components/DisclosureButton.tsx"
+  - "apps/web/src/components/ExpandableRow.tsx"
   - "apps/web/src/components/CompactStandings.tsx"
   - "apps/web/src/components/TitleBanner.tsx"
   - "apps/web/src/components/EraChampions.tsx"
@@ -30,7 +31,6 @@ The accent, the session sheets and the championship tables.
   with no block (the roll of honour).
 - **Tests tell accents apart by substring**: `STANDOUT_POSITION` contains
   `PODIUM_POSITION` (`STANDOUT_TEXT`), so a podium check also asserts the fill's absence.
-- **An opened row is `TableExpansion`**: its `data-expansion` keeps the stripes in step.
 - **The title banner shows on the round that settles it, and only that one.**
 - **The qualifying stagger is a `translate-y` of exactly half the row height**, never a
   margin; a test holds the two numbers at 2:1.
@@ -47,14 +47,14 @@ The accent, the session sheets and the championship tables.
   A card under a section's own `h2` passes `as="h3"`. A popover's is `PopoverHeader`, over
   a `PopoverBody`, in a `PopoverContent` set to `p-0`.
 - **A dashed box inside a panel is `Notice`** (`ui/notice.tsx`), never hand-rolled.
-- **Expansions are unaccented** (`RaceByRace`): a win is marked by weight, a retirement by
-  `text-loss`.
+- **Expansions are unaccented** (`RaceByRace`): a win in weight, a retirement in `text-loss`.
 - **`SeasonStandings` is the one drawing of a championship**, used by the season summary
   and by a year opened from the roll of honour; `StandingsTable` serves drivers and teams.
   Never copy it per screen. Its `badge`, `car` and `charts` props default off.
 - **A team's expansion is a row per car, ordered by championship finish; a round a
   competitor missed is left out, not blanked** (`lib/results.ts`). It walks the same rows
   as the standings, so its points must add up to the row above.
-- **A row that opens uses `DisclosureButton`.** Where its text is a name, the chevron
-  stands alone with a `label` (the two-control row, `web-careers.md`). `PageLink` sits
-  beside the chevron, never inside it: a link cannot go inside a button.
+- **A row that opens is an `ExpandableRow`** with its own state, so any number are open
+  (the author's call); it opens a `TableExpansion`, whose `data-expansion` keeps the stripes
+  in step. Its chevron is `DisclosureButton`, alone with a `label` on a name (`web-careers.md`).
+- **A table with no header row on screen gets `HiddenTableHeader`**; `TableHead` sets `scope`.

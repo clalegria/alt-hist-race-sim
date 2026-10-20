@@ -46,7 +46,7 @@ import {
 import type { EngineSpec, RaceEntrant } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
 import { adjacentSeason, isPlayable, seasonSeed } from "../lib/seasons.js";
-import { EMPTY_SEAT, type GridEditing } from "./SeasonGrid.js";
+import { EMPTY_SEAT, type GridEditing } from "./TeamCard.js";
 
 /**
  * The grid editor's state: what the reader has changed and not yet applied.

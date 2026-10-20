@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { eraChampions, eraSpan, type SeasonChampions } from "../lib/era.js";
 import { STANDOUT_ROW } from "../lib/highlight.js";
 import type { RevealedWorld } from "../lib/reveal.js";
@@ -11,6 +11,7 @@ import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
 import { EraTabs } from "./EraTabs.js";
+import { ExpandableRow } from "./ExpandableRow.js";
 import { Liveries } from "./Liveries.js";
 import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
@@ -70,21 +71,18 @@ const RESTACK_HEAD = "max-sm:h-7";
  * the row and every team named in the tables under it agree about who was
  * running whose engine that year.
  *
- * **Controlled**, like the grid editor's tables and for the same reason: the
- * open year lives above it, so both states of a row render on their own without
- * a DOM and without a click.
+ * An `ExpandableRow`: `defaultOpen` renders an opened year without a DOM and
+ * without a click.
  */
 export function ChampionRow({
   season,
   latest,
-  open,
-  onToggle,
+  defaultOpen,
   seasonLink,
 }: {
   season: SeasonChampions;
   latest: boolean;
-  open: boolean;
-  onToggle: () => void;
+  defaultOpen?: boolean | undefined;
   /** The season page of a year, beside the year. Absent in a test without a router. */
   seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
@@ -95,86 +93,96 @@ export function ChampionRow({
         and the roll of honour spans many, so each row resolves its own.
       */}
       <Liveries year={season.year}>
-        <TableRow
-          className={cn(RESTACK.row, latest && STANDOUT_ROW, open && !latest && "bg-muted/60")}
-        >
-          <TableCell className={cn(RESTACK.year, "font-semibold tabular-nums")}>
-            {/* The year opens the panel; the icon beside it goes to its page. */}
-            <span className="flex items-center gap-1">
-              <DisclosureButton open={open} onToggle={onToggle}>
-                {season.year}
-              </DisclosureButton>
-              {seasonLink === undefined ? null : (
-                <PageLink link={seasonLink(season.year)} label={`${season.year} season page`} />
-              )}
-            </span>
-          </TableCell>
-          <TableCell className={RESTACK.driver}>
-            {/*
+        <ExpandableRow
+          defaultOpen={defaultOpen}
+          className={cn(RESTACK.row, latest && STANDOUT_ROW)}
+          row={(disclosure) => (
+            <>
+              <TableCell className={cn(RESTACK.year, "font-semibold tabular-nums")}>
+                {/* The year opens the panel; the icon beside it goes to its page. */}
+                <span className="flex items-center gap-1">
+                  <DisclosureButton {...disclosure}>{season.year}</DisclosureButton>
+                  {seasonLink === undefined ? null : (
+                    <PageLink link={seasonLink(season.year)} label={`${season.year} season page`} />
+                  )}
+                </span>
+              </TableCell>
+              <TableCell className={RESTACK.driver}>
+                {/*
               The champion's name opens their whole career, not this year — the
               row already *is* this year. The year's chevron beside it opens the
               season; the two controls are next to each other and answer the two
               questions a champion's row raises.
             */}
-            {season.driver === null ? (
-              <DriverName driverId={null} />
-            ) : (
-              <DriverHistory driverId={season.driver.driverId}>
-                <DriverName
-                  driverId={season.driver.driverId}
-                  teamId={season.driver.teamId}
-                  emphasis
-                  badge
-                  after={<TitleCount titles={season.driverTitle} kind="driver" />}
-                />
-              </DriverHistory>
-            )}
-          </TableCell>
-          <TableCell className={cn(RESTACK.driverPoints, "text-right font-semibold tabular-nums")}>
-            {season.driver?.points ?? "—"}
-          </TableCell>
-          <TableCell className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}>
-            {season.driver?.wins ?? "—"}
-          </TableCell>
-          <TableCell className={RESTACK.team}>
-            {season.team === null ? (
-              <span className="text-muted-foreground">—</span>
-            ) : (
-              <TeamHistory teamId={season.team.teamId}>
-                <TeamName
-                  teamId={season.team.teamId}
-                  emphasis
-                  badge
-                  after={<TitleCount titles={season.teamTitle} kind="team" />}
-                />
-              </TeamHistory>
-            )}
-          </TableCell>
-          <TableCell className={cn(RESTACK.teamPoints, "text-right font-semibold tabular-nums")}>
-            {season.team?.points ?? "—"}
-          </TableCell>
-          <TableCell className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}>
-            {season.team?.wins ?? "—"}
-          </TableCell>
-        </TableRow>
-        {open ? (
-          /*
+                {season.driver === null ? (
+                  <DriverName driverId={null} />
+                ) : (
+                  <DriverHistory driverId={season.driver.driverId}>
+                    <DriverName
+                      driverId={season.driver.driverId}
+                      teamId={season.driver.teamId}
+                      emphasis
+                      badge
+                      after={<TitleCount titles={season.driverTitle} kind="driver" />}
+                    />
+                  </DriverHistory>
+                )}
+              </TableCell>
+              <TableCell
+                className={cn(RESTACK.driverPoints, "text-right font-semibold tabular-nums")}
+              >
+                {season.driver?.points ?? "—"}
+              </TableCell>
+              <TableCell
+                className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}
+              >
+                {season.driver?.wins ?? "—"}
+              </TableCell>
+              <TableCell className={RESTACK.team}>
+                {season.team === null ? (
+                  <span className="text-muted-foreground">—</span>
+                ) : (
+                  <TeamHistory teamId={season.team.teamId}>
+                    <TeamName
+                      teamId={season.team.teamId}
+                      emphasis
+                      badge
+                      after={<TitleCount titles={season.teamTitle} kind="team" />}
+                    />
+                  </TeamHistory>
+                )}
+              </TableCell>
+              <TableCell
+                className={cn(RESTACK.teamPoints, "text-right font-semibold tabular-nums")}
+              >
+                {season.team?.points ?? "—"}
+              </TableCell>
+              <TableCell
+                className={cn(RESTACK.wins, "text-muted-foreground text-right tabular-nums")}
+              >
+                {season.team?.wins ?? "—"}
+              </TableCell>
+            </>
+          )}
+          expansion={() => (
+            /*
             The same two tables the season summary ends on, drawn by the same
             component — so a year read out of the roll of honour and a year
             just finished say the same thing, down to the columns. Each row of
             them still opens into its own race-by-race, off this year's own
             calendar rather than a season fixed at import time.
           */
-          <TableExpansion colSpan={COLUMN_COUNT} className="flex flex-col gap-4 py-4">
-            <SeasonStandings
-              season={season.world.season}
-              calendar={seasonSeed(season.year).calendar}
-              year={season.year}
-              points={season.world.points}
-              label="Final"
-            />
-          </TableExpansion>
-        ) : null}
+            <TableExpansion colSpan={COLUMN_COUNT} className="flex flex-col gap-4 py-4">
+              <SeasonStandings
+                season={season.world.season}
+                calendar={seasonSeed(season.year).calendar}
+                year={season.year}
+                points={season.world.points}
+                label="Final"
+              />
+            </TableExpansion>
+          )}
+        />
       </Liveries>
     </EntryNames>
   );
@@ -203,9 +211,7 @@ export function ChampionRow({
  *
  * Its own component rather than markup inside the screen, because the screen
  * has grown a second half — the career statistics under it — and the two are
- * separate readings of the same seasons. It owns the open year, which is view
- * state and only this table's; `ChampionRow` stays **controlled** so both
- * states of a row render without a DOM and without a click.
+ * separate readings of the same seasons.
  */
 export function RollOfHonour({
   seasons,
@@ -221,8 +227,6 @@ export function RollOfHonour({
   /** A year's season page. Absent in a test without a router. */
   seasonLink?: ((year: number) => RunLink) | undefined;
 }) {
-  // One year at a time, because two full championship tables is already a page.
-  const [openYear, setOpenYear] = useState<number | null>(null);
   const last = seasons.at(-1);
 
   return (
@@ -253,17 +257,12 @@ export function RollOfHonour({
         </TableHeader>
         <TableBody>
           {seasons.map((season) => (
-            <Fragment key={season.year}>
-              <ChampionRow
-                season={season}
-                latest={accentLatest && season.year === last?.year}
-                open={openYear === season.year}
-                onToggle={() => {
-                  setOpenYear(openYear === season.year ? null : season.year);
-                }}
-                seasonLink={seasonLink}
-              />
-            </Fragment>
+            <ChampionRow
+              key={season.year}
+              season={season}
+              latest={accentLatest && season.year === last?.year}
+              seasonLink={seasonLink}
+            />
           ))}
           {inProgress === null ? null : (
             <InProgressRow world={inProgress} seasonLink={seasonLink} />

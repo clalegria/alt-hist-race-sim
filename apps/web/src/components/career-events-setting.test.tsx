@@ -10,14 +10,14 @@ import { describe, expect, it } from "vitest";
 import { HISTORICAL_SETTINGS } from "../lib/run-settings.js";
 import { createWorld, ERA_RATING_MODE } from "../store/season.js";
 import { settingsForm, settingsPanel } from "../test-support.js";
-import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { settingsOf } from "./SimulationSettings.js";
+import { YesNoSetting } from "./YesNoSetting.js";
 
 describe("the career events setting", () => {
   it("presses Yes while historical, and No otherwise", () => {
-    const historical = renderToStaticMarkup(<CareerEventsSetting careerEvents={null} />);
+    const historical = renderToStaticMarkup(<YesNoSetting setting="careerEvents" value={null} />);
     expect(historical).toMatch(/aria-pressed="true"[^>]*>Yes</);
-    const none = renderToStaticMarkup(<CareerEventsSetting careerEvents="none" />);
+    const none = renderToStaticMarkup(<YesNoSetting setting="careerEvents" value="none" />);
     expect(none).toMatch(/aria-pressed="true"[^>]*>No</);
     for (const html of [historical, none]) {
       expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);

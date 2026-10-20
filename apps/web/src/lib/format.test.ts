@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatGap, formatSeconds } from "./format.js";
+import { count, formatGap, formatSeconds } from "./format.js";
 
 describe("formatSeconds", () => {
   it("shows sub-minute gaps in seconds", () => {
@@ -21,6 +21,15 @@ describe("formatSeconds", () => {
   it("rounds to milliseconds before splitting, not after", () => {
     // Formatting first and splitting after would render this as "+60.000s".
     expect(formatSeconds(59.9999)).toBe("+1:00.000");
+  });
+});
+
+describe("count", () => {
+  it("is singular for one and plural otherwise, adding an s unless told", () => {
+    expect(count(1, "win")).toBe("1 win");
+    expect(count(0, "win")).toBe("0 wins");
+    expect(count(2, "win")).toBe("2 wins");
+    expect(count(2, "child", "children")).toBe("2 children");
   });
 });
 

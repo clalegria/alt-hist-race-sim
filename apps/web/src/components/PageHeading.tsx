@@ -33,9 +33,7 @@ export function PageHeading({
         )}
       >
         {badge}
-        {flag === undefined || flag === "" ? null : (
-          <Flag country={flag} title={flag} className="h-5 w-7.5" />
-        )}
+        {flag === undefined || flag === "" ? null : <Flag country={flag} className="h-5 w-7.5" />}
         {title}
       </h1>
       {sub === undefined ? null : <p className={cn(MONO_LINE, "text-muted-foreground")}>{sub}</p>}

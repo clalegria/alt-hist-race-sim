@@ -299,13 +299,13 @@ describe("the title trophies", () => {
 });
 
 describe("a year opened out of the roll of honour", () => {
-  // Controlled, so both states render on their own — a click is exactly what
-  // this level of test cannot make.
+  // Opened from the start, since a click is exactly what this level of test
+  // cannot make.
   const row = (open: boolean): string =>
     renderToStaticMarkup(
       <table>
         <tbody>
-          <ChampionRow season={opened} latest={false} open={open} onToggle={noop} />
+          <ChampionRow season={opened} latest={false} defaultOpen={open} />
         </tbody>
       </table>,
     );

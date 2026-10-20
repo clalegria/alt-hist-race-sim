@@ -207,8 +207,7 @@ describe("the links out of an opened row", () => {
             race={race}
             points={world.points}
             teamFor={teamFor}
-            open
-            onToggle={() => {}}
+            defaultOpen
             pages={pages ? roundPages(YEAR, MID) : undefined}
           />
         )}
@@ -264,13 +263,7 @@ describe("the links out of an opened row", () => {
     const html = await inRouter(
       <table>
         <tbody>
-          <ChampionRow
-            season={champions}
-            latest
-            open
-            onToggle={() => {}}
-            seasonLink={PAGE_OF.season}
-          />
+          <ChampionRow season={champions} latest defaultOpen seasonLink={PAGE_OF.season} />
         </tbody>
       </table>,
     );

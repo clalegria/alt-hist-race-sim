@@ -16,3 +16,4 @@ paths:
   *not reached yet* (the run hasn't got there) versus *not available yet* (not built);
   *Pick*, *Start*, *Season*, *Round 3 of 16*; *team* everywhere but the Constructors'
   Championship and its champion. British spelling.
+- **A number before a noun is `count()`** (`lib/format.ts`), never a hand-written plural.

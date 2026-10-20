@@ -36,7 +36,7 @@ export function TeamName({
   return (
     <span className={cn("flex items-center gap-1.5", tight && "min-w-0", className)}>
       {badge ? <TeamBadge teamId={teamId} /> : null}
-      {base === undefined ? null : <Flag country={base} title={base} />}
+      {base === undefined ? null : <Flag country={base} />}
       <span
         className={cn(emphasis && "font-semibold", capitals && TIMING_NAME, tight && "truncate")}
         {...(tight ? { title: nameOf(teamId) } : {})}

@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { teamName } from "../lib/names.js";
 import {
   type CareerRecord,
@@ -16,12 +16,20 @@ import type { World } from "../store/season.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { useTeamNameIn } from "./EntryNames.js";
+import { ExpandableRow } from "./ExpandableRow.js";
 import { Liveries } from "./Liveries.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { ShowAllButton } from "./ShowAllButton.js";
 import { TeamName } from "./TeamName.js";
 import { Card, CardBand } from "./ui/card.js";
-import { Table, TableBody, TableCell, TablePosition, TableRow } from "./ui/table.js";
+import {
+  HiddenTableHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TablePosition,
+  TableRow,
+} from "./ui/table.js";
 
 /**
  * How many careers a record card shows before it is opened out.
@@ -119,24 +127,22 @@ function Career({
  * chevron does not say what is behind it, and "Mercedes, 100 wins" quietly
  * claims a Tyrrell decade for a name that did not exist for it.
  *
- * **Controlled**, like `ChampionRow` and the grid editor's tables, so both
- * states render without a DOM and without a click.
+ * An `ExpandableRow`: `defaultOpen` renders the spells without a DOM and
+ * without a click.
  */
 export function RecordRow({
   ranked,
   kind,
   metric,
   label,
-  open,
-  onToggle,
+  defaultOpen,
 }: {
   ranked: RankedRecord;
   kind: RecordKind;
   metric: RecordMetric;
   /** How the cards name this lineage. Teams only; see `labelsFor`. */
   label?: RecordLabel | undefined;
-  open: boolean;
-  onToggle: () => void;
+  defaultOpen?: boolean | undefined;
 }) {
   const { record, value, position, shared } = ranked;
   const spells = kind === "team" ? spellsBy(record, metric) : [];
@@ -163,19 +169,22 @@ export function RecordRow({
 
   return (
     <Liveries year={year}>
-      <TableRow>
-        <TablePosition className="py-1.5">
-          {shared ? "=" : ""}
-          {position}
-        </TablePosition>
-        {/*
+      <ExpandableRow
+        defaultOpen={defaultOpen}
+        row={(disclosure) => (
+          <>
+            <TablePosition className="py-1.5">
+              {shared ? "=" : ""}
+              {position}
+            </TablePosition>
+            {/*
           `w-full max-w-0` for the reason the provisional standings use it: the
           cell takes the slack the two number columns leave without letting the
           name inside size the column, so a long entry truncates instead of
           pushing a scrollbar under a card that is half a page wide.
         */}
-        <TableCell className="w-full max-w-0 py-1.5">
-          {/*
+            <TableCell className="w-full max-w-0 py-1.5">
+              {/*
             Two controls on a lineage row, and only because a name cannot be
             both a button and the trigger of another one: the **chevron** keeps
             the breakdown by name, the **name** opens the career panel. The
@@ -185,36 +194,43 @@ export function RecordRow({
             app has, so the second tab stop is paid for only where it buys
             something.
           */}
-          <span className="flex min-w-0 items-center gap-1">
-            {many ? (
-              <DisclosureButton
-                open={open}
-                onToggle={onToggle}
-                label={`Names ${label?.name ?? teamName(record.id, year)} scored under`}
-              />
-            ) : null}
-            <Career kind={kind} id={record.id} className="min-w-0 flex-1">
-              <span className="flex min-w-0 flex-col leading-tight">
-                {name}
+              <span className="flex min-w-0 items-center gap-1">
                 {many ? (
-                  <span className="text-muted-foreground text-xs">under {spells.length} names</span>
+                  <DisclosureButton
+                    {...disclosure}
+                    label={`Names ${label?.name ?? teamName(record.id, year)} scored under`}
+                  />
                 ) : null}
+                <Career kind={kind} id={record.id} className="min-w-0 flex-1">
+                  <span className="flex min-w-0 flex-col leading-tight">
+                    {name}
+                    {many ? (
+                      <span className="text-muted-foreground text-xs">
+                        under {spells.length} names
+                      </span>
+                    ) : null}
+                  </span>
+                </Career>
               </span>
-            </Career>
-          </span>
-        </TableCell>
-        <TableCell className="w-10 py-1.5 text-right font-semibold tabular-nums">{value}</TableCell>
-      </TableRow>
-      {many && open
-        ? spells.map((spell) => (
-            <SpellRow
-              key={`${spell.name}-${spell.firstYear}`}
-              name={spell.name}
-              span={spellSpan(spell)}
-              value={spell[metric]}
-            />
-          ))
-        : null}
+            </TableCell>
+            <TableCell className="w-10 py-1.5 text-right font-semibold tabular-nums">
+              {value}
+            </TableCell>
+          </>
+        )}
+        expansion={() =>
+          many
+            ? spells.map((spell) => (
+                <SpellRow
+                  key={`${spell.name}-${spell.firstYear}`}
+                  name={spell.name}
+                  span={spellSpan(spell)}
+                  value={spell[metric]}
+                />
+              ))
+            : null
+        }
+      />
     </Liveries>
   );
 }
@@ -227,9 +243,6 @@ export function RecordRow({
  * highlighting their own leader would turn an accent that means "the thing you
  * just watched" into ordinary decoration. First place is set in bold instead.
  *
- * Which rows are open is this card's own business, so unlike the roll of honour
- * it keeps that state itself — and **more than one may be open**, because a
- * spell list is three or four short rows rather than two championship tables.
  */
 export function RecordCard({
   title,
@@ -244,7 +257,6 @@ export function RecordCard({
   kind: RecordKind;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const ranked = useMemo(() => rankBy(records, metric), [records, metric]);
   const teamNameIn = useTeamNameIn();
   // Off the whole list rather than this card's rows, so every card of the
@@ -267,24 +279,16 @@ export function RecordCard({
         <p className="text-muted-foreground px-3 py-3 text-sm">Nobody has one yet.</p>
       ) : (
         <Table>
+          <HiddenTableHeader columns={["Pos", kind === "driver" ? "Driver" : "Team", title]} />
           <TableBody>
             {rows.map((row) => (
-              <Fragment key={row.record.id}>
-                <RecordRow
-                  ranked={row}
-                  kind={kind}
-                  metric={metric}
-                  label={labels?.get(row.record.id)}
-                  open={openIds.has(row.record.id)}
-                  onToggle={() => {
-                    const next = new Set(openIds);
-                    if (!next.delete(row.record.id)) {
-                      next.add(row.record.id);
-                    }
-                    setOpenIds(next);
-                  }}
-                />
-              </Fragment>
+              <RecordRow
+                key={row.record.id}
+                ranked={row}
+                kind={kind}
+                metric={metric}
+                label={labels?.get(row.record.id)}
+              />
             ))}
           </TableBody>
         </Table>

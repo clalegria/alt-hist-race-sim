@@ -1,12 +1,19 @@
 import { drivers, seasons, teams } from "@alt-hist/data";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { Flag, hasFlag } from "./Flag.js";
+import { countryName, Flag, hasFlag } from "./Flag.js";
 
 describe("flags", () => {
   it("renders an SVG for a known country", () => {
     const html = renderToStaticMarkup(<Flag country="GB" />);
     expect(html).toContain("<svg");
+  });
+
+  it("names its country, never the code", () => {
+    const html = renderToStaticMarkup(<Flag country="gb" />);
+    expect(html).toContain(`<title>${countryName("GB")}</title>`);
+    expect(countryName("GB")).not.toBe("GB");
+    expect(html).not.toContain("<title>GB</title>");
   });
 
   it("accepts lower case and stray whitespace", () => {

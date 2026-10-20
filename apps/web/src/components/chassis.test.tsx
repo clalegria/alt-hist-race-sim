@@ -20,8 +20,9 @@ import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { GridStage } from "./GridStage.js";
 import { changeCount, chassisNote, chassisSummary, signed } from "./LineupChanges.js";
-import { ChassisStepper, type GridEditing, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
+import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
+import { ChassisStepper, type GridEditing, SWAPPED_IN } from "./TeamCard.js";
 
 const world = seededWorld();
 const TEAMS = new Set(world.field.map((entrant) => entrant.teamId)).size;

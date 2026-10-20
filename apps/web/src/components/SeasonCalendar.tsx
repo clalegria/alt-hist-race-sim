@@ -1,10 +1,10 @@
 import type { CalendarRace } from "@alt-hist/data";
 import type { PointsScale, RaceResult, SeasonResult } from "@alt-hist/engine";
-import { useState } from "react";
 import type { RoundPages } from "../lib/session-nav.js";
 import { cn, DISPLAY_CAPS, MONO_LINE } from "../lib/utils.js";
-import { DisclosureButton } from "./DisclosureButton.js";
+import { type Disclosure, DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
+import { ExpandableRow } from "./ExpandableRow.js";
 import { Flag } from "./Flag.js";
 import { PageLink } from "./PageLink.js";
 import { RaceClassification } from "./RaceClassification.js";
@@ -74,14 +74,14 @@ function RoundName({
   round: CalendarRace | undefined;
   index: number;
   race?: RaceResult | undefined;
-  disclosure?: { readonly open: boolean; readonly onToggle: () => void } | undefined;
+  disclosure?: Disclosure | undefined;
   link?: React.ReactNode;
   /** A round not reached: its words in `text-subtle`, its link (if any) not. */
   dim?: boolean;
 }) {
   const name = (
     <span className={cn(DISPLAY_CAPS, "flex items-center gap-1.5", dim && "text-subtle")}>
-      {round === undefined ? null : <Flag country={round.country} title={round.country} />}
+      {round === undefined ? null : <Flag country={round.country} />}
       {roundLabel(round, index)}
     </span>
   );
@@ -156,9 +156,8 @@ function roundLabel(round: CalendarRace | undefined, index: number): string {
 /**
  * One round the reader has seen, and — opened — its classification.
  *
- * **Controlled**, like the roll of honour's `ChampionRow`: whether it is open
- * comes from the table, so an opened row renders on its own without a DOM and
- * without a click. `pages` puts the page icon beside the name, as the roll of
+ * An `ExpandableRow`, so any number of rounds can be open at once;
+ * `defaultOpen` renders an opened row without a DOM and without a click. `pages` puts the page icon beside the name, as the roll of
  * honour does beside a year: the name opens the quick look in place, the icon
  * goes to the race's page. Absent in a test without a router, and the icon
  * with it.
@@ -169,8 +168,7 @@ export function CalendarRow({
   race,
   points,
   teamFor,
-  open,
-  onToggle,
+  defaultOpen,
   pages,
 }: {
   index: number;
@@ -178,35 +176,37 @@ export function CalendarRow({
   race: RaceResult;
   points: PointsScale;
   teamFor: ReadonlyMap<string, string>;
-  open: boolean;
-  onToggle: () => void;
+  defaultOpen?: boolean | undefined;
   pages?: RoundPages | undefined;
 }) {
   return (
-    <>
-      <TableRow className={cn(open && "bg-muted/60")}>
-        <TableCell className={cn(ROUND, "text-muted-foreground")}>{index + 1}</TableCell>
-        <TableCell className={GRAND_PRIX}>
-          <RoundName
-            round={round}
-            index={index}
-            race={race}
-            disclosure={{ open, onToggle }}
-            link={
-              pages === undefined ? null : (
-                <PageLink link={pages.race} label={`${roundLabel(round, index)} race page`} />
-              )
-            }
-          />
-        </TableCell>
-        <TableCell className={POLE}>
-          <RoundDriver driverId={race.poleDriverId} teamFor={teamFor} />
-        </TableCell>
-        <TableCell className={NAME_COLUMN}>
-          <RoundDriver driverId={race.winnerDriverId} teamFor={teamFor} />
-        </TableCell>
-      </TableRow>
-      {open ? (
+    <ExpandableRow
+      defaultOpen={defaultOpen}
+      row={(disclosure) => (
+        <>
+          <TableCell className={cn(ROUND, "text-muted-foreground")}>{index + 1}</TableCell>
+          <TableCell className={GRAND_PRIX}>
+            <RoundName
+              round={round}
+              index={index}
+              race={race}
+              disclosure={disclosure}
+              link={
+                pages === undefined ? null : (
+                  <PageLink link={pages.race} label={`${roundLabel(round, index)} race page`} />
+                )
+              }
+            />
+          </TableCell>
+          <TableCell className={POLE}>
+            <RoundDriver driverId={race.poleDriverId} teamFor={teamFor} />
+          </TableCell>
+          <TableCell className={NAME_COLUMN}>
+            <RoundDriver driverId={race.winnerDriverId} teamFor={teamFor} />
+          </TableCell>
+        </>
+      )}
+      expansion={() => (
         <TableExpansion colSpan={4}>
           {/*
             The round's own country, so an entry racing at home is starred
@@ -215,8 +215,8 @@ export function CalendarRow({
           */}
           <RaceClassification race={race} points={points} country={round?.country} car />
         </TableExpansion>
-      ) : null}
-    </>
+      )}
+    />
   );
 }
 
@@ -257,9 +257,6 @@ export function SeasonCalendar({
   /** A round's pages, by its zero-based index. Absent in a test without a router. */
   pagesOf?: ((round: number) => RoundPages) | undefined;
 }) {
-  // Which round is expanded, or null for none. Purely view state — it says
-  // nothing about the simulation, so it stays here rather than in the store.
-  const [openRound, setOpenRound] = useState<number | null>(null);
   const raced = season.races.length;
 
   return (
@@ -311,7 +308,6 @@ export function SeasonCalendar({
                 </TableRow>
               );
             }
-            const isOpen = openRound === index;
             return (
               <CalendarRow
                 key={key}
@@ -320,10 +316,6 @@ export function SeasonCalendar({
                 race={race}
                 points={points}
                 teamFor={teamFor}
-                open={isOpen}
-                onToggle={() => {
-                  setOpenRound(isOpen ? null : index);
-                }}
                 pages={pagesOf?.(index)}
               />
             );

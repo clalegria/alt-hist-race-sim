@@ -9,6 +9,7 @@ import {
   type SeasonResult,
 } from "@alt-hist/engine";
 import { useMemo, useState } from "react";
+import { count } from "../lib/format.js";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
 import { qualifyingOf, type RevealedWorld } from "../lib/reveal.js";
@@ -51,10 +52,6 @@ function roundCountry(calendar: readonly CalendarRace[], round: number): string 
  */
 function seasonSoFar(season: SeasonResult, throughRound: number): SeasonResult {
   return { races: season.races.slice(0, throughRound + 1) };
-}
-
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 /**
@@ -163,7 +160,7 @@ function RaceStage({
 
         <aside className="flex flex-col gap-4">
           <p className={MONO_LABEL}>
-            Championship after {plural(soFar.races.length, "round")}
+            Championship after {count(soFar.races.length, "round")}
             {remaining === 0 ? "" : ` (${remaining} remaining)`}
           </p>
           <CompactStandings

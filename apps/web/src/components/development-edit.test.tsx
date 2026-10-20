@@ -16,8 +16,9 @@ import { teamName } from "../lib/names.js";
 import { createWorld } from "../store/season.js";
 import { SEED, seededWorld, shownAt, YEAR } from "../test-support.js";
 import { changeCount, trendNote } from "./LineupChanges.js";
-import { DevelopmentPanel, type GridEditing, SeasonGrid, SWAPPED_IN } from "./SeasonGrid.js";
+import { SeasonGrid } from "./SeasonGrid.js";
 import { SeasonView } from "./SeasonView.js";
+import { DevelopmentPanel, type GridEditing, SWAPPED_IN } from "./TeamCard.js";
 
 const world = seededWorld();
 const MINUS = "−";

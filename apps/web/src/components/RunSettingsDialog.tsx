@@ -12,18 +12,14 @@ import {
 } from "../lib/run-settings.js";
 import { tabMemory } from "../lib/tab-memory.js";
 import { BreakdownsSetting } from "./BreakdownsSetting.js";
-import { CareerEventsSetting } from "./CareerEventsSetting.js";
 import { CarPerformanceSetting } from "./CarPerformanceSetting.js";
 import { DevelopmentSetting } from "./DevelopmentSetting.js";
 import { DriverAbilitySetting } from "./DriverAbilitySetting.js";
 import { DriverPoolSetting } from "./DriverPoolSetting.js";
 import { EnginePerformanceSetting } from "./EnginePerformanceSetting.js";
-import { EngineSuppliersSetting } from "./EngineSuppliersSetting.js";
-import { LiveriesSetting } from "./LiveriesSetting.js";
 import { PointsSetting } from "./PointsSetting.js";
 import { RandomnessSlider } from "./RandomnessSlider.js";
 import { Tabs, tabIds } from "./Tabs.js";
-import { TeamNamesSetting } from "./TeamNamesSetting.js";
 import { TeamsSetting } from "./TeamsSetting.js";
 import { Button } from "./ui/button.js";
 import {
@@ -38,6 +34,7 @@ import {
 } from "./ui/dialog.js";
 import { Notice } from "./ui/notice.js";
 import { WhoDrivesSetting } from "./WhoDrivesSetting.js";
+import { YesNoSetting } from "./YesNoSetting.js";
 
 /**
  * Everything a run is simulated under, apart from the year: the randomness
@@ -289,8 +286,9 @@ export function RunSettingsForm({
               />
             ) : null}
             {eraSettings ? (
-              <CareerEventsSetting
-                careerEvents={settings.careerEvents}
+              <YesNoSetting
+                setting="careerEvents"
+                value={settings.careerEvents}
                 onChange={(careerEvents) => {
                   set({ careerEvents });
                 }}
@@ -335,20 +333,23 @@ export function RunSettingsForm({
                   set({ teams });
                 }}
               />
-              <TeamNamesSetting
-                teamNames={settings.teamNames}
+              <YesNoSetting
+                setting="teamNames"
+                value={settings.teamNames}
                 onChange={(teamNames) => {
                   set({ teamNames });
                 }}
               />
-              <LiveriesSetting
-                liveries={settings.liveries}
+              <YesNoSetting
+                setting="liveries"
+                value={settings.liveries}
                 onChange={(liveries) => {
                   set({ liveries });
                 }}
               />
-              <EngineSuppliersSetting
-                engineSuppliers={settings.engineSuppliers}
+              <YesNoSetting
+                setting="engineSuppliers"
+                value={settings.engineSuppliers}
                 onChange={(engineSuppliers) => {
                   set({ engineSuppliers });
                 }}

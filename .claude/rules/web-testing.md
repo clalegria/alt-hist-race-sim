@@ -14,8 +14,8 @@ Vitest with **no jsdom**: components are rendered with `renderToStaticMarkup`.
   own tests, and render a page by passing its world as props
   (`shownAt(world, view)` from `src/test-support.ts`). Rendering a URL is `web-routing.md`.
 - **Keep components testable without a DOM**: state as props (controlled, like
-  `SeasonGrid` and `ReserveList` under `useGridDraft`), and interaction as a pure function
-  (`pickUp`) tested on its own. A click handler cannot be reached here.
+  `SeasonGrid` and `ReserveList` under `useGridDraft`; an `ExpandableRow` by `defaultOpen`),
+  and interaction as a pure function (`pickUp`) tested on its own. A click handler cannot be reached here.
 - **Fixtures come from `src/test-support.ts`**: a fixed seed is a fixture; when a test
   needs a season of some shape, `findWorld` searches for one. Counts come off the grid,
   and a rule for every season loops `seasons`.
