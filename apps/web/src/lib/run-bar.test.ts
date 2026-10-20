@@ -11,6 +11,7 @@ import { seededWorld, YEAR } from "../test-support.js";
 import { driverName } from "./names.js";
 import { driversLink, teamsLink } from "./roster-places.js";
 import {
+  type BarWidth,
   CONTINUE_BLOCKED,
   type Crumb,
   crumbsFor,
@@ -62,7 +63,7 @@ describe("the run bar's actions", () => {
     expect(runBarFor(season({ kind: "grid" }))).toEqual({
       cursor: `${YEAR} · Grid`,
       next: `${YEAR} · Round 1 of ${ROUNDS} · Qualifying`,
-      skip: "Simulate the whole season",
+      skip: "Simulate whole season",
       jump: false,
       restartSeason: false,
       restartEra: false,
@@ -98,13 +99,13 @@ describe("the run bar's actions", () => {
       for (const kind of ["qualifying", "race"] as const) {
         const bar = runBarFor(season({ kind, round }));
         expect(bar.next, `${kind} ${round}`).not.toBeNull();
-        expect(bar.skip, `${kind} ${round}`).toBe("Simulate the rest of the season");
+        expect(bar.skip, `${kind} ${round}`).toBe("Simulate rest of season");
         expect(bar.restartSeason, `${kind} ${round}`).toBe(true);
       }
     }
     // Qualifying for the last round still has a race left to skip past.
     expect(runBarFor(season({ kind: "qualifying", round: ROUNDS - 1 })).skip).toBe(
-      "Simulate the rest of the season",
+      "Simulate rest of season",
     );
   });
 
@@ -224,15 +225,24 @@ describe("where the bar puts each action", () => {
     ),
     era({ kind: "review" }, last),
   ];
-  /** Every run, on the cursor's own page and away from it. */
-  const cases = runs.flatMap((run) =>
-    [false, true].map((away) => ({
+  /**
+   * Every run, on the cursor's own page and away from it, on a round's page
+   * and off one: the cursor's own page is a round's exactly when the cursor is.
+   */
+  const cases = runs.flatMap((run) => {
+    const onRound = run.cursor.kind === "qualifying" || run.cursor.kind === "race";
+    return [
+      { away: false, roundPage: onRound },
+      { away: true, roundPage: false },
+      { away: true, roundPage: true },
+    ].map(({ away, roundPage }) => ({
       run,
       state: runBarFor(run),
       away,
-      name: `${run.kind} ${runBarFor(run).cursor}${away ? " away" : ""}`,
-    })),
-  );
+      roundPage,
+      name: `${run.kind} ${runBarFor(run).cursor}${away ? " away" : ""}${roundPage ? " on a round" : ""}`,
+    }));
+  });
 
   /** What the slot lets the reader press, if anything. */
   function inSlot(slot: RunSlot): RunActionKey[] {
@@ -246,12 +256,19 @@ describe("where the bar puts each action", () => {
     }
   }
 
-  /** What a wide screen lets the reader press: the bar, the slot, ⋯. */
-  function wide(layout: RunActionsLayout): RunActionKey[] {
+  /** Whether something drawn from `from` up shows at `width`. */
+  function shows(from: BarWidth, width: BarWidth): boolean {
+    return from === "md" || width === "lg";
+  }
+
+  /** What a wide screen lets the reader press at `width`: the bar, the slot, ⋯. */
+  function wide(layout: RunActionsLayout, width: BarWidth): RunActionKey[] {
     return [
-      ...layout.bar,
+      ...layout.bar.filter((button) => shows(button.from, width)).map((button) => button.key),
       ...inSlot(layout.wideSlot),
-      ...layout.menu.filter((entry) => !entry.phoneOnly).map((entry) => entry.key),
+      ...layout.menu
+        .filter((entry) => entry.onBarFrom === null || !shows(entry.onBarFrom, width))
+        .map((entry) => entry.key),
     ];
   }
 
@@ -274,8 +291,8 @@ describe("where the bar puts each action", () => {
   }
 
   it("ends a wide screen with Continue, or the run's restart where nothing is next", () => {
-    for (const { run, state, away, name } of cases) {
-      const { wideSlot } = runActionsFor(state, { away, editingGrid: false });
+    for (const { run, state, away, roundPage, name } of cases) {
+      const { wideSlot } = runActionsFor(state, { away, editingGrid: false, roundPage });
       expect(wideSlot, name).toEqual(
         state.next === null
           ? {
@@ -289,23 +306,28 @@ describe("where the bar puts each action", () => {
   });
 
   it("offers each action exactly once at each width, and nothing runBarFor withholds", () => {
-    for (const { state, away, name } of cases) {
-      const layout = runActionsFor(state, { away, editingGrid: false });
+    for (const { state, away, roundPage, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false, roundPage });
       const expected = offered(state, away).sort();
-      expect(wide(layout).sort(), `${name} wide`).toEqual(expected);
+      for (const width of ["md", "lg"] as const) {
+        expect(wide(layout, width).sort(), `${name} ${width}`).toEqual(expected);
+      }
       expect(phone(layout).sort(), `${name} phone`).toEqual(expected);
     }
   });
 
   it("keeps the restarts and Exit run in ⋯, never on the bar, but the one in the slot", () => {
-    for (const { state, away, name } of cases) {
-      const layout = runActionsFor(state, { away, editingGrid: false });
+    for (const { state, away, roundPage, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false, roundPage });
       const slot = layout.wideSlot.kind === "restart" ? layout.wideSlot.key : null;
       for (const key of ["restartSeason", "restartEra", "exit"] as const) {
-        expect(layout.bar, name).not.toContain(key);
+        expect(
+          layout.bar.map((button) => button.key),
+          name,
+        ).not.toContain(key);
         for (const entry of layout.menu.filter((each) => each.key === key)) {
           // Only a phone away from the cursor, whose slot is the way back, lists the slot's.
-          expect(entry.phoneOnly, `${name} ${key}`).toBe(key === slot && away);
+          expect(entry.onBarFrom, `${name} ${key}`).toBe(key === slot && away ? "md" : null);
         }
       }
       // Red marks exactly the entries that throw work away.
@@ -322,19 +344,48 @@ describe("where the bar puts each action", () => {
   });
 
   it("puts the skip beside ⋯ on a wide screen", () => {
-    for (const { state, away, name } of cases.filter((each) => each.state.skip !== null)) {
-      expect(runActionsFor(state, { away, editingGrid: false }).bar.at(-1), name).toBe("skip");
+    for (const { state, away, roundPage, name } of cases.filter(
+      (each) => each.state.skip !== null,
+    )) {
+      expect(
+        runActionsFor(state, { away, editingGrid: false, roundPage }).bar.at(-1)?.key,
+        name,
+      ).toBe("skip");
+    }
+  });
+
+  it("keeps Jump to… in ⋯ below `lg`, and every other way forward on the bar from `md`", () => {
+    for (const { state, away, roundPage, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false, roundPage });
+      for (const button of layout.bar) {
+        expect(button.from, `${name} ${button.key}`).toBe(button.key === "jump" ? "lg" : "md");
+      }
+    }
+  });
+
+  it("keeps Jump to… in ⋯ at every width on a round's page, where the trail needs the room", () => {
+    const offering = cases.filter((each) => each.state.jump);
+    expect(offering.some((each) => each.roundPage)).toBe(true);
+    for (const { state, away, roundPage, name } of offering) {
+      const layout = runActionsFor(state, { away, editingGrid: false, roundPage });
+      const onBar = layout.bar.some((button) => button.key === "jump");
+      expect(onBar, name).toBe(!roundPage);
+      const entry = layout.menu.find((each) => each.key === "jump");
+      expect(entry?.onBarFrom, name).toBe(roundPage ? null : "lg");
     }
   });
 
   it("leads with the way back away from the cursor, and gives it a phone's slot", () => {
-    for (const { state, away, name } of cases) {
-      const layout = runActionsFor(state, { away, editingGrid: false });
+    for (const { state, away, roundPage, name } of cases) {
+      const layout = runActionsFor(state, { away, editingGrid: false, roundPage });
       if (away) {
-        expect(layout.bar[0], name).toBe("back");
+        expect(layout.bar[0]?.key, name).toBe("back");
         expect(layout.phoneSlot.kind, name).toBe("back");
       } else {
-        expect(layout.bar, name).not.toContain("back");
+        expect(
+          layout.bar.map((button) => button.key),
+          name,
+        ).not.toContain("back");
         expect(layout.phoneSlot, name).toEqual(layout.wideSlot);
       }
     }
@@ -342,7 +393,7 @@ describe("where the bar puts each action", () => {
 
   it("holds Continue, disabled, while the grid is being edited, and offers nothing else", () => {
     const state = runBarFor(season({ kind: "grid" }));
-    const layout = runActionsFor(state, { away: false, editingGrid: true });
+    const layout = runActionsFor(state, { away: false, editingGrid: true, roundPage: false });
     expect(layout.wideSlot).toEqual({
       kind: "continue",
       primary: true,

@@ -321,6 +321,9 @@ export function RunLayout() {
         resolved?.kind === "unreached" || person?.kind === "absent" ? null : stepsFor(run, place)
       }
       returnTo={returnFor(run, place)}
+      roundPage={
+        "beat" in place && (place.beat.kind === "qualifying" || place.beat.kind === "race")
+      }
       onContinue={() => {
         continueRun();
         toCursor(false);

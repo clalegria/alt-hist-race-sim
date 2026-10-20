@@ -314,6 +314,7 @@ describe("the run bar", () => {
         returnTo={returnFor(run, place)}
         state={runBarFor(run)}
         editingGrid={false}
+        roundPage={place.beat.kind === "qualifying" || place.beat.kind === "race"}
         onContinue={noop}
         onSkip={noop}
         onJump={noop}
@@ -344,16 +345,21 @@ describe("the run bar", () => {
       cursor: { kind: "race", round: 0 },
     };
     const html = await bar(era);
-    // The ways forward are buttons in a row hidden below `md`, where ⋯ lists
-    // them instead; ⋯'s entries render into a portal, so the rest are not in
-    // the markup at all (`lib/run-bar.test.ts` has them as data).
-    for (const label of ["Simulate the rest of the season", "Jump to…"]) {
-      expect(html, label).toContain(`>${label}</button>`);
-    }
-    for (const label of ["Restart season", "Restart era", "Exit run"]) {
+    // The ways forward are buttons in a row hidden below `md`, Jump to… below
+    // `lg`, where ⋯ lists them instead; ⋯'s entries render into a portal, so
+    // the rest are not in the markup at all (`lib/run-bar.test.ts` has them as data).
+    // On a round's page, as here, ⋯ keeps Jump to… at every width.
+    const button = (label: string, width: string) =>
+      new RegExp(`<button[^>]*class="[^"]*hidden ${width}:inline-flex"[^>]*>${label}</button>`);
+    expect(html).toMatch(button("Simulate rest of season", "md"));
+    for (const label of ["Jump to…", "Restart season", "Restart era", "Exit run"]) {
       expect(html, label).not.toContain(`>${label}<`);
     }
-    expect(html).toMatch(/class="hidden flex-1 flex-wrap justify-end gap-2 md:flex"><button/);
+    // Off a round's page, Jump to… is a button from `lg`.
+    expect(await bar(era, { year: YEAR, beat: { kind: "grid" } })).toMatch(
+      button("Jump to…", "lg"),
+    );
+    expect(html).toMatch(/class="hidden flex-wrap justify-end gap-2 md:flex"><button/);
     expect(html).toMatch(/<button[^>]*aria-label="More run actions"/);
   });
 
@@ -395,7 +401,8 @@ describe("the run bar", () => {
     // the place in full in its tooltip.
     expect(away).toMatch(new RegExp(`<a[^>]*href="/run/${YEAR}/grid"[^>]*>[^]*?Back to run`));
     expect(away).toContain(`title="Back to ${YEAR} · Grid"`);
-    expect(away).toContain(`Run is at ${YEAR} · Grid`);
+    // The bar names the place for screen readers only: the way back says it.
+    expect(away).toContain(`<span class="sr-only">Run is at ${YEAR} · Grid</span>`);
     // Continue is still there, but no longer the primary button; on a phone,
     // the way back has its slot.
     expect(away).toMatch(/<button[^>]*class="[^"]*border-border[^"]*"[^>]*title="Next:/);

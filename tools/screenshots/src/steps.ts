@@ -281,7 +281,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "season-summary",
     reach: async (page) => {
-      await runAction(page, "Simulate the rest of the season");
+      await runAction(page, "Simulate rest of season");
       await page.waitForURL(`**/run/${YEAR}`);
       await cursorAt(page, `${YEAR} · End of the season`);
     },
@@ -442,7 +442,7 @@ export const STEPS: readonly Step[] = [
   {
     name: "era-summary",
     reach: async (page) => {
-      await runAction(page, "Simulate the whole season");
+      await runAction(page, "Simulate whole season");
       await cursorAt(page, `${YEAR} · End of the season`);
     },
   },

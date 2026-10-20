@@ -19,9 +19,14 @@ const VARIANTS = {
   link: "text-primary hover:bg-accent border-transparent bg-transparent",
 } as const;
 
+/**
+ * A button's label is one line: a fixed height has no room for a second, and a
+ * row of buttons must know its true width, which a label that could break
+ * would understate, so the row would draw them over what sits beside it.
+ */
 const SIZES = {
-  default: "h-9 px-4 text-sm",
-  sm: "h-8 gap-1.5 px-3 text-xs",
+  default: "h-9 px-4 text-sm whitespace-nowrap",
+  sm: "h-8 gap-1.5 px-3 text-xs whitespace-nowrap",
   /** For `link`, inside a line: no taller than the text it sits in. */
   inline: "h-auto px-1.5 py-0.5 text-xs",
 } as const;

@@ -132,6 +132,7 @@ export function RunFrame({
   crumbs,
   steps = null,
   returnTo,
+  roundPage,
   onContinue,
   onSkip,
   onJump,
@@ -150,6 +151,8 @@ export function RunFrame({
   steps?: PageSteps | null;
   /** The way back to where the run is, while the page is elsewhere. */
   returnTo: ReturnLink | null;
+  /** The page is a round's qualifying or race, whose long trail leaves the bar less room. */
+  roundPage: boolean;
   onContinue: () => void;
   onSkip: () => void;
   /** Jump to…, once the reader has picked where. */
@@ -178,6 +181,7 @@ export function RunFrame({
     returnTo,
     // Only while the cursor is on a grid: the flag outlives nothing else.
     editingGrid: editingGrid && run.cursor.kind === "grid",
+    roundPage,
     onContinue,
     onSkip,
     onJump: () => {
@@ -237,7 +241,7 @@ export function RunFrame({
             </SeasonHistoryProvider>
           </KeptLiveries>
         </KeptNames>
-        <div className="border-border flex border-t pt-6">
+        <div className="border-border flex justify-end border-t pt-6">
           <RunActions {...actions} />
         </div>
       </Shell>

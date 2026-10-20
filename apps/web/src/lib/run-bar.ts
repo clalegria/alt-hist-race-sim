@@ -66,9 +66,9 @@ export function runBarFor(run: Run): RunBarState {
     next: nextLabel,
     skip:
       cursor.kind === "grid"
-        ? "Simulate the whole season"
+        ? "Simulate whole season"
         : (cursor.kind === "qualifying" || cursor.kind === "race") && !lastRace
-          ? "Simulate the rest of the season"
+          ? "Simulate rest of season"
           : null,
     // This year's end alone is what the skip already offers.
     jump: jumpYears(run).some((year) => year > world.year),
@@ -116,11 +116,24 @@ export type EndSlot = ContinueSlot | RestartSlot;
 /** What the bar's right-hand end holds; on a phone away from the cursor, the way back. */
 export type RunSlot = EndSlot | { readonly kind: "back" };
 
+/**
+ * The window width, as Tailwind's breakpoint, from which an action is a button
+ * on the bar rather than an entry in ⋯: `md` (768px) for most, `lg` (1024px)
+ * for one the bar only has room for once the page column is at its full width.
+ */
+export type BarWidth = "md" | "lg";
+
+/** One button left of ⋯, and the width from which it is drawn. */
+export interface BarButton {
+  readonly key: RunActionKey;
+  readonly from: BarWidth;
+}
+
 /** One entry of the ⋯ menu. */
 export interface RunMenuEntry {
   readonly key: RunCommand;
-  /** A button on the bar from `md` up, so listed on a phone only. */
-  readonly phoneOnly: boolean;
+  /** The width from which it is a button on the bar instead; null where ⋯ always lists it. */
+  readonly onBarFrom: BarWidth | null;
   /** Throws work away (the restarts, Exit run): drawn in red. */
   readonly destructive: boolean;
 }
@@ -131,8 +144,8 @@ export interface RunActionsLayout {
   readonly wideSlot: EndSlot;
   /** The right-hand end on a phone. */
   readonly phoneSlot: RunSlot;
-  /** The buttons left of ⋯ from `md` up, in order; a phone shows none. */
-  readonly bar: readonly RunActionKey[];
+  /** The buttons left of ⋯, in order, each from its width up; a phone shows none. */
+  readonly bar: readonly BarButton[];
   /** ⋯'s entries, in order; empty, and no ⋯ drawn, while the grid is being edited. */
   readonly menu: readonly RunMenuEntry[];
 }
@@ -150,7 +163,11 @@ export const CONTINUE_BLOCKED = {
  * where the run has nowhere further to go (a one-year run's summary, the era's
  * end) it is the run's restart instead, Restart season or Restart era, and
  * leaves ⋯. Otherwise the restarts and Exit run are in ⋯ at every width; the
- * other ways forward are buttons from `md` up and ⋯ entries on a phone.
+ * other ways forward are buttons from `md` up and ⋯ entries on a phone, except
+ * Jump to…, which waits for `lg`: between the two only it does not fit beside
+ * the way back, the skip and Continue, so it is the one ⋯ keeps. On a round's
+ * page (qualifying or race), whose trail is the longest, ⋯ keeps it at every
+ * width, so the trail stays on one line.
  *
  * Away from the cursor's page the way back leads the bar and Continue drops
  * to outline, since it acts on the cursor, not on the page on screen. A
@@ -162,7 +179,16 @@ export const CONTINUE_BLOCKED = {
  */
 export function runActionsFor(
   state: RunBarState,
-  { away, editingGrid }: { readonly away: boolean; readonly editingGrid: boolean },
+  {
+    away,
+    editingGrid,
+    roundPage,
+  }: {
+    readonly away: boolean;
+    readonly editingGrid: boolean;
+    /** The page on screen is a round's qualifying or race. */
+    readonly roundPage: boolean;
+  },
 ): RunActionsLayout {
   const blocked = editingGrid
     ? CONTINUE_BLOCKED.editing
@@ -186,11 +212,11 @@ export function runActionsFor(
     // go with it.
     return { wideSlot, phoneSlot: wideSlot, bar: [], menu: [] };
   }
-  const skip: RunCommand[] = state.skip === null ? [] : ["skip"];
-  const jump: RunCommand[] = state.jump ? ["jump"] : [];
+  const skip = state.skip === null ? [] : [{ key: "skip", from: "md" } as const];
+  const jump = state.jump && !roundPage ? [{ key: "jump", from: "lg" } as const] : [];
   // On a phone, Continue joins ⋯ when the way back has its slot.
-  const phoneForward: RunCommand[] = [
-    ...(away && blocked === null ? (["continue"] as const) : []),
+  const forward = [
+    ...(away && blocked === null ? [{ key: "continue", from: "md" } as const] : []),
     ...skip,
     ...jump,
   ];
@@ -205,13 +231,18 @@ export function runActionsFor(
     wideSlot,
     phoneSlot: away ? { kind: "back" } : wideSlot,
     // The skip, Continue's bigger brother, is the one beside ⋯.
-    bar: [...(away ? (["back"] as const) : []), ...jump, ...skip],
+    bar: [...(away ? [{ key: "back", from: "md" } as const] : []), ...jump, ...skip],
     menu: [
-      ...phoneForward.map((key) => ({ key, phoneOnly: true, destructive: false })),
+      ...forward.map(({ key, from }) => ({ key, onBarFrom: from, destructive: false })),
+      ...(state.jump && roundPage
+        ? [{ key: "jump" as const, onBarFrom: null, destructive: false }]
+        : []),
       // On a phone away from the cursor the way back has the slot, so the
       // restart the slot holds from `md` up is in ⋯ there.
-      ...(restart !== null && away ? [{ key: restart, phoneOnly: true, destructive: true }] : []),
-      ...over.map((key) => ({ key, phoneOnly: false, destructive: true })),
+      ...(restart !== null && away
+        ? [{ key: restart, onBarFrom: "md" as const, destructive: true }]
+        : []),
+      ...over.map((key) => ({ key, onBarFrom: null, destructive: true })),
     ],
   };
 }

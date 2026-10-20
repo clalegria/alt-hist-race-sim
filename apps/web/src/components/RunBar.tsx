@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 import type { PageSteps } from "../lib/page-steps.js";
 import {
+  type BarWidth,
   type ContinueSlot,
   type Crumb,
   type CrumbMenu,
@@ -141,6 +142,8 @@ export interface RunActionsProps {
   readonly state: RunBarState;
   /** True while the grid is being rearranged, which is not a moment to step on. */
   readonly editingGrid: boolean;
+  /** True on a round's qualifying or race page, whose trail leaves the least room. */
+  readonly roundPage: boolean;
   readonly onContinue: () => void;
   readonly onSkip: () => void;
   /** Opens the jump dialog. */
@@ -230,6 +233,27 @@ function menuGroup(entry: RunMenuEntry): "forward" | "over" | "out" {
   return entry.key === "exit" ? "out" : entry.destructive ? "over" : "forward";
 }
 
+/*
+ * A bar button from its width up, and a ⋯ entry below it. Spelled whole, never
+ * built from the width: Tailwind writes only the classes it finds in the source.
+ */
+const SHOWN_FROM: Record<BarWidth, string> = {
+  md: "hidden md:inline-flex",
+  lg: "hidden lg:inline-flex",
+};
+const HIDDEN_FROM: Record<BarWidth, string> = { md: "md:hidden", lg: "lg:hidden" };
+
+/**
+ * The width from which none of `entries` is in ⋯ any more, each having moved
+ * onto the bar; null while one of them is in ⋯ at every width.
+ */
+function goneFrom(entries: readonly RunMenuEntry[]): BarWidth | null {
+  if (entries.some((entry) => entry.onBarFrom === null)) {
+    return null;
+  }
+  return entries.some((entry) => entry.onBarFrom === "lg") ? "lg" : "md";
+}
+
 /** The way back to the cursor's page: it navigates, so a link in a button's clothes. */
 function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
   return (
@@ -254,21 +278,26 @@ function BackLink({ to, className }: { to: ReturnLink; className?: string }) {
  *
  * **The way on is always the right-hand end, with ⋯ just left of it**, so
  * neither moves as the set changes from beat to beat (`runActionsFor` decides
- * where each goes): Continue, or at the run's end, its restart. The other ways forward are buttons to their left on a wide
- * screen, and the only part of the bar that wraps; the ones that throw work
- * away, and Exit run, are in ⋯. On a phone there is room for one button beside
- * ⋯, so the other ways forward fold into it too: one list, its phone-only
- * entries hidden from `md` up, so the two layouts cannot offer different
+ * where each goes): Continue, or at the run's end, its restart. The other ways
+ * forward are buttons to their left on a wide screen; the ones that throw work
+ * away, and Exit run, are in ⋯. Short of room, a way forward folds into ⋯:
+ * all but one on a phone, and Jump to… below `lg` or on a round's page. One list, each entry hidden
+ * from the width its button shows, so the layouts cannot offer different
  * things. Both are rendered and CSS shows one, which keeps the choice in the
- * stylesheet (a media query, `md:`) rather than in script.
+ * stylesheet (media queries, `md:` and `lg:`) rather than in script.
  *
+ * As wide as its buttons and no wider, so the foot of the page right-aligns it.
  * Drawn twice, in the sticky bar and at the foot of the page, from one set of
  * props, so the two copies always show the same thing.
  */
 export function RunActions(props: RunActionsProps) {
   const { state } = props;
   const away = props.returnTo ?? null;
-  const layout = runActionsFor(state, { away: away !== null, editingGrid: props.editingGrid });
+  const layout = runActionsFor(state, {
+    away: away !== null,
+    editingGrid: props.editingGrid,
+    roundPage: props.roundPage,
+  });
   const actions: Record<RunCommand, Action> = {
     continue: { label: "Continue", onSelect: props.onContinue },
     skip: { label: state.skip ?? "", onSelect: props.onSkip },
@@ -279,9 +308,9 @@ export function RunActions(props: RunActionsProps) {
   };
 
   return (
-    // `flex-auto`, not `flex-1`: starting from its own width, a crowded line
-    // shrinks the trail; starting from nothing, it would overflow it instead.
-    <div className="flex flex-auto items-start justify-end gap-2">
+    // `flex-initial`: its own width, never more; less only for the editing
+    // note, which wraps, while the buttons' labels never do.
+    <div className="flex flex-initial items-start justify-end gap-2">
       {props.editingGrid ? (
         // No way forward while a grid is half-rearranged: the draft would go
         // with it, and the season simulated would be the one being replaced.
@@ -289,14 +318,19 @@ export function RunActions(props: RunActionsProps) {
           Editing the grid. Apply or cancel your edit to carry on.
         </span>
       ) : (
-        <div className="hidden flex-1 flex-wrap justify-end gap-2 md:flex">
-          {layout.bar.map((key) =>
+        <div className="hidden flex-wrap justify-end gap-2 md:flex">
+          {layout.bar.map(({ key, from }) =>
             key === "back" ? (
               away === null ? null : (
-                <BackLink key={key} to={away} />
+                <BackLink key={key} to={away} className={SHOWN_FROM[from]} />
               )
             ) : (
-              <Button key={key} variant="outline" onClick={actions[key].onSelect}>
+              <Button
+                key={key}
+                variant="outline"
+                onClick={actions[key].onSelect}
+                className={SHOWN_FROM[from]}
+              >
                 {actions[key].label}
               </Button>
             ),
@@ -315,20 +349,24 @@ export function RunActions(props: RunActionsProps) {
               const action = actions[entry.key];
               const before = layout.menu[index - 1];
               // A rule between the groups; leaving the run sits apart from the
-              // restarts, which keep it. Phone-only entries come first, so after
-              // one, an entry is ⋯'s first from `md` up and needs no rule there.
+              // restarts, which keep it. Entries that move onto the bar come
+              // first, so once every one above has, this entry is ⋯'s first and
+              // needs no rule.
               const rule = before !== undefined && menuGroup(before) !== menuGroup(entry);
+              const ruleGoneFrom = goneFrom(layout.menu.slice(0, index));
               return (
                 <Fragment key={entry.key}>
                   {rule ? (
                     <DropdownMenuSeparator
-                      {...(before.phoneOnly ? { className: "md:hidden" } : {})}
+                      {...(ruleGoneFrom === null ? {} : { className: HIDDEN_FROM[ruleGoneFrom] })}
                     />
                   ) : null}
                   <DropdownMenuItem
                     onSelect={action.onSelect}
                     destructive={entry.destructive}
-                    {...(entry.phoneOnly ? { className: "md:hidden" } : {})}
+                    {...(entry.onBarFrom === null
+                      ? {}
+                      : { className: HIDDEN_FROM[entry.onBarFrom] })}
                   >
                     {action.label}
                   </DropdownMenuItem>
@@ -364,10 +402,12 @@ export function RunActions(props: RunActionsProps) {
 /**
  * The run as a live session: a dot, the trail to this page, and under them
  * the season's rounds. The dot is lit on the cursor's own page and dims on
- * any other, like a stream's LIVE badge once you have scrolled back. Away,
- * a "Run is at" link joins the rounds (on their row from `sm` up); on the
- * cursor's page the trail already says where the run is, so the place is
- * there for screen readers only.
+ * any other, like a stream's LIVE badge once you have scrolled back. Where
+ * the run is, in words, is for screen readers only, which cannot see the
+ * segments: on the cursor's page the trail says it, and away, Back to run
+ * names it in its tooltip.
+ *
+ * `flex-1` from nothing: it takes what the actions leave, never the reverse.
  */
 function RunPlace({
   crumbs,
@@ -377,7 +417,7 @@ function RunPlace({
 }: RunActionsProps & { crumbs: readonly Crumb[]; steps: PageSteps | null }) {
   const live = returnTo === undefined || returnTo === null;
   return (
-    <div className="flex flex-col gap-1.5 leading-tight">
+    <div className="flex flex-1 flex-col gap-1.5 leading-tight">
       <div className="flex items-start gap-2">
         <span
           aria-hidden="true"
@@ -390,22 +430,8 @@ function RunPlace({
           {...(steps === null ? {} : { after: <StepArrows steps={steps} /> })}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:flex-nowrap">
-        <div className="flex min-w-24 flex-1 sm:w-[260px] sm:flex-initial">
-          <RoundSegments rounds={state.rounds} done={state.roundsRun} />
-        </div>
-        {live ? (
-          // The segments are hidden from screen readers, so this says them in words.
-          <span className="sr-only">{state.cursor}</span>
-        ) : (
-          <Link
-            {...returnTo.link}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring font-mono text-xs underline-offset-4 sm:whitespace-nowrap hover:underline focus-visible:ring-2 focus-visible:outline-none"
-          >
-            Run is at {state.cursor}
-          </Link>
-        )}
-      </div>
+      <RoundSegments rounds={state.rounds} done={state.roundsRun} />
+      <span className="sr-only">{live ? state.cursor : `Run is at ${state.cursor}`}</span>
     </div>
   );
 }
@@ -415,9 +441,10 @@ function RunPlace({
  * right — navigation is the right-hand end of the bar on every page.
  *
  * One line that never wraps, top-aligned, so the actions cannot drop under
- * the trail and take the way on with them. Short of room, the trail and the
- * buttons left of ⋯ wrap inside themselves instead: a flex item will not
- * shrink below its own narrowest layout, so ⋯ and the way on keep their width.
+ * the trail and take the way on with them. The actions take their full width
+ * first and the place gets the rest, its trail wrapping and its rounds
+ * narrowing to fit: in a toolbar the controls hold their size and the text
+ * beside them gives way. `runActionsFor` folds into ⋯ whatever would not fit.
  */
 export function RunBar({
   crumbs,
