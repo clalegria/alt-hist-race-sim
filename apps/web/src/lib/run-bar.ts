@@ -311,6 +311,8 @@ export interface CrumbMenu {
 /** One breadcrumb. `link` is absent for the page itself and for a place not reached. */
 export interface Crumb {
   readonly label: string;
+  /** What a phone shows instead, so a round's trail stays one line; `label` is still read out. */
+  readonly short?: string;
   readonly link?: CrumbLink;
   /** Its siblings, so the trail moves sideways as well as up. */
   readonly menu?: CrumbMenu;
@@ -491,6 +493,7 @@ export function crumbsFor(run: Run, at: Place | RosterLocation): readonly Crumb[
     const calendar = seasonSeed(place.year).calendar;
     crumbs.push({
       label: `Round ${beat.round + 1}`,
+      short: `R${beat.round + 1}`,
       ...(yearReached
         ? {
             menu: {
@@ -504,7 +507,9 @@ export function crumbsFor(run: Run, at: Place | RosterLocation): readonly Crumb[
           }
         : {}),
     });
-    crumbs.push({ label: beat.kind === "qualifying" ? "Qualifying" : "Race" });
+    crumbs.push(
+      beat.kind === "qualifying" ? { label: "Qualifying", short: "Qualy" } : { label: "Race" },
+    );
   }
   return endingHere(crumbs);
 }

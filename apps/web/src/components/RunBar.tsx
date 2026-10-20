@@ -74,6 +74,25 @@ function CrumbMenuButton({ menu }: { menu: CrumbMenu }) {
 }
 
 /**
+ * A crumb's words. Below `md` its short form shows (`R11`, `Qualy`) and the
+ * full one is kept for screen readers (`sr-only`, not `hidden`), so the
+ * crumb's name is the same at every width.
+ */
+function CrumbLabel({ crumb }: { crumb: Crumb }) {
+  if (crumb.short === undefined) {
+    return crumb.label;
+  }
+  return (
+    <>
+      <span aria-hidden="true" className="md:hidden">
+        {crumb.short}
+      </span>
+      <span className="sr-only md:not-sr-only">{crumb.label}</span>
+    </>
+  );
+}
+
+/**
  * Where this page sits in the run: `Era › 1984 ▾ › Round 3 ▾ › Race`.
  *
  * A real `<nav>` with an ordered list, the pattern screen readers announce as a
@@ -112,14 +131,14 @@ export function Breadcrumbs({
                     {...crumb.link}
                     className="text-muted-foreground hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none"
                   >
-                    {crumb.label}
+                    <CrumbLabel crumb={crumb} />
                   </Link>
                 ) : (
                   <span
                     {...(last ? { "aria-current": "page" as const } : {})}
                     className={last ? "text-foreground font-semibold" : "text-muted-foreground"}
                   >
-                    {crumb.label}
+                    <CrumbLabel crumb={crumb} />
                   </span>
                 )}
                 {crumb.menu === undefined ? null : <CrumbMenuButton menu={crumb.menu} />}
