@@ -151,6 +151,7 @@ export function ReserveList({
   onFiltersChange,
   sort = DEFAULT_SORT_ORDER,
   onSortChange,
+  sortName = "reserve-sort",
 }: {
   drivers: readonly Driver[];
   seasonYear: number;
@@ -163,6 +164,11 @@ export function ReserveList({
   /** How the pool is ordered. Controlled, beside the filters, for the same reason. */
   sort?: SortOrder;
   onSortChange?: (order: SortOrder) => void;
+  /**
+   * The sort switch's radio group. The phone's sheet passes its own: the
+   * sidebar's copy is still mounted, hidden, and one name would group the two.
+   */
+  sortName?: string;
 }) {
   // The one exemption: whoever is held. A selection the filters hide is a
   // selection the reader cannot put down, and it would be highlighted on a row
@@ -197,7 +203,7 @@ export function ReserveList({
       <CardBand title="Without a drive">
         <SortToggle
           label="Sort drivers without a drive"
-          name="reserve-sort"
+          name={sortName}
           order={sort}
           {...(onSortChange === undefined ? {} : { onChange: onSortChange })}
         />

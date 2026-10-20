@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { driverName, teamName } from "../lib/names.js";
+import { driversLink, teamsLink } from "../lib/roster-places.js";
 import type { RunLink } from "../lib/run-places.js";
 import type { Place } from "../lib/timeline.js";
 import { PageHeading } from "./PageHeading.js";
@@ -53,6 +55,32 @@ export function NotReached({
         </p>
         <Link {...link} className={buttonClass("link", "-mx-1.5", "inline")}>
           Back to where the run is: {cursor}
+        </Link>
+      </Card>
+    </div>
+  );
+}
+
+/**
+ * A driver's or team's address the run has not had: typed, or a tab kept from
+ * before a restart. Said by name, like `NotReached`, rather than sent to the
+ * index without a word. It promises nothing: a year is made only when the run
+ * reaches it, so whether they will ever race in it is not known yet.
+ */
+export function NotInRun({ page, id }: { page: "driver" | "team"; id: string }) {
+  const driver = page === "driver";
+  return (
+    <div className="flex flex-col gap-6">
+      <header>
+        <PageHeading title={driver ? driverName(id) : teamName(id)} sub="Not in this run yet" />
+      </header>
+      <Card className="flex flex-col items-start gap-2 p-4">
+        <p className="text-muted-foreground text-sm">Hasn't raced in this run so far.</p>
+        <Link
+          {...(driver ? driversLink() : teamsLink())}
+          className={buttonClass("link", "-mx-1.5", "inline")}
+        >
+          {driver ? "All drivers in the run" : "All teams in the run"}
         </Link>
       </Card>
     </div>

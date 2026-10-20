@@ -25,36 +25,6 @@ Some items also belong to a roadmap item in `docs/ROADMAP.md` and are tagged wit
 
 ---
 
-## 2. Finding your way
-
-Page structure, navigation, and the phone screens after the two in tier 1.
-
-- **`grid-editor-pool-phone`** (PROPOSED; *Phone layout*)
-  - The "Without a drive" pool is a sticky sidebar only from `lg` (`GridStage.tsx:~225`). On a phone it sits below about fifteen team cards, so filling one seat means scrolling the whole page and back.
-  - Fix: a bottom sheet, or a sticky "Pick a driver" bar.
-  - Screenshot step: `grid-editor --phone`.
-- **`raced-grid-unreachable`** (PROPOSED)
-  - Once raced, a grid page ("This grid has been raced, so it can no longer be changed.") has no link pointing to it. Only browser Back or a typed URL reaches it.
-  - The season page's Grid tab (`lib/season-tabs.ts:~20`) shows the grid inside the season page instead.
-  - Fix: either link the raced grid page from somewhere visible, or retire it in favour of the tab. Decide which.
-  - Screenshot step: `grid-raced`.
-- **`future-person-redirect`** (PROPOSED)
-  - An unreached season gets a "Not reached yet" page, but a driver or team only on a future grid is silently redirected to the index (`lib/roster-places.ts:~117`).
-  - Fix: use `NotReached` for both.
-  - Screenshot step: `not-reached`.
-- **`era-sections-discoverability`** (OPEN)
-  - In an era, the drivers and teams pages are reached only through a 16px caret on the "Era" crumb, plus two small "All drivers →" / "All teams →" links.
-  - Proposed: a visible section row on the era pages, Champions · Drivers · Teams, drawn like the season page's tabs.
-  - Screenshot steps: `sections-menu`, `era-champions`.
-- **`era-end-dead-end`** (PROPOSED; after `one-year-run-dead-end`)
-  - An era that reaches the last authored year says "That's the last season there is, so the era ends here." (`EraChampions.tsx:~338`) and offers nothing.
-  - Fix: give it the same way on.
-  - Screenshot step: none; needs a run ending at 2026.
-- **`chart-phone`** (OPEN; *Phone layout* calls it unsolved)
-  - On a phone the legend wraps each name over two lines, and the round labels crowd the axis.
-  - What the chart should become at 390px is still open: fewer series, a one-column legend, or a different chart.
-  - Screenshot step: `season-summary --phone`.
-
 ## 3. One way to draw each thing
 
 Visual consistency. The first three settle how a name is drawn, which later items lean on.

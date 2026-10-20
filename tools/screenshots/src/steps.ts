@@ -155,7 +155,12 @@ export const STEPS: readonly Step[] = [
       const drivers = page.locator("li li button[aria-pressed]");
       await drivers.nth(0).click();
       await drivers.nth(3).click();
-      await page.getByRole("heading", { name: "Without a drive" }).waitFor();
+      // Beside the grid on a wide screen; a phone has the bar that opens it.
+      await page
+        .getByRole("heading", { name: "Without a drive" })
+        .or(page.getByRole("button", { name: /^Without a drive/ }))
+        .first()
+        .waitFor();
       // One engine stepped up twice: every card running it says so.
       const stronger = page.getByRole("button", { name: /^Strengthen .* engine$/ }).first();
       await stronger.click();
@@ -163,8 +168,25 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "grid-editor-pool",
+    reach: async (page) => {
+      // The phone's pool, a sheet over the grid. A wide screen has it beside
+      // the grid already, so this is the editor as it was.
+      const bar = page.getByRole("button", { name: /^Without a drive/ });
+      if (await bar.isVisible()) {
+        await bar.click();
+        await page.getByRole("dialog", { name: "Without a drive" }).waitFor();
+      }
+    },
+  },
+  {
     name: "grid-editor-team",
     reach: async (page) => {
+      const sheet = page.getByRole("dialog", { name: "Without a drive" });
+      if (await sheet.isVisible()) {
+        await page.keyboard.press("Escape");
+        await sheet.waitFor({ state: "hidden" });
+      }
       // A team's popover in the editor: a stepper on every chassis and engine
       // rating and on its development, stepped once.
       await page.locator('li button[aria-haspopup="dialog"]').first().click();
@@ -265,15 +287,32 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "season-final-standings",
+    reach: async (page) => {
+      // The finished championships with their charts, a whole season long.
+      await page
+        .getByRole("navigation", { name: "Season" })
+        .getByRole("link", { name: "Standings", exact: true })
+        .click();
+      await page.waitForURL(`**/run/${YEAR}?tab=standings`);
+      await page
+        .getByText(/was won/i)
+        .first()
+        .waitFor();
+    },
+  },
+  {
     name: "grid-raced",
     reach: async (page) => {
       // Back through the pages already read: a place, never a step back in time.
-      // Summary, calendar tab, season page, race, qualifying, then the grid.
-      for (let i = 0; i < 5; i += 1) {
+      // Standings tab, summary, calendar tab, season page, race, qualifying,
+      // then the grid.
+      for (let i = 0; i < 6; i += 1) {
         await page.goBack();
       }
-      await page.waitForURL(`**/run/${YEAR}/grid`);
-      await page.getByText("This grid has been raced", { exact: false }).waitFor();
+      // A raced grid's own address is now the season page's Grid tab.
+      await page.waitForURL(`**/run/${YEAR}?tab=grid`);
+      await page.getByRole("heading", { name: `${YEAR} season` }).waitFor();
     },
   },
   {
@@ -435,12 +474,15 @@ export const STEPS: readonly Step[] = [
     name: "era-kept-grid",
     reach: async (page) => {
       // The year after the start under the first season's teams: ghost entries
-      // and the note saying what was kept.
-      await page
+      // and the note saying what was kept. The season page opens on the tab
+      // last left on, which `grid-raced` left on the Grid, so it may be there.
+      const tab = page
         .getByRole("navigation", { name: "Season" })
-        .getByRole("link", { name: "Grid", exact: true })
-        .click();
-      await page.waitForURL(`**/run/${YEAR + 1}?tab=grid`);
+        .getByRole("link", { name: "Grid", exact: true });
+      if ((await tab.count()) > 0) {
+        await tab.click();
+        await page.waitForURL(`**/run/${YEAR + 1}?tab=grid`);
+      }
       await page.getByText(`Kept from ${YEAR}`).first().waitFor();
     },
   },

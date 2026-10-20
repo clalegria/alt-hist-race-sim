@@ -20,6 +20,7 @@ import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from 
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn, TIMING_NAME } from "../lib/utils.js";
 import { useTeamCountryIn, useTeamNameIn } from "./EntryNames.js";
+import { EraTabs } from "./EraTabs.js";
 import { SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { Liveries } from "./Liveries.js";
@@ -122,11 +123,12 @@ export function RosterIndex({
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
+      <header className="flex flex-col gap-3">
         <PageHeading
           title={kind === "drivers" ? "Drivers" : "Teams"}
           sub={`${count(rows.length, noun, `${noun}s`)} in the run so far`}
         />
+        <EraTabs current={kind} />
       </header>
       <Card>
         <Table>

@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { niceTicks, spreadLabels } from "../lib/chart-layout.js";
+import { niceTicks, phoneRoundTick, spreadLabels } from "../lib/chart-layout.js";
 import {
   driversEvolution,
   type EvolutionSeries,
@@ -317,6 +317,35 @@ function EndLabels({
 }
 
 /**
+ * A round's number under the chart. A phone hides all but `phoneRoundTick`'s by
+ * a media query, the way every phone layout here is chosen (`docs/design/publish.md`).
+ */
+function RoundTick({
+  x,
+  y,
+  payload,
+}: {
+  x?: number | string;
+  y?: number | string;
+  payload?: { value?: number };
+}) {
+  const round = payload?.value ?? 0;
+  return (
+    <text
+      x={x}
+      y={y}
+      dy="0.71em"
+      textAnchor="middle"
+      fill="currentColor"
+      fontSize={11}
+      className={phoneRoundTick(round) ? undefined : "max-sm:hidden"}
+    >
+      {round}
+    </text>
+  );
+}
+
+/**
  * One chart, with its legend under it.
  *
  * The legend is below rather than beside so that a narrow window costs the
@@ -366,7 +395,10 @@ function EvolutionChart({
               dataKey="round"
               stroke="currentColor"
               className="text-muted-foreground font-mono"
-              tick={{ fill: "currentColor", fontSize: 11 }}
+              // Every round, so which are numbered is a CSS rule rather than
+              // Recharts' own thinning, which moves with the width.
+              interval={0}
+              tick={RoundTick}
               tickLine={false}
               axisLine={false}
               padding={{ left: 4, right: 4 }}
@@ -421,7 +453,8 @@ function EvolutionChart({
         */}
         <ul
           className={cn(
-            "grid grid-cols-2 gap-x-4 gap-y-1 px-3 pt-3",
+            // One name a row on a phone, where two columns wrapped every name.
+            "grid grid-cols-1 gap-x-4 gap-y-1 px-3 pt-3 sm:grid-cols-2",
             legendColumns(lines.length) === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3",
           )}
         >

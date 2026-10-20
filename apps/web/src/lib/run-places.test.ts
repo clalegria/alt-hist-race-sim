@@ -20,6 +20,7 @@ import {
   resolveRunPage,
   runPageOf,
 } from "./run-places.js";
+import { seasonTabLink } from "./season-tabs.js";
 import { type Beat, isReached, type Place } from "./timeline.js";
 
 const first = seededWorld(3, "aged", YEAR);
@@ -114,9 +115,13 @@ describe("what a page inside /run shows", () => {
     beats.forEach((beat, index) => {
       const { page, params } = paramsOf({ year: YEAR, beat });
       const resolved = resolveRunPage(run, page, params);
-      // The summary's page is the season's own, there from the grid on.
+      // The summary's page is the season's own, there from the grid on. The
+      // grid, once raced, is that page's Grid tab.
       const shown = index <= at || beat.kind === "summary";
-      expect(resolved.kind, JSON.stringify(beat)).toBe(shown ? "season" : "unreached");
+      const raced = beat.kind === "grid" && index < at;
+      expect(resolved.kind, JSON.stringify(beat)).toBe(
+        raced ? "raced" : shown ? "season" : "unreached",
+      );
       if (resolved.kind === "season") {
         expect(resolved.view).toEqual(beat);
         expect(resolved.world.year).toBe(YEAR);
@@ -128,7 +133,7 @@ describe("what a page inside /run shows", () => {
   });
 
   it("hands a page the season cut at the cursor, not the whole of it", () => {
-    const resolved = resolveRunPage(run, "grid", { year: String(YEAR) });
+    const resolved = resolveRunPage(run, "season", { year: String(YEAR) });
     expect(resolved.kind === "season" && resolved.world.season).toEqual(
       revealYear(first, cursor).season,
     );
@@ -149,11 +154,11 @@ describe("what a page inside /run shows", () => {
     }
   });
 
-  it("lets only the grid the cursor is on be edited", () => {
+  it("shows the grid page only while the cursor is on it, and a raced one as the Grid tab", () => {
     const onGrid = resolveRunPage(season({ kind: "grid" }), "grid", { year: String(YEAR) });
-    expect(onGrid.kind === "season" && onGrid.editable).toBe(true);
+    expect(onGrid.kind).toBe("season");
     const past = resolveRunPage(run, "grid", { year: String(YEAR) });
-    expect(past.kind === "season" && past.editable).toBe(false);
+    expect(past.kind === "raced" && past.to).toEqual(seasonTabLink(YEAR, "grid"));
   });
 
   it("shows the season's page from its grid on, finished only once the summary is reached", () => {
@@ -183,7 +188,8 @@ describe("what a page inside /run shows", () => {
 describe("what a page inside an era shows", () => {
   it("shows a crowned year's pages whole, whatever the cursor is doing now", () => {
     const run = era({ kind: "grid" });
-    for (const beat of beatsOf(first.season.races.length)) {
+    // All but its grid, which is the season page's Grid tab (the test below).
+    for (const beat of beatsOf(first.season.races.length).filter((one) => one.kind !== "grid")) {
       const { page, params } = paramsOf({ year: YEAR, beat });
       const resolved = resolveRunPage(run, page, params);
       expect(resolved.kind, JSON.stringify(beat)).toBe("season");
@@ -191,9 +197,9 @@ describe("what a page inside an era shows", () => {
     }
   });
 
-  it("never lets a crowned year's grid be edited", () => {
+  it("sends a crowned year's grid page to its season's Grid tab", () => {
     const resolved = resolveRunPage(era({ kind: "grid" }), "grid", { year: String(YEAR) });
-    expect(resolved.kind === "season" && resolved.editable).toBe(false);
+    expect(resolved.kind === "raced" && resolved.to).toEqual(seasonTabLink(YEAR, "grid"));
   });
 
   it("shows the overview with the crowned years and the year in progress, cut at the cursor", () => {

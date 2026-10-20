@@ -6,7 +6,20 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { niceTicks, spreadLabels } from "./chart-layout.js";
+import { niceTicks, PHONE_ROUND_STEP, phoneRoundTick, spreadLabels } from "./chart-layout.js";
+
+describe("phoneRoundTick", () => {
+  const rounds = Array.from({ length: PHONE_ROUND_STEP * 5 }, (_, index) => index + 1);
+  const numbered = rounds.filter(phoneRoundTick);
+
+  it("numbers the first round and every step after it, and nothing else", () => {
+    expect(numbered[0]).toBe(1);
+    for (const round of numbered.slice(1)) {
+      expect(round % PHONE_ROUND_STEP).toBe(0);
+    }
+    expect(numbered.length).toBe(1 + rounds.length / PHONE_ROUND_STEP);
+  });
+});
 
 const SPACE = { top: 0, bottom: 300, gap: 11 };
 

@@ -13,6 +13,7 @@
  * several seasons, so in a one-year run every people URL goes to its season.
  */
 
+import { driversById, teamsById } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
 import { cursorPlace, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
@@ -21,6 +22,10 @@ import { linkTo, type RunLink } from "./run-places.js";
 import type { Place } from "./timeline.js";
 
 export type RosterPage = "drivers" | "teams" | "driver" | "team";
+
+/** Every driver and team the data has, so an id the run has not had can still be named. */
+const DRIVERS = driversById();
+const TEAMS = teamsById();
 
 /** The drivers' index, in the default order unless a sort is named. */
 export function driversLink(sort?: IndexSort) {
@@ -88,13 +93,22 @@ export type RosterResolution =
       readonly roster: Roster;
       readonly cursor: Place;
     }
+  | {
+      /** A real driver or team the run has not had: said, rather than a silent redirect. */
+      readonly kind: "absent";
+      readonly page: "driver" | "team";
+      readonly id: string;
+    }
   | { readonly kind: "redirect"; readonly to: RosterLink | RunLink };
 
 /**
  * What `page` with `id` may show of `run`. In a one-year run, nothing: every
  * page goes to the season's. In an era an index always shows, and a person's
- * page shows only someone on the roster; a malformed id, an unknown one, or
- * one who is only on a grid still ahead goes to that list's index.
+ * page shows only someone on the roster. A real driver or team who is not —
+ * a typed address, or a tab kept from before a restart — is `absent`, so the
+ * reader knows the address was right; a malformed or unknown id goes to that
+ * list's index. Nothing says whether the run will ever have them: a year is
+ * made only when the run reaches it.
  */
 export function resolveRosterPage(run: Run, page: RosterPage, id?: string): RosterResolution {
   if (run.kind !== "era") {
@@ -115,7 +129,10 @@ export function resolveRosterPage(run: Run, page: RosterPage, id?: string): Rost
   const parsed = parseId(id);
   const known = page === "driver" ? roster.drivers : roster.teams;
   if (parsed === null || !known.has(parsed)) {
-    return { kind: "redirect", to: page === "driver" ? driversLink() : teamsLink() };
+    const exists = parsed !== null && (page === "driver" ? DRIVERS : TEAMS).has(parsed);
+    return exists
+      ? { kind: "absent", page, id: parsed }
+      : { kind: "redirect", to: page === "driver" ? driversLink() : teamsLink() };
   }
   return { ...found, location: { page, id: parsed } };
 }

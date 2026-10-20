@@ -18,6 +18,7 @@ import { seasonSeed } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
 import { cursorPlace, type EraRun, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
+import { seasonTabLink } from "./season-tabs.js";
 import { nextEraYear } from "./seasons.js";
 import { comparePlaces, isReached, type Place, type View } from "./timeline.js";
 
@@ -105,8 +106,6 @@ export type RunResolution =
       readonly place: Place;
       readonly world: RevealedWorld;
       readonly view: View;
-      /** Only the grid the cursor is on can still be changed; any other is history. */
-      readonly editable: boolean;
       /** Whether the reader has reached this year's summary, so its champions are known. */
       readonly finished: boolean;
     }
@@ -119,6 +118,12 @@ export type RunResolution =
       readonly inProgress: RevealedWorld | null;
     }
   | { readonly kind: "unreached"; readonly place: Place }
+  /**
+   * A grid already raced, whose page is its season's Grid tab. Apart from a
+   * plain redirect because a page that was showing it is one the run just left,
+   * and goes on with the run rather than to the tab.
+   */
+  | { readonly kind: "raced"; readonly to: ReturnType<typeof seasonTabLink> }
   | { readonly kind: "redirect"; readonly to: RunLink };
 
 /**
@@ -165,6 +170,10 @@ function canReach(run: Run, place: Place): boolean {
  *
  * `/run/1984` is the season's own page, reachable once its grid is: the year
  * as far as the cursor has got, and its summary once that is reached.
+ *
+ * `/run/1984/grid` is the grid the cursor is on, the one page that edits it.
+ * Once raced it goes to the season page's Grid tab, the one place a past grid
+ * is drawn, rather than keeping a second copy nothing links to.
  */
 export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunResolution {
   const cursor = cursorPlace(run);
@@ -210,12 +219,14 @@ export function resolveRunPage(run: Run, page: RunPage, params: RunParams): RunR
   ) {
     return toCursor;
   }
+  if (beat.kind === "grid" && comparePlaces(place, cursor) !== 0) {
+    return { kind: "raced", to: seasonTabLink(place.year, "grid") };
+  }
   return {
     kind: "season",
     place,
     world,
     view: beat,
-    editable: beat.kind === "grid" && comparePlaces(place, cursor) === 0,
     finished: isReached(cursor, { year: place.year, beat: { kind: "summary" } }),
   };
 }

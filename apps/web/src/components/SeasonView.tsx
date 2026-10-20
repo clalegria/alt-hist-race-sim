@@ -233,12 +233,6 @@ interface SeasonViewProps {
   /** Raised while the grid editor is open, so the page can hide the way forward. */
   readonly onGridEditingChange?: (editing: boolean) => void;
   /**
-   * A grid the run has moved past, revisited: drawn as it was raced, with the
-   * season switcher and the editor put away, and a
-   * line saying why. Only the grid the cursor is on can still be changed.
-   */
-  readonly locked?: boolean;
-  /**
    * On the season's page, whether the reader has reached its summary: the
    * champions are drawn only then. Defaults to true, so a bare render of the
    * summary is the finished season.
@@ -272,7 +266,6 @@ function SeasonBody({
   backToSetupLock,
   onBackToSetup,
   previousLineup = null,
-  locked = false,
   finished = true,
   tab = "standings",
   tabs,
@@ -290,7 +283,7 @@ function SeasonBody({
         <header>
           <PageHeading
             title={`${world.year} grid`}
-            sub={locked ? "As raced" : `Before round 1 of ${world.season.rounds}`}
+            sub={`Before round 1 of ${world.season.rounds}`}
           />
         </header>
         {/*
@@ -316,12 +309,12 @@ function SeasonBody({
           lock={editingGrid && settingsLock === null ? EDITING_LOCK : settingsLock}
           {...(onSettingsChange === undefined ? {} : { onCommit: onSettingsChange })}
           extra={
-            !inEra && !editingGrid && !locked ? (
+            !inEra && !editingGrid ? (
               <SeasonSwitcher
                 year={world.year}
                 {...(onYearChange === undefined ? {} : { onSwitch: onYearChange })}
               />
-            ) : backToSetupLock !== undefined && !locked ? (
+            ) : backToSetupLock !== undefined ? (
               <BackToSetup
                 lock={editingGrid && backToSetupLock === null ? EDITING_LOCK : backToSetupLock}
                 {...(onBackToSetup === undefined ? {} : { onBack: onBackToSetup })}
@@ -329,11 +322,6 @@ function SeasonBody({
             ) : null
           }
         />
-        {locked ? (
-          <p className="text-muted-foreground text-sm">
-            This grid has been raced, so it can no longer be changed.
-          </p>
-        ) : null}
         <GridStage
           field={world.field}
           year={world.year}
@@ -350,7 +338,6 @@ function SeasonBody({
           arrangement={seatingArrangement(world.settings)}
           previousLineup={previousLineup}
           pool={driverPoolOf(world.settings)}
-          locked={locked}
           {...(onGridChange === undefined ? {} : { onApply: onGridChange })}
           onEditingChange={(editing) => {
             setEditingGrid(editing);

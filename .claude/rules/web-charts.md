@@ -28,3 +28,5 @@ The season summary's standings evolution (`StandingsEvolution.tsx`, `lib/evoluti
 - **End-of-line labels are laid out together, never one by one**: `EndLabels` reads the
   chart's own scales and `spreadLabels` (`lib/chart-layout.ts`) keeps them a label apart,
   inside the plot. The y axis is `niceTicks`, with its domain set to match.
+- **On a phone the legend is one column and the round axis numbers only `phoneRoundTick`'s**,
+  hidden by CSS in `RoundTick`; the axis keeps `interval={0}`, so Recharts never thins it.

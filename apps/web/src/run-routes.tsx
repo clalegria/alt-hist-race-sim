@@ -19,7 +19,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { RunFrame, SeasonPage, Shell } from "./App.js";
 import { EraChampions } from "./components/EraChampions.js";
-import { NotReached } from "./components/NotReached.js";
+import { NotInRun, NotReached } from "./components/NotReached.js";
 import { DriverPage, TeamPage } from "./components/PersonPages.js";
 import { RosterIndex } from "./components/RosterIndex.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
@@ -63,7 +63,7 @@ export function guardRunPage(page: RunPage, params: RunParams): void {
     throw redirect({ to: "/", replace: true });
   }
   const resolved = resolveRunPage(run, page, params);
-  if (resolved.kind === "redirect") {
+  if (resolved.kind === "redirect" || resolved.kind === "raced") {
     throw redirect({ ...resolved.to, replace: true });
   }
 }
@@ -109,6 +109,15 @@ export function RunPlacePage({
   switch (resolved.kind) {
     case "redirect":
       return <Navigate {...resolved.to} replace />;
+    case "raced":
+      // Continue on the grid races it under the page; the run's own navigation
+      // is to the cursor, so going to the Grid tab here would undo it.
+      return (
+        <Navigate
+          {...(showing.current === address ? linkTo(cursorPlace(run)) : resolved.to)}
+          replace
+        />
+      );
     case "unreached":
       return showing.current === address ? (
         <Navigate {...linkTo(cursorPlace(run))} replace />
@@ -138,7 +147,6 @@ export function RunPlacePage({
           pagesOf={(round) => roundPages(resolved.place.year, round)}
           sessionNav={sessionNav(cursorPlace(run), resolved.place)}
           {...(run.kind === "era" ? { run: run.run } : {})}
-          locked={resolved.view.kind === "grid" && !resolved.editable}
           settingsLock={settingsLock(run)}
           {...(setupLock === undefined ? {} : { backToSetupLock: setupLock })}
           onBackToSetup={() => {
@@ -159,8 +167,8 @@ export function RunPlacePage({
 
 /**
  * The `beforeLoad` of the people pages: home when there is no run, the index
- * when the URL names someone the run has not had — a typo, or a driver only on
- * a grid still ahead, whose page would give that grid away.
+ * when the URL names no one the data has. Someone real the run has not had
+ * passes, and the page says so (`NotInRun`).
  */
 export function guardRosterPage(page: RosterPage, id?: string): void {
   const run = useSeasonStore.getState().run;
@@ -197,6 +205,9 @@ export function RosterPlacePage({
   const resolved = resolveRosterPage(run, page, id);
   if (resolved.kind === "redirect") {
     return <Navigate {...resolved.to} replace />;
+  }
+  if (resolved.kind === "absent") {
+    return <NotInRun page={resolved.page} id={resolved.id} />;
   }
   const { years, location } = resolved;
   switch (location.page) {
@@ -281,12 +292,16 @@ export function RunLayout() {
     rosterPage === null
       ? null
       : resolveRosterPage(run, rosterPage, params.driverId ?? params.teamId);
+  // Someone the run has not had is placed at their list, which is where the
+  // page points the reader.
   const place: Place | RosterLocation =
     person?.kind === "roster"
       ? person.location
-      : resolved === null || resolved.kind === "redirect"
-        ? cursorPlace(run)
-        : resolved.place;
+      : person?.kind === "absent"
+        ? { page: person.page === "driver" ? "drivers" : "teams" }
+        : resolved === null || resolved.kind === "redirect" || resolved.kind === "raced"
+          ? cursorPlace(run)
+          : resolved.place;
 
   /** Moves the URL to wherever the cursor is now. */
   const toCursor = (replace: boolean) => {
@@ -302,7 +317,9 @@ export function RunLayout() {
       crumbs={crumbsFor(run, place)}
       // Only on a page drawn as itself: a place ahead says "Not reached yet",
       // and has no neighbours to offer.
-      steps={resolved?.kind === "unreached" ? null : stepsFor(run, place)}
+      steps={
+        resolved?.kind === "unreached" || person?.kind === "absent" ? null : stepsFor(run, place)
+      }
       returnTo={returnFor(run, place)}
       onContinue={() => {
         continueRun();

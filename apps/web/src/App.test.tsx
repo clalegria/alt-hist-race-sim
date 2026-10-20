@@ -563,21 +563,12 @@ describe("who is offered the year switcher", () => {
   });
 });
 
-describe("a grid the run has moved past", () => {
-  const html = (locked: boolean) =>
-    renderToStaticMarkup(<SeasonPage {...shownAt(world, { kind: "grid" })} locked={locked} />);
-
-  it("is drawn as it was raced, with no way to change it", () => {
-    const locked = html(true);
-    expect(locked).toContain("This grid has been raced");
-    expect(locked).not.toContain("Edit grid");
-    // Still the grid: every seat on it.
-    expect(locked).toContain(rowName(world.field[0]?.driverId ?? ""));
-  });
-
-  it("is editable while the run is on it", () => {
-    const open = html(false);
-    expect(open).toContain("Edit grid");
-    expect(open).not.toContain("This grid has been raced");
+describe("the grid page", () => {
+  // A raced grid never reaches this page: it is the season page's Grid tab
+  // (`resolveRunPage`), so the grid page is always the one to edit.
+  it("is editable", () => {
+    const html = renderToStaticMarkup(<SeasonPage {...shownAt(world, { kind: "grid" })} />);
+    expect(html).toContain("Edit grid");
+    expect(html).toContain(rowName(world.field[0]?.driverId ?? ""));
   });
 });

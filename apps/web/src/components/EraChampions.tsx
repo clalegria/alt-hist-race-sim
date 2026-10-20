@@ -10,10 +10,11 @@ import { CareerStatistics } from "./CareerStatistics.js";
 import { DisclosureButton } from "./DisclosureButton.js";
 import { DriverName } from "./DriverName.js";
 import { EntryNames } from "./EntryNames.js";
+import { EraTabs } from "./EraTabs.js";
 import { Liveries } from "./Liveries.js";
 import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
-import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
+import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
@@ -434,6 +435,8 @@ export function EraChampions({
   // than the last, because that is the one that fixed them.
   const first = seasons[0]?.world ?? inProgress;
   const ended = eraEnded(seasons, inProgress);
+  // Inside a run, the page is one of the era's three sections; a test with no router has no strip.
+  const inRun = usePageOf() !== null;
 
   return (
     // No padding of its own: the run's frame spaces every page under the bar.
@@ -443,6 +446,7 @@ export function EraChampions({
           title={ended ? "All champions" : "Champions so far"}
           sub={eraLead(seasons, inProgress)}
         />
+        {inRun ? <EraTabs current="overview" /> : null}
         {first === null ? null : (
           <SimulationSettings
             settings={settingsOf(first)}

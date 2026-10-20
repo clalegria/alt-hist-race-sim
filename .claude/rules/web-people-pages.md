@@ -26,8 +26,10 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
 - **The roster is everyone in the field of a year reached** (`rosterOf` over
   `revealed(run).years`): someone on the cursor's grid has a page, someone only on a grid
   ahead must not. The figures come off the championship tables, never the roster.
-- **An id is untrusted**: a malformed one (`parseId`) or one off the roster redirects to
-  its index, in `guardRosterPage` and again on render, since a restart can remove someone.
+- **An id is untrusted**: a malformed or unknown one (`parseId`) redirects to its index,
+  in `guardRosterPage` and again on render, since a restart can remove someone. A real
+  driver or team off the roster is `absent` (`NotInRun`), which never promises they will
+  race: a year is made only when the run reaches it.
 - **The pages take the revealed years and an id, never the store.**
 - **A name is never a link, except on an index.** Everywhere else it opens its career
   panel; the page icon (`PageLink`) sits in that panel's heading and in the grid's

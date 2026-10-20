@@ -238,9 +238,16 @@ describe("the guards on the pages inside /run", () => {
   it("let the reader back to every page once the season is over", () => {
     useSeasonStore.getState().simulate(3, YEAR);
     useSeasonStore.getState().jumpTo({ year: YEAR, beat: { kind: "summary" } });
-    for (const page of pages.filter((each) => each.name !== "review")) {
+    for (const page of pages.filter((each) => each.name !== "review" && each.name !== "grid")) {
       expect(guardOf(page.route, page.params), page.name).toBeUndefined();
     }
+  });
+
+  it("sends a raced grid's page on to the season page's Grid tab", () => {
+    useSeasonStore.getState().simulate(3, YEAR);
+    useSeasonStore.getState().jumpTo({ year: YEAR, beat: { kind: "summary" } });
+    const grid = pages.find((each) => each.name === "grid");
+    expect(grid && guardOf(grid.route, grid.params)).toBeDefined();
   });
 });
 

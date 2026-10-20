@@ -37,6 +37,8 @@ The opening grid (`SeasonGrid`) and the editor around it (`GridStage`, `useGridD
 ## The editor
 - **The editor changes only this grid**; a choice about the whole run is a setting
   (`teams-and-seats.md`). Its drafts are component state until Apply (`web-store.md`).
+- **Below `lg` the pool is a bottom sheet** (`ReserveSheet`) from a `sticky`, never `fixed`,
+  bar; the hidden sidebar stays mounted, so the sheet's list has its own `sortName`.
 - **It can only swap**: drivers through `pickUp`, engines among the suppliers the season
   rates, chassis and engine ratings and development trends by one-point steps. Nothing
   may add a car or invent a supplier.

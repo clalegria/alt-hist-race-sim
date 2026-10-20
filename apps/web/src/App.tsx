@@ -269,8 +269,8 @@ export function RunFrame({
  * `run` is present only inside an era, and is the years before this one: it
  * changes whether the year switcher is offered, which settings the grid's
  * settings line shows and what the grid editor's carry-over copies, and
- * nothing else. `locked` is a grid the run has moved
- * past. `onYearChange` is the grid's shortcut to the season next door, which
+ * nothing else. A grid page is always the cursor's, so always editable: a
+ * raced one is the season page's Grid tab (`resolveRunPage`). `onYearChange` is the grid's shortcut to the season next door, which
  * moves the URL and so comes from the route.
  *
  * `world` is the year as far as the reader has got (`revealYear`), never the
@@ -285,7 +285,6 @@ export function SeasonPage({
   world,
   view,
   run,
-  locked = false,
   settingsLock = null,
   backToSetupLock,
   onBackToSetup,
@@ -299,7 +298,6 @@ export function SeasonPage({
   world: RevealedWorld;
   view: View;
   run?: EraRun;
-  locked?: boolean;
   /** Why the run settings can no longer be changed here (`settingsLock`), or null. */
   settingsLock?: string | null;
   /** On an era's first grid, why it cannot go back to setup (`backToSetupLock`), or null. */
@@ -337,14 +335,13 @@ export function SeasonPage({
   const previousWorld =
     previousYear === null ? undefined : run?.seasons.find((season) => season.year === previousYear);
   const previousLineup = previousWorld === undefined ? null : racedLineup(previousWorld);
-  const editable = view.kind === "grid" && !locked;
+  const editable = view.kind === "grid";
 
   return (
     <SeasonView
       world={world}
       view={view}
       inEra={run !== undefined}
-      locked={locked}
       previousLineup={previousLineup}
       {...(run === undefined && editable && onYearChange !== undefined ? { onYearChange } : {})}
       {...(editable

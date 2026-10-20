@@ -31,6 +31,11 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
 - **Every tab strip opens on the tab last left on** (`lib/tab-memory.ts`, for the visit).
   A season URL with no tab shows `lastSeasonTab`, so a tab's own link always names it,
   standings included; links to a season never do.
+- **The era's sections are pages, not tabs** (`/run`, `/run/drivers`, `/run/teams`):
+  `EraTabs` draws them as a strip, never remembered, from `eraSectionTabs`, the list the
+  breadcrumb's sections menu reads too. Add a section there, once.
+- **Only the cursor's grid has a grid page**, to edit; a raced one's URL goes to the
+  season page's Grid tab (`resolveRunPage`), the one drawing of a past grid.
 - **The calendar lists every round of the season.** A round not reached is greyed, does
   not open and leaves its pole and winner empty; only the round whose qualifying alone is
   revealed shows `NOT_YET`, for its winner. A reached round's name links its page

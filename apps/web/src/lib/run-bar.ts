@@ -307,6 +307,18 @@ function roundsOf(run: Run, year: number): number {
 /** An era's sections, as its root crumb's menu lists them. */
 export type RunSection = "overview" | "drivers" | "teams";
 
+/** The era's sections, in order: the key, the menu's wording, the tab's, and where each is. */
+const ERA_SECTIONS: readonly {
+  readonly key: RunSection;
+  readonly menu: string;
+  readonly tab: string;
+  readonly link: CrumbLink;
+}[] = [
+  { key: "overview", menu: "Era summary", tab: "Champions", link: REVIEW_LINK },
+  { key: "drivers", menu: "All drivers", tab: "Drivers", link: driversLink() },
+  { key: "teams", menu: "All teams", tab: "Teams", link: teamsLink() },
+];
+
 /**
  * The era's root crumb's menu: **its sections**, the way across to the lists
  * of everyone in it — the overview and the two lists. `current` is the section
@@ -319,12 +331,32 @@ export type RunSection = "overview" | "drivers" | "teams";
 export function sectionsMenu(current: RunSection | null): CrumbMenu {
   return {
     label: "Run sections",
-    items: [
-      { label: "Era summary", link: REVIEW_LINK, current: current === "overview" },
-      { label: "All drivers", link: driversLink(), current: current === "drivers" },
-      { label: "All teams", link: teamsLink(), current: current === "teams" },
-    ],
+    items: ERA_SECTIONS.map((section) => ({
+      label: section.menu,
+      link: section.link,
+      current: current === section.key,
+    })),
   };
+}
+
+/**
+ * The same three sections as the tab strip on each of their pages
+ * (`EraTabs`): one list, so the breadcrumb menu and the strip cannot drift.
+ * Sections are separate pages, so unlike the season page's tabs they are not
+ * remembered (`tab-memory.ts`).
+ */
+export function eraSectionTabs(current: RunSection): readonly {
+  readonly key: RunSection;
+  readonly label: string;
+  readonly current: boolean;
+  readonly link: CrumbLink;
+}[] {
+  return ERA_SECTIONS.map((section) => ({
+    key: section.key,
+    label: section.tab,
+    current: current === section.key,
+    link: section.link,
+  }));
 }
 
 /** The last crumb is the page itself, so it links nowhere; its menu stays. */

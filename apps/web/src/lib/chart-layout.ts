@@ -116,3 +116,15 @@ export function spreadLabels(wanted: readonly number[], space: LabelSpace): numb
   }
   return placed;
 }
+
+/** On a phone the round axis numbers the first round and every this-many after it. */
+export const PHONE_ROUND_STEP = 5;
+
+/**
+ * Whether a phone's round axis numbers `round` (counted from 1): the first and
+ * every `PHONE_ROUND_STEP`th, so 1, 5, 10, 15, 20. Twenty-odd numbers across
+ * 390px touch; these are the ones a reader counts by. Wider screens number them all.
+ */
+export function phoneRoundTick(round: number): boolean {
+  return round === 1 || round % PHONE_ROUND_STEP === 0;
+}

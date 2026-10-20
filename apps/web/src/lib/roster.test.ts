@@ -168,12 +168,18 @@ describe("a people page's URL", () => {
     }
   });
 
-  it("sends a stranger, a typo or someone only on a grid ahead to the index", () => {
+  it("sends a stranger or a typo to the index", () => {
     const run = era({ kind: "race", round: 0 });
-    for (const id of [laterDriver(), "nobody_at_all", "Piquet", "../x", "", undefined]) {
+    for (const id of ["nobody_at_all", "Piquet", "../x", "", undefined]) {
       expect(resolveRosterPage(run, "driver", id)).toEqual({ kind: "redirect", to: driversLink() });
       expect(resolveRosterPage(run, "team", id)).toEqual({ kind: "redirect", to: teamsLink() });
     }
+  });
+
+  it("says a real driver the run has not had is not in it, rather than giving them a page", () => {
+    const run = era({ kind: "race", round: 0 });
+    const id = laterDriver();
+    expect(resolveRosterPage(run, "driver", id)).toEqual({ kind: "absent", page: "driver", id });
   });
 
   it("sends every one to the season page in a one-year run, at every beat", () => {
