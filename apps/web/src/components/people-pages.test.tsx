@@ -53,11 +53,15 @@ function phoneHeadings(html: string): [string, boolean][] {
   );
 }
 
-/** A page's showcase: one to three large cars, none turning, the row hidden on a phone. */
+/**
+ * A page's showcase: one to three large cars, none turning, the row hidden on a
+ * phone, each with a plain tooltip naming its team and year.
+ */
 function expectShowcase(html: string): void {
   const cars = html.split(CAR_SIZES.large).length - 1;
   expect(cars).toBeGreaterThanOrEqual(1);
   expect(cars).toBeLessThanOrEqual(3);
+  expect(html.match(/<figure title="[^"]+ \(\d{4}\)"/g)?.length).toBe(cars);
   expect(html).not.toContain("animate-wheel");
   expect(html).toContain('class="hidden shrink-0 items-end gap-4 sm:flex"');
 }

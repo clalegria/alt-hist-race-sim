@@ -9,8 +9,8 @@ const TOOLTIP_GAP_PX = 14;
 
 /**
  * Which car it is, beside the pointer on the side with more room, under the
- * dialogs: the track's and the people pages' cars. Hidden from a screen reader,
- * which has the name in the page already.
+ * dialogs. The track's own, since its cars move under a still pointer; a still
+ * car elsewhere takes a plain `title`, as every other tooltip does.
  */
 export function CarTooltip({ line, at }: { line: string; at: Point }) {
   const leftward = at.x > window.innerWidth / 2;

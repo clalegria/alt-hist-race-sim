@@ -36,8 +36,8 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
   `lib/car-showcase.ts`), a driver's in each year's team: the first of the run, one picked
   at random from the years between and the latest, each only if its drawing or livery
   differs from the others'. The latest shows first as the width grows, then the first,
-  then the one between; a phone has none. Pointing at one names its team and year in the
-  track's tooltip (`CarTooltip`, `carLabel` with the run's own team names).
+  then the one between; a phone has none. Each one's `title` is `carLabel` with the run's own
+  team names: a plain tooltip like the rest, not the track's `CarTooltip`.
 - **Both pages draw a livery barcode under the heading**, a stripe per season from the
   first authored one to the run's year, never past it: the years before the run off the
   entry lists (`seasonsBefore`, `driverSeasonsBefore`), the run's off its grids. A driver's
