@@ -27,8 +27,9 @@ export function SessionHeader({
   weather: RaceWeather;
   nav?: SessionNav | undefined;
 }) {
+  const circuit = race === undefined || race.circuit === "" ? null : race.circuit;
   return (
-    <header className="flex flex-wrap items-end justify-between gap-3">
+    <header>
       <PageHeading
         flag={race?.country}
         title={
@@ -38,24 +39,38 @@ export function SessionHeader({
             <WeatherBadge weather={weather} />
           </>
         }
-        sub={`Round ${round + 1} of ${rounds}${
-          race === undefined || race.circuit === "" ? "" : ` · ${race.circuit}`
-        }`}
+        // On a phone the round and the circuit are two lines, so the longest
+        // circuit still fits beside the switch and every round's header is the
+        // same shape: the switch never jumps under the title for a long name.
+        sub={
+          <>
+            <span className="block sm:inline">{`Round ${round + 1} of ${rounds}`}</span>
+            {circuit === null ? null : (
+              <>
+                <span className="hidden sm:inline"> · </span>
+                <span className="block sm:inline">{circuit}</span>
+              </>
+            )}
+          </>
+        }
+        aside={
+          nav === undefined ? undefined : (
+            <Tabs
+              label="Session"
+              className="shrink-0"
+              links={[
+                {
+                  key: "qualifying",
+                  label: "Qualifying",
+                  current: session === "qualifying",
+                  link: nav.qualifying,
+                },
+                { key: "race", label: "Race", current: session === "race", link: nav.race },
+              ]}
+            />
+          )
+        }
       />
-      {nav === undefined ? null : (
-        <Tabs
-          label="Session"
-          links={[
-            {
-              key: "qualifying",
-              label: "Qualifying",
-              current: session === "qualifying",
-              link: nav.qualifying,
-            },
-            { key: "race", label: "Race", current: session === "race", link: nav.race },
-          ]}
-        />
-      )}
     </header>
   );
 }

@@ -16,14 +16,19 @@ export function PageHeading({
   sub,
   flag,
   badge,
+  aside,
   className,
 }: {
   title: ReactNode;
   sub?: ReactNode;
   flag?: string | undefined;
   badge?: ReactNode;
+  /** A control beside the sub-line, at its right, whatever the title's length. */
+  aside?: ReactNode;
   className?: string;
 }) {
+  const line =
+    sub === undefined ? null : <p className={cn(MONO_LINE, "text-muted-foreground")}>{sub}</p>;
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <h1
@@ -36,7 +41,14 @@ export function PageHeading({
         {flag === undefined || flag === "" ? null : <Flag country={flag} className="h-5 w-7.5" />}
         {title}
       </h1>
-      {sub === undefined ? null : <p className={cn(MONO_LINE, "text-muted-foreground")}>{sub}</p>}
+      {aside === undefined || aside === null ? (
+        line
+      ) : (
+        <div className="flex items-end justify-between gap-3">
+          {line ?? <span />}
+          {aside}
+        </div>
+      )}
     </div>
   );
 }
