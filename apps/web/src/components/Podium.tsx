@@ -4,7 +4,6 @@ import { PODIUM_POSITION, STANDOUT_POSITION } from "../lib/highlight.js";
 import { pointsFor } from "../lib/results.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
-import { HomeStar } from "./HomeAdvantage.js";
 import { DriverHistory } from "./SeasonHistory.js";
 import { TeamCar } from "./TeamCar.js";
 
@@ -31,15 +30,7 @@ const STEP: Record<number, { column: string; height: string }> = {
  */
 const PHONE_CAR = "max-md:h-7 max-md:w-24";
 
-function Step({
-  entry,
-  points,
-  country,
-}: {
-  entry: RaceEntryResult;
-  points: PointsScale;
-  country: string | undefined;
-}) {
+function Step({ entry, points }: { entry: RaceEntryResult; points: PointsScale }) {
   const position = entry.finishPosition ?? 0;
   const won = position === 1;
   const step = STEP[position];
@@ -50,42 +41,50 @@ function Step({
     won || entry.raceGapToWinner === null ? null : formatGap(entry.raceGapToWinner),
     scored === 0 ? null : `${scored} pts`,
   ].filter((fact) => fact !== null);
+  // Two rows of the podium's grid, shared by all three steps through subgrid:
+  // the car standing on its block, bottom-aligned, then the name under it. A
+  // name that wraps only lengthens its own caption, so it never lifts a car.
   return (
-    <li className={cn("row-start-1 flex min-w-0 flex-col items-center gap-2", step?.column)}>
-      <TeamCar teamId={entry.teamId} size="large" className={PHONE_CAR} />
-      <span className="flex max-w-full items-end gap-1.5 text-xs md:text-sm">
-        <DriverHistory driverId={entry.driverId}>
-          <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} badge />
-        </DriverHistory>
-        <HomeStar driverId={entry.driverId} country={country} className="pb-0.5" />
-      </span>
-      {/*
-        The position block of the classification, grown: the winner's filled
-        with the accent, second and third a number in it on the header's fill.
-      */}
-      <span
-        className={cn(
-          "bg-card-header border-border flex w-full flex-col items-center justify-center gap-1 border px-0.5 py-1",
-          step?.height,
-          won ? cn(STANDOUT_POSITION, "border-primary") : "text-muted-foreground",
-        )}
-      >
+    <li className={cn("row-span-2 row-start-1 grid min-w-0 grid-rows-subgrid", step?.column)}>
+      <div className="flex flex-col items-center justify-end gap-2">
+        <TeamCar teamId={entry.teamId} size="large" className={PHONE_CAR} />
+        {/*
+          The position block of the classification, grown: the winner's filled
+          with the accent, second and third a number in it on the header's fill.
+        */}
         <span
           className={cn(
-            "text-2xl leading-none font-semibold tabular-nums md:text-3xl",
-            won || PODIUM_POSITION,
+            "bg-card-header border-border flex w-full flex-col items-center justify-center gap-1 border px-0.5 py-1",
+            step?.height,
+            won ? cn(STANDOUT_POSITION, "border-primary") : "text-muted-foreground",
           )}
         >
-          {position}
-        </span>
-        {facts.length === 0 ? null : (
-          // A size down on a phone, where a column is a third of the screen.
-          // Still free to wrap, for a gap of a minute or more: the heights
-          // above are minimums for that.
-          <span className="text-center text-2xs leading-none tabular-nums md:text-xs md:leading-none">
-            {facts.join(" · ")}
+          <span
+            className={cn(
+              "text-2xl leading-none font-semibold tabular-nums md:text-3xl",
+              won || PODIUM_POSITION,
+            )}
+          >
+            {position}
           </span>
-        )}
+          {facts.length === 0 ? null : (
+            // A size down on a phone, where a column is a third of the screen.
+            // Still free to wrap, for a gap of a minute or more: the heights
+            // above are minimums for that.
+            <span className="text-center text-2xs leading-none tabular-nums md:text-xs md:leading-none">
+              {facts.join(" · ")}
+            </span>
+          )}
+        </span>
+      </div>
+      {/*
+        The flag alone: the team badge and home star are in the table below,
+        and leaving them out here keeps a caption a third of a phone wide short.
+      */}
+      <span className="max-w-full self-start justify-self-center text-xs md:text-sm">
+        <DriverHistory driverId={entry.driverId}>
+          <DriverName driverId={entry.driverId} teamId={entry.teamId} emphasis={won} />
+        </DriverHistory>
       </span>
     </li>
   );
@@ -101,20 +100,18 @@ function Step({
 export function Podium({
   entries,
   points,
-  country,
 }: {
   /** The classified finishers in the top three, in finishing order. */
   entries: readonly RaceEntryResult[];
   points: PointsScale;
-  country: string | undefined;
 }) {
   return (
     <ol
       aria-label="Podium"
-      className="grid grid-cols-[repeat(3,minmax(0,13rem))] items-end justify-center gap-1 px-1 pt-4 pb-2 md:gap-1.5 md:px-4 md:pt-5"
+      className="grid grid-cols-[repeat(3,minmax(0,13rem))] grid-rows-[auto_auto] justify-center gap-x-1 gap-y-2 px-1 pt-4 pb-3 md:gap-x-1.5 md:px-4 md:pt-5"
     >
       {entries.map((entry) => (
-        <Step key={entry.driverId} entry={entry} points={points} country={country} />
+        <Step key={entry.driverId} entry={entry} points={points} />
       ))}
     </ol>
   );

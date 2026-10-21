@@ -120,9 +120,7 @@ export function RaceClassification({
   const onPodium = podium ? classified.filter(isOnPodium) : [];
   return (
     <>
-      {onPodium.length === 0 ? null : (
-        <Podium entries={onPodium} points={points} country={country} />
-      )}
+      {onPodium.length === 0 ? null : <Podium entries={onPodium} points={points} />}
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
