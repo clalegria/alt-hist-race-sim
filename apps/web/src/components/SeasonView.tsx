@@ -8,7 +8,7 @@ import {
   type RaceWeather,
   type SeasonResult,
 } from "@alt-hist/engine";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { count } from "../lib/format.js";
 import { keptNotes } from "../lib/kept.js";
 import { driverCountry, driverName } from "../lib/names.js";
@@ -19,8 +19,9 @@ import { enteredSeason, historicalEngineRatings, seasonSeed } from "../lib/seaso
 import type { RoundPages, SessionNav } from "../lib/session-nav.js";
 import { EDITING_LOCK } from "../lib/settings-lock.js";
 import { positionsOf } from "../lib/standings.js";
+import { tabMemory } from "../lib/tab-memory.js";
 import type { View } from "../lib/timeline.js";
-import { MONO_LABEL } from "../lib/utils.js";
+import { cn, MONO_LABEL } from "../lib/utils.js";
 import { BackToSetup } from "./BackToSetup.js";
 import { CompactStandings } from "./CompactStandings.js";
 import { EntryNames, useEntryName, useTeamCountry } from "./EntryNames.js";
@@ -35,6 +36,7 @@ import { RunSettingsLine } from "./RunSettingsLine.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonSwitcher } from "./SeasonSwitcher.js";
 import { SessionHeader } from "./SessionNav.js";
+import { Tabs, tabIds } from "./Tabs.js";
 import { TitleBanner } from "./TitleBanner.js";
 import { Card, CardBand } from "./ui/card.js";
 import type { GridEdit } from "./useGridDraft.js";
@@ -68,6 +70,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** A race page's two halves, as tabs where they do not fit side by side. */
+type RaceTab = "classification" | "standings";
+
+const RACE_TABS: readonly { readonly key: RaceTab; readonly label: string }[] = [
+  { key: "classification", label: "Classification" },
+  { key: "standings", label: "Standings" },
+];
+
+/** The race tab last left on, which the next race opens on (`lib/tab-memory.ts`). */
+const raceTabs = tabMemory<RaceTab>(
+  "race",
+  RACE_TABS.map((one) => one.key),
+);
+
 /**
  * A race: the classification, with the championship as it stands beside it.
  *
@@ -75,6 +91,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * round the full table's wins, podiums, poles and retirement counts are mostly
  * zeroes; what a reader wants is who leads and by how much, which fits in a
  * sidebar and keeps the result itself on screen.
+ *
+ * Below `lg` there is no room beside it, so the two are tabs instead, under
+ * the session switch: the standings a tap away rather than a scroll past
+ * every finisher. Both panels are always rendered and CSS hides the one not
+ * chosen below `lg` alone, so from `lg` up the tabs vanish and both show.
  */
 function RaceStage({
   world,
@@ -136,8 +157,35 @@ function RaceStage({
     };
   }, [world.season, view.round, total, points]);
 
+  const [tab, setTab] = useState<RaceTab>(raceTabs.last);
+  const idPrefix = useId();
+  /** A panel's tab attributes, and below `lg` hidden unless it is the one chosen. */
+  const panel = (key: RaceTab, className?: string) => {
+    const ids = tabIds(idPrefix, key);
+    return {
+      role: "tabpanel",
+      id: ids.panel,
+      "aria-labelledby": ids.tab,
+      className: cn(className, key !== tab && "max-lg:hidden"),
+    };
+  };
+
   return (
     <div className="flex flex-col gap-4">
+      <Tabs
+        label="Race"
+        className="-mt-2 self-end lg:hidden"
+        panels={{
+          items: RACE_TABS,
+          selected: tab,
+          idPrefix,
+          onPick: (key) => {
+            const picked = key as RaceTab;
+            setTab(picked);
+            raceTabs.remember(picked);
+          },
+        }}
+      />
       {titles.driver !== null && titles.driverIsNew ? (
         <TitleBanner
           title="Drivers"
@@ -154,11 +202,13 @@ function RaceStage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <Section title="Classification">
-          <RaceClassification race={race} points={points} country={country} badge car podium />
-        </Section>
+        <div {...panel("classification")}>
+          <Section title="Classification">
+            <RaceClassification race={race} points={points} country={country} badge car podium />
+          </Section>
+        </div>
 
-        <aside className="flex flex-col gap-4">
+        <aside {...panel("standings", "flex flex-col gap-4")}>
           <p className={MONO_LABEL}>
             Championship after {count(soFar.races.length, "round")}
             {remaining === 0 ? "" : ` (${remaining} remaining)`}

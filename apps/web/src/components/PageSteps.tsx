@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { PageSteps, Step } from "../lib/page-steps.js";
 import { cn } from "../lib/utils.js";
+import { buttonClass } from "./ui/button.js";
 
 /**
  * The outlined 24px square a control in the trail is drawn as: the ▾ beside a
@@ -16,12 +17,46 @@ export const TRAIL_SQUARE_LIVE =
 const GLYPH = { previous: "‹", next: "›" } as const;
 
 /**
- * One arrow: a link with its place in the tooltip, or a dimmed square — still
- * drawn, so the other arrow never moves — while the place is ahead or there is
- * none. Its tap area reaches up and down past the square, not sideways onto
- * its neighbour.
+ * Where a pair of arrows is drawn: after the run bar's trail, as its 24px
+ * squares, or in a phone's band pinned to the screen's foot, as 36px buttons
+ * beside the run's actions, the size a thumb wants.
  */
-function StepArrow({ step, direction }: { step: Step | null; direction: "previous" | "next" }) {
+export type ArrowsAt = "trail" | "foot";
+
+/** An arrow's look, by where it is drawn: live, and dimmed while it leads nowhere. */
+const ARROW: Record<ArrowsAt, { readonly live: string; readonly dead: string }> = {
+  trail: {
+    // The tap area reaches up and down past the square, not sideways onto its neighbour.
+    live: cn(
+      TRAIL_SQUARE,
+      TRAIL_SQUARE_LIVE,
+      "text-sm before:absolute before:-inset-y-2.5 before:inset-x-0",
+    ),
+    dead: cn(TRAIL_SQUARE, "text-subtle text-sm opacity-60"),
+  },
+  foot: {
+    live: buttonClass("outline", "w-9 px-0 text-lg"),
+    dead: buttonClass(
+      "outline",
+      "text-subtle w-9 cursor-default px-0 text-lg hover:bg-transparent",
+    ),
+  },
+};
+
+/**
+ * One arrow: a link with its place in the tooltip, or a dimmed one — still
+ * drawn, so the other arrow never moves — while the place is ahead or there is
+ * none.
+ */
+function StepArrow({
+  step,
+  direction,
+  at,
+}: {
+  step: Step | null;
+  direction: "previous" | "next";
+  at: ArrowsAt;
+}) {
   if (step === null || step.link === null) {
     return (
       <span
@@ -29,7 +64,7 @@ function StepArrow({ step, direction }: { step: Step | null; direction: "previou
         {...(step === null
           ? { "aria-hidden": true }
           : { title: step.title, "aria-label": step.title })}
-        className={cn(TRAIL_SQUARE, "text-subtle text-sm opacity-60")}
+        className={ARROW[at].dead}
       >
         {GLYPH[direction]}
       </span>
@@ -41,11 +76,7 @@ function StepArrow({ step, direction }: { step: Step | null; direction: "previou
       rel={direction === "previous" ? "prev" : "next"}
       aria-label={step.title}
       title={step.title}
-      className={cn(
-        TRAIL_SQUARE,
-        TRAIL_SQUARE_LIVE,
-        "text-sm before:absolute before:-inset-y-2.5 before:inset-x-0",
-      )}
+      className={ARROW[at].live}
     >
       {GLYPH[direction]}
     </Link>
@@ -53,16 +84,34 @@ function StepArrow({ step, direction }: { step: Step | null; direction: "previou
 }
 
 /**
- * The page either side, as two arrows after the run bar's trail. Both are
- * always drawn, so a reader stepping along clicks the same spot each time; the
- * place each leads to is in its tooltip, and in words at the foot of the page
- * (`StepLinks`).
+ * The page either side, as two arrows: after the run bar's trail from `md`
+ * up, and at the left of a phone's pinned foot band below it, opposite the
+ * way on (`RunFrame`). Both are always drawn, so a reader stepping along
+ * presses the same spot each time; the place each leads to is in its tooltip,
+ * and in words at the foot of the page (`StepLinks`).
+ *
+ * `className` says the widths this copy shows at.
  */
-export function StepArrows({ steps }: { steps: PageSteps }) {
+export function StepArrows({
+  steps,
+  at = "trail",
+  className,
+}: {
+  steps: PageSteps;
+  at?: ArrowsAt;
+  className?: string;
+}) {
   return (
-    <nav aria-label="Previous and next" className="-my-0.5 flex shrink-0 items-center gap-1.5">
-      <StepArrow step={steps.previous} direction="previous" />
-      <StepArrow step={steps.next} direction="next" />
+    <nav
+      aria-label="Previous and next"
+      className={cn(
+        "flex shrink-0 items-center",
+        at === "trail" ? "-my-0.5 gap-1.5" : "gap-2",
+        className,
+      )}
+    >
+      <StepArrow step={steps.previous} direction="previous" at={at} />
+      <StepArrow step={steps.next} direction="next" at={at} />
     </nav>
   );
 }

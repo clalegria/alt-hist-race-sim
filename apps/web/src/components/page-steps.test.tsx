@@ -36,6 +36,13 @@ describe("StepArrows", () => {
     expect(html.match(/aria-disabled="true"/g)).toHaveLength(2);
   });
 
+  it("draws the foot band's pair as buttons a thumb can press, at the widths it is given", async () => {
+    const html = await inRouter(<StepArrows steps={steps} at="foot" className="md:hidden" />);
+    expect(html).toMatch(/<nav [^>]*class="[^"]*md:hidden/);
+    expect(anchors(html)).toBe(1);
+    expect(html.match(/\bw-9\b/g)).toHaveLength(2);
+  });
+
   it("links the previous side as rel prev", async () => {
     const html = await inRouter(
       <StepArrows

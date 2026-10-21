@@ -214,6 +214,16 @@ describe("a race", () => {
     expect(html.includes("Retired")).toBe(race?.entries.some((entry) => entry.retired) === true);
   });
 
+  it("splits the classification and the standings into tabs below lg, opening on the result", () => {
+    expect(html).toMatch(/role="tablist" aria-label="Race"/);
+    expect(html.match(/role="tab"/g)).toHaveLength(2);
+    expect(html.match(/role="tabpanel"/g)).toHaveLength(2);
+    // Both panels are drawn; CSS hides the one not chosen, and only below lg.
+    const panels = [...html.matchAll(/<(?:div|aside) role="tabpanel"[^>]*>/g)].map(([tag]) => tag);
+    expect(panels[0]).not.toContain("max-lg:hidden");
+    expect(panels[1]).toContain("max-lg:hidden");
+  });
+
   it("shows both championships as they stand after it", () => {
     expect(html).toContain("Drivers");
     expect(html).toContain("Constructors");

@@ -449,7 +449,10 @@ function RunPlace({
         />
         <Breadcrumbs
           crumbs={crumbs}
-          {...(steps === null ? {} : { after: <StepArrows steps={steps} /> })}
+          // On a phone the arrows are in the pinned foot band instead (`RunFrame`).
+          {...(steps === null
+            ? {}
+            : { after: <StepArrows steps={steps} className="hidden md:flex" /> })}
         />
       </div>
       <RoundSegments rounds={state.rounds} done={state.roundsRun} />

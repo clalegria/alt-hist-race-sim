@@ -24,7 +24,8 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
   badge goes in `badge`, ahead of it). Every page but Home's hero uses it; don't
   hand-roll another.
 - **Every tab strip is `Tabs`**: `links` between places on a page, `panels` between
-  panels on one screen (the settings dialog). Never hand-roll another.
+  panels on one screen (the settings dialog; a race's classification and standings below
+  `lg`, where they don't fit side by side). Never hand-roll another.
 - **A tab is a search param, not a path** (`seasonSearch`). Tab links pass
   `activeOptions={{ exact: true }}`: TanStack matches search as a subset and would mark
   the standings link active on every tab.
@@ -46,10 +47,11 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
 - **Session links move between places and never reveal** (`sessionNav`, the
   qualifying/race switch): a place ahead is a disabled `span`, never an `<a>`. Moving
   between rounds goes through `roundPlace`, shared by the breadcrumbs' menus and the steps.
-- **One `stepsFor` per page, drawn twice**: `‹` `›` after the run bar's trail
-  (`StepArrows`) and named at the foot (`StepLinks`), on a session, season, driver or team
-  page, never "Not reached yet". A place ahead is a disabled span saying "not yet"; both
-  squares always draw, so `›` never moves.
+- **One `stepsFor` per page, drawn twice**: `‹` `›` (`StepArrows`) after the run bar's
+  trail from `md` up and at the left of a phone's pinned foot band below it, and named at
+  the foot (`StepLinks`), on a session, season, driver or team page, never "Not reached
+  yet". A place ahead is a disabled span saying "not yet"; both arrows always draw, so `›`
+  never moves.
 - **A session step keeps its kind and crosses years** in an era; a season steps among the
   years reached; people go A to Z over the roster, drivers by surname
   (`compareBySurname`), unlike the index's own name sort.

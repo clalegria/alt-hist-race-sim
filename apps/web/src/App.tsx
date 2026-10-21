@@ -2,7 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { KeptNames } from "./components/EntryNames.js";
 import { KeptLiveries } from "./components/Liveries.js";
-import { StepLinks } from "./components/PageSteps.js";
+import { StepArrows, StepLinks } from "./components/PageSteps.js";
 import { RunActions, type RunActionsProps, RunBar } from "./components/RunBar.js";
 import { JumpDialog, type RunConfirm, RunConfirmDialog } from "./components/RunDialogs.js";
 import type { RunChoice } from "./components/RunSettingsDialog.js";
@@ -249,11 +249,14 @@ export function RunFrame({
           the screen, where a thumb reaches and where nothing on the page sits
           under it for good. `sticky`, not `fixed`, so it comes to rest here at
           the page's end and the last row is never left behind it. Full bleed,
-          out to the column's own padding. From `md` up, the run bar's copy is
-          pinned instead and this is a plain row at the foot.
+          out to the column's own padding. The page either side is at its left,
+          as the arrows the trail carries from `md` up, opposite the way on. From
+          `md` up, the run bar's copy is pinned instead and this is a plain row
+          of actions at the foot.
         */}
-        <div className="bg-background/85 border-border sticky bottom-0 z-40 -mx-4 flex justify-end border-t px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 md:static md:mx-0 md:bg-transparent md:px-0 md:pt-6 md:pb-0 md:backdrop-blur-none">
-          <RunActions {...actions} />
+        <div className="bg-background/85 border-border sticky bottom-0 z-40 -mx-4 flex items-start gap-2 border-t px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 md:static md:mx-0 md:bg-transparent md:px-0 md:pt-6 md:pb-0 md:backdrop-blur-none">
+          {steps === null ? null : <StepArrows steps={steps} at="foot" className="md:hidden" />}
+          <RunActions {...actions} className="ml-auto" />
         </div>
       </Shell>
       <RunConfirmDialog
