@@ -22,7 +22,8 @@
 import { AWAY, type HomeAllegiances, homeAllegiances, type RaceEntrant } from "@alt-hist/engine";
 import { createContext, useContext, useMemo } from "react";
 import { homeAdvantageLabel } from "../lib/home.js";
-import { cn } from "../lib/utils.js";
+import { cn, HIT_AREA } from "../lib/utils.js";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
 
 const NO_GRID: ReadonlyMap<string, RaceEntrant> = new Map();
 
@@ -93,7 +94,7 @@ function StarIcon({ className, title }: { className?: string; title: string }) {
  *
  * What it means is in the tooltip, never in the star alone — the same rule the
  * gain and loss arrows and the wet badge follow. The `title` sits on both the
- * wrapper and the `<svg>`: browsers do not agree on which one a hover finds.
+ * trigger and the `<svg>`: browsers do not agree on which one a hover finds.
  */
 export function HomeStar({
   driverId,
@@ -110,9 +111,23 @@ export function HomeStar({
   if (label === null) {
     return null;
   }
+  // A button too, since a touch screen has no hover: a tap opens the same words
+  // in a popover. Its tap area stops short of the name on its left.
   return (
-    <span className={cn("inline-flex", className)} title={label}>
-      <StarIcon title={label} />
-    </span>
+    <Popover>
+      <PopoverTrigger
+        aria-label={label}
+        title={label}
+        className={cn(
+          "focus-visible:ring-ring inline-flex cursor-pointer rounded focus-visible:ring-2 focus-visible:outline-none",
+          HIT_AREA,
+          "after:-inset-y-2 after:-right-2 after:-left-1",
+          className,
+        )}
+      >
+        <StarIcon title={label} />
+      </PopoverTrigger>
+      <PopoverContent className="w-auto max-w-64 px-3 py-2 text-sm">{label}</PopoverContent>
+    </Popover>
   );
 }

@@ -37,5 +37,13 @@ export const MONO_LINE = "font-mono text-xs tracking-wider uppercase";
 export const NAME_TARGET =
   "hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent -mx-1 min-w-0 cursor-pointer rounded px-1 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none";
 
+/**
+ * A small control's tap area, grown past what it draws by an invisible `::after`
+ * layer: the usual web answer to a target smaller than a fingertip, which leaves
+ * the look alone. A call site adds the `after:` insets, sized to stop short of
+ * its neighbours, since where two layers overlap the later control takes the tap.
+ */
+export const HIT_AREA = "relative after:absolute";
+
 /** A name as a timing screen sets it: a surname, a team, a popover's title. */
 export const TIMING_NAME = "narrow font-extrabold uppercase";

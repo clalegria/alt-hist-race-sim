@@ -15,7 +15,7 @@ import { driverName, engineName } from "../lib/names.js";
 import { ratedAge } from "../lib/people.js";
 import { carOverall, driverOverall } from "../lib/rating.js";
 import { sortBy } from "../lib/sort.js";
-import { cn, MONO_LABEL, NAME_TARGET, TIMING_NAME } from "../lib/utils.js";
+import { cn, HIT_AREA, MONO_LABEL, NAME_TARGET, TIMING_NAME } from "../lib/utils.js";
 import { FittedDriverName, SplitName } from "./FittedName.js";
 import { Flag } from "./Flag.js";
 import { chassisSummary, engineSummary, signed } from "./LineupChanges.js";
@@ -176,7 +176,12 @@ function RatingStepper({
   delta?: number | undefined;
   onStep: (step: 1 | -1) => void;
 }) {
-  const button = "size-5 shrink-0 rounded px-0 text-xs leading-none";
+  // Tapped as 24×32: wider would reach the other button across the gap.
+  const button = cn(
+    "size-5 shrink-0 rounded px-0 text-xs leading-none",
+    HIT_AREA,
+    "after:-inset-x-0.5 after:-inset-y-1.5",
+  );
   return (
     <span className="flex shrink-0 items-center gap-1">
       <Button

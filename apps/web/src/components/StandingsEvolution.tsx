@@ -252,8 +252,10 @@ function EvolutionTooltip({
 /**
  * How much room the end-of-line numbers need, to the right of the plot.
  *
- * Two digits and a gap. Recharts clips anything drawn outside the margin, so
- * this and the label's own offset are one measurement in two places.
+ * Two digits and a gap, and this and the label's own offset are one measurement
+ * in two places. Padding beside the chart rather than its margin, since only CSS
+ * knows the width: a phone hides the numbers, and the plot takes the room back.
+ * The chart's surface is left unclipped, so the numbers draw into it.
  */
 const END_LABEL_ROOM = 22;
 
@@ -315,8 +317,10 @@ function EndLabels({
     bottom: area.y + area.height,
     gap: END_LABEL_STEP,
   });
+  // Not on a phone: a plot that narrow bunches the lines, so the numbers pile
+  // up at their ends, and the legend under it names every line anyway.
   return (
-    <g>
+    <g className="max-sm:hidden">
       {placed.map((y, index) => (
         <text
           key={finals[index]?.key}
@@ -401,71 +405,76 @@ function EvolutionChart({
     <Card>
       <CardBand title={title} label={label} />
       <div className="px-2 py-4 text-xs" style={colours}>
-        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-          <LineChart
-            data={rows}
-            margin={{ top: 8, right: END_LABEL_ROOM, bottom: 0, left: 0 }}
-            accessibilityLayer
-          >
-            {/* Horizontal only: the rounds are already marked by the axis, and a
+        <div
+          className="[&_.recharts-surface]:overflow-visible sm:pr-(--end-label-room)"
+          style={{ "--end-label-room": `${END_LABEL_ROOM}px` } as React.CSSProperties}
+        >
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <LineChart
+              data={rows}
+              margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
+              accessibilityLayer
+            >
+              {/* Horizontal only: the rounds are already marked by the axis, and a
                 second set of rules through the lines is noise. */}
-            <CartesianGrid vertical={false} stroke="currentColor" className="text-border" />
-            <XAxis
-              dataKey="round"
-              stroke="currentColor"
-              className="text-muted-foreground font-mono"
-              // Every round, so which are numbered is a CSS rule rather than
-              // Recharts' own thinning, which moves with the width.
-              interval={0}
-              tick={RoundTick}
-              tickLine={false}
-              axisLine={false}
-              padding={{ left: 4, right: 4 }}
-            />
-            <YAxis
-              stroke="currentColor"
-              className="text-muted-foreground font-mono"
-              tick={{ fill: "currentColor", fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              allowDecimals={false}
-              domain={[0, ticks.at(-1) ?? 1]}
-              ticks={ticks}
-              width={32}
-            />
-            <Tooltip
-              cursor={{ stroke: "currentColor", strokeOpacity: 0.35 }}
-              content={(props) => (
-                <EvolutionTooltip
-                  active={props.active}
-                  label={props.label}
-                  lines={lines}
-                  calendar={calendar}
-                  championship={championship}
-                />
-              )}
-            />
-            {lines.map((line, index) => (
-              <Line
-                key={line.series.key}
-                dataKey={line.series.key}
-                // Straight between rounds. A smoothed curve would draw points
-                // nobody scored, in the gaps where nothing happened.
-                type="linear"
-                className={SERIES_STROKE[index] ?? ""}
-                strokeWidth={2}
-                {...(line.dash === "" ? {} : { strokeDasharray: line.dash })}
-                dot={false}
-                activeDot={{ r: 3 }}
-                isAnimationActive={false}
+              <CartesianGrid vertical={false} stroke="currentColor" className="text-border" />
+              <XAxis
+                dataKey="round"
+                stroke="currentColor"
+                className="text-muted-foreground font-mono"
+                // Every round, so which are numbered is a CSS rule rather than
+                // Recharts' own thinning, which moves with the width.
+                interval={0}
+                tick={RoundTick}
+                tickLine={false}
+                axisLine={false}
+                padding={{ left: 4, right: 4 }}
               />
-            ))}
-            {/* The number the legend gives each line, at the end of it. Six lines
+              <YAxis
+                stroke="currentColor"
+                className="text-muted-foreground font-mono"
+                tick={{ fill: "currentColor", fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+                domain={[0, ticks.at(-1) ?? 1]}
+                ticks={ticks}
+                width={32}
+              />
+              <Tooltip
+                cursor={{ stroke: "currentColor", strokeOpacity: 0.35 }}
+                content={(props) => (
+                  <EvolutionTooltip
+                    active={props.active}
+                    label={props.label}
+                    lines={lines}
+                    calendar={calendar}
+                    championship={championship}
+                  />
+                )}
+              />
+              {lines.map((line, index) => (
+                <Line
+                  key={line.series.key}
+                  dataKey={line.series.key}
+                  // Straight between rounds. A smoothed curve would draw points
+                  // nobody scored, in the gaps where nothing happened.
+                  type="linear"
+                  className={SERIES_STROKE[index] ?? ""}
+                  strokeWidth={2}
+                  {...(line.dash === "" ? {} : { strokeDasharray: line.dash })}
+                  dot={false}
+                  activeDot={{ r: 3 }}
+                  isAnimationActive={false}
+                />
+              ))}
+              {/* The number the legend gives each line, at the end of it. Six lines
                 in four shades of one red is what 1950 actually looks like, and
                 colour alone cannot carry six identities. */}
-            <EndLabels finals={finals} round={rows.at(-1)?.round ?? 0} />
-          </LineChart>
-        </ResponsiveContainer>
+              <EndLabels finals={finals} round={rows.at(-1)?.round ?? 0} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
         {/*
           A grid rather than a wrapping row: six names of unequal length wrapped
           five-and-one, which reads as a mistake. Fixed columns also line the

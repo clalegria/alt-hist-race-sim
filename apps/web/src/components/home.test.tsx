@@ -112,6 +112,14 @@ describe("racing at home", () => {
     }
   });
 
+  it("makes every star a button named by what it means, for a screen with no hover", () => {
+    const home = countryOf((entrant) => entrant.driverCountry);
+    const html = classification(home);
+    const buttons = html.match(/<button[^>]*aria-label="Home race for/g) ?? [];
+    expect(buttons.length).toBe(stars(html));
+    expect(buttons.length).toBeGreaterThan(0);
+  });
+
   it("draws no star without the grid in scope, rather than throwing", () => {
     // Every DOM-less render of these tables is done outside a season, which is
     // the default the context exists to keep working.

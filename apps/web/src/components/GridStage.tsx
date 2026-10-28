@@ -22,6 +22,12 @@ import { RunConfirmDialog } from "./RunDialogs.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { Button } from "./ui/button.js";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu.js";
+import {
   Sheet,
   SheetBody,
   SheetContent,
@@ -30,6 +36,9 @@ import {
   SheetTrigger,
 } from "./ui/sheet.js";
 import { type GridEdit, useGridDraft } from "./useGridDraft.js";
+
+/** An editor action on the bar from `sm`, and in its ⋯ below. */
+const WIDE_ACTION = "hidden sm:inline-flex";
 
 /**
  * The opening grid, and the editor that lets a reader change it.
@@ -167,14 +176,39 @@ export function GridStage({
         >
           Apply grid
         </Button>
+        {/* Copy and Restore are wanted once in an edit, if at all: on a phone
+            they wait in ⋯, as the run bar's rarer actions do, and the cards
+            start higher up the screen. */}
         {grid.previous === null ? null : (
-          <Button variant="outline" onClick={grid.copyPrevious}>
+          <Button variant="outline" className={WIDE_ACTION} onClick={grid.copyPrevious}>
             Copy {grid.previous.year} grid
           </Button>
         )}
-        <Button variant="outline" disabled={grid.untouched} onClick={grid.restore}>
+        <Button
+          variant="outline"
+          className={WIDE_ACTION}
+          disabled={grid.untouched}
+          onClick={grid.restore}
+        >
           Restore {year} grid
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" aria-label="More grid actions" className="px-3 sm:hidden">
+              <span aria-hidden="true">⋯</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {grid.previous === null ? null : (
+              <DropdownMenuItem onSelect={grid.copyPrevious}>
+                Copy {grid.previous.year} grid
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem disabled={grid.untouched} onSelect={grid.restore}>
+              Restore {year} grid
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button variant="ghost" onClick={grid.stop}>
           Cancel
         </Button>

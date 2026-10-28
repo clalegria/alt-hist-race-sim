@@ -10,6 +10,11 @@ each subsystem's are in the `web-*` file scoped to its code.
 
 - **shadcn/ui is copied into `components/ui/`, not a dependency**: edit it there. The
   Radix primitives it wraps are real dependencies (`@radix-ui/react-*`).
+- **A phone's layout is chosen by CSS media queries on the width**, never by user agent or
+  script. A control drawn smaller than a fingertip takes `HIT_AREA` (`lib/utils.ts`), with
+  insets that stop short of its neighbours' text.
+- **A hover-only `title` is lost on a touch screen**: anything a reader needs, such as what
+  a mark means, also opens on a tap (`HomeStar`).
 - **The URL says which page; the store holds the run.** Nothing writes the store into
   the URL (`web-routing.md`).
 - **A season is simulated whole the moment its seed is drawn**, one RNG stream through

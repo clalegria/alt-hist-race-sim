@@ -280,7 +280,7 @@ export function CareerSeasons({
                     row={(disclosure) => (
                       <>
                         <TableCell className="px-2 sm:px-3">
-                          <span className="flex items-center gap-1 max-sm:flex-col max-sm:items-start">
+                          <span className="flex items-center gap-1">
                             <DisclosureButton {...disclosure}>
                               <span className="font-medium tabular-nums">{each.year}</span>
                             </DisclosureButton>
@@ -294,11 +294,15 @@ export function CareerSeasons({
                         </TableCell>
                         {/*
                       `w-full max-w-0`, as on a record card: the team takes the
-                      slack and ends in an ellipsis, so a phone never scrolls.
+                      slack, so a phone never scrolls. Its name wraps rather than
+                      ending in an ellipsis, breaking inside a word only when one
+                      word is wider than the cell. The team name alone: on the
+                      drivers' line, `wrap-anywhere` lets the flex items shrink
+                      to a letter each.
                     */}
                         <TableCell className="w-full max-w-0 px-2 whitespace-normal sm:px-3">
                           <span className="flex flex-col gap-0.5">
-                            {each.who}
+                            <span className="wrap-anywhere">{each.who}</span>
                             {each.under}
                           </span>
                         </TableCell>
@@ -434,7 +438,7 @@ export function DriverPage({
       world,
       who: (
         <TeamHistory teamId={season?.teamId ?? teamId} className={HISTORY_FILL}>
-          <TeamName teamId={season?.teamId ?? teamId} badge tight />
+          <TeamName teamId={season?.teamId ?? teamId} badge />
         </TeamHistory>
       ),
       figures: season,
@@ -523,25 +527,30 @@ export function TeamPage({ years, teamId }: { years: readonly RevealedWorld[]; t
     return {
       year,
       world,
-      who: <TeamName teamId={teamId} badge tight />,
+      who: <TeamName teamId={teamId} badge />,
       under: (
         <span
           className={cn(
             "text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-xs",
+            // Not indented under the team's name on a phone, whose column
+            // has no room to spare for a surname such as JOHANSSON.
             TEAM_LINE,
+            "max-sm:pl-0",
           )}
         >
           {drivers.map(({ driverId, position }) => (
             <DriverHistory key={driverId} driverId={driverId}>
+              {/* The position beside the name rather than as its `after`, so a
+                  phone too narrow for both drops it under the name instead of
+                  pushing it into the next column. */}
               <span
                 className={cn(
+                  "flex flex-wrap items-center gap-x-1.5",
                   position === 1 && season?.afterRound === null && `${STANDOUT_TEXT} font-semibold`,
                 )}
               >
-                <DriverName
-                  driverId={driverId}
-                  after={position === null ? null : <span>{ordinal(position)}</span>}
-                />
+                <DriverName driverId={driverId} />
+                {position === null ? null : <span>{ordinal(position)}</span>}
               </span>
             </DriverHistory>
           ))}

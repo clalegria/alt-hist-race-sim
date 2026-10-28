@@ -12,7 +12,7 @@ import {
   type RunMenuEntry,
   runActionsFor,
 } from "../lib/run-bar.js";
-import { cn, MONO_LINE } from "../lib/utils.js";
+import { cn, HIT_AREA, MONO_LINE } from "../lib/utils.js";
 import { StepArrows, TRAIL_SQUARE, TRAIL_SQUARE_LIVE } from "./PageSteps.js";
 import { RoundSegments } from "./RoundSegments.js";
 import { Button, buttonClass } from "./ui/button.js";
@@ -129,7 +129,12 @@ export function Breadcrumbs({
                 {crumb.link !== undefined ? (
                   <Link
                     {...crumb.link}
-                    className="text-muted-foreground hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    // Tapped a fingertip tall; across, up to the › on each side.
+                    className={cn(
+                      "text-muted-foreground hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                      HIT_AREA,
+                      "after:-inset-x-1 after:-inset-y-3.5",
+                    )}
                   >
                     <CrumbLabel crumb={crumb} />
                   </Link>

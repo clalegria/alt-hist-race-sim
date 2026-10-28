@@ -19,46 +19,42 @@ asked for that era by name.
 
 ---
 
-## 1. Phone layout
-
-Make every screen work on a phone held upright. `docs/design/publish.md`.
-
-## 2. The share image
+## 1. The share image
 
 A portrait PNG of a season's or era's result, sent from a phone. `docs/design/publish.md`.
 
-## 3. Publish it
+## 2. Publish it
 
 The text pass, an About page, What's new, a bug report page, then going live. The author
 decides when. `docs/design/publish.md`.
 
-## 4. The in-app ratings editor
+## 3. The in-app ratings editor
 
 Turns on `edit-ratings`: a player changes a rating and runs their own what-if; export in
 the seed format. After *publish it*. `docs/design/ratings-editor.md`.
 
-## 5. Historical career records
+## 4. Historical career records
 
 Each season file carries every driver's and team's totals before it, so a run opens on
 careers in progress. `docs/design/career-records.md`.
 
-## 6. Seasonal factors
+## 5. Seasonal factors
 
 The cosmetic qualifying and race gaps, per season instead of one scale. Display only. This
 item authorises setting that number per year, and no other.
 
-## 7. Circuit character
+## 6. Circuit character
 
 Circuit attributes in `RoundContext`: engine vs downforce weighting, how hard it is to
 overtake, the chance of rain (`wetChance` is the unused seam). Changes what a rating means;
 adds a block to every round of every season.
 
-## 8. Driver market
+## 7. Driver market
 
 Transfers between seasons; turns on `era-advanced`. Leans on *historical career records*.
 `docs/design/era-advanced.md`, which owns its open questions.
 
-## 9. Game mode
+## 8. Game mode
 
 Run one team (`game`): *era-advanced* from inside a team, so after it. Notes in
 `docs/design/era-advanced.md`.

@@ -1,18 +1,6 @@
 # Publish it
 
-Everything before the app goes public: phone layout, the share image, then one release of
-five parts. The roadmap holds the order; this holds the design.
-
-## Phone layout
-
-- DECIDED: detect by **viewport width via CSS media queries**, not user-agent sniffing.
-  Narrow desktop windows and tablets come free.
-- DECIDED: per screen, pick one of three moves: **drop columns** that are context, not
-  content (gaps, grid position, engine), with the full row on tap; **restack the row** into
-  a card; or **scroll the table horizontally** in its own container (a classification,
-  where every column is a result).
-- The run bar's and the top nav's phone forms are built. Styling only; the model is
-  untouched.
+Everything before the app goes public: the share image, then one release of five parts.
 
 ## The share image
 

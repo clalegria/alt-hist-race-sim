@@ -23,6 +23,8 @@ export function PopoverContent({
           // Radix flips a panel above or below but never slides it up or down, so one
           // too tall for either side ran off the top; capped, it scrolls instead.
           "max-h-(--radix-popover-content-available-height) overflow-y-auto",
+          // A wide panel on a phone keeps the collision padding at both edges.
+          "max-w-[calc(100vw-1rem)]",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}

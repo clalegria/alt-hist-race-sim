@@ -24,7 +24,7 @@
  * the button.
  */
 
-import { cn } from "../lib/utils.js";
+import { cn, HIT_AREA } from "../lib/utils.js";
 
 /** Whether a row is open, and how to flip it: what `ExpandableRow` hands its cells. */
 export interface Disclosure {
@@ -52,6 +52,11 @@ export function DisclosureButton({
       {...(label === undefined ? {} : { "aria-label": label })}
       className={cn(
         "focus-visible:ring-ring -mx-1 flex cursor-pointer items-center gap-2 rounded px-1 text-left focus-visible:ring-2 focus-visible:outline-none",
+        // A row's height, and a lone chevron the position cell's padding too:
+        // its right is the name, a control of its own.
+        HIT_AREA,
+        "after:-inset-y-2",
+        label === undefined ? "after:inset-x-0" : "after:-left-3 after:right-0",
         className,
       )}
     >

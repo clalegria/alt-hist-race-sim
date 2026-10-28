@@ -18,7 +18,7 @@ import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
 import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from "../lib/roster.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
-import { cn } from "../lib/utils.js";
+import { cn, HIT_AREA } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { useTeamNameIn } from "./EntryNames.js";
 import { EraTabs } from "./EraTabs.js";
@@ -77,6 +77,9 @@ function SortHeading({
         {...linkFor(sort)}
         className={cn(
           "hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none",
+          // The header row's height, for a heading set a third of it.
+          HIT_AREA,
+          "after:-inset-x-1 after:-inset-y-3",
           active && "text-foreground font-semibold",
         )}
       >
