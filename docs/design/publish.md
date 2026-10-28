@@ -46,4 +46,7 @@ whole authoring pass, nor after the ratings editor.
     `dangerouslySetInnerHTML`); analytics would bring a privacy notice and maybe consent.
   - Names and marks: real names describing history are fine; championship word marks and
     team logos stay out. The generated livery badge is fine.
-  - OPEN: the licence. Code is MIT; the season data may carry its sources' conditions.
+  - DECIDED: the licence, for now. Code and authored data are all rights reserved; the
+    figures counted from Jolpica (calibration targets, real retirements) are CC BY-NC-SA
+    4.0, as Jolpica's data is. A commercial use would need Jolpica's permission or those
+    figures left out.
