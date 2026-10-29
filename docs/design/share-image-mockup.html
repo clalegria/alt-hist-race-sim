@@ -112,11 +112,36 @@ h2.mode { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-sp
 .yrs.lg { gap: 8px 14px; }
 .yrs.lg .yr { font-size: 34px; font-weight: 600; }
 .yrs.lg .yr i { height: 8px; }
+/* The sash: one diagonal the length of the card, at the app's chequer angle, through the middle of the car band
+   (--mid). Every layer of it is drawn in the card's whole frame, shifted up by its container's top (--at), so the
+   chequer on the graphite, the chequer in the band and the livery all line up. --s0 is the centreline's distance
+   along a 135deg gradient of a 1080 × 1920 box. */
+.sash { position: absolute; left: 0; top: calc(-1 * var(--at, 0px)); width: 1080px; height: 1920px; pointer-events: none;
+  --s0: calc(1060.66px + (var(--mid, 960px) - 960px) * 0.7071); }
+.card > .sash { z-index: -1; }
+/* The app's chequer: a large grid with a small one inside it, faded out at both edges of the sash. */
+.sash.chq-sash {
+  background-image: repeating-conic-gradient(oklch(100% 0 0 / 0.019) 0% 25%, transparent 0% 50%), repeating-conic-gradient(oklch(100% 0 0 / 0.032) 0% 25%, transparent 0% 50%);
+  background-size: 60px 60px, 360px 360px;
+  --fade: linear-gradient(135deg, transparent calc(var(--s0) - 424px), #000 calc(var(--s0) - 127px), #000 calc(var(--s0) + 127px), transparent calc(var(--s0) + 424px));
+  -webkit-mask-image: var(--fade); mask-image: var(--fade); }
+/* The livery, only inside the band, as a ribbon: the three colours side by side, primary in the middle at twice an
+   accent's width, each edged with the badge hairline so a livery as dark as the graphite still reads as a stripe. */
+.sash.livery { --l: var(--c-badge-line); --li: var(--l); background: linear-gradient(135deg,
+  transparent calc(var(--s0) - 123px), var(--l) 0, var(--l) calc(var(--s0) - 120px),
+  var(--a1) 0, var(--a1) calc(var(--s0) - 61.5px), var(--li) 0, var(--li) calc(var(--s0) - 58.5px),
+  var(--p) 0, var(--p) calc(var(--s0) + 58.5px), var(--li) 0, var(--li) calc(var(--s0) + 61.5px),
+  var(--a2) 0, var(--a2) calc(var(--s0) + 120px), var(--l) 0, var(--l) calc(var(--s0) + 123px), transparent 0); }
+/* The chequer's other squares, in black, over the ribbon only: the white squares vanish on a white livery and the
+   black ones on a dark one, so between them the grid carries across every colour. */
+.sash.chq-ink {
+  background-image: repeating-conic-gradient(transparent 0% 25%, oklch(0% 0 0 / 0.03) 0% 50%), repeating-conic-gradient(transparent 0% 25%, oklch(0% 0 0 / 0.05) 0% 50%);
+  background-size: 60px 60px, 360px 360px;
+  --ribbon: linear-gradient(135deg, transparent calc(var(--s0) - 123px), #000 0, #000 calc(var(--s0) + 123px), transparent 0);
+  -webkit-mask-image: var(--ribbon); mask-image: var(--ribbon); }
 /* The car band: full bleed, ruled top and bottom, and the only place a team colour is laid as a field.
    Nothing but the car sits on it, so no livery can swallow a word or a bar. */
 .carband { position: relative; flex: none; margin-inline: -72px; overflow: hidden; background: var(--c-card); border-block: 2px solid var(--c-line); }
-.carband .sash { position: absolute; inset: 0; }
-.carband .chq { inset: 0; }
 .carband .car { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%) rotate(-5deg); filter: drop-shadow(0 18px 18px oklch(10% 0 0 / .5)); }
 .cardfoot { margin-top: auto; margin-inline: -72px; padding: 30px 72px 40px; background: var(--c-head); border-top: 2px solid var(--c-line);
   display: flex; align-items: baseline; gap: 14px; position: relative; overflow: hidden; }
@@ -186,7 +211,6 @@ h2.mode { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-sp
   <p class="kick">docs/design/share-image.md</p>
   <h1>The share image</h1>
   <p class="lede">Two cards for each mode. The player picks one, or both. The team colours now run only through a <b>car band</b> of their own, so a livery can never hide a word or a year. <b>Every result is invented</b>; the colours are the authored liveries.</p>
-
   <h2 class="mode">Era</h2>
   <div class="gallery">
     <div class="mock">
@@ -223,7 +247,7 @@ h2.mode { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-sp
     <section>
       <h2>Colours</h2>
       <ul>
-                <li><b>The fix</b>: the sash only runs inside a ruled band across the card that holds the car and nothing else. Every word, bar and badge sits on graphite, so this works for any livery.</li>
+                <li><b>The fix</b>: one diagonal sash runs the length of the card, at the app's chequer angle. On the graphite it is the app's faint chequer, which no word can clash with; only where it crosses a ruled band that holds the car and nothing else does it become a ribbon of the livery, as many colours as its badge shows, each edged like a badge, so a white or a black primary reads as one stripe among its accents rather than a slab or a hole. Every word, bar and badge sits on graphite, so this works for any livery.</li>
         <li><b>On graphite</b>, a dark livery (a black Mercedes, a dark green Lotus) still shows, because its bars and badges carry the hairline the app gives every badge.</li>
       </ul>
     </section>
@@ -252,11 +276,19 @@ const yr = (y, colour) => `<span class="yr">${String(y).slice(2)}<i style="backg
 const head = (l, r) => `<div class="top"><p class="lbl">${l}</p><p class="lbl" style="color:var(--c-subtle)">${r}</p></div>`;
 const foot = `<footer class="cardfoot"><div class="chq" style="inset:-200px -100px auto auto;width:700px;height:500px;-webkit-mask-image:linear-gradient(135deg,transparent 30%,#000 50%,transparent 70%);mask-image:linear-gradient(135deg,transparent 30%,#000 50%,transparent 70%)"></div><span class="cta">Make your own history at</span><span class="url">${URL_TEXT}</span></footer>`;
 const teamStrip = (label, rows) => `<div class="strip"><span class="lbl">${label}</span>${rows.map(([n, b, k]) => `<div>${badge(b)}<span class="name">${n}</span><span class="num">${k}</span></div>`).join("")}</div>`;
-/* The band: the sash in one livery, the chequer, and that team's car. */
+/* The band: the sash in one livery under its chequer, and that team's car. */
+/* The ribbon follows the badge's stripe count (badgeStripes, read here off the badge itself): with none it is the
+   primary alone, with one the accent on both sides of it, with two one accent each side. */
+const stripes = (a) => !a.badge.startsWith("linear") ? 0 : a.badge.includes(" 50%") ? 2 : 1;
+const ribbon = (a) => [
+  `--p:${a.primary};--a1:${a.primary};--a2:${a.primary};--li:${a.primary}`,
+  `--p:${a.primary};--a1:${a.s1};--a2:${a.s1}`,
+  `--p:${a.primary};--a1:${a.s1};--a2:${a.s2}`,
+][stripes(a)];
 const carband = (k, h, w, mt = 36) => { const a = ART[k];
   return `<div class="carband" style="height:${h}px;margin-top:${mt}px">
-    <div class="sash" style="background:linear-gradient(115deg, transparent 30%, ${a.primary} 30%, ${a.primary} 62%, ${a.s1} 62%, ${a.s1} 65%, ${a.s2} 65%, ${a.s2} 68%, transparent 68%)"></div>
-    <div class="chq"></div><div class="car" style="width:${w}px">${car(k)}</div></div>`; };
+    <div class="sash livery" style="${ribbon(a)}"></div>
+    <div class="sash chq-sash"></div><div class="sash chq-ink"></div><div class="car" style="width:${w}px">${car(k)}</div></div>`; };
 const ordinal = (n) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
 const TEAM = (t, y) => ({ ferrari: "Ferrari", mclaren: "McLaren", stewart: "Red Bull", williams: "Williams" }[t] ?? (t === "tyrrell" ? (y === 2009 ? "Brawn" : "Mercedes") : t));
 
@@ -275,7 +307,7 @@ document.getElementById("eraMain").innerHTML = `
   <p class="disp surname">${hero.name}</p>
   <div class="entry">${flag(hero.flag)}<span>Titles with Benetton and Ferrari</span></div>
   <div class="big"><span class="n">${hero.seasons.length}</span><div class="side"><p class="disp">World titles</p><div class="yrs lg">${hero.seasons.map(s => yr(s.y, s.primary)).join("")}</div></div></div>
-  ${carband("ferrari-2026", 250, 700)}
+  ${carband("ferrari-2007", 250, 700)}
   <section class="panel champs" style="margin-top:36px">
     <div class="band"><p class="lbl">The other champions</p><p class="lbl" style="color:var(--c-subtle)">titles · seasons</p></div>
     ${named.map(c => `<div class="row">${flag(c.flag)}<span class="name">${c.name}</span><span class="k">${c.seasons.length}</span><div class="yrs">${c.seasons.map(s => yr(s.y, s.primary)).join("")}</div></div>`).join("")}
@@ -333,6 +365,15 @@ document.getElementById("seasonList").innerHTML = `
   </section>
   ${foot}`;
 
+/* Run each card's sash through the middle of its car band; again once the fonts have settled the layout. */
+const placeSash = () => document.querySelectorAll(".card").forEach(c => {
+  const b = c.querySelector(".carband");
+  if (!c.querySelector(":scope > .sash")) c.insertAdjacentHTML("afterbegin", `<div class="sash chq-sash"></div>`);
+  c.style.setProperty("--mid", `${b.offsetTop + b.offsetHeight / 2}px`);
+  b.style.setProperty("--at", `${b.offsetTop}px`);
+});
+placeSash();
+document.fonts.ready.then(placeSash);
 /* Fit each 1080-wide card to its frame. */
 const fit = () => document.querySelectorAll(".frame").forEach(fr => fr.firstElementChild.style.setProperty("--s", fr.clientWidth / 1080));
 new ResizeObserver(fit).observe(document.body);

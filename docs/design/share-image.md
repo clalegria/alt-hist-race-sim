@@ -17,9 +17,12 @@ authored liveries. Match its look, not its CSS.
   1986", "16 rounds"); a lead sentence in the first person with its subject in teal; the
   subject; one ruled car band across the full width; the detail in panels; then a footer
   reading "Make your own history at" and the address.
-- DECIDED: **team colour as a field appears only in the car band**: the sash in one
-  livery, the chequer, and that team's car, with nothing else on it. Every word, bar and
-  badge sits on graphite, so no livery can hide them.
+- DECIDED: **one diagonal sash runs the length of the card**, at the app's chequer angle,
+  through the car band. Outside the band it is the app's chequer; inside, that team's car
+  on a ribbon of its livery, as many colours as the badge shows: the primary in the
+  middle, its accents either side, each edged with the badge hairline and chequered in
+  white and black so the grid shows on any colour.
+  Every word, bar and badge sits on graphite, so no livery can hide them.
 - DECIDED: **a season is two digits over a bar in that year's team colours** ("94" over
   Benetton blue), read through the run's livery settings like every other colour.
 
