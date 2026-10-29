@@ -1,15 +1,7 @@
 # Publish it
 
-Everything before the app goes public: the share image, then one release of five parts.
-
-## The share image
-
-- DECIDED: a **portrait PNG, 1080×1920**, from a button on `SeasonOverview` and
-  `EraChampions`. Its own card component laid out for the frame (champions, top of the
-  standings, the run's what-ifs, the site's address), rendered off-screen and turned into
-  an image in the browser (e.g. `html-to-image`, fonts embedded). No server, no save format.
-- DECIDED: the Web Share API with a file where there is one, a download where not.
-- OPEN: what each card shows; whether the era card is one image or one per page.
+Everything before the app goes public: one release of five parts. The share image, which
+comes first, has its own doc (`docs/design/share-image.md`).
 
 ## The release
 

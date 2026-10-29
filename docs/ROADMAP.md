@@ -21,7 +21,8 @@ asked for that era by name.
 
 ## 1. The share image
 
-A portrait PNG of a season's or era's result, sent from a phone. `docs/design/publish.md`.
+Two portrait PNGs per mode, a season's or an era's result, sent from a phone. Designed and
+mocked up; the build steps are in `docs/design/share-image.md`.
 
 ## 2. Publish it
 
