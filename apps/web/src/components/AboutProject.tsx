@@ -192,9 +192,9 @@ function About({ today }: { today: Date }) {
           both desktop and mobile (and I&rsquo;m still not happy with it...)
         </p>
         <p>
-          Architecture is mostly TypeScript, React, Vite and Zustand. No database as of yet: all
-          data lives in JSON files, loaded into the browser. You can check the codebase on my{" "}
-          <Out href={REPOSITORY}>GitHub</Out>.
+          Architecture is mostly TypeScript, React, Vite, Tailwind, TanStack Router and Zustand. No
+          database as of yet: all data lives in JSON files, loaded into the browser. You can check
+          the codebase on my <Out href={REPOSITORY}>GitHub</Out>.
         </p>
       </Section>
       <Section heading="Credits">
