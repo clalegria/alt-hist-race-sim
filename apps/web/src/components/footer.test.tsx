@@ -27,11 +27,9 @@ describe("the footer", () => {
     expect(html).toMatch(/<a [^>]*href="\/about"[^>]*>About this project<\/a>/);
   });
 
-  it("offers the bug report, not built yet, as a disabled control rather than a dead link", async () => {
+  it("links the bug report to its tab on the About page", async () => {
     const html = await inRouter(<SiteFooter />);
-    // An <a> with no destination is the thing this is deliberately not.
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Submit a bug report<\/button>/);
-    expect(html.match(/<a /g)).toHaveLength(1);
+    expect(html).toMatch(/<a [^>]*href="\/about\?tab=submit-bug"[^>]*>Submit a bug report<\/a>/);
   });
 
   it("prints the seed only when it is given one", async () => {

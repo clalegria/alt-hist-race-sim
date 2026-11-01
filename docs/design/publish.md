@@ -14,12 +14,13 @@ whole authoring pass, nor after the ratings editor.
   `RandomnessSlider` option details, the settings dialog's what-if notes, the
   `CareerStatistics` section descriptions. The About page's words are a draft for the
   author to rewrite (`web-about.md`).
-- **The bug report page**. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
+- **The bug report page**: a tab on the About page, *not available yet* until built. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
   one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
   season, rating mode, randomness level and a build id, which together reproduce a run.
   The recipe (`web-store.md`) has all but the build id, so add a version stamp to
   the footer.
 - **Going live**:
+  - What's new: replace the placeholder entries with one, the first public release.
   - Hosting: any static host. GitHub Pages needs a `base` in `vite.config.ts` and a
     deep-link workaround; Netlify or Cloudflare Pages need neither. A domain is optional;
     if bought, turn on WHOIS privacy.

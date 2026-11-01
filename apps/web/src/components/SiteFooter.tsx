@@ -14,27 +14,6 @@ import { cn } from "../lib/utils.js";
  * read from the store, since only the season screen has one to show.
  */
 
-/**
- * A destination that does not exist yet.
- *
- * Deliberately not an `<a>`: an anchor with no `href` is not a link to anything,
- * and one pointing at `#` is a link that lies. A disabled button says what this
- * is — something that will be clickable and is not yet — to a screen reader as
- * well as to the eye.
- */
-function Pending({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      disabled
-      title="Not available yet"
-      className="text-subtle cursor-not-allowed underline underline-offset-3"
-    >
-      {label}
-    </button>
-  );
-}
-
 /** One of the footer's parts: as it is in the strip, or on a board of its own on the verge. */
 function Part({
   onVerge,
@@ -89,7 +68,13 @@ export function SiteFooter({
           </Link>
         </Part>
         <Part onVerge={onVerge}>
-          <Pending label="Submit a bug report" />
+          <Link
+            to="/about"
+            search={{ tab: "submit-bug" }}
+            className="hover:text-foreground underline underline-offset-3"
+          >
+            Submit a bug report
+          </Link>
         </Part>
         {seed === undefined ? null : (
           <Part onVerge={onVerge} className={cn(!onVerge && "ml-auto")}>

@@ -1,1 +1,55 @@
-[]
+[
+  {
+    "date": "2026-11-01",
+    "items": [
+      "Share a season as a picture: four cards, from the champion of champions to the final standings, to save or send from your phone.",
+      "Search the drivers and teams lists, sort them by surname, and reverse any sort.",
+      "Jump to… goes straight to a run's final season.",
+      "This About page, with What's new."
+    ]
+  },
+  {
+    "date": "2026-10-29",
+    "items": ["Designed the share cards, each with its team's livery as a ribbon down its length."]
+  },
+  {
+    "date": "2026-10-28",
+    "items": [
+      "The phone layout is finished.",
+      "Credits for the real results the ratings are checked against."
+    ]
+  },
+  {
+    "date": "2026-10-21",
+    "items": [
+      "A race's classification and standings now sit in tabs.",
+      "On a phone, the arrows to the previous and next page sit at the foot of the screen.",
+      "Each car on the podium stands on its block, with its driver's name below."
+    ]
+  },
+  {
+    "date": "2026-10-20",
+    "items": [
+      "A podium for each race's top three, above its classification.",
+      "Step to the previous and next race, season, driver and team.",
+      "The menu's credits sit on the track's verge."
+    ]
+  },
+  {
+    "date": "2026-10-19",
+    "items": [
+      "What if? is now Scenarios, with a Custom option.",
+      "Driver and team pages show their cars and a strip of their livery colours.",
+      "A champion's titles are marked with a trophy and a count.",
+      "Lists sort by rating first, and remember how you sorted them."
+    ]
+  },
+  {
+    "date": "2026-10-18",
+    "items": [
+      "Ready-made what-ifs to start a run from.",
+      "The menu fits the window, so the track stays in view.",
+      "Clearer words on the menu and the season picker."
+    ]
+  }
+]

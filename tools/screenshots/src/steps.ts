@@ -108,6 +108,16 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "about-known-issues",
+    reach: async (page) => {
+      await page
+        .getByRole("navigation", { name: "About" })
+        .getByRole("link", { name: "Known issues", exact: true })
+        .click();
+      await page.waitForURL("**/about?tab=known-issues");
+    },
+  },
+  {
     name: "menu",
     reach: async (page) => {
       await page.goto("/");

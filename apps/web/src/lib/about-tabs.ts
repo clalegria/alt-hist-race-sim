@@ -7,13 +7,15 @@
 import { linkOptions } from "@tanstack/react-router";
 import { tabMemory } from "./tab-memory.js";
 
-export const ABOUT_TABS = ["about", "whats-new"] as const;
+export const ABOUT_TABS = ["about", "whats-new", "known-issues", "submit-bug"] as const;
 
 export type AboutTab = (typeof ABOUT_TABS)[number];
 
 const LABELS: Record<AboutTab, string> = {
   about: "About",
   "whats-new": "What's new",
+  "known-issues": "Known issues",
+  "submit-bug": "Submit bug",
 };
 
 const memory = tabMemory<AboutTab>("about", ABOUT_TABS);
@@ -41,7 +43,7 @@ export interface AboutTabLink {
   readonly current: boolean;
 }
 
-/** Both tabs, in order, `current` marking the one on screen. */
+/** The tabs, in order, `current` marking the one on screen. */
 export function aboutTabLinks(current: AboutTab): readonly AboutTabLink[] {
   return ABOUT_TABS.map((tab) => ({
     key: tab,
