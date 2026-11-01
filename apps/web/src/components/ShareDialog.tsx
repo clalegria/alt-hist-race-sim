@@ -2,7 +2,7 @@
  * Share: the button beside a page's heading and the dialog it opens, showing
  * the page's two cards side by side, each scaled down to fit its column, with
  * Save under each and Share where the browser sends files
- * (`docs/design/share-image.md`).
+ * (`.claude/rules/web-share-card.md`).
  *
  * **A phone shows one card at a time**, the other a swipe away: the cards sit
  * on a horizontal track that snaps to each, the usual carousel, with arrows

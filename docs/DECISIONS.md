@@ -10,6 +10,11 @@ decision; it lives in the rule file for that constant.
 Their open questions — the market, the run settings, `adaptability`, engine deals — are
 listed in `docs/design/era-advanced.md`, not here.
 
+## The run's settings on a share card?
+
+Small print at a share card's foot naming the run's settings would say what was replayed,
+but with so many combinations, how? (`docs/style/share-image.md`)
+
 ## Should the fitter and tuner move drivers?
 
 `pnpm fit` and `pnpm tune` fit cars; drivers move only behind `--drivers`, off by default

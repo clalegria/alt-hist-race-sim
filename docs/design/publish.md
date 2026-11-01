@@ -1,7 +1,6 @@
 # Publish it
 
-Everything before the app goes public: one release of five parts. The share image, which
-comes first, has its own doc (`docs/design/share-image.md`).
+Everything before the app goes public: one release of five parts.
 
 ## The release
 

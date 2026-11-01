@@ -14,3 +14,5 @@ simulated results add onto them. Each season file carries, per driver and per te
 - DECIDED: team totals follow team lineage (`team-eras.md`), or a rebadged team's roll-up
   lies.
 - Read by the era's champions screen, and later the driver market (reputations).
+- OPEN: do the era's share cards count titles from before the start year, or only the
+  run's? Until this is built, only the run's.
