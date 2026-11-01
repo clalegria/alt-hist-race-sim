@@ -318,12 +318,8 @@ export const STEPS: readonly Step[] = [
   {
     name: "season-final-standings",
     reach: async (page) => {
-      // The finished championships with their charts, a whole season long.
-      await page
-        .getByRole("navigation", { name: "Season" })
-        .getByRole("link", { name: "Standings", exact: true })
-        .click();
-      await page.waitForURL(`**/run/${YEAR}?tab=standings`);
+      // The finished championships with their charts, a whole season long: the
+      // tab the season's end opens on.
       await page
         .getByText(/was won/i)
         .first()
@@ -357,9 +353,8 @@ export const STEPS: readonly Step[] = [
     name: "grid-raced",
     reach: async (page) => {
       // Back through the pages already read: a place, never a step back in time.
-      // Standings tab, summary, calendar tab, season page, race, qualifying,
-      // then the grid.
-      for (let i = 0; i < 6; i += 1) {
+      // Summary, calendar tab, season page, race, qualifying, then the grid.
+      for (let i = 0; i < 5; i += 1) {
         await page.goBack();
       }
       // A raced grid's own address is now the season page's Grid tab.
@@ -559,8 +554,7 @@ export const STEPS: readonly Step[] = [
       await page.goBack();
       await page.waitForURL(`**/run/${YEAR + 1}*`);
       // The year after the start under the first season's teams: ghost entries
-      // and the note saying what was kept. The season page opens on the tab
-      // last left on, which `grid-raced` left on the Grid, so it may be there.
+      // and the note saying what was kept, on the season page's Grid tab.
       const tab = page
         .getByRole("navigation", { name: "Season" })
         .getByRole("link", { name: "Grid", exact: true });

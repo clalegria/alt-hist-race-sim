@@ -127,7 +127,7 @@ describe("the season's page, partway through the year", () => {
     const tabs = html.slice(html.indexOf('<nav aria-label="Season"'), html.indexOf("</nav>"));
     expect(tabs).toMatch(/aria-current="page"[^>]*>Calendar</);
     expect(count(tabs, 'aria-current="page"')).toBe(1);
-    // The standings named too: a bare season address opens the tab last left on.
+    // The standings named too, as every tab is.
     expect(tabs).toContain(`href="/run/${YEAR}?tab=standings"`);
     expect(tabs).toContain(`href="/run/${YEAR}?tab=grid"`);
     expect(tabs).not.toContain("?tab=calendar");

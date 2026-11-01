@@ -1,11 +1,10 @@
 /**
  * The About page's tabs, as a search param (`/about?tab=whats-new`) like the
  * season page's (`season-tabs.ts`): a place in the address bar, checked, and
- * opening on the tab last left on when the URL names none.
+ * About itself when the URL names none.
  */
 
 import { linkOptions } from "@tanstack/react-router";
-import { tabMemory } from "./tab-memory.js";
 
 export const ABOUT_TABS = ["about", "whats-new", "known-issues", "submit-bug"] as const;
 
@@ -18,13 +17,17 @@ const LABELS: Record<AboutTab, string> = {
   "submit-bug": "Submit bug",
 };
 
-const memory = tabMemory<AboutTab>("about", ABOUT_TABS);
+const HEADINGS: Record<AboutTab, string> = {
+  about: "About this project",
+  "whats-new": "Changelog",
+  "known-issues": "Known issues and limitations",
+  "submit-bug": "Submit a bug report",
+};
 
-/** The tab the page opens on when its URL names none: the one last left on. */
-export const lastAboutTab = memory.last;
-
-/** Notes the tab on screen, for the next visit that names none. */
-export const rememberAboutTab = memory.remember;
+/** The page's heading on `tab`: the tab's name written out in full. */
+export function aboutHeading(tab: AboutTab): string {
+  return HEADINGS[tab];
+}
 
 /** The page's search params, checked: the route's `validateSearch`. */
 export function aboutSearch(search: Record<string, unknown>): { tab?: AboutTab } {

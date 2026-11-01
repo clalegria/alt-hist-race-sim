@@ -29,9 +29,9 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
 - **A tab is a search param, not a path** (`seasonSearch`). Tab links pass
   `activeOptions={{ exact: true }}`: TanStack matches search as a subset and would mark
   the standings link active on every tab.
-- **Every tab strip opens on the tab last left on** (`lib/tab-memory.ts`, for the visit).
-  A season URL with no tab shows `lastSeasonTab`, so a tab's own link always names it,
-  standings included; links to a season never do.
+- **A page opens on its first tab**, however it was reached; a tab's own link names it.
+  Only a season's steps carry the tab on screen. Panel tabs (the settings dialog, a race's
+  two halves, kept race to race) remember theirs (`lib/tab-memory.ts`, for the visit).
 - **The era's sections are pages, not tabs** (`/run`, `/run/drivers`, `/run/teams`):
   `EraTabs` draws them as a strip, never remembered, from `eraSectionTabs`, the list the
   breadcrumb's sections menu reads too. Add a section there, once.

@@ -13,6 +13,7 @@ import { revealed } from "./reveal.js";
 import { rosterOf } from "./roster.js";
 import { driverLink, teamLink } from "./roster-places.js";
 import { laterYears, linkTo } from "./run-places.js";
+import { seasonTabLink } from "./season-tabs.js";
 import { seasonSeed } from "./seasons.js";
 import { type Beat, isReached, type Place } from "./timeline.js";
 
@@ -192,6 +193,13 @@ describe("season steps", () => {
     expect(back?.previous).toBeNull();
     expect(back?.next?.link).toEqual(linkTo(at(YEAR + 1, END)));
     expect(back?.next?.title).toBe(`Next season: ${YEAR + 1}`);
+  });
+
+  it("keep the tab on screen, and name none when the page names none", () => {
+    const run = eraSecond(END);
+    const onCalendar = stepsFor(run, at(YEAR + 1, END), "calendar");
+    expect(onCalendar?.previous?.link).toEqual(seasonTabLink(YEAR, "calendar"));
+    expect(stepsFor(run, at(YEAR + 1, END))?.previous?.link).toEqual(linkTo(at(YEAR, END)));
   });
 
   it("has a later year the era can still reach as a step with no link", () => {

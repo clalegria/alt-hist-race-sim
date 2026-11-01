@@ -7,14 +7,12 @@
  * Like any URL it comes from the reader, so it is checked, and anything that is
  * not a tab reads as no tab rather than sending the reader elsewhere.
  *
- * **A URL with no tab opens the tab last left on** (`lastSeasonTab`), so moving
- * to another season keeps the reader on its calendar rather than snapping back
- * to the standings. That is why a tab's own link always names it, standings
- * included: `/run/1984` means "this season, as I was reading it".
+ * **A URL with no tab opens the standings**, however the reader got there. Only
+ * the steps to the season either side keep the tab on screen (`stepsFor`), so
+ * reading calendars year after year stays on the calendar.
  */
 
 import { linkOptions } from "@tanstack/react-router";
-import { tabMemory } from "./tab-memory.js";
 
 export const SEASON_TABS = ["standings", "calendar", "grid"] as const;
 
@@ -26,13 +24,8 @@ const LABELS: Record<SeasonTab, string> = {
   grid: "Grid",
 };
 
-const memory = tabMemory<SeasonTab>("season", SEASON_TABS);
-
-/** The tab a season page opens on when its URL names none: the one last left on. */
-export const lastSeasonTab = memory.last;
-
-/** Notes the tab on screen, for the next season page that names none. */
-export const rememberSeasonTab = memory.remember;
+/** The tab a season page opens on when its URL names none. */
+export const FIRST_SEASON_TAB: SeasonTab = "standings";
 
 /** The season page's search params, checked: the route's `validateSearch`. */
 export function seasonSearch(search: Record<string, unknown>): { tab?: SeasonTab } {

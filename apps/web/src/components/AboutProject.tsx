@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import type { AboutTab, AboutTabLink } from "../lib/about-tabs.js";
+import { type AboutTab, type AboutTabLink, aboutHeading } from "../lib/about-tabs.js";
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { cn, DISPLAY_CAPS } from "../lib/utils.js";
 import { type Release, releaseDate } from "../lib/whats-new.js";
+import { Flag } from "./Flag.js";
 import { PageHeading } from "./PageHeading.js";
 import { Tabs } from "./Tabs.js";
 
@@ -29,7 +30,7 @@ export function AboutProject({
 }) {
   return (
     <div className="flex flex-col gap-6 py-6 sm:py-10">
-      <PageHeading title="About this project" />
+      <PageHeading title={aboutHeading(tab)} />
       {tabs === undefined ? null : <Tabs label="About" className="self-start" links={tabs} />}
       {tab === "about" ? (
         <About today={today} />
@@ -44,12 +45,19 @@ export function AboutProject({
   );
 }
 
-const PROSE = "flex max-w-[65ch] flex-col gap-8";
+/**
+ * Justified, hyphenating only words of ten letters or more, four either side of
+ * the break, so a phone's narrow column neither opens wide gaps nor breaks often.
+ */
+const PROSE =
+  "flex max-w-[65ch] flex-col gap-8 text-justify hyphens-auto [hyphenate-limit-chars:10_4_4]";
 
 function Section({ heading, children }: { heading: ReactNode; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className={cn(DISPLAY_CAPS, "text-2xl leading-none")}>{heading}</h2>
+      <h2 className={cn(DISPLAY_CAPS, "text-left text-2xl leading-none hyphens-none")}>
+        {heading}
+      </h2>
       {children}
     </section>
   );
@@ -88,8 +96,9 @@ function About({ today }: { today: Date }) {
     <div className={PROSE}>
       <Section heading="Who I am">
         <p>
-          I&rsquo;m Cláudio, a {yearsOld(AUTHOR_BORN, today)} year old software developer from
-          Madeira Island, Portugal, specialised in legacy banking applications.
+          I&rsquo;m <strong>Cláudio</strong>, a {yearsOld(AUTHOR_BORN, today)} year old software
+          developer from Madeira Island, Portugal <Flag country="PT" />, specialised in legacy
+          banking applications.
         </p>
         <p>
           In 2026 I got interested in AI vibe-coding and started a few hobby projects, this one
@@ -113,15 +122,15 @@ function About({ today }: { today: Date }) {
       </Section>
       <Section heading="Right now, what can I use this for?">
         <p>
-          Well, you could use it to simulate alternate realities where your favourite driver joined
-          a better team at a certain point of his career. Or what if teams were stronger or weaker?
-          Try out the <strong>pre-made scenarios</strong>, and/or edit the grid, and see what
-          happens.
+          Well, you could use it to <strong>simulate alternate realities</strong> where your
+          favourite driver joined a better team at a certain point of his career. Or what if teams
+          were stronger or weaker? Try out the pre-made scenarios, and/or edit the grid, and see
+          what happens.
         </p>
         <p>
           You could also just leave it on default settings, and see what would happen if everything
-          in the past was exactly the same, except luck fell for different teams and drivers in a
-          different way.
+          in the past was exactly the same as in real life, except luck fell for different teams and
+          drivers in a different way.
         </p>
       </Section>
       <Section heading="How does it work?">
@@ -156,10 +165,10 @@ function About({ today }: { today: Date }) {
           success and leaving his team.
         </p>
         <p>
-          I&rsquo;d like to make this a game at some stage, where you take over a team and decide
-          its fate, but I&rsquo;m struggling a bit to imagine what would make it fun. Management
-          sims need A LOT of game mechanics to be interesting and engaging, and I simply don&rsquo;t
-          have the time to build them all.
+          I&rsquo;d like to <strong>make this a game at some stage</strong>, where you take over a
+          team and decide its fate, but I&rsquo;m struggling a bit to imagine what would make it
+          fun. Management sims need A LOT of game mechanics to be interesting and engaging, and I
+          simply don&rsquo;t have the time to build them all.
         </p>
         <p>
           For example, the race engine just spits out results, with no thought whatsoever to

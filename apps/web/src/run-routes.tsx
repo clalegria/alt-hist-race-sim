@@ -329,7 +329,9 @@ export function RunLayout() {
       // Only on a page drawn as itself: a place ahead says "Not reached yet",
       // and has no neighbours to offer.
       steps={
-        resolved?.kind === "unreached" || person?.kind === "absent" ? null : stepsFor(run, place)
+        resolved?.kind === "unreached" || person?.kind === "absent"
+          ? null
+          : stepsFor(run, place, (leaf?.search as { tab?: SeasonTab } | undefined)?.tab)
       }
       returnTo={returnFor(run, place)}
       roundPage={

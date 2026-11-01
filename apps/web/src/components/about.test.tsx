@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { aboutSearch, aboutTabLinks } from "../lib/about-tabs.js";
+import { ABOUT_TABS, aboutHeading, aboutSearch, aboutTabLinks } from "../lib/about-tabs.js";
 import { renderRoute } from "../test-router.js";
 import { AboutProject, yearsOld } from "./AboutProject.js";
 
@@ -42,6 +42,17 @@ describe("the About page", () => {
     expect(html).toMatch(/aria-current="page"[^>]*>Known issues</);
     expect(html).not.toContain("Who I am");
     expect(html).toContain("<li");
+  });
+
+  it("heads each tab with its own title, About's alone saying About this project", () => {
+    for (const tab of ABOUT_TABS) {
+      const html = renderToStaticMarkup(<AboutProject tab={tab} releases={[]} />).replaceAll(
+        "&#x27;",
+        "'",
+      );
+      expect(html, tab).toMatch(new RegExp(`<h1[^>]*>${aboutHeading(tab)}</h1>`));
+      expect(html.includes(">About this project</h1>"), tab).toBe(tab === "about");
+    }
   });
 
   it("says the bug report is not available yet on its tab", async () => {

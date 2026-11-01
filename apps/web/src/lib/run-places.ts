@@ -18,7 +18,7 @@ import { seasonSeed } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
 import { cursorPlace, type EraRun, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
-import { seasonTabLink } from "./season-tabs.js";
+import { type SeasonTab, seasonTabLink } from "./season-tabs.js";
 import { nextEraYear } from "./seasons.js";
 import { comparePlaces, isReached, type Place, type View } from "./timeline.js";
 
@@ -27,13 +27,14 @@ export const REVIEW_LINK = linkOptions({ to: "/run" });
 
 /**
  * The link to a place: typed against the route tree, so a beat whose page is
- * renamed fails `pnpm typecheck` rather than the reader. Spread into a `Link`,
+ * renamed fails `pnpm typecheck` rather than the reader. A season's `tab`
+ * opens it on that tab. Spread into a `Link`,
  * a `navigate` or a `redirect`.
  *
  * The URL's round is the one a reader would say — round 3 is `/round/3` — where
  * the beat's is an index into the season's races.
  */
-export function linkTo(place: Place) {
+export function linkTo(place: Place, tab?: SeasonTab) {
   const year = String(place.year);
   switch (place.beat.kind) {
     case "grid":
@@ -49,7 +50,9 @@ export function linkTo(place: Place) {
         params: { year, round: String(place.beat.round + 1) },
       });
     case "summary":
-      return linkOptions({ to: "/run/$year", params: { year } });
+      return tab === undefined
+        ? linkOptions({ to: "/run/$year", params: { year } })
+        : seasonTabLink(place.year, tab);
     case "review":
       return REVIEW_LINK;
   }

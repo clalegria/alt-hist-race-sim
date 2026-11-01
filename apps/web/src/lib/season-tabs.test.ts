@@ -18,8 +18,6 @@ describe("the season page's tab", () => {
   });
 
   it("names every tab in its own link, standings included", () => {
-    // A URL with no tab opens the one last left on, so a link to the
-    // standings has to say so.
     const links = seasonTabLinks(YEAR, "calendar");
     expect(links.map((each) => each.link.search)).toEqual(SEASON_TABS.map((tab) => ({ tab })));
   });

@@ -375,8 +375,6 @@ export function sectionsMenu(current: RunSection | null): CrumbMenu {
 /**
  * The same three sections as the tab strip on each of their pages
  * (`EraTabs`): one list, so the breadcrumb menu and the strip cannot drift.
- * Sections are separate pages, so unlike the season page's tabs they are not
- * remembered (`tab-memory.ts`).
  */
 export function eraSectionTabs(current: RunSection): readonly {
   readonly key: RunSection;

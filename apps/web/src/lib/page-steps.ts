@@ -13,7 +13,7 @@
  *   `roundPlace`, and across the edge of a year in an era: the first round's
  *   previous is last year's final round, the last round's next is next year's
  *   first.
- * - A season steps to the years either side.
+ * - A season steps to the years either side, on the tab on screen.
  * - A driver or a team steps through everyone in the run so far, A to Z as
  *   the index sorts by name (`compareRosterNames`): drivers by surname, teams
  *   by the name the index shows them under.
@@ -27,6 +27,7 @@ import { compareRosterNames, lastYearOf, rosterOf } from "./roster.js";
 import { driverLink, type RosterLocation, teamLink } from "./roster-places.js";
 import { type CrumbLink, yearsReached } from "./run-bar.js";
 import { laterYears, linkTo } from "./run-places.js";
+import type { SeasonTab } from "./season-tabs.js";
 import { seasonSeed } from "./seasons.js";
 import { roundPlace } from "./session-nav.js";
 import type { Place } from "./timeline.js";
@@ -136,8 +137,8 @@ function sessionSteps(
   return { previous, next };
 }
 
-/** The seasons either side of `year`; a next one the era can still reach has no link. */
-function seasonSteps(run: Run, year: number): PageSteps {
+/** The seasons either side of `year`, on `tab`; a next one the era can still reach has no link. */
+function seasonSteps(run: Run, year: number, tab: SeasonTab | undefined): PageSteps {
   const years = yearsReached(run);
   const at = years.indexOf(year);
   const before = years[at - 1];
@@ -149,7 +150,7 @@ function seasonSteps(run: Run, year: number): PageSteps {
       "season",
       String(other),
       `${other} season`,
-      reached ? linkTo({ year: other, beat: { kind: "summary" } }) : null,
+      reached ? linkTo({ year: other, beat: { kind: "summary" } }, tab) : null,
     );
   return {
     previous: before === undefined ? null : seasonStep("Previous", before, true),
@@ -223,9 +224,14 @@ function rosterSteps(run: Run, page: "driver" | "team", id: string): PageSteps {
  * The steps from the page at `at`: a session's, a season's, a driver's or a
  * team's. Null on every other page — the grid, the era's overview, an index.
  *
- * `at` is a page the reader has reached, as the run bar's trail is given it.
+ * `at` is a page the reader has reached, as the run bar's trail is given it;
+ * `seasonTab` is the tab a season page has open, if its URL names one.
  */
-export function stepsFor(run: Run, at: Place | RosterLocation): PageSteps | null {
+export function stepsFor(
+  run: Run,
+  at: Place | RosterLocation,
+  seasonTab?: SeasonTab,
+): PageSteps | null {
   if ("page" in at) {
     return (at.page === "driver" || at.page === "team") && at.id !== undefined
       ? rosterSteps(run, at.page, at.id)
@@ -236,7 +242,7 @@ export function stepsFor(run: Run, at: Place | RosterLocation): PageSteps | null
     case "race":
       return sessionSteps(run, at.year, at.beat.kind, at.beat.round);
     case "summary":
-      return seasonSteps(run, at.year);
+      return seasonSteps(run, at.year, seasonTab);
     default:
       return null;
   }
