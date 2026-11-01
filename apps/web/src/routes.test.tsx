@@ -42,7 +42,7 @@ import { cursorPlace, type Run, useSeasonStore } from "./store/season.js";
 import { inRouter, renderRoute } from "./test-router.js";
 import { seededWorld, YEAR } from "./test-support.js";
 
-const CREDIT = "Developed by Claudio Alegria";
+const CREDIT = "Developed by Cláudio Alegria";
 
 /** The top nav's markup alone, so other disabled buttons on a page are not counted. */
 function navOf(html: string): string {

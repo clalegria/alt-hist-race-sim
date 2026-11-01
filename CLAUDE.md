@@ -3,7 +3,7 @@
 **alt-hist-race-sim**: an alternate-history motor racing simulator. It starts from a real
 season (1950–2026, all authored) and simulates forward year by year: 1–100 ratings,
 probabilistic races, ageing, transfers, retirements, accumulated statistics. A hobby
-project, ~98% AI-generated; these rules keep it coherent.
+project, ~99% AI-generated; these rules keep it coherent.
 
 - **The author** is an experienced programmer new to TypeScript, React and web dev. When
   making a design choice, name the web convention behind it and why it fits.

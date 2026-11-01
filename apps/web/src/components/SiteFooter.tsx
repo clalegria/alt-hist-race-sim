@@ -60,7 +60,7 @@ export function SiteFooter({
         )}
       >
         <Part onVerge={onVerge}>
-          Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.
+          Developed by Cláudio Alegria, 2026, in collaboration with Anthropic Claude Code.
         </Part>
         <Part onVerge={onVerge}>
           <Link to="/about" className="hover:text-foreground underline underline-offset-3">

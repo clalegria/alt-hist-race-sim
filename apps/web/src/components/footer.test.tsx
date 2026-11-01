@@ -12,7 +12,7 @@ import { useSeasonStore } from "../store/season.js";
 import { inRouter, renderRoute } from "../test-router.js";
 import { SiteFooter } from "./SiteFooter.js";
 
-const CREDIT = "Developed by Claudio Alegria";
+const CREDIT = "Developed by Cláudio Alegria";
 
 describe("the footer", () => {
   it("credits the author and the collaboration", async () => {

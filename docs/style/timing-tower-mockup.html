@@ -550,7 +550,7 @@ const SHOTS = {};
   }
 
   const NAV = [["Home", "home"], ["Season", "season"], ["Era (basic)", ""], ["Era (advanced)", "off"], ["Game", "off"], ["Editor", "off"], ["About", ""]];
-  const FOOT = (seed) => `<footer class="foot"><div class="inner"><span>Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.</span><u>About this project</u><u>Submit a bug report</u>${seed ? `<span class="seed">Seed 13681</span>` : ""}</div></footer>`;
+  const FOOT = (seed) => `<footer class="foot"><div class="inner"><span>Developed by Cláudio Alegria, 2026, in collaboration with Anthropic Claude Code.</span><u>About this project</u><u>Submit a bug report</u>${seed ? `<span class="seed">Seed 13681</span>` : ""}</div></footer>`;
   const segs = (done) => `<div class="rounds" aria-label="Round ${done} of 16">${Array.from({ length: 16 }, (_, i) => `<i class="${i < done ? "done" : ""}"></i>`).join("")}</div>`;
 
   // ── The track along the foot of Home: five decades, two lanes, different paces so they overtake.
