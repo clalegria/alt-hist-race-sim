@@ -9,6 +9,8 @@ authored liveries. Match its look, not its CSS.
 
 ## What is decided
 
+The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`.
+
 - DECIDED: **1080×1920 PNG**, made in the browser from a card component laid out for that
   frame. No server, no save format.
 - DECIDED: **always dark**, in the app's dark tokens, whatever the app's theme.
@@ -29,7 +31,8 @@ authored liveries. Match its look, not its CSS.
 ### The era cards
 - DECIDED: **Champion of champions.** "I replayed history and my champion of champions
   is…", then the name, the flag and the teams of their titles, the title count large, and
-  the seasons won. The car is their last title's car. Below that:
+  the seasons won. A team renamed between their titles reads as one, its names at those
+  titles joined: "Titles with Brawn/Mercedes and McLaren". The car is their last title's car. Below that:
   - **The other champions**: up to 10 rows, ordered by titles, with ties going to whoever
     won first. Each row has the flag, the name, the count and the seasons.
   - **The rest in one sentence**: names for each count of two or more, a number for the
@@ -53,51 +56,48 @@ authored liveries. Match its look, not its CSS.
   scored, up to 20 rows, with position, flag, name, team badge and name, wins (left blank
   for none) and points.
 
+- DECIDED: **the address is `race-sim.clalegria.dev`** until *publish it* picks the host.
+  One constant, so going live changes one line.
+- DECIDED: **from 17 rounds** the race winners take 12 columns instead of 8, so a modern
+  calendar stays two rows.
+- DECIDED: **a winner's abbreviation** is the first three letters of the surname. Drivers
+  in one season who would share one take their given name's initial and the surname's
+  first two letters instead: Michael and Ralf Schumacher are `MSC` and `RSC`.
+- DECIDED: **Share appears only once the cursor reaches the end of a season**, never
+  mid-season, even with the title settled. The season's cards are offered on its summary,
+  in an era too; the era's on its champions page, covering every year up to that one.
+- DECIDED: **no seed on any card.**
+
 ## What is left to settle
 
-- PROPOSED: the address `race-sim.clalegria.dev`, provisional until *publish it* picks the
-  host. One constant, so going live changes one line.
-- PROPOSED: **the button**: a Share button on `SeasonOverview` and `EraChampions` opens a
-  dialog showing that mode's two cards side by side, as in the mockup, with Share and Save
-  for each, and a Share both where the browser takes two files.
-- PROPOSED: **from 17 rounds** the race winners take 12 columns instead of 8, so a modern
-  calendar stays two rows.
-- PROPOSED: **a winner's abbreviation** is the first three letters of the surname, made
-  unique within the season where two would match (the Schumachers, the Hills).
-- OPEN: **when Share appears**: a season card only once the champion is decided, or a
-  "so far" card mid-season too? An era card after its first crowned year, headed with the
-  years crowned so far?
-- OPEN: **the run's settings and seed** were on the first mockup and are not on the
-  chosen cards. Leave them off, or add them in small print at the foot?
+- PROPOSED: **the dialog**: Share opens a dialog showing that mode's two cards side by
+  side, as in the mockup, with Share and Save for each, and a Share both where the browser
+  takes two files.
+- OPEN: **the run's settings** in small print at the foot: worth having, but how, with so
+  many combinations?
 - OPEN: once *historical career records* exist, do the era cards count titles from before
-  the start year, or only the run's?
+  the start year, or only the run's? Until then, only the run's.
 
 ## The build, in order
 
-Each step lands with its tests and leaves the app working. The shape and the order are
-PROPOSED: confirm before step 1.
+Each step lands with its tests and leaves the app working. DECIDED.
 
-1. **The card data** (`lib/share-card.ts`): pure functions from the run to what each card
-   shows. Build on `eraChampions` (it already numbers each champion's titles) and the
-   engine's standings. Cover the edge cases: an era of one season, no one with two titles,
-   ties, a season with no wins for the runner-up, more than 20 scorers. Unit tests on
-   shapes and rules, never on a seeded outcome (`testing.md`).
-2. **The card frame**: one component at a fixed 1080×1920 with the parts every card
+1. **The card frame**: one component at a fixed 1080×1920 with the parts every card
    shares (heading line, lead, subject, car band, panel, footer), in the dark tokens
    whatever the theme. Long surnames use `FittedName`. The car band reuses `LiveryCar`.
    The year bars, badges, flags and position blocks reuse their app components or owners.
-3. **The four cards** on that frame, each smoke-rendered with a real season and a short
+2. **The four cards** on that frame, each smoke-rendered with a real season and a short
    era.
-4. **The preview dialog** and the Share button on both pages, with the cards scaled to
+3. **The preview dialog** and the Share button on both pages, with the cards scaled to
    fit (the mockup's `transform: scale` approach). Behaviour tested at store level.
-5. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card
+4. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card
    off-screen at 1:1. Its traps: the fonts must be embedded from the app's own
    `@fontsource` files or the PNG falls back to system fonts, and Safari can drop images
    and fonts on the first render, so render twice there. Make the image on tap, not when
    the dialog opens.
-6. **Share or save**: `navigator.canShare({ files })` decides. If it says yes, send the PNG
+5. **Share or save**: `navigator.canShare({ files })` decides. If it says yes, send the PNG
    through `navigator.share`; if not, save it from an object URL. The file is named after
    the run, such as `my-1986.png`.
-7. **Look and docs**: a `pnpm screenshots` step per card, checked by `screenshot-checker`;
+6. **Look and docs**: a `pnpm screenshots` step per card, checked by `screenshot-checker`;
    move the rules into a `web-share-card.md` rule file; delete this doc and its mockup when
    nothing is left.
