@@ -446,12 +446,6 @@ export function EraChampions({
           sub={eraLead(seasons, inProgress)}
         />
         {inRun ? <EraTabs current="overview" /> : null}
-        {first === null ? null : (
-          <SimulationSettings
-            settings={settingsOf(first)}
-            className="text-muted-foreground text-xs"
-          />
-        )}
       </header>
 
       {/*
@@ -466,6 +460,18 @@ export function EraChampions({
       />
 
       {seasons.length === 0 ? null : <CareerStatistics seasons={run.seasons} />}
+
+      {/*
+        The terms the era is being run under, at the foot of the page, as on
+        the season's overview: the line runs long and would push the roll of
+        honour down.
+      */}
+      {first === null ? null : (
+        <SimulationSettings
+          settings={settingsOf(first)}
+          className="text-muted-foreground pt-2 text-xs"
+        />
+      )}
     </div>
   );
 }

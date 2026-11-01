@@ -19,8 +19,6 @@ asked for that era by name.
 
 ## Small fixes
 
-- The active-settings line moved to the foot of most screens but still sits at the top of
-  some; find those and move it.
 - Championship standings on a phone: an expanded team row (its drivers' race-by-race
   results) overflows the width; check the drivers' table too.
 

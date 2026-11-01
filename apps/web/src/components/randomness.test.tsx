@@ -154,6 +154,10 @@ describe("the settings a finished championship was run under", () => {
       <EraChampions run={{ startYear: world.year, seasons: [world] }} />,
     );
     expect(html).toContain(randomnessLabel(5));
+    // At the foot, under the roll of honour, as on the season's overview.
+    const roll = html.indexOf("Roll of honour");
+    expect(roll).toBeGreaterThan(-1);
+    expect(html.indexOf(randomnessLabel(5))).toBeGreaterThan(roll);
   });
 
   it("says Default settings, on the summary and the roll of honour, when nothing differs", () => {
