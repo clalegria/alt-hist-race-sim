@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as RunRouteImport } from './routes/run'
 import { Route as EraNewRouteImport } from './routes/era/new'
 import { Route as RunIndexRouteImport } from './routes/run/index'
@@ -26,6 +27,11 @@ import { Route as RunYearRoundRoundRaceRouteImport } from './routes/run/$year/ro
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RunRoute = RunRouteImport.update({
@@ -92,6 +98,7 @@ const RunYearRoundRoundRaceRoute = RunYearRoundRoundRaceRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
   '/run/teams': typeof RunTeamsRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/run': typeof RunRouteWithChildren
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/run'
     | '/era/new'
     | '/run/drivers'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/era/new'
     | '/run/drivers'
     | '/run/teams'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/run'
     | '/era/new'
     | '/run/drivers'
@@ -184,6 +196,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   RunRoute: typeof RunRouteWithChildren
   EraNewRoute: typeof EraNewRoute
   SeasonNewRoute: typeof SeasonNewRoute
@@ -196,6 +209,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/run': {
@@ -313,6 +333,7 @@ const RunRouteWithChildren = RunRoute._addFileChildren(RunRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   RunRoute: RunRouteWithChildren,
   EraNewRoute: EraNewRoute,
   SeasonNewRoute: SeasonNewRoute,

@@ -40,6 +40,7 @@ export function Shell({
   seed,
   foot,
   fit = false,
+  top = false,
   children,
 }: {
   bar?: React.ReactNode;
@@ -51,6 +52,11 @@ export function Shell({
    * column holds must then scroll within itself (Home's modes).
    */
   fit?: boolean;
+  /**
+   * Start the page at the top even when it is short: for tabs of very different
+   * lengths (About), so switching tabs never moves the strip.
+   */
+  top?: boolean;
   children: React.ReactNode;
 }) {
   const page = (
@@ -67,7 +73,7 @@ export function Shell({
           one loses none of its height. It grows ahead of anything else in the
           column, and its negative margin cancels the column's gap after it.
         */}
-        <div aria-hidden className="-mb-6 max-h-25 grow-[999]" />
+        {top ? null : <div aria-hidden className="-mb-6 max-h-25 grow-[999]" />}
         {children}
       </div>
       {foot}

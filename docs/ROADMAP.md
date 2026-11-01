@@ -21,7 +21,7 @@ asked for that era by name.
 
 ## 1. Publish it
 
-The text pass, an About page, What's new, a bug report page, then going live. The author
+The text pass (the About page's words included), a bug report page, then going live. The author
 decides when. `docs/design/publish.md`.
 
 ## 2. The in-app ratings editor

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { cn } from "../lib/utils.js";
 
 /**
@@ -83,7 +84,9 @@ export function SiteFooter({
           Developed by Claudio Alegria, 2026, in collaboration with Anthropic Claude Code.
         </Part>
         <Part onVerge={onVerge}>
-          <Pending label="About this project" />
+          <Link to="/about" className="hover:text-foreground underline underline-offset-3">
+            About this project
+          </Link>
         </Part>
         <Part onVerge={onVerge}>
           <Pending label="Submit a bug report" />

@@ -7,46 +7,42 @@
  * screens that have no seed to print.
  */
 
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { useSeasonStore } from "../store/season.js";
-import { renderRoute } from "../test-router.js";
+import { inRouter, renderRoute } from "../test-router.js";
 import { SiteFooter } from "./SiteFooter.js";
 
 const CREDIT = "Developed by Claudio Alegria";
 
 describe("the footer", () => {
-  it("credits the author and the collaboration", () => {
-    const html = renderToStaticMarkup(<SiteFooter />);
+  it("credits the author and the collaboration", async () => {
+    const html = await inRouter(<SiteFooter />);
     expect(html).toContain(CREDIT);
     expect(html).toContain("2026");
     expect(html).toContain("Anthropic Claude Code");
   });
 
-  it("offers the two destinations as disabled controls, not as dead links", () => {
-    const html = renderToStaticMarkup(<SiteFooter />);
-    expect(html).toContain("About this project");
-    expect(html).toContain("Submit a bug report");
-    // Both are inactive, and neither pretends to be a link: an <a> with no
-    // destination is the thing this is deliberately not.
-    expect(
-      html
-        .split("<button")
-        .slice(1)
-        .every((button) => button.includes("disabled")),
-    ).toBe(true);
-    expect(html).not.toContain("<a ");
+  it("links to the About page", async () => {
+    const html = await inRouter(<SiteFooter />);
+    expect(html).toMatch(/<a [^>]*href="\/about"[^>]*>About this project<\/a>/);
   });
 
-  it("prints the seed only when it is given one", () => {
-    expect(renderToStaticMarkup(<SiteFooter seed={4242} />)).toContain("4242");
-    expect(renderToStaticMarkup(<SiteFooter />)).not.toContain("Seed");
+  it("offers the bug report, not built yet, as a disabled control rather than a dead link", async () => {
+    const html = await inRouter(<SiteFooter />);
+    // An <a> with no destination is the thing this is deliberately not.
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Submit a bug report<\/button>/);
+    expect(html.match(/<a /g)).toHaveLength(1);
   });
 
-  it("on the verge, is the track's grass with every part on a board of its own", () => {
+  it("prints the seed only when it is given one", async () => {
+    expect(await inRouter(<SiteFooter seed={4242} />)).toContain("4242");
+    expect(await inRouter(<SiteFooter />)).not.toContain("Seed");
+  });
+
+  it("on the verge, is the track's grass with every part on a board of its own", async () => {
     const BOARD = "bg-card";
-    const strip = renderToStaticMarkup(<SiteFooter seed={4242} />);
-    const verge = renderToStaticMarkup(<SiteFooter seed={4242} onVerge />);
+    const strip = await inRouter(<SiteFooter seed={4242} />);
+    const verge = await inRouter(<SiteFooter seed={4242} onVerge />);
     expect(strip).not.toContain("track-verge");
     expect(strip).not.toContain(BOARD);
     expect(verge).toContain("track-verge");

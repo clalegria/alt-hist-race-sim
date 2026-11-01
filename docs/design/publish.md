@@ -1,6 +1,7 @@
 # Publish it
 
-Everything before the app goes public: one release of five parts.
+Everything before the app goes public: one release. The About page and What's new are
+built (`web-about.md`).
 
 ## The release
 
@@ -11,14 +12,8 @@ whole authoring pass, nor after the ratings editor.
 - **The text pass.** Cut every on-screen string to what the reader is looking at
   (`.claude/rules/ui-copy.md`). Worst offenders: the setup leads (`SeasonPicker`), the
   `RandomnessSlider` option details, the settings dialog's what-if notes, the
-  `CareerStatistics` section descriptions.
-- **The About page** (the footer's disabled `Pending` button): an alternate history, not a
-  prediction; how the model works in one plain paragraph; the ratings are the author's
-  opinions and mostly first drafts; the AI-collaboration credit; data sources and their
-  attribution; the repository link; an unofficial/unaffiliated disclaimer.
-- **What's new**: a dated list on the About page, one entry per release, newest first.
-  DECIDED: a JSON file in `apps/web` imported at build time, its shape validated by a test,
-  committed with the work it describes. OPEN: whether an item can carry a link.
+  `CareerStatistics` section descriptions. The About page's words are a draft for the
+  author to rewrite (`web-about.md`).
 - **The bug report page**. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
   one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
   season, rating mode, randomness level and a build id, which together reproduce a run.

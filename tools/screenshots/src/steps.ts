@@ -89,6 +89,25 @@ async function cursorAt(page: Page, place: string): Promise<void> {
 
 export const STEPS: readonly Step[] = [
   {
+    // First, so capturing it walks through nothing else; `menu` starts afresh at `/`.
+    name: "about",
+    reach: async (page) => {
+      await page.goto("/");
+      await page.getByRole("link", { name: "About this project", exact: true }).click();
+      await page.getByRole("heading", { name: "Who I am" }).waitFor();
+    },
+  },
+  {
+    name: "about-whats-new",
+    reach: async (page) => {
+      await page
+        .getByRole("navigation", { name: "About" })
+        .getByRole("link", { name: "What's new", exact: true })
+        .click();
+      await page.waitForURL("**/about?tab=whats-new");
+    },
+  },
+  {
     name: "menu",
     reach: async (page) => {
       await page.goto("/");

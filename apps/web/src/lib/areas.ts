@@ -34,8 +34,7 @@ export const AREAS: readonly Area[] = [
   { label: "Advanced era", mode: "era-advanced" },
   { label: "Game", mode: "game" },
   { label: "Editor", mode: "edit-ratings" },
-  // A stub until *publish it*, like the footer's link to it.
-  { label: "About" },
+  { label: "About", to: "/about" },
 ];
 
 /** Whether an entry can be followed: it has a page, and its mode is built. */
