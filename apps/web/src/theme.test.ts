@@ -70,6 +70,24 @@ describe("the stylesheet", () => {
     }
   });
 
+  it("draws the share card in the dark palette, every token of it, whatever the theme", () => {
+    // `.share-card` is a copy of the dark values: a token added to the palette,
+    // or a dark value changed, has to reach the card too.
+    const declared = (text: string) =>
+      Object.fromEntries(
+        [...text.matchAll(/(--(?:color-[a-z-]+|pattern-[a-z]+-tint)): *([^;]+);/g)].map((match) => [
+          match[1],
+          match[2],
+        ]),
+      );
+    const blockAt = (start: number) => css.slice(start, css.indexOf("}", start));
+    const patterns = css.lastIndexOf(":root {", css.indexOf("--pattern-major-tint"));
+    const dark = { ...declared(css.slice(0, lightStart)), ...declared(blockAt(patterns)) };
+    const card = declared(blockAt(css.indexOf(".share-card {")));
+    expect(Object.keys(dark).length).toBeGreaterThan(5);
+    expect(card).toEqual(dark);
+  });
+
   it("tells the browser which scheme is in play", () => {
     // Without this, scrollbars and form controls stay in the other theme.
     expect(css).toContain("color-scheme: dark");

@@ -18,11 +18,11 @@ import { useLivery, useSeasonYear } from "./Liveries.js";
  * outline — flat colour inside one bold near-black outline, with a gloss
  * along the top of the bodywork.
  *
- * **Two sizes, and only two.** Every row, slot and panel that shows a car uses
- * `small`, so a car is the same size wherever it is met; only the champion
- * cards, the team and driver pages, the podium and the home screen's track use
- * `large`, and
- * only the champion cards and the track turn the wheels.
+ * **Two sizes in the app, and only two.** Every row, slot and panel that shows
+ * a car uses `small`, so a car is the same size wherever it is met; only the
+ * champion cards, the team and driver pages, the podium and the home screen's
+ * track use `large`, and only the champion cards and the track turn the wheels.
+ * The share card's `card` is the one exception: sized by its car band.
  *
  * **An inline SVG** rather than an `<img>`, because the colours are the team's
  * and are only known at render time, and because the page's own stylesheet can
@@ -132,7 +132,13 @@ function Part({ part, colours }: { part: CarPart; colours: Record<CarRole, strin
  * of it is the band around the edge. Lines (`line`) are left out: the only
  * one is dark already.
  */
-function Outline({ drawing, width }: { drawing: CarDrawing; width: number }) {
+function Outline({
+  drawing,
+  outline: { width, scales },
+}: {
+  drawing: CarDrawing;
+  outline: (typeof OUTLINE)[CarSize];
+}) {
   const { helmet } = drawing;
   const shapes = [
     ...drawing.under.filter((part) => part.line === undefined).map((part) => part.d),
@@ -147,7 +153,7 @@ function Outline({ drawing, width }: { drawing: CarDrawing; width: number }) {
         <path
           key={d}
           d={d}
-          vectorEffect="non-scaling-stroke"
+          vectorEffect={scales ? undefined : "non-scaling-stroke"}
           strokeLinejoin="round"
           style={{ fill: FIXED.o, stroke: FIXED.o, strokeWidth: `${width}px` }}
         />
@@ -202,12 +208,25 @@ function WheelShape({ wheel, colours }: { wheel: Wheel; colours: Record<CarRole,
 export const CAR_SIZES = {
   small: "h-3.5 w-12",
   large: "h-10.5 w-36",
+  /** The share card's: as wide as its box, the height following the canvas. */
+  card: "h-auto w-full",
 } as const;
 
 export type CarSize = keyof typeof CAR_SIZES;
 
-/** The outline's width in screen pixels, per size. */
-const OUTLINE_PX: Record<CarSize, number> = { small: 1.4, large: 3.2 };
+/** The large car's width in CSS pixels: its `w-36`. */
+const LARGE_WIDTH_PX = 144;
+
+/**
+ * The outline's width per size. The app's two are screen pixels, held whatever
+ * the drawing's size; the share card's is in canvas units, so it grows with a
+ * car drawn as large as its band allows, at the large car's proportion.
+ */
+const OUTLINE = {
+  small: { width: 1.4, scales: false },
+  large: { width: 3.2, scales: false },
+  card: { width: (3.2 * CANVAS_WIDTH) / LARGE_WIDTH_PX, scales: true },
+} as const satisfies Record<CarSize, { width: number; scales: boolean }>;
 
 /**
  * A car drawn from colours the caller already has.
@@ -248,6 +267,7 @@ export function LiveryCar({
       viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
       // The outline runs a little past the canvas at the wing tips and tyres.
       className={cn("shrink-0 overflow-visible", CAR_SIZES[size], className)}
+      style={size === "card" ? { aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` } : undefined}
     >
       <defs>
         <clipPath id={`${id}-body`}>
@@ -257,7 +277,7 @@ export function LiveryCar({
           <circle cx={helmet.cx} cy={helmet.cy} r={helmet.r} />
         </clipPath>
       </defs>
-      <Outline drawing={drawing} width={OUTLINE_PX[size]} />
+      <Outline drawing={drawing} outline={OUTLINE[size]} />
       {drawing.under.map((part) => (
         <Part key={part.d} part={part} colours={colours} />
       ))}

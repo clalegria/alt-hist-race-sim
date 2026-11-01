@@ -100,6 +100,49 @@ export function barcodeBackground(livery: Livery): string {
 }
 
 /**
+ * The share card's livery ribbon, in pixels either side of its centreline: the
+ * primary in the middle at twice an accent's width, the accents either side,
+ * and the badge's hairline edging each colour, so a livery as dark as the
+ * graphite still reads as a stripe.
+ */
+const RIBBON_ACCENT = 58.5;
+const RIBBON_HAIRLINE = 3;
+/** The whole ribbon's half-width, which the chequer laid over it is masked to. */
+export const RIBBON_HALF_WIDTH = 2 * RIBBON_ACCENT + 2 * RIBBON_HAIRLINE;
+
+/**
+ * The ribbon across a box at the badge's angle, centred on the box's middle:
+ * with no badge stripes the primary alone, with one the accent on both sides
+ * of it, with two one accent each side, as the badge reads them.
+ */
+export function ribbonBackground(livery: Livery): string {
+  const { primaryColor, secondaryColor1, secondaryColor2, badgeStripes } = livery;
+  const before = badgeStripes >= 1 ? secondaryColor1 : primaryColor;
+  const after = badgeStripes >= 2 ? secondaryColor2 : before;
+  const line = "var(--color-badge-line)";
+  // With no stripes there is nothing inside to edge: the primary runs through.
+  const inner = badgeStripes >= 1 ? line : primaryColor;
+  const at = (offset: number) => `calc(50% ${offset < 0 ? "-" : "+"} ${Math.abs(offset)}px)`;
+  const band = (colour: string, from: number, to: number) => `${colour} ${at(from)} ${at(to)}`;
+  // Outward from the centre: the primary's edge, the inner hairline's, the accent's.
+  const primary = RIBBON_ACCENT;
+  const hairline = primary + RIBBON_HAIRLINE;
+  const accent = 2 * RIBBON_ACCENT + RIBBON_HAIRLINE;
+  const outer = RIBBON_HALF_WIDTH;
+  return `linear-gradient(${ANGLE}, ${[
+    `transparent ${at(-outer)}`,
+    band(line, -outer, -accent),
+    band(before, -accent, -hairline),
+    band(inner, -hairline, -primary),
+    band(primaryColor, -primary, primary),
+    band(inner, primary, hairline),
+    band(after, hairline, accent),
+    band(line, accent, outer),
+    `transparent ${at(outer)}`,
+  ].join(", ")})`;
+}
+
+/**
  * The corner's sash runs up to the right, so its axis crosses the diagonal the
  * corner is cut along; the corner is the far half of that axis, 50 to 100.
  */

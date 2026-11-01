@@ -19,8 +19,12 @@
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import type { World } from "../store/season.js";
 import { eraChampions, eraSpan } from "./era.js";
+import { count } from "./format.js";
 import { driverName, nameParts } from "./names.js";
 import { seasonSeed } from "./seasons.js";
+
+/** Where every card's footer sends a reader, until *publish it* picks the host. */
+export const SHARE_ADDRESS = "race-sim.clalegria.dev";
 
 /** The rows the other champions and the last champions run to. */
 export const OTHER_CHAMPIONS_SHOWN = 10;
@@ -63,6 +67,16 @@ export interface EraHeading {
 export interface SeasonHeading {
   readonly year: number;
   readonly rounds: number;
+}
+
+/** A heading line as the card sets it: "My 1986" on the left, "16 rounds" on the right. */
+export function headingLine(heading: EraHeading | SeasonHeading): {
+  readonly title: string;
+  readonly detail: string;
+} {
+  return "span" in heading
+    ? { title: `My ${heading.span}`, detail: count(heading.seasons, "season") }
+    : { title: `My ${heading.year}`, detail: count(heading.rounds, "round") };
 }
 
 export interface ChampionOfChampionsCard {

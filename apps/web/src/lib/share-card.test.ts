@@ -15,6 +15,7 @@ import {
   championOfChampionsCard,
   driverCodes,
   finalStandingsCard,
+  headingLine,
   LAST_CHAMPIONS_SHOWN,
   lastChampionsCard,
   lineageName,
@@ -49,6 +50,23 @@ function nobodyScores(world: World): World {
 function era(length: number): readonly World[] {
   return PLAYABLE_SEASONS.slice(0, length).map((year, index) => createWorld(index + 1, year));
 }
+
+describe("headingLine", () => {
+  it("reads an era as its span and a count of seasons", () => {
+    expect(headingLine({ span: "1980–1984", seasons: 5 })).toEqual({
+      title: "My 1980–1984",
+      detail: "5 seasons",
+    });
+    expect(headingLine({ span: "1980", seasons: 1 }).detail).toBe("1 season");
+  });
+
+  it("reads a season as its year and a count of rounds", () => {
+    expect(headingLine({ year: 1986, rounds: 16 })).toEqual({
+      title: "My 1986",
+      detail: "16 rounds",
+    });
+  });
+});
 
 describe("tallyTitles", () => {
   it("puts the most titles first and breaks a tie for whoever won first", () => {

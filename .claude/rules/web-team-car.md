@@ -21,12 +21,12 @@ A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
 (`HomeTrack`, `lib/track.ts`, `lib/parade.ts`).
 
 ## The car
-- **Two sizes only** (`CAR_SIZES`), so a car is the same size wherever it is met. Only the
-  champion cards, the team and driver pages, the podium and the track use `large`; only the champion
-  cards and the track turn the wheels.
-- **One outline around the silhouette, a fixed width on screen per size** (`OUTLINE_PX`,
-  `non-scaling-stroke`). It is every shape stroked near-black under the paint; never
-  outline parts one by one.
+- **Two sizes in the app** (`CAR_SIZES`), so a car is the same size wherever it is met. Only
+  the champion cards, the team and driver pages, the podium and the track use `large`; only
+  the champion cards and the track turn the wheels. `card` is the share card's alone.
+- **One outline around the silhouette, a fixed width on screen per size** (`OUTLINE`,
+  `non-scaling-stroke`); `card`'s scales with the car, at `large`'s proportion. It is every
+  shape stroked near-black under the paint; never outline parts one by one.
 - **Every drawing shares the canvas and the ground** (`GROUND`): a tyre's bottom sits on
   it, so cars of different decades stand level side by side.
 - **A call site asks for a car** (`car`, default off). Unlike the badge, a round opened

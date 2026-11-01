@@ -9,7 +9,8 @@ authored liveries. Match its look, not its CSS.
 
 ## What is decided
 
-The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`.
+The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`. The
+frame and its shared parts are built: `components/ShareCard.tsx`.
 
 - DECIDED: **1080×1920 PNG**, made in the browser from a card component laid out for that
   frame. No server, no save format.
@@ -26,7 +27,13 @@ The card data, its abbreviations and its tie rules are built: `lib/share-card.ts
   white and black so the grid shows on any colour.
   Every word, bar and badge sits on graphite, so no livery can hide them.
 - DECIDED: **a season is two digits over a bar in that year's team colours** ("94" over
-  Benetton blue), read through the run's livery settings like every other colour.
+  Benetton blue), read through the run's livery settings like every other colour. The bar
+  is a livery barcode stripe: the primary over the badge's accents.
+- DECIDED: **the car band fills the room the card leaves** above its panels, never below a
+  floor, and the car is sized to it; its outline grows with it, at the large car's
+  proportion.
+- DECIDED: **the subject's surname shrinks its type to fit its line.** `FittedName` only
+  shortens a given name, so it serves the rows, not a surname standing alone.
 
 ### The era cards
 - DECIDED: **Champion of champions.** "I replayed history and my champion of champions
@@ -82,12 +89,8 @@ The card data, its abbreviations and its tie rules are built: `lib/share-card.ts
 
 Each step lands with its tests and leaves the app working. DECIDED.
 
-1. **The card frame**: one component at a fixed 1080×1920 with the parts every card
-   shares (heading line, lead, subject, car band, panel, footer), in the dark tokens
-   whatever the theme. Long surnames use `FittedName`. The car band reuses `LiveryCar`.
-   The year bars, badges, flags and position blocks reuse their app components or owners.
-2. **The four cards** on that frame, each smoke-rendered with a real season and a short
-   era.
+2. **The four cards** on the frame, each smoke-rendered with a real season and a short
+   era. Row names use `FittedName`.
 3. **The preview dialog** and the Share button on both pages, with the cards scaled to
    fit (the mockup's `transform: scale` approach). Behaviour tested at store level.
 4. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card

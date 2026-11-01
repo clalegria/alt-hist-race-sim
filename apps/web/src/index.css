@@ -517,3 +517,88 @@ body::before {
   -webkit-mask-image: var(--sash);
   mask-image: var(--sash);
 }
+
+/*
+ * The share card (`ShareCard.tsx`): the dark palette whatever the app's theme,
+ * since the card becomes a PNG and a picture has no theme. Every colour token
+ * and pattern tint, reset on the card to its dark value, so a utility inside it
+ * (`bg-card`, `text-subtle`) reads dark under the light theme too. A copy, held
+ * equal to the dark palette and pattern values by `theme.test.ts`.
+ */
+.share-card {
+  color-scheme: dark;
+  --color-background: oklch(19% 0.012 250);
+  --color-foreground: oklch(97% 0.004 250);
+  --color-card: oklch(23.5% 0.013 250);
+  --color-card-foreground: oklch(97% 0.004 250);
+  --color-card-header: oklch(16% 0.011 250);
+  --color-muted: oklch(28.5% 0.014 250);
+  --color-muted-foreground: oklch(78% 0.015 250);
+  --color-subtle: oklch(64% 0.014 250);
+  --color-row-alt: oklch(25.5% 0.014 250);
+  --color-border: oklch(33% 0.015 250);
+  --color-input: oklch(33% 0.015 250);
+  --color-badge-line: oklch(50% 0.013 250 / 0.7);
+  --color-primary: oklch(74% 0.1 203);
+  --color-primary-foreground: oklch(18% 0.02 203);
+  --color-accent: oklch(30.5% 0.015 250);
+  --color-ring: oklch(74% 0.1 203);
+  --color-destructive: oklch(75% 0.16 25);
+  --color-destructive-foreground: oklch(19% 0.01 40);
+  --color-gain: oklch(75% 0.15 148);
+  --color-loss: oklch(75% 0.16 25);
+  --color-wet: oklch(54% 0.17 250);
+  --color-wet-foreground: oklch(98% 0.01 250);
+  --color-home: oklch(85% 0.11 88);
+  --color-home-edge: oklch(72% 0.125 80);
+  --pattern-major-tint: oklch(100% 0 0 / 0.032);
+  --pattern-minor-tint: oklch(100% 0 0 / 0.019);
+  --pattern-gap-tint: oklch(100% 0 0 / 0.09);
+}
+
+/*
+ * The card's sash: the page's chequer, at the card's scale, faded out either
+ * side of the diagonal through the middle of the box it is drawn in. The car
+ * band draws it twice in the same box, behind the card and over its livery
+ * ribbon, so the two line up square for square.
+ */
+.share-chequer {
+  background-image:
+    repeating-conic-gradient(var(--pattern-minor-tint) 0% 25%, transparent 0% 50%),
+    repeating-conic-gradient(var(--pattern-major-tint) 0% 25%, transparent 0% 50%);
+  background-size:
+    60px 60px,
+    360px 360px;
+  --fade: linear-gradient(
+    135deg,
+    transparent calc(50% - 424px),
+    #000 calc(50% - 127px),
+    #000 calc(50% + 127px),
+    transparent calc(50% + 424px)
+  );
+  -webkit-mask-image: var(--fade);
+  mask-image: var(--fade);
+}
+
+/*
+ * The chequer's other squares, in black, over the ribbon alone (masked there by
+ * `ShareCard.tsx`): the white squares vanish on a white livery and the black on
+ * a dark one, so between them the grid carries across every colour.
+ */
+.share-chequer-ink {
+  background-image:
+    repeating-conic-gradient(transparent 0% 25%, oklch(0% 0 0 / 0.03) 0% 50%),
+    repeating-conic-gradient(transparent 0% 25%, oklch(0% 0 0 / 0.05) 0% 50%);
+  background-size:
+    60px 60px,
+    360px 360px;
+}
+
+/* A corner of chequer in the card's footer, on the header fill. */
+.share-foot-chequer {
+  background-image: repeating-conic-gradient(var(--pattern-gap-tint) 0% 25%, transparent 0% 50%);
+  background-size: 56px 56px;
+  --fade: linear-gradient(135deg, transparent 30%, #000 50%, transparent 70%);
+  -webkit-mask-image: var(--fade);
+  mask-image: var(--fade);
+}

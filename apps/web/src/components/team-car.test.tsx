@@ -118,6 +118,21 @@ describe("the car's colours", () => {
   });
 });
 
+describe("the car's outline", () => {
+  const car = (size: "small" | "large" | "card") =>
+    renderToStaticMarkup(<LiveryCar livery={livery(1)} year={YEAR} size={size} />);
+
+  it("holds its width on screen at the app's two sizes", () => {
+    expect(car("small")).toContain('vector-effect="non-scaling-stroke"');
+    expect(car("large")).toContain('vector-effect="non-scaling-stroke"');
+  });
+
+  it("grows with the share card's car, which its band sizes", () => {
+    expect(car("card")).not.toContain("non-scaling-stroke");
+    expect(car("card")).toContain(`aspect-ratio:${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`);
+  });
+});
+
 describe("the car's animation", () => {
   const css = readFileSync(fileURLToPath(new URL("../index.css", import.meta.url)), "utf-8");
 
