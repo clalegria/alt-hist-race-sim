@@ -90,9 +90,12 @@ frame and its shared parts are built: `components/ShareCard.tsx`.
 Each step lands with its tests and leaves the app working. DECIDED.
 
 2. **The four cards** on the frame, each smoke-rendered with a real season and a short
-   era. Row names use `FittedName`.
+   era. Row names use `FittedName`. They are seen as they are built: a temporary dev-only
+   page draws all four from the open run, scaled side by side as in the mockup, with a
+   `pnpm screenshots` step whose PNGs go to the author after each change of look.
 3. **The preview dialog** and the Share button on both pages, with the cards scaled to
-   fit (the mockup's `transform: scale` approach). Behaviour tested at store level.
+   fit (the mockup's `transform: scale` approach). Behaviour tested at store level. It
+   replaces the dev page, which is deleted, and the screenshot step moves to the dialog.
 4. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card
    off-screen at 1:1. Its traps: the fonts must be embedded from the app's own
    `@fontsource` files or the PNG falls back to system fonts, and Safari can drop images
@@ -101,6 +104,6 @@ Each step lands with its tests and leaves the app working. DECIDED.
 5. **Share or save**: `navigator.canShare({ files })` decides. If it says yes, send the PNG
    through `navigator.share`; if not, save it from an object URL. The file is named after
    the run, such as `my-1986.png`.
-6. **Look and docs**: a `pnpm screenshots` step per card, checked by `screenshot-checker`;
-   move the rules into a `web-share-card.md` rule file; delete this doc and its mockup when
-   nothing is left.
+6. **Look and docs**: a last look at each card through `screenshot-checker`; move the
+   rules into a `web-share-card.md` rule file; delete this doc and its mockup when nothing
+   is left.
