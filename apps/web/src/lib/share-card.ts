@@ -33,6 +33,13 @@ export const LAST_CHAMPIONS_SHOWN = 20;
 export const STANDINGS_SHOWN = 20;
 /** The Constructors' line at a panel's foot. */
 export const CONSTRUCTORS_SHOWN = 3;
+/** From this many rounds the race winners take 12 columns, not 8, so a calendar stays two rows. */
+export const WIDE_ROUNDS_FROM = 17;
+
+/** How many columns a season's race winners are laid out in. */
+export function winnerColumns(rounds: number): number {
+  return rounds >= WIDE_ROUNDS_FROM ? 12 : 8;
+}
 
 /** A team as drawn in one year: its name, badge, livery and car that season. */
 export interface TeamYear {

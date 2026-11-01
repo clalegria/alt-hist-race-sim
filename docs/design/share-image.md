@@ -10,7 +10,9 @@ authored liveries. Match its look, not its CSS.
 ## What is decided
 
 The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`. The
-frame and its shared parts are built: `components/ShareCard.tsx`.
+frame and its shared parts are built: `components/ShareCard.tsx`. The four cards are
+built: `components/ShareCards.tsx`, seen until step 3 on the dev-only `/dev/share-cards`
+(`pnpm screenshots share-cards`), whose captions say if a card overflows.
 
 - DECIDED: **1080×1920 PNG**, made in the browser from a card component laid out for that
   frame. No server, no save format.
@@ -80,6 +82,10 @@ frame and its shared parts are built: `components/ShareCard.tsx`.
 - PROPOSED: **the dialog**: Share opens a dialog showing that mode's two cards side by
   side, as in the mockup, with Share and Save for each, and a Share both where the browser
   takes two files.
+- PROPOSED: **a round is marked by its flag** over the winner's badge and code, not the
+  mockup's three-letter code, which the calendar doesn't carry.
+- PROPOSED: **an era no longer than its list** reads "these are my champions", not "my
+  last 20"; **a title on countback** reads "Level with Prost", not "0 clear of Prost".
 - OPEN: **the run's settings** in small print at the foot: worth having, but how, with so
   many combinations?
 - OPEN: once *historical career records* exist, do the era cards count titles from before
@@ -89,10 +95,6 @@ frame and its shared parts are built: `components/ShareCard.tsx`.
 
 Each step lands with its tests and leaves the app working. DECIDED.
 
-2. **The four cards** on the frame, each smoke-rendered with a real season and a short
-   era. Row names use `FittedName`. They are seen as they are built: a temporary dev-only
-   page draws all four from the open run, scaled side by side as in the mockup, with a
-   `pnpm screenshots` step whose PNGs go to the author after each change of look.
 3. **The preview dialog** and the Share button on both pages, with the cards scaled to
    fit (the mockup's `transform: scale` approach). Behaviour tested at store level. It
    replaces the dev page, which is deleted, and the screenshot step moves to the dialog.

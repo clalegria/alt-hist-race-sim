@@ -494,8 +494,20 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "share-cards",
+    reach: async (page) => {
+      // The four share cards off a two-season era. A dev-only page with no link
+      // to it, typed as an address until the preview dialog replaces it.
+      await page.goto("/dev/share-cards");
+      await page.getByText(/^Final standings · /).waitFor();
+    },
+  },
+  {
     name: "era-kept-grid",
     reach: async (page) => {
+      // Back from the share cards' page to the season it was typed from.
+      await page.goBack();
+      await page.waitForURL(`**/run/${YEAR + 1}*`);
       // The year after the start under the first season's teams: ghost entries
       // and the note saying what was kept. The season page opens on the tab
       // last left on, which `grid-raced` left on the Grid, so it may be there.

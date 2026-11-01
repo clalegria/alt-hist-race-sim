@@ -352,6 +352,12 @@ export function CardBadge({
   );
 }
 
+/** A team's car in `year`, as wide as its box: the podium's. */
+export function CardCar({ teamId, year }: TeamYear) {
+  const livery = useLiveryAt()(teamId, year);
+  return livery === undefined ? null : <LiveryCar livery={livery} year={year} size="card" />;
+}
+
 /** A flag at the card's scale. */
 export function CardFlag({ country, className }: { country: string; className?: string }) {
   return <Flag country={country} className={cn("h-[32px] w-[48px] border-2", className)} />;

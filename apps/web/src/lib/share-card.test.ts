@@ -24,6 +24,8 @@ import {
   STANDINGS_SHOWN,
   type TitleTally,
   tallyTitles,
+  WIDE_ROUNDS_FROM,
+  winnerColumns,
   worldChampionCard,
 } from "./share-card.js";
 
@@ -254,6 +256,13 @@ describe("the era cards", () => {
   it("are null with no season crowned yet", () => {
     expect(championOfChampionsCard([])).toBeNull();
     expect(lastChampionsCard([])).toBeNull();
+  });
+});
+
+describe("winnerColumns", () => {
+  it("keeps 8 columns up to the threshold and takes 12 from it", () => {
+    expect(winnerColumns(WIDE_ROUNDS_FROM - 1)).toBe(8);
+    expect(winnerColumns(WIDE_ROUNDS_FROM)).toBe(12);
   });
 });
 
