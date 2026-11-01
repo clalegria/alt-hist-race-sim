@@ -17,11 +17,6 @@ asked for that era by name.
 - *Historical career records*, *seasonal factors* and *circuit character* add fields to the
   same files: a second visit, settled together.
 
-## Small fixes
-
-- Championship standings on a phone: an expanded team row (its drivers' race-by-race
-  results) overflows the width; check the drivers' table too.
-
 ---
 
 ## 1. The share image

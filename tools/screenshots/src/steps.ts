@@ -302,6 +302,29 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
+    name: "season-standings-opened",
+    reach: async (page) => {
+      // The leader's race by race in each championship: a team's, a row per car,
+      // is the widest panel a phone has to fit. Opening a row is not a page, so
+      // the history the next step walks back through is unchanged.
+      const opener = page.getByRole("button", { name: / race by race$/ });
+      for (const championship of [/^Drivers/, /^Constructors/]) {
+        await page
+          .locator("section")
+          .filter({ has: page.getByRole("heading", { name: championship }) })
+          .filter({ has: opener })
+          .last()
+          .locator(opener)
+          .first()
+          .click();
+      }
+      await page
+        .getByRole("button", { name: / race by race$/, expanded: true })
+        .nth(1)
+        .waitFor();
+    },
+  },
+  {
     name: "grid-raced",
     reach: async (page) => {
       // Back through the pages already read: a place, never a step back in time.

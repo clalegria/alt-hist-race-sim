@@ -8,6 +8,12 @@ import { PageLink } from "./PageLink.js";
 import { DriverHistory, useRacePage } from "./SeasonHistory.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
+/** Grid and Status, which a phone drops, at the width the classification drops them. */
+const WIDE_ONLY = "hidden md:table-cell";
+
+/** The numeric cells, a step tighter on a phone, as the standings' are. */
+const FIGURE = "px-2 text-right tabular-nums md:px-3";
+
 /**
  * One competitor's season, round by round — what opens under a row of the
  * championship table.
@@ -27,6 +33,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
  *
  * Inside a run each round's name carries the page icon to its race. Every
  * round listed is one the gate revealed, so its race page is reached.
+ *
+ * **A phone keeps the round, its flag, the driver, the position and the
+ * points**, as the classification it mirrors keeps its own short row and from
+ * the same width: the round's name goes to screen readers only, Grid and Status
+ * are dropped, and the position column says DNF or DNQ where Status would
+ * have said why.
  */
 export function RaceByRace({
   rounds,
@@ -51,13 +63,13 @@ export function RaceByRace({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="w-12 text-right">Rnd</TableHead>
-          <TableHead>Grand Prix</TableHead>
+          <TableHead className={cn(FIGURE, "w-12")}>Rnd</TableHead>
+          <TableHead>GP</TableHead>
           {showDriver ? <TableHead>Driver</TableHead> : null}
-          <TableHead className="text-right">Grid</TableHead>
-          <TableHead className="text-right">Pos</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Pts</TableHead>
+          <TableHead className={cn(FIGURE, WIDE_ONLY)}>Grid</TableHead>
+          <TableHead className={FIGURE}>Pos</TableHead>
+          <TableHead className={WIDE_ONLY}>Status</TableHead>
+          <TableHead className={FIGURE}>Pts</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,14 +82,16 @@ export function RaceByRace({
           const sameRound = rounds[index - 1]?.round === round;
           return (
             <TableRow key={`${round}-${entry.driverId}`} className="border-border/60">
-              <TableCell className="text-muted-foreground text-right tabular-nums">
+              <TableCell className={cn(FIGURE, "text-muted-foreground")}>
                 {sameRound ? "" : round + 1}
               </TableCell>
               <TableCell>
                 {sameRound ? null : (
                   <span className="flex items-center gap-1.5">
                     {race === undefined ? null : <Flag country={race.country} />}
-                    {race?.name ?? `Round ${round + 1}`}
+                    <span className="sr-only md:not-sr-only">
+                      {race?.name ?? `Round ${round + 1}`}
+                    </span>
                     {racePage === null || year === undefined ? null : (
                       <PageLink
                         link={racePage(year, round)}
@@ -88,23 +102,34 @@ export function RaceByRace({
                 )}
               </TableCell>
               {showDriver ? (
-                <TableCell className={cn(finished || "text-muted-foreground")}>
+                // Wraps on a phone, where a long name would push Pts past the edge.
+                <TableCell
+                  className={cn(
+                    "whitespace-normal md:whitespace-nowrap",
+                    finished || "text-muted-foreground",
+                  )}
+                >
                   <DriverHistory driverId={entry.driverId}>
                     <DriverName driverId={entry.driverId} emphasis={won} />
                   </DriverHistory>
                 </TableCell>
               ) : null}
-              <TableCell className="text-muted-foreground text-right tabular-nums">
+              <TableCell className={cn(FIGURE, WIDE_ONLY, "text-muted-foreground")}>
                 {entry.gridPosition}
               </TableCell>
               <TableCell
-                className={cn(
-                  "text-right tabular-nums",
-                  won && "font-semibold",
-                  finished || "text-muted-foreground",
-                )}
+                className={cn(FIGURE, won && "font-semibold", finished || "text-muted-foreground")}
               >
-                {entry.finishPosition ?? "—"}
+                {finished ? (
+                  entry.finishPosition
+                ) : (
+                  // Wide, the Status column says why and this one is a dash; on a
+                  // phone, where Status is hidden, it carries the short word.
+                  <>
+                    <span className="text-loss md:hidden">{entry.started ? "DNF" : "DNQ"}</span>
+                    <span className="hidden md:inline">—</span>
+                  </>
+                )}
               </TableCell>
               {/*
                 Only when something went wrong. A season is mostly finishes, and
@@ -113,8 +138,10 @@ export function RaceByRace({
                 the car finished. What a reader is scanning this panel for is
                 the rounds that got away.
               */}
-              <TableCell className="text-loss text-xs">{finished ? "" : statusOf(entry)}</TableCell>
-              <TableCell className="text-right font-semibold tabular-nums">
+              <TableCell className={cn(WIDE_ONLY, "text-loss text-xs")}>
+                {finished ? "" : statusOf(entry)}
+              </TableCell>
+              <TableCell className={cn(FIGURE, "font-semibold")}>
                 {/* Blank rather than a column of zeroes, as in the classification. */}
                 {points === 0 ? "" : points}
               </TableCell>

@@ -196,7 +196,8 @@ export function StandingsTable({
                   </>
                 )}
                 expansion={() => (
-                  <TableExpansion colSpan={columnCount}>
+                  // No inset on a phone: the race-by-race's own cells pad it.
+                  <TableExpansion colSpan={columnCount} className="px-0 md:px-3">
                     <RaceByRace
                       rounds={
                         isDriver

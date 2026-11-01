@@ -87,6 +87,12 @@ export function TablePosition({ className, ...props }: ComponentProps<"td">) {
 /**
  * What an opened row shows, across the whole table beneath it. Marked
  * `data-expansion` so the stripes skip it and keep their order below.
+ *
+ * **An opened row never widens the table it opens in.** A table cell is never
+ * narrower than its content, so a table inside it that wanted more room than
+ * the screen spread the row's own columns apart. The box asks for no width
+ * (`w-0`) and then fills the cell (`min-w-full`), so the columns are sized by
+ * the rows alone; anything still too wide scrolls inside the box.
  */
 export function TableExpansion({
   colSpan,
@@ -101,7 +107,9 @@ export function TableExpansion({
   return (
     <TableRow data-expansion="" className="hover:bg-transparent">
       <TableCell colSpan={colSpan} className="p-0">
-        <div className={cn("bg-muted/40 border-border border-y px-3 py-3", className)}>
+        <div
+          className={cn("bg-muted/40 border-border w-0 min-w-full border-y px-3 py-3", className)}
+        >
           {children}
         </div>
       </TableCell>

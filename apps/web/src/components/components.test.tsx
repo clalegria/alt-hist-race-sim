@@ -39,6 +39,7 @@ import { RaceByRace } from "./RaceByRace.js";
 import { RaceClassification } from "./RaceClassification.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { StandingsTable } from "./StandingsTable.js";
+import { TableExpansion } from "./ui/table.js";
 
 const world = seededWorld();
 /** Counted off the grid rather than written down — it is going to grow. */
@@ -745,6 +746,62 @@ describe("expanding a row of the championship", () => {
     expect(occurrencesOf(html, "Did not qualify")).toBe(
       rounds.filter((round) => !round.entry.started).length,
     );
+    // And in the position column's short words, which are all a phone shows of them.
+    expect(occurrencesOf(html, '<span class="text-loss md:hidden">DNF</span>')).toBe(
+      rounds.filter((round) => round.entry.retired).length,
+    );
+    expect(occurrencesOf(html, '<span class="text-loss md:hidden">DNQ</span>')).toBe(
+      rounds.filter((round) => !round.entry.started).length,
+    );
+  });
+
+  it("keeps the round, its flag, the driver, position and points on a phone", () => {
+    const rounds = teamRounds(world.season, world.points, teams[0]?.teamId ?? "");
+    const html = renderToStaticMarkup(
+      <RaceByRace rounds={rounds} calendar={SEED.calendar} showDriver={true} />,
+    );
+    // The header's cells in order, each tagged with whether it hides below `md`.
+    const head = html.slice(html.indexOf("<tr"), html.indexOf("</thead>"));
+    const columns = head
+      .split("<th")
+      .slice(1)
+      .map((cell) => ({
+        name: textOf(`<th${cell}`),
+        wideOnly: cell.slice(0, cell.indexOf(">")).includes("hidden md:table-cell"),
+      }));
+    expect(columns.filter((column) => !column.wideOnly).map((column) => column.name)).toEqual([
+      "Rnd",
+      "GP",
+      "Driver",
+      "Pos",
+      "Pts",
+    ]);
+    expect(columns.filter((column) => column.wideOnly).map((column) => column.name)).toEqual([
+      "Grid",
+      "Status",
+    ]);
+    // And every car's cells with them, two to a row.
+    expect(occurrencesOf(html, "hidden md:table-cell")).toBe(2 + 2 * rounds.length);
+    // The round's name is still there for a screen reader, once a round.
+    const named = new Set(rounds.map((round) => round.round)).size;
+    expect(occurrencesOf(html, '<span class="sr-only md:not-sr-only">')).toBe(named);
+  });
+
+  it("never lets an opened row widen the table it opens in", () => {
+    // Asking for no width and then filling the cell is what keeps the row's own
+    // columns sized by the rows, however wide the panel inside wants to be.
+    const html = renderToStaticMarkup(
+      <table>
+        <tbody>
+          <TableExpansion colSpan={3} className="px-0 md:px-3">
+            panel
+          </TableExpansion>
+        </tbody>
+      </table>,
+    );
+    const box = html.slice(html.indexOf("<div"), html.indexOf(">panel"));
+    expect(box).toContain("w-0");
+    expect(box).toContain("min-w-full");
   });
 
   it("has nothing to draw for a competitor who entered no rounds", () => {
