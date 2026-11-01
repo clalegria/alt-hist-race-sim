@@ -242,19 +242,22 @@ function WhatsNew({ releases }: { releases: readonly Release[] }) {
   );
 }
 
-/** What is known to be missing or wrong, each said once and plainly. A draft, the author's to rewrite. */
+/** What is known to be missing or wrong, each said once and plainly. The author's words. */
 const KNOWN_ISSUES: readonly string[] = [
-  "Drivers move between teams at random, or without much logic.",
-  "The further back in history you go, the rougher the ratings: older seasons are mostly still AI's first drafts.",
-  "Races are decided as a whole: there is no strategy, and nothing happens lap by lap.",
-  "The layout on phones still needs work.",
-  "Bug reports can't be sent from the app yet.",
+  "The race weekend format never changes: it's always a single qualifying session and then a race. There are no sprint races, no Q1-Q2-Q3 qualifying, and no other qualifying formats like aggregate qualifying or the two qualifying sessions of the 1980s.",
+  "There are no mid-season changes of teams or drivers: the grid is set for the whole season.",
+  "The 1950s Indy 500 is not included as a part of the calendar",
+  "Older seasons might not only have less accurate ratings, which give less realistic results, but also less accurate entry lists, with no clear rule for which teams are included, or which drivers race for each team.",
+  "Race results are more realistic than qualifying results, which haven't been tuned as closely.",
+  "Every circuit is the same: it's no harder to overtake at Monaco than at Interlagos, and no less likely to rain in Bahrain than at Spa.",
+  "Some planned parts aren't available yet: the advanced era simulation with the driver market, the ratings editor, a game mode where you take over a team and make its decisions, and the Submit a bug report page.",
+  'Most of the driver ratings are largely cosmetic, and the "racing" rating matters much more than the rest.',
 ];
 
 function KnownIssues() {
   return (
     <div className={PROSE}>
-      <ul className="flex list-disc flex-col gap-1.5 pl-5">
+      <ul className="flex list-disc flex-col gap-3 pl-5">
         {KNOWN_ISSUES.map((issue) => (
           <li key={issue}>{issue}</li>
         ))}
