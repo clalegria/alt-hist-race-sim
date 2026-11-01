@@ -12,7 +12,10 @@ authored liveries. Match its look, not its CSS.
 The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`. The
 frame and its shared parts are built: `components/ShareCard.tsx`. The four cards are
 built: `components/ShareCards.tsx`. Share and its dialog are built: `components/ShareDialog.tsx`
-(`pnpm screenshots share-season share-era`).
+(`pnpm screenshots share-season share-era`). The PNG is built: `lib/share-png.ts`.
+
+- DECIDED: **the PNG is drawn from the dialog's own card**, not a second copy: the
+  preview's scale is a transform on the box around it, so the card is laid out at 1:1.
 
 - DECIDED: **1080×1920 PNG**, made in the browser from a card component laid out for that
   frame. No server, no save format.
@@ -95,12 +98,8 @@ built: `components/ShareCards.tsx`. Share and its dialog are built: `components/
 
 Each step lands with its tests and leaves the app working. DECIDED.
 
-4. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card
-   off-screen at 1:1. Its traps: the fonts must be embedded from the app's own
-   `@fontsource` files or the PNG falls back to system fonts, and Safari can drop images
-   and fonts on the first render, so render twice there. Make the image on tap, not when
-   the dialog opens.
-5. **Share or save**: Save, drawn disabled until now, saves the PNG from an object URL;
+5. **Share or save**: Save, drawn disabled until now, saves the PNG (`cardPng`, on tap)
+   from an object URL;
    Share and Share both, where `navigator.canShare({ files })` allows, send it through
    `navigator.share`. The file is named after the run, such as `my-1986.png`.
 6. **Look and docs**: a last look at each card through `screenshot-checker`; move the
