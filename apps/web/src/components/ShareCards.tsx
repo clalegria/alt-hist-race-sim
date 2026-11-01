@@ -34,6 +34,7 @@ import {
   CardCar,
   CardFlag,
   CardPanel,
+  FitToWidth,
   PositionBlock,
   SeasonMark,
   ShareCardFrame,
@@ -64,13 +65,21 @@ function RowFlag({ driverId }: { driverId: string }) {
 }
 
 /** A driver in a row, fitted to the column: "Nelson PIQUET", then "N. PIQUET". */
-function RowName({ driverId, after }: { driverId: string; after?: ReactNode }) {
+function RowName({
+  driverId,
+  after,
+  className,
+}: {
+  driverId: string;
+  after?: ReactNode;
+  className?: string;
+}) {
   const full = driverName(driverId);
   return (
     <FittedName
       full={full}
       short={shortName(full)}
-      className={ROW_NAME}
+      className={cn(ROW_NAME, className)}
       render={(name) => (
         <>
           <SplitName name={name} />
@@ -97,7 +106,10 @@ function Rows({ children }: { children: ReactNode }) {
   return <div className="striped">{children}</div>;
 }
 
-/** The Constructors' top three across a panel's foot: badge, name, figure. */
+/**
+ * The Constructors' top three across a panel's foot: badge, name, figure, in
+ * `em` so that three long names shrink together to fit the line.
+ */
 function ConstructorsFoot({
   teams,
 }: {
@@ -106,18 +118,22 @@ function ConstructorsFoot({
   const nameIn = useTeamNameIn();
   return (
     <>
-      <span className={cn(MONO_LABEL, "text-subtle mr-auto text-[18px] tracking-[0.16em]")}>
+      <span className={cn(MONO_LABEL, "text-subtle shrink-0 text-[18px] tracking-[0.16em]")}>
         Constructors'
       </span>
-      {teams.map(({ teamId, year, figure }) => (
-        <span key={teamId} className="flex items-center gap-[12px]">
-          <CardBadge teamId={teamId} year={year} className="size-[36px]" />
-          <span className={cn(TIMING_NAME, "text-[34px] leading-none")}>
-            {nameIn(teamId, year)}
-          </span>
-          <span className="text-primary text-[28px] font-semibold tabular-nums">{figure}</span>
+      <FitToWidth className="min-w-0 flex-1 text-[34px]">
+        <span className="flex items-center justify-end gap-[0.65em]">
+          {teams.map(({ teamId, year, figure }) => (
+            <span key={teamId} className="flex items-center gap-[0.35em]">
+              <CardBadge teamId={teamId} year={year} className="size-[1.06em]" />
+              <span className={cn(TIMING_NAME, "leading-none")}>{nameIn(teamId, year)}</span>
+              <span className="text-primary text-[0.82em] font-semibold tabular-nums">
+                {figure}
+              </span>
+            </span>
+          ))}
         </span>
-      ))}
+      </FitToWidth>
     </>
   );
 }
@@ -424,7 +440,8 @@ function PodiumStep({
         >
           {position}
         </span>
-        <RowName driverId={place.driverId} />
+        {/* The column's width, not the name's, or it would never be short of room. */}
+        <RowName driverId={place.driverId} className="justify-self-stretch text-center" />
         <span
           className={cn("text-[22px] tabular-nums", !first && "text-muted-foreground")}
         >{`${place.points} pts`}</span>

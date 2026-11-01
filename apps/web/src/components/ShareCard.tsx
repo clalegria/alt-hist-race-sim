@@ -175,21 +175,19 @@ function CarBand({ car }: { car: TeamYear }) {
 }
 
 /**
- * Text shrunk until it fits its line, never grown: the subject's surname, set
- * large enough that a long one ("Giraud-Cabantous") would run off the card.
- * `FittedName` cannot help here, since it shortens the given name and the
- * surname stands alone. Measured as `FittedName` measures, against an
- * invisible probe at full size; with no DOM it renders at full size.
+ * A line shrunk until it fits its box, never grown: the subject's surname, set
+ * large enough that a long one ("Giraud-Cabantous") would run off the card, and
+ * the Constructors' line, whose three names can outrun the panel. `FittedName`
+ * cannot help here, since it shortens a given name and these have none. Scaled
+ * by font size, so what is inside is sized in `em`. Measured as `FittedName`
+ * measures, against an invisible probe at full size (`w-max`, or a flex row
+ * inside it would be capped at the box); with no DOM it renders at full size.
  */
-function FitToWidth({ text, className }: { text: string; className?: string }) {
+export function FitToWidth({ children, className }: { children: ReactNode; className?: string }) {
   const box = useRef<HTMLSpanElement>(null);
   const probe = useRef<HTMLSpanElement>(null);
   const [scale, setScale] = useState(1);
   useLayoutEffect(() => {
-    // Nothing to fit; and the text a new one, measured afresh.
-    if (text === "") {
-      return;
-    }
     const fit = () => {
       const room = box.current?.getBoundingClientRect().width ?? 0;
       const need = probe.current?.getBoundingClientRect().width ?? 0;
@@ -206,12 +204,15 @@ function FitToWidth({ text, className }: { text: string; className?: string }) {
     return () => {
       live = false;
     };
-  }, [text]);
+    // After every render: the content is any node, and a card renders once.
+  });
   return (
     <span ref={box} className={cn("relative block whitespace-nowrap", className)}>
-      <span style={scale === 1 ? undefined : { fontSize: `${scale}em` }}>{text}</span>
-      <span ref={probe} aria-hidden="true" className="invisible absolute top-0 left-0">
-        {text}
+      <span className="block" style={scale === 1 ? undefined : { fontSize: `${scale}em` }}>
+        {children}
+      </span>
+      <span ref={probe} aria-hidden="true" className="invisible absolute top-0 left-0 w-max">
+        {children}
       </span>
     </span>
   );
@@ -227,7 +228,7 @@ export function SubjectName({ driverId }: { driverId: string }) {
           {given}
         </p>
       )}
-      <FitToWidth text={surname} className={cn(DISPLAY_CAPS, "text-[168px] leading-[0.88]")} />
+      <FitToWidth className={cn(DISPLAY_CAPS, "text-[168px] leading-[0.88]")}>{surname}</FitToWidth>
     </div>
   );
 }
