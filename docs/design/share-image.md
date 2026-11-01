@@ -11,8 +11,8 @@ authored liveries. Match its look, not its CSS.
 
 The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`. The
 frame and its shared parts are built: `components/ShareCard.tsx`. The four cards are
-built: `components/ShareCards.tsx`, seen until step 3 on the dev-only `/dev/share-cards`
-(`pnpm screenshots share-cards`), whose captions say if a card overflows.
+built: `components/ShareCards.tsx`. Share and its dialog are built: `components/ShareDialog.tsx`
+(`pnpm screenshots share-season share-era`).
 
 - DECIDED: **1080×1920 PNG**, made in the browser from a card component laid out for that
   frame. No server, no save format.
@@ -76,12 +76,12 @@ built: `components/ShareCards.tsx`, seen until step 3 on the dev-only `/dev/shar
   mid-season, even with the title settled. The season's cards are offered on its summary,
   in an era too; the era's on its champions page, covering every year up to that one.
 - DECIDED: **no seed on any card.**
+- DECIDED: **Share sits beside the page's heading** and opens a dialog of that mode's two
+  cards, side by side (stacked on a phone), each with Save. Share on a card only where
+  `navigator.canShare({ files })` says yes; Share both only where it takes two files.
 
 ## What is left to settle
 
-- PROPOSED: **the dialog**: Share opens a dialog showing that mode's two cards side by
-  side, as in the mockup, with Share and Save for each, and a Share both where the browser
-  takes two files.
 - PROPOSED: **a round is marked by its flag** over the winner's badge and code, not the
   mockup's three-letter code, which the calendar doesn't carry.
 - PROPOSED: **an era no longer than its list** reads "these are my champions", not "my
@@ -95,17 +95,14 @@ built: `components/ShareCards.tsx`, seen until step 3 on the dev-only `/dev/shar
 
 Each step lands with its tests and leaves the app working. DECIDED.
 
-3. **The preview dialog** and the Share button on both pages, with the cards scaled to
-   fit (the mockup's `transform: scale` approach). Behaviour tested at store level. It
-   replaces the dev page, which is deleted, and the screenshot step moves to the dialog.
 4. **The PNG**: one small dependency (`html-to-image` or a fork of it) renders the card
    off-screen at 1:1. Its traps: the fonts must be embedded from the app's own
    `@fontsource` files or the PNG falls back to system fonts, and Safari can drop images
    and fonts on the first render, so render twice there. Make the image on tap, not when
    the dialog opens.
-5. **Share or save**: `navigator.canShare({ files })` decides. If it says yes, send the PNG
-   through `navigator.share`; if not, save it from an object URL. The file is named after
-   the run, such as `my-1986.png`.
+5. **Share or save**: Save, drawn disabled until now, saves the PNG from an object URL;
+   Share and Share both, where `navigator.canShare({ files })` allows, send it through
+   `navigator.share`. The file is named after the run, such as `my-1986.png`.
 6. **Look and docs**: a last look at each card through `screenshot-checker`; move the
    rules into a `web-share-card.md` rule file; delete this doc and its mockup when nothing
    is left.

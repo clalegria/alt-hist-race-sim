@@ -17,6 +17,7 @@ import { PageHeading } from "./PageHeading.js";
 import { PageLink } from "./PageLink.js";
 import { DriverHistory, TeamHistory, usePageOf } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { ShareButton } from "./ShareDialog.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { TeamName } from "./TeamName.js";
 import { TitleCount } from "./TitleCount.js";
@@ -444,6 +445,12 @@ export function EraChampions({
         <PageHeading
           title={ended ? "All champions" : "Champions so far"}
           sub={eraLead(seasons, inProgress)}
+          // Only between seasons: never with a year under way.
+          aside={
+            inProgress === null && run.seasons.length > 0 ? (
+              <ShareButton offer={{ mode: "era", seasons: run.seasons }} />
+            ) : undefined
+          }
         />
         {inRun ? <EraTabs current="overview" /> : null}
       </header>

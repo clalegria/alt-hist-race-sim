@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RunRouteImport } from './routes/run'
-import { Route as DevShareCardsRouteImport } from './routes/dev/share-cards'
 import { Route as EraNewRouteImport } from './routes/era/new'
 import { Route as RunIndexRouteImport } from './routes/run/index'
 import { Route as RunDriversRouteImport } from './routes/run/drivers'
@@ -32,11 +31,6 @@ const IndexRoute = IndexRouteImport.update({
 const RunRoute = RunRouteImport.update({
   id: '/run',
   path: '/run',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevShareCardsRoute = DevShareCardsRouteImport.update({
-  id: '/dev/share-cards',
-  path: '/dev/share-cards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EraNewRoute = EraNewRouteImport.update({
@@ -99,7 +93,6 @@ const RunYearRoundRoundRaceRoute = RunYearRoundRoundRaceRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/run': typeof RunRouteWithChildren
-  '/dev/share-cards': typeof DevShareCardsRoute
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
   '/run/teams': typeof RunTeamsRoute
@@ -114,7 +107,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dev/share-cards': typeof DevShareCardsRoute
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
   '/run/teams': typeof RunTeamsRoute
@@ -131,7 +123,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/run': typeof RunRouteWithChildren
-  '/dev/share-cards': typeof DevShareCardsRoute
   '/era/new': typeof EraNewRoute
   '/run/drivers': typeof RunDriversRoute
   '/run/teams': typeof RunTeamsRoute
@@ -149,7 +140,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/run'
-    | '/dev/share-cards'
     | '/era/new'
     | '/run/drivers'
     | '/run/teams'
@@ -164,7 +154,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dev/share-cards'
     | '/era/new'
     | '/run/drivers'
     | '/run/teams'
@@ -180,7 +169,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/run'
-    | '/dev/share-cards'
     | '/era/new'
     | '/run/drivers'
     | '/run/teams'
@@ -197,7 +185,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RunRoute: typeof RunRouteWithChildren
-  DevShareCardsRoute: typeof DevShareCardsRoute
   EraNewRoute: typeof EraNewRoute
   SeasonNewRoute: typeof SeasonNewRoute
 }
@@ -216,13 +203,6 @@ declare module '@tanstack/react-router' {
       path: '/run'
       fullPath: '/run'
       preLoaderRoute: typeof RunRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dev/share-cards': {
-      id: '/dev/share-cards'
-      path: '/dev/share-cards'
-      fullPath: '/dev/share-cards'
-      preLoaderRoute: typeof DevShareCardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/era/new': {
@@ -334,7 +314,6 @@ const RunRouteWithChildren = RunRoute._addFileChildren(RunRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RunRoute: RunRouteWithChildren,
-  DevShareCardsRoute: DevShareCardsRoute,
   EraNewRoute: EraNewRoute,
   SeasonNewRoute: SeasonNewRoute,
 }

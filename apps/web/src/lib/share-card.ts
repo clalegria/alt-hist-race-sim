@@ -21,6 +21,7 @@ import type { World } from "../store/season.js";
 import { eraChampions, eraSpan } from "./era.js";
 import { count } from "./format.js";
 import { driverName, nameParts } from "./names.js";
+import type { TalliedYear } from "./reveal.js";
 import { seasonSeed } from "./seasons.js";
 
 /** Where every card's footer sends a reader, until *publish it* picks the host. */
@@ -352,7 +353,7 @@ export function driverCodes(names: ReadonlyMap<string, string>): ReadonlyMap<str
 }
 
 /** Whoever raced in the season, each once. */
-function seasonDrivers(world: World): ReadonlyMap<string, string> {
+function seasonDrivers(world: TalliedYear): ReadonlyMap<string, string> {
   const names = new Map<string, string>();
   for (const race of world.season.races) {
     for (const { driverId } of race.entries) {
@@ -362,12 +363,12 @@ function seasonDrivers(world: World): ReadonlyMap<string, string> {
   return names;
 }
 
-function seasonHeading(world: World): SeasonHeading {
+function seasonHeading(world: TalliedYear): SeasonHeading {
   return { year: world.year, rounds: world.season.races.length };
 }
 
 /** The world champion card; null for a season where nobody scored. */
-export function worldChampionCard(world: World): WorldChampionCard | null {
+export function worldChampionCard(world: TalliedYear): WorldChampionCard | null {
   const standings = championshipStandings(world.season, world.points);
   const [champion, second] = standings;
   if (champion === undefined || champion.points === 0) {
@@ -412,7 +413,7 @@ export function worldChampionCard(world: World): WorldChampionCard | null {
 }
 
 /** The final standings card; null for a season where nobody scored. */
-export function finalStandingsCard(world: World): FinalStandingsCard | null {
+export function finalStandingsCard(world: TalliedYear): FinalStandingsCard | null {
   const scorers = championshipStandings(world.season, world.points).filter(
     ({ points }) => points > 0,
   );
@@ -431,4 +432,36 @@ export function finalStandingsCard(world: World): FinalStandingsCard | null {
       wins,
     })),
   };
+}
+
+/**
+ * What a page offers to share: a finished season, or an era's decided years.
+ * The cards are built from it only when the dialog opens.
+ */
+export type ShareOffer =
+  | { readonly mode: "season"; readonly world: TalliedYear }
+  | { readonly mode: "era"; readonly seasons: readonly World[] };
+
+/** One card of an offer, with the data it draws. */
+export type ShareCardData =
+  | { readonly kind: "champion-of-champions"; readonly card: ChampionOfChampionsCard }
+  | { readonly kind: "last-champions"; readonly card: LastChampionsCard }
+  | { readonly kind: "world-champion"; readonly card: WorldChampionCard }
+  | { readonly kind: "final-standings"; readonly card: FinalStandingsCard };
+
+/** The offer's two cards in the dialog's order, leaving out one with nothing to show. */
+export function shareCardsOf(offer: ShareOffer): readonly ShareCardData[] {
+  const cards: ShareCardData[] = [];
+  if (offer.mode === "era") {
+    const champions = championOfChampionsCard(offer.seasons);
+    const last = lastChampionsCard(offer.seasons);
+    if (champions !== null) cards.push({ kind: "champion-of-champions", card: champions });
+    if (last !== null) cards.push({ kind: "last-champions", card: last });
+  } else {
+    const champion = worldChampionCard(offer.world);
+    const standings = finalStandingsCard(offer.world);
+    if (champion !== null) cards.push({ kind: "world-champion", card: champion });
+    if (standings !== null) cards.push({ kind: "final-standings", card: standings });
+  }
+  return cards;
 }

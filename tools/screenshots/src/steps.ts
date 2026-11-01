@@ -494,18 +494,39 @@ export const STEPS: readonly Step[] = [
     },
   },
   {
-    name: "share-cards",
+    name: "share-season",
     reach: async (page) => {
-      // The four share cards off a two-season era. A dev-only page with no link
-      // to it, typed as an address until the preview dialog replaces it.
-      await page.goto("/dev/share-cards");
-      await page.getByText(/^Final standings · /).waitFor();
+      // The season's two cards, offered on its summary.
+      await button(page, "Share").click();
+      await page
+        .getByRole("dialog", { name: `Share your ${YEAR + 1}` })
+        .getByText("Final standings", { exact: true })
+        .waitFor();
+    },
+  },
+  {
+    name: "share-era",
+    reach: async (page) => {
+      // The era's two cards, offered on its champions page between seasons.
+      await page.keyboard.press("Escape");
+      await page
+        .getByRole("navigation", { name: "Breadcrumb" })
+        .first()
+        .getByRole("link", { name: "Era", exact: true })
+        .click();
+      await page.waitForURL("**/run");
+      await button(page, "Share").click();
+      await page
+        .getByRole("dialog", { name: "Share your era" })
+        .getByText("The last champions", { exact: true })
+        .waitFor();
     },
   },
   {
     name: "era-kept-grid",
     reach: async (page) => {
-      // Back from the share cards' page to the season it was typed from.
+      // Back from the champions page to the season it was reached from.
+      await page.keyboard.press("Escape");
       await page.goBack();
       await page.waitForURL(`**/run/${YEAR + 1}*`);
       // The year after the start under the first season's teams: ghost entries

@@ -27,6 +27,7 @@ import { SeasonCalendar } from "./SeasonCalendar.js";
 import { SeasonGrid } from "./SeasonGrid.js";
 import { DriverHistory, TeamHistory } from "./SeasonHistory.js";
 import { SeasonStandings } from "./SeasonStandings.js";
+import { ShareButton } from "./ShareDialog.js";
 import { SimulationSettings, settingsOf } from "./SimulationSettings.js";
 import { Tabs } from "./Tabs.js";
 import { TeamBadge } from "./TeamBadge.js";
@@ -262,6 +263,8 @@ export function SeasonOverview({
         <PageHeading
           title={`${year} season`}
           sub={finished ? `Final classification · ${count(season.rounds, "round")}` : progress}
+          // Share waits for the season's end, even with the title settled.
+          aside={finished ? <ShareButton offer={{ mode: "season", world }} /> : undefined}
         />
       </header>
       {/*

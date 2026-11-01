@@ -22,6 +22,7 @@ import {
   OTHER_CHAMPIONS_SHOWN,
   restOfChampions,
   STANDINGS_SHOWN,
+  shareCardsOf,
   type TitleTally,
   tallyTitles,
   WIDE_ROUNDS_FROM,
@@ -320,5 +321,29 @@ describe("the season cards", () => {
   it("are null where nobody scored", () => {
     expect(worldChampionCard(nobodyScores(world))).toBeNull();
     expect(finalStandingsCard(nobodyScores(world))).toBeNull();
+  });
+});
+
+describe("shareCardsOf", () => {
+  const world = createWorld(1, YEAR);
+  const seasons = era(3);
+
+  it("gives a season its world champion, then its final standings", () => {
+    expect(shareCardsOf({ mode: "season", world })).toEqual([
+      { kind: "world-champion", card: worldChampionCard(world) },
+      { kind: "final-standings", card: finalStandingsCard(world) },
+    ]);
+  });
+
+  it("gives an era its champion of champions, then its last champions", () => {
+    expect(shareCardsOf({ mode: "era", seasons })).toEqual([
+      { kind: "champion-of-champions", card: championOfChampionsCard(seasons) },
+      { kind: "last-champions", card: lastChampionsCard(seasons) },
+    ]);
+  });
+
+  it("leaves out a card with nothing to show", () => {
+    expect(shareCardsOf({ mode: "season", world: nobodyScores(world) })).toEqual([]);
+    expect(shareCardsOf({ mode: "era", seasons: [] })).toEqual([]);
   });
 });
