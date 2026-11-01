@@ -129,6 +129,10 @@ const POINTS: readonly { readonly point: JumpPoint; readonly label: string }[] =
  * The same `YearPicker` the setup pages use, restricted to the years a jump can
  * reach. What the button runs is `jumpTarget`, so a choice the run has since
  * overtaken falls back to one still ahead rather than reaching the store.
+ *
+ * Final season, in the picker's band, is the end of the era in one press: it
+ * picks the last season's end, and the button below still does the jumping,
+ * as a date picker's Today picks a date without submitting the form.
  */
 export function JumpDialog({
   open,
@@ -150,6 +154,8 @@ export function JumpDialog({
   const years = jumpYears(run);
   const target = jumpTarget(run, chosen);
   const cursor = cursorPlace(run);
+  // The end of the era: the last season the run can reach, at its end.
+  const final = years.length > 1 ? years.at(-1) : undefined;
   return (
     <AlertDialog
       open={open && target !== null}
@@ -164,10 +170,7 @@ export function JumpDialog({
           <AlertDialogTitle>Jump to…</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogBody>
-          <AlertDialogDescription>
-            Every season up to the one you pick is raced in one go. Stop at its start, to change its
-            grid, or at its end.
-          </AlertDialogDescription>
+          <AlertDialogDescription>Race every season up to the one you pick.</AlertDialogDescription>
           {target === null ? null : (
             <>
               <YearPicker
@@ -176,9 +179,26 @@ export function JumpDialog({
                   setChosen((current) => ({ ...current, year }));
                 }}
                 title="Season"
-                lead="Only seasons you haven't reached yet."
                 describeYear={(year) => `Jump to ${year}`}
                 playable={(year) => years.includes(year)}
+                shortcut={
+                  final === undefined ? undefined : (
+                    <Segmented
+                      label="Shortcut"
+                      segment="h-8 px-3 text-sm font-medium"
+                      items={[
+                        {
+                          key: "final",
+                          label: `Final season · ${final}`,
+                          selected: target.year === final && target.beat.kind === "summary",
+                          onPick: () => {
+                            setChosen({ year: final, point: "end" });
+                          },
+                        },
+                      ]}
+                    />
+                  )
+                }
               />
               <div className="flex flex-col gap-2">
                 <span className={MONO_LABEL}>Stop at</span>

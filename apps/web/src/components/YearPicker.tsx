@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { decadeOf, isPlayable, SEASON_DECADES, yearsInDecade } from "../lib/seasons.js";
 import { cn, MONO_LABEL } from "../lib/utils.js";
 import { Card, CardBand, CardDescription } from "./ui/card.js";
@@ -41,13 +42,15 @@ export function YearPicker({
   lead,
   describeYear,
   playable = isPlayable,
+  shortcut,
 }: {
   /** The selected year. Its decade is the one that is open. */
   year: number;
   /** Absent in tests, where nothing is clicked. The picker still renders. */
   onSelect?: (year: number) => void;
   title: string;
-  lead: string;
+  /** A how-to under the band; none where the dialog around it already says it. */
+  lead?: string;
   /** The accessible label on a playable year's button. */
   describeYear: (year: number) => string;
   /**
@@ -58,6 +61,11 @@ export function YearPicker({
    * and a test that only ever sees the real data asserts nothing about them.
    */
   playable?: (year: number) => boolean;
+  /**
+   * A control at the band's right that picks a year in one press (Jump to…'s
+   * final season). It selects, like the grids; it never starts anything.
+   */
+  shortcut?: ReactNode;
 }) {
   const decade = decadeOf(year);
   /** The year a decade opens on: its earliest playable one, or none. */
@@ -65,11 +73,11 @@ export function YearPicker({
 
   return (
     <Card>
-      <CardBand title={title} />
+      <CardBand title={title}>{shortcut}</CardBand>
 
       <div className="flex flex-col gap-4 px-5 py-4">
         {/* A how-to, so the body's, never the band's (`CardBand`). */}
-        <CardDescription>{lead}</CardDescription>
+        {lead === undefined ? null : <CardDescription>{lead}</CardDescription>}
         <div className="flex flex-col gap-1.5">
           <span className={MONO_LABEL}>Decade</span>
           <Segmented

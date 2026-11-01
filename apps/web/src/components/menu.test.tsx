@@ -165,6 +165,19 @@ describe("the season picker", () => {
     expect(gappy).toContain(`${missing} is not available yet`);
   });
 
+  it("sets a shortcut in its band, above the decades", () => {
+    const html = renderToStaticMarkup(
+      <YearPicker
+        year={DEFAULT_SEASON_YEAR}
+        title="Season"
+        describeYear={(year) => `Jump to ${year}`}
+        shortcut={<button type="button">Final season</button>}
+      />,
+    );
+    const band = html.slice(0, html.indexOf("Decade"));
+    expect(band).toContain(">Final season<");
+  });
+
   it("makes a decade with no authored season unpickable", () => {
     // Same reason as above, and the other half of the rule: picking a decade
     // has to land on a year, so one holding none cannot be picked at all.
