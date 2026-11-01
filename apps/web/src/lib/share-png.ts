@@ -99,3 +99,42 @@ export async function cardPng(card: HTMLElement): Promise<Blob> {
   }
   return png;
 }
+
+/**
+ * Whether `nav` would send `count` PNGs through the Web Share API: a phone's
+ * share sheet, or the desktop's where there is one. Asked with empty files,
+ * since `canShare` reads only their number and types.
+ */
+export function canShareFiles(
+  nav: Pick<Navigator, "canShare"> | undefined,
+  count: number,
+): boolean {
+  if (typeof nav?.canShare !== "function") {
+    return false;
+  }
+  const files = Array.from(
+    { length: count },
+    (_, index) => new File([], `card-${index}.png`, { type: "image/png" }),
+  );
+  return nav.canShare({ files });
+}
+
+/** How long a saved file's object URL outlives the tap: Safari reads it after the click returns. */
+const SAVED_URL_LIFETIME_MS = 60_000;
+
+/** `file` downloaded under its own name, as a link with `download` is. */
+export function saveFile(file: File): void {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), SAVED_URL_LIFETIME_MS);
+}
+
+/** Whether `error` is the player closing the share sheet, which is no failure. */
+export function sharingCancelled(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}

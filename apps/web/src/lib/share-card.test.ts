@@ -12,6 +12,7 @@ import { findWorld, YEAR } from "../test-support.js";
 import { PLAYABLE_SEASONS } from "./seasons.js";
 import {
   CONSTRUCTORS_SHOWN,
+  cardFileName,
   championOfChampionsCard,
   driverCodes,
   finalStandingsCard,
@@ -21,6 +22,7 @@ import {
   lineageName,
   OTHER_CHAMPIONS_SHOWN,
   restOfChampions,
+  type ShareOffer,
   STANDINGS_SHOWN,
   shareCardsOf,
   type TitleTally,
@@ -345,5 +347,21 @@ describe("shareCardsOf", () => {
   it("leaves out a card with nothing to show", () => {
     expect(shareCardsOf({ mode: "season", world: nobodyScores(world) })).toEqual([]);
     expect(shareCardsOf({ mode: "era", seasons: [] })).toEqual([]);
+  });
+});
+
+describe("cardFileName", () => {
+  it("names each card's PNG after the run and the card, never two alike", () => {
+    const offers: readonly ShareOffer[] = [
+      { mode: "season", world: createWorld(1, YEAR) },
+      { mode: "era", seasons: era(3) },
+    ];
+    const names = offers.flatMap((offer) => shareCardsOf(offer).map(cardFileName));
+    expect(names).toContain(`my-${YEAR}-world-champion.png`);
+    expect(names).toContain(`my-${YEAR}-final-standings.png`);
+    const [first, , last] = PLAYABLE_SEASONS;
+    expect(names).toContain(`my-${first}-${last}-champion-of-champions.png`);
+    expect(names).toContain(`my-${first}-${last}-last-champions.png`);
+    expect(new Set(names).size).toBe(names.length);
   });
 });

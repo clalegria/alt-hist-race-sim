@@ -465,3 +465,14 @@ export function shareCardsOf(offer: ShareOffer): readonly ShareCardData[] {
   }
   return cards;
 }
+
+/**
+ * A card's PNG, named after the run and the card, so the two of one offer
+ * never share a name: "my-1986-world-champion.png", "my-1980-1984-last-champions.png".
+ */
+export function cardFileName(data: ShareCardData): string {
+  const run = headingLine(data.card.heading)
+    .title.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+  return `${run}-${data.kind}.png`;
+}

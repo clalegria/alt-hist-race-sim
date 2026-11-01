@@ -1,7 +1,8 @@
 /**
  * Share: offered on a season's page once its summary is reached and on the
  * era's champions page between seasons, never with a year under way; and the
- * dialog's body draws each of the offer's cards with its own Save. Pages are
+ * dialog draws each of the offer's cards with its own Save, and a phone's
+ * arrows between them. Pages are
  * rendered from what `resolveRunPage` hands them, cursor by cursor.
  */
 
@@ -14,7 +15,8 @@ import type { Run } from "../store/season.js";
 import { seededWorld, YEAR } from "../test-support.js";
 import { EraChampions } from "./EraChampions.js";
 import { SeasonOverview } from "./SeasonOverview.js";
-import { ShareCardsBody } from "./ShareDialog.js";
+import { ShareCardsPanel, slideAt } from "./ShareDialog.js";
+import { Dialog } from "./ui/dialog.js";
 
 const first = seededWorld(3, "aged", YEAR);
 const second = seededWorld(4, "aged", YEAR + 1);
@@ -83,19 +85,46 @@ describe("where Share is offered", () => {
   });
 });
 
-describe("the dialog's body", () => {
+describe("the dialog's panel", () => {
   const offers: readonly ShareOffer[] = [
     { mode: "season", world: first },
     { mode: "era", seasons: [first, second] },
   ];
+  const panel = (offer: ShareOffer) =>
+    renderToStaticMarkup(
+      <Dialog open>
+        <ShareCardsPanel offer={offer} />
+      </Dialog>,
+    );
 
-  it("draws each card of the offer with its own Save, waiting on the image", () => {
+  it("draws each card of the offer with its own Save, ready to tap", () => {
     for (const offer of offers) {
       const cards = shareCardsOf(offer);
-      const html = renderToStaticMarkup(<ShareCardsBody offer={offer} />);
+      const html = panel(offer);
       expect(html.split('class="share-card ').length - 1).toBe(cards.length);
       expect(html.match(/>Save<\/button>/g)?.length).toBe(cards.length);
-      expect(html.split('disabled=""').length - 1).toBe(cards.length);
+      expect(html).not.toMatch(/disabled=""[^>]*>Save</);
     }
+  });
+
+  it("opens a phone on the first card, with only the way on live", () => {
+    for (const offer of offers) {
+      const html = panel(offer);
+      expect(html).toMatch(/<button[^>]*aria-label="Previous card"[^>]*disabled=""/);
+      expect(html).toMatch(/<button[^>]*aria-label="Next card"/);
+      expect(html).not.toMatch(/<button[^>]*aria-label="Next card"[^>]*disabled=""/);
+    }
+  });
+});
+
+describe("slideAt", () => {
+  it("is the slide whose start is nearest the scroll", () => {
+    const starts = [0, 316, 632];
+    expect(slideAt(0, starts)).toBe(0);
+    expect(slideAt(157, starts)).toBe(0);
+    expect(slideAt(159, starts)).toBe(1);
+    expect(slideAt(316, starts)).toBe(1);
+    expect(slideAt(700, starts)).toBe(2);
+    expect(slideAt(40, [])).toBe(0);
   });
 });

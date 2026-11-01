@@ -12,7 +12,7 @@ authored liveries. Match its look, not its CSS.
 The card data, its abbreviations and its tie rules are built: `lib/share-card.ts`. The
 frame and its shared parts are built: `components/ShareCard.tsx`. The four cards are
 built: `components/ShareCards.tsx`. Share and its dialog are built: `components/ShareDialog.tsx`
-(`pnpm screenshots share-season share-era`). The PNG is built: `lib/share-png.ts`.
+(`pnpm screenshots share-season share-era`). The PNG, Save and Share are built: `lib/share-png.ts`.
 
 - DECIDED: **the PNG is drawn from the dialog's own card**, not a second copy: the
   preview's scale is a transform on the box around it, so the card is laid out at 1:1.
@@ -80,8 +80,11 @@ built: `components/ShareCards.tsx`. Share and its dialog are built: `components/
   in an era too; the era's on its champions page, covering every year up to that one.
 - DECIDED: **no seed on any card.**
 - DECIDED: **Share sits beside the page's heading** and opens a dialog of that mode's two
-  cards, side by side (stacked on a phone), each with Save. Share on a card only where
+  cards, side by side, each with Save. Share on a card only where
   `navigator.canShare({ files })` says yes; Share both only where it takes two files.
+- DECIDED: **a phone shows one card at a time**: swiped, or stepped with the arrows and
+  dots at the footer's left, so neither card needs a scroll down.
+- DECIDED: **a PNG is named after the run and the card**: `my-1986-world-champion.png`.
 
 ## What is left to settle
 
@@ -98,10 +101,6 @@ built: `components/ShareCards.tsx`. Share and its dialog are built: `components/
 
 Each step lands with its tests and leaves the app working. DECIDED.
 
-5. **Share or save**: Save, drawn disabled until now, saves the PNG (`cardPng`, on tap)
-   from an object URL;
-   Share and Share both, where `navigator.canShare({ files })` allows, send it through
-   `navigator.share`. The file is named after the run, such as `my-1986.png`.
 6. **Look and docs**: a last look at each card through `screenshot-checker`; move the
    rules into a `web-share-card.md` rule file; delete this doc and its mockup when nothing
    is left.

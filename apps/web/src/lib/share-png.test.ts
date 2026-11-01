@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { embedFontFaces, rendersTwice } from "./share-png.js";
+import { canShareFiles, embedFontFaces, rendersTwice, sharingCancelled } from "./share-png.js";
 
 const CSS = `
 /* a variable face */
@@ -91,5 +91,37 @@ describe("rendersTwice", () => {
     ]) {
       expect(rendersTwice(userAgent)).toBe(false);
     }
+  });
+});
+
+describe("canShareFiles", () => {
+  it("says no where the browser has no canShare", () => {
+    expect(canShareFiles(undefined, 1)).toBe(false);
+    expect(canShareFiles({} as Pick<Navigator, "canShare">, 1)).toBe(false);
+  });
+
+  it("asks canShare about that many PNGs and gives its answer", () => {
+    for (const count of [1, 2]) {
+      for (const answer of [true, false]) {
+        const asked: File[][] = [];
+        const nav = {
+          canShare: (data?: ShareData) => {
+            asked.push(data?.files ?? []);
+            return answer;
+          },
+        };
+        expect(canShareFiles(nav, count)).toBe(answer);
+        expect(asked).toHaveLength(1);
+        expect(asked[0]?.map((file) => file.type)).toEqual(Array(count).fill("image/png"));
+      }
+    }
+  });
+});
+
+describe("sharingCancelled", () => {
+  it("is the share sheet closed, and nothing else", () => {
+    expect(sharingCancelled(new DOMException("closed", "AbortError"))).toBe(true);
+    expect(sharingCancelled(new DOMException("too late", "NotAllowedError"))).toBe(false);
+    expect(sharingCancelled(new Error("AbortError"))).toBe(false);
   });
 });
