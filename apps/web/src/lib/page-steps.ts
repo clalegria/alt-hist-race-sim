@@ -14,15 +14,16 @@
  *   previous is last year's final round, the last round's next is next year's
  *   first.
  * - A season steps to the years either side.
- * - A driver or a team steps through everyone in the run so far, A to Z:
- *   drivers by surname, teams by the name the index shows them under.
+ * - A driver or a team steps through everyone in the run so far, A to Z as
+ *   the index sorts by name (`compareRosterNames`): drivers by surname, teams
+ *   by the name the index shows them under.
  */
 
 import { firstYearInRun } from "@alt-hist/data";
 import { cursorPlace, type Run } from "../store/season.js";
-import { compareBySurname, driverName, teamName } from "./names.js";
+import { driverName, teamName } from "./names.js";
 import { revealed } from "./reveal.js";
-import { lastYearOf, rosterOf } from "./roster.js";
+import { compareRosterNames, lastYearOf, rosterOf } from "./roster.js";
 import { driverLink, type RosterLocation, teamLink } from "./roster-places.js";
 import { type CrumbLink, yearsReached } from "./run-bar.js";
 import { laterYears, linkTo } from "./run-places.js";
@@ -181,7 +182,7 @@ function rosterSteps(run: Run, page: "driver" | "team", id: string): PageSteps {
     const { before, after } = neighbours(
       [...roster.drivers.keys()],
       id,
-      (a, b) => compareBySurname(driverName(a), driverName(b)) || byId(a, b),
+      (a, b) => compareRosterNames("drivers", driverName(a), driverName(b)) || byId(a, b),
     );
     const driverStep = (direction: Direction, other: string) => {
       const name = driverName(other);
@@ -206,7 +207,7 @@ function rosterSteps(run: Run, page: "driver" | "team", id: string): PageSteps {
   const { before, after } = neighbours(
     [...roster.teams.keys()],
     id,
-    (a, b) => nameOf(a).localeCompare(nameOf(b)) || byId(a, b),
+    (a, b) => compareRosterNames("teams", nameOf(a), nameOf(b)) || byId(a, b),
   );
   const teamStep = (direction: Direction, other: string) => {
     const name = nameOf(other);

@@ -14,6 +14,7 @@
  */
 
 import type { RaceEntrant } from "@alt-hist/engine";
+import { compareBySurname } from "./names.js";
 import { driverOverall } from "./rating.js";
 import type { CareerRecord, CareerRecords } from "./records.js";
 
@@ -128,13 +129,60 @@ export function parseIndexSort(raw: unknown): IndexSort {
   return INDEX_SORTS.find((sort) => sort === raw) ?? "titles";
 }
 
+/** Which way an index runs: A to Z or smallest first is `asc`. */
+export type IndexDirection = "asc" | "desc";
+
+/** The way a column opens on: A to Z for the name, biggest first for a figure. */
+export function naturalDirection(sort: IndexSort): IndexDirection {
+  return sort === "name" ? "asc" : "desc";
+}
+
+/** An index page's search params. */
+export interface IndexSearch {
+  readonly sort?: IndexSort;
+  readonly dir?: IndexDirection;
+}
+
 /**
  * An index page's search params, checked: the route's `validateSearch`. The
- * default sort is left out, so `/run/drivers` is the list's one address.
+ * default sort and a column's natural direction are left out, so
+ * `/run/drivers` is the list's one address and `?dir=` only ever says "the
+ * other way".
  */
-export function indexSearch(search: Record<string, unknown>): { sort?: IndexSort } {
+export function indexSearch(search: Record<string, unknown>): IndexSearch {
   const sort = parseIndexSort(search.sort);
-  return sort === "titles" ? {} : { sort };
+  const dir = search.dir === "asc" || search.dir === "desc" ? search.dir : naturalDirection(sort);
+  return {
+    ...(sort === "titles" ? {} : { sort }),
+    ...(dir === naturalDirection(sort) ? {} : { dir }),
+  };
+}
+
+/**
+ * The A to Z of a list of people, shared by an index and the steps between
+ * pages (`page-steps.ts`) so the two agree on who comes next: drivers by
+ * surname, teams by the name shown.
+ */
+export function compareRosterNames(kind: "drivers" | "teams", a: string, b: string): number {
+  return kind === "drivers" ? compareBySurname(a, b) : a.localeCompare(b);
+}
+
+/** A name as the search box matches it: lower case, accents off ("Räikkönen" → "raikkonen"). */
+function folded(name: string): string {
+  return name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/**
+ * Whether any of `names` holds every word of `query`, in any order and
+ * ignoring case and accents, so "schu mich" finds Michael Schumacher. An empty
+ * query matches everyone.
+ */
+export function nameMatches(query: string, names: readonly string[]): boolean {
+  const words = folded(query).split(/\s+/).filter(Boolean);
+  return names.some((name) => {
+    const target = folded(name);
+    return words.every((word) => target.includes(word));
+  });
 }
 
 /**
@@ -179,27 +227,37 @@ const CABINET = ["titles", "wins", "podiums", "poles", "points", "seasons"] as c
 
 /**
  * An index in `sort` order: biggest first for a figure, ties falling through
- * the rest of the cabinet, A to Z for the name. **Total** — every order ends
- * on the id — so a list never depends on the sort implementation or on the
- * order the roster was walked in.
+ * the rest of the cabinet, A to Z for the name by `compareNames`. **Total** —
+ * every order ends on the id — so a list never depends on the sort
+ * implementation or on the order the roster was walked in.
+ *
+ * `dir` against the column's natural direction turns the whole list round,
+ * ties included: smallest first, Z to A.
  */
 export function sortIndex(
   rows: readonly IndexRow[],
   sort: IndexSort,
   nameOf: (row: IndexRow) => string,
+  {
+    dir = naturalDirection(sort),
+    compareNames = (a: string, b: string) => a.localeCompare(b),
+  }: { dir?: IndexDirection; compareNames?: (a: string, b: string) => number } = {},
 ): readonly IndexRow[] {
   const byId = (a: IndexRow, b: IndexRow) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  let sorted: IndexRow[];
   if (sort === "name") {
-    return [...rows].sort((a, b) => nameOf(a).localeCompare(nameOf(b)) || byId(a, b));
-  }
-  const keys = [sort, ...CABINET.filter((key) => key !== sort)];
-  return [...rows].sort((a, b) => {
-    for (const key of keys) {
-      const difference = b[key] - a[key];
-      if (difference !== 0) {
-        return difference;
+    sorted = [...rows].sort((a, b) => compareNames(nameOf(a), nameOf(b)) || byId(a, b));
+  } else {
+    const keys = [sort, ...CABINET.filter((key) => key !== sort)];
+    sorted = [...rows].sort((a, b) => {
+      for (const key of keys) {
+        const difference = b[key] - a[key];
+        if (difference !== 0) {
+          return difference;
+        }
       }
-    }
-    return byId(a, b);
-  });
+      return byId(a, b);
+    });
+  }
+  return dir === naturalDirection(sort) ? sorted : sorted.reverse();
 }

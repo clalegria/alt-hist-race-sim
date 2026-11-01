@@ -16,10 +16,12 @@ import { careerRecords } from "./records.js";
 import { revealed } from "./reveal.js";
 import {
   bestOverall,
+  compareRosterNames,
   type FieldYear,
   type IndexRow,
   indexRows,
   indexSearch,
+  nameMatches,
   rosterOf,
   sortIndex,
 } from "./roster.js";
@@ -226,6 +228,31 @@ describe("a people page's URL", () => {
     expect(indexSearch({ sort: "nonsense" })).toEqual({});
     expect(driverLink("piquet").params).toEqual({ driverId: "piquet" });
   });
+
+  it("names a direction only when it runs against the column's natural way", () => {
+    expect(indexSearch({ sort: "wins", dir: "desc" })).toEqual({ sort: "wins" });
+    expect(indexSearch({ sort: "wins", dir: "asc" })).toEqual({ sort: "wins", dir: "asc" });
+    expect(indexSearch({ sort: "name", dir: "asc" })).toEqual({ sort: "name" });
+    expect(indexSearch({ sort: "name", dir: "desc" })).toEqual({ sort: "name", dir: "desc" });
+    expect(indexSearch({ dir: "asc" })).toEqual({ dir: "asc" });
+    expect(indexSearch({ sort: "wins", dir: "sideways" })).toEqual({ sort: "wins" });
+    expect(teamsLink("points", "asc").search).toEqual({ sort: "points", dir: "asc" });
+    expect(driversLink("name", "asc").search).toEqual({ sort: "name" });
+  });
+});
+
+describe("an index's search", () => {
+  it("matches every word, in any order, ignoring case and accents", () => {
+    expect(nameMatches("schu mich", ["Michael Schumacher"])).toBe(true);
+    expect(nameMatches("RAIKK", ["Kimi Räikkönen"])).toBe(true);
+    expect(nameMatches("räikkönen", ["Kimi Raikkonen"])).toBe(true);
+    expect(nameMatches("ralf mich", ["Michael Schumacher"])).toBe(false);
+  });
+
+  it("matches any of the names, and everyone on an empty query", () => {
+    expect(nameMatches("toleman", ["Benetton", "Toleman"])).toBe(true);
+    expect(nameMatches("  ", ["Benetton"])).toBe(true);
+  });
 });
 
 /** The route id behind each page's link. */
@@ -287,5 +314,26 @@ describe("an index's order", () => {
       "a1",
       "m1",
     ]);
+  });
+
+  it("sorts drivers by surname, as the steps between their pages do", () => {
+    const names: Record<string, string> = {
+      a: "Alan Jones",
+      b: "Bruno Giacomelli",
+      c: "Carlos Reutemann",
+    };
+    const byName = (each: IndexRow) => names[each.id] ?? "";
+    const compareNames = (a: string, b: string) => compareRosterNames("drivers", a, b);
+    expect(
+      ids(sortIndex([row("a"), row("b"), row("c")], "name", byName, { compareNames })),
+    ).toEqual(["b", "a", "c"]);
+    expect(compareRosterNames("teams", "Brabham", "Arrows")).toBeGreaterThan(0);
+  });
+
+  it("turns the whole list round against the column's natural way", () => {
+    const rows = [row("a", { wins: 3 }), row("b", { wins: 5 }), row("c", { wins: 3 })];
+    const down = ids(sortIndex(rows, "wins", name));
+    expect(ids(sortIndex(rows, "wins", name, { dir: "asc" }))).toEqual([...down].reverse());
+    expect(ids(sortIndex(rows, "name", name, { dir: "desc" }))).toEqual(["c", "b", "a"]);
   });
 });

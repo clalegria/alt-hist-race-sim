@@ -5,18 +5,33 @@
  * the one place a name navigates rather than opening its panel, because
  * getting to a page is the whole of what this list is for.
  *
- * The order is a search param (`?sort=wins`) — how the list is viewed, not
- * which list — so Back moves between orders and a link can name one. Each
- * column heading is that link, and the sorted one says so with `aria-sort`.
+ * The order is a search param (`?sort=wins&dir=asc`) — how the list is viewed,
+ * not which list — so Back moves between orders and a link can name one. Each
+ * column heading is that link, the sorted one turning the list round, and it
+ * says so with `aria-sort`. Names sort as the steps between pages walk them:
+ * drivers by surname (`compareRosterNames`).
+ *
+ * The search box filters the rows as the reader types, by any word of the
+ * name — and for a team, of any name it raced under.
  */
 
 import { Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { count } from "../lib/format.js";
 import { driverName } from "../lib/names.js";
 import { careerRecords } from "../lib/records.js";
 import type { RevealedWorld } from "../lib/reveal.js";
-import { type IndexRow, type IndexSort, rosterIndex, rosterOf, sortIndex } from "../lib/roster.js";
+import {
+  compareRosterNames,
+  type IndexDirection,
+  type IndexRow,
+  type IndexSort,
+  nameMatches,
+  naturalDirection,
+  rosterIndex,
+  rosterOf,
+  sortIndex,
+} from "../lib/roster.js";
 import type { PageOf, RosterLink } from "../lib/roster-places.js";
 import { cn, HIT_AREA } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
@@ -26,6 +41,7 @@ import { Liveries } from "./Liveries.js";
 import { PageHeading } from "./PageHeading.js";
 import { TeamName } from "./TeamName.js";
 import { Card } from "./ui/card.js";
+import { Input } from "./ui/input.js";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table.js";
 
 /**
@@ -53,28 +69,33 @@ function figureClass(column: (typeof COLUMNS)[number], sort: IndexSort): string 
   );
 }
 
-/** A column heading that sorts the list by itself. */
+/**
+ * A column heading that sorts the list by itself, its natural way first (A to
+ * Z, biggest first); on the sorted column it turns the list round.
+ */
 function SortHeading({
   label,
   sort,
   current,
+  dir,
   linkFor,
   className,
 }: {
   label: string;
   sort: IndexSort;
   current: IndexSort;
-  linkFor: (sort: IndexSort) => RosterLink;
+  dir: IndexDirection;
+  linkFor: (sort: IndexSort, dir?: IndexDirection) => RosterLink;
   className?: string;
 }) {
   const active = sort === current;
   return (
     <TableHead
       className={className}
-      aria-sort={active ? (sort === "name" ? "ascending" : "descending") : "none"}
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
     >
       <Link
-        {...linkFor(sort)}
+        {...linkFor(sort, active ? (dir === "asc" ? "desc" : "asc") : naturalDirection(sort))}
         className={cn(
           "hover:text-foreground focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none",
           // The header row's height, for a heading set a third of it.
@@ -84,9 +105,66 @@ function SortHeading({
         )}
       >
         {label}
-        {active ? <span aria-hidden="true"> {sort === "name" ? "↑" : "↓"}</span> : null}
+        {active ? <span aria-hidden="true"> {dir === "asc" ? "↑" : "↓"}</span> : null}
       </Link>
     </TableHead>
+  );
+}
+
+/**
+ * The box that filters an index, with a magnifier at its right end.
+ *
+ * The magnifier is decoration (`aria-hidden`, clicks pass through to the box);
+ * the box is named by its `aria-label`, since a placeholder vanishes once typed
+ * over. While it holds text the magnifier gives way to a Clear button, which
+ * hands the focus back so typing carries on — and the browser's own clear mark
+ * is hidden, so the two never sit on top of each other. Escape still clears.
+ */
+function SearchBox({
+  label,
+  query,
+  onChange,
+}: {
+  label: string;
+  query: string;
+  onChange: (query: string) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  return (
+    <div className="relative w-full sm:w-56">
+      <Input
+        ref={input}
+        type="search"
+        aria-label={label}
+        placeholder={label}
+        value={query}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+        className="w-full pr-9 [&::-webkit-search-cancel-button]:appearance-none"
+      />
+      {query === "" ? (
+        <span
+          aria-hidden="true"
+          className="text-muted-foreground pointer-events-none absolute inset-y-0 right-3 flex items-center"
+        >
+          <span className="search-icon" />
+        </span>
+      ) : (
+        <button
+          type="button"
+          aria-label="Clear search"
+          title="Clear search"
+          onClick={() => {
+            onChange("");
+            input.current?.focus();
+          }}
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-0 flex w-9 items-center justify-center transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -102,24 +180,48 @@ export function RosterIndex({
   kind,
   years,
   sort,
+  dir = naturalDirection(sort),
   linkFor,
   pageOf,
+  initialQuery = "",
 }: {
   kind: "drivers" | "teams";
   years: readonly RevealedWorld[];
   sort: IndexSort;
+  /** Absent for the column's natural direction. */
+  dir?: IndexDirection | undefined;
   /** The list in another order. */
-  linkFor: (sort: IndexSort) => RosterLink;
+  linkFor: (sort: IndexSort, dir?: IndexDirection) => RosterLink;
   pageOf: PageOf;
+  /** What the search box opens holding. Tests only: a static render types nothing. */
+  initialQuery?: string;
 }) {
+  // What the reader has typed: a passing filter, so it is the component's own
+  // state rather than a search param — a URL per keystroke would fill Back.
+  const [query, setQuery] = useState(initialQuery);
   const teamNameIn = useTeamNameIn();
-  const index = useMemo(
-    () => rosterIndex(rosterOf(years), careerRecords(years, teamNameIn)),
-    [years, teamNameIn],
-  );
+  const { index, spellNames } = useMemo(() => {
+    const records = careerRecords(years, teamNameIn);
+    return {
+      index: rosterIndex(rosterOf(years), records),
+      // Every name a team raced under, so "Toleman" finds the team it became.
+      spellNames: new Map(
+        records.teams.map((record) => [record.id, record.spells.map((spell) => spell.name)]),
+      ),
+    };
+  }, [years, teamNameIn]);
   const nameOf = (row: IndexRow) =>
     kind === "drivers" ? driverName(row.id) : teamNameIn(row.id, row.lastYear);
-  const rows = sortIndex(kind === "drivers" ? index.drivers : index.teams, sort, nameOf);
+  const all = kind === "drivers" ? index.drivers : index.teams;
+  const rows = sortIndex(all, sort, nameOf, {
+    dir,
+    compareNames: (a, b) => compareRosterNames(kind, a, b),
+  }).filter((row) =>
+    nameMatches(
+      query,
+      kind === "drivers" ? [nameOf(row)] : [nameOf(row), ...(spellNames.get(row.id) ?? [])],
+    ),
+  );
   const noun = kind === "drivers" ? "driver" : "team";
 
   return (
@@ -127,9 +229,13 @@ export function RosterIndex({
       <header className="flex flex-col gap-3">
         <PageHeading
           title={kind === "drivers" ? "Drivers" : "Teams"}
-          sub={`${count(rows.length, noun)} in the run so far`}
+          sub={`${count(all.length, noun)} in the run so far`}
         />
-        <EraTabs current={kind} />
+        {/* The search box shares the tabs' line, at its far end; on a phone it wraps under them. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <EraTabs current={kind} />
+          <SearchBox label={`Search ${kind}`} query={query} onChange={setQuery} />
+        </div>
       </header>
       <Card>
         <Table>
@@ -139,6 +245,7 @@ export function RosterIndex({
                 label={kind === "drivers" ? "Driver" : "Team"}
                 sort="name"
                 current={sort}
+                dir={dir}
                 linkFor={linkFor}
               />
               {COLUMNS.map((column) => (
@@ -147,6 +254,7 @@ export function RosterIndex({
                   label={column.label}
                   sort={column.sort}
                   current={sort}
+                  dir={dir}
                   linkFor={linkFor}
                   className={figureClass(column, sort)}
                 />
@@ -154,6 +262,13 @@ export function RosterIndex({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={COLUMNS.length + 1} className="text-muted-foreground">
+                  No {noun} matches “{query.trim()}”
+                </TableCell>
+              </TableRow>
+            ) : null}
             {rows.map((row) => {
               return (
                 <TableRow key={row.id}>

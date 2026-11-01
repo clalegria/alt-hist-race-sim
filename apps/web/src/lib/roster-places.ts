@@ -17,7 +17,13 @@ import { driversById, teamsById } from "@alt-hist/data";
 import { linkOptions } from "@tanstack/react-router";
 import { cursorPlace, type Run } from "../store/season.js";
 import { type RevealedWorld, revealed } from "./reveal.js";
-import { type IndexSort, type Roster, rosterOf } from "./roster.js";
+import {
+  type IndexDirection,
+  type IndexSort,
+  indexSearch,
+  type Roster,
+  rosterOf,
+} from "./roster.js";
 import { linkTo, type RunLink } from "./run-places.js";
 import type { Place } from "./timeline.js";
 
@@ -27,19 +33,19 @@ export type RosterPage = "drivers" | "teams" | "driver" | "team";
 const DRIVERS = driversById();
 const TEAMS = teamsById();
 
-/** The drivers' index, in the default order unless a sort is named. */
-export function driversLink(sort?: IndexSort) {
+/** The drivers' index, in the default order unless a sort or direction is named. */
+export function driversLink(sort?: IndexSort, dir?: IndexDirection) {
   return linkOptions({
     to: "/run/drivers",
-    search: sort === undefined || sort === "titles" ? {} : { sort },
+    search: indexSearch({ sort, dir }),
   });
 }
 
-/** The teams' index, in the default order unless a sort is named. */
-export function teamsLink(sort?: IndexSort) {
+/** The teams' index, in the default order unless a sort or direction is named. */
+export function teamsLink(sort?: IndexSort, dir?: IndexDirection) {
   return linkOptions({
     to: "/run/teams",
-    search: sort === undefined || sort === "titles" ? {} : { sort },
+    search: indexSearch({ sort, dir }),
   });
 }
 

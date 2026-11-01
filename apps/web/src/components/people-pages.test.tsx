@@ -359,6 +359,74 @@ describe("the index lists", () => {
     expect(html.split('aria-sort="ascending"').length - 1).toBe(1);
   });
 
+  it("turn round on the sorted column's heading, and open another column its natural way", async () => {
+    const html = await inRouter(
+      <RosterIndex
+        kind="drivers"
+        years={midSeason}
+        sort="wins"
+        dir="asc"
+        linkFor={driversLink}
+        pageOf={PAGE_OF}
+      />,
+    );
+    expect(html.split('aria-sort="ascending"').length - 1).toBe(1);
+    // Wins, sorted smallest first, goes back to biggest first; the name opens A to Z.
+    expect(html).toContain('href="/run/drivers?sort=wins"');
+    expect(html).toContain('href="/run/drivers?sort=name"');
+    expect(html).not.toContain("dir=desc");
+  });
+
+  it("show only the rows whose name matches the search", async () => {
+    const roster = rosterOf(midSeason);
+    const [driverId] = roster.drivers.keys();
+    const full = driverName(driverId ?? "");
+    const html = await inRouter(
+      <RosterIndex
+        kind="drivers"
+        years={midSeason}
+        sort="titles"
+        linkFor={driversLink}
+        pageOf={PAGE_OF}
+        initialQuery={full}
+      />,
+    );
+    const shown = html.split('href="/run/driver/').length - 1;
+    expect(shown).toBeGreaterThanOrEqual(1);
+    expect(shown).toBeLessThan(roster.drivers.size);
+    expect(html).toContain(`href="/run/driver/${driverId}"`);
+
+    const none = await inRouter(
+      <RosterIndex
+        kind="drivers"
+        years={midSeason}
+        sort="titles"
+        linkFor={driversLink}
+        pageOf={PAGE_OF}
+        initialQuery="zzzz"
+      />,
+    );
+    expect(none).not.toContain('href="/run/driver/');
+    expect(textOf(none)).toContain("No driver matches");
+    // A box holding text offers to clear it in place of the magnifier.
+    expect(none).toContain('aria-label="Clear search"');
+    expect(none).not.toContain("search-icon");
+  });
+
+  it("draw a magnifier in an empty search box, and no Clear button", async () => {
+    const html = await inRouter(
+      <RosterIndex
+        kind="teams"
+        years={midSeason}
+        sort="titles"
+        linkFor={teamsLink}
+        pageOf={PAGE_OF}
+      />,
+    );
+    expect(html).toContain('class="search-icon"');
+    expect(html).not.toContain('aria-label="Clear search"');
+  });
+
   it("are headed by their one h1", async () => {
     const html = await inRouter(
       <RosterIndex

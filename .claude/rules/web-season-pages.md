@@ -53,7 +53,7 @@ either side. Which URL shows what, and the gate, are `web-routing.md`.
   yet". A place ahead is a disabled span saying "not yet"; both arrows always draw, so `›`
   never moves.
 - **A session step keeps its kind and crosses years** in an era; a season steps among the
-  years reached; people go A to Z over the roster, drivers by surname
-  (`compareBySurname`), unlike the index's own name sort.
+  years reached; people go A to Z over the roster, drivers by surname, as the index sorts
+  by name (`compareRosterNames`).
 - **Links come in as props**, so `SeasonView` renders without a router; a test that needs
   them renders inside `inRouter` (`test-router.tsx`).

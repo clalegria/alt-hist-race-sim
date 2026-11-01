@@ -47,7 +47,12 @@ A page per driver and per team, and the two index lists (`PersonPages`, `RosterI
   `legible()`: the badge's stripes as a band along the bottom (`barcodeBackground`), never
   an accent the badge doesn't draw; a year sat out is a chequer. The teal caret marks the run's year. A stripe's
   tooltip names its team on every driver's, and on a team's only once it has had two names.
-- **An index's order is a search param** (`indexSearch`), the default left out of the
-  URL; `sortIndex` is total, ending on the id.
+- **An index's order is a search param** (`indexSearch`): `sort`, and `dir` only when
+  against the column's natural way (A to Z, biggest first); the default left out of the
+  URL. The sorted column's heading turns the list round. `sortIndex` is total, ending on
+  the id; its name order is `compareRosterNames`, the one the steps between pages walk.
+- **An index's search box is the component's own state**, never a search param (a URL
+  per keystroke would fill Back): any word of the name, ignoring case and accents, and a
+  team's every name.
 - **On a phone an index row is the name, wins, points and the sorted column**; a page's
   season-by-season keeps points and wins, as a standings row does. Neither scrolls.

@@ -24,7 +24,7 @@ import { DriverPage, TeamPage } from "./components/PersonPages.js";
 import { RosterIndex } from "./components/RosterIndex.js";
 import { RunConfirmDialog } from "./components/RunDialogs.js";
 import { stepsFor } from "./lib/page-steps.js";
-import type { IndexSort } from "./lib/roster.js";
+import type { IndexDirection, IndexSort } from "./lib/roster.js";
 import {
   driversLink,
   PAGE_OF,
@@ -193,10 +193,13 @@ export function RosterPlacePage({
   page,
   id,
   sort = "titles",
+  dir,
 }: {
   page: RosterPage;
   id?: string;
   sort?: IndexSort;
+  /** Absent for the column's natural direction. */
+  dir?: IndexDirection | undefined;
 }) {
   const run = useSeasonStore((state) => state.run);
   if (run === null) {
@@ -217,13 +220,21 @@ export function RosterPlacePage({
           kind="drivers"
           years={years}
           sort={sort}
+          dir={dir}
           linkFor={driversLink}
           pageOf={PAGE_OF}
         />
       );
     case "teams":
       return (
-        <RosterIndex kind="teams" years={years} sort={sort} linkFor={teamsLink} pageOf={PAGE_OF} />
+        <RosterIndex
+          kind="teams"
+          years={years}
+          sort={sort}
+          dir={dir}
+          linkFor={teamsLink}
+          pageOf={PAGE_OF}
+        />
       );
     case "driver":
       return <DriverPage years={years} driverId={location.id ?? ""} />;
