@@ -327,6 +327,7 @@ export function ShareButton({ offer }: { offer: ShareOffer }) {
   return (
     <>
       <Button variant="outline" size="sm" className="shrink-0" onClick={() => setOpen(true)}>
+        <span aria-hidden="true" className="share-icon" />
         Share
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
