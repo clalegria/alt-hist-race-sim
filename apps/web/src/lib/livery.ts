@@ -97,34 +97,24 @@ export function liveryFor(teamId: string, year?: number): Livery | undefined {
 }
 
 /**
- * How far a team colour is pulled toward the theme's own foreground before it
- * is used on anything.
- *
- * This is the anti-clash mechanism for a team colour drawn as a line on the
- * page's own surfaces (the standings charts). A livery is authored against a
- * racing car, not against this palette, so any colour in it can land on top of
- * whichever background the reader is using — white vanishes on the light
- * theme, near-black on the dark one. `--color-foreground` is by definition the far end of the live theme
- * from its background, so pulling every team colour a fixed distance toward it
- * guarantees separation in both themes, with no JavaScript and no per-theme
- * branch.
- *
- * The obvious alternative — clamping the colour's lightness into a band with
- * `oklch(from ...)` — is more precise and was tried. It needs relative colour
- * syntax, which is newer than everything else here relies on; where that is
- * missing the whole declaration is invalid and the colour silently disappears,
- * which is how it shipped once. `color-mix` is the same baseline as the rest of
- * the app and is already proven in it.
- */
-const CONTRAST_PULL = 28;
-
-/**
  * A team colour, moved far enough from the current background to be seen on it.
+ *
+ * A livery is authored against a racing car, not against this palette, so any
+ * colour in it can land on top of whichever background the reader is using —
+ * white vanishes on the light theme, near-black on the dark one.
+ * `--color-foreground` is by definition the far end of the live theme from its
+ * background, so pulling every team colour toward it guarantees separation in
+ * both themes. How far is `--line-pull` in `index.css`, a value per theme, since
+ * the dark card sits further from black than the light one does from white.
  *
  * Note this pulls *every* colour, not only the ones that would have clashed —
  * a colour already contrasting is muted slightly for no benefit. That is the
  * price of having no way to ask, in CSS, how close a colour is to the surface
- * it is about to sit on.
+ * it is about to sit on. The obvious alternative — clamping the colour's
+ * lightness with `oklch(from ...)` — was tried: it needs relative colour syntax,
+ * newer than everything else here relies on, and where that is missing the
+ * whole declaration is invalid and the colour silently disappears, which is how
+ * it shipped once. `color-mix` is the same baseline as the rest of the app.
  *
  * Used by the standings charts, where a line drawn in a raw livery would be
  * white on white. A chart cannot pass this string to an SVG
@@ -132,5 +122,5 @@ const CONTRAST_PULL = 28;
  * as a custom property instead.
  */
 export function legible(color: string): string {
-  return `color-mix(in oklab, ${color} ${100 - CONTRAST_PULL}%, var(--color-foreground))`;
+  return `color-mix(in oklab, ${color}, var(--color-foreground) var(--line-pull))`;
 }

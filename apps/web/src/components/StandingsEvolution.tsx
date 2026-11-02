@@ -22,6 +22,7 @@ import {
 } from "../lib/evolution.js";
 import { legible } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
+import { pickingOrder, type SeriesColour, seriesColours } from "../lib/series-colours.js";
 import { cn } from "../lib/utils.js";
 import { DriverName } from "./DriverName.js";
 import { useEntryName } from "./EntryNames.js";
@@ -44,10 +45,10 @@ import { Card, CardBand } from "./ui/card.js";
  *
  * ## Why the colours travel as custom properties
  *
- * Series colours are the teams' own, through `legible()` in `lib/livery.ts` —
- * the one anti-clash mechanism this app has, and a chart drawing raw authored
- * colours would lose the white and near-black teams exactly as the team cards
- * did. But `legible()` returns a `color-mix(…, var(--color-foreground))`, and
+ * Series colours are the teams' own, picked apart by `lib/series-colours.ts`
+ * and then passed through `legible()` in `lib/livery.ts` — a chart drawing raw
+ * authored colours would lose the white and near-black teams against the page
+ * exactly as the team cards did. But `legible()` returns a `color-mix(…, var(--color-foreground))`, and
  * **`var()` does not work in an SVG presentation attribute**: `stroke="var(…)"`
  * is ignored, and an ignored stroke is an invisible line. So each series colour
  * is set as a custom property on the card, and the stroke is applied by a CSS
@@ -138,25 +139,27 @@ interface Plotted {
 /**
  * A colour per series, with a team's later cars dashed rather than recoloured.
  *
- * Colour follows the entity, never its position — a driver does not change
- * colour for finishing second, and both Williams are drawn in Williams' colours.
+ * Colour follows the team, never a driver's position: both Williams are drawn
+ * in one Williams colour, the same on both charts. *Which* of its colours is
+ * `seriesColours`' call, made once for the page by `StandingsEvolution`.
  */
 function plot(
   series: readonly EvolutionSeries[],
   nameOf: (key: string) => string,
-  colourOf: (teamId: string) => string | undefined,
+  colourOf: (teamId: string) => SeriesColour | undefined,
 ): Plotted[] {
   const drawn = new Map<string, number>();
   return series.map((line) => {
     const nth = drawn.get(line.teamId) ?? 0;
     drawn.set(line.teamId, nth + 1);
+    const colour = colourOf(line.teamId);
     return {
       series: line,
       name: nameOf(line.key),
       // A team the seed data does not know draws in the plain foreground rather
       // than not at all — the same "quieter than a wrong one" choice the badge
       // makes, except that a missing line would silently drop a competitor.
-      colour: colourOf(line.teamId) ?? "var(--color-foreground)",
+      colour: colour === undefined ? "var(--color-foreground)" : legible(colour.css),
       dash: TEAM_DASHES[Math.min(nth, TEAM_DASHES.length - 1)] ?? "",
     };
   });
@@ -530,13 +533,16 @@ export function StandingsEvolution({
 }) {
   const nameOf = useEntryName();
   const liveryOf = useLivery();
-  const colourOf = (teamId: string) => {
-    const livery = liveryOf(teamId);
-    return livery === undefined ? undefined : legible(livery.primaryColor);
-  };
 
   const drivers = useMemo(() => driversEvolution(season, points), [season, points]);
   const teams = useMemo(() => teamsEvolution(season, points), [season, points]);
+  // Picked from both tables whichever chart this is, so the two charts agree.
+  const colours = useMemo(() => {
+    const order = pickingOrder(drivers, teams);
+    const picked = seriesColours(order.map(liveryOf));
+    return new Map(order.map((teamId, index) => [teamId, picked[index]]));
+  }, [drivers, teams, liveryOf]);
+  const colourOf = (teamId: string) => colours.get(teamId);
 
   if (season.races.length < 2) {
     return null;

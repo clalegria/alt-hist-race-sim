@@ -13,13 +13,16 @@
  * that a line's colour is the one `lib/livery.ts` resolves for its team.
  */
 
+import { authoredSeasons } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { TOP_DRIVERS, TOP_TEAMS } from "../lib/evolution.js";
+import { driversEvolution, TOP_DRIVERS, TOP_TEAMS, teamsEvolution } from "../lib/evolution.js";
 import { legible, liveryFor } from "../lib/livery.js";
 import { driverName } from "../lib/names.js";
-import { SEED, seededWorld, shownAt, textOf, YEAR } from "../test-support.js";
+import { oklab, pickingOrder, type SeriesColour, seriesColours } from "../lib/series-colours.js";
+import type { World } from "../store/season.js";
+import { findWorld, SEED, seededWorld, shownAt, textOf, YEAR } from "../test-support.js";
 import { Liveries } from "./Liveries.js";
 import { SeasonOverview } from "./SeasonOverview.js";
 import { SeasonStandings } from "./SeasonStandings.js";
@@ -38,16 +41,25 @@ function series(key: string, teamId: string) {
   return { key, teamId, points: [0] };
 }
 
+/** A team's picked colour, synthetic. */
+function picked(hex: string): SeriesColour {
+  return { css: hex, lab: oklab(hex) };
+}
+
 describe("plotSeries", () => {
   it("draws every car in its own team's colours", () => {
     // Colour follows the entity, never its position: a driver does not change
     // colour for finishing second.
+    const colours: Record<string, SeriesColour> = {
+      one: picked("#FFFFFF"),
+      two: picked("#CC0000"),
+    };
     const lines = plotSeries(
       [series("a", "one"), series("b", "two")],
       (key) => key,
-      (teamId) => `colour-of-${teamId}`,
+      (teamId) => colours[teamId],
     );
-    expect(lines.map((line) => line.colour)).toEqual(["colour-of-one", "colour-of-two"]);
+    expect(lines.map((line) => line.colour)).toEqual([legible("#FFFFFF"), legible("#CC0000")]);
     expect(lines.map((line) => line.name)).toEqual(["a", "b"]);
   });
 
@@ -56,17 +68,33 @@ describe("plotSeries", () => {
     // the first three places — and drawn plainly they would be one line traced
     // three times. Each car of a team takes a *different* dash, so the third
     // is not a copy of the second.
+    const colours: Record<string, SeriesColour> = {
+      one: picked("#FFFFFF"),
+      two: picked("#CC0000"),
+    };
     const lines = plotSeries(
       [series("a", "one"), series("b", "one"), series("c", "one"), series("d", "two")],
       (key) => key,
-      () => "a-colour",
+      (teamId) => colours[teamId],
     );
     const [first, second, third, other] = lines;
+    expect(new Set([first, second, third].map((line) => line?.colour)).size).toBe(1);
     expect(first?.dash).toBe("");
     expect(second?.dash).not.toBe("");
     expect(third?.dash).not.toBe(second?.dash);
     // A different team starts over: it is the colour that separates them.
     expect(other?.dash).toBe("");
+  });
+
+  it("never dashes a car for another team's colours", () => {
+    // Dashes say "team-mate". Two teams left in one colour stay solid, and the
+    // number at each line's end tells them apart.
+    const lines = plotSeries(
+      [series("a", "one"), series("b", "two")],
+      (key) => key,
+      () => picked("#FFFFFF"),
+    );
+    expect(lines.map((line) => line.dash)).toEqual(["", ""]);
   });
 
   it("draws the legend's mark with the line's own dash pattern", () => {
@@ -207,17 +235,89 @@ describe("the season summary", () => {
     }
   });
 
-  it("gives every line the colours its team is drawn in everywhere else", () => {
-    for (const standing of constructorStandings(world.season, world.points).slice(0, TOP_TEAMS)) {
+  it("draws every line in a colour out of its team's own livery", () => {
+    const items = teamsLegend.slice(teamsLegend.indexOf("<ul")).split("<li").slice(1);
+    const standings = constructorStandings(world.season, world.points).slice(0, TOP_TEAMS);
+    expect(items).toHaveLength(standings.length);
+    standings.forEach((standing, index) => {
       const resolved = liveryFor(standing.teamId, YEAR);
       if (resolved === undefined) {
-        continue;
+        return;
       }
       // Through `legible`, like every other surface a team colour reaches —
       // a raw livery loses the white and near-black teams to one theme or the
-      // other.
-      expect(teamsLegend, standing.teamId).toContain(legible(resolved.primaryColor));
+      // other. Which of the team's colours is `seriesColours`' call.
+      const item = items[index] ?? "";
+      expect(item, standing.teamId).toContain("color-mix(in oklab, ");
+      const own = [resolved.primaryColor, resolved.secondaryColor1, resolved.secondaryColor2];
+      expect(
+        own.some((hex) => item.includes(hex)),
+        standing.teamId,
+      ).toBe(true);
+    });
+  });
+
+  it("draws a team in one colour on both charts", () => {
+    // Searched for: a season where picking each chart's colours on its own
+    // would draw a team on both charts in two colours. Most seasons agree
+    // either way, and those would let a per-chart pick pass unnoticed.
+    const differs = (candidate: World) => {
+      const drivers = driversEvolution(candidate.season, candidate.points);
+      const teams = teamsEvolution(candidate.season, candidate.points);
+      const css = (order: string[]) => {
+        const picks = seriesColours(order.map((teamId) => liveryFor(teamId, candidate.year)));
+        return new Map(order.map((teamId, index) => [teamId, picks[index]?.css]));
+      };
+      const driversAlone = css(pickingOrder(drivers, []));
+      const teamsAlone = css(pickingOrder([], teams));
+      return [...teamsAlone].some(
+        ([teamId, colour]) => driversAlone.has(teamId) && driversAlone.get(teamId) !== colour,
+      );
+    };
+    const found = authoredSeasons
+      .map((year) => {
+        try {
+          return findWorld(differs, { seeds: 5, year });
+        } catch {
+          return undefined;
+        }
+      })
+      .find((candidate) => candidate !== undefined);
+    expect(found).toBeDefined();
+    if (found === undefined) {
+      return;
     }
+    const html = renderToStaticMarkup(
+      <Liveries year={found.year}>
+        <SeasonView {...shownAt(found, { kind: "summary" })} />
+      </Liveries>,
+    );
+    const section = (from: string, to?: string) =>
+      html.slice(html.indexOf(from), to === undefined ? undefined : html.indexOf(to));
+    /** Each legend row's mark, in legend order. */
+    const marks = (legendHtml: string) =>
+      legendHtml
+        .slice(legendHtml.indexOf("<ul"))
+        .split("<li")
+        .slice(1)
+        .map((item) => item.match(/style="background:([^"]*)"/)?.[1]);
+    const driverMarks = marks(
+      section("How the drivers’ title was won", "Constructors’ Championship"),
+    );
+    const teamMarks = marks(section("How the constructors’ title was won"));
+    const driverTeams = driversEvolution(found.season, found.points).map((line) => line.teamId);
+    const teamIds = teamsEvolution(found.season, found.points).map((line) => line.teamId);
+    let compared = 0;
+    teamIds.forEach((teamId, index) => {
+      // A team's first car in the drivers' legend is its solid line: its plain colour.
+      const first = driverTeams.indexOf(teamId);
+      if (first === -1) {
+        return;
+      }
+      expect(driverMarks[first], teamId).toBe(teamMarks[index]);
+      compared++;
+    });
+    expect(compared).toBeGreaterThan(0);
   });
 
   it("keeps the chart's own colours out of the SVG attributes", () => {

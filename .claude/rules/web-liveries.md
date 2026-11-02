@@ -24,6 +24,6 @@ How a livery reaches the page. What a livery is, and its eras, is `team-eras.md`
 - **Count badges by `BADGE_SHAPE` and corners by `CORNER_SHAPE`, never by `aria-hidden`**,
   which chevrons, spacers and the theme toggle carry too. Keep the size out of
   `BADGE_SHAPE`: tailwind-merge drops the marker when a call site resizes the badge.
-- **A team colour drawn as a line on a theme surface goes through `legible()`.** Keep its
-  mix below 100%, and never use `oklch(from …)` there: where it is unsupported the whole
-  declaration is invalid and the colour vanishes.
+- **A team colour drawn as a line on a theme surface goes through `legible()`**, pulled by
+  `--line-pull` (`index.css`, one per theme). Keep it declared in both themes and between
+  0 and 100%, and never use `oklch(from …)` there: an invalid declaration vanishes the colour.

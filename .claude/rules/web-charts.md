@@ -3,6 +3,7 @@ paths:
   - "apps/web/src/components/StandingsEvolution.tsx"
   - "apps/web/src/lib/evolution.ts"
   - "apps/web/src/lib/chart-layout.ts"
+  - "apps/web/src/lib/series-colours.ts"
 ---
 
 # Charts
@@ -13,8 +14,11 @@ The season summary's standings evolution (`StandingsEvolution.tsx`, `lib/evoluti
   ratings editor's driver progression): theming, axes and series colour are settled here.
 - **The fold runs the engine's own standings over `races.slice(0, n + 1)`**; never a
   hand-rolled running total, which would drift from the engine's tie-breaks.
-- **Series colour follows the entity**: the team's livery through `legible()`. Team-mates
-  are never recoloured; they take `TEAM_DASHES`.
+- **Series colour follows the team, one colour on both charts**: picked once from both
+  tables by `seriesColours` in `pickingOrder` (drivers' champion first), then through
+  `legible()`. Dashes (`TEAM_DASHES`) are for team-mates only, never two clashing teams.
+- **A clash is judged as drawn, on both themes**: `THEMES` copies `index.css`'s foreground
+  lightness and `--line-pull`. Change one, change the other (a test holds them equal).
 - **`var()` does not work in an SVG presentation attribute.** Series colours are
   `--series-N` properties on the card, applied by the `SERIES_STROKE` rules aimed at
   `.recharts-curve`. Keep `SERIES_STROKE` literal class strings so Tailwind generates them.

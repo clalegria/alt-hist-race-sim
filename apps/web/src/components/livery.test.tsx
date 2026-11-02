@@ -8,6 +8,8 @@
  * the real files checks a *rule* over whatever those files happen to hold.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import type { Livery, Team } from "@alt-hist/data";
 import { seasonSeed, seasons, teamLiveryIn, teamsById } from "@alt-hist/data";
 import { championshipStandings, constructorStandings } from "@alt-hist/engine";
@@ -414,10 +416,21 @@ describe("a team colour drawn as a line", () => {
     expect(legible("#FFFFFF")).toContain("color-mix(");
   });
 
-  it("never leaves the team colour at full strength", () => {
-    // At 100% the mix is the raw colour again and the guarantee is gone, silently.
-    const share = Number(/color-mix\(in oklab, [^,]+? (\d+)%/.exec(legible("#FFFFFF"))?.[1]);
-    expect(share).toBeGreaterThan(0);
-    expect(share).toBeLessThan(100);
+  it("pulls by a share every theme declares, and never all or nothing", () => {
+    // An undeclared `--line-pull` makes the whole `color-mix` invalid, and the
+    // line vanishes; at 0% the raw colour is back and the guarantee is gone.
+    expect(legible("#FFFFFF")).toContain("var(--line-pull)");
+    const css = readFileSync(fileURLToPath(new URL("../index.css", import.meta.url)), "utf-8");
+    const pulls = [...css.matchAll(/--line-pull: *(\d+(?:\.\d+)?)%;/g)].map((match) =>
+      Number(match[1]),
+    );
+    // One on plain `:root` for dark, one under the light theme's selector.
+    expect(pulls).toHaveLength(2);
+    expect(css).toMatch(/:root \{\s*--line-pull:/);
+    expect(css).toMatch(/:root\[data-theme="light"\] \{\s*--line-pull:/);
+    for (const pull of pulls) {
+      expect(pull).toBeGreaterThan(0);
+      expect(pull).toBeLessThan(100);
+    }
   });
 });

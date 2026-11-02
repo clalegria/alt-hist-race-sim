@@ -423,6 +423,27 @@ body {
   --track-chequer-dark: oklch(20% 0.01 250);
 }
 
+/*
+ * How far a team colour drawn as a line is pulled toward the foreground
+ * (`legible()` in `lib/livery.ts`), so no livery vanishes into the card.
+ *
+ * Per theme because the two cards are not mirror images. The light card is near
+ * white, and white pulled 28% lands well clear of it. The dark card is a lifted
+ * graphite, so black pulled the same 28% lands barely above it: the dark value
+ * gives black on the dark card the contrast white has on the light one. Every
+ * colour moves by the same fraction, which keeps two teams as far apart, relative
+ * to each other, as they were. Not a `--color-` token, so it stays on plain `:root`.
+ * `THEMES` in `lib/series-colours.ts` copies both values, and each foreground's
+ * lightness, to judge which team colours clash once drawn.
+ */
+:root {
+  --line-pull: 45%;
+}
+
+:root[data-theme="light"] {
+  --line-pull: 28%;
+}
+
 .track-verge {
   background-color: var(--track-verge);
 }
