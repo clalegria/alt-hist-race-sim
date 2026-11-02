@@ -51,7 +51,8 @@ Every call re-sends the whole context, so cost grows with calls × context size.
 - Edit with the Edit tool, one call per file where possible. Not Python: on Windows it
   writes CRLF.
 - Line endings are git's and Biome's job (`eol=lf`, `pnpm format`); never convert them.
-- Run the checks once, in one call, filtered to their summary lines.
+- Run the checks once, in one call, filtered to their summary lines. While iterating that
+  is `pnpm test:changed`; the full `pnpm test` runs once, before the commit.
 
 ## Briefing a subagent
 - **Every brief carries**: the objective; context (files, plan, decisions made); the

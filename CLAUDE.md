@@ -14,6 +14,7 @@ project, ~99% AI-generated; these rules keep it coherent.
 pnpm dev           # the web app on http://localhost:5173
 pnpm build         # production build of the web app
 pnpm test          # Vitest across all packages
+pnpm test:changed  # only the tests that import an uncommitted change
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .

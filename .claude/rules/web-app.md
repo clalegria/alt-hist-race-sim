@@ -37,4 +37,4 @@ each subsystem's are in the `web-*` file scoped to its code.
   never fall back.
 - **No component reads a season fixed at import time**: round names and calendars come
   from the world's own year (`seasonSeed(world.year)`). 1981 renders fine with 1980's
-  names, so only `seasons.smoke.test.tsx` catches it.
+  names, so only the season smoke tests (`src/smoke/`) catch it.
