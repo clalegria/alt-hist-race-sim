@@ -32,13 +32,16 @@ function LiveSession({ run, onExit }: { run: Run; onExit: () => void }) {
         : {
             // The providers the run's frame wraps its pages in (`App.tsx`), so the
             // car is painted as the run's own pages paint it.
-            car: (
-              <KeptLiveries from={run.world.liveriesKeptFrom}>
-                <Liveries year={leader.year}>
-                  <TeamCar teamId={leader.teamId} />
-                </Liveries>
-              </KeptLiveries>
-            ),
+            car: {
+              drawing: (
+                <KeptLiveries from={run.world.liveriesKeptFrom}>
+                  <Liveries year={leader.year}>
+                    <TeamCar teamId={leader.teamId} />
+                  </Liveries>
+                </KeptLiveries>
+              ),
+              label: leader.label,
+            },
           })}
       link={linkTo(cursorPlace(run))}
       onExit={onExit}

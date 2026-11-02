@@ -716,10 +716,29 @@ describe("the leader on the Resume card", () => {
       }
       const table = { ...world.season, races: world.season.races.slice(0, shown) };
       const leader = championshipStandings(table, world.points)[0];
-      expect(runLeader(season(beat)), JSON.stringify(beat)).toEqual({
+      expect(runLeader(season(beat)), JSON.stringify(beat)).toMatchObject({
         teamId: leader?.teamId,
         year: YEAR,
       });
+    }
+  });
+
+  it("names the leader, and calls them champion only from the summary on", () => {
+    for (const beat of [...beatsOf(ROUNDS), { kind: "review" } as const]) {
+      const label = runLeader(era(beat))?.label;
+      if (label === undefined) {
+        continue;
+      }
+      const shown = runBarFor(era(beat)).roundsRun;
+      const table = { ...world.season, races: world.season.races.slice(0, shown) };
+      const leader = championshipStandings(table, world.points)[0];
+      const name = JSON.stringify(beat);
+      expect(label.startsWith(`${driverName(leader?.driverId ?? "")} (`), name).toBe(true);
+      expect(label, name).toMatch(
+        beat.kind === "summary" || beat.kind === "review"
+          ? new RegExp(`\\) is the ${YEAR} champion$`)
+          : new RegExp(`\\) leads the ${YEAR} championship$`),
+      );
     }
   });
 });

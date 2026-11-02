@@ -41,8 +41,8 @@ export function ResumeRun({
   /** The cursor's season, as `runBarFor` counts it. */
   rounds: number;
   roundsRun: number;
-  /** The championship leader's car (`runLeader`), once there is one. */
-  car?: React.ReactNode;
+  /** The championship leader's car (`runLeader`), once there is one, and who it is. */
+  car?: { readonly drawing: React.ReactNode; readonly label: string };
   link: RunLink;
   /** Asks, when there is anything to lose, then ends the run. */
   onExit?: () => void;
@@ -69,7 +69,12 @@ export function ResumeRun({
         >
           {title}
         </span>
-        {car}
+        {car === undefined ? null : (
+          // A plain tooltip, as the people pages' cars have.
+          <figure title={car.label} className="shrink-0">
+            {car.drawing}
+          </figure>
+        )}
       </div>
       <span className={MONO_LABEL}>{detail}</span>
       <RoundSegments rounds={rounds} done={roundsRun} />

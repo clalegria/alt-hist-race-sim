@@ -532,7 +532,11 @@ describe("the Resume run card", () => {
   it("shows a car only when it is handed one", async () => {
     const props = { title: "Run", detail: "Grid", rounds: 16, roundsRun: 0, link: grid };
     expect(await inRouter(<ResumeRun {...props} />)).not.toContain("<svg");
-    expect(await inRouter(<ResumeRun {...props} car={<svg />} />)).toContain("<svg");
+    const html = await inRouter(
+      <ResumeRun {...props} car={{ drawing: <svg />, label: "The leader" }} />,
+    );
+    expect(html).toContain("<svg");
+    expect(html).toContain('title="The leader"');
   });
 
   it("gives way to a notice when the saved run could not be resumed", () => {

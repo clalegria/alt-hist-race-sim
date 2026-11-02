@@ -280,14 +280,36 @@ export function runTitle(run: Run): string {
  * Whose car the Resume card shows: the championship leader's team, as far as
  * the reader has got, or null before the cursor's season has shown a race.
  * Read through `revealed`, so Home never shows a leader the run bar has not.
+ * The leader is the champion once the cursor reaches the year's summary, where
+ * its champions are named.
  */
-export function runLeader(run: Run): { readonly teamId: string; readonly year: number } | null {
+export function runLeader(run: Run): {
+  readonly teamId: string;
+  readonly year: number;
+  /** The car's tooltip: "Lewis Hamilton (Mercedes) leads the 2016 championship". */
+  readonly label: string;
+} | null {
   const year = revealed(run).years.at(-1);
   if (year === undefined || year.season.races.length === 0) {
     return null;
   }
   const leader = championshipStandings(year.season, year.points)[0];
-  return leader === undefined ? null : { teamId: leader.teamId, year: year.year };
+  if (leader === undefined) {
+    return null;
+  }
+  const team = teamName(
+    leader.teamId,
+    firstYearInRun(leader.teamId, year.year, run.world.namesKeptFrom),
+  );
+  const champion = isReached(cursorPlace(run), { year: year.year, beat: { kind: "summary" } });
+  const who = `${driverName(leader.driverId)} (${team})`;
+  return {
+    teamId: leader.teamId,
+    year: year.year,
+    label: champion
+      ? `${who} is the ${year.year} champion`
+      : `${who} leads the ${year.year} championship`,
+  };
 }
 
 /** Where a crumb or a menu entry can lead: a beat's page, or a people page. */
