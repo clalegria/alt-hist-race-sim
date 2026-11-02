@@ -37,7 +37,8 @@ its CSS: the app builds the look from its own tokens (`index.css`) and component
 | Mono labels | Plex Mono, uppercase: a small label with wide tracking, or a running line a size up | column heads, band labels, kickers, statuses like READY; breadcrumbs, a heading's sub-line, the rain tag | `MONO_LABEL`; `MONO_LINE` |
 | Figures | Plex Mono, tabular | every number | the `tabular-nums` class |
 
-Everything else is body text: Archivo at full width, sentence case. That includes the team
+Everything else is body text: Archivo at full width, sentence case, sized once on `body`
+(`index.css`) so a call site never has to. That includes the team
 line under a driver, a name inside a sentence, and settings captions.
 
 - **Prose names stay plain**: "Alain Prost", "last with McLaren". A heading in capitals

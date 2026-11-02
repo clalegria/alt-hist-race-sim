@@ -1,11 +1,14 @@
 /*
  * Self-hosted, so a shared static build makes no external request for its type.
  * Latin subsets only: importing the package root ships Cyrillic, Greek and
- * Vietnamese cuts of every weight, which no page here can use.
+ * Vietnamese cuts of every weight, which no page here can use. Plex Mono is not
+ * variable: every weight a figure is set in needs its file, or the browser
+ * fakes the bold (600 is the position block's and the points columns').
  */
 import "@fontsource-variable/archivo/standard.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/ibm-plex-mono/latin-600.css";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

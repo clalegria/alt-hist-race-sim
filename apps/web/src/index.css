@@ -258,9 +258,16 @@
   color-scheme: light;
 }
 
+/*
+ * Body text's size, set once here and inherited: the size cards, dialogs and
+ * tables already speak in. Left unset, text with no size class fell through to
+ * the browser's 16px and read a step larger than the rest of the app. The line
+ * height stays Preflight's 1.5, which suits running prose.
+ */
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-size: var(--text-sm);
 }
 
 /*

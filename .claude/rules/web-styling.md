@@ -14,10 +14,12 @@ paths:
 The stylesheet, the theme and the blocking script in `index.html`. Each token's
 reasoning is its comment in `index.css`; the look they serve is `docs/style/timing-tower.md`.
 
-- **Fonts are self-hosted through `@fontsource`** (`main.tsx`), so a static build makes
-  no external request. Import a subset file, never a package root, which ships every
-  script's cut of every weight. Archivo's must be `standard.css`: `wght.css` has no
-  width axis, and `narrow` silently does nothing.
+- **Fonts are self-hosted through `@fontsource`** (`main.tsx`): import a subset file, never
+  a package root, which ships every script's cut. Archivo's must be `standard.css` (`wght.css`
+  has no width axis, so `narrow` does nothing). Plex Mono is static: a figure in a new
+  weight needs that weight's file, or the browser fakes the bold.
+- **Body text takes its size from `body`** (`index.css`): leave prose unsized; size only
+  what is a step off it. A size equal to a scale step is the step, never `text-[Npx]`.
 - **`.tabular-nums` puts text in the mono face**: mark only figures with it.
 - **The width utilities are `narrow`, and `semi-narrow` for a given name.** Never name a
   custom utility `font-*`: tailwind-merge reads it as a font family and drops it.
@@ -36,16 +38,14 @@ reasoning is its comment in `index.css`; the look they serve is `docs/style/timi
   on the card and on the header, in both themes. Measure all three before using it.
 - **Never hand-roll a header fill**: `CardHeader`, `TableHeader`, a grid tile's top row
   and the top nav's band carry `--color-card-header`.
-- **Never fade text with an opacity modifier**: alpha composites in gamma space and lands
-  far below the contrast it appears to have. Use `--color-subtle`. Opacity on fills is fine.
-  A disabled control reads `text-subtle` and drops its fill.
+- **Never fade text with an opacity modifier**: alpha lands far below its apparent contrast.
+  Use `--color-subtle` (a disabled control: `text-subtle`, no fill). Fills may use opacity.
 - **Every segmented control wears `ui/segmented.tsx`**: `Segmented` for choices, its
   classes for the sort radios, `Tabs` for places and panels. Only tabs are in capitals.
 - **On dark, a panel is drawn by its border**: to make a surface read as raised, raise
   `border` before darkening `background`.
-- **Row stripes sit in `@layer components`** (`.striped`, tables and the mode tower), so
-  any `bg-*` on a row wins over them. Never move them to an `even:` utility, which beats a
-  row's own fill.
+- **Row stripes sit in `@layer components`** (`.striped`: tables, the mode tower), so a
+  row's own `bg-*` wins. Never move them to an `even:` utility, which would beat it.
 - **Dark is the default, in plain `@theme`; light overrides the variables on
   `:root[data-theme="light"]`**, every one of them, the pattern's tints included. **Never
   nest a `@theme`**: Tailwind hoists it, pinning the app to whichever palette comes last.

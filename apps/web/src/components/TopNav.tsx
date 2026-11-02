@@ -11,8 +11,7 @@ import { ThemeToggle } from "./ThemeToggle.js";
  */
 const TAB = cn(
   CONTROL_CAPS,
-  // 15px sits between text-sm and text-base to fit the nav band.
-  "flex items-center px-2.5 py-2.5 text-[15px] whitespace-nowrap transition-colors md:py-0 border-l-3 border-transparent md:border-l-0 md:border-y-3",
+  "flex items-center px-2.5 py-2.5 text-sm whitespace-nowrap transition-colors md:py-0 border-l-3 border-transparent md:border-l-0 md:border-y-3",
 );
 
 /**
@@ -75,8 +74,8 @@ export function TopNav({ areas = AREAS }: { areas?: readonly Area[] }) {
           to="/"
           className={cn(
             DISPLAY_CAPS,
-            // 17px and 50px match the nav band's height; the scale has no fit.
-            "flex h-[50px] items-center gap-2 text-[17px] tracking-wide md:h-auto",
+            // 50px matches the nav band's height.
+            "flex h-[50px] items-center gap-2 text-base tracking-wide md:h-auto",
           )}
         >
           <ChequeredFlag />
