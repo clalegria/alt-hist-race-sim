@@ -42,10 +42,13 @@ export function Track({
   field,
   game = PARADE_START,
   tarmac,
+  scale = 1,
 }: {
   field: Field | null;
   game?: ParadeGame;
   tarmac?: React.Ref<HTMLDivElement>;
+  /** Screen pixels per field pixel: the page's rem over 16px (`pageScale`). */
+  scale?: number;
 }) {
   return (
     <div aria-hidden="true" className="border-border border-t select-none">
@@ -54,7 +57,7 @@ export function Track({
       <div
         ref={tarmac}
         className={cn(
-          // 112px and 96px: `TARMAC_HEIGHT_PX`, and the short window's, which `laneTops` fits two lanes into.
+          // 112px and 96px at 16px to the rem: `TARMAC_HEIGHT_PX`, and the short window's, which `laneTops` fits two lanes into.
           "track-tarmac short:h-24 relative h-28 overflow-hidden",
           // A held car stops the whole field, wheels too.
           game.pressed && "[&_*]:[animation-play-state:paused]",
@@ -77,7 +80,7 @@ export function Track({
             className="absolute top-0 left-0"
             // Whole px, so the pixel art stays sharp; the lower lane drawn over the upper.
             style={{
-              transform: `translate(${Math.round(car.x)}px, ${Math.round(car.y)}px)`,
+              transform: `translate(${Math.round(car.x * scale)}px, ${Math.round(car.y * scale)}px)`,
               zIndex: Math.round(car.y) + 1,
             }}
           >
@@ -91,6 +94,17 @@ export function Track({
       <div className="track-verge short:h-1 h-2" />
     </div>
   );
+}
+
+/**
+ * How much larger than 16px the page's rem is: a wide window's root size, or
+ * the reader's own browser text size. The field is modelled at 16px to the rem
+ * (`CAR_WIDTH_PX` is the sprite's `w-36`), so the tarmac is measured into the
+ * model's pixels and the cars drawn back out of them; otherwise the sprites,
+ * sized in rem, outgrow the gaps the model keeps between them.
+ */
+function pageScale(): number {
+  return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1;
 }
 
 /**
@@ -114,17 +128,25 @@ export function HomeTrack() {
   const [field, setField] = useState<Field | null>(null);
   const [game, setGame] = useState<ParadeGame>(PARADE_START);
   const [tooltip, setTooltip] = useState<{ car: ParadeCar; at: Point } | null>(null);
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const element = tarmac.current;
     if (element === null) {
       return;
     }
+    // Re-read on resize, since a wide window's root size steps at a breakpoint.
+    let ratio = pageScale();
+    setScale(ratio);
+    const resize = () => {
+      ratio = pageScale();
+      setScale(ratio);
+    };
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let current = (still ? spreadField : startField)(
       Math.random,
-      element.clientWidth,
-      element.clientHeight,
+      element.clientWidth / ratio,
+      element.clientHeight / ratio,
     );
     setField(current);
     let state = PARADE_START;
@@ -141,7 +163,7 @@ export function HomeTrack() {
         return undefined;
       }
       const box = element.getBoundingClientRect();
-      return carAt(current, { x: at.x - box.left, y: at.y - box.top });
+      return carAt(current, { x: (at.x - box.left) / ratio, y: (at.y - box.top) / ratio });
     };
     // The tooltip, kept the same object while nothing about it changes so React skips the render.
     let shown: { car: ParadeCar; at: Point } | null = null;
@@ -156,7 +178,7 @@ export function HomeTrack() {
       const dt = (time - last) / 1000;
       last = time;
       // The window crossed into or out of short, so the tarmac changed height.
-      const refitted = refitField(current, element.clientHeight);
+      const refitted = refitField(current, element.clientHeight / ratio);
       if (refitted !== current) {
         current = refitted;
         setField(current);
@@ -164,7 +186,7 @@ export function HomeTrack() {
       if (!still && !state.pressed) {
         current = stepField(current, {
           dt,
-          width: element.clientWidth,
+          width: element.clientWidth / ratio,
           direction: state.reversed ? -1 : 1,
           random: Math.random,
         });
@@ -226,6 +248,7 @@ export function HomeTrack() {
 
     frame = requestAnimationFrame(tick);
     const root = document.documentElement;
+    window.addEventListener("resize", resize);
     window.addEventListener("pointermove", move);
     root.addEventListener("pointerleave", leave);
     window.addEventListener("pointerdown", press);
@@ -235,6 +258,7 @@ export function HomeTrack() {
     document.addEventListener("selectstart", noSelecting);
     return () => {
       cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", move);
       root.removeEventListener("pointerleave", leave);
       window.removeEventListener("pointerdown", press);
@@ -247,7 +271,7 @@ export function HomeTrack() {
 
   return (
     <>
-      <Track field={field} game={game} tarmac={tarmac} />
+      <Track field={field} game={game} tarmac={tarmac} scale={scale} />
       {tooltip === null ? null : <CarTooltip line={carLabel(tooltip.car)} at={tooltip.at} />}
     </>
   );

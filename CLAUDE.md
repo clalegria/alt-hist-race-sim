@@ -17,7 +17,7 @@ pnpm test          # Vitest across all packages
 pnpm typecheck     # tsc --noEmit across all packages
 pnpm lint          # biome check .
 pnpm format        # biome check --write .
-pnpm screenshots   # screens to PNGs; pass step names, --phone/--desktop, --light/--dark
+pnpm screenshots   # screens to PNGs; pass step names, --phone/--desktop/--wide, --light/--dark
 pnpm tunnel        # the dev server on a public https URL, for any device (.claude/rules/tunnel.md)
 ```
 Calibration harnesses (`pnpm race`, `season`, `tune`, `fit`, …): `.claude/rules/calibration.md`.

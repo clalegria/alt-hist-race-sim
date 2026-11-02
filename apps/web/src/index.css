@@ -271,6 +271,24 @@ body {
 }
 
 /*
+ * A wide window scales the whole app, as browser zoom would: every size and
+ * spacing is in rem, so type, padding and the page's column grow together and
+ * dense tables keep their proportions. Percentages, so a reader's own browser
+ * text size still counts; a media query's rem is the browser's, not this one,
+ * so the breakpoints (1920px and 2400px) do not move with it.
+ */
+@media (min-width: 120rem) {
+  html {
+    font-size: 112.5%;
+  }
+}
+@media (min-width: 150rem) {
+  html {
+    font-size: 118.75%;
+  }
+}
+
+/*
  * A name that opens a career is a `<button>`, and browsers reset a button's case
  * to `none`: inside a heading in capitals, the name came out in mixed case. In
  * `base`, so a button's own `uppercase` still wins.

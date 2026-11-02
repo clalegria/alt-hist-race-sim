@@ -6,7 +6,7 @@
  * menu or dialog locks the scroll). Arguments narrow it: step
  * names capture only those (the walk still clicks through the steps before
  * them, and stops after the last), and `--desktop`, `--phone`, `--light` or
- * `--dark` only those variants.
+ * `--dark` only those variants. `--wide`, a 1440p monitor, runs only when asked.
  *
  * **Privacy is the hard rule here.** The browser is Playwright's own bundled
  * Chromium (never an installed Chrome: no `channel`), every context is a
@@ -35,6 +35,7 @@ const RANDOM_SEED = 1;
 const VIEWPORTS = {
   desktop: { viewport: { width: 1440, height: 900 } },
   phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
+  wide: { viewport: { width: 2560, height: 1440 } },
 } as const;
 
 /**
@@ -107,18 +108,20 @@ function selection(args: readonly string[]) {
   const known = new Set(STEPS.map((step) => step.name));
   const unknown = [
     ...names.filter((name) => !known.has(name)),
-    ...flags.filter((flag) => !["--desktop", "--phone", "--light", "--dark"].includes(flag)),
+    ...flags.filter(
+      (flag) => !["--desktop", "--phone", "--wide", "--light", "--dark"].includes(flag),
+    ),
   ];
   if (unknown.length > 0) {
     throw new Error(`Unknown: ${unknown.join(", ")}. Steps: ${[...known].join(", ")}.`);
   }
-  const pick = <T extends string>(all: readonly T[]) => {
+  const pick = <T extends string>(all: readonly T[], byDefault: readonly T[] = all) => {
     const asked = all.filter((each) => flags.includes(`--${each}`));
-    return asked.length > 0 ? asked : all;
+    return asked.length > 0 ? asked : byDefault;
   };
   return {
     steps: names.length > 0 ? new Set(names) : known,
-    devices: pick(Object.keys(VIEWPORTS) as (keyof typeof VIEWPORTS)[]),
+    devices: pick(Object.keys(VIEWPORTS) as (keyof typeof VIEWPORTS)[], ["desktop", "phone"]),
     themes: pick(THEMES),
   };
 }

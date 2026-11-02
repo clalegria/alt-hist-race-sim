@@ -46,6 +46,7 @@ A vector car per decade in a team's livery, drawn in ink outline (`TeamCar`,
 - **The track is the parade's only road**: no car drives over the page.
 - **`Shell`'s `foot`**, above the footer as its lower verge, meets the window's bottom.
 - **The lanes fit the measured tarmac** (`laneTops`, `refitField`): a short window's is thinner.
+  The field is in pixels at 16px to the rem: `HomeTrack` measures and draws through `pageScale`.
 - **The field is stepped in `lib/track.ts`, not animated in CSS**: the cars react to one
   another. Keep the step pure and every rule in `stepField`; the component only feeds it
   frames and the pointer.
