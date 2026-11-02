@@ -48,8 +48,8 @@ file, or when the author is iterating with you. Use the fewest agents that help.
 Every call re-sends the whole context, so cost grows with calls × context size.
 - Read the lines you need (`Read` with offset and limit, `grep -n`), not whole files, and
   never re-read a rule file that already loaded by path.
-- Edit with the Edit tool, one call per file where possible. Not Python: on Windows it
-  writes CRLF.
+- Edit with the Edit tool, one call per file where possible; a script is Node, never
+  Python, not even a probe for it (a hook refuses `python -`, which hangs here).
 - Line endings are git's and Biome's job (`eol=lf`, `pnpm format`); never convert them.
 - Run the checks once, in one call, filtered to their summary lines. While iterating that
   is `pnpm test:changed`; the full `pnpm test` runs once, before the commit.
