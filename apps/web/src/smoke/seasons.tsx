@@ -26,12 +26,20 @@ import { shownAt, textOf } from "../test-support.js";
 /** How many `part-*.test.tsx` files share the seasons out. */
 export const SMOKE_PARTS = 8;
 
+/**
+ * A test here renders a page per round, which under a full parallel run, or on
+ * a CI machine, can pass Vitest's 5-second default without anything being wrong.
+ */
+const SMOKE_TIMEOUT_MS = 30_000;
+
 /** The seasons of part `part` (1 to `SMOKE_PARTS`), each drawn end to end. */
 export function smokeSeasons(part: number): void {
   const all = [...seasons];
   const size = Math.ceil(all.length / SMOKE_PARTS);
   const share = all.slice((part - 1) * size, part === SMOKE_PARTS ? undefined : part * size);
-  describe(`each authored season, through the whole reveal (part ${part} of ${SMOKE_PARTS})`, () => {
+  describe(`each authored season, through the whole reveal (part ${part} of ${SMOKE_PARTS})`, {
+    timeout: SMOKE_TIMEOUT_MS,
+  }, () => {
     for (const [year, seed] of share) {
       describe(`${year}`, () => {
         const world = createWorld(5, year);
