@@ -246,7 +246,7 @@ function WhatsNew({ releases }: { releases: readonly Release[] }) {
 const KNOWN_ISSUES: readonly string[] = [
   "The race weekend format never changes: it's always a single qualifying session and then a race. There are no sprint races, no Q1-Q2-Q3 qualifying, and no other qualifying formats like aggregate qualifying or the two qualifying sessions of the 1980s.",
   "There are no mid-season changes of teams or drivers: the grid is set for the whole season.",
-  "The 1950s Indy 500 is not included as a part of the calendar",
+  "The 1950s Indy 500 is not included as a part of the calendar.",
   "Older seasons might not only have less accurate ratings, which give less realistic results, but also less accurate entry lists, with no clear rule for which teams are included, or which drivers race for each team.",
   "Race results are more realistic than qualifying results, which haven't been tuned as closely.",
   "Every circuit is the same: it's no harder to overtake at Monaco than at Interlagos, and no less likely to rain in Bahrain than at Spa.",

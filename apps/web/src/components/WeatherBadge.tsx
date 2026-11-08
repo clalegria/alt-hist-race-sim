@@ -100,7 +100,7 @@ export function WeatherBadge({ weather, className }: { weather: RaceWeather; cla
     return null;
   }
   const word = rainWord(weather);
-  const label = `${word}, ${wetnessPercent(weather)}% wet: the wetter the track, the more it's down to the drivers rather than the cars`;
+  const label = `${word}, ${wetnessPercent(weather)}% wet: the wetter it is, the more the driver counts over the car`;
   return (
     <span
       className={cn(

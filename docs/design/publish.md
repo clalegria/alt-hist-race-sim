@@ -9,11 +9,6 @@ built (`web-about.md`).
 ratings, since a wrong rating reads as a wrong opinion about a real driver. Not after the
 whole authoring pass, nor after the ratings editor.
 
-- **The text pass.** Cut every on-screen string to what the reader is looking at
-  (`.claude/rules/ui-copy.md`). Worst offenders: the setup leads (`SeasonPicker`), the
-  `RandomnessSlider` option details, the settings dialog's what-if notes, the
-  `CareerStatistics` section descriptions. The About page's words are a draft for the
-  author to rewrite (`web-about.md`).
 - **The bug report page**: a tab on the About page, *not available yet* until built. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
   one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
   season, rating mode, randomness level and a build id, which together reproduce a run.

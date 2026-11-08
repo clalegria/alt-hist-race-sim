@@ -5,7 +5,7 @@ value for effort. Nothing here is agreed: PROPOSED items wait for the author's y
 go against a choice the author may have made on purpose. A built item is deleted; a new
 panel run re-ranks the rest. Numbers in brackets are panel members (`personas.md`).
 
-## The first two minutes (small, mostly the *Publish it* text pass)
+## The first two minutes (small)
 
 - PROPOSED **Say what the numbers are, where they are**: a one-line key over the grid
   (car rating, driver ability, out of 100) and a tooltip on each badge. [1 3 4 8]
@@ -44,8 +44,8 @@ panel run re-ranks the rest. Numbers in brackets are panel members (`personas.md
   counts.
 - PROPOSED **A seed in the URL** (`?seed=`), far smaller than the full Share link. [5 9]
 - PROPOSED **Jump to… easier to find** in eras, where today it shows only wide or behind ⋯. [6]
-- OPEN **Translations** (Portuguese, Spanish, Italian): after the text pass, or every string
-  is translated twice. [2 4 7 9]
+- OPEN **Translations** (Portuguese, Spanish, Italian): once the wording settles, or every
+  string is translated twice. [2 4 7 9]
 - OPEN **Watching a race unfold**: a stepped reveal, or the parade following the race
   order. It goes against the results-only race model, so a direction question first. [1 6]
 - Already roadmap: the ratings editor [3 8], the driver market and Game mode [6].
