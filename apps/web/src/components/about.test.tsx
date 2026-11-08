@@ -55,10 +55,17 @@ describe("the About page", () => {
     }
   });
 
-  it("says the bug report is not available yet on its tab", async () => {
+  it("links the bug report form on its tab", async () => {
     const { html } = await renderRoute("/about?tab=submit-bug");
     expect(html).toMatch(/aria-current="page"[^>]*>Submit bug</);
-    expect(html).toContain("Not available yet.");
+    expect(html).toContain('href="https://docs.google.com/forms/');
+  });
+
+  it("opens the form it is handed, with the run written in", () => {
+    const html = renderToStaticMarkup(
+      <AboutProject tab="submit-bug" releases={[]} bugReport="https://example.test/form?x=1" />,
+    );
+    expect(html).toContain('href="https://example.test/form?x=1"');
   });
 
   it("counts the author's age on the day it is read", () => {

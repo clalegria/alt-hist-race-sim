@@ -7,9 +7,9 @@ built (`web-about.md`).
 
 **The author gates it, not the code.** The ratings no longer hold it up.
 
-- **The bug report page**: a tab on the About page, *not available yet* until built. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
-  one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
-  season, rating mode and randomness level, the recipe (`web-store.md`) of a run.
+- **The bug report page**: DECIDED, a Google Form (the repo is private and most players
+  have no GitHub account). The tab links it with the run written into its "Seed, season,
+  mode, settings" question (`components/bug-report.ts`); the form is the author's.
 - **Going live**:
   - DECIDED: the address is `race-sim.clalegria.dev` (domain not bought yet); the link
     preview tags in `index.html` name it, so change them with it. PROPOSED: Cloudflare

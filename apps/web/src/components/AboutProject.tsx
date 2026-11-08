@@ -3,6 +3,7 @@ import { type AboutTab, type AboutTabLink, aboutHeading } from "../lib/about-tab
 import { PLAYABLE_SEASONS } from "../lib/seasons.js";
 import { cn, DISPLAY_CAPS } from "../lib/utils.js";
 import { type Release, releaseDate } from "../lib/whats-new.js";
+import { bugReportUrl } from "./bug-report.js";
 import { Flag } from "./Flag.js";
 import { PageHeading } from "./PageHeading.js";
 import { Tabs } from "./Tabs.js";
@@ -19,12 +20,15 @@ export function AboutProject({
   tab,
   tabs,
   releases,
+  bugReport = bugReportUrl(null),
   today = new Date(),
 }: {
   tab: AboutTab;
   /** The tabs as links; absent in a test without a router. */
   tabs?: readonly AboutTabLink[];
   releases: readonly Release[];
+  /** The bug report form's address, with the run written in (`bugReportUrl`); the bare form without. */
+  bugReport?: string;
   /** The day the author's age is counted on; a test fixes it. */
   today?: Date;
 }) {
@@ -39,7 +43,7 @@ export function AboutProject({
       ) : tab === "known-issues" ? (
         <KnownIssues />
       ) : (
-        <p className="text-muted-foreground">Not available yet.</p>
+        <SubmitBug href={bugReport} />
       )}
     </div>
   );
@@ -250,7 +254,7 @@ const KNOWN_ISSUES: readonly string[] = [
   "Older seasons might not only have less accurate ratings, which give less realistic results, but also less accurate entry lists, with no clear rule for which teams are included, or which drivers race for each team.",
   "Race results are more realistic than qualifying results, which haven't been tuned as closely.",
   "Every circuit is the same: it's no harder to overtake at Monaco than at Interlagos, and no less likely to rain in Bahrain than at Spa.",
-  "Some planned parts aren't available yet: the advanced era simulation with the driver market, the ratings editor, a game mode where you take over a team and make its decisions, and the Submit a bug report page.",
+  "Some planned parts aren't available yet: the advanced era simulation with the driver market, the ratings editor, and a game mode where you take over a team and make its decisions.",
   'Most of the driver ratings are largely cosmetic, and the "racing" rating matters much more than the rest.',
 ];
 
@@ -262,6 +266,19 @@ function KnownIssues() {
           <li key={issue}>{issue}</li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** Where to report a bug: the form, with the run already written into it. The words are the author's. */
+function SubmitBug({ href }: { href: string }) {
+  return (
+    <div className={PROSE}>
+      <p>
+        Found something wrong? Tell me in the <Out href={href}>bug report form</Out>. If you have a
+        run going, the form opens with its seed and settings already filled in, so I can replay it.
+        Nothing is sent until you submit the form, which is hosted by Google.
+      </p>
     </div>
   );
 }
