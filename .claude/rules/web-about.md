@@ -23,7 +23,6 @@ bug report (not available yet; the footer's *Submit a bug report* opens it).
 - **What's new is `lib/whats-new.json`**: one entry per release day, newest first, a
   `date` (`YYYY-MM-DD`) and `items`, plain-text lines with no links. A release's entry is
   committed with the work it describes; a second release that day adds lines to its entry.
-  Until going live it holds placeholder entries, one per day of work, to show the look.
 - **The file is checked, not trusted**: `parseReleases` refuses a bad entry at load and
   `whats-new.test.ts` loads the real file, so a typo fails the tests, not the page.
 - **An item is written for the player** (`ui-copy.md`): what they will see, not what the

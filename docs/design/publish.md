@@ -5,21 +5,16 @@ built (`web-about.md`).
 
 ## The release
 
-**The author gates it, not the code.** It waits on the author being content with the
-ratings, since a wrong rating reads as a wrong opinion about a real driver. Not after the
-whole authoring pass, nor after the ratings editor.
+**The author gates it, not the code.** The ratings no longer hold it up.
 
 - **The bug report page**: a tab on the About page, *not available yet* until built. PROPOSED: a pre-filled GitHub issue link (no infrastructure, no
   one's data to hold; a `mailto:` publishes the author's address). It pre-fills seed,
-  season, rating mode, randomness level and a build id, which together reproduce a run.
-  The recipe (`web-store.md`) has all but the build id, so add a version stamp to
-  the footer.
+  season, rating mode and randomness level, the recipe (`web-store.md`) of a run.
 - **Going live**:
-  - What's new: replace the placeholder entries with one, the first public release.
-  - Hosting: any static host. GitHub Pages needs a `base` in `vite.config.ts` and a
-    deep-link workaround; Netlify or Cloudflare Pages need neither. A domain is optional;
-    if bought, turn on WHOIS privacy.
-  - CI before CD: a workflow running typecheck, lint and test exists before the deploy one.
+  - DECIDED: the address is `race-sim.clalegria.dev` (domain not bought yet); the link
+    preview tags in `index.html` name it, so change them with it. PROPOSED: Cloudflare
+    Registrar (WHOIS privacy by default) and Cloudflare Pages, which needs no `base` or
+    deep-link workaround, unlike GitHub Pages.
   - Check the payload: `seasons/index.ts` globs every season with `eager: true` into the
     main bundle. Measure; load years on demand if it bites.
   - Security: no backend, accounts or secrets, so most web risks don't apply. What does:
