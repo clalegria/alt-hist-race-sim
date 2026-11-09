@@ -11,14 +11,14 @@ built (`web-about.md`).
   have no GitHub account). The tab links it with the run written into its "Seed, season,
   mode, settings" question (`components/bug-report.ts`); the form is the author's.
 - **Going live**:
-  - DECIDED: the address is `race-sim.clalegria.dev` (domain not bought yet); the link
-    preview tags in `index.html` name it, so change them with it. PROPOSED: Cloudflare
-    Registrar (WHOIS privacy by default) and Cloudflare Pages, which needs no `base` or
-    deep-link workaround, unlike GitHub Pages.
-  - Check the payload: `seasons/index.ts` globs every season with `eager: true` into the
-    main bundle. Measure; load years on demand if it bites.
+  - DECIDED: `race-sim.clalegria.dev`, the domain bought on Cloudflare Registrar; the
+    link preview tags in `index.html` name it, so change them with it. PROPOSED:
+    Cloudflare Pages (or Workers static assets), which needs no `base` or deep-link
+    workaround, unlike GitHub Pages.
+  - DECIDED: Cloudflare deploys whatever lands on `main`, even if CI fails; gating the
+    deploy on CI is a roadmap item.
   - Security: no backend, accounts or secrets, so most web risks don't apply. What does:
-    the repo goes public with its history (confirm no `.env` or personal data); imported
+    if the repo goes public, its history (confirm no `.env` or personal data); imported
     saves and edited names are untrusted input (validate on load, never
     `dangerouslySetInnerHTML`); analytics would bring a privacy notice and maybe consent.
   - Names and marks: real names describing history are fine; championship word marks and

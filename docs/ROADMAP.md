@@ -21,7 +21,7 @@ asked for that era by name.
 
 ## 1. Publish it
 
-A bug report page, then going live. The author decides when. `docs/design/publish.md`.
+Going live on Cloudflare. The author decides when. `docs/design/publish.md`.
 
 ## 2. The in-app ratings editor
 
@@ -57,3 +57,8 @@ Run one team (`game`): *era-advanced* from inside a team, so after it. Notes in
 ## Someday: the Share link
 
 A link that rebuilds a run on another machine. Unscheduled. `docs/design/ratings-editor.md`.
+
+## Someday: deploy only what passes CI
+
+Cloudflare deploys every push to `main`, checks or not. Deploy from GitHub Actions with
+`wrangler` after the checks instead (a Cloudflare API token as a GitHub secret).
