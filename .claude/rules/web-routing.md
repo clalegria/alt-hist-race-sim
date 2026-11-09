@@ -22,7 +22,7 @@ paths:
 Which URL shows what, what a page may read of the run, and how a run is moved and left.
 
 ## Routes
-- **Route names are public once *publish it* ships**: add routes, never rename them.
+- **Route names are public**: the site is live and links are shared; add routes, never rename them.
 - **A file in `src/routes/` is a route** and exports `Route` alone; what the run's
   routes share lives in `run-routes.tsx`. Route files stay thin wiring.
 - **`routeTree.gen.ts` is generated**: committed, excluded from Biome, never edited.

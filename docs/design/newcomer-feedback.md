@@ -40,8 +40,6 @@ panel run re-ranks the rest. Numbers in brackets are panel members (`personas.md
 
 ## Bigger (mostly on the roadmap already)
 
-- PROPOSED **The bug report link** from *Publish it*: real visitors are the feedback that
-  counts.
 - PROPOSED **A seed in the URL** (`?seed=`), far smaller than the full Share link. [5 9]
 - PROPOSED **Jump to… easier to find** in eras, where today it shows only wide or behind ⋯. [6]
 - OPEN **Translations** (Portuguese, Spanish, Italian): once the wording settles, or every

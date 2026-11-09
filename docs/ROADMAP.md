@@ -19,37 +19,33 @@ asked for that era by name.
 
 ---
 
-## 1. Publish it
-
-Going live on Cloudflare. The author decides when. `docs/design/publish.md`.
-
-## 2. The in-app ratings editor
+## 1. The in-app ratings editor
 
 Turns on `edit-ratings`: a player changes a rating and runs their own what-if; export in
-the seed format. After *publish it*. `docs/design/ratings-editor.md`.
+the seed format. `docs/design/ratings-editor.md`.
 
-## 3. Historical career records
+## 2. Historical career records
 
 Each season file carries every driver's and team's totals before it, so a run opens on
 careers in progress. `docs/design/career-records.md`.
 
-## 4. Seasonal factors
+## 3. Seasonal factors
 
 The cosmetic qualifying and race gaps, per season instead of one scale. Display only. This
 item authorises setting that number per year, and no other.
 
-## 5. Circuit character
+## 4. Circuit character
 
 Circuit attributes in `RoundContext`: engine vs downforce weighting, how hard it is to
 overtake, the chance of rain (`wetChance` is the unused seam). Changes what a rating means;
 adds a block to every round of every season.
 
-## 6. Driver market
+## 5. Driver market
 
 Transfers between seasons; turns on `era-advanced`. Leans on *historical career records*.
 `docs/design/era-advanced.md`, which owns its open questions.
 
-## 7. Game mode
+## 6. Game mode
 
 Run one team (`game`): *era-advanced* from inside a team, so after it. Notes in
 `docs/design/era-advanced.md`.
