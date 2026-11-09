@@ -1,0 +1,11 @@
+// Cloudflare's config for the site: a Worker serving only the built web app, no server code.
+// Any address that isn't a file gets index.html, so a deep link like /about?tab=whats-new
+// opens the app and the router takes it from there.
+{
+  "name": "race-sim",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./apps/web/dist",
+    "not_found_handling": "single-page-application"
+  }
+}
