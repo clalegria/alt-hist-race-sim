@@ -27,5 +27,5 @@ The app is public at `race-sim.clalegria.dev`: a Cloudflare Worker serving stati
 - **The licence**: code and authored data are all rights reserved; figures counted from
   Jolpica (calibration targets, real retirements) are CC BY-NC-SA 4.0. A commercial use
   needs Jolpica's permission or those figures left out.
-- **The repo is private.** Before it goes public, check its history for `.env` or
-  personal data.
+- **The repo is public**: nothing private goes in a commit (`.env`, the personal email;
+  commits use the noreply address).
